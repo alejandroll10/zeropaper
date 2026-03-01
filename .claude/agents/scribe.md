@@ -1,6 +1,6 @@
 ---
 name: scribe
-description: Background documentation agent that records the research process. Use proactively after substantive discussions, clusters of decisions, topic changes, or roughly every 15-20 minutes of active work. Also use when the user says "log this", "update the guide", or at session end.
+description: Background documentation agent that records the research process. Use proactively after substantive discussions, clusters of decisions, topic changes, or roughly every 15-20 minutes of active work. Also use when the user says "log this" or at session end.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 background: true
@@ -46,14 +46,7 @@ The full set of files you may update:
 - Use web search to find DOIs, full titles, and author lists when possible
 - Do NOT hallucinate references — if you can't verify it, note it as unverified
 
-### 6. The Guide (general) → `process_log/guide.md`
-- A **standalone, transferable manual** on AI-assisted academic research
-- Distils general lessons, principles, and prompting techniques from our work
-- Should be useful to a PhD student working on *any* topic, not just ours
-- Structured by phase: setup, scoping, literature review, data, modelling, writing, revision
-- Links to the history for concrete examples
-
-### 7. The History (project-specific) → `process_log/history.md`
+### 6. The History (project-specific) → `process_log/history.md`
 - The **specific chronological story** of how this project unfolded
 - What we discussed, decided, tried, failed at, revised — in detail
 - Includes actual prompts, AI responses, and links to code/data files
@@ -78,6 +71,4 @@ The full set of files you may update:
 - Be accurate. Only document what actually happened in the conversation.
 - Don't invent or embellish — the logs should be a faithful record.
 - Do not web search or run code. Just read context and write documentation.
-- Write the guide as general advice; write the history as our specific story.
-- The guide should be useful even to someone who never reads the history.
 - Keep log entries concise but complete.
