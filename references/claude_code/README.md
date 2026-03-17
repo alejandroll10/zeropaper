@@ -9,6 +9,7 @@ Local copies of Claude Code documentation for iterating on our template's agenti
 | [skills.md](skills.md) | Skills & slash commands | https://code.claude.com/docs/en/skills.md |
 | [subagents.md](subagents.md) | Custom subagents | https://code.claude.com/docs/en/sub-agents.md |
 | [loop.md](loop.md) | /loop recurring tasks | https://code.claude.com/docs/en/skills.md |
+| [sandbox_permissions.md](sandbox_permissions.md) | Sandbox & permissions | https://code.claude.com/docs/en/sandboxing.md |
 
 ## Key URLs
 
