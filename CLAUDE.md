@@ -1,5 +1,19 @@
 # CLAUDE.md — AI-Assisted Research Project
 
+## Prerequisites
+
+The following must be installed on the host system before using this project:
+
+- **Python 3.12+** (`sudo apt-get install python3`)
+- **uv** (`curl -LsSf https://astral.sh/uv/install.sh | sh`)
+- **pip** (`sudo apt-get install python3-pip`)
+- **bubblewrap** (`sudo apt-get install bubblewrap`) — for sandbox mode
+- **Git** (`sudo apt-get install git`)
+
+Claude Code operates in a sandboxed environment that restricts Bash writes to the project folder. All Python packages should be installed into a local `.venv/` via `uv`.
+
+---
+
 ## Purpose
 
 This project produces **two deliverables**:
