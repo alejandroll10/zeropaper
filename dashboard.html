@@ -1,0 +1,573 @@
+<!DOCTYPE html>
+<html lang="en">
+<head>
+<meta charset="UTF-8">
+<meta name="viewport" content="width=device-width, initial-scale=1.0">
+<title>Pipeline Dashboard</title>
+<style>
+  :root {
+    --bg: #0d1117;
+    --surface: #161b22;
+    --border: #30363d;
+    --text: #c9d1d9;
+    --text-muted: #8b949e;
+    --green: #3fb950;
+    --yellow: #d29922;
+    --red: #f85149;
+    --blue: #58a6ff;
+    --purple: #bc8cff;
+    --orange: #d18616;
+  }
+  * { margin: 0; padding: 0; box-sizing: border-box; }
+  body {
+    font-family: -apple-system, BlinkMacSystemFont, 'Segoe UI', Helvetica, Arial, sans-serif;
+    background: var(--bg);
+    color: var(--text);
+    padding: 2rem;
+    min-height: 100vh;
+  }
+  h1 { font-size: 1.5rem; margin-bottom: 0.25rem; }
+  .subtitle { color: var(--text-muted); font-size: 0.875rem; margin-bottom: 2rem; }
+  .status-bar {
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    margin-bottom: 2rem;
+    padding: 1rem 1.5rem;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+  }
+  .status-badge {
+    padding: 0.25rem 0.75rem;
+    border-radius: 12px;
+    font-size: 0.75rem;
+    font-weight: 600;
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+  }
+  .status-not_started { background: var(--border); color: var(--text-muted); }
+  .status-running { background: #1f6feb33; color: var(--blue); border: 1px solid var(--blue); }
+  .status-complete { background: #23883033; color: var(--green); border: 1px solid var(--green); }
+  .status-failed { background: #f8514933; color: var(--red); border: 1px solid var(--red); }
+  .counter {
+    display: flex;
+    gap: 1.5rem;
+    margin-left: auto;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+  }
+  .counter span { white-space: nowrap; }
+  .counter strong { color: var(--text); }
+
+  /* Pipeline visualization */
+  .pipeline {
+    display: flex;
+    flex-direction: column;
+    gap: 0;
+    margin-bottom: 2rem;
+  }
+  .stage-row {
+    display: flex;
+    align-items: stretch;
+    min-height: 80px;
+  }
+  .stage-track {
+    width: 48px;
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    flex-shrink: 0;
+  }
+  .stage-line { width: 2px; flex: 1; background: var(--border); }
+  .stage-line.done { background: var(--green); }
+  .stage-line.active { background: var(--blue); }
+  .stage-dot {
+    width: 16px;
+    height: 16px;
+    border-radius: 50%;
+    background: var(--border);
+    border: 2px solid var(--border);
+    flex-shrink: 0;
+    z-index: 1;
+    position: relative;
+  }
+  .stage-dot.done { background: var(--green); border-color: var(--green); }
+  .stage-dot.active {
+    background: var(--bg);
+    border-color: var(--blue);
+    box-shadow: 0 0 0 4px #1f6feb33;
+    animation: pulse 2s infinite;
+  }
+  .stage-dot.failed { background: var(--red); border-color: var(--red); }
+  @keyframes pulse {
+    0%, 100% { box-shadow: 0 0 0 4px #1f6feb33; }
+    50% { box-shadow: 0 0 0 8px #1f6feb22; }
+  }
+
+  .stage-content {
+    flex: 1;
+    padding: 0.75rem 1rem;
+    margin: 4px 0;
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 6px;
+    display: flex;
+    align-items: center;
+    gap: 1rem;
+    transition: border-color 0.2s;
+  }
+  .stage-content.active { border-color: var(--blue); }
+  .stage-content.done { border-color: var(--green); opacity: 0.8; }
+  .stage-name {
+    font-weight: 600;
+    font-size: 0.9rem;
+    min-width: 180px;
+  }
+  .stage-desc {
+    color: var(--text-muted);
+    font-size: 0.8rem;
+    flex: 1;
+  }
+  .gate-badge {
+    font-size: 0.7rem;
+    padding: 0.15rem 0.5rem;
+    border-radius: 4px;
+    font-weight: 600;
+    white-space: nowrap;
+  }
+  .gate-pass { background: #23883033; color: var(--green); }
+  .gate-fail { background: #f8514933; color: var(--red); }
+  .gate-pending { background: var(--border); color: var(--text-muted); }
+  .gate-skip { background: transparent; color: var(--text-muted); font-style: italic; }
+
+  /* Scores panel */
+  .panels {
+    display: grid;
+    grid-template-columns: 1fr 1fr;
+    gap: 1.5rem;
+    margin-bottom: 2rem;
+  }
+  .panel {
+    background: var(--surface);
+    border: 1px solid var(--border);
+    border-radius: 8px;
+    padding: 1.25rem;
+  }
+  .panel h2 {
+    font-size: 0.85rem;
+    color: var(--text-muted);
+    text-transform: uppercase;
+    letter-spacing: 0.05em;
+    margin-bottom: 1rem;
+  }
+  .score-row {
+    display: flex;
+    justify-content: space-between;
+    align-items: center;
+    padding: 0.4rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.85rem;
+  }
+  .score-row:last-child { border-bottom: none; }
+  .score-bar-container {
+    width: 120px;
+    height: 6px;
+    background: var(--border);
+    border-radius: 3px;
+    overflow: hidden;
+    margin-left: 0.5rem;
+  }
+  .score-bar {
+    height: 100%;
+    border-radius: 3px;
+    transition: width 0.5s ease;
+  }
+  .score-val { font-weight: 600; min-width: 32px; text-align: right; }
+
+  /* History log */
+  .history-item {
+    display: flex;
+    gap: 0.75rem;
+    padding: 0.5rem 0;
+    border-bottom: 1px solid var(--border);
+    font-size: 0.8rem;
+  }
+  .history-item:last-child { border-bottom: none; }
+  .history-time { color: var(--text-muted); white-space: nowrap; min-width: 140px; }
+  .history-event { color: var(--text); }
+
+  /* Artifacts panel */
+  .artifact-list { list-style: none; }
+  .artifact-list li {
+    padding: 0.35rem 0;
+    font-size: 0.8rem;
+    color: var(--text-muted);
+    border-bottom: 1px solid var(--border);
+  }
+  .artifact-list li:last-child { border-bottom: none; }
+  .artifact-list .file { color: var(--blue); font-family: monospace; font-size: 0.75rem; }
+
+  .refresh-note {
+    text-align: center;
+    color: var(--text-muted);
+    font-size: 0.75rem;
+    margin-top: 1.5rem;
+  }
+  .error-banner {
+    background: #f8514922;
+    border: 1px solid var(--red);
+    color: var(--red);
+    padding: 0.75rem 1rem;
+    border-radius: 6px;
+    margin-bottom: 1.5rem;
+    font-size: 0.85rem;
+    display: none;
+  }
+  .loop-indicator {
+    display: inline-flex;
+    align-items: center;
+    gap: 0.4rem;
+    font-size: 0.75rem;
+    color: var(--orange);
+    margin-left: 0.5rem;
+  }
+  .loop-indicator .arrow { font-size: 0.65rem; }
+</style>
+</head>
+<body>
+
+<h1>Pipeline Dashboard</h1>
+<p class="subtitle">Autonomous Finance Theory Paper Generator</p>
+
+<div id="error-banner" class="error-banner"></div>
+
+<div id="status-bar" class="status-bar">
+  <span id="status-badge" class="status-badge status-not_started">not started</span>
+  <span id="current-stage-label" style="font-size:0.9rem;">Waiting to start</span>
+  <div class="counter">
+    <span>Problem: <strong id="c-problem">0</strong></span>
+    <span>Idea round: <strong id="c-idea">0</strong></span>
+    <span>Theory: <strong id="c-theory">0</strong></span>
+    <span>Revision: <strong id="c-revision">0</strong></span>
+    <span>Referee: <strong id="c-referee">0</strong></span>
+  </div>
+</div>
+
+<div class="pipeline" id="pipeline"></div>
+
+<div class="panels">
+  <div class="panel" id="scores-panel">
+    <h2>Scorer Dimensions</h2>
+    <div id="scores-content"><p style="color:var(--text-muted);font-size:0.85rem;">No scores yet</p></div>
+  </div>
+  <div class="panel">
+    <h2>History</h2>
+    <div id="history-content"><p style="color:var(--text-muted);font-size:0.85rem;">No events yet</p></div>
+  </div>
+</div>
+
+<div class="panels">
+  <div class="panel">
+    <h2>Output Artifacts</h2>
+    <ul class="artifact-list" id="artifacts-list">
+      <li style="color:var(--text-muted);">No artifacts yet</li>
+    </ul>
+  </div>
+  <div class="panel">
+    <h2>Git Log (pipeline: commits)</h2>
+    <div id="git-log"><p style="color:var(--text-muted);font-size:0.85rem;">No commits yet</p></div>
+  </div>
+</div>
+
+<p class="refresh-note">Auto-refreshes every 5 seconds &middot; Reading from process_log/pipeline_state.json</p>
+
+<script>
+const STAGES = [
+  { id: 'stage_0', name: 'Stage 0: Problem Discovery', desc: 'Literature search, gap identification', gate: 'Gate 0: Viability' },
+  { id: 'stage_1', name: 'Stage 1: Idea Generation', desc: 'Brainstorm mechanisms, iterate with reviewer', gate: 'Gate 1: Idea Review' },
+  { id: 'stage_2', name: 'Stage 2: Theory Development', desc: 'Full model, proofs, comparative statics', gate: 'Gate 2: Math Audit' },
+  { id: 'gate_2',  name: '', desc: '', gate: 'Gate 3: Novelty Check', hidden: true },
+  { id: 'stage_3', name: 'Stage 3: Implications', desc: 'Testable predictions, special cases', gate: null },
+  { id: 'stage_4', name: 'Stage 4: Self-Attack', desc: 'Adversarial weakness finding', gate: 'Gate 4: Scorer' },
+  { id: 'stage_5', name: 'Stage 5: Paper Writing', desc: 'LaTeX paper from scored theory', gate: null },
+  { id: 'stage_6', name: 'Stage 6: Style Check', desc: 'Writing style enforcement', gate: null },
+  { id: 'stage_7', name: 'Stage 7: Referee Simulation', desc: 'Simulated R1 review', gate: 'Gate 5: Referee' },
+];
+
+const STAGE_ORDER = ['stage_0','stage_1','stage_2','gate_2','stage_3','stage_4','stage_5','stage_6','stage_7','complete'];
+
+function stageIndex(id) {
+  return STAGE_ORDER.indexOf(id);
+}
+
+function scoreColor(val) {
+  if (val >= 75) return 'var(--green)';
+  if (val >= 55) return 'var(--yellow)';
+  if (val >= 35) return 'var(--orange)';
+  return 'var(--red)';
+}
+
+function renderPipeline(state) {
+  const currentIdx = stageIndex(state.current_stage);
+  const isComplete = state.status === 'complete';
+  const container = document.getElementById('pipeline');
+  container.innerHTML = '';
+
+  STAGES.forEach((stage, i) => {
+    if (stage.hidden) return; // skip hidden entries in visual
+
+    const idx = stageIndex(stage.id);
+    let dotClass = '';
+    let lineClass = '';
+    let contentClass = '';
+
+    if (isComplete || idx < currentIdx) {
+      dotClass = 'done';
+      lineClass = 'done';
+      contentClass = 'done';
+    } else if (idx === currentIdx) {
+      dotClass = 'active';
+      lineClass = 'active';
+      contentClass = 'active';
+    }
+
+    const row = document.createElement('div');
+    row.className = 'stage-row';
+
+    // Track with dot and lines
+    const track = document.createElement('div');
+    track.className = 'stage-track';
+    if (i > 0) {
+      const lineTop = document.createElement('div');
+      lineTop.className = `stage-line ${lineClass || (idx <= currentIdx ? 'done' : '')}`;
+      track.appendChild(lineTop);
+    }
+    const dot = document.createElement('div');
+    dot.className = `stage-dot ${dotClass}`;
+    track.appendChild(dot);
+    if (i < STAGES.filter(s => !s.hidden).length - 1) {
+      const lineBot = document.createElement('div');
+      lineBot.className = `stage-line ${dotClass === 'done' ? 'done' : ''}`;
+      track.appendChild(lineBot);
+    }
+
+    // Content card
+    const content = document.createElement('div');
+    content.className = `stage-content ${contentClass}`;
+
+    const nameEl = document.createElement('div');
+    nameEl.className = 'stage-name';
+    nameEl.textContent = stage.name;
+
+    // Show loop-back indicator
+    if (stage.id === 'stage_0' && state.problem_attempt > 1) {
+      nameEl.innerHTML += `<span class="loop-indicator"><span class="arrow">&#x21bb;</span> attempt ${state.problem_attempt}</span>`;
+    }
+    if (stage.id === 'stage_1' && state.idea_round > 0) {
+      nameEl.innerHTML += `<span class="loop-indicator"><span class="arrow">&#x21bb;</span> round ${state.idea_round}</span>`;
+    }
+    if (stage.id === 'stage_2' && state.theory_attempt > 1) {
+      nameEl.innerHTML += `<span class="loop-indicator"><span class="arrow">&#x21bb;</span> theory v${state.theory_attempt}</span>`;
+    }
+    if (stage.id === 'stage_2' && state.revision_round > 0) {
+      nameEl.innerHTML += `<span class="loop-indicator"><span class="arrow">&#x21bb;</span> revision ${state.revision_round}</span>`;
+    }
+
+    const descEl = document.createElement('div');
+    descEl.className = 'stage-desc';
+    descEl.textContent = stage.desc;
+
+    content.appendChild(nameEl);
+    content.appendChild(descEl);
+
+    // Gate badge
+    if (stage.gate) {
+      const gate = document.createElement('span');
+      gate.className = 'gate-badge';
+      if (isComplete || idx < currentIdx) {
+        gate.className += ' gate-pass';
+        gate.textContent = stage.gate + ' PASS';
+      } else if (idx === currentIdx && state.status === 'running') {
+        gate.className += ' gate-pending';
+        gate.textContent = stage.gate + ' ...';
+      } else {
+        gate.className += ' gate-skip';
+        gate.textContent = stage.gate;
+      }
+
+      // Override with actual gate results from history
+      const gateResults = findGateResult(state, stage.id);
+      if (gateResults) {
+        gate.className = 'gate-badge ' + (gateResults.pass ? 'gate-pass' : 'gate-fail');
+        gate.textContent = stage.gate + ' ' + gateResults.label;
+      }
+
+      content.appendChild(gate);
+    }
+
+    row.appendChild(track);
+    row.appendChild(content);
+    container.appendChild(row);
+  });
+}
+
+function findGateResult(state, stageId) {
+  if (!state.history || state.history.length === 0) return null;
+  // Look through history for gate results related to this stage
+  for (let i = state.history.length - 1; i >= 0; i--) {
+    const h = state.history[i];
+    const event = (h.event || h.action || '').toLowerCase();
+    if (stageId === 'stage_1' && event.includes('idea review')) {
+      const match = event.match(/(advance|iterate|reject)/i);
+      if (match) {
+        const decision = match[1].toUpperCase();
+        return { pass: decision === 'ADVANCE', label: decision };
+      }
+    }
+    if (stageId === 'stage_2' && event.includes('math audit')) {
+      return { pass: event.includes('pass'), label: event.includes('pass') ? 'PASS' : 'FAIL' };
+    }
+    if (stageId === 'stage_4' && event.includes('scorer')) {
+      const match = event.match(/(advance|revise|rework|abandon)/i);
+      if (match) {
+        const decision = match[1].toUpperCase();
+        return { pass: decision === 'ADVANCE', label: decision };
+      }
+    }
+    if (stageId === 'stage_7' && event.includes('referee')) {
+      const match = event.match(/(accept|minor|major|reject)/i);
+      if (match) {
+        const decision = match[1].toUpperCase();
+        return { pass: decision === 'ACCEPT' || decision === 'MINOR', label: decision };
+      }
+    }
+  }
+  return null;
+}
+
+function renderScores(state) {
+  const content = document.getElementById('scores-content');
+  if (!state.scores || Object.keys(state.scores).length === 0) {
+    content.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">No scores yet</p>';
+    return;
+  }
+  const dims = [
+    { key: 'importance', label: 'Importance', weight: '30%' },
+    { key: 'novelty', label: 'Novelty', weight: '25%' },
+    { key: 'rigor', label: 'Rigor', weight: '20%' },
+    { key: 'parsimony', label: 'Parsimony', weight: '15%' },
+    { key: 'fertility', label: 'Fertility', weight: '10%' },
+  ];
+  let html = '';
+  let total = 0;
+  let hasScores = false;
+  dims.forEach(d => {
+    const val = state.scores[d.key];
+    if (val !== undefined) {
+      hasScores = true;
+      html += `<div class="score-row">
+        <span>${d.label} <span style="color:var(--text-muted)">(${d.weight})</span></span>
+        <div style="display:flex;align-items:center;gap:0.5rem;">
+          <div class="score-bar-container"><div class="score-bar" style="width:${val}%;background:${scoreColor(val)}"></div></div>
+          <span class="score-val" style="color:${scoreColor(val)}">${val}</span>
+        </div>
+      </div>`;
+    }
+  });
+  if (state.scores.aggregate !== undefined) {
+    const agg = state.scores.aggregate;
+    html += `<div class="score-row" style="margin-top:0.5rem;padding-top:0.75rem;border-top:2px solid var(--border);">
+      <span style="font-weight:700;">Aggregate</span>
+      <div style="display:flex;align-items:center;gap:0.5rem;">
+        <div class="score-bar-container"><div class="score-bar" style="width:${agg}%;background:${scoreColor(agg)}"></div></div>
+        <span class="score-val" style="color:${scoreColor(agg)};font-size:1rem;">${agg}</span>
+      </div>
+    </div>`;
+  }
+  if (state.scores.decision) {
+    html += `<div style="margin-top:0.75rem;text-align:center;">
+      <span class="status-badge" style="font-size:0.8rem;
+        ${state.scores.decision === 'ADVANCE' ? 'background:#23883033;color:var(--green);border:1px solid var(--green)' :
+          state.scores.decision === 'REVISE' ? 'background:#d2992233;color:var(--yellow);border:1px solid var(--yellow)' :
+          'background:#f8514933;color:var(--red);border:1px solid var(--red)'}
+      ">${state.scores.decision}</span>
+    </div>`;
+  }
+  content.innerHTML = hasScores ? html : '<p style="color:var(--text-muted);font-size:0.85rem;">No scores yet</p>';
+}
+
+function renderHistory(state) {
+  const content = document.getElementById('history-content');
+  if (!state.history || state.history.length === 0) {
+    content.innerHTML = '<p style="color:var(--text-muted);font-size:0.85rem;">No events yet</p>';
+    return;
+  }
+  let html = '';
+  // Show most recent first, max 15
+  const items = state.history.slice(-15).reverse();
+  items.forEach(h => {
+    const time = h.timestamp || h.time || '';
+    const event = h.event || h.action || h.message || JSON.stringify(h);
+    html += `<div class="history-item">
+      <span class="history-time">${time}</span>
+      <span class="history-event">${event}</span>
+    </div>`;
+  });
+  content.innerHTML = html;
+}
+
+function renderStatus(state) {
+  const badge = document.getElementById('status-badge');
+  badge.className = `status-badge status-${state.status}`;
+  badge.textContent = state.status.replace('_', ' ');
+
+  const label = document.getElementById('current-stage-label');
+  if (state.status === 'complete') {
+    label.textContent = 'Pipeline complete';
+  } else if (state.status === 'not_started') {
+    label.textContent = 'Waiting to start';
+  } else {
+    const stageNames = {
+      stage_0: 'Problem Discovery',
+      stage_1: 'Idea Generation',
+      stage_2: 'Theory Development',
+      stage_3: 'Implications',
+      stage_4: 'Self-Attack & Scoring',
+      stage_5: 'Paper Writing',
+      stage_6: 'Style Check',
+      stage_7: 'Referee Simulation',
+    };
+    label.textContent = stageNames[state.current_stage] || state.current_stage;
+  }
+
+  document.getElementById('c-problem').textContent = state.problem_attempt || 0;
+  document.getElementById('c-idea').textContent = state.idea_round || 0;
+  document.getElementById('c-theory').textContent = state.theory_attempt || 0;
+  document.getElementById('c-revision').textContent = state.revision_round || 0;
+  document.getElementById('c-referee').textContent = state.referee_round || 0;
+}
+
+async function loadState() {
+  try {
+    const resp = await fetch('process_log/pipeline_state.json?t=' + Date.now());
+    if (!resp.ok) throw new Error('Could not load pipeline_state.json');
+    const state = await resp.json();
+    document.getElementById('error-banner').style.display = 'none';
+    renderStatus(state);
+    renderPipeline(state);
+    renderScores(state);
+    renderHistory(state);
+  } catch (e) {
+    const banner = document.getElementById('error-banner');
+    banner.textContent = 'Cannot load pipeline_state.json. Serve this folder with a local HTTP server: python3 -m http.server 8000';
+    banner.style.display = 'block';
+  }
+}
+
+// Initial load + auto-refresh
+loadState();
+setInterval(loadState, 5000);
+</script>
+</body>
+</html>

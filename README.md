@@ -46,14 +46,25 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 npm install -g @anthropic-ai/claude-code
 ```
 
+## Watch progress (dashboard)
+
+In a second terminal:
+
+```bash
+cd my-paper
+python3 -m http.server 8000
+```
+
+Open `http://localhost:8000/dashboard.html` in a browser. It auto-refreshes every 5 seconds showing current stage, scores, gate results, and event history.
+
 ## What happens
 
 The pipeline runs autonomously through these stages:
 
 ```
-Problem Discovery → Theory Generation → Math Audit → Novelty Check
-→ Implications → Self-Attack → Scorer Gate → Paper Writing
-→ Style Check → Referee Simulation → Done
+Problem Discovery → Idea Generation (iterates) → Theory Development
+→ Math Audit → Novelty Check → Implications → Self-Attack
+→ Scorer Gate → Paper Writing → Style Check → Referee Simulation → Done
 ```
 
 Each stage has adversarial quality gates. Failed theories get revised, reworked, or abandoned. The system loops until it produces a paper that passes a simulated referee review.
@@ -63,7 +74,9 @@ Each stage has adversarial quality gates. Failed theories get revised, reworked,
 | Agent | Role |
 |-------|------|
 | `literature-scout` | Web search for papers, builds literature map |
-| `theory-generator` | Proposes models (fresh/mutate/crossover strategies) |
+| `idea-generator` | Brainstorms candidate mechanisms and model ideas |
+| `idea-reviewer` | Evaluates and ranks idea sketches, iterates with generator |
+| `theory-generator` | Develops selected idea into full model with proofs |
 | `math-auditor` | Adversarial step-by-step derivation verification |
 | `novelty-checker` | Web search to verify result is genuinely new |
 | `self-attacker` | Hostile weakness finder, severity-ranked attacks |
@@ -88,12 +101,13 @@ Sandbox is pre-configured in `.claude/settings.json`:
 ├── setup.sh                  # One-command setup
 ├── .claude/
 │   ├── settings.json         # Sandbox config
-│   └── agents/               # 10 custom subagents
+│   └── agents/               # 12 custom subagents
 ├── output/
 │   ├── stage0/               # Problem discovery
-│   ├── stage1/               # Theory drafts, audits, novelty checks
-│   ├── stage2/               # Implications
-│   └── stage3/               # Self-attack, scorer decisions
+│   ├── stage1/               # Idea sketches and reviews
+│   ├── stage2/               # Theory drafts, audits, novelty checks
+│   ├── stage3/               # Implications
+│   └── stage4/               # Self-attack, scorer decisions
 ├── paper/
 │   ├── main.tex
 │   ├── sections/             # One .tex file per section

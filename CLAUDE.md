@@ -34,35 +34,46 @@ If the session ends mid-pipeline, start Claude Code again and say "Run the pipel
 
 ### Watch progress
 
-All output files appear in real time:
+**Dashboard:** Open a terminal in the project folder and run:
+
+```bash
+python3 -m http.server 8000
+```
+
+Then open `http://localhost:8000/dashboard.html` in a browser. The dashboard auto-refreshes every 5 seconds, showing the current stage, scores, gate results, and full event history.
+
+**Files:** All output files appear in real time:
 - `output/stage0/` — problem discovery results
-- `output/stage1/` — theory drafts, audits, novelty checks
-- `output/stage2/` — implications
-- `output/stage3/` — self-attack, scorer decisions
+- `output/stage1/` — idea sketches, reviews, selected idea
+- `output/stage2/` — theory drafts, audits, novelty checks
+- `output/stage3/` — implications
+- `output/stage4/` — self-attack, scorer decisions
 - `paper/sections/` — LaTeX paper sections
 - `process_log/` — full narrative log
 
-Git commits after every stage transition (`git log --oneline` shows the full history).
+**Git:** Commits happen compulsively after every action (`git log --oneline` shows the full history).
 
 ---
 
 ## Pipeline overview
 
 ```
-Stage 0: Problem Discovery ──→ Gate 0: Problem Viability
-Stage 1: Theory Generation  ──→ Gate 1: Math Audit
-                                 Gate 2: Novelty Check
-Stage 2: Implications       ──→
-Stage 3: Self-Attack         ──→ Gate 3: Scorer Decision
-                                   ├── ADVANCE → Stage 4
-                                   ├── REVISE  → back to Stage 1 (max 2×)
-                                   ├── REWORK  → back to Stage 1 new approach (max 2×)
+Stage 0: Problem Discovery   ──→ Gate 0: Problem Viability
+Stage 1: Idea Generation     ──→ Gate 1: Idea Review (iterates with generator)
+                                   └── ADVANCE → best idea goes to Stage 2
+Stage 2: Theory Development  ──→ Gate 2: Math Audit
+                                   Gate 3: Novelty Check
+Stage 3: Implications        ──→
+Stage 4: Self-Attack          ──→ Gate 4: Scorer Decision
+                                   ├── ADVANCE → Stage 5
+                                   ├── REVISE  → back to Stage 2 (max 2×)
+                                   ├── REWORK  → back to Stage 1 new ideas (max 2×)
                                    └── ABANDON → back to Stage 0 (max 3×)
-Stage 4: Paper Writing       ──→
-Stage 5: Style Check         ──→
-Stage 6: Referee Simulation  ──→ Gate 4: Referee Decision
+Stage 5: Paper Writing        ──→
+Stage 6: Style Check          ──→
+Stage 7: Referee Simulation   ──→ Gate 5: Referee Decision
                                    ├── Minor/Accept → Done
-                                   ├── Major Revision → back to Stage 4 (max 2×)
+                                   ├── Major Revision → back to Stage 5 (max 2×)
                                    └── Reject → back to Stage 1
 ```
 
@@ -76,14 +87,22 @@ State is tracked in `process_log/pipeline_state.json`. Read this file at session
 {
   "current_stage": "stage_0",
   "problem_attempt": 1,
+  "idea_round": 0,
   "theory_attempt": 1,
   "revision_round": 0,
   "referee_round": 0,
   "status": "running",
   "scores": {},
-  "history": []
+  "history": [
+    {
+      "timestamp": "2026-03-17T14:00:00Z",
+      "event": "Pipeline started — entering stage 0"
+    }
+  ]
 }
 ```
+
+**History array:** Append a `{ "timestamp": "ISO-8601", "event": "description" }` entry for every pipeline event. This feeds the dashboard. Use `date -u +%Y-%m-%dT%H:%M:%SZ` to get the timestamp. Never truncate or clear the history array.
 
 ---
 
@@ -108,46 +127,76 @@ Score 0-100. If below 50, re-run Stage 0 with different search terms. After 3 fa
 
 ---
 
-## Stage 1: Theory Generation
+## Stage 1: Idea Generation
+
+**Agents:** `idea-generator` + `idea-reviewer` (iterating)
+
+1. Read `output/stage0/problem_statement.md` and `output/stage0/literature_map.md`
+2. Launch idea-generator to brainstorm 3-5 candidate mechanisms
+3. Save sketches to `output/stage1/idea_sketches_rN.md` (N = round number)
+4. Commit: `artifact: idea sketches round {N}`
+
+### Gate 1: Idea Review
+
+**Agent:** `idea-reviewer`
+
+1. Launch idea-reviewer on the sketches + problem statement + literature map
+2. Save review to `output/stage1/idea_review_rN.md`
+3. Commit: `artifact: idea review round {N}`
+4. Read the decision:
+
+| Decision | Action |
+|----------|--------|
+| **ADVANCE** | Best idea identified. Proceed to Stage 2 with the reviewer's instructions for theory development. |
+| **ITERATE** | Re-launch idea-generator with the reviewer's feedback. Max 3 rounds of iteration. |
+| **REJECT ALL** | All ideas are weak. Return to Stage 0 for a different problem. |
+
+5. After 3 rounds without ADVANCE, pick the highest-scored idea and advance it anyway.
+6. Save the winning idea summary to `output/stage1/selected_idea.md`
+7. Update pipeline_state.json and commit: `pipeline: stage 1 complete — idea selected`
+
+---
+
+## Stage 2: Theory Development
 
 **Agent:** `theory-generator`
 
-1. Read `output/stage0/problem_statement.md` and `output/stage0/literature_map.md`
+1. Read `output/stage1/selected_idea.md`, `output/stage0/problem_statement.md`, and `output/stage0/literature_map.md`
 2. Choose strategy:
-   - Attempt 1: fresh proposal
+   - Attempt 1: develop the selected idea into a full theory
    - Attempt 2+: mutate (if previous attempt had good elements) or fresh with different approach
-3. Launch theory-generator with the problem statement, literature map, and strategy
-4. Save result to `output/stage1/theory_draft_vN.md` (N = attempt number)
-5. Commit: `pipeline: stage 1 — theory v{N} generated`
+3. Launch theory-generator with the selected idea, problem statement, literature map, and strategy
+4. Save result to `output/stage2/theory_draft_vN.md` (N = attempt number)
+5. Commit: `artifact: theory draft v{N}`
 
-### Gate 1: Math Audit
+### Gate 2: Math Audit
 
 **Agent:** `math-auditor`
 
-1. Launch math-auditor on `output/stage1/theory_draft_vN.md`
-2. Save result to `output/stage1/math_audit_vN.md`
+1. Launch math-auditor on `output/stage2/theory_draft_vN.md`
+2. Save result to `output/stage2/math_audit_vN.md`
 3. If FAIL:
    - Read the specific errors from the audit
    - Re-launch theory-generator in **mutate** mode with the draft + audit feedback
    - Max 3 audit attempts per theory version
    - If still failing after 3: treat as theory failure, increment theory_attempt
-4. If PASS: proceed to Gate 2
-5. Commit: `pipeline: gate 1 — math audit {PASS/FAIL}`
+4. If PASS: proceed to Gate 3
+5. Commit: `artifact: math audit v{N} — {PASS/FAIL}`
 
-### Gate 2: Novelty Check
+### Gate 3: Novelty Check
 
 **Agent:** `novelty-checker`
 
-1. Launch novelty-checker on `output/stage1/theory_draft_vN.md`
-2. Save result to `output/stage1/novelty_check_vN.md`
-3. If KNOWN: abandon this theory, return to Stage 1 with new approach
+1. Launch novelty-checker on `output/stage2/theory_draft_vN.md`
+2. Save result to `output/stage2/novelty_check_vN.md`
+3. If KNOWN: abandon this theory, return to Stage 2 with new approach
 4. If INCREMENTAL: flag it, proceed with caution (scorer will weigh this)
-5. If NOVEL: proceed to Stage 2
-6. Commit: `pipeline: gate 2 — novelty {NOVEL/INCREMENTAL/KNOWN}`
+5. If NOVEL: proceed to Stage 3
+6. Commit: `artifact: novelty check v{N} — {NOVEL/INCREMENTAL/KNOWN}`
 
 ---
 
-## Stage 2: Implications
+## Stage 3: Implications
 
 **Orchestrator task** (no separate agent needed — you do this)
 
@@ -157,44 +206,44 @@ Score 0-100. If below 50, re-run Stage 0 with different search terms. After 3 fa
    - Comparative statics
    - Special cases that recover known results
    - Economic intuition for each result
-3. Append to the theory draft or write to `output/stage2/implications.md`
-4. Commit: `pipeline: stage 2 — implications developed`
+3. Append to the theory draft or write to `output/stage3/implications.md`
+4. Commit: `pipeline: stage 3 — implications developed`
 
 ---
 
-## Stage 3: Self-Attack
+## Stage 4: Self-Attack
 
 **Agent:** `self-attacker`
 
 1. Launch self-attacker on the theory draft + implications
-2. Save result to `output/stage3/self_attack_vN.md`
-3. Commit: `pipeline: stage 3 — self-attack complete`
+2. Save result to `output/stage4/self_attack_vN.md`
+3. Commit: `artifact: self-attack v{N}`
 
-### Gate 3: Scorer Decision
+### Gate 4: Scorer Decision
 
 **Agent:** `scorer`
 
 1. Launch scorer with:
-   - Theory draft: `output/stage1/theory_draft_vN.md`
-   - Math audit: `output/stage1/math_audit_vN.md`
-   - Novelty check: `output/stage1/novelty_check_vN.md`
-   - Self-attack: `output/stage3/self_attack_vN.md`
-2. Save result to `output/stage3/scorer_decision_vN.md`
+   - Theory draft: `output/stage2/theory_draft_vN.md`
+   - Math audit: `output/stage2/math_audit_vN.md`
+   - Novelty check: `output/stage2/novelty_check_vN.md`
+   - Self-attack: `output/stage4/self_attack_vN.md`
+2. Save result to `output/stage4/scorer_decision_vN.md`
 3. Read the decision:
 
 | Decision | Action |
 |----------|--------|
-| **ADVANCE** (75+) | Proceed to Stage 4 |
-| **REVISE** (55-74) | Return to Stage 1 in mutate mode with scorer feedback. Max 2 revision rounds. |
-| **MAJOR REWORK** (35-54) | Return to Stage 1 with fresh approach + scorer feedback. Max 2 rework rounds. |
+| **ADVANCE** (75+) | Proceed to Stage 5 |
+| **REVISE** (55-74) | Return to Stage 2 in mutate mode with scorer feedback. Max 2 revision rounds. |
+| **MAJOR REWORK** (35-54) | Return to Stage 1 to generate new ideas with scorer feedback. Max 2 rework rounds. |
 | **ABANDON** (<35) | Increment theory_attempt. Return to Stage 1. After 3 abandons on same problem, return to Stage 0. |
 
 4. Update pipeline_state.json accordingly
-5. Commit: `pipeline: gate 3 — scorer {DECISION} (score: {N})`
+5. Commit: `pipeline: gate 4 — scorer {DECISION} (score: {N})`
 
 ---
 
-## Stage 4: Paper Writing
+## Stage 5: Paper Writing
 
 **Agent:** `paper-writer`
 
@@ -211,39 +260,39 @@ Score 0-100. If below 50, re-run Stage 0 with different search terms. After 3 fa
    - `conclusion.tex`
    - `appendix.tex` (if needed)
 3. Paper-writer updates `paper/main.tex` with `\input` commands
-4. Commit: `pipeline: stage 4 — paper draft written`
+4. Commit: `pipeline: stage 5 — paper draft written`
 
 ---
 
-## Stage 5: Style Check
+## Stage 6: Style Check
 
 **Agent:** `style`
 
 1. Launch style agent on the paper
 2. Read the style report
 3. Fix all violations by editing the section files directly
-4. Commit: `pipeline: stage 5 — style violations fixed`
+4. Commit: `pipeline: stage 6 — style violations fixed`
 
 ---
 
-## Stage 6: Referee Simulation
+## Stage 7: Referee Simulation
 
 **Agent:** `referee`
 
 1. Delete any previous reports in `paper/referee_reports/`
 2. Launch referee agent (fresh context, no knowledge of development process)
 3. Save report to `paper/referee_reports/YYYY-MM-DD_vN.md`
-4. Commit: `pipeline: stage 6 — referee report received`
+4. Commit: `pipeline: stage 7 — referee report received`
 
-### Gate 4: Referee Decision
+### Gate 5: Referee Decision
 
 Read the referee's recommendation:
 
 | Recommendation | Action |
 |---------------|--------|
 | **Accept / Minor Revision** | Fix minor comments, commit final version. Pipeline complete. |
-| **Major Revision** | Revise the paper addressing major comments. Re-run Stages 5-6. Max 2 referee rounds. |
-| **Reject** | Read the rejection reasons. If fixable: return to Stage 1 with referee feedback. If fundamental: return to Stage 0. |
+| **Major Revision** | Revise the paper addressing major comments. Re-run Stages 6-7. Max 2 referee rounds. |
+| **Reject** | Read the rejection reasons. If fixable: return to Stage 2 with referee feedback. If fundamental: return to Stage 0. |
 
 Update pipeline_state.json with `"status": "complete"` when done.
 
@@ -255,6 +304,8 @@ Final commit: `pipeline: COMPLETE — paper ready for submission`
 
 | Situation | After N failures | Action |
 |-----------|-----------------|--------|
+| Idea review iterates | 3 rounds | Pick the best idea and advance to Stage 2 |
+| Idea review rejects all | 1 rejection | Return to Stage 0 for a different problem |
 | Math audit fails | 3 attempts | Abandon this theory version |
 | Theory scored REVISE | 2 rounds | Escalate to MAJOR REWORK |
 | Theory scored MAJOR REWORK | 2 rounds | Escalate to ABANDON |
@@ -267,20 +318,27 @@ Final commit: `pipeline: COMPLETE — paper ready for submission`
 ## File organization
 
 ```
+dashboard.html              # Live progress dashboard (serve with python3 -m http.server)
 output/
 ├── stage0/
 │   ├── problem_statement.md
 │   └── literature_map.md
 ├── stage1/
+│   ├── idea_sketches_r1.md
+│   ├── idea_review_r1.md
+│   ├── idea_sketches_r2.md
+│   ├── idea_review_r2.md
+│   └── selected_idea.md
+├── stage2/
 │   ├── theory_draft_v1.md
 │   ├── theory_draft_v2.md
 │   ├── math_audit_v1.md
 │   ├── math_audit_v2.md
 │   ├── novelty_check_v1.md
 │   └── novelty_check_v2.md
-├── stage2/
-│   └── implications.md
 ├── stage3/
+│   └── implications.md
+├── stage4/
 │   ├── self_attack_v1.md
 │   └── scorer_decision_v1.md
 paper/
@@ -305,9 +363,42 @@ process_log/
 
 ---
 
-## Commit protocol
+## Commit protocol — COMPULSIVE COMMITS
 
-Commit after every stage transition. Commit messages use the prefix `pipeline:` so the full history is readable in `git log --oneline`.
+**Commit early, commit often.** This pipeline runs autonomously and may be interrupted at any time. Every piece of work that hits disk must be committed immediately so progress is never lost and the dashboard stays current.
+
+### When to commit
+
+- **After every file write.** If you wrote or updated a file, commit it. Do not batch.
+- **After every stage transition.** Update `pipeline_state.json` first, then commit.
+- **After every gate decision.** The gate result file + updated state = one commit.
+- **After every agent output.** When a subagent returns and you save its output, commit immediately.
+- **After every edit to the paper.** Each section edit gets its own commit.
+- **Before launching a subagent.** If you updated state or wrote input files, commit first so the state on disk matches reality if the session dies mid-agent.
+
+### Commit message format
+
+| Prefix | When |
+|--------|------|
+| `pipeline:` | Stage transitions, gate decisions, pipeline state changes |
+| `artifact:` | Saving agent output (theory drafts, audits, novelty checks, etc.) |
+| `paper:` | Paper section writes and edits |
+| `scribe:` | Documentation updates (scribe agent) |
+
+Examples:
+- `pipeline: stage 0 complete — problem identified`
+- `artifact: theory draft v2 saved`
+- `artifact: math audit v2 — PASS`
+- `pipeline: gate 3 — scorer ADVANCE (score: 78)`
+- `paper: introduction.tex written`
+- `pipeline: state updated — entering stage 4`
+
+### Rules
+
+- **Never batch commits.** One logical action = one commit.
+- **Always update `pipeline_state.json` before committing stage transitions.**
+- **Always update `pipeline_state.json` history array** with a timestamped entry for every event, so the dashboard can display progress.
+- **If in doubt, commit.** An extra commit costs nothing. Lost work costs everything.
 
 The scribe agent runs in the background and commits with `scribe:` prefix for documentation updates.
 

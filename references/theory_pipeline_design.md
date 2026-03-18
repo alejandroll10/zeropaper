@@ -37,7 +37,7 @@ The system must run end-to-end after a single launch command. No human approvals
 - Literature search (WebSearch/WebFetch)
 - Identify open questions, puzzles, gaps in finance theory
 - Survey existing approaches and their limitations
-- Output: `problem_statement.md` + `literature_map.md`
+- Output: `output/stage0/problem_statement.md` + `output/stage0/literature_map.md`
 
 **Gate 0: Problem viability score**
 - Is this problem important enough for a top journal?
@@ -45,97 +45,98 @@ The system must run end-to-end after a single launch command. No human approvals
 - Is it tractable within a theory paper?
 - Score 0-100. Threshold to proceed. If fail → search for different problem.
 
-### Phase 2: Theory development
+### Phase 2: Idea generation (iterative)
 
-**Stage 1: Theory generation**
-- Propose a model/mechanism
+**Stage 1: Idea generation**
+- Brainstorm 3-5 candidate mechanisms for the problem (short sketches, no proofs)
+- Each sketch: mechanism, key assumption, expected result, novelty angle
+- Iterate with reviewer feedback: refine promising ideas, combine, drop weak ones
+- Output: `output/stage1/idea_sketches_rN.md` per round
+
+**Gate 1: Idea review**
+- Evaluate each idea on novelty potential, tractability, importance, clarity
+- Quick web searches to sanity-check novelty before committing to full theory
+- Decision: ADVANCE (pick best idea) / ITERATE (refine with feedback) / REJECT ALL (new problem)
+- Max 3 rounds of iteration, then pick best idea anyway
+- Output: `output/stage1/idea_review_rN.md` + `output/stage1/selected_idea.md`
+
+### Phase 3: Theory development
+
+**Stage 2: Theory development**
+- Develop the selected idea into a full model with proofs
 - State assumptions explicitly
 - Derive key results (propositions, lemmas, corollaries)
-- Strategies: fresh proposal, mutation of previous attempt, crossover of two attempts
-- Persona diversity (mathematician, game theorist, behavioral, contrarian, etc.)
-- Output: `theory_draft.md` (assumptions + derivations + results)
+- Strategies: fresh development of selected idea, mutation of previous attempt, crossover of two attempts
+- Output: `output/stage2/theory_draft_vN.md`
 
-**Gate 1: Math audit (adversarial)**
+**Gate 2: Math audit (adversarial)**
 - Separate agent with no access to the generator's reasoning
 - Verify every derivation step-by-step
 - Check: logical consistency, unstated assumptions, hand-waving, sign errors, boundary cases
 - Retry loop: audit → fail → fix → re-audit (max 3 attempts)
-- If fail after retries → reject theory, return to Stage 1 with different strategy/persona
-- Output: `math_audit.md` (PASS/FAIL + detailed feedback)
+- If fail after retries → reject theory, return to Stage 2 with different strategy
+- Output: `output/stage2/math_audit_vN.md` (PASS/FAIL + detailed feedback)
 
-**Gate 2: Novelty check (adversarial)**
+**Gate 3: Novelty check (adversarial)**
 - WebSearch to find if the result already exists
 - Compare against literature map from Stage 0
 - Is this a known result repackaged? A trivial extension?
-- Score: novel / incremental / known
-- If "known" → reject, return to Stage 1
-- If "incremental" → flag, may proceed if execution is strong
-- Output: `novelty_assessment.md`
+- Score: NOVEL / INCREMENTAL / KNOWN
+- If KNOWN → reject, return to Stage 2 with new approach
+- If INCREMENTAL → flag, proceed with caution (scorer will weigh this)
+- Output: `output/stage2/novelty_check_vN.md`
 
-### Phase 3: Development
+### Phase 4: Evaluation
 
-**Stage 2: Implications & predictions**
+**Stage 3: Implications**
 - Testable predictions / comparative statics
 - Special cases that recover known results (nests existing models)
 - Surprising or counterintuitive implications
 - Economic intuition for each result
-- Output: `implications.md`
+- Output: `output/stage3/implications.md`
 
-**Stage 3: Self-attack**
+**Stage 4: Self-attack**
 - What would a hostile referee say?
 - What are the weakest assumptions? Can any be relaxed?
 - What's the strongest competing explanation?
 - Are there counterexamples?
-- Output: `self_attack.md` with severity scores per weakness
+- Output: `output/stage4/self_attack_vN.md` with severity scores per weakness
 
-**Gate 3: Viability decision**
+**Gate 4: Scorer decision**
 - Aggregate scores from all prior gates + self-attack
-- Decision: advance to writing / revise theory / abandon and restart
-- This is the critical autonomous decision point
+- Five dimensions: importance (30%), novelty (25%), rigor (20%), parsimony (15%), fertility (10%)
+- Decision thresholds:
+  - 75+: ADVANCE to paper writing
+  - 55-74: REVISE (back to Stage 2, mutate mode, max 2 rounds)
+  - 35-54: MAJOR REWORK (back to Stage 1 for new ideas, max 2 rounds)
+  - <35: ABANDON (back to Stage 1; after 3 abandons on same problem, back to Stage 0)
 - Scoring must be calibrated to be harsh — better to restart than polish garbage
-
-### Phase 4: Revision loop
-
-**Stage 4: Address weaknesses**
-- Take self-attack output and strengthen the theory
-- Relax assumptions where possible
-- Add robustness results
-- Tighten derivations
-- Output: revised `theory_draft.md`
-
-**Gate 4: Re-audit**
-- Full math audit on revised theory
-- Must pass clean
-
-**Stage 5: Referee simulation**
-- Fresh agent, no context from development
-- Reads only the theory as a paper would present it
-- Top-journal R1 report
-- Output: `referee_report.md`
-
-**Gate 5: Referee score**
-- If "Reject" → return to Stage 4 with referee comments (max 2 revision rounds)
-- If "Major Revision" → return to Stage 4
-- If "Minor Revision" or better → advance to writing
+- Output: `output/stage4/scorer_decision_vN.md`
 
 ### Phase 5: Paper assembly
 
-**Stage 6: Paper writing**
+**Stage 5: Paper writing**
 - Assemble into LaTeX: introduction, model, results, discussion, conclusion
 - Follow style guide (CLAUDE.md rules)
 - Proper citations from literature map
+- Preemptively address self-attack weaknesses
 - Output: `paper/sections/*.tex`
 
-**Stage 7: Style check**
+**Stage 6: Style check**
 - Run style agent
 - Fix all violations
 - Output: polished `paper/sections/*.tex`
 
-**Stage 8: Final referee**
-- One more fresh referee read of the complete paper
-- Output: final `referee_report.md`
-- If major issues → one more revision pass
-- Otherwise → done
+**Stage 7: Referee simulation**
+- Fresh agent, no context from development
+- Reads only the paper as a journal submission
+- Top-journal R1 report
+- Output: `paper/referee_reports/YYYY-MM-DD_vN.md`
+
+**Gate 5: Referee decision**
+- Accept / Minor Revision → fix comments, pipeline complete
+- Major Revision → revise paper, re-run Stages 6-7 (max 2 rounds)
+- Reject → return to Stage 2 with referee feedback, or Stage 0 if fundamental
 
 ---
 
@@ -159,19 +160,20 @@ The system's integrity depends on evaluation being harder than generation. Key p
 - Default is reject; the theory must earn advancement
 
 ### 4. Quantitative gates
-- Each gate produces a numeric score (0-100)
-- Thresholds are set high (e.g., math audit must be 90+ to pass)
-- Aggregate score determines advance/revise/abandon
-- Suggested thresholds:
-  - Math audit: 90+ to pass
-  - Novelty: 60+ to proceed (above "incremental")
+- Each gate produces a numeric score or binary decision
+- Thresholds are set high (math audit must PASS with zero errors)
+- Aggregate scorer uses weighted dimensions with 75+ to advance
+- Suggested calibration:
+  - Math audit: PASS = zero errors, re-derive every step
+  - Novelty: NOVEL or strong INCREMENTAL to proceed
   - Self-attack: no severity-10 weaknesses unaddressed
-  - Referee: "Minor Revision" or better to proceed to writing
+  - Scorer: 75+ to advance (rare — most theories score below 50)
+  - Referee: Minor Revision or better to complete
 
-### 5. Multiple referee personas
-- Not one referee — simulate 2-3 with different perspectives
-- A theorist, an empiricist, a skeptic
-- Consensus required to advance
+### 5. Cheap iteration before expensive work
+- Stage 1 (idea generation) iterates on sketches — no proofs, no algebra
+- This filters dead ends before the expensive Stage 2 (full theory with proofs)
+- The idea-reviewer does quick novelty web searches to catch known results early
 
 ---
 
@@ -179,17 +181,19 @@ The system's integrity depends on evaluation being harder than generation. Key p
 
 | Agent | Role | Model | Tools | Background? |
 |-------|------|-------|-------|-------------|
-| **orchestrator** | Main pipeline controller | opus | All | No |
-| **literature-scout** | WebSearch + paper discovery | sonnet | WebSearch, WebFetch, Read, Write | Yes |
-| **theory-generator** | Propose theories | opus | Read, Write | No |
-| **math-auditor** | Verify derivations | opus | Read, Write | No |
-| **novelty-checker** | Compare to literature | sonnet | WebSearch, WebFetch, Read, Write | No |
-| **self-attacker** | Find weaknesses | opus | Read, Write | No |
-| **referee** | Simulate journal referee | opus | Read, Write, Glob | No |
-| **paper-writer** | Write LaTeX sections | opus | Read, Write, Edit | No |
-| **style-checker** | Enforce writing rules | sonnet | Read, Glob, Grep | No |
-| **scribe** | Log everything | sonnet | Read, Write, Edit, Bash | Yes |
-| **scorer** | Aggregate scores, decide advance/revise/abandon | sonnet | Read, Write | No |
+| **orchestrator** | Main pipeline controller (CLAUDE.md) | opus | All | No |
+| **literature-scout** | WebSearch + paper discovery | sonnet | WebSearch, WebFetch, Read, Write, Glob, Grep | No |
+| **idea-generator** | Brainstorm candidate mechanisms | opus | Read, Write | No |
+| **idea-reviewer** | Evaluate/rank idea sketches | opus | Read, Write, WebSearch, WebFetch | No |
+| **theory-generator** | Develop full theories with proofs | opus | Read, Write | No |
+| **math-auditor** | Verify derivations adversarially | opus | Read, Write | No |
+| **novelty-checker** | Compare to existing literature | sonnet | WebSearch, WebFetch, Read, Write | No |
+| **self-attacker** | Find every weakness | opus | Read, Write | No |
+| **scorer** | Aggregate scores, decide advance/revise/abandon | opus | Read, Write | No |
+| **paper-writer** | Write LaTeX sections | opus | Read, Write, Edit, Glob, Grep | No |
+| **style** | Enforce writing rules | sonnet | Read, Glob, Grep | No |
+| **referee** | Simulate journal referee | opus | Read, Glob, Grep, Write | No |
+| **scribe** | Log everything | sonnet | Read, Write, Edit, Bash, Grep, Glob | Yes |
 
 ### Key: orchestrator is CLAUDE.md itself
 
@@ -199,32 +203,46 @@ The orchestrator isn't a subagent — it's the main Claude session running the p
 3. Reads the result
 4. Applies the gate logic
 5. Decides next step
-6. Repeats until paper is done
+6. Commits after every action
+7. Repeats until paper is done
 
 ### State management
 
 Pipeline state lives in `process_log/pipeline_state.json`:
 ```json
 {
-  "current_stage": "math_audit",
-  "attempt": 2,
-  "theory_version": 3,
-  "scores": {
-    "problem_viability": 82,
-    "math_audit": null,
-    "novelty": 71,
-    "self_attack_max_severity": 7,
-    "referee_recommendation": null
-  },
+  "current_stage": "stage_2",
+  "problem_attempt": 1,
+  "idea_round": 2,
+  "theory_attempt": 1,
+  "revision_round": 0,
+  "referee_round": 0,
+  "status": "running",
+  "scores": {},
   "history": [
-    {"stage": "theory_generation", "attempt": 1, "result": "rejected_math_audit"},
-    {"stage": "theory_generation", "attempt": 2, "result": "rejected_novelty"},
-    {"stage": "theory_generation", "attempt": 3, "result": "pending"}
+    {"timestamp": "2026-03-17T14:00:00Z", "event": "Pipeline started"},
+    {"timestamp": "2026-03-17T14:05:00Z", "event": "Stage 0 complete — problem identified"},
+    {"timestamp": "2026-03-17T14:20:00Z", "event": "Stage 1 — idea review round 2 ADVANCE"}
   ]
 }
 ```
 
-Git commits at every stage transition = checkpointing.
+Git commits at every stage transition and agent output = checkpointing. The dashboard reads this file every 5 seconds.
+
+---
+
+## Escalation rules (prevent infinite loops)
+
+| Situation | After N failures | Action |
+|-----------|-----------------|--------|
+| Idea review iterates | 3 rounds | Pick the best idea and advance to Stage 2 |
+| Idea review rejects all | 1 rejection | Return to Stage 0 for a different problem |
+| Math audit fails | 3 attempts | Abandon this theory version |
+| Theory scored REVISE | 2 rounds | Escalate to MAJOR REWORK |
+| Theory scored MAJOR REWORK | 2 rounds | Escalate to ABANDON |
+| Theory scored ABANDON | 3 theories on same problem | Change the problem (Stage 0) |
+| Problem viability fails | 3 problems | Pick the best scoring problem and proceed anyway |
+| Referee rejects | 2 rejections | Return to Stage 0 with entirely new topic |
 
 ---
 
@@ -234,10 +252,12 @@ Git commits at every stage transition = checkpointing.
 
 2. **Infinite loops** — theory keeps failing audit, never advances. Mitigation: max attempts per stage, escalation logic (after N failures, change problem not just theory).
 
-3. **Trivial theories** — system produces something technically correct but boring. Mitigation: novelty gate + referee "importance" score.
+3. **Trivial theories** — system produces something technically correct but boring. Mitigation: idea review stage filters for importance early, novelty gate, referee "importance" score.
 
 4. **Hallucinated literature** — fake citations. Mitigation: WebSearch verification of every cited paper, explicit "no hallucinated references" rule.
 
 5. **Scope creep** — theory grows too complex trying to address every critique. Mitigation: parsimony score, "add one thing or cut one thing" revision rule.
 
 6. **Style without substance** — beautiful writing around weak theory. Mitigation: adversarial gates run on the math, not the prose. Paper writing comes last.
+
+7. **Wasted compute on bad ideas** — full theory development on the first idea that comes to mind. Mitigation: Stage 1 iterates on cheap sketches before committing to expensive proofs in Stage 2.

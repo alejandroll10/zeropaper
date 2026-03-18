@@ -1,6 +1,6 @@
 ---
 name: referee
-description: Simulated top-journal referee. Use when the user says "referee", "simulate referee", "run referee", or "get a referee report". Always runs fresh with no knowledge of previous reports or changes.
+description: Simulated top-journal referee. The orchestrator launches this agent at Stage 7 of the pipeline. Always runs fresh with no knowledge of previous reports or changes.
 tools: Read, Glob, Grep, Write
 model: opus
 ---

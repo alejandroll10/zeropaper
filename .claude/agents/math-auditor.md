@@ -1,6 +1,6 @@
 ---
 name: math-auditor
-description: Adversarial math verification agent. Use after theory generation (Gate 1) to verify all derivations step-by-step. Must pass before theory advances.
+description: Adversarial math verification agent. The orchestrator launches this agent at Gate 2 after theory development. Verifies all derivations step-by-step. Must pass before theory advances.
 tools: Read, Write
 model: opus
 ---

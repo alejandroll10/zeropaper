@@ -1,6 +1,6 @@
 ---
 name: paper-writer
-description: Writes the LaTeX paper from a scored theory draft. Use after the scorer returns ADVANCE. Produces publication-ready sections.
+description: Writes the LaTeX paper from a scored theory draft. The orchestrator launches this agent at Stage 5 after the scorer returns ADVANCE. Produces publication-ready sections.
 tools: Read, Write, Edit, Glob, Grep
 model: opus
 ---

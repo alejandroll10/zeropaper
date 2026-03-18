@@ -1,6 +1,6 @@
 ---
 name: scribe
-description: Background documentation agent that records the research process. Use proactively after substantive discussions, clusters of decisions, topic changes, or roughly every 15-20 minutes of active work. Also use when the user says "log this" or at session end.
+description: Background documentation agent that records the research process. The orchestrator launches this agent after every stage transition and gate decision. Runs in the background so the pipeline continues uninterrupted.
 tools: Read, Write, Edit, Bash, Grep, Glob
 model: sonnet
 background: true

@@ -1,6 +1,6 @@
 ---
 name: novelty-checker
-description: Adversarial novelty verification. Use after math audit passes (Gate 2) to check whether the theory is actually new or a known result repackaged.
+description: Adversarial novelty verification. The orchestrator launches this agent at Gate 3 after math audit passes. Checks whether the theory is genuinely new or a known result repackaged.
 tools: WebSearch, WebFetch, Read, Write
 model: sonnet
 ---

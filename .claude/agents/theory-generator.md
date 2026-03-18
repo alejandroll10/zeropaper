@@ -1,6 +1,6 @@
 ---
 name: theory-generator
-description: Proposes new finance theory models. Use during Stage 1 of the pipeline to generate theory drafts. Supports multiple strategies (fresh, mutate, crossover) and personas.
+description: Proposes new finance theory models. The orchestrator launches this agent at Stage 2 (Theory Development). Supports fresh, mutate, and crossover strategies based on attempt history.
 tools: Read, Write
 model: opus
 ---

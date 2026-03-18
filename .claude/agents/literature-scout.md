@@ -1,6 +1,6 @@
 ---
 name: literature-scout
-description: Searches the web for relevant finance papers, surveys existing literature, and builds a literature map. Use at the start of the pipeline (Stage 0) and during novelty checking.
+description: Searches the web for relevant finance papers, surveys existing literature, and builds a literature map. The orchestrator launches this agent at Stage 0 (Problem Discovery).
 tools: WebSearch, WebFetch, Read, Write, Glob, Grep
 model: sonnet
 ---

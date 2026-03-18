@@ -1,6 +1,6 @@
 ---
 name: self-attacker
-description: Adversarial weakness finder. Use after novelty check passes (Stage 3) to find every possible weakness before the referee does. The harshest internal critic.
+description: Adversarial weakness finder. The orchestrator launches this agent at Stage 4 after novelty check passes. Finds every possible weakness before the referee does.
 tools: Read, Write
 model: opus
 ---
