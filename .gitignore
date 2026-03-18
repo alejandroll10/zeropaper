@@ -32,6 +32,9 @@ Thumbs.db
 # Meta paper (separate repo)
 meta_paper/
 
+# API keys
+.env
+
 # LaTeX build artifacts
 paper/*.aux
 paper/*.bbl

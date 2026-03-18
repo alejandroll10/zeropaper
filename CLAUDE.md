@@ -211,6 +211,19 @@ Score 0-100. If below 50, re-run Stage 0 with different search terms. After 3 fa
 
 ---
 
+## Stage 3b/3c: LLM Experiments (optional — theory_llm variant only)
+
+**These stages run only if** `llm_client.py` exists in the project root and `experiment-designer` agent exists in `.claude/agents/`. If not present, skip to Stage 4.
+
+If present, read `extensions/theory_llm/STAGES.md` for full instructions. Summary:
+
+1. **Stage 3b:** Launch `experiment-designer` to design and run experiments testing theoretical predictions via gpt-oss models
+2. **Stage 3c:** Launch `experiment-reviewer` to evaluate methodology and results
+3. If ACCEPT: proceed to Stage 4 (self-attacker receives experiment results too)
+4. If REVISE/REDESIGN: iterate (max 2 rounds), then proceed
+
+---
+
 ## Stage 4: Self-Attack
 
 **Agent:** `self-attacker`

@@ -19,12 +19,20 @@ Clone https://github.com/alejandroll10/auto-ai-research-template.git into this f
 ### Option B: From terminal
 
 ```bash
-./setup.sh my-paper
+./setup.sh my-paper                   # pure theory (default)
+./setup.sh my-paper --theory-llm      # theory + LLM experiments
 cd my-paper
 claude --dangerously-skip-permissions
 ```
 
 Then say: **"Run the pipeline."**
+
+### Variants
+
+| Variant | Flag | What it adds |
+|---------|------|-------------|
+| **Pure theory** | (default) | Standard pipeline: problem → theory → paper |
+| **theory_llm** | `--theory-llm` | Adds LLM experiment stages: tests predictions using gpt-oss models via UF NaviGator. Requires `UF_API_KEY`. |
 
 ## Prerequisites
 
