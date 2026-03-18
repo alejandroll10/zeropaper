@@ -29,6 +29,9 @@ Thumbs.db
 .vscode/
 .idea/
 
+# Meta paper (separate repo)
+meta_paper/
+
 # LaTeX build artifacts
 paper/*.aux
 paper/*.bbl
