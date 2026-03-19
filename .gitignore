@@ -35,6 +35,9 @@ meta_paper/
 # API keys
 .env
 
+# Meta-project CLAUDE.md (not the assembled one — see templates/claude_md/core.md)
+CLAUDE.md
+
 # LaTeX build artifacts
 paper/*.aux
 paper/*.bbl
