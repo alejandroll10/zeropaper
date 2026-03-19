@@ -75,12 +75,11 @@ Both are free via UF NaviGator. Reasoning effort levels: `low`, `medium`, `high`
 
 ## Setup
 
+If you used `setup.sh --variant finance_llm`, these files were already copied and installed automatically. Just configure your API key:
+
 ```bash
-# From project root after setup.sh:
-cp extensions/theory_llm/llm_client.py .
-cp extensions/theory_llm/agents/* .claude/agents/
+# Edit .env and add your key:
 echo "UF_API_KEY=your-key-here" > .env
-pip install openai python-dotenv  # or: uv add openai python-dotenv
 
 # Test connection:
 python llm_client.py

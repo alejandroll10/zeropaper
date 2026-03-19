@@ -330,7 +330,7 @@ Record all scores in `pipeline_state.json` under `"scores"` so the trajectory ca
    - `discussion.tex`
    - `conclusion.tex`
    - `appendix.tex` (if needed)
-3. Paper-writer updates `paper/main.tex` with `\input` commands
+3. Paper-writer creates `paper/main.tex` with `\input` commands
 4. Commit: `pipeline: stage 5 — paper draft written`
 
 ---
