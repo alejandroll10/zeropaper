@@ -75,7 +75,7 @@ Read the theory draft and all evaluation outputs. Score each dimension 0-100:
 | Score | Decision | Action |
 |-------|----------|--------|
 | 75+ | **ADVANCE** | Proceed to paper writing |
-| 55-74 | **REVISE** | Return to theory-generator with specific feedback. Max 2 revision rounds. |
+| 55-74 | **REVISE** | Return to theory-generator with specific feedback. Orchestrator handles iteration limits via trajectory-based escalation. |
 | 35-54 | **MAJOR REWORK** | Return to theory-generator with instruction to change approach, not just fix. |
 | <35 | **ABANDON** | This theory is not viable. Start fresh with different idea. |
 

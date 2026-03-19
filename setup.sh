@@ -11,6 +11,7 @@ set -e
 PROJECT_NAME=""
 VARIANT="finance"
 LOCAL=0
+NEXT_IS_VARIANT=0
 
 for arg in "$@"; do
     case "$arg" in
@@ -71,7 +72,7 @@ if [ "$LOCAL" = "1" ]; then
     OUT_DIR="$SCRIPT_DIR/$PROJECT_NAME"
 
     rm -rf "$OUT_DIR"
-    mkdir -p "$OUT_DIR/agents"
+    mkdir -p "$OUT_DIR/.claude/agents"
 
     echo "Local test mode: $VARIANT → $OUT_DIR"
 else
@@ -93,6 +94,11 @@ else
         exit 1
     fi
     echo "All prerequisites found."
+
+    if [ -e "$PROJECT_NAME" ]; then
+        echo "Error: $PROJECT_NAME already exists"
+        exit 1
+    fi
 
     echo "Cloning template into $PROJECT_NAME..."
     git clone https://github.com/alejandroll10/auto-ai-research-template.git "$PROJECT_NAME"
@@ -151,7 +157,7 @@ echo "  ✓ CLAUDE.md assembled"
 echo "Copying agents..."
 
 if [ "$LOCAL" = "1" ]; then
-    AGENTS_OUT="$OUT_DIR/agents"
+    AGENTS_OUT="$OUT_DIR/.claude/agents"
 else
     AGENTS_OUT=".claude/agents"
     rm -f "$AGENTS_OUT"/*.md
@@ -192,7 +198,7 @@ if [ "$LOCAL" = "1" ]; then
     REMAINING="${REMAINING:-0}"
     echo "Placeholders remaining: $REMAINING"
     echo ""
-    echo "=== Agents ==="
+    echo "=== Agents (.claude/agents/) ==="
     ls -1 "$AGENTS_OUT/"
     echo ""
     echo "=== First 10 lines ==="
