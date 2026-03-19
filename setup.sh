@@ -184,6 +184,10 @@ if [ "$VARIANT" = "finance_llm" ] && [ "$LOCAL" = "0" ]; then
     fi
 
     mkdir -p output/stage3b_experiments
+
+    # Copy STAGES.md to project root so core.md reference works after extensions/ cleanup
+    cp extensions/theory_llm/STAGES.md .
+
     uv pip install --system openai python-dotenv -q 2>/dev/null || echo "Note: install openai and python-dotenv manually"
 
     echo "  ✓ LLM experiment extension applied"

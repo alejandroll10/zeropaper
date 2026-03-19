@@ -256,7 +256,7 @@ This is the second of two deep novelty checks. The idea was already checked at G
 
 **These stages run only if** `llm_client.py` exists in the project root and `experiment-designer` agent exists in `.claude/agents/`. If not present, skip to Stage 4.
 
-If present, read `extensions/theory_llm/STAGES.md` for full instructions. Summary:
+If present, read `STAGES.md` for full instructions. Summary:
 
 1. **Stage 3b:** Launch `experiment-designer` to design and run experiments testing theoretical predictions via gpt-oss models
 2. **Stage 3c:** Launch `experiment-reviewer` to evaluate methodology and results
