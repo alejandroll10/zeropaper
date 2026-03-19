@@ -38,6 +38,9 @@ meta_paper/
 # Meta-project CLAUDE.md (not the assembled one — see templates/claude_md/core.md)
 CLAUDE.md
 
+# Local test output from test-variant.sh
+test_output/
+
 # LaTeX build artifacts
 paper/*.aux
 paper/*.bbl
