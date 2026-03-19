@@ -35,10 +35,7 @@ meta_paper/
 # API keys
 .env
 
-# Meta-project CLAUDE.md (not the assembled one — see templates/claude_md/core.md)
-CLAUDE.md
-
-# Local test output from test-variant.sh
+# Local test output from setup.sh --local
 test_output/
 
 # LaTeX build artifacts
