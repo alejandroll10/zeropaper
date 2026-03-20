@@ -387,6 +387,42 @@ After the pipeline is complete (`"status": "complete"`), any new or modified pro
 
 ---
 
+## Never-abandon rule
+
+**Once a paper draft exists (Stage 5+), the pipeline must produce a finished paper.** Do not loop back to Stage 0 after investing in paper writing. Instead, use the extension playbook below to strengthen the paper.
+
+If the scorer plateaus in the 55-74 range or the referee gives Major Revision with structural concerns (result is fragile, too narrow, or shallow):
+
+### Extension playbook — economically substantive mathematical extensions
+
+When the core result is correct but thin, the path to a journal paper is through extensions that are both mathematically hard and economically interesting. The goal is not robustness-checking — it's discovering new economic content that the simple model hid. Hard math often delivers surprising insights: a continuous-time formulation reveals a new channel, incomplete markets create an amplification mechanism, learning generates endogenous cycles. The extension should either (a) uncover new economics that changes the story, or (b) introduce a new concept or technique that helps tackle existing puzzles in the literature.
+
+| Extension type | Economic question it answers | What makes it hard and valuable |
+|---------------|-----------|-------------|
+| **Continuous time** | How do the dynamics and transition paths work? What are the impulse responses? Does the result hold off steady state? | HJB equations, Kolmogorov forward equations, SDEs. Yields sharper results than discrete time and connects to literatures (intermediary pricing, slow-moving capital) that discrete models cannot reach. Humans avoid the PDE work; the economics is often surprising. |
+| **Incomplete markets / heterogeneity** | Does the result survive when agents face idiosyncratic risk and borrowing constraints? How does the wealth distribution shape the aggregate outcome? | Bewley/Aiyagari/HANK models with analytical results are rare and highly valued. The aggregation problem is genuinely hard. When a result holds with heterogeneity, that's a much stronger paper. |
+| **Learning and incomplete information** | What happens when agents don't observe the state and must learn? Does the result hold under signal extraction? Do beliefs become a state variable? | Bayesian updating in equilibrium creates feedback loops between beliefs and prices. The filtering algebra is hard but the economic content is rich — you get belief-driven dynamics, information cascades, and endogenous uncertainty. |
+| **General preferences** | Is the result an artifact of CARA/log/linear-quadratic, or does it hold for CRRA, Epstein-Zin, habits? Where exactly does it break and why? | Moving beyond tractable preferences requires perturbation methods, envelope arguments, or duality tricks. The economic content is in *why* it breaks — what economic force does the tractable case suppress? A characterization of "holds if and only if [condition]" is a real theorem. |
+| **Higher dimensions** | Does the 2-asset result extend to N assets? The 2-agent result to a continuum? Does the structure of the solution change qualitatively? | N-dimensional results often reveal structure invisible in low dimensions (e.g., factor structure, spanning, aggregation). The algebra is harder but the results are more general and the economic content richer. |
+| **Perturbation and approximation** | When exact results need strong assumptions, how far do they extend? What's the formal error bound? | A bound like "welfare cost deviates by O(σ⁴)" is a theorem, not a robustness check. It tells you which assumptions are load-bearing and which are cosmetic. Addresses referee concerns about fragility with mathematical precision. |
+| **Dynamic / stochastic extensions** | What happens with persistence, regime-switching, time-varying parameters? Does the static intuition survive? | Dynamic models generate testable predictions (forecastability, autocorrelation structure, crisis behavior) that static models cannot. The economics often changes qualitatively — mean-reversion vs. unit root matters for policy. |
+
+### How to apply
+
+1. Read the scorer feedback and self-attack report. Identify the specific economic weakness — not "the result is narrow" but "the result only holds under CARA-normal, and the economic channel may depend on the absence of wealth effects."
+2. Pick 1-2 extensions that directly address that economic question. Each extension should answer: "Does the economic channel survive when [realistic feature] is present?"
+3. For each extension: state the economic question, set up the model, prove the result (or prove it breaks — a clean counterexample is as valuable as a positive result). Explain the economics of why.
+4. A paper with a **core result + 2-3 substantive extensions** that map out when the result holds and fails is a characterization. That is a journal paper.
+5. Re-run Gate 2 (math audit) on the new results, then Gate 4 (scorer).
+
+### When to use this vs. starting over
+
+- Score 55+ with correct core result → **Extend.** The economic idea is right, the paper needs more results. Build the characterization.
+- Score < 35 or core result is wrong → **Start over.** Extensions can't fix broken economics.
+- Novelty check KNOWN → **Start over.** Extensions won't create novelty that isn't there.
+
+---
+
 ## Escalation rules (prevent infinite loops)
 
 | Situation | After N failures | Action |
@@ -397,10 +433,12 @@ After the pipeline is complete (`"status": "complete"`), any new or modified pro
 | Math audit fails | 3 attempts | Abandon this theory version |
 | Scorer: delta ≥ 3 | — | Allow one more iteration in current band |
 | Scorer: delta < 3 (plateau/decline) | — | Escalate one level (REVISE → MAJOR REWORK → ABANDON) |
-| Scorer: hard ceiling | 4 total evaluations on same problem | Escalate one level from current band regardless of trajectory (REVISE → MAJOR REWORK → ABANDON) |
+| Scorer: hard ceiling | 4 total evaluations on same problem | If score ≥ 55: switch to extension playbook. If score < 55: escalate one level. |
+| Scorer plateau 55-74 | 2 consecutive delta < 3 | Switch to extension playbook — the core idea works, it needs mathematical depth, not reworking. |
 | Theory scored ABANDON | 3 theories on same problem | Change the problem (Stage 0) |
 | Problem viability fails | 3 problems | Pick the best scoring problem and proceed anyway |
-| Referee rejects | 2 rejections | Return to Stage 0 with entirely new topic |
+| Referee: Major Revision | Structural concerns (fragile, narrow, shallow) | Use extension playbook to strengthen before resubmitting. Do not loop back to Stage 0. |
+| Referee rejects | 2 rejections with "fundamental flaw" | Return to Stage 0 with entirely new topic |
 
 ---
 
