@@ -13,9 +13,6 @@ __pycache__/
 .venv/
 venv/
 
-# Temporary exploratory scripts
-code/tmp/
-
 # R
 .Rhistory
 .RData

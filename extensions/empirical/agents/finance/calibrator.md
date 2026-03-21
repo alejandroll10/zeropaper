@@ -80,3 +80,4 @@ Perturb each internally calibrated parameter by ±20%. Report how model-implied 
 - **Don't force the fit.** If the model can't match a moment, report it honestly. A calibration that reveals a model limitation is more valuable than one that hides it.
 - **Report annualized moments.** Convert monthly to annual where appropriate (multiply mean by 12, std by sqrt(12) for returns).
 - **No hallucinated data.** Every number must come from data you actually downloaded and computed. If a data source is unavailable, say so.
+- **Credentials only in `.env`.** Never write API keys, passwords, or tokens anywhere except `.env`. Load them with `dotenv`. Never hardcode, print, or log credentials in scripts.

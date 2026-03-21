@@ -83,4 +83,5 @@ Write Python. Use standard tools (pandas, statsmodels, numpy, scipy). Run each t
 - **Always write scripts, never inline code.** Never run `python3 -c "..."`. Write every piece of code to a file first, then run it. Final code goes in `code/empirical_tests.py`. Intermediate/exploratory scripts go in `code/tmp/`. Reproducibility is non-negotiable.
 - **Write code incrementally.** Write a small script, run it, check output, extend.
 - **No hallucinated results.** Every number comes from code you ran on data you downloaded. If you can't get the data, say "unable to test — requires [data source]."
+- **Credentials only in `.env`.** Never write API keys, passwords, or tokens anywhere except `.env`. Load them with `dotenv`. Never hardcode, print, or log credentials in scripts.
 - **Distinguish strong from weak tests.** A cross-sectional sort on 50 years of data is a strong test. A time-series correlation on 10 observations is a weak test. Say which is which.
