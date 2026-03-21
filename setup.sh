@@ -1,9 +1,10 @@
 #!/bin/bash
 # Auto AI Research Template — Setup & Launch
-# Usage: ./setup.sh [project-name] [--variant finance|macro|finance_llm] [--local]
+# Usage: ./setup.sh [project-name] [--variant finance|macro|finance_llm] [--ext empirical] [--local]
 #
 # --local  Skip git clone, use templates from this repo directly.
 #          Outputs to test_output/{variant}/ for inspection.
+# --ext    Add an extension (can be repeated). Available: empirical
 
 set -e
 
@@ -12,10 +13,13 @@ PROJECT_NAME=""
 VARIANT="finance"
 LOCAL=0
 NEXT_IS_VARIANT=0
+NEXT_IS_EXT=0
+EXTENSIONS=()
 
 for arg in "$@"; do
     case "$arg" in
         --variant)     NEXT_IS_VARIANT=1 ;;
+        --ext)         NEXT_IS_EXT=1 ;;
         --local)       LOCAL=1 ;;
         --theory-llm)  VARIANT="finance_llm" ;;  # legacy flag
         -*)            echo "Unknown option: $arg"; exit 1 ;;
@@ -23,6 +27,9 @@ for arg in "$@"; do
             if [ "$NEXT_IS_VARIANT" = "1" ]; then
                 VARIANT="$arg"
                 NEXT_IS_VARIANT=0
+            elif [ "$NEXT_IS_EXT" = "1" ]; then
+                EXTENSIONS+=("$arg")
+                NEXT_IS_EXT=0
             else
                 PROJECT_NAME="$arg"
             fi
@@ -32,6 +39,10 @@ done
 
 if [ "$NEXT_IS_VARIANT" = "1" ]; then
     echo "Error: --variant requires a value (finance, macro, finance_llm)"
+    exit 1
+fi
+if [ "$NEXT_IS_EXT" = "1" ]; then
+    echo "Error: --ext requires a value (empirical)"
     exit 1
 fi
 
@@ -193,6 +204,66 @@ if [ "$VARIANT" = "finance_llm" ] && [ "$LOCAL" = "0" ]; then
     echo "  ✓ LLM experiment extension applied"
 fi
 
+# ── Apply empirical extension if requested ──
+for ext in "${EXTENSIONS[@]}"; do
+    case "$ext" in
+        empirical)
+            echo "Applying empirical extension..."
+
+            EXT_ROOT="$TEMPLATE_ROOT/extensions/empirical"
+
+            # Copy skills
+            if [ "$LOCAL" = "1" ]; then
+                SKILLS_OUT="$OUT_DIR/.claude/skills"
+            else
+                SKILLS_OUT=".claude/skills"
+            fi
+            mkdir -p "$SKILLS_OUT"
+            for skill_dir in "$EXT_ROOT/skills/"*/; do
+                skill_name=$(basename "$skill_dir")
+                mkdir -p "$SKILLS_OUT/$skill_name"
+                cp "$skill_dir"SKILL.md "$SKILLS_OUT/$skill_name/"
+            done
+
+            # Copy variant-specific empirical agents
+            if [ -d "$EXT_ROOT/agents/${AGENT_DIR}" ]; then
+                cp "$EXT_ROOT/agents/${AGENT_DIR}/"*.md "$AGENTS_OUT/"
+            fi
+
+            # Copy STAGES.md
+            if [ "$LOCAL" = "0" ]; then
+                cp "$EXT_ROOT/STAGES.md" EMPIRICAL_STAGES.md
+            fi
+
+            # Create output directories
+            if [ "$LOCAL" = "1" ]; then
+                mkdir -p "$OUT_DIR/output/stage3b" "$OUT_DIR/output/stage3c" "$OUT_DIR/code/tmp"
+            else
+                mkdir -p output/stage3b output/stage3c code/tmp
+            fi
+
+            # Create .env placeholder for FRED API key
+            if [ "$LOCAL" = "0" ] && [ ! -f .env ]; then
+                echo "# FRED API key (free): https://fred.stlouisfed.org/docs/api/api_key.html" > .env
+                echo "FRED_API_KEY=your-key-here" >> .env
+            fi
+
+            # Install Python deps
+            if [ "$LOCAL" = "0" ]; then
+                pip install pandas numpy statsmodels scipy fredapi pandas-datareader python-dotenv -q 2>/dev/null \
+                    || echo "Note: install empirical deps manually: pip install pandas numpy statsmodels scipy fredapi pandas-datareader python-dotenv"
+            fi
+
+            echo "  ✓ Empirical extension applied (skills + agents)"
+            ;;
+        *)
+            echo "Unknown extension: $ext"
+            echo "Available extensions: empirical"
+            exit 1
+            ;;
+    esac
+done
+
 # ── Local mode: summary and exit ──
 if [ "$LOCAL" = "1" ]; then
     echo ""
@@ -204,6 +275,11 @@ if [ "$LOCAL" = "1" ]; then
     echo ""
     echo "=== Agents (.claude/agents/) ==="
     ls -1 "$AGENTS_OUT/"
+    if [ -d "$OUT_DIR/.claude/skills" ]; then
+        echo ""
+        echo "=== Skills (.claude/skills/) ==="
+        ls -1 "$OUT_DIR/.claude/skills/"
+    fi
     echo ""
     echo "=== First 10 lines ==="
     head -10 "$CLAUDE_MD_OUT"
@@ -228,6 +304,7 @@ fi
 echo "Cleaning up template files..."
 rm -rf templates/
 rm -rf extensions/
+rm -rf meta_paper/
 echo "  ✓ Template files removed"
 
 git add -A

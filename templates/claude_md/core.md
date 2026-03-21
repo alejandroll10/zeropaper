@@ -265,6 +265,19 @@ If present, read `STAGES.md` for full instructions. Summary:
 
 ---
 
+## Stage 3b/3c: Empirical Calibration and Testing (optional — empirical extension)
+
+**These stages run only if** `calibrator` agent exists in `.claude/agents/` and `.claude/skills/fred/` exists. If not present, skip to Stage 4.
+
+If present, read `EMPIRICAL_STAGES.md` for full instructions. Summary:
+
+1. **Stage 3b: Calibration.** Launch `calibrator` to match model parameters to data moments. Uses data skills (FRED, Ken French, Chen-Zimmerman) to fetch real data. Saves to `output/stage3b/calibration.md` and `code/calibration.py`.
+2. **Stage 3c: Empirical tests.** Launch `empiricist` to test the model's predictions against data. Designs simple tests (regressions, sorts, moment comparisons). Saves to `output/stage3c/empirical_tests.md` and `code/empirical_tests.py`.
+3. Both agents must write all code to files (`code/` for final, `code/tmp/` for scratch). Never run inline `python3 -c`.
+4. After completion: self-attacker (Stage 4) and scorer (Gate 4) receive calibration + empirical results alongside the theory.
+
+---
+
 ## Stage 4: Self-Attack
 
 **Agent:** `self-attacker`
