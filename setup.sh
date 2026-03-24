@@ -285,7 +285,10 @@ ENVEOF
                 cp "$skill_dir"SKILL.md "$SKILLS_OUT/$skill_name/"
             done
 
-            # Copy variant-specific empirical agents
+            # Copy empirical agents (shared + variant-specific)
+            if [ -d "$EXT_ROOT/agents/shared" ]; then
+                cp "$EXT_ROOT/agents/shared/"*.md "$AGENTS_OUT/"
+            fi
             if [ -d "$EXT_ROOT/agents/${AGENT_DIR}" ]; then
                 cp "$EXT_ROOT/agents/${AGENT_DIR}/"*.md "$AGENTS_OUT/"
             else

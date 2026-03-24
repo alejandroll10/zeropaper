@@ -224,9 +224,12 @@ This is the second of two deep novelty checks. The idea was already checked at G
 
 **This stage runs only if** `empiricist` agent exists in `.claude/agents/` and `.claude/skills/fred/` exists. If not present, skip to Stage 4.
 
-1. **Stage 3b.** Launch `empiricist` on the theory draft + implications. The agent reads the theory, decides what empirical work is appropriate (calibration, portfolio sorts, regressions, descriptive stats, or a combination), fetches data via skills (FRED, Ken French, Chen-Zimmerman, WRDS), and executes it. Saves to `output/stage3b/empirical_analysis.md` and `code/empirical.py`.
+1. **Stage 3b.** Launch `empiricist` on the theory draft + implications. The agent reads the theory, decides what empirical work is appropriate (calibration, portfolio sorts, regressions, descriptive stats, or a combination), fetches data via skills (FRED, Ken French, Chen-Zimmerman, WRDS, EDGAR), and executes it. Saves to `output/stage3b/empirical_analysis.md` and `code/empirical.py`.
 2. All code must be written to files (`code/` for final, `code/tmp/` for scratch). Never run inline `python3 -c`.
-3. After completion: self-attacker (Stage 4) and scorer (Gate 4) receive empirical results alongside the theory.
+3. **Empirics audit.** Launch `empirics-auditor` on the empirical analysis + code + theory draft. The auditor runs the code, verifies results, checks methodology.
+   - If **PASS**: proceed to Stage 4. Self-attacker and scorer receive empirical results alongside the theory.
+   - If **FAIL**: re-launch `empiricist` with the audit feedback. Max 3 audit attempts. After 3 failures, proceed with a note that empirical results are unverified.
+4. Commit: `artifact: empirics audit — {PASS/FAIL}`
 
 ---
 
