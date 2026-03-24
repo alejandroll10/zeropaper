@@ -1,10 +1,12 @@
 #!/bin/bash
 # Auto AI Research Template — Setup & Launch
-# Usage: ./setup.sh [project-name] [--variant finance|macro|finance_llm] [--ext empirical] [--local]
+# Usage: ./setup.sh [project-name] [--variant finance|macro] [--ext empirical|theory_llm] [--local]
 #
 # --local  Skip git clone, use templates from this repo directly.
 #          Outputs to test_output/{variant}/ for inspection.
-# --ext    Add an extension (can be repeated). Available: empirical
+# --ext    Add an extension (can be repeated). Available: empirical, theory_llm
+#
+# Legacy: --variant finance_llm is shorthand for --variant finance --ext theory_llm
 
 set -e
 
@@ -38,12 +40,18 @@ for arg in "$@"; do
 done
 
 if [ "$NEXT_IS_VARIANT" = "1" ]; then
-    echo "Error: --variant requires a value (finance, macro, finance_llm)"
+    echo "Error: --variant requires a value (finance, macro)"
     exit 1
 fi
 if [ "$NEXT_IS_EXT" = "1" ]; then
-    echo "Error: --ext requires a value (empirical)"
+    echo "Error: --ext requires a value (empirical, theory_llm)"
     exit 1
+fi
+
+# ── Expand legacy finance_llm variant ──
+if [ "$VARIANT" = "finance_llm" ]; then
+    VARIANT="finance"
+    EXTENSIONS+=("theory_llm")
 fi
 
 # ── Variant configuration ──
@@ -60,15 +68,9 @@ case "$VARIANT" in
         DOMAIN_AREAS="monetary policy, fiscal policy, business cycles, inequality and macro, or expectations"
         AGENT_DIR="macro"
         ;;
-    finance_llm)
-        PAPER_TYPE="finance theory paper with LLM experiments"
-        TARGET_JOURNALS="top-3 finance journal (JF, JFE, RFS)"
-        DOMAIN_AREAS="asset pricing or corporate finance"
-        AGENT_DIR="finance"
-        ;;
     *)
         echo "Unknown variant: $VARIANT"
-        echo "Available variants: finance, macro, finance_llm"
+        echo "Available variants: finance, macro"
         exit 1
         ;;
 esac
@@ -221,34 +223,37 @@ touch "$P/process_log/history.md"
 
 echo "  ✓ Project structure created"
 
-# ── Apply finance_llm extension if needed ──
-if [ "$VARIANT" = "finance_llm" ] && [ "$LOCAL" = "0" ]; then
-    echo "Applying LLM experiment extension..."
+# ── Apply extensions ──
+for ext in "${EXTENSIONS[@]}"; do
+    case "$ext" in
+        theory_llm)
+            echo "Applying LLM experiment extension..."
 
-    cp extensions/theory_llm/llm_client.py .
-    cp extensions/theory_llm/agents/*.md .claude/agents/
+            EXT_ROOT="$TEMPLATE_ROOT/extensions/theory_llm"
 
-    ENV_FILE="$P/.env"
-    if [ ! -f "$ENV_FILE" ]; then
-        cat > "$ENV_FILE" <<'ENVEOF'
+            cp "$EXT_ROOT/llm_client.py" "$P/"
+            cp "$EXT_ROOT/agents/"*.md "$AGENTS_OUT/"
+
+            mkdir -p "$P/output/stage3b_experiments"
+
+            # Add UF API key to .env (append if file exists, create if not)
+            ENV_FILE="$P/.env"
+            if ! grep -q 'UF_API_KEY' "$ENV_FILE" 2>/dev/null; then
+                cat >> "$ENV_FILE" <<'ENVEOF'
+
 # Get API key from https://api.ai.it.ufl.edu
 UF_API_KEY=your-key-here
 ENVEOF
-    fi
+            fi
 
-    mkdir -p output/stage3b_experiments
+            # Install Python deps
+            if [ "$LOCAL" = "0" ]; then
+                pip install openai python-dotenv -q 2>/dev/null \
+                    || echo "Note: install deps manually: pip install openai python-dotenv"
+            fi
 
-    # Copy STAGES.md to project root so core.md reference works after extensions/ cleanup
-    cp extensions/theory_llm/STAGES.md .
-
-    uv pip install --system openai python-dotenv -q 2>/dev/null || echo "Note: install openai and python-dotenv manually"
-
-    echo "  ✓ LLM experiment extension applied"
-fi
-
-# ── Apply empirical extension if requested ──
-for ext in "${EXTENSIONS[@]}"; do
-    case "$ext" in
+            echo "  ✓ LLM experiment extension applied"
+            ;;
         empirical)
             echo "Applying empirical extension..."
 
@@ -298,7 +303,7 @@ ENVEOF
             ;;
         *)
             echo "Unknown extension: $ext"
-            echo "Available extensions: empirical"
+            echo "Available extensions: empirical, theory_llm"
             exit 1
             ;;
     esac
@@ -363,11 +368,7 @@ echo "  claude --dangerously-skip-permissions"
 echo ""
 echo "Then say: \"Run the pipeline.\""
 echo ""
-if [ "$VARIANT" = "finance_llm" ]; then
-    echo "NOTE: Edit .env and add your UF_API_KEY before running."
-    echo "Test connection: python llm_client.py"
-    echo ""
-fi
 echo "Variant: $VARIANT"
+echo "Extensions: ${EXTENSIONS[*]:-none}"
 echo "Sandbox is pre-configured in .claude/settings.json"
 echo "(Bash restricted to project folder, web access works freely)"

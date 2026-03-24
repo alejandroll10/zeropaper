@@ -205,16 +205,20 @@ This is the second of two deep novelty checks. The idea was already checked at G
 
 ---
 
-## Stage 3b/3c: LLM Experiments (optional — finance_llm variant only)
+## Stage 3b/3c: LLM Experiments (optional — theory_llm extension)
 
-**These stages run only if** `llm_client.py` exists in the project root and `experiment-designer` agent exists in `.claude/agents/`. If not present, skip to Stage 4.
+**These stages run only if** `llm_client.py` exists in the project root and `experiment-designer` agent exists in `.claude/agents/`. If not present, skip to the next optional stage or Stage 4.
 
-If present, read `STAGES.md` for full instructions. Summary:
+1. **Stage 3b:** Launch `experiment-designer` on the theory draft + implications. The agent identifies predictions testable via LLM calls, designs controlled experiments with ground truth and controls, writes and executes code using `llm_client.py`. Saves to `output/stage3b_experiments/`.
+2. **Stage 3c:** Launch `experiment-reviewer` on the design, code, raw results, and analysis. Evaluates methodology (internal validity, controls, sample size, statistical tests) and interpretation.
 
-1. **Stage 3b:** Launch `experiment-designer` to design and run experiments testing theoretical predictions via gpt-oss models
-2. **Stage 3c:** Launch `experiment-reviewer` to evaluate methodology and results
-3. If ACCEPT: proceed to Stage 4 (self-attacker receives experiment results too)
-4. If REVISE/REDESIGN: iterate (max 2 rounds), then proceed
+| Decision | Action |
+|----------|--------|
+| **ACCEPT** | Proceed to Stage 4 (self-attacker receives experiment results too) |
+| **REVISE** | Re-run specific experiments or re-analyze. Max 2 revision rounds. |
+| **REDESIGN** | Fundamental methodology problem. Redesign and re-run. Max 1 redesign. |
+
+3. Commit: `artifact: experiments — {ACCEPT/REVISE/REDESIGN}`
 
 ---
 

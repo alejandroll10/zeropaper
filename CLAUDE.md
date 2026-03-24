@@ -21,7 +21,10 @@ If a user asks to create/set up/start a new research project, run `setup.sh` for
 ./setup.sh <project-name> --variant macro
 
 # Finance theory + LLM experiments
-./setup.sh <project-name> --variant finance_llm
+./setup.sh <project-name> --variant finance --ext theory_llm
+
+# Combine extensions
+./setup.sh <project-name> --variant finance --ext empirical --ext theory_llm
 ```
 
 This creates a standalone project folder with assembled CLAUDE.md, agents, and skills. After setup, tell the user to:
@@ -63,7 +66,15 @@ process_log/             # Pipeline state (initial state in template)
 |---------|------|--------|-----------------|
 | `finance` | `--variant finance` (default) | Working (v2) | JF, JFE, RFS |
 | `macro` | `--variant macro` | In development | AER, Econometrica, QJE, JPE, ReStud, JME |
-| `finance_llm` | `--variant finance_llm` | Working (v1) | JF, JFE, RFS + CS venues |
+
+## Supported extensions
+
+| Extension | Flag | Status |
+|-----------|------|--------|
+| `empirical` | `--ext empirical` | Working |
+| `theory_llm` | `--ext theory_llm` | Working (v1) |
+
+Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory_llm`.
 
 ## How setup.sh works
 

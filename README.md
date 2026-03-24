@@ -44,7 +44,10 @@ cd auto-ai-research-template
 ./setup.sh my-paper --variant macro
 
 # Finance theory + LLM experiments
-./setup.sh my-paper --variant finance_llm
+./setup.sh my-paper --variant finance --ext theory_llm
+
+# Combine extensions
+./setup.sh my-paper --variant finance --ext empirical --ext theory_llm
 ```
 
 This creates `my-paper/` with everything assembled and ready — CLAUDE.md, agents, skills, pipeline state. The folder is a standalone git repo detached from this template.
@@ -62,7 +65,7 @@ nano .env
 | Extension | Credentials needed |
 |-----------|-------------------|
 | `--ext empirical` | `FRED_API_KEY` (free, from [FRED](https://fred.stlouisfed.org/docs/api/api_key.html)), `WRDS_USER` + `WRDS_PASS` (from [WRDS](https://wrds-www.wharton.upenn.edu/)) |
-| `--variant finance_llm` | `UF_API_KEY` (from [UF NaviGator](https://api.ai.it.ufl.edu)) |
+| `--ext theory_llm` | `UF_API_KEY` (from [UF NaviGator](https://api.ai.it.ufl.edu)) |
 
 ### Step 4: Launch
 
@@ -94,15 +97,15 @@ You can also watch files appear in real time in your editor, or run `git log --o
 |---------|------|-----------------|-------------|
 | **finance** | `--variant finance` (default) | JF, JFE, RFS | Pure finance theory paper |
 | **macro** | `--variant macro` | AER, Econometrica, QJE, JPE, ReStud, JME | Macro theory paper |
-| **finance_llm** | `--variant finance_llm` | JF, JFE, RFS + CS venues | Finance theory + LLM experiments |
 
 ## Extensions
 
 | Extension | Flag | What it adds |
 |-----------|------|-------------|
 | **empirical** | `--ext empirical` | Stage 3b: empirical analysis with real data (CRSP, Compustat, FRED, Ken French, Chen-Zimmerman, WRDS) |
+| **theory_llm** | `--ext theory_llm` | Stage 3b/3c: test predictions via LLM experiments using gpt-oss models (UF NaviGator) |
 
-Extensions are additive — they inject extra agents and data skills without changing the core pipeline.
+Extensions are additive and combinable — they inject extra agents and skills without changing the core pipeline. Use multiple `--ext` flags to combine them.
 
 ## Pipeline stages
 
