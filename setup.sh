@@ -60,12 +60,14 @@ case "$VARIANT" in
         PAPER_TYPE="finance theory paper"
         TARGET_JOURNALS="top-3 finance journal (JF, JFE, RFS)"
         DOMAIN_AREAS="finance theory — asset pricing, corporate finance, information economics, market design, financial intermediation, or behavioral finance"
+        JOURNAL_LIST="Top-3 finance: JF, JFE, RFS. Also: Review of Finance, Management Science, JFQA. Top accounting: JAR, JAE, TAR, RAS. Top-5 econ: AER, Econometrica, QJE, JPE, ReStud."
         AGENT_DIR="finance"
         ;;
     macro)
         PAPER_TYPE="macroeconomics theory paper"
         TARGET_JOURNALS="top-5 economics journal (AER, Econometrica, QJE, JPE, ReStud) or leading macro field journal (JME, JEDC, AEJ:Macro)"
         DOMAIN_AREAS="macroeconomics"
+        JOURNAL_LIST="Top-5 econ: AER, Econometrica, QJE, JPE, ReStud. Top-3 finance: JF, JFE, RFS. Macro field: JME, JEDC, AEJ:Macro, AEJ:Micro, JIE, JET, RED."
         AGENT_DIR="macro"
         ;;
     *)
@@ -183,6 +185,21 @@ if [ -d "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}" ]; then
 fi
 
 echo "  ✓ Agents copied (shared + ${AGENT_DIR})"
+
+# ── Inject variant context into agents ──
+VARIANT_BLOCK="
+## Variant context
+- **Paper type:** ${PAPER_TYPE}
+- **Target journals:** ${JOURNAL_LIST}
+- **Domain:** ${DOMAIN_AREAS}
+"
+
+for agent in literature-scout novelty-checker referee scorer paper-writer; do
+    if [ -f "$AGENTS_OUT/$agent.md" ]; then
+        echo "$VARIANT_BLOCK" >> "$AGENTS_OUT/$agent.md"
+    fi
+done
+echo "  ✓ Variant context injected into agents"
 
 # ── Create project directories and initial files ──
 echo "Creating project structure..."
