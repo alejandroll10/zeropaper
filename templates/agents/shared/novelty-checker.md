@@ -32,9 +32,9 @@ This way, even if you time out mid-search, the orchestrator has partial results 
 
 ### Extract search targets
 From the theory, identify:
-- The main economic channel (e.g., "bounded rationality amplifies redistributive effects of monetary policy")
-- The key mathematical result (e.g., "optimal inflation target is increasing in cognitive myopia parameter")
-- The setup (e.g., "two-agent NK model with cognitive discounting")
+- The main economic channel
+- The key mathematical result
+- The setup (agents, frictions, equilibrium concept)
 - Keywords and jargon specific to this area
 
 ### Search strategy
