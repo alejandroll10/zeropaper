@@ -337,6 +337,7 @@ echo "Cleaning up template files..."
 rm -rf templates/
 rm -rf extensions/
 rm -rf meta_paper/
+rm -rf test_scripts/
 echo "  ✓ Template files removed"
 
 git add -A
