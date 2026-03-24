@@ -275,15 +275,17 @@ ENVEOF
             # Copy variant-specific empirical agents
             if [ -d "$EXT_ROOT/agents/${AGENT_DIR}" ]; then
                 cp "$EXT_ROOT/agents/${AGENT_DIR}/"*.md "$AGENTS_OUT/"
+            else
+                echo "  ⚠ No empiricist agent for variant '${AGENT_DIR}' — Stage 3b will be skipped at runtime"
             fi
 
             # Create empirical output directory
             mkdir -p "$P/output/stage3b"
 
-            # Create .env placeholder for API keys
+            # Add API keys to .env (append if file exists)
             ENV_FILE="$P/.env"
-            if [ ! -f "$ENV_FILE" ]; then
-                cat > "$ENV_FILE" <<'ENVEOF'
+            if ! grep -q 'FRED_API_KEY' "$ENV_FILE" 2>/dev/null; then
+                cat >> "$ENV_FILE" <<'ENVEOF'
 # FRED API key (free): https://fred.stlouisfed.org/docs/api/api_key.html
 FRED_API_KEY=your-key-here
 

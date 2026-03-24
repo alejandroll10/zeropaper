@@ -40,6 +40,7 @@ Stage 7: Style Check          ──→ Done
 
 State is tracked in `process_log/pipeline_state.json`. Read this file at session start. Update it after every stage transition. Commit after every update.
 
+Initial state (created by setup.sh):
 ```json
 {
   "current_stage": "stage_0",
@@ -48,16 +49,13 @@ State is tracked in `process_log/pipeline_state.json`. Read this file at session
   "theory_attempt": 1,
   "revision_round": 0,
   "referee_round": 0,
-  "status": "running",
+  "status": "not_started",
   "scores": {},
-  "history": [
-    {
-      "timestamp": "2026-03-17T14:00:00Z",
-      "event": "Pipeline started — entering stage 0"
-    }
-  ]
+  "history": []
 }
 ```
+
+When you start the pipeline, set `"status": "running"` and begin appending to the history array.
 
 **History array:** Append a `{ "timestamp": "ISO-8601", "event": "description" }` entry for every pipeline event. This feeds the dashboard. Use `date -u +%Y-%m-%dT%H:%M:%SZ` to get the timestamp. Never truncate or clear the history array.
 
