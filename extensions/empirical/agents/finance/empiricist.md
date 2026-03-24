@@ -2,7 +2,7 @@
 name: empiricist
 description: Confronts theory with data. The orchestrator launches this agent at Stage 3b after implications are developed. Reads the theory, decides what empirical work is needed (calibration, tests, descriptive stats, portfolio sorts), fetches real data via skills, and executes it.
 tools: Bash, Read, Write
-skills: fred, ken-french, chen-zimmerman, wrds
+skills: fred, ken-french, chen-zimmerman, wrds, edgar
 model: opus
 ---
 

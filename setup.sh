@@ -292,6 +292,11 @@ ENVEOF
                 echo "  ⚠ No empiricist agent for variant '${AGENT_DIR}' — Stage 3b will be skipped at runtime"
             fi
 
+            # Copy utility scripts
+            mkdir -p "$P/code/utils"
+            cp "$EXT_ROOT/utils/"*.py "$P/code/utils/"
+            touch "$P/code/utils/__init__.py"
+
             # Create empirical output directory
             mkdir -p "$P/output/stage3b"
 
@@ -305,13 +310,17 @@ FRED_API_KEY=your-key-here
 # WRDS credentials: https://wrds-www.wharton.upenn.edu/
 WRDS_USER=your-username
 WRDS_PASS=your-password
+
+# SEC EDGAR identity (required, no API key needed)
+SEC_EDGAR_NAME=Your Name
+SEC_EDGAR_EMAIL=your@email.edu
 ENVEOF
             fi
 
             # Install Python deps
             if [ "$LOCAL" = "0" ]; then
-                pip install pandas numpy statsmodels scipy fredapi pandas-datareader wrds python-dotenv -q 2>/dev/null \
-                    || echo "Note: install empirical deps manually: pip install pandas numpy statsmodels scipy fredapi pandas-datareader wrds python-dotenv"
+                pip install pandas numpy statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing python-dotenv -q 2>/dev/null \
+                    || echo "Note: install empirical deps manually: pip install pandas numpy statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing python-dotenv"
             fi
 
             echo "  ✓ Empirical extension applied (skills + agents)"
