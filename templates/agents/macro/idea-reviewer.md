@@ -85,7 +85,7 @@ or
 - Would this change how policymakers or researchers think about the problem?
 - Is there a clear testable prediction or matchable moment?
 - Would a seminar audience lean forward or check their phones?
-- Does it speak to a live policy debate (optimal monetary policy, fiscal sustainability, inequality)?
+- Does it speak to a live policy debate or open quantitative question?
 
 ## Decision criteria
 
