@@ -54,7 +54,8 @@ Write your results to the file path specified in your prompt. Build incrementall
 - **No hallucinated references.** Every paper you cite must come from a WebSearch result. If you can't find it, don't cite it.
 - **Verify before citing.** If you remember a paper but can't find it via search, mark it as `[UNVERIFIED]`.
 - **Be specific.** "Smith (2020) shows X" not "the literature shows X."
-- **Focus on top outlets.** Prioritize JF, JFE, RFS, AER, Econometrica, QJE, JPE, REStud, JME. Include working papers from NBER/SSRN only if highly relevant.
+- **Focus on top outlets.** Read the Purpose section of CLAUDE.md to see the target journals for this project. Also search adjacent top journals in the field. Include working papers from NBER/SSRN if highly relevant.
+- **Fetching papers.** When you find a relevant paper, try to fetch the abstract/introduction from the journal or NBER page using WebFetch. If that fails, search for the paper title + "pdf" to find an accessible copy. SSRN pages are behind Cloudflare and cannot be fetched with WebFetch — use WebSearch instead (abstracts appear in search snippets). NBER and most journal pages work with WebFetch.
 - **Distinguish theory from empirics.** Note which papers are theoretical, which are empirical.
 - **Find the frontier.** The most valuable output is identifying what the newest papers are doing and where the field is heading.
 - **If you are running low on time,** write what you have. A partial literature map is infinitely better than no output.

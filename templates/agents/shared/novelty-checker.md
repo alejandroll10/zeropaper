@@ -106,7 +106,8 @@ Save to the path specified in your prompt. Build this file incrementally:
 - **Write incrementally.** Append findings after each search. Never accumulate everything in memory for a final write.
 - **Search before concluding.** For idea-level checks (Gate 1b): at least 5 targeted searches. For full theory checks (Gate 3): at least 10 targeted searches.
 - **No hallucinated prior work.** Only cite papers you found via WebSearch. If you "remember" a paper but can't find it, say so explicitly and mark it [UNVERIFIED].
-- **Same mechanism in different setting = INCREMENTAL, not NOVEL.** If the paper's insight is "bounded rationality affects monetary policy" and 20 papers already show this, a new setting isn't enough.
+- **Fetching papers.** Try to fetch abstracts/introductions from journal or NBER pages using WebFetch. If that fails, search for the paper title + "pdf" to find an accessible copy. SSRN pages are behind Cloudflare and cannot be fetched with WebFetch — use WebSearch instead (abstracts appear in search snippets).
+- **Same mechanism in different setting = INCREMENTAL, not NOVEL.** If the core insight already appears in 20 papers and the only difference is the setting, a new setting isn't enough.
 - **Same result via different mechanism = could be NOVEL.** A new WHY for a known WHAT can be a contribution.
 - **Be specific about what's new.** "This is novel" with no comparison to existing work is a failure of the check.
 - **Assume the worst.** If a paper MIGHT contain the same result but you can't verify from the abstract, flag it as a risk rather than dismissing it.
