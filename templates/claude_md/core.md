@@ -507,10 +507,6 @@ The scribe agent runs in the background and commits with `scribe:` prefix for do
 
 ---
 
-{{DOMAIN}}
-
----
-
 {{SCORING}}
 
 ---

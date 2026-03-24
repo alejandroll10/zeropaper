@@ -130,10 +130,9 @@ fi
 echo "Assembling CLAUDE.md for variant: $VARIANT..."
 
 CORE="$TEMPLATE_ROOT/templates/claude_md/core.md"
-DOMAIN_FILE="$TEMPLATE_ROOT/templates/domains/${AGENT_DIR}.md"
 SCORING_FILE="$TEMPLATE_ROOT/templates/scoring/${AGENT_DIR}.md"
 
-for f in "$CORE" "$DOMAIN_FILE" "$SCORING_FILE"; do
+for f in "$CORE" "$SCORING_FILE"; do
     if [ ! -f "$f" ]; then
         echo "Error: $f not found"
         exit 1
@@ -146,22 +145,19 @@ else
     CLAUDE_MD_OUT="CLAUDE.md"
 fi
 
-python3 - "$CORE" "$DOMAIN_FILE" "$SCORING_FILE" "$PAPER_TYPE" "$TARGET_JOURNALS" "$DOMAIN_AREAS" "$CLAUDE_MD_OUT" <<'PYEOF'
+python3 - "$CORE" "$SCORING_FILE" "$PAPER_TYPE" "$TARGET_JOURNALS" "$DOMAIN_AREAS" "$CLAUDE_MD_OUT" <<'PYEOF'
 import sys
 
-core_path, domain_path, scoring_path, paper_type, target_journals, domain_areas, out_path = sys.argv[1:8]
+core_path, scoring_path, paper_type, target_journals, domain_areas, out_path = sys.argv[1:7]
 
 with open(core_path) as f:
     content = f.read()
-with open(domain_path) as f:
-    domain = f.read()
 with open(scoring_path) as f:
     scoring = f.read()
 
 content = content.replace('{{PAPER_TYPE}}', paper_type)
 content = content.replace('{{TARGET_JOURNALS}}', target_journals)
 content = content.replace('{{DOMAIN_AREAS}}', domain_areas)
-content = content.replace('{{DOMAIN}}', domain)
 content = content.replace('{{SCORING}}', scoring)
 
 with open(out_path, 'w') as f:
