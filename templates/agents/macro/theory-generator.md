@@ -67,6 +67,7 @@ A theory draft saved to the path specified in your prompt. Structure:
 ## Strategy-specific instructions
 
 ### Fresh (no prior attempts)
+- **Clarity first, polish later.** The first draft's job is to make the argument clear and checkable — not perfect. Write the setup so a reader can verify the proof. Write the proof so every step is explicit. Don't optimize exposition, don't work out every comparative static, don't add extensions. Those come after the gates pass.
 - Start from first principles. What's the simplest GE model that could explain the puzzle?
 - One key friction, one channel, one main result. Add nothing unnecessary.
 - Choose the equilibrium concept carefully — it should be standard for the model class.

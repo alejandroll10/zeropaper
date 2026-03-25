@@ -58,6 +58,7 @@ A theory draft saved to the path specified in your prompt. Structure:
 ## Strategy-specific instructions
 
 ### Fresh (no prior attempts)
+- **Clarity first, polish later.** The first draft's job is to make the argument clear and checkable — not perfect. Write the setup so a reader can verify the proof. Write the proof so every step is explicit. Don't optimize exposition, don't work out every comparative static, don't add extensions. Those come after the gates pass.
 - Start from first principles. What's the simplest model that could explain the puzzle?
 - One friction, one mechanism, one result. Add nothing unnecessary.
 - Ask: if I remove any assumption, does the result break? If not, the assumption doesn't belong.

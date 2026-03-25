@@ -23,7 +23,8 @@ Stage 1: Idea Generation     ──→ Gate 1: Idea Review (iterates with genera
                                    └── TRACTABLE → proceed to Stage 2
 Stage 2: Theory Development  ──→ Gate 2: Math Audit (structured then free-form)
                                    Gate 3: Novelty Check on full theory
-Stage 3: Implications        ──→
+                                   Gate 3b: Empirical Feasibility (falsify-first, optional)
+Stage 3: Implications        ──→ Stage 3e: Full Empirical Analysis (optional)
 Stage 4: Self-Attack          ──→ Gate 4: Scorer Decision (trajectory-based)
                                    ├── ADVANCE (75+) → Stage 5
                                    ├── REVISE  → back to Stage 2 (continue if Δ≥3, else escalate)
@@ -213,8 +214,20 @@ This is the second of two deep novelty checks. The idea was already checked at G
 2. Save result to `output/stage2/novelty_check_vN.md`
 3. If KNOWN: abandon this theory, return to Stage 2 with new approach
 4. If INCREMENTAL: flag it, proceed with caution (scorer will weigh this)
-5. If NOVEL: proceed to Stage 3
+5. If NOVEL: proceed to empirical feasibility check (if empirical extension) or Stage 3
 6. Commit: `artifact: novelty check v{N} — {NOVEL/INCREMENTAL/KNOWN}`
+
+### Gate 3b: Empirical Feasibility (optional — empirical extension, falsify-first)
+
+**This gate runs only if** `empiricist` agent exists in `.claude/agents/`. If not present, skip to Stage 3.
+
+Quick falsification check: can this theory be calibrated at all? Do the key empirical moments exist? A theory that predicts the wrong sign on a well-measured moment is dead regardless of how elegant the implications are. Check this BEFORE investing in implications.
+
+1. Launch `empiricist` with a focused instruction: "Quick feasibility check only — download the 2-3 key moments this theory needs to match. Report whether the theory's predictions are in the right ballpark. Do NOT run a full analysis."
+2. Save to `output/stage3b/empirical_feasibility.md`
+3. If the key moments contradict the theory (wrong sign, off by an order of magnitude): flag as **FALSIFIED** — return to Stage 1 for a new idea. Don't waste time on implications for a theory the data already rejects.
+4. If moments are roughly consistent or unavailable: proceed to Stage 3.
+5. Commit: `artifact: empirical feasibility — {OK/FALSIFIED}`
 
 ---
 
@@ -233,12 +246,12 @@ This is the second of two deep novelty checks. The idea was already checked at G
 
 ---
 
-## Stage 3b/3c: LLM Experiments (optional — theory_llm extension)
+## Stage 3c/3d: LLM Experiments (optional — theory_llm extension)
 
 **These stages run only if** `llm_client.py` exists in the project root and `experiment-designer` agent exists in `.claude/agents/`. If not present, skip to the next optional stage or Stage 4.
 
-1. **Stage 3b:** Launch `experiment-designer` on the theory draft + implications. The agent identifies predictions testable via LLM calls, designs controlled experiments with ground truth and controls, writes and executes code using `llm_client.py`. Saves to `output/stage3b_experiments/`.
-2. **Stage 3c:** Launch `experiment-reviewer` on the design, code, raw results, and analysis. Evaluates methodology (internal validity, controls, sample size, statistical tests) and interpretation.
+1. **Stage 3c:** Launch `experiment-designer` on the theory draft + implications. The agent identifies predictions testable via LLM calls, designs controlled experiments with ground truth and controls, writes and executes code using `llm_client.py`. Saves to `output/stage3b_experiments/`.
+2. **Stage 3d:** Launch `experiment-reviewer` on the design, code, raw results, and analysis. Evaluates methodology (internal validity, controls, sample size, statistical tests) and interpretation.
 
 | Decision | Action |
 |----------|--------|
@@ -250,11 +263,13 @@ This is the second of two deep novelty checks. The idea was already checked at G
 
 ---
 
-## Stage 3b: Empirical Analysis (optional — empirical extension)
+## Stage 3e: Full Empirical Analysis (optional — empirical extension)
 
 **This stage runs only if** `empiricist` agent exists in `.claude/agents/` and `.claude/skills/fred/` exists. If not present, skip to Stage 4.
 
-1. **Stage 3b.** Launch `empiricist` on the theory draft + implications. The agent reads the theory, decides what empirical work is appropriate (calibration, portfolio sorts, regressions, descriptive stats, or a combination), fetches data via skills (FRED, Ken French, Chen-Zimmerman, WRDS, EDGAR), and executes it. Saves to `output/stage3b/empirical_analysis.md` and `code/empirical.py`.
+This is the full empirical analysis — deeper than the feasibility check at Gate 3b. Now that implications are developed, the empiricist can design proper tests, calibrations, and portfolio sorts.
+
+1. Launch `empiricist` on the theory draft + implications + feasibility results (if any). The agent reads the theory, decides what empirical work is appropriate, fetches data via skills (FRED, Ken French, Chen-Zimmerman, WRDS, EDGAR), and executes it. Saves to `output/stage3b/empirical_analysis.md` and `code/empirical.py`.
 2. All code must be written to files (`code/` for final, `code/tmp/` for scratch). Never run inline `python3 -c`.
 3. **Empirics audit.** Launch `empirics-auditor` on the empirical analysis + code + theory draft. The auditor runs the code, verifies results, checks methodology.
    - If **PASS**: proceed to Stage 4. Self-attacker and scorer receive empirical results alongside the theory.
@@ -302,6 +317,7 @@ This is the second of two deep novelty checks. The idea was already checked at G
 | Score < 35 | **ABANDON** — always, regardless of trajectory |
 | Delta ≥ 3 points | **CONTINUE** — one more iteration in current band: REVISE returns to Stage 2, MAJOR REWORK returns to Stage 1 (improving, worth continuing) |
 | Delta < 3 points | **ESCALATE** — move up one level: REVISE → MAJOR REWORK (Stage 1) → ABANDON (plateau or decline, not converging) |
+| Score < 60 on attempt 3+ | **ESCALATE** — regardless of delta. A score below 60 after two revisions suggests a ceiling on this idea. Repair can't fix it; regenerate. |
 
 **Hard ceiling:** After 4 total scorer evaluations on the same problem, escalate one level regardless of trajectory. This prevents slow-but-never-arriving loops (e.g., +3, +3, +3 but still at 69).
 
