@@ -17,7 +17,10 @@ Stage 1: Idea Generation     ──→ Gate 1: Idea Review (iterates with genera
                                 Gate 1b: Novelty Check on idea
                                    ├── KNOWN → kill idea, back to Stage 1
                                    ├── INCREMENTAL → flag, proceed with caution
-                                   └── NOVEL → proceed to Stage 2
+                                   └── NOVEL → Gate 1c
+                                Gate 1c: Idea Prototype (tractability)
+                                   ├── BLOCKED → try next idea or back to Stage 1
+                                   └── TRACTABLE → proceed to Stage 2
 Stage 2: Theory Development  ──→ Gate 2: Math Audit (structured then free-form)
                                    Gate 3: Novelty Check on full theory
 Stage 3: Implications        ──→
@@ -137,7 +140,24 @@ This is the first of two deep novelty checks. It runs on the selected idea *befo
 | **NOVEL** | Proceed to Stage 2. |
 
 4. Commit: `pipeline: gate 1b — novelty check on idea {NOVEL/INCREMENTAL/KNOWN}`
-5. Update pipeline_state.json and commit: `pipeline: stage 1 complete — idea selected and novelty-checked`
+
+### Gate 1c: Idea Prototype (tractability check)
+
+**Agent:** `idea-prototyper`
+
+Quick mathematical feasibility check — attempt the key derivation before investing in full theory development. **Always runs** (not optional), because even first-attempt ideas can have hidden tractability issues that the sketch doesn't reveal.
+
+1. Launch idea-prototyper on `output/stage1/selected_idea.md` + `output/stage0/problem_statement.md`
+2. Save result to `output/stage1/idea_prototype.md`
+3. Read the verdict:
+
+| Verdict | Action |
+|---------|--------|
+| **TRACTABLE** | The main result goes through. Proceed to Stage 2 — pass the prototype to the theory-generator as a head start. |
+| **BLOCKED** | The derivation hit a wall. Read where it got stuck. If fixable: pick the next-best idea from the reviewer's rankings and re-run Gates 1b+1c. If fundamental: return to Stage 1 for a new round. |
+
+4. Commit: `pipeline: gate 1c — idea prototype {TRACTABLE/BLOCKED}`
+5. Update pipeline_state.json and commit: `pipeline: stage 1 complete — idea selected, novelty-checked, and prototyped`
 
 ---
 
@@ -145,9 +165,9 @@ This is the first of two deep novelty checks. It runs on the selected idea *befo
 
 **Agent:** `theory-generator`
 
-1. Read `output/stage1/selected_idea.md`, `output/stage0/problem_statement.md`, and `output/stage0/literature_map.md`
+1. Read `output/stage1/selected_idea.md`, `output/stage1/idea_prototype.md`, `output/stage0/problem_statement.md`, and `output/stage0/literature_map.md`
 2. Choose strategy:
-   - Attempt 1: develop the selected idea into a full theory
+   - Attempt 1: develop the selected idea into a full theory, building on the prototype's derivation
    - Attempt 2+: mutate (if previous attempt had good elements) or fresh with different approach
 3. Launch theory-generator with the selected idea, problem statement, literature map, and strategy
 4. Save result to `output/stage2/theory_draft_vN.md` (N = attempt number)
