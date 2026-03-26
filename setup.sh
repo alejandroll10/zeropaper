@@ -175,7 +175,7 @@ if [ "$LOCAL" = "1" ]; then
     AGENTS_OUT="$OUT_DIR/.claude/agents"
 else
     AGENTS_OUT=".claude/agents"
-    rm -f "$AGENTS_OUT"/*.md
+    mkdir -p "$AGENTS_OUT"
 fi
 
 cp "$TEMPLATE_ROOT/templates/agents/shared/"*.md "$AGENTS_OUT/"
