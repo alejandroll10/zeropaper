@@ -101,9 +101,9 @@ Score 0-100. If below 50, re-run Stage 0 with different search terms. After 3 fa
 | Returning from a failed theory (scorer REWORK/ABANDON) | 10 |
 | Returning from a problem-level failure (Stage 0 re-run) | 10, and explicitly explore different territory |
 
-1. Read `output/stage0/problem_statement.md` and `output/stage0/literature_map.md`
+1. Read `output/stage0/problem_statement.md`, `output/stage0/literature_map.md`, and `output/data_inventory.md`
 2. If returning from a failed attempt, also read the previous scorer feedback and/or failed theory to understand what went wrong — instruct the idea-generator to avoid the same failure mode
-3. Launch idea-generator to brainstorm candidate mechanisms (see table above for count)
+3. Launch idea-generator with the problem statement, literature map, **and data inventory** to brainstorm candidate mechanisms (see table above for count)
 4. Save sketches to `output/stage1/idea_sketches_rN.md` (N = round number)
 5. Commit: `artifact: idea sketches round {N}`
 
@@ -585,10 +585,44 @@ These rules apply when writing paper drafts.
 ## How to start a session
 
 1. Read `process_log/pipeline_state.json`
-   - If `status` is `"not_started"`: set to `"running"`, begin Stage 0
+   - If `status` is `"not_started"`: run data inventory (below), set to `"running"`, begin Stage 0
    - If `status` is `"running"`: read `current_stage` and continue from there
    - If `status` is `"complete"`: report that the pipeline is done
 2. No human confirmation needed — just run
+
+### Data inventory (runs once at pipeline start)
+
+Before Stage 0, check what data sources are available. This prevents bad assumptions from cascading through the entire pipeline.
+
+1. Read `.env` — check which credentials are present (non-placeholder values)
+2. List `.claude/skills/` — check which data skills are installed
+3. For each skill with authentication, verify credentials exist in `.env`:
+   - FRED: `FRED_API_KEY` present and not `your-key-here`
+   - WRDS: `WRDS_USER` and `WRDS_PASS` present and not placeholders
+   - EDGAR: `SEC_EDGAR_NAME` and `SEC_EDGAR_EMAIL` present and not placeholders
+   - Ken French: no auth needed (always available)
+   - Chen-Zimmerman: no auth needed (always available)
+4. Write results to `output/data_inventory.md`:
+
+```markdown
+# Data Inventory
+
+## Available data sources
+| Source | Status | What it provides |
+|--------|--------|-----------------|
+| FRED | ✓ configured | 800K+ macro/financial time series |
+| WRDS | ✓ configured | CRSP (stock returns), Compustat (accounting), IBES (analysts), options, insider trading |
+| EDGAR | ✓ configured | SEC filings (10-K, 10-Q, 8-K, proxy, insider trades) |
+| Ken French | ✓ always available | Factor returns, portfolio sorts, breakpoints |
+| Chen-Zimmerman | ✓ always available | 212 firm-level anomaly signals, portfolio returns |
+
+## Implications for research design
+[List what kinds of empirical work are possible given available data]
+```
+
+5. Commit: `pipeline: data inventory complete`
+
+**CRITICAL:** All downstream agents must read `output/data_inventory.md` when making decisions about empirical feasibility. The idea-generator and idea-reviewer must know what data is available so they design ideas that USE available data, not work around imagined limitations. Never assume a data source is unavailable without checking the inventory.
 
 ---
 
