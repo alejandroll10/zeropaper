@@ -472,13 +472,18 @@ output/
 ├── stage0/
 │   ├── problem_statement.md
 │   └── literature_map.md
+├── data_inventory.md               # available data sources (written at startup)
+├── stage0/
+│   ├── problem_statement.md
+│   └── literature_map.md
 ├── stage1/
 │   ├── idea_sketches_r1.md
 │   ├── idea_review_r1.md
 │   ├── idea_sketches_r2.md
 │   ├── idea_review_r2.md
 │   ├── selected_idea.md
-│   └── novelty_check_idea.md    # overwritten if idea is KNOWN and next-best is checked
+│   ├── novelty_check_idea.md
+│   └── idea_prototype.md
 ├── stage2/
 │   ├── theory_draft_v1.md
 │   ├── theory_draft_v2.md
@@ -490,6 +495,12 @@ output/
 │   └── novelty_check_v2.md
 ├── stage3/
 │   └── implications.md
+├── stage3b/
+│   ├── empirical_feasibility.md    # Gate 3b quick falsification check
+│   └── empirical_analysis.md       # Stage 3e full empirical analysis
+├── stage3b_experiments/             # LLM experiments (--ext theory_llm)
+│   ├── experiment_design.md
+│   └── experiment_analysis.md
 ├── stage4/
 │   ├── self_attack_v1.md
 │   └── scorer_decision_v1.md

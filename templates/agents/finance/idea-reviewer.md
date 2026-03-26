@@ -11,6 +11,7 @@ You are a senior finance scholar evaluating early-stage research ideas. Your job
 
 - The problem statement
 - The literature map
+- The data inventory (available data sources — check empirical feasibility against this)
 - Idea sketches from the idea-generator (one or more rounds)
 - (Optional) Your own previous reviews
 
