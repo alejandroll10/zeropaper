@@ -11,13 +11,11 @@ allowed-tools: Bash, Read, Write
 - Python package: `wrds` (pip install wrds)
 - Credentials in `.env` as `WRDS_USER` and `WRDS_PASS`
 
-## Connection — CRITICAL
+## Connection
 
-WRDS requires Duo two-factor authentication on every new connection. A persistent server runs in the background so Duo fires only once per pipeline session.
+A persistent WRDS server runs in the background (started at pipeline launch). Duo 2FA fires once at the start of the session — after that, all queries go through instantly. Just use the client:
 
-### Preferred: Use the persistent server (recommended)
-
-The WRDS server is started automatically at pipeline launch. Use the client in any script:
+### How to query (use this in all scripts)
 
 ```python
 import sys; sys.path.insert(0, 'code')
@@ -32,9 +30,26 @@ df = wrds_query("SELECT * FROM crsp.msf LIMIT 5")
 
 The server handles connection persistence, threading, and cleanup. Each script just calls `wrds_query(sql)`.
 
+## Pre-built download templates
+
+Standard CRSP/Compustat downloads are available as ready-to-run scripts in `code/utils/`. Use these instead of writing downloads from scratch:
+
+| Script | What it downloads | Output |
+|--------|------------------|--------|
+| `download_crsp_monthly.py` | CRSP monthly (msf + delistings) + CCM link + FF factors + WRDS ratios | `data/crsp_monthly_raw.parquet`, `data/ccm_link.parquet`, `data/ff_monthly.parquet` |
+| `process_crsp_monthly.py` | Delisting adjustment, ME, NYSE breakpoints, filtered dataset | `data/crsp_monthly.parquet`, `data/crsp_monthly_signals.parquet` |
+| `download_crsp_daily.py` | CRSP daily (year-by-year with caching) + FF daily factors | `data/crsp_daily_raw/YYYY.parquet`, `data/ff_daily.parquet` |
+| `process_crsp_daily.py` | Filter, ME, NYSE breakpoints, merge with FF, excess returns | `data/crsp_daily.parquet` |
+
+Run the download scripts first, then the processing scripts:
+```bash
+PYTHONPATH=code python3 code/utils/download_crsp_monthly.py
+python3 code/utils/process_crsp_monthly.py
+```
+
 ### Fallback: Direct connection (single-script only)
 
-If the server isn't available, connect directly — but **all WRDS queries must be in one script** (each `wrds.Connection()` triggers Duo):
+If the server isn't available, connect directly — but keep all WRDS queries in one script:
 
 ```python
 import os
