@@ -380,6 +380,61 @@ rm -rf templates/
 rm -rf extensions/
 rm -rf meta_paper/
 rm -rf test_scripts/
+
+# Rewrite .gitignore for deployed project (remove template-only ignores)
+cat > .gitignore <<'GIEOF'
+# Data files (large, may be proprietary)
+data/*.csv
+data/*.parquet
+data/*.h5
+data/*.dta
+data/*.xlsx
+data/crsp_daily_raw/
+
+# Python
+__pycache__/
+*.pyc
+.ipynb_checkpoints/
+*.egg-info/
+.venv/
+venv/
+
+# R
+.Rhistory
+.RData
+.Rproj.user/
+
+# OS
+.DS_Store
+Thumbs.db
+
+# IDE
+.vscode/
+.idea/
+
+# API keys
+.env
+
+# LaTeX build artifacts
+paper/*.aux
+paper/*.bbl
+paper/*.blg
+paper/*.bcf
+paper/*.log
+paper/*.out
+paper/*.pdf
+paper/*.run.xml
+paper/*.synctex.gz
+paper/*.fdb_latexmk
+paper/*.fls
+paper/*.toc
+paper/*.lof
+paper/*.lot
+paper/*-SAVE-ERROR
+
+# WRDS server runtime
+code/utils/.wrds_server.pid
+GIEOF
 echo "  ✓ Template files removed"
 
 git add -A
