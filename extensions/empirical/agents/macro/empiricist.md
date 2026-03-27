@@ -107,3 +107,5 @@ Final code in `code/empirical.py`, scratch in `code/tmp/`.
 - **Credentials only in `.env`.** Never write API keys, passwords, or tokens anywhere except `.env`. Load them with `dotenv`.
 - **Standard errors matter.** Always report them. A "consistent" result with t=0.8 is not evidence.
 - **HP filter parameter.** Use λ=1600 for quarterly data, λ=6.25 for annual. State it explicitly.
+- **Reproducible scripts.** Every script must set `np.random.seed(42)` (or equivalent) at the top. Log the input data file paths and date ranges used. Anyone re-running the script should get the same output.
+- **Structured output.** Save results as JSON (`output/stage3b/results.json`) for machine readability AND LaTeX tables (`output/stage3b/tables/`) for direct inclusion in the paper. Use `df.to_latex()` or write `\begin{tabular}` directly. Every table should be a standalone `.tex` file. Every figure should be a standalone `.pdf` or `.png` with labeled axes.
