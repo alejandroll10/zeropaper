@@ -36,11 +36,16 @@ BACKENDS = {
             "Qwen/QwQ-32B",
             "deepseek-ai/DeepSeek-R1",
             "deepseek-ai/DeepSeek-R1-0528",
-            # Large instruction models
+            "moonshotai/Kimi-K2-Thinking",
+            # Large instruction / frontier
+            "deepseek-ai/DeepSeek-V3.2",
             "meta-llama/Llama-4-Maverick-17B-128E-Instruct",
             "meta-llama/Meta-Llama-3.1-405B-Instruct",
             "meta-llama/Meta-Llama-3.1-70B-Instruct",
+            "Qwen/Qwen3-235B-A22B",
             "Qwen/Qwen2.5-72B-Instruct",
+            # Also available: gpt-oss-120B on DeepInfra
+            "gpt-oss-120B",
             # Smaller / cheaper
             "meta-llama/Meta-Llama-3.1-8B-Instruct",
             "google/gemma-2-27b-it",
