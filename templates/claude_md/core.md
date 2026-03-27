@@ -6,6 +6,16 @@ This project autonomously produces a **{{PAPER_TYPE}}** suitable for submission 
 
 The project also produces a **process log** documenting how the autonomous system worked, as a pedagogical record.
 
+## Core principle: treat prior work as sunk cost
+
+At every stage, evaluate the current state of the paper on its merits — not on how much effort has been invested. If a result's framing, a section's structure, or even the paper's central claim needs to change based on new evidence (a failed audit, a reversed comparative static, a referee insight), change it. Don't defend a framing because you invested in it; defend it only if it's the strongest presentation.
+
+Concretely:
+- If a comparative static reverses during the math audit, update the result and rewrite the interpretation. Don't try to preserve the old claim.
+- If a "central result" turns out to be a special case of something broader, elevate the broader result and demote the original.
+- If the scorer finds the current theory is at a ceiling (score plateau), abandon and regenerate rather than continuing to polish.
+- If empirical results contradict the theory, report honestly and revise the theory — don't cherry-pick supportive tests.
+
 ---
 
 ## Pipeline overview
@@ -23,6 +33,7 @@ Stage 1: Idea Generation     ──→ Gate 1: Idea Review (iterates with genera
                                    └── TRACTABLE → proceed to Stage 2
 Stage 2: Theory Development  ──→ Gate 2: Math Audit (structured then free-form)
                                    Gate 3: Novelty Check on full theory
+                                   Gate 3a: Computational Sanity Check (compute + plot)
                                    Gate 3b: Empirical Feasibility (falsify-first, optional)
                                       ├── FALSIFIED → back to Stage 1
                                       └── OK → proceed
@@ -216,8 +227,26 @@ This is the second of two deep novelty checks. The idea was already checked at G
 2. Save result to `output/stage2/novelty_check_vN.md`
 3. If KNOWN: abandon this theory, return to Stage 2 with new approach
 4. If INCREMENTAL: flag it, proceed with caution (scorer will weigh this)
-5. If NOVEL: proceed to empirical feasibility check (if empirical extension) or Stage 3
+5. If NOVEL: proceed to computational sanity check
 6. Commit: `artifact: novelty check v{N} — {NOVEL/INCREMENTAL/KNOWN}`
+
+### Gate 3a: Computational Sanity Check
+
+**Orchestrator task** — quick computation to verify the theory's claims hold numerically before investing in implications, empirics, or paper writing.
+
+1. Write a short script (`code/tmp/sanity_check.py` or `.f90` or `.cpp`) that:
+   - Plugs in standard/calibrated parameter values
+   - Computes the key equilibrium object or comparative static from the main proposition
+   - Checks whether the necessary conditions of the main result are satisfied at these parameters
+   - Produces one figure showing the main mechanism at work
+2. Run the script. Save the figure to `output/stage2/sanity_check_figure.png` (or `.pdf`).
+3. Save a brief report to `output/stage2/sanity_check.md`:
+   - Does the claimed effect show up numerically? YES/NO
+   - Are the necessary conditions satisfied at calibration? YES/NO
+   - Any surprises (non-monotonicity, corner solutions, convergence issues)?
+4. If the result does NOT show up numerically at any reasonable parameterization: this is a serious problem. Re-read the proof — either the math has a bug the auditor missed, or the conditions are too restrictive to hold in practice. Consider returning to Stage 2 for a mutate pass.
+5. If YES: proceed. The figure carries forward into the paper.
+6. Commit: `artifact: sanity check — {CONFIRMED/FAILED}`
 
 ### Gate 3b: Empirical Feasibility (optional — empirical extension, falsify-first)
 
@@ -306,21 +335,29 @@ This is the full empirical analysis — deeper than the feasibility check at Gat
 2. Save result to `output/stage4/scorer_decision_vN.md`
 3. Read the decision using **state-dependent escalation**:
 
+**Advance threshold depends on target journal.** Check `pipeline_state.json` for `target_journal` or `paper_constraints.advance_threshold`. If not set, use the default (75).
+
+| Target | Advance threshold | Rationale |
+|--------|------------------|-----------|
+| Top-5 econ / Top-3 finance | 75 (default) | Must be exceptional |
+| Field journals (JME, RFS, JFQA, etc.) | 65 | Solid contribution sufficient |
+| Economics Letters / short papers | 60 | One clean result, technically correct |
+
 **First scorer evaluation** (no prior score): use band logic.
 
 | Decision | Action |
 |----------|--------|
-| **ADVANCE** (75+) | Proceed to Stage 5 |
-| **REVISE** (55-74) | Return to Stage 2 in mutate mode with scorer feedback. |
-| **MAJOR REWORK** (35-54) | Return to Stage 1 to generate new ideas with scorer feedback. |
-| **ABANDON** (<35) | Increment theory_attempt. Return to Stage 1. After 3 abandons on same problem, return to Stage 0. |
+| **ADVANCE** (≥ threshold) | Proceed to Stage 5 |
+| **REVISE** (threshold-20 to threshold-1) | Return to Stage 2 in mutate mode with scorer feedback. |
+| **MAJOR REWORK** (threshold-40 to threshold-21) | Return to Stage 1 to generate new ideas with scorer feedback. |
+| **ABANDON** (<threshold-40) | Increment theory_attempt. Return to Stage 1. After 3 abandons on same problem, return to Stage 0. |
 
 **Subsequent scorer evaluations** (has prior score): use score trajectory.
 
 | Condition | Action |
 |-----------|--------|
-| Score ≥ 75 | **ADVANCE** — always, regardless of trajectory |
-| Score < 35 | **ABANDON** — always, regardless of trajectory |
+| Score ≥ threshold | **ADVANCE** — always, regardless of trajectory |
+| Score < threshold-40 | **ABANDON** — always, regardless of trajectory |
 | Delta ≥ 3 points | **CONTINUE** — one more iteration in current band: REVISE returns to Stage 2, MAJOR REWORK returns to Stage 1 (improving, worth continuing) |
 | Delta < 3 points | **ESCALATE** — move up one level: REVISE → MAJOR REWORK (Stage 1) → ABANDON (plateau or decline, not converging) |
 | Score < 60 on attempt 3+ | **ESCALATE** — regardless of delta. A score below 60 after two revisions suggests a ceiling on this idea. Repair can't fix it; regenerate. |
