@@ -13,14 +13,29 @@ allowed-tools: Bash, Read, Write
 
 ## Connection — CRITICAL
 
-WRDS requires Duo two-factor authentication on every new connection. The user must approve the Duo push on their phone. Therefore:
+WRDS requires Duo two-factor authentication on every new connection. A persistent server runs in the background so Duo fires only once per pipeline session.
 
-1. **Connect exactly once** at the start of your work. Save the connection object and reuse it for every query.
-2. **Never close the connection** until all WRDS work is done.
-3. **Never create a second connection.** If you need data from multiple libraries, use the same `db` object.
-4. **Structure all WRDS code in a single script** (or a sequence that preserves the connection) — do not write separate scripts that each call `wrds.Connection()`.
+### Preferred: Use the persistent server (recommended)
 
-### Connection pattern
+The WRDS server is started automatically at pipeline launch. Use the client in any script:
+
+```python
+import sys; sys.path.insert(0, 'code')
+from utils.wrds_client import wrds_query, wrds_ping, wrds_start
+
+# Ensure server is running (no-op if already started)
+wrds_start()
+
+# Run queries — no Duo, no connection management
+df = wrds_query("SELECT * FROM crsp.msf LIMIT 5")
+```
+
+The server handles connection persistence, threading, and cleanup. Each script just calls `wrds_query(sql)`.
+
+### Fallback: Direct connection (single-script only)
+
+If the server isn't available, connect directly — but **all WRDS queries must be in one script** (each `wrds.Connection()` triggers Duo):
+
 ```python
 import os
 from dotenv import load_dotenv

@@ -630,7 +630,12 @@ Before Stage 0, check what data sources are available. This prevents bad assumpt
 [List what kinds of empirical work are possible given available data]
 ```
 
-5. Commit: `pipeline: data inventory complete`
+5. If WRDS credentials are configured, start the persistent WRDS server:
+   ```bash
+   PYTHONPATH=code python3 code/utils/wrds_server.py &
+   ```
+   This triggers Duo 2FA once. The server stays alive for the entire pipeline session. All subsequent WRDS queries use `from utils.wrds_client import wrds_query` — no more Duo prompts.
+6. Commit: `pipeline: data inventory complete`
 
 **CRITICAL:** All downstream agents must read `output/data_inventory.md` when making decisions about empirical feasibility. The idea-generator and idea-reviewer must know what data is available so they design ideas that USE available data, not work around imagined limitations. Never assume a data source is unavailable without checking the inventory.
 
