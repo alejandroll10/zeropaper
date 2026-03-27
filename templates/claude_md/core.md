@@ -162,9 +162,9 @@ This is the first of two deep novelty checks. It runs on the selected idea *befo
 
 | Verdict | Action |
 |---------|--------|
-| **KNOWN** | Kill this idea. Pick the next-best idea from the current round's sketches (per idea-reviewer rankings) and re-run Gate 1b on it. If no viable ideas remain in the current round, re-run Stage 1 with a new round of idea generation (counts toward the 3-round limit). |
-| **INCREMENTAL** | Flag it. Proceed to Stage 2 but the scorer will weigh this at Gate 4. |
-| **NOVEL** | Proceed to Stage 2. |
+| **KNOWN** | Kill this idea. Pick the next-best idea from the current round's sketches (per idea-reviewer rankings) and re-run Gates 1b + 1c on it. If no viable ideas remain, re-run Stage 1 with a new round (counts toward the 3-round total cap on Stage 1 iterations). |
+| **INCREMENTAL** | Flag it. Proceed to Gate 1c, then Stage 2. The scorer will weigh the INCREMENTAL flag at Gate 4. |
+| **NOVEL** | Proceed to Gate 1c. |
 
 4. Commit: `pipeline: gate 1b — novelty check on idea {NOVEL/INCREMENTAL/KNOWN}`
 
@@ -359,11 +359,11 @@ This is the full empirical analysis — deeper than the feasibility check at Gat
 
 | Condition | Action |
 |-----------|--------|
-| Score ≥ 75 | **ADVANCE** — always, regardless of trajectory |
-| Score < 35 | **ABANDON** — always, regardless of trajectory |
-| Delta ≥ 3 points | **CONTINUE** — one more iteration in current band: REVISE returns to Stage 2, MAJOR REWORK returns to Stage 1 (improving, worth continuing) |
-| Delta < 3 points | **ESCALATE** — move up one level: REVISE → MAJOR REWORK (Stage 1) → ABANDON (plateau or decline, not converging) |
-| Score < 60 on attempt 3+ | **ESCALATE** — regardless of delta. A score below 60 after two revisions suggests a ceiling on this idea. Repair can't fix it; regenerate. |
+| Score ≥ advance threshold | **ADVANCE** — always, regardless of trajectory |
+| Score < abandon threshold | **ABANDON** — always, regardless of trajectory |
+| Delta ≥ 3 points | **CONTINUE** — one more iteration in current band (improving, worth continuing) |
+| Delta < 3 points | **ESCALATE** — move up one level: REVISE → MAJOR REWORK → ABANDON (plateau, not converging) |
+| Score < (advance threshold + 5) on attempt 3+ | **ESCALATE** — regardless of delta. Still below the bar after two revisions suggests a ceiling. Regenerate. |
 
 **Hard ceiling:** After 4 total scorer evaluations on the same problem, escalate one level regardless of trajectory. This prevents slow-but-never-arriving loops (e.g., +3, +3, +3 but still at 69).
 
