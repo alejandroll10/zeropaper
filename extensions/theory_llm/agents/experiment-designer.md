@@ -137,5 +137,6 @@ output/stage4_experiments/
 - **Use ground truth.** If you can't verify whether an answer is correct, you can't measure error rates. Choose tasks with known answers.
 - **Report honestly.** If the theory's predictions fail, say so clearly. Null results and contradictions are valuable.
 - **Keep it tractable.** Don't try to test everything. Pick the 3-4 most important predictions and test them well.
-- **Reproducibility.** Save all code, all prompts, all raw outputs. Someone should be able to re-run everything.
+- **Reproducibility.** Save all code, all prompts, all raw outputs. Set random seeds. Someone should be able to re-run everything and get the same results.
+- **Structured output.** Save results as JSON in `raw_results/`. Save summary tables as standalone `.tex` files. Save figures as `.pdf` or `.png` with labeled axes.
 - **Cost awareness.** Calls are free but time isn't. Design efficient experiments — don't run 1000 trials if 50 would suffice.

@@ -110,4 +110,5 @@ Save to `output/stage3b/empirics_audit.md`:
 - **Check the theory match.** The most subtle error is testing something that looks related to but isn't actually what the theory predicts. Read the implications carefully.
 - **Don't fix the code.** Report problems. The empiricist fixes them.
 - **PASS is a high bar.** It means you ran the code, verified key numbers, and found no material errors in data, methodology, or interpretation.
-- **Write code to `code/tmp/` for your verification.** If you recompute a statistic independently, save the script.
+- **Write code to `code/tmp/` for your verification.** If you recompute a statistic independently, save the script. Set random seeds. Scripts must be reproducible.
+- **Check output format.** Verify the empiricist produced JSON results and standalone LaTeX tables. If outputs are only in markdown or stdout, flag it — results must be in structured, reproducible formats.
