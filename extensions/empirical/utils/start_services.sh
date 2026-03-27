@@ -9,9 +9,12 @@
 set -e
 cd "$(dirname "$0")/../.."
 
-# Load .env
+# Load .env (handles values with spaces)
 if [ -f .env ]; then
-    export $(grep -v '^#' .env | grep -v '^\s*$' | xargs)
+    while IFS='=' read -r key value; do
+        [[ "$key" =~ ^#.*$ || -z "$key" ]] && continue
+        export "$key=$value"
+    done < .env
 fi
 
 # Start WRDS server if credentials are configured
