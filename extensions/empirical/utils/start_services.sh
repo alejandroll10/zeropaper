@@ -19,17 +19,20 @@ fi
 
 # Start WRDS server if credentials are configured
 if [ -n "$WRDS_USER" ] && [ "$WRDS_USER" != "your-username" ]; then
-    if [ -f code/utils/.wrds_server.pid ]; then
-        PID=$(cat code/utils/.wrds_server.pid)
-        if kill -0 "$PID" 2>/dev/null; then
-            echo "WRDS server already running (PID $PID)"
-        else
-            echo "Starting WRDS server (approve Duo when prompted)..."
-            PYTHONPATH=code python3 code/utils/wrds_server.py &
-        fi
+    # Check if ANY wrds server is already responding on the port (could be from another project)
+    if PYTHONPATH=code python3 -c "from utils.wrds_client import wrds_ping; exit(0 if wrds_ping() else 1)" 2>/dev/null; then
+        echo "WRDS server already running (reusing existing connection)"
     else
         echo "Starting WRDS server (approve Duo when prompted)..."
         PYTHONPATH=code python3 code/utils/wrds_server.py &
+        # Wait for server to be ready
+        for i in $(seq 1 120); do
+            sleep 1
+            if PYTHONPATH=code python3 -c "from utils.wrds_client import wrds_ping; exit(0 if wrds_ping() else 1)" 2>/dev/null; then
+                echo "WRDS server ready"
+                break
+            fi
+        done
     fi
 else
     echo "WRDS: no credentials configured, skipping"
