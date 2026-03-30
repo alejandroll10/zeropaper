@@ -193,4 +193,13 @@ Sandbox is pre-configured in `.claude/settings.json`:
 
 ## License
 
-For private use until further notice.
+Copyright (c) 2026 Alejandro Lopez-Lira (alejandroll10@gmail.com)
+
+All rights reserved.
+
+This software and associated documentation files (the "Software") are for
+private use only. No permission is granted to use, copy, modify, merge,
+publish, distribute, sublicense, and/or sell copies of the Software without
+explicit written permission from the copyright holder.
+
+For licensing inquiries, contact: alejandroll10@gmail.com
