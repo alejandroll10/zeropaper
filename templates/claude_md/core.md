@@ -328,8 +328,8 @@ This is the full empirical analysis — deeper than the feasibility check at Gat
 4. All code must be written to files (`code/` for final, `code/tmp/` for scratch). Never run inline `python3 -c`.
 5. **Empirics audit.** Launch `empirics-auditor` on the empirical analysis + code + theory draft. The auditor runs the code, verifies results, checks methodology.
    - If **PASS**: proceed to Stage 4. Self-attacker and scorer receive empirical results alongside the theory.
-   - If **FAIL**: re-launch `empiricist` with the audit feedback. Keep iterating as long as the number of issues is decreasing (the empiricist is making progress). Escalate only if the issue count plateaus or increases across two consecutive attempts.
-4. Commit: `artifact: empirics audit — {PASS/FAIL}`
+   - If **FAIL**: re-launch `empiricist` with the audit feedback. Keep iterating as long as the number of issues is decreasing. Escalate only if the issue count plateaus or increases across two consecutive attempts.
+6. Commit: `artifact: empirics audit — {PASS/FAIL}`
 
 ---
 
@@ -526,6 +526,11 @@ output/
 ├── post_pipeline/
 │   ├── pending_audit_1.md
 │   └── audit_result_1.md
+code/
+├── utils/                          # pre-built helpers (wrds_client, download templates)
+├── explore/                        # theory-explorer scripts
+├── tmp/                            # scratch/intermediate scripts
+└── empirical.py                    # final empirical code
 paper/
 ├── main.tex
 ├── sections/
