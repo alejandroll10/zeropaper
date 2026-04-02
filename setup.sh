@@ -131,10 +131,11 @@ fi
 # ── Assemble CLAUDE.md ──
 echo "Assembling CLAUDE.md for variant: $VARIANT..."
 
-CORE="$TEMPLATE_ROOT/templates/claude_md/core.md"
+CORE="$TEMPLATE_ROOT/templates/shared/core.md"
+RUNTIME_SESSION="$TEMPLATE_ROOT/templates/runtime/claude/session.md"
 SCORING_FILE="$TEMPLATE_ROOT/templates/scoring/${AGENT_DIR}.md"
 
-for f in "$CORE" "$SCORING_FILE"; do
+for f in "$CORE" "$RUNTIME_SESSION" "$SCORING_FILE"; do
     if [ ! -f "$f" ]; then
         echo "Error: $f not found"
         exit 1
@@ -147,19 +148,26 @@ else
     CLAUDE_MD_OUT="CLAUDE.md"
 fi
 
-python3 - "$CORE" "$SCORING_FILE" "$PAPER_TYPE" "$TARGET_JOURNALS" "$DOMAIN_AREAS" "$CLAUDE_MD_OUT" <<'PYEOF'
+python3 - "$CORE" "$RUNTIME_SESSION" "$SCORING_FILE" "$PAPER_TYPE" "$TARGET_JOURNALS" "$DOMAIN_AREAS" "$CLAUDE_MD_OUT" <<'PYEOF'
 import sys
 
-core_path, scoring_path, paper_type, target_journals, domain_areas, out_path = sys.argv[1:7]
+core_path, runtime_session_path, scoring_path, paper_type, target_journals, domain_areas, out_path = sys.argv[1:8]
 
 with open(core_path) as f:
     content = f.read()
+with open(runtime_session_path) as f:
+    runtime_session = f.read().rstrip()
 with open(scoring_path) as f:
     scoring = f.read()
 
+content = content.replace('{{RUNTIME_DOC_NAME}}', 'CLAUDE.md')
 content = content.replace('{{PAPER_TYPE}}', paper_type)
 content = content.replace('{{TARGET_JOURNALS}}', target_journals)
 content = content.replace('{{DOMAIN_AREAS}}', domain_areas)
+content = content.replace('{{AGENT_DIR}}', '.claude/agents')
+content = content.replace('{{SKILL_DIR}}', '.claude/skills')
+runtime_session = runtime_session.replace('{{SKILL_DIR}}', '.claude/skills')
+content = content.replace('{{RUNTIME_SESSION_GUIDANCE}}', runtime_session)
 content = content.replace('{{SCORING}}', scoring)
 
 with open(out_path, 'w') as f:
