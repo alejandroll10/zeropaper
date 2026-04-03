@@ -1,0 +1,14 @@
+{
+  "experiment-designer": {
+    "name": "experiment-designer",
+    "description": "Designs and runs empirical experiments to test theoretical predictions. The orchestrator launches this agent at Stage 4 (Experiment Design & Execution) after implications are derived. Uses gpt-oss-120b and gpt-oss-20b via llm_client.py.",
+    "tools": "[Read, Write, Bash, Glob, Grep]",
+    "model": "opus"
+  },
+  "experiment-reviewer": {
+    "name": "experiment-reviewer",
+    "description": "Reviews experiment design, methodology, and results. The orchestrator launches this agent after experiments are run to verify methodology and assess whether results support the theory.",
+    "tools": "[Read, Write, Glob, Grep]",
+    "model": "opus"
+  }
+}

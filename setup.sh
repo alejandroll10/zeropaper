@@ -114,6 +114,18 @@ assemble_claude_variant_agents() {
         --output-dir "$dest_dir"
 }
 
+assemble_claude_agents_from_parts() {
+    local template_root="$1"
+    local metadata_file="$2"
+    local bodies_dir="$3"
+    local dest_dir="$4"
+
+    python3 "$template_root/scripts/assemble_claude_agents.py" \
+        --metadata "$metadata_file" \
+        --bodies-dir "$bodies_dir" \
+        --output-dir "$dest_dir"
+}
+
 assemble_claude_skills() {
     local template_root="$1"
     local metadata_file="$2"
@@ -308,7 +320,11 @@ for ext in "${EXTENSIONS[@]}"; do
             EXT_ROOT="$TEMPLATE_ROOT/extensions/theory_llm"
 
             cp "$EXT_ROOT/llm_client.py" "$P/"
-            copy_agent_markdown "$EXT_ROOT/agents" "$AGENTS_OUT"
+            assemble_claude_agents_from_parts \
+                "$TEMPLATE_ROOT" \
+                "$EXT_ROOT/agent_metadata/agents.json" \
+                "$EXT_ROOT/agent_bodies" \
+                "$AGENTS_OUT"
 
             assemble_claude_skills \
                 "$TEMPLATE_ROOT" \
@@ -350,12 +366,20 @@ ENVEOF
                 "$TEMPLATE_ROOT/templates/skill_bodies/empirical" \
                 "$SKILLS_OUT"
 
-            # Copy empirical agents (shared + variant-specific)
-            if [ -d "$EXT_ROOT/agents/shared" ]; then
-                copy_agent_markdown "$EXT_ROOT/agents/shared" "$AGENTS_OUT"
+            # Assemble empirical agents (shared + variant-specific)
+            if [ -f "$EXT_ROOT/agent_metadata/shared_agents.json" ]; then
+                assemble_claude_agents_from_parts \
+                    "$TEMPLATE_ROOT" \
+                    "$EXT_ROOT/agent_metadata/shared_agents.json" \
+                    "$EXT_ROOT/agent_bodies/shared" \
+                    "$AGENTS_OUT"
             fi
-            if [ -d "$EXT_ROOT/agents/${AGENT_DIR}" ]; then
-                copy_agent_markdown "$EXT_ROOT/agents/${AGENT_DIR}" "$AGENTS_OUT"
+            if [ -f "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" ]; then
+                assemble_claude_agents_from_parts \
+                    "$TEMPLATE_ROOT" \
+                    "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" \
+                    "$EXT_ROOT/agent_bodies/${AGENT_DIR}" \
+                    "$AGENTS_OUT"
             else
                 echo "  ⚠ No empiricist agent for variant '${AGENT_DIR}' — Stage 3b will be skipped at runtime"
             fi

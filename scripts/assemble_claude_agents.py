@@ -3,7 +3,7 @@ import argparse
 import json
 from pathlib import Path
 
-FIELD_ORDER = ["name", "description", "tools", "model", "background", "memory"]
+FIELD_ORDER = ["name", "description", "tools", "skills", "model", "background", "memory"]
 
 
 def format_value(value):

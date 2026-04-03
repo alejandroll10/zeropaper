@@ -29,6 +29,12 @@ Completed:
   - `templates/agent_bodies/finance/*.md`
   - `templates/agent_bodies/macro/*.md`
 - `setup.sh` now assembles variant agents from metadata + bodies
+- Claude extension agents modularized into:
+  - `extensions/empirical/agent_metadata/*.json`
+  - `extensions/empirical/agent_bodies/{shared,finance,macro}/*.md`
+  - `extensions/theory_llm/agent_metadata/agents.json`
+  - `extensions/theory_llm/agent_bodies/*.md`
+- `setup.sh` now assembles extension agents from metadata + bodies
 - Claude extension skills modularized into:
   - `templates/skill_metadata/claude_empirical_skills.json`
   - `templates/skill_metadata/claude_theory_llm_skills.json`
@@ -42,37 +48,27 @@ Verified:
 - generated shared `.claude/agents/*.md` match `codex_inspect/.claude/agents/*.md`
 - generated finance variant agents match baseline output after refactor
 - generated macro variant agents match baseline output after refactor
+- generated finance extension agents match baseline output after refactor
+- generated macro extension agents match baseline output after refactor
 - generated `.claude/skills/*/SKILL.md` match `codex_inspect/.claude/skills/*/SKILL.md`
 - full local regeneration passed:
   - `./setup.sh test_output/refactor_compare --variant finance --ext empirical --ext theory_llm --local`
 - variant parity checks passed:
   - `diff -ru test_output/variant_baseline_finance/.claude/agents test_output/variant_compare_finance/.claude/agents`
   - `diff -ru test_output/variant_baseline_macro/.claude/agents test_output/variant_compare_macro/.claude/agents`
+- extension parity checks passed:
+  - `diff -ru test_output/ext_agent_baseline_finance/.claude/agents test_output/ext_agent_compare_finance/.claude/agents`
+  - `diff -ru test_output/ext_agent_baseline_macro/.claude/agents test_output/ext_agent_compare_macro/.claude/agents`
 - committed and pushed:
   - `72ac58c` (`Modularize Claude skill assembly`)
+  - `62ddb52` (`Modularize Claude variant agents`)
 
 Not done yet:
-- extension agent modularization
 - extension installer refactor out of the main `setup.sh` case block
 
 ## Recommended next steps
 
-### 1. Modularize extension agents
-
-Current status:
-- empirical and theory_llm agent markdown is still copied directly
-
-Recommended approach:
-- keep content unchanged
-- split metadata/body only after shared + variant agent path is stable
-
-Likely targets:
-- `extensions/empirical/agent_metadata/...`
-- `extensions/empirical/agent_bodies/...`
-- `extensions/theory_llm/agent_metadata/...`
-- `extensions/theory_llm/agent_bodies/...`
-
-### 2. Refactor extension installation out of `setup.sh`
+### 1. Refactor extension installation out of `setup.sh`
 
 Current status:
 - `setup.sh` still owns:
@@ -115,6 +111,5 @@ diff -u codex_inspect/CLAUDE.md test_output/refactor_compare/CLAUDE.md
 
 ## Suggested order for the next session
 
-1. modularize extension agents
-2. shrink `setup.sh` by moving extension logic into scripts
-3. only then begin Codex support
+1. shrink `setup.sh` by moving extension logic into scripts
+2. only then begin Codex support
