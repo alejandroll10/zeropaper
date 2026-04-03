@@ -103,6 +103,17 @@ assemble_claude_shared_agents() {
         --output-dir "$dest_dir"
 }
 
+assemble_claude_variant_agents() {
+    local template_root="$1"
+    local variant="$2"
+    local dest_dir="$3"
+
+    python3 "$template_root/scripts/assemble_claude_agents.py" \
+        --metadata "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
+        --bodies-dir "$template_root/templates/agent_bodies/${variant}" \
+        --output-dir "$dest_dir"
+}
+
 assemble_claude_skills() {
     local template_root="$1"
     local metadata_file="$2"
@@ -224,7 +235,9 @@ fi
 
 assemble_claude_shared_agents "$TEMPLATE_ROOT" "$AGENTS_OUT"
 
-if [ -d "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}" ]; then
+if [ -f "$TEMPLATE_ROOT/templates/agent_metadata/claude_${AGENT_DIR}_agents.json" ]; then
+    assemble_claude_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$AGENTS_OUT"
+elif [ -d "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}" ]; then
     copy_agent_markdown "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}" "$AGENTS_OUT"
 fi
 
