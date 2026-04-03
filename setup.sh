@@ -84,22 +84,6 @@ CLAUDE_AGENTS_REL="$CLAUDE_DIR_REL/agents"
 CLAUDE_SKILLS_REL="$CLAUDE_DIR_REL/skills"
 CLAUDE_SETTINGS_REL="$CLAUDE_DIR_REL/settings.json"
 
-copy_skill_dirs() {
-    local src_root="$1"
-    local dest_root="$2"
-
-    [ -d "$src_root" ] || return 0
-    mkdir -p "$dest_root"
-
-    for skill_dir in "$src_root"/*/; do
-        [ -d "$skill_dir" ] || continue
-        local skill_name
-        skill_name=$(basename "$skill_dir")
-        mkdir -p "$dest_root/$skill_name"
-        cp "$skill_dir"SKILL.md "$dest_root/$skill_name/"
-    done
-}
-
 copy_agent_markdown() {
     local src_dir="$1"
     local dest_dir="$2"
@@ -116,6 +100,18 @@ assemble_claude_shared_agents() {
     python3 "$template_root/scripts/assemble_claude_agents.py" \
         --metadata "$template_root/templates/agent_metadata/claude_shared_agents.json" \
         --bodies-dir "$template_root/templates/agent_bodies/shared" \
+        --output-dir "$dest_dir"
+}
+
+assemble_claude_skills() {
+    local template_root="$1"
+    local metadata_file="$2"
+    local bodies_dir="$3"
+    local dest_dir="$4"
+
+    python3 "$template_root/scripts/assemble_claude_skills.py" \
+        --metadata "$metadata_file" \
+        --bodies-dir "$bodies_dir" \
         --output-dir "$dest_dir"
 }
 
@@ -301,8 +297,11 @@ for ext in "${EXTENSIONS[@]}"; do
             cp "$EXT_ROOT/llm_client.py" "$P/"
             copy_agent_markdown "$EXT_ROOT/agents" "$AGENTS_OUT"
 
-            # Copy skills
-            copy_skill_dirs "$EXT_ROOT/skills" "$SKILLS_OUT"
+            assemble_claude_skills \
+                "$TEMPLATE_ROOT" \
+                "$TEMPLATE_ROOT/templates/skill_metadata/claude_theory_llm_skills.json" \
+                "$TEMPLATE_ROOT/templates/skill_bodies/theory_llm" \
+                "$SKILLS_OUT"
 
             mkdir -p "$P/output/stage3b_experiments"
 
@@ -332,8 +331,11 @@ ENVEOF
 
             EXT_ROOT="$TEMPLATE_ROOT/extensions/empirical"
 
-            # Copy skills
-            copy_skill_dirs "$EXT_ROOT/skills" "$SKILLS_OUT"
+            assemble_claude_skills \
+                "$TEMPLATE_ROOT" \
+                "$TEMPLATE_ROOT/templates/skill_metadata/claude_empirical_skills.json" \
+                "$TEMPLATE_ROOT/templates/skill_bodies/empirical" \
+                "$SKILLS_OUT"
 
             # Copy empirical agents (shared + variant-specific)
             if [ -d "$EXT_ROOT/agents/shared" ]; then
