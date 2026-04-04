@@ -31,6 +31,7 @@ For each proposition:
 - **Hand-waving steps** — "it can be shown that" or "by standard arguments" without the actual argument
 - **Boundary cases** — what happens when a parameter goes to 0 or infinity? Does the result still hold?
 - **Second-order conditions** — if an optimum is claimed, is it actually a maximum, not a minimum or saddle point?
+- **Load-bearing conjectures** — any claim the paper relies on that is stated as "numerically verified" or "conjectured" rather than proved. If a proposition, comparative static, or policy implication depends on an unproved claim, flag it as a Critical error. "Weakened to conjecture" is not a fix — the result must be proved, proved under a sufficient condition, or the paper must characterize what happens when it fails.
 
 ## Output format
 

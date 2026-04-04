@@ -70,7 +70,7 @@ A theory draft saved to the path specified in your prompt. Structure:
 ## Rules
 
 - **Parsimony above all.** The simplest model that generates the result wins. If your model has more than 3 assumptions, justify every single one.
-- **No hand-waving.** Every claim must be proven or explicitly flagged as a conjecture.
+- **No hand-waving.** Every claim must be proven. If a proof attempt fails, try a different strategy, find a sufficient condition under which it holds, or characterize what happens when it fails. Do not leave load-bearing results as conjectures — if the paper relies on it, prove it or restructure around what you can prove.
 - **No hallucinated math.** If you're not sure a derivation is correct, work through it step by step. Show ALL algebra.
 - **Economic content required.** "The FOC gives us equation (3)" is not insight. WHY does the FOC look this way? What economic force is at work?
 - **One clear idea.** If you can't state the contribution in one sentence, the model doesn't know what it is.

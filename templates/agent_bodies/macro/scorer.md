@@ -53,6 +53,7 @@ Read the theory draft and all evaluation outputs. Score each dimension 0-100:
 - Is the equilibrium well-defined (existence, uniqueness/multiplicity acknowledged)?
 - Math audit severity informs this
 - Are boundary cases and limiting behavior acknowledged?
+- Any load-bearing conjecture (result the paper relies on that is "numerically verified" but not proved) caps rigor at 40
 - Calibration: full equilibrium characterization with all cases = 100, clear argument with small gaps = 60
 
 ### Parsimony (weight: 10%)

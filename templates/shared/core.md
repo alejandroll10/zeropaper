@@ -36,6 +36,7 @@ Concretely:
 - If a general proof fails, find the tightest sufficient condition you can. Then show the condition is necessary by constructing a counterexample when it's violated.
 - A paper with "Proposition: X holds. Corollary: X fails when C is violated, with the following counterexample" is a complete characterization. That is what top journals want.
 - Keep working analytically on the important results until you either prove them generally, find the exact conditions, or establish that they are genuinely non-generic. Don't settle for numerical verification of what should be a theorem.
+- **No conjectures on load-bearing results.** Every result the paper relies on must be either (a) proved, (b) proved under an explicit sufficient condition, or (c) accompanied by a characterization of what happens when the condition fails. "Numerically verified but not proved" is not acceptable for results that other propositions or policy conclusions depend on. If a proof attempt fails, try a different strategy, search for counterexamples, or restructure the paper around what you can prove. Weakening a claim to a conjecture is not a fix.
 
 ---
 

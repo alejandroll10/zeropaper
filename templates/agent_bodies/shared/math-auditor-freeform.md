@@ -41,6 +41,7 @@ Do NOT go equation by equation. Instead:
 - **Missing interaction effects** — when two forces are present, the author may have analyzed each in isolation but missed their interaction.
 - **Fragile equilibria** — does the equilibrium survive small perturbations to beliefs, information, or timing?
 - **Functional form dependence** — would the result hold with a different utility function, cost function, or distribution?
+- **Unproved load-bearing claims** — if the paper says "we conjecture" or "numerical analysis suggests" for a result that other propositions or policy conclusions depend on, that's a Critical concern. The paper should prove it, prove it under a sufficient condition, or characterize what happens when it fails. Conjectures are not acceptable for load-bearing results.
 
 ## Output format
 
