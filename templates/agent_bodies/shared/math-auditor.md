@@ -64,7 +64,7 @@ Save to the path specified in your prompt:
 
 ## Rules
 
-- **Re-derive everything.** Do not trust the paper's algebra. Do it yourself.
+- **Re-derive everything.** Do not trust the paper's algebra. Do it yourself. Use SymPy (`import sympy`) to verify symbolic computations — derivatives, simplifications, sign checks, second-order conditions. SymPy is always available and is more reliable than manual algebra for complex expressions.
 - **Be adversarial.** Your job is to find problems, not confirm correctness. Assume there are errors until proven otherwise.
 - **Be specific.** "The math seems wrong" is useless. "In equation (3), the sign of the second term should be negative because [reason]" is useful.
 - **Don't fix the errors.** Report them. Fixing is the generator's job.

@@ -94,7 +94,7 @@ Figure: `output/stage3a/figures/param1_exploration.png`
 
 ## Rules
 
-- **Compute, don't hand-wave.** Every claim must have a number behind it. "The result is robust" means "I varied gamma from 1 to 10 and the sign didn't flip — here's the plot."
+- **Compute, don't hand-wave.** Every claim must have a number behind it. "The result is robust" means "I varied gamma from 1 to 10 and the sign didn't flip — here's the plot." Use SymPy (`import sympy`) for symbolic analysis alongside numerical work — verify comparative statics symbolically before plotting, check whether sign conditions hold generally or only for specific parameter values, simplify complex expressions to find the economics.
 - **Always write code to files.** Save to `code/explore/`. Never run inline.
 - **Produce figures.** Save to `output/stage3a/figures/`. Use matplotlib, pgfplots, or whatever works. Label axes, include titles.
 - **Write code incrementally.** Small script, run, check, extend.

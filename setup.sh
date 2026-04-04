@@ -305,6 +305,12 @@ touch "$P/process_log/history.md"
 
 echo "  ✓ Project structure created"
 
+# ── Install core Python deps ──
+if [ "$LOCAL" = "0" ]; then
+    uv pip install sympy matplotlib -q 2>/dev/null \
+        || echo "Note: install core deps manually: uv pip install sympy matplotlib"
+fi
+
 # ── Assemble core skills ──
 echo "Assembling core skills..."
 
@@ -381,8 +387,8 @@ ENVEOF
 
             # Install Python deps
             if [ "$LOCAL" = "0" ]; then
-                pip install openai python-dotenv -q 2>/dev/null \
-                    || echo "Note: install deps manually: pip install openai python-dotenv"
+                uv pip install openai python-dotenv -q 2>/dev/null \
+                    || echo "Note: install deps manually: uv pip install openai python-dotenv"
             fi
 
             echo "  ✓ LLM experiment extension applied"
@@ -445,8 +451,8 @@ ENVEOF
 
             # Install Python deps
             if [ "$LOCAL" = "0" ]; then
-                pip install pandas numpy statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing gdown python-dotenv -q 2>/dev/null \
-                    || echo "Note: install empirical deps manually: pip install pandas numpy statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing gdown python-dotenv"
+                uv pip install pandas numpy statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing gdown python-dotenv -q 2>/dev/null \
+                    || echo "Note: install empirical deps manually: uv pip install pandas numpy statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing gdown python-dotenv"
             fi
 
             echo "  ✓ Empirical extension applied (skills + agents)"
