@@ -1,6 +1,6 @@
 ## Orchestration discipline
 
-Every instruction in this document is literal and mandatory. Do not skip, combine, or reorder steps. Read this section in full before executing anything.
+Every instruction in this document is literal and mandatory. Do not skip, combine, or reorder steps. Read this section in full before executing anything. Take this seriously, we want to show the world what AI-systems can already do in autonomous research.
 
 ### Sequential execution is non-negotiable
 
