@@ -3,7 +3,7 @@
     "name": "idea-generator",
     "description": "Brainstorms candidate mechanisms and model ideas for a given problem. The orchestrator launches this agent at Stage 1 of the pipeline. Produces developed sketches — not full theories, but enough to evaluate.",
     "tools": "Read, Write",
-    "model": "opus",
+    "model": "sonnet",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "high"
