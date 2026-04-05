@@ -37,6 +37,8 @@ Write the report in this exact structure:
 ## What to focus on
 
 - Is the question important enough to deserve space in a top journal?
+- **Is the main result surprising?** Would a knowledgeable macro reader predict the key finding before seeing the proof? A paper that formalizes what everyone already believes is less valuable than one that overturns conventional wisdom, reveals a sign reversal, or derives a sharp condition no one would have guessed. If the result mostly confirms existing intuition, say so explicitly.
+- **Is the contribution genuinely new?** Does the paper deliver a result that the existing literature does not already contain or straightforwardly imply? Or is it a cleaner repackaging of known channels? Be specific about which prior paper comes closest and what, exactly, this paper adds.
 - Is the equilibrium well-defined and properly characterized?
 - Are the results correct and robust, or do they depend on knife-edge assumptions?
 - Does the paper clearly identify the economic channel driving the results?

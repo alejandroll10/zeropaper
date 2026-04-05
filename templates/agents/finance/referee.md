@@ -37,8 +37,10 @@ Write the report in this exact structure:
 ## What to focus on
 
 - Is the question important enough to deserve space in a top journal?
+- **Is the main result surprising?** Would a knowledgeable reader predict the key finding before seeing the proof? A paper that formalizes what everyone already believes is less valuable than one that overturns conventional wisdom, reveals a sign reversal, or derives a sharp condition no one would have guessed. If the result mostly confirms existing intuition, say so explicitly.
+- **Is the contribution genuinely new?** Does the paper deliver a result that the existing literature does not already contain or straightforwardly imply? Or is it a cleaner repackaging of known mechanisms? Be specific about which prior paper comes closest and what, exactly, this paper adds.
 - Does the paper answer the question correctly?
-- Are there any issues with the paper methods?
+- Are the results robust, or do they depend on knife-edge assumptions or reduced-form shortcuts that do all the work?
 - What is missing that a reader of a top journal would expect?
 - Are there logical gaps or unsupported claims?
 - Is the paper well-organized and of appropriate length?
