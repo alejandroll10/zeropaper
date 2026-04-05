@@ -20,25 +20,33 @@ Concretely:
 
 ## Core principle: surprises are discoveries
 
-When results go against well-formed priors — a comparative static flips sign at calibration, a necessary condition fails in a standard parameterization, or the model generates an unexpected pattern — that is often the most valuable finding. If your priors were based on standard models and standard calibrations, a surprise means the model is revealing something non-obvious. Lean into it.
+When results go against well-formed priors — a comparative static flips sign, a necessary condition fails at calibration, or the model generates an unexpected pattern — that is often the most valuable finding. Lean into it.
 
 Concretely:
-- If the theory-explorer finds the result reverses in a plausible parameter region, don't treat it as a failure. Ask: what economic force drives the reversal? That force may be the real contribution.
-- If the empiricist finds the data contradicts the theory's main prediction but confirms an auxiliary prediction, the auxiliary prediction might be the paper.
-- If a "known" mechanism produces an unexpected quantitative result (the effect is 10x larger or smaller than expected), that's a finding worth reporting.
-- The pipeline should never suppress a surprising result to preserve a prior narrative. A clean surprise, honestly reported, is more publishable than a confirmation of the expected.
+- If the theory-explorer finds the result reverses in a plausible parameter region, ask: what economic force drives the reversal? That force may be the real contribution.
+- If the empiricist finds the data contradicts the main prediction but confirms an auxiliary one, the auxiliary prediction might be the paper.
+- Never suppress a surprising result to preserve a prior narrative. A clean surprise is more publishable than a confirmation of the expected.
 
 ## Core principle: characterize, don't just prove
 
-For important results, the goal is not just to prove them under specific assumptions — it's to characterize exactly when they hold and when they don't. A result that says "X holds if and only if condition C" is far more valuable than "X holds under assumptions A1-A5."
+For important results, characterize exactly when they hold and when they don't. "X holds if and only if condition C" is far more valuable than "X holds under assumptions A1-A5."
 
 Concretely:
-- If a result holds under CARA but not CRRA, don't stop there. Find the exact condition on preferences that makes it work (e.g., "holds iff absolute risk aversion is non-increasing" or "holds iff the elasticity of substitution exceeds 1").
-- If the theory-explorer finds the result breaks in some parameter region, characterize the boundary. The "if and only if" condition is often the real theorem.
-- If a general proof fails, find the tightest sufficient condition you can. Then show the condition is necessary by constructing a counterexample when it's violated.
-- A paper with "Proposition: X holds. Corollary: X fails when C is violated, with the following counterexample" is a complete characterization. That is what top journals want.
-- Keep working analytically on the important results until you either prove them generally, find the exact conditions, or establish that they are genuinely non-generic. Don't settle for numerical verification of what should be a theorem.
-- **No conjectures on load-bearing results.** Every result the paper relies on must be either (a) proved, (b) proved under an explicit sufficient condition, or (c) accompanied by a characterization of what happens when the condition fails. "Numerically verified but not proved" is not acceptable for results that other propositions or policy conclusions depend on. If a proof attempt fails, try a different strategy, search for counterexamples, or restructure the paper around what you can prove. Weakening a claim to a conjecture is not a fix.
+- If a result holds under CARA but not CRRA, find the exact condition on preferences that makes it work.
+- If the theory-explorer finds the result breaks in some parameter region, characterize the boundary — the "if and only if" condition is often the real theorem.
+- If a general proof fails, find the tightest sufficient condition, then show necessity by constructing a counterexample when it's violated.
+- Don't settle for numerical verification of what should be a theorem.
+- **No conjectures on load-bearing results.** Every result the paper relies on must be either (a) proved, (b) proved under an explicit sufficient condition, or (c) accompanied by a characterization of what happens when the condition fails. If a proof attempt fails, try a different strategy, search for counterexamples, or restructure the paper around what you can prove. Weakening a claim to a conjecture is not a fix.
+
+## Core principle: do what makes the paper better, not what is easiest
+
+At every decision point, choose the action that maximizes paper quality — even if a shortcut exists. When a proof fails, try harder proof strategies and use every available tool (including codex-math) before weakening the claim. When empirical data could strengthen a result, run the analysis instead of relying on verbal arguments. When a hard extension would add real content, pursue it instead of polishing exposition.
+
+Concretely:
+- If a math audit flags an unproved lemma, exhaust proof strategies (codex-math explore mode, alternative proof techniques, relaxed sufficient conditions) before demoting to a conjecture or an empirical regularity.
+- If the scorer says "needs more mathematical substance," add a genuine extension — don't reframe the same content with better words.
+- If a tool exists for the task (data skills, codex-math, theory-explorer), use it. Skipping available tools because they're unfamiliar is not acceptable.
+- The path of least resistance produces thin papers. Referees can tell.
 
 ---
 
