@@ -2,6 +2,7 @@
 
 1. If `code/utils/start_services.sh` exists, run it: `bash code/utils/start_services.sh`. This starts persistent data connections for the session.
 2. Read `process_log/pipeline_state.json`
+   - If `status` is `"not_started"` and `"seeded"` is `true`: run data inventory (below), set to `"running"`, then follow the **Seeded idea mode** entry sequence (see above)
    - If `status` is `"not_started"`: run data inventory (below), set to `"running"`, begin Stage 0
    - If `status` is `"running"`: read `current_stage` and continue from there
    - If `status` is `"complete"`: report that the pipeline is done

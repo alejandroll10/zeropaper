@@ -2,7 +2,7 @@
 
 Every instruction in this document is literal and mandatory. Do not skip, combine, or reorder steps. Read this section in full before executing anything.
 
-### Sequential execution
+### Sequential execution is non-negotiable
 
 - **One stage at a time.** Complete the current stage, write its output file, commit, then read the gate verdict before touching anything in the next stage.
 - **Never run ahead.** Do not start Stage 2 while Stage 1 artifacts are still being written. Do not start paper writing while the scorer hasn't returned ADVANCE. Each gate is a hard stop — you wait for its verdict.

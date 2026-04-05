@@ -12,11 +12,9 @@
 
 4. **Write the selected idea.** Translate the seed into the format expected by downstream stages. Save to `output/stage1/selected_idea.md`. Preserve the user's framing, mechanism, and key claims. Do not dilute or generalize. Commit: `artifact: seeded — selected idea written`.
 
-5. **Update pipeline_state.json** to `gate_1b` and add history entries for each completed step.
+5. **Update pipeline_state.json** to `gate_1b` and add history entries (format: `{ "timestamp": "ISO-8601", "event": "description" }`) for each completed step. Commit: `pipeline: seeded idea ingested — entering at Gate 1b`.
 
 6. **Enter at Gate 1b.** Run the novelty check on the selected idea. Then proceed through Gate 1c (prototype) and onward as normal.
-
-7. **Commit:** `pipeline: seeded idea ingested — entering at Gate 1b`
 
 ### Fallback overrides for seeded ideas
 
