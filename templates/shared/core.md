@@ -428,7 +428,7 @@ Read the referee's recommendation:
 | Recommendation | Action |
 |---------------|--------|
 | **Accept / Minor Revision** | Fix minor comments, proceed to Stage 7 (style check). |
-| **Major Revision** | Revise the paper addressing major comments. Re-run Stage 6. Max 10 referee rounds. Be patient: as long as each round surfaces at least one genuinely new issue that wasn't in the previous report, the process is working. Only escalate if the referee is repeating the same concerns with no new substance. |
+| **Major Revision** | Revise addressing major comments. When a referee challenges an assumption, first try to prove the result without it or characterize exactly when it fails — weakening claims is the last resort (per "characterize, don't just prove"). Re-run Stage 6. Max 10 rounds; keep going as long as each round surfaces at least one new issue. |
 | **Reject** | Read the rejection reasons. If fixable: return to Stage 2 with referee feedback. If fundamental: return to Stage 0. |
 
 ---
@@ -494,7 +494,7 @@ When the core result is correct but thin, extend it with mathematically hard, ec
 | Scorer plateau 55-74 | 2 consecutive delta < 3 | Switch to extension playbook — the core idea works, it needs mathematical depth, not reworking. |
 | Theory scored ABANDON | 5 theories on same problem | Change the problem (Stage 0) |
 | Problem viability fails | 5 problems | Pick the best scoring problem and proceed anyway |
-| Referee: Major Revision | Structural concerns (fragile, narrow, shallow) | Use extension playbook to strengthen before resubmitting. Be patient: keep revising as long as each round surfaces at least one new issue. Only escalate if the referee repeats the same concerns. Max 10 rounds. |
+| Referee: Major Revision | Structural concerns (fragile, narrow, shallow) | Use extension playbook to strengthen. Max 10 rounds. |
 | Referee rejects | 2 rejections with "fundamental flaw" | Return to Stage 0 with entirely new topic |
 
 ---
