@@ -32,7 +32,7 @@ From the theory, identify:
 
 ### Search strategy
 1. **Direct search**: Search for the exact result. "[channel] [result] theory"
-2. **Mechanism search**: Search for the channel in other contexts. Maybe the same idea exists in a different setting.
+2. **Abstract mechanism search**: State the core mechanism in abstract terms (e.g., "competitive entry dissipates observable performance differences" or "information asymmetry creates adverse selection in trade"). Then search for that abstract mechanism across ALL subfields of finance and economics — not just the paper's application domain. The most dangerous prior work often lives in a different subfield with different jargon but identical logic.
 3. **Classic paper search**: Search for the canonical papers in this area. Does the theory nest or reproduce their results without adding anything?
 4. **Recent working papers**: Search SSRN and NBER for working papers on the same topic. Someone may be doing this right now.
 5. **Survey search**: Find survey papers on the topic. They list what's known.
