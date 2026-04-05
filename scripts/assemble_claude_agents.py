@@ -30,6 +30,8 @@ def main():
     parser.add_argument("--metadata", required=True)
     parser.add_argument("--bodies-dir", required=True)
     parser.add_argument("--output-dir", required=True)
+    parser.add_argument("--model-override", default=None,
+                        help="Force all agents to this model (e.g. sonnet)")
     args = parser.parse_args()
 
     metadata = json.loads(Path(args.metadata).read_text())
@@ -38,6 +40,8 @@ def main():
     output_dir.mkdir(parents=True, exist_ok=True)
 
     for agent_id, agent_metadata in metadata.items():
+        if args.model_override and "model" in agent_metadata:
+            agent_metadata = {**agent_metadata, "model": args.model_override}
         body_path = bodies_dir / f"{agent_id}.md"
         body = body_path.read_text()
         rendered = render_agent(agent_metadata, body)

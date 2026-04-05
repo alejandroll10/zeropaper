@@ -1,12 +1,13 @@
 #!/bin/bash
 # Auto AI Research Template — Setup & Launch
-# Usage: ./setup.sh [project-name] [--variant finance|macro] [--ext empirical|theory_llm] [--seed <file>] [--local]
+# Usage: ./setup.sh [project-name] [--variant finance|macro] [--ext empirical|theory_llm] [--seed <file>] [--light] [--local]
 #
 # --local  Skip git clone, use templates from this repo directly.
 #          Outputs to test_output/{variant}/ for inspection.
 # --ext    Add an extension (can be repeated). Available: empirical, theory_llm
 # --seed   Provide a pre-developed idea (file path). Pipeline starts at Gate 1b
 #          instead of Stage 0, and never silently abandons the seeded idea.
+# --light  Use sonnet for all subagents (cheaper/faster). Orchestrator model unchanged.
 #
 # Legacy: --variant finance_llm is shorthand for --variant finance --ext theory_llm
 
@@ -20,6 +21,7 @@ NEXT_IS_VARIANT=0
 NEXT_IS_EXT=0
 NEXT_IS_SEED=0
 SEED_FILE=""
+LIGHT=0
 EXTENSIONS=()
 
 for arg in "$@"; do
@@ -27,6 +29,7 @@ for arg in "$@"; do
         --variant)     NEXT_IS_VARIANT=1 ;;
         --ext)         NEXT_IS_EXT=1 ;;
         --seed)        NEXT_IS_SEED=1 ;;
+        --light)       LIGHT=1 ;;
         --local)       LOCAL=1 ;;
         --theory-llm)  VARIANT="finance_llm" ;;  # legacy flag
         -*)            echo "Unknown option: $arg"; exit 1 ;;
@@ -109,6 +112,11 @@ if [ -n "$SEED_FILE" ]; then
     SEED_FILE="$(cd "$(dirname "$SEED_FILE")" && pwd)/$(basename "$SEED_FILE")"
 fi
 
+MODEL_OVERRIDE_ARGS=()
+if [ "$LIGHT" = "1" ]; then
+    MODEL_OVERRIDE_ARGS=(--model-override sonnet)
+fi
+
 assemble_claude_shared_agents() {
     local template_root="$1"
     local dest_dir="$2"
@@ -116,7 +124,8 @@ assemble_claude_shared_agents() {
     python3 "$template_root/scripts/assemble_claude_agents.py" \
         --metadata "$template_root/templates/agent_metadata/claude_shared_agents.json" \
         --bodies-dir "$template_root/templates/agent_bodies/shared" \
-        --output-dir "$dest_dir"
+        --output-dir "$dest_dir" \
+        "${MODEL_OVERRIDE_ARGS[@]}"
 }
 
 assemble_claude_variant_agents() {
@@ -127,7 +136,8 @@ assemble_claude_variant_agents() {
     python3 "$template_root/scripts/assemble_claude_agents.py" \
         --metadata "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
         --bodies-dir "$template_root/templates/agents/${variant}" \
-        --output-dir "$dest_dir"
+        --output-dir "$dest_dir" \
+        "${MODEL_OVERRIDE_ARGS[@]}"
 }
 
 assemble_codex_subagents_from_parts() {
@@ -151,7 +161,8 @@ assemble_claude_agents_from_parts() {
     python3 "$template_root/scripts/assemble_claude_agents.py" \
         --metadata "$metadata_file" \
         --bodies-dir "$bodies_dir" \
-        --output-dir "$dest_dir"
+        --output-dir "$dest_dir" \
+        "${MODEL_OVERRIDE_ARGS[@]}"
 }
 
 assemble_codex_shared_agents() {
@@ -602,6 +613,9 @@ echo "Then say: \"Run the pipeline.\""
 echo ""
 echo "Variant: $VARIANT"
 echo "Extensions: ${EXTENSIONS[*]:-none}"
+if [ "$LIGHT" = "1" ]; then
+    echo "Mode: light (all subagents use sonnet)"
+fi
 if [ -n "$SEED_FILE" ]; then
     echo "Seed: $(basename "$SEED_FILE") → output/seed/user_idea.md"
     echo "Pipeline will start at Gate 1b (novelty check on seeded idea)"
