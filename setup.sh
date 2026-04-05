@@ -399,6 +399,12 @@ touch "$P/process_log/history.md"
 
 echo "  ✓ Project structure created"
 
+# ── Copy .env if available ──
+if [ -f "$SCRIPT_DIR/.env" ]; then
+    cp "$SCRIPT_DIR/.env" "$P/.env"
+    echo "  ✓ .env copied from template repo"
+fi
+
 # ── Install core Python deps ──
 if [ "$LOCAL" = "0" ]; then
     uv pip install sympy matplotlib -q 2>/dev/null \
