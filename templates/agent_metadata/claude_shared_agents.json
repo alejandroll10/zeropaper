@@ -3,37 +3,61 @@
     "name": "idea-prototyper",
     "description": "Quick mathematical prototype of a selected idea. Launched between idea selection and full theory development to verify tractability. Attempts the key derivation — if the main result doesn't go through, kills the idea before expensive theory investment.",
     "tools": "Read, Write",
-    "model": "opus"
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    }
   },
   "literature-scout": {
     "name": "literature-scout",
     "description": "Searches the web for relevant papers, surveys existing literature, and builds a literature map. The orchestrator launches this agent at Stage 0 (Problem Discovery).",
     "tools": "WebSearch, WebFetch, Read, Write, Glob, Grep",
-    "model": "sonnet"
+    "model": "sonnet",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "medium"
+    }
   },
   "math-auditor-freeform": {
     "name": "math-auditor-freeform",
     "description": "Free-form math verification agent. The orchestrator launches this agent at Gate 2 after the structured math audit passes. Reads the theory as a skeptical reader and flags anything that feels wrong, without following a step-by-step re-derivation protocol.",
     "tools": "Read, Write",
-    "model": "opus"
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    }
   },
   "math-auditor": {
     "name": "math-auditor",
     "description": "Adversarial math verification agent. The orchestrator launches this agent at Gate 2 after theory development. Verifies all derivations step-by-step. Must pass before theory advances.",
     "tools": "Read, Write",
-    "model": "opus"
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "xhigh"
+    }
   },
   "novelty-checker": {
     "name": "novelty-checker",
     "description": "Adversarial novelty verification. The orchestrator launches this agent twice — at Gate 1b (on the selected idea, before theory development) and at Gate 3 (on the full theory, after math audit). Checks whether the content is genuinely new or a known result repackaged.",
     "tools": "WebSearch, WebFetch, Read, Write",
-    "model": "sonnet"
+    "model": "sonnet",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "medium"
+    }
   },
   "paper-writer": {
     "name": "paper-writer",
     "description": "Writes the LaTeX paper from a scored theory draft. The orchestrator launches this agent at Stage 5 after the scorer returns ADVANCE. Produces publication-ready sections.",
     "tools": "Read, Write, Edit, Glob, Grep",
-    "model": "opus"
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "medium"
+    }
   },
   "scribe": {
     "name": "scribe",
@@ -41,18 +65,30 @@
     "tools": "Read, Write, Edit, Bash, Grep, Glob",
     "model": "sonnet",
     "background": true,
-    "memory": "project"
+    "memory": "project",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "medium"
+    }
   },
   "style": {
     "name": "style",
     "description": "Paper style editor. The orchestrator launches this agent at Stage 7 of the pipeline. Reads the paper and flags violations of the style guide.",
     "tools": "Read, Glob, Grep",
-    "model": "sonnet"
+    "model": "sonnet",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "medium"
+    }
   },
   "theory-explorer": {
     "name": "theory-explorer",
     "description": "Computational exploration of a theory model. Launched after math audit passes (Stage 3a). Pokes the model numerically — what breaks, what's robust, where are the knife-edges. Produces diagnostic plots and a verification report.",
     "tools": "Bash, Read, Write, Glob",
-    "model": "opus"
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    }
   }
 }

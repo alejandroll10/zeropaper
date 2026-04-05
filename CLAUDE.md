@@ -47,10 +47,8 @@ templates/
 │   ├── claude_shared_agents.json
 │   ├── claude_finance_agents.json
 │   └── claude_macro_agents.json
-├── agent_bodies/            # Agent prompt bodies (plain markdown)
-│   ├── shared/              # Domain-agnostic agent prompts
-│   ├── finance/             # Finance variant agent prompts
-│   └── macro/               # Macro variant agent prompts
+├── agent_bodies/            # Shared/extension agent prompt bodies (plain markdown)
+│   └── shared/              # Domain-agnostic shared agent prompts
 ├── skill_metadata/          # JSON metadata for skill assembly
 │   ├── codex_math_skills.json
 │   ├── empirical_skills.json
@@ -64,15 +62,17 @@ templates/
 ├── scoring/
 │   ├── finance.md           # Scoring calibrations for finance
 │   └── macro.md             # Scoring calibrations for macro
-├── agents/                  # (Legacy) raw agent markdown — used as fallback if no metadata exists
+├── agents/                  # Variant agent prompt bodies (source of truth; no frontmatter)
 │   ├── shared/
 │   ├── finance/
 │   └── macro/
 └── gitignore_project        # .gitignore template for deployed projects
 
 scripts/
-├── assemble_claude_agents.py   # Combines agent_metadata JSON + agent_bodies markdown → .claude/agents/*.md
-└── assemble_claude_skills.py   # Combines skill_metadata JSON + skill_bodies markdown → .claude/skills/*/SKILL.md
+├── assemble_claude_agents.py   # Combines agent metadata + bodies → .claude/agents/*.md
+├── assemble_claude_skills.py   # Combines skill metadata + skill bodies → .claude/skills/*/SKILL.md
+├── assemble_codex_agents.py    # Legacy Codex markdown adapter
+└── assemble_codex_subagents.py # Combines agent metadata + bodies → .codex/agents/*.toml
 
 extensions/                  # Optional extensions (empirical, theory_llm)
 ├── empirical/
@@ -120,10 +120,10 @@ Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory
    - Injects `templates/runtime/claude/session.md` as `{{RUNTIME_SESSION_GUIDANCE}}`
    - Injects `templates/scoring/{variant}.md` as `{{SCORING}}`
    - Replaces `{{PAPER_TYPE}}`, `{{TARGET_JOURNALS}}`, `{{DOMAIN_AREAS}}`, `{{RUNTIME_DOC_NAME}}`, `{{AGENT_DIR}}`, `{{SKILL_DIR}}`
-4. Assembles agents via `scripts/assemble_claude_agents.py`:
+4. Assembles agents from metadata + prompt bodies:
    - Shared: `agent_metadata/claude_shared_agents.json` + `agent_bodies/shared/*.md`
-   - Variant: `agent_metadata/claude_{variant}_agents.json` + `agent_bodies/{variant}/*.md`
-   - Falls back to raw `templates/agents/{variant}/*.md` if no metadata JSON exists
+   - Variant: `agent_metadata/claude_{variant}_agents.json` + `agents/{variant}/*.md`
+   - Codex custom agents are assembled from the same inputs into `.codex/agents/*.toml`
 5. Injects variant context (paper type, journal list, domain) into key agents
 6. Creates project structure (output/, paper/, code/, etc.) and initial pipeline state
 7. Installs core Python deps (sympy, matplotlib) via `uv pip install`
@@ -137,7 +137,7 @@ Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory
 ## Adding a new variant
 
 1. Create agent metadata: `templates/agent_metadata/claude_{variant}_agents.json`
-2. Create agent bodies: `templates/agent_bodies/{variant}/` with markdown prompts
+2. Create agent bodies: `templates/agents/{variant}/` with markdown prompts
 3. Create `templates/scoring/{variant}.md` with scoring calibrations
 4. Add variant config to `setup.sh` (paper type, target journals, journal list, domain areas)
 5. Test: `./setup.sh --variant {variant} --local`
@@ -146,8 +146,8 @@ Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory
 
 The pipeline is split into two layers:
 
-- **Runtime-agnostic**: `templates/shared/core.md` (orchestrator logic, pipeline stages, scoring), `templates/agent_bodies/` (agent prompts), `templates/scoring/` — these are the same regardless of runtime.
-- **Runtime-specific**: `templates/runtime/claude/session.md` (Claude Code session guidance), `templates/agent_metadata/claude_*.json` (Claude agent frontmatter — tools, model, description), `templates/skill_metadata/claude_*.json`, `scripts/assemble_claude_*.py`.
+- **Runtime-agnostic**: `templates/shared/core.md` (orchestrator logic, pipeline stages, scoring), `templates/agent_bodies/shared/` and `templates/agents/{variant}/` (agent prompts), `templates/scoring/` — these are the same regardless of runtime.
+- **Runtime-specific**: `templates/runtime/claude/session.md` (Claude Code session guidance), `templates/agent_metadata/claude_*.json` (Claude frontmatter plus Codex subagent defaults), `templates/skill_metadata/claude_*.json`, `scripts/assemble_claude_*.py`, `scripts/assemble_codex_subagents.py`.
 
 This separation is designed to support future runtimes (e.g., Codex/Antigravity) by reusing the same core + agent bodies while swapping in different metadata and session guidance.
 
@@ -155,7 +155,7 @@ This separation is designed to support future runtimes (e.g., Codex/Antigravity)
 
 Agents are either **shared** (identical across variants) or **variant-specific** (different prompts per domain). Each agent is defined as:
 - **Metadata** (`agent_metadata/claude_*.json`): runtime-specific frontmatter (tools, model, description)
-- **Body** (`agent_bodies/{shared,variant}/*.md`): runtime-agnostic prompt content
+- **Body** (`agent_bodies/shared/*.md`, `agents/{variant}/*.md`): runtime-agnostic prompt content
 
 **Shared** (domain-agnostic, receive variant context via injection):
 - `literature-scout` — searches for papers (variant context provides target journals)

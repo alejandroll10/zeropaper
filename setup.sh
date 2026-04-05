@@ -84,26 +84,9 @@ CLAUDE_AGENTS_REL="$CLAUDE_DIR_REL/agents"
 CLAUDE_SKILLS_REL="$CLAUDE_DIR_REL/skills"
 CLAUDE_SETTINGS_REL="$CLAUDE_DIR_REL/settings.json"
 CODEX_DIR_REL=".agents"
-CODEX_AGENTS_REL="$CODEX_DIR_REL/agents"
+CODEX_SUBAGENT_DIR_REL=".codex"
+CODEX_AGENTS_REL="$CODEX_SUBAGENT_DIR_REL/agents"
 CODEX_SKILLS_REL="$CODEX_DIR_REL/skills"
-
-copy_agent_markdown() {
-    local src_dir="$1"
-    local dest_dir="$2"
-
-    [ -d "$src_dir" ] || return 0
-    mkdir -p "$dest_dir"
-    cp "$src_dir/"*.md "$dest_dir/"
-}
-
-sync_runtime_agents() {
-    local src_dir="$1"
-    local dest_dir="$2"
-
-    mkdir -p "$dest_dir"
-    rm -f "$dest_dir/"*.md
-    cp "$src_dir/"*.md "$dest_dir/"
-}
 
 assemble_claude_shared_agents() {
     local template_root="$1"
@@ -122,7 +105,19 @@ assemble_claude_variant_agents() {
 
     python3 "$template_root/scripts/assemble_claude_agents.py" \
         --metadata "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
-        --bodies-dir "$template_root/templates/agent_bodies/${variant}" \
+        --bodies-dir "$template_root/templates/agents/${variant}" \
+        --output-dir "$dest_dir"
+}
+
+assemble_codex_agents_from_parts() {
+    local template_root="$1"
+    local metadata_file="$2"
+    local bodies_dir="$3"
+    local dest_dir="$4"
+
+    python3 "$template_root/scripts/assemble_codex_subagents.py" \
+        --metadata "$metadata_file" \
+        --bodies-dir "$bodies_dir" \
         --output-dir "$dest_dir"
 }
 
@@ -136,6 +131,29 @@ assemble_claude_agents_from_parts() {
         --metadata "$metadata_file" \
         --bodies-dir "$bodies_dir" \
         --output-dir "$dest_dir"
+}
+
+assemble_codex_shared_agents() {
+    local template_root="$1"
+    local dest_dir="$2"
+
+    assemble_codex_agents_from_parts \
+        "$template_root" \
+        "$template_root/templates/agent_metadata/claude_shared_agents.json" \
+        "$template_root/templates/agent_bodies/shared" \
+        "$dest_dir"
+}
+
+assemble_codex_variant_agents() {
+    local template_root="$1"
+    local variant="$2"
+    local dest_dir="$3"
+
+    assemble_codex_agents_from_parts \
+        "$template_root" \
+        "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
+        "$template_root/templates/agents/${variant}" \
+        "$dest_dir"
 }
 
 assemble_claude_skills() {
@@ -262,14 +280,14 @@ else
 fi
 
 assemble_claude_shared_agents "$TEMPLATE_ROOT" "$AGENTS_OUT"
+assemble_codex_shared_agents "$TEMPLATE_ROOT" "$CODEX_AGENTS_OUT"
 
 if [ -f "$TEMPLATE_ROOT/templates/agent_metadata/claude_${AGENT_DIR}_agents.json" ]; then
     assemble_claude_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$AGENTS_OUT"
-elif [ -d "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}" ]; then
-    copy_agent_markdown "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}" "$AGENTS_OUT"
+    assemble_codex_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$CODEX_AGENTS_OUT"
 fi
 
-echo "  ✓ Agents copied (shared + ${AGENT_DIR})"
+echo "  ✓ Agents assembled (shared + ${AGENT_DIR})"
 
 # ── Inject variant context into agents ──
 VARIANT_BLOCK="
@@ -383,6 +401,7 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$TEMPLATE_ROOT" \
                 "$P" \
                 "$AGENTS_OUT" \
+                "$CODEX_AGENTS_OUT" \
                 "$SKILLS_OUT" \
                 "$LOCAL"
 
@@ -399,6 +418,7 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$TEMPLATE_ROOT" \
                 "$P" \
                 "$AGENTS_OUT" \
+                "$CODEX_AGENTS_OUT" \
                 "$SKILLS_OUT" \
                 "$AGENT_DIR" \
                 "$LOCAL"
@@ -418,8 +438,7 @@ for ext in "${EXTENSIONS[@]}"; do
     esac
 done
 
-sync_runtime_agents "$AGENTS_OUT" "$CODEX_AGENTS_OUT"
-echo "  ✓ Codex agent mirror assembled"
+echo "  ✓ Codex custom agents assembled"
 
 # ── Local mode: summary and exit ──
 if [ "$LOCAL" = "1" ]; then

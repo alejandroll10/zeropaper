@@ -4,8 +4,9 @@ set -e
 TEMPLATE_ROOT="$1"
 PROJECT_ROOT="$2"
 AGENTS_OUT="$3"
-SKILLS_OUT="$4"
-LOCAL="$5"
+CODEX_AGENTS_OUT="$4"
+SKILLS_OUT="$5"
+LOCAL="$6"
 
 EXT_ROOT="$TEMPLATE_ROOT/extensions/theory_llm"
 
@@ -15,6 +16,11 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_claude_agents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \
     --bodies-dir "$EXT_ROOT/agent_bodies" \
     --output-dir "$AGENTS_OUT"
+
+python3 "$TEMPLATE_ROOT/scripts/assemble_codex_subagents.py" \
+    --metadata "$EXT_ROOT/agent_metadata/agents.json" \
+    --bodies-dir "$EXT_ROOT/agent_bodies" \
+    --output-dir "$CODEX_AGENTS_OUT"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_claude_skills.py" \
     --metadata "$TEMPLATE_ROOT/templates/skill_metadata/theory_llm_skills.json" \

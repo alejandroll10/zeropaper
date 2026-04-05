@@ -3,36 +3,60 @@
     "name": "idea-generator",
     "description": "Brainstorms candidate mechanisms and model ideas for a given problem. The orchestrator launches this agent at Stage 1 of the pipeline. Produces developed sketches — not full theories, but enough to evaluate.",
     "tools": "Read, Write",
-    "model": "opus"
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    }
   },
   "idea-reviewer": {
     "name": "idea-reviewer",
     "description": "Evaluates and ranks candidate idea sketches. The orchestrator launches this agent at Stage 1 to iterate with the idea-generator. Decides when an idea is ready for full theory development.",
     "tools": "Read, Write, WebSearch, WebFetch",
-    "model": "opus"
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    }
   },
   "referee": {
     "name": "referee",
     "description": "Simulated top-journal referee. The orchestrator launches this agent at Stage 6 of the pipeline. Always runs fresh with no knowledge of previous reports or changes.",
     "tools": "Read, Glob, Grep, Write",
-    "model": "opus"
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    }
   },
   "scorer": {
     "name": "scorer",
     "description": "Adversarial theory scorer. The orchestrator launches this agent at Gate 4. Aggregates all evaluation outputs and makes the advance/revise/abandon decision.",
     "tools": "Read, Write",
-    "model": "opus"
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    }
   },
   "self-attacker": {
     "name": "self-attacker",
     "description": "Adversarial weakness finder. The orchestrator launches this agent at Stage 4 after novelty check passes. Finds every possible weakness before the referee does.",
     "tools": "Read, Write",
-    "model": "opus"
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    }
   },
   "theory-generator": {
     "name": "theory-generator",
     "description": "Proposes new macroeconomic theory models. The orchestrator launches this agent at Stage 2 (Theory Development). Supports fresh, mutate, and crossover strategies based on attempt history.",
     "tools": "Read, Write",
-    "model": "opus"
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "xhigh"
+    }
   }
 }

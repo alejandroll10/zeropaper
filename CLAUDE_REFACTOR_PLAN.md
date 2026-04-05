@@ -32,9 +32,10 @@ Completed:
 - Claude variant agents modularized into:
   - `templates/agent_metadata/claude_finance_agents.json`
   - `templates/agent_metadata/claude_macro_agents.json`
-  - `templates/agent_bodies/finance/*.md`
-  - `templates/agent_bodies/macro/*.md`
+  - `templates/agents/finance/*.md`
+  - `templates/agents/macro/*.md`
 - `setup.sh` now assembles variant agents from metadata + bodies
+- variant agent markdown bodies remain the source of truth; setup now adds metadata during runtime assembly
 - Claude extension agents modularized into:
   - `extensions/empirical/agent_metadata/*.json`
   - `extensions/empirical/agent_bodies/{shared,finance,macro}/*.md`
