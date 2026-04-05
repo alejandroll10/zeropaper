@@ -201,7 +201,7 @@ Quick mathematical feasibility check — attempt the key derivation before inves
 | **BLOCKED** | — | The derivation hit a wall. Read where it got stuck. If fixable: pick the next-best idea from the reviewer's rankings and re-run Gates 1b+1c. If fundamental: return to Stage 1 for a new round. |
 
 4. Commit: `pipeline: gate 1c — idea prototype {TRACTABLE/BLOCKED}, surprise: {SURPRISING/POTENTIALLY SURPRISING/OBVIOUS}`
-5. Update pipeline_state.json and commit: `pipeline: stage 1 complete — idea selected, novelty-checked, and prototyped`
+5. Update `process_log/pipeline_state.json` and commit: `pipeline: stage 1 complete — idea selected, novelty-checked, and prototyped`
 
 ---
 
@@ -363,7 +363,7 @@ This is the full empirical analysis — deeper than the feasibility check at Gat
 2. Save result to `output/stage4/scorer_decision_vN.md`
 3. Read the decision using **state-dependent escalation**:
 
-**Scoring is absolute** — 80 means top-5 journal quality regardless of target. The advance threshold depends on the target journal tier. Check `pipeline_state.json` for `target_journal` or `paper_constraints.advance_threshold`. Default tiers:
+**Scoring is absolute** — 80 means top-5 journal quality regardless of target. The advance threshold depends on the target journal tier. Default tiers:
 
 | Target tier | Examples | Advance | Revise | Rework | Abandon |
 |-------------|----------|---------|--------|--------|---------|
@@ -385,9 +385,9 @@ This is the full empirical analysis — deeper than the feasibility check at Gat
 
 **Hard ceiling:** After 4 total scorer evaluations on the same problem, escalate one level regardless of trajectory. This prevents slow-but-never-arriving loops (e.g., +3, +3, +3 but still at 69).
 
-Record all scores in `pipeline_state.json` under `"scores"` so the trajectory can be computed: `"scores": { "v1": 60, "v2": 63, "v3": 67 }`.
+Record all scores in `process_log/pipeline_state.json` under `"scores"` so the trajectory can be computed: `"scores": { "v1": 60, "v2": 63, "v3": 67 }`.
 
-4. Update pipeline_state.json accordingly
+4. Update `process_log/pipeline_state.json` accordingly
 5. Commit: `pipeline: gate 4 — scorer {DECISION} (score: {N})`
 
 ---
@@ -439,7 +439,7 @@ Read the referee's recommendation:
 2. Read the style report
 3. Fix all violations by editing the section files directly
 4. Commit: `pipeline: stage 7 — style violations fixed`
-5. Update pipeline_state.json with `"status": "complete"`. Final commit: `pipeline: COMPLETE — paper ready for submission`
+5. Update `process_log/pipeline_state.json` with `"status": "complete"`. Final commit: `pipeline: COMPLETE — paper ready for submission`
 
 ---
 
@@ -506,6 +506,7 @@ output/
 │   ├── user_idea.md                # original seed file provided by user
 │   ├── novelty_concern.md          # written if Gate 1b flags the idea as KNOWN
 │   ├── prototype_blockage.md       # written if Gate 1c is BLOCKED
+│   ├── novelty_concern_theory.md    # written if Gate 3 flags the full theory as KNOWN
 │   └── abandon_report.md           # written if pipeline cannot develop the idea
 ├── stage0/
 │   ├── problem_statement.md
@@ -567,7 +568,7 @@ process_log/
 
 ## Commit protocol
 
-**Commit after every file write, stage transition, gate decision, and agent output.** Never batch. Update `pipeline_state.json` (including history array with timestamp) before committing stage transitions.
+**Commit after every file write, stage transition, gate decision, and agent output.** Never batch. Update `process_log/pipeline_state.json` (including history array with timestamp) before committing stage transitions.
 
 Prefixes: `pipeline:` (state changes), `artifact:` (agent output), `paper:` (LaTeX), `scribe:` (docs).
 
