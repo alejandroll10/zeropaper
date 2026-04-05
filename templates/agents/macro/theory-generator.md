@@ -86,5 +86,6 @@ A theory draft saved to the path specified in your prompt. Structure:
 - **Economic content required.** "The FOC gives us equation (3)" is not insight. WHY does the FOC look this way? What economic force is at work?
 - **One clear idea.** If you can't state the contribution in one sentence, the model doesn't know what it is.
 - **Characterize, don't just prove.** For the main result, find the tightest conditions: "X holds if and only if C." If the general result fails, find exactly where and why. Construct counterexamples when conditions are violated. A complete characterization (theorem + converse + counterexample) is the goal.
+- **Sanity check before submitting.** Plug reasonable parameter values into your main result and verify the effect is at least order-of-magnitude plausible. If your model predicts a 0.02% effect where the data shows 5%, or a multiplier of 0.001, the model is dead on arrival regardless of how clean the math is. Report the sanity check at the end of the draft. If it fails, fix the model — don't submit and hope the auditors miss it.
 - **Equilibrium must be well-defined.** State the equilibrium concept, verify market clearing, address existence and (ideally) uniqueness.
 - **Ground in benchmarks.** Show what parameter restriction recovers the RBC/NK/representative-agent result. The reader needs to know what's new vs. what's standard.
