@@ -83,6 +83,9 @@ CLAUDE_DIR_REL=".claude"
 CLAUDE_AGENTS_REL="$CLAUDE_DIR_REL/agents"
 CLAUDE_SKILLS_REL="$CLAUDE_DIR_REL/skills"
 CLAUDE_SETTINGS_REL="$CLAUDE_DIR_REL/settings.json"
+CODEX_DIR_REL=".agents"
+CODEX_AGENTS_REL="$CODEX_DIR_REL/agents"
+CODEX_SKILLS_REL="$CODEX_DIR_REL/skills"
 
 copy_agent_markdown() {
     local src_dir="$1"
@@ -90,6 +93,15 @@ copy_agent_markdown() {
 
     [ -d "$src_dir" ] || return 0
     mkdir -p "$dest_dir"
+    cp "$src_dir/"*.md "$dest_dir/"
+}
+
+sync_runtime_agents() {
+    local src_dir="$1"
+    local dest_dir="$2"
+
+    mkdir -p "$dest_dir"
+    rm -f "$dest_dir/"*.md
     cp "$src_dir/"*.md "$dest_dir/"
 }
 
@@ -146,6 +158,7 @@ if [ "$LOCAL" = "1" ]; then
 
     rm -rf "$OUT_DIR"
     mkdir -p "$OUT_DIR/$CLAUDE_AGENTS_REL"
+    mkdir -p "$OUT_DIR/$CODEX_AGENTS_REL"
     # Copy shared project files
     mkdir -p "$OUT_DIR/$CLAUDE_DIR_REL"
     cp "$SCRIPT_DIR/$CLAUDE_SETTINGS_REL" "$OUT_DIR/$CLAUDE_DIR_REL/"
@@ -187,8 +200,8 @@ else
     OUT_DIR="."
 fi
 
-# ── Assemble CLAUDE.md ──
-echo "Assembling CLAUDE.md for variant: $VARIANT..."
+# ── Assemble runtime docs ──
+echo "Assembling runtime docs for variant: $VARIANT..."
 
 CORE="$TEMPLATE_ROOT/templates/shared/core.md"
 RUNTIME_SESSION="$TEMPLATE_ROOT/templates/runtime/claude/session.md"
@@ -203,46 +216,49 @@ done
 
 if [ "$LOCAL" = "1" ]; then
     CLAUDE_MD_OUT="$OUT_DIR/CLAUDE.md"
+    AGENTS_MD_OUT="$OUT_DIR/AGENTS.md"
 else
     CLAUDE_MD_OUT="CLAUDE.md"
+    AGENTS_MD_OUT="AGENTS.md"
 fi
 
-python3 - "$CORE" "$RUNTIME_SESSION" "$SCORING_FILE" "$PAPER_TYPE" "$TARGET_JOURNALS" "$DOMAIN_AREAS" "$CLAUDE_MD_OUT" "$CLAUDE_AGENTS_REL" "$CLAUDE_SKILLS_REL" <<'PYEOF'
-import sys
+python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
+    --core "$CORE" \
+    --session "$RUNTIME_SESSION" \
+    --scoring "$SCORING_FILE" \
+    --paper-type "$PAPER_TYPE" \
+    --target-journals "$TARGET_JOURNALS" \
+    --domain-areas "$DOMAIN_AREAS" \
+    --doc-name "CLAUDE.md" \
+    --agent-dir "$CLAUDE_AGENTS_REL" \
+    --skill-dir "$CLAUDE_SKILLS_REL" \
+    --output "$CLAUDE_MD_OUT"
 
-core_path, runtime_session_path, scoring_path, paper_type, target_journals, domain_areas, out_path, agent_dir, skill_dir = sys.argv[1:10]
+python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
+    --core "$CORE" \
+    --session "$RUNTIME_SESSION" \
+    --scoring "$SCORING_FILE" \
+    --paper-type "$PAPER_TYPE" \
+    --target-journals "$TARGET_JOURNALS" \
+    --domain-areas "$DOMAIN_AREAS" \
+    --doc-name "AGENTS.md" \
+    --agent-dir "$CODEX_AGENTS_REL" \
+    --skill-dir "$CODEX_SKILLS_REL" \
+    --output "$AGENTS_MD_OUT"
 
-with open(core_path) as f:
-    content = f.read()
-with open(runtime_session_path) as f:
-    runtime_session = f.read().rstrip()
-with open(scoring_path) as f:
-    scoring = f.read()
-
-content = content.replace('{{RUNTIME_DOC_NAME}}', 'CLAUDE.md')
-content = content.replace('{{PAPER_TYPE}}', paper_type)
-content = content.replace('{{TARGET_JOURNALS}}', target_journals)
-content = content.replace('{{DOMAIN_AREAS}}', domain_areas)
-content = content.replace('{{AGENT_DIR}}', agent_dir)
-content = content.replace('{{SKILL_DIR}}', skill_dir)
-runtime_session = runtime_session.replace('{{SKILL_DIR}}', skill_dir)
-content = content.replace('{{RUNTIME_SESSION_GUIDANCE}}', runtime_session)
-content = content.replace('{{SCORING}}', scoring)
-
-with open(out_path, 'w') as f:
-    f.write(content)
-PYEOF
-
-echo "  ✓ CLAUDE.md assembled"
+echo "  ✓ Runtime docs assembled (CLAUDE.md + AGENTS.md)"
 
 # ── Assemble agents ──
 echo "Copying agents..."
 
 if [ "$LOCAL" = "1" ]; then
     AGENTS_OUT="$OUT_DIR/$CLAUDE_AGENTS_REL"
+    CODEX_AGENTS_OUT="$OUT_DIR/$CODEX_AGENTS_REL"
 else
     AGENTS_OUT="$CLAUDE_AGENTS_REL"
+    CODEX_AGENTS_OUT="$CODEX_AGENTS_REL"
     mkdir -p "$AGENTS_OUT"
+    mkdir -p "$CODEX_AGENTS_OUT"
 fi
 
 assemble_claude_shared_agents "$TEMPLATE_ROOT" "$AGENTS_OUT"
@@ -316,16 +332,23 @@ echo "Assembling core skills..."
 
 if [ "$LOCAL" = "1" ]; then
     SKILLS_OUT="$OUT_DIR/$CLAUDE_SKILLS_REL"
+    CODEX_SKILLS_OUT="$OUT_DIR/$CODEX_SKILLS_REL"
 else
     SKILLS_OUT="$CLAUDE_SKILLS_REL"
+    CODEX_SKILLS_OUT="$CODEX_SKILLS_REL"
 fi
 
 # Codex math skill (available for all variants)
 assemble_claude_skills \
     "$TEMPLATE_ROOT" \
-    "$TEMPLATE_ROOT/templates/skill_metadata/claude_codex_math_skills.json" \
+    "$TEMPLATE_ROOT/templates/skill_metadata/codex_math_skills.json" \
     "$TEMPLATE_ROOT/templates/skill_bodies/codex_math" \
     "$SKILLS_OUT"
+
+python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
+    --metadata "$TEMPLATE_ROOT/templates/skill_metadata/codex_math_skills.json" \
+    --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/codex_math" \
+    --output-dir "$CODEX_SKILLS_OUT"
 
 # Copy codex-math utility scripts
 mkdir -p "$P/code/utils/codex_math"
@@ -346,8 +369,10 @@ echo "  ✓ Core skills assembled"
 # ── Apply extensions ──
 if [ "$LOCAL" = "1" ]; then
     SKILLS_OUT="$OUT_DIR/$CLAUDE_SKILLS_REL"
+    CODEX_SKILLS_OUT="$OUT_DIR/$CODEX_SKILLS_REL"
 else
     SKILLS_OUT="$CLAUDE_SKILLS_REL"
+    CODEX_SKILLS_OUT="$CODEX_SKILLS_REL"
 fi
 
 for ext in "${EXTENSIONS[@]}"; do
@@ -361,6 +386,11 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$SKILLS_OUT" \
                 "$LOCAL"
 
+            python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
+                --metadata "$TEMPLATE_ROOT/templates/skill_metadata/theory_llm_skills.json" \
+                --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/theory_llm" \
+                --output-dir "$CODEX_SKILLS_OUT"
+
             echo "  ✓ LLM experiment extension applied"
             ;;
         empirical)
@@ -373,6 +403,11 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$AGENT_DIR" \
                 "$LOCAL"
 
+            python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
+                --metadata "$TEMPLATE_ROOT/templates/skill_metadata/empirical_skills.json" \
+                --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/empirical" \
+                --output-dir "$CODEX_SKILLS_OUT"
+
             echo "  ✓ Empirical extension applied (skills + agents)"
             ;;
         *)
@@ -383,6 +418,9 @@ for ext in "${EXTENSIONS[@]}"; do
     esac
 done
 
+sync_runtime_agents "$AGENTS_OUT" "$CODEX_AGENTS_OUT"
+echo "  ✓ Codex agent mirror assembled"
+
 # ── Local mode: summary and exit ──
 if [ "$LOCAL" = "1" ]; then
     echo ""
@@ -392,12 +430,26 @@ if [ "$LOCAL" = "1" ]; then
     REMAINING="${REMAINING:-0}"
     echo "Placeholders remaining: $REMAINING"
     echo ""
+    echo "=== Assembled AGENTS.md ==="
+    echo "Lines: $(wc -l < "$AGENTS_MD_OUT")"
+    AGENTS_REMAINING=$(grep -c '{{' "$AGENTS_MD_OUT" 2>/dev/null || true)
+    AGENTS_REMAINING="${AGENTS_REMAINING:-0}"
+    echo "Placeholders remaining: $AGENTS_REMAINING"
+    echo ""
     echo "=== Agents ($CLAUDE_AGENTS_REL/) ==="
     ls -1 "$AGENTS_OUT/"
+    echo ""
+    echo "=== Codex Agents ($CODEX_AGENTS_REL/) ==="
+    ls -1 "$CODEX_AGENTS_OUT/"
     if [ -d "$OUT_DIR/$CLAUDE_SKILLS_REL" ]; then
         echo ""
         echo "=== Skills ($CLAUDE_SKILLS_REL/) ==="
         ls -1 "$OUT_DIR/$CLAUDE_SKILLS_REL/"
+    fi
+    if [ -d "$OUT_DIR/$CODEX_SKILLS_REL" ]; then
+        echo ""
+        echo "=== Codex Skills ($CODEX_SKILLS_REL/) ==="
+        ls -1 "$OUT_DIR/$CODEX_SKILLS_REL/"
     fi
     echo ""
     echo "=== First 10 lines ==="
@@ -410,6 +462,10 @@ if [ "$LOCAL" = "1" ]; then
     if [ "$REMAINING" -gt 0 ]; then
         echo "WARNING: $REMAINING unresolved placeholders:"
         grep '{{' "$CLAUDE_MD_OUT"
+        exit 1
+    elif [ "$AGENTS_REMAINING" -gt 0 ]; then
+        echo "WARNING: $AGENTS_REMAINING unresolved placeholders:"
+        grep '{{' "$AGENTS_MD_OUT"
         exit 1
     else
         echo "✓ All placeholders resolved"
@@ -443,7 +499,12 @@ echo ""
 echo "To run the autonomous pipeline:"
 echo ""
 echo "  cd $PROJECT_NAME"
+echo ""
+echo "Claude:"
 echo "  claude --dangerously-skip-permissions"
+echo ""
+echo "Codex:"
+echo "  codex --ask-for-approval never"
 echo ""
 echo "Then say: \"Run the pipeline.\""
 echo ""

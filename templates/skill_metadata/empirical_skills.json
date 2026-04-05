@@ -2,50 +2,64 @@
   "chen-zimmerman": {
     "name": "chen-zimmerman",
     "description": "Open Source Asset Pricing dataset (Chen & Zimmerman 2022). 212 firm-level anomaly signals with portfolio returns. Use for cross-sectional calibration, testing anomaly predictions, and constructing characteristic-sorted portfolios.",
-    "user-invocable": true,
-    "argument-hint": "[signal-name or \"list\"]",
-    "allowed-tools": "Bash, Read, Write"
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[signal-name or \"list\"]",
+      "allowed-tools": "Bash, Read, Write"
+    }
   },
   "edgar": {
     "name": "edgar",
     "description": "Access SEC EDGAR filings, financial statements, and full-text search. Use for corporate finance research \u2014 10-K/10-Q analysis, governance, disclosure, insider trading, institutional holdings.",
-    "user-invocable": true,
-    "argument-hint": "[company-name, ticker, or CIK]",
-    "allowed-tools": "Bash, Read, Write"
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[company-name, ticker, or CIK]",
+      "allowed-tools": "Bash, Read, Write"
+    }
   },
   "flex-mining": {
     "name": "flex-mining",
     "description": "Flexible data mining strategies from Chen, Lopez-Lira & Zimmermann. 30,000+ long-short trading strategies from CRSP/Compustat ratios. Use for benchmarking published predictors against data-mined alternatives, testing sufficiency of published literature, and studying the cross-section of expected returns.",
-    "user-invocable": true,
-    "argument-hint": "[dataset-name or \"list\"]",
-    "allowed-tools": "Bash, Read, Write"
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[dataset-name or \"list\"]",
+      "allowed-tools": "Bash, Read, Write"
+    }
   },
   "fred": {
     "name": "fred",
     "description": "Fetch macroeconomic and financial time series from FRED (Federal Reserve Economic Data). Use when calibrating models to macro moments, testing time-series predictions, or getting risk-free rates, spreads, and macro indicators.",
-    "user-invocable": true,
-    "argument-hint": "[series-id or description]",
-    "allowed-tools": "Bash, Read, Write, WebFetch"
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[series-id or description]",
+      "allowed-tools": "Bash, Read, Write, WebFetch"
+    }
   },
   "ken-french": {
     "name": "ken-french",
     "description": "Download factor returns, portfolio returns, and breakpoints from the Ken French Data Library. Use for asset pricing calibration, computing alphas, and building test assets.",
-    "user-invocable": true,
-    "argument-hint": "[dataset-name or \"list\"]",
-    "allowed-tools": "Bash, Read, Write, WebFetch"
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[dataset-name or \"list\"]",
+      "allowed-tools": "Bash, Read, Write, WebFetch"
+    }
   },
   "mutual-funds": {
     "name": "mutual-funds",
     "description": "CRSP Mutual Fund Database + Thomson Reuters holdings via WRDS. Fund returns, NAV, TNA, fees, flows, holdings, and style classifications. Use for mutual fund performance, flow-performance, holdings-based analysis, and fund manager skill.",
-    "user-invocable": true,
-    "argument-hint": "[table-name or description]",
-    "allowed-tools": "Bash, Read, Write"
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[table-name or description]",
+      "allowed-tools": "Bash, Read, Write"
+    }
   },
   "wrds": {
     "name": "wrds",
     "description": "Query WRDS (Wharton Research Data Services) for CRSP, Compustat, IBES, options, insider trading, and other financial databases. Use for firm-level stock returns, accounting data, analyst forecasts, and cross-sectional/panel analysis.",
-    "user-invocable": true,
-    "argument-hint": "[library.table or description]",
-    "allowed-tools": "Bash, Read, Write"
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[library.table or description]",
+      "allowed-tools": "Bash, Read, Write"
+    }
   }
 }

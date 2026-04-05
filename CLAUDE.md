@@ -52,9 +52,9 @@ templates/
 │   ├── finance/             # Finance variant agent prompts
 │   └── macro/               # Macro variant agent prompts
 ├── skill_metadata/          # JSON metadata for skill assembly
-│   ├── claude_codex_math_skills.json
-│   ├── claude_empirical_skills.json
-│   └── claude_theory_llm_skills.json
+│   ├── codex_math_skills.json
+│   ├── empirical_skills.json
+│   └── theory_llm_skills.json
 ├── skill_bodies/            # Skill prompt bodies (plain markdown)
 │   ├── codex_math/
 │   ├── empirical/

@@ -11,7 +11,7 @@ LOCAL="$6"
 EXT_ROOT="$TEMPLATE_ROOT/extensions/empirical"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_claude_skills.py" \
-    --metadata "$TEMPLATE_ROOT/templates/skill_metadata/claude_empirical_skills.json" \
+    --metadata "$TEMPLATE_ROOT/templates/skill_metadata/empirical_skills.json" \
     --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/empirical" \
     --output-dir "$SKILLS_OUT"
 

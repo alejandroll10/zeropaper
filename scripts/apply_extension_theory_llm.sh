@@ -17,7 +17,7 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_claude_agents.py" \
     --output-dir "$AGENTS_OUT"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_claude_skills.py" \
-    --metadata "$TEMPLATE_ROOT/templates/skill_metadata/claude_theory_llm_skills.json" \
+    --metadata "$TEMPLATE_ROOT/templates/skill_metadata/theory_llm_skills.json" \
     --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/theory_llm" \
     --output-dir "$SKILLS_OUT"
 

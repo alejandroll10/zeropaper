@@ -2,8 +2,10 @@
   "codex-math": {
     "name": "codex-math",
     "description": "Use OpenAI Codex (gpt-5.4) for mathematical proof verification, proof writing, derivation checking, and conjecture exploration. Codex is excellent at math but produces false positives at ~50% rate — always triage results before acting.",
-    "user-invocable": true,
-    "argument-hint": "verify|write|explore <file-or-question> [pattern]",
-    "allowed-tools": "Bash, Read, Write"
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "verify|write|explore <file-or-question> [pattern]",
+      "allowed-tools": "Bash, Read, Write"
+    }
   }
 }

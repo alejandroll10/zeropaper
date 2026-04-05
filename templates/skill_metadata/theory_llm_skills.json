@@ -2,8 +2,10 @@
   "llm-experiments": {
     "name": "llm-experiments",
     "description": "Call LLMs for experiments testing theoretical predictions. Supports UF NaviGator (gpt-oss) and DeepInfra (DeepSeek, Kimi, Qwen, Llama). Use for testing error rates, reasoning quality, decision-making under theory conditions.",
-    "user-invocable": true,
-    "argument-hint": "[model-name or \"list\"]",
-    "allowed-tools": "Bash, Read, Write"
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[model-name or \"list\"]",
+      "allowed-tools": "Bash, Read, Write"
+    }
   }
 }

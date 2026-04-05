@@ -3,35 +3,16 @@ import argparse
 import json
 from pathlib import Path
 
-FIELD_ORDER = ["name", "description", "user-invocable", "argument-hint", "allowed-tools"]
-
-
-def format_value(value):
-    if isinstance(value, bool):
-        return "true" if value else "false"
-    return str(value)
+FIELD_ORDER = ["name", "description"]
 
 
 def render_skill(metadata, body):
     lines = ["---"]
     for key in FIELD_ORDER:
         if key in metadata:
-            lines.append(f"{key}: {format_value(metadata[key])}")
-    for key, value in metadata.items():
-        if key not in FIELD_ORDER:
-            lines.append(f"{key}: {format_value(value)}")
+            lines.append(f"{key}: {metadata[key]}")
     lines.extend(["---", "", body.rstrip(), ""])
     return "\n".join(lines)
-
-
-def normalize_metadata(skill_metadata):
-    normalized = {}
-    for key, value in skill_metadata.items():
-        if key == "claude":
-            normalized.update(value)
-        else:
-            normalized[key] = value
-    return normalized
 
 
 def main():
@@ -51,7 +32,8 @@ def main():
         body = body_path.read_text()
         skill_dir = output_dir / skill_id
         skill_dir.mkdir(parents=True, exist_ok=True)
-        (skill_dir / "SKILL.md").write_text(render_skill(normalize_metadata(skill_metadata), body))
+        codex_metadata = {key: skill_metadata[key] for key in FIELD_ORDER if key in skill_metadata}
+        (skill_dir / "SKILL.md").write_text(render_skill(codex_metadata, body))
 
 
 if __name__ == "__main__":
