@@ -179,7 +179,7 @@ This is the first of two deep novelty checks. It runs on the selected idea *befo
 | Verdict | Action |
 |---------|--------|
 | **KNOWN** | Kill this idea. Pick the next-best idea from the current round's sketches (per idea-reviewer rankings) and re-run Gates 1b + 1c on it. If no viable ideas remain, re-run Stage 1 with a new round (counts toward the 5-round total cap on Stage 1 iterations). |
-| **INCREMENTAL** | Flag it. Proceed to Gate 1c, then Stage 2. The scorer will weigh the INCREMENTAL flag at Gate 4. |
+| **INCREMENTAL** | Proceed to Gate 1c, then Stage 2, but instruct the theory-generator: "This idea was flagged INCREMENTAL — the obvious version of this model already exists in the literature. Your job is to find a result within this framework that the existing papers do not imply: a sign reversal, an unexpected threshold, a case where the standard intuition breaks. Do not formalize the obvious version." Gate 3 will hard-fail INCREMENTAL on the full theory, so the theory must escape incrementality during development. |
 | **NOVEL** | Proceed to Gate 1c. |
 
 4. Commit: `pipeline: gate 1b — novelty check on idea {NOVEL/INCREMENTAL/KNOWN}`
