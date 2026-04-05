@@ -15,7 +15,7 @@
 | Dimension | Weight | Calibration |
 |-----------|--------|-------------|
 | Importance | 30% | CAPM-level = 100, minor extension = 20 |
-| Novelty | 15% | New mechanism = 100, known mechanism in new setting = 40 |
+| Novelty | 15% | New mechanism = 100, known mechanism in new setting with surprising implication = 80, known mechanism in new setting with predictable implication = 40 |
 | Surprise | 15% | Sign reversal or existence result no one expected = 100, non-obvious comparative static = 60, confirms intuition with precise conditions = 40, formalizes what everyone already believed = 15 |
 | Rigor | 20% | Full proof = 100, clear with small gaps = 60, hand-waving = 20 |
 | Parsimony | 10% | One-friction model = 100, kitchen-sink = 20 |

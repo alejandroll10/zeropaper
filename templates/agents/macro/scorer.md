@@ -39,7 +39,7 @@ Read the theory draft and all evaluation outputs. Score each dimension 0-100:
 ### Novelty (weight: 15%)
 - How new is the economic insight (not the technique)?
 - Novelty check output informs this but isn't the whole picture
-- Calibration: new channel that changes how we think about transmission = 100, known channel in a new model architecture = 40
+- Calibration: new channel that changes how we think about transmission = 100, known channel in new setting with surprising implication = 80, known channel in new setting with predictable implication = 40
 
 ### Surprise (weight: 15%)
 - Is the main result non-obvious? Would a knowledgeable macro reader predict it before seeing the proof?
