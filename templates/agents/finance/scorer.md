@@ -36,18 +36,23 @@ Read the theory draft and all evaluation outputs. Score each dimension 0-100:
 - Is this a first-order question or a curiosity?
 - Calibration: CAPM-level question = 100, minor extension = 20
 
-### Novelty (weight: 25%)
+### Novelty (weight: 15%)
 - How new is the economic insight (not the technique)?
 - Novelty check output informs this but isn't the whole picture
 - Calibration: new mechanism = 100, known mechanism in new setting = 40
+
+### Surprise (weight: 15%)
+- Is the main result non-obvious? Would a knowledgeable reader predict it before seeing the proof?
+- A result that confirms standard intuition with precise conditions is worth less than one that overturns it
+- Calibration: sign reversal or existence result no one expected = 100, non-obvious comparative static = 60, confirms intuition with precise conditions = 40, formalizes what everyone already believed = 15
 
 ### Rigor (weight: 20%)
 - Is the core argument airtight?
 - Math audit severity informs this
 - Are boundary cases acknowledged?
-- Calibration: full proof with all cases = 100, clear argument with small gaps = 60
+- Calibration: full proof with all cases = 100, clear argument with small gaps = 60, hand-waving = 20
 
-### Parsimony (weight: 15%)
+### Parsimony (weight: 10%)
 - Is this the simplest model for this result?
 - Count assumptions — could any be dropped?
 - Self-attack "could you get this from a simpler model?" informs this
@@ -61,7 +66,7 @@ Read the theory draft and all evaluation outputs. Score each dimension 0-100:
 
 ## Aggregate
 
-`total = 0.30 * importance + 0.25 * novelty + 0.20 * rigor + 0.15 * parsimony + 0.10 * fertility`
+`total = 0.30 * importance + 0.15 * novelty + 0.15 * surprise + 0.20 * rigor + 0.10 * parsimony + 0.10 * fertility`
 
 ## Decision thresholds
 
@@ -75,8 +80,8 @@ Read the theory draft and all evaluation outputs. Score each dimension 0-100:
 **Escalation is trajectory-based (the orchestrator handles this, but be aware):**
 - If your score improved ≥ 3 points over the previous evaluation: the orchestrator will allow one more iteration.
 - If your score plateaued or declined (delta < 3): the orchestrator will escalate one level.
-- Hard ceiling: 4 total scorer evaluations on the same problem, then escalate regardless.
-- After 3 ABANDONs on the same problem: change the problem (return to Stage 0).
+- Hard ceiling: 8 total scorer evaluations on the same problem, then escalate regardless.
+- After 5 ABANDONs on the same problem: change the problem (return to Stage 0).
 
 ## Output format
 
@@ -99,6 +104,7 @@ Save to the path specified in your prompt:
 |-----------|-------|---------------|
 | Importance | XX | [one sentence] |
 | Novelty | XX | [one sentence] |
+| Surprise | XX | [one sentence] |
 | Rigor | XX | [one sentence] |
 | Parsimony | XX | [one sentence] |
 | Fertility | XX | [one sentence] |
