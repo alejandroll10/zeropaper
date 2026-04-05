@@ -1,12 +1,12 @@
 # Auto AI Research Template
 
-Autonomous research paper generator. Set up a project, launch Claude Code, walk away. The system discovers a problem, generates a theory, verifies it adversarially, and writes a publication-ready paper.
+Autonomous research paper generator. Set up a project, launch Claude Code or Codex, walk away. The system discovers a problem, generates a theory, verifies it adversarially, and writes a publication-ready paper.
 
 ## How it works
 
 1. You clone this template repo once
 2. You run `setup.sh` to create a new project — each run creates an independent project folder with its own git repo
-3. You open the project folder in Claude Code and say "Run the pipeline"
+3. You open the project folder in Claude Code or Codex and say "Run the pipeline"
 4. The pipeline runs autonomously: problem discovery → idea generation → theory development → math verification → paper writing → referee simulation
 
 ## Prerequisites
@@ -20,6 +20,9 @@ curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Claude Code
 npm install -g @anthropic-ai/claude-code
+
+# Codex
+npm install -g @openai/codex
 ```
 
 ## Quick start
@@ -50,7 +53,7 @@ cd auto-ai-research-template
 ./setup.sh my-paper --variant finance --ext empirical --ext theory_llm
 ```
 
-This creates `my-paper/` with everything assembled and ready — CLAUDE.md, agents, skills, pipeline state. The folder is a standalone git repo detached from this template.
+This creates `my-paper/` with everything assembled and ready — `CLAUDE.md`, `AGENTS.md`, Claude agents, Codex custom agents, skills, and pipeline state. The folder is a standalone git repo detached from this template.
 
 You can create as many projects as you want from the same template.
 
@@ -69,14 +72,23 @@ nano .env
 
 ### Step 4: Launch
 
+Claude Code:
+
 ```bash
 cd my-paper
 claude --dangerously-skip-permissions
 ```
 
+Codex:
+
+```bash
+cd my-paper
+codex --ask-for-approval never
+```
+
 Then say: **"Run the pipeline."**
 
-That's it. The pipeline reads `CLAUDE.md`, checks its state, and runs autonomously from there. If the session ends mid-pipeline, launch Claude Code again and say "Run the pipeline" — it picks up where it left off.
+That's it. Claude Code reads `CLAUDE.md`; Codex reads `AGENTS.md`. In either runtime, the pipeline checks its state and runs autonomously from there. If the session ends mid-pipeline, relaunch the runtime and say "Run the pipeline" — it picks up where it left off.
 
 ## Watch progress
 
@@ -89,7 +101,7 @@ python3 -m http.server 8000
 
 Open `http://localhost:8000/dashboard.html`. It auto-refreshes every 5 seconds showing current stage, scores, gate results, and event history.
 
-You can also watch files appear in real time in your editor, or run `git log --oneline` to see the commit history (the pipeline commits after every action).
+You can also watch files appear in real time in your editor, or run `git log --oneline` to see the commit history (the pipeline commits at stage transitions and gate decisions).
 
 ## Variants
 
@@ -149,39 +161,64 @@ Each gate is adversarial. Failed theories get revised, reworked, or abandoned. T
 | `scribe` | Background documentation of the process |
 | `empiricist` | Empirical analysis (if `--ext empirical`) |
 | `empirics-auditor` | Verifies empirical code and results (if `--ext empirical`) |
+| `experiment-designer` | Designs and runs LLM experiments (if `--ext theory_llm`) |
+| `experiment-reviewer` | Verifies experiment design and results (if `--ext theory_llm`) |
+
+## Core skills
+
+| Skill | Runtime | Purpose |
+|-------|---------|---------|
+| `codex-math` | Claude + Codex | OpenAI Codex (gpt-5.4) for proof verification, proof writing, derivation checking, and conjecture exploration |
 
 ## Data skills (with `--ext empirical`)
 
 | Skill | Source | Auth |
 |-------|--------|------|
+| `edgar` | SEC EDGAR filings, statements, and full-text filing search | None (identity header required) |
+| `flex-mining` | Flexible empirical spec and robustness workflow support | None |
 | `fred` | FRED — 800K+ macro/financial time series | API key (free) |
 | `ken-french` | Ken French Data Library — factor returns, portfolios | None |
 | `chen-zimmerman` | Open Source Asset Pricing — 200+ anomaly signals | None |
+| `mutual-funds` | Mutual fund holdings and fund-level empirical workflows | None |
 | `wrds` | WRDS — CRSP, Compustat, IBES, options, insider trading | Username + password |
 
 ## Project structure (after setup)
 
 ```
 my-paper/
-├── CLAUDE.md                 # Pipeline orchestration (assembled by setup.sh)
+├── CLAUDE.md                 # Claude runtime orchestration (assembled by setup.sh)
+├── AGENTS.md                 # Codex runtime orchestration (assembled by setup.sh)
 ├── .env                      # API keys (gitignored)
 ├── dashboard.html            # Live progress dashboard
 ├── .claude/
 │   ├── settings.json         # Sandbox config
-│   ├── agents/               # Subagents
-│   └── skills/               # Data access skills (if --ext empirical)
+│   ├── agents/               # Claude subagents
+│   └── skills/               # Claude skills
+├── .codex/
+│   └── agents/               # Codex custom agents (.toml)
+├── .agents/
+│   └── skills/               # Codex skills
 ├── output/                   # Pipeline outputs by stage
 ├── paper/                    # LaTeX paper
 │   ├── main.tex
 │   ├── sections/
 │   └── referee_reports/
-├── code/                     # Empirical code (if --ext empirical)
-│   ├── empirical.py
-│   └── tmp/
+├── code/
+│   ├── analysis/             # Analysis and verification scripts
+│   ├── download/             # Data download helpers
+│   ├── explore/              # Exploration scripts and diagnostics
+│   ├── tmp/                  # Scratch files
+│   └── utils/                # Utility scripts (including codex-math; more with extensions)
 └── process_log/
     ├── pipeline_state.json   # Current stage, scores, history
     └── history.md
 ```
+
+## Runtime notes
+
+- Claude Code launch: `claude --dangerously-skip-permissions`
+- Codex launch: `codex --ask-for-approval never`
+- Codex custom agents inherit the parent session's approval and sandbox policy unless explicitly overridden in agent config.
 
 ## Safety
 
