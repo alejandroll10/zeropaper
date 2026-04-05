@@ -10,8 +10,8 @@ def toml_string(value):
 
 
 def toml_multiline(value):
-    escaped = value.replace('"""', '\\"""')
-    return f'"""\n{escaped.rstrip()}\n"""'
+    escaped = value.replace("'''", "''\\'")
+    return f"'''\n{escaped.rstrip()}\n'''"
 
 
 def render_agent(metadata, body):
