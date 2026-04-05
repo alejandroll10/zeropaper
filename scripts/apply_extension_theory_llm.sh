@@ -5,11 +5,12 @@ TEMPLATE_ROOT="$1"
 PROJECT_ROOT="$2"
 AGENTS_OUT="$3"
 CODEX_AGENTS_OUT="$4"
-SKILLS_OUT="$5"
-LOCAL="$6"
+GEMINI_AGENTS_OUT="$5"
+SKILLS_OUT="$6"
+LOCAL="$7"
 MODEL_OVERRIDE_ARG=()
-if [ -n "$7" ]; then
-    MODEL_OVERRIDE_ARG=(--model-override "$7")
+if [ -n "$8" ]; then
+    MODEL_OVERRIDE_ARG=(--model-override "$8")
 fi
 
 EXT_ROOT="$TEMPLATE_ROOT/extensions/theory_llm"
@@ -26,6 +27,12 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_codex_subagents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \
     --bodies-dir "$EXT_ROOT/agent_bodies" \
     --output-dir "$CODEX_AGENTS_OUT"
+
+python3 "$TEMPLATE_ROOT/scripts/assemble_gemini_agents.py" \
+    --metadata "$EXT_ROOT/agent_metadata/agents.json" \
+    --bodies-dir "$EXT_ROOT/agent_bodies" \
+    --output-dir "$GEMINI_AGENTS_OUT" \
+    "${MODEL_OVERRIDE_ARG[@]}"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_claude_skills.py" \
     --metadata "$TEMPLATE_ROOT/templates/skill_metadata/theory_llm_skills.json" \

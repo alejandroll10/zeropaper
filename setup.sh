@@ -106,6 +106,9 @@ CODEX_DIR_REL=".agents"
 CODEX_SUBAGENT_DIR_REL=".codex"
 CODEX_AGENTS_REL="$CODEX_SUBAGENT_DIR_REL/agents"
 CODEX_SKILLS_REL="$CODEX_DIR_REL/skills"
+GEMINI_DIR_REL=".gemini"
+GEMINI_AGENTS_REL="$GEMINI_DIR_REL/agents"
+GEMINI_SETTINGS_REL="$GEMINI_DIR_REL/settings.json"
 
 # Resolve seed file to absolute path early (before any cd)
 if [ -n "$SEED_FILE" ]; then
@@ -188,6 +191,42 @@ assemble_codex_variant_agents() {
         "$dest_dir"
 }
 
+assemble_gemini_agents_from_parts() {
+    local template_root="$1"
+    local metadata_file="$2"
+    local bodies_dir="$3"
+    local dest_dir="$4"
+
+    python3 "$template_root/scripts/assemble_gemini_agents.py" \
+        --metadata "$metadata_file" \
+        --bodies-dir "$bodies_dir" \
+        --output-dir "$dest_dir" \
+        "${MODEL_OVERRIDE_ARGS[@]}"
+}
+
+assemble_gemini_shared_agents() {
+    local template_root="$1"
+    local dest_dir="$2"
+
+    assemble_gemini_agents_from_parts \
+        "$template_root" \
+        "$template_root/templates/agent_metadata/claude_shared_agents.json" \
+        "$template_root/templates/agent_bodies/shared" \
+        "$dest_dir"
+}
+
+assemble_gemini_variant_agents() {
+    local template_root="$1"
+    local variant="$2"
+    local dest_dir="$3"
+
+    assemble_gemini_agents_from_parts \
+        "$template_root" \
+        "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
+        "$template_root/templates/agents/${variant}" \
+        "$dest_dir"
+}
+
 assemble_claude_skills() {
     local template_root="$1"
     local metadata_file="$2"
@@ -209,9 +248,12 @@ if [ "$LOCAL" = "1" ]; then
     rm -rf "$OUT_DIR"
     mkdir -p "$OUT_DIR/$CLAUDE_AGENTS_REL"
     mkdir -p "$OUT_DIR/$CODEX_AGENTS_REL"
+    mkdir -p "$OUT_DIR/$GEMINI_AGENTS_REL"
     # Copy shared project files
     mkdir -p "$OUT_DIR/$CLAUDE_DIR_REL"
     cp "$SCRIPT_DIR/$CLAUDE_SETTINGS_REL" "$OUT_DIR/$CLAUDE_DIR_REL/"
+    mkdir -p "$OUT_DIR/$GEMINI_DIR_REL"
+    cp "$SCRIPT_DIR/$GEMINI_SETTINGS_REL" "$OUT_DIR/$GEMINI_DIR_REL/"
     cp "$SCRIPT_DIR/.gitignore" "$OUT_DIR/"
     cp "$SCRIPT_DIR/dashboard.html" "$OUT_DIR/"
 
@@ -267,9 +309,11 @@ done
 if [ "$LOCAL" = "1" ]; then
     CLAUDE_MD_OUT="$OUT_DIR/CLAUDE.md"
     AGENTS_MD_OUT="$OUT_DIR/AGENTS.md"
+    GEMINI_MD_OUT="$OUT_DIR/GEMINI.md"
 else
     CLAUDE_MD_OUT="CLAUDE.md"
     AGENTS_MD_OUT="AGENTS.md"
+    GEMINI_MD_OUT="GEMINI.md"
 fi
 
 SEED_ARGS=()
@@ -311,7 +355,23 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     "${SEED_ARGS[@]}" \
     --output "$AGENTS_MD_OUT"
 
-echo "  ✓ Runtime docs assembled (CLAUDE.md + AGENTS.md)"
+GEMINI_DISCIPLINE="$TEMPLATE_ROOT/templates/runtime/gemini/session.md"
+
+python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
+    --core "$CORE" \
+    --session "$RUNTIME_SESSION" \
+    --scoring "$SCORING_FILE" \
+    --paper-type "$PAPER_TYPE" \
+    --target-journals "$TARGET_JOURNALS" \
+    --domain-areas "$DOMAIN_AREAS" \
+    --doc-name "GEMINI.md" \
+    --agent-dir "$GEMINI_AGENTS_REL" \
+    --skill-dir "$GEMINI_DIR_REL/skills" \
+    --discipline "$GEMINI_DISCIPLINE" \
+    "${SEED_ARGS[@]}" \
+    --output "$GEMINI_MD_OUT"
+
+echo "  ✓ Runtime docs assembled (CLAUDE.md + AGENTS.md + GEMINI.md)"
 
 # ── Assemble agents ──
 echo "Copying agents..."
@@ -319,19 +379,24 @@ echo "Copying agents..."
 if [ "$LOCAL" = "1" ]; then
     AGENTS_OUT="$OUT_DIR/$CLAUDE_AGENTS_REL"
     CODEX_AGENTS_OUT="$OUT_DIR/$CODEX_AGENTS_REL"
+    GEMINI_AGENTS_OUT="$OUT_DIR/$GEMINI_AGENTS_REL"
 else
     AGENTS_OUT="$CLAUDE_AGENTS_REL"
     CODEX_AGENTS_OUT="$CODEX_AGENTS_REL"
+    GEMINI_AGENTS_OUT="$GEMINI_AGENTS_REL"
     mkdir -p "$AGENTS_OUT"
     mkdir -p "$CODEX_AGENTS_OUT"
+    mkdir -p "$GEMINI_AGENTS_OUT"
 fi
 
 assemble_claude_shared_agents "$TEMPLATE_ROOT" "$AGENTS_OUT"
 assemble_codex_shared_agents "$TEMPLATE_ROOT" "$CODEX_AGENTS_OUT"
+assemble_gemini_shared_agents "$TEMPLATE_ROOT" "$GEMINI_AGENTS_OUT"
 
 if [ -f "$TEMPLATE_ROOT/templates/agent_metadata/claude_${AGENT_DIR}_agents.json" ]; then
     assemble_claude_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$AGENTS_OUT"
     assemble_codex_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$CODEX_AGENTS_OUT"
+    assemble_gemini_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$GEMINI_AGENTS_OUT"
 fi
 
 echo "  ✓ Agents assembled (shared + ${AGENT_DIR})"
@@ -347,6 +412,9 @@ VARIANT_BLOCK="
 for agent in literature-scout novelty-checker theory-explorer referee scorer paper-writer style; do
     if [ -f "$AGENTS_OUT/$agent.md" ]; then
         echo "$VARIANT_BLOCK" >> "$AGENTS_OUT/$agent.md"
+    fi
+    if [ -f "$GEMINI_AGENTS_OUT/$agent.md" ]; then
+        echo "$VARIANT_BLOCK" >> "$GEMINI_AGENTS_OUT/$agent.md"
     fi
 done
 echo "  ✓ Variant context injected into agents"
@@ -481,6 +549,7 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$P" \
                 "$AGENTS_OUT" \
                 "$CODEX_AGENTS_OUT" \
+                "$GEMINI_AGENTS_OUT" \
                 "$SKILLS_OUT" \
                 "$LOCAL" \
                 "$LIGHT_MODEL"
@@ -501,6 +570,7 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$P" \
                 "$AGENTS_OUT" \
                 "$CODEX_AGENTS_OUT" \
+                "$GEMINI_AGENTS_OUT" \
                 "$SKILLS_OUT" \
                 "$AGENT_DIR" \
                 "$LOCAL" \
@@ -538,11 +608,20 @@ if [ "$LOCAL" = "1" ]; then
     AGENTS_REMAINING="${AGENTS_REMAINING:-0}"
     echo "Placeholders remaining: $AGENTS_REMAINING"
     echo ""
+    echo "=== Assembled GEMINI.md ==="
+    echo "Lines: $(wc -l < "$GEMINI_MD_OUT")"
+    GEMINI_REMAINING=$(grep -c '{{' "$GEMINI_MD_OUT" 2>/dev/null || true)
+    GEMINI_REMAINING="${GEMINI_REMAINING:-0}"
+    echo "Placeholders remaining: $GEMINI_REMAINING"
+    echo ""
     echo "=== Agents ($CLAUDE_AGENTS_REL/) ==="
     ls -1 "$AGENTS_OUT/"
     echo ""
     echo "=== Codex Agents ($CODEX_AGENTS_REL/) ==="
     ls -1 "$CODEX_AGENTS_OUT/"
+    echo ""
+    echo "=== Gemini Agents ($GEMINI_AGENTS_REL/) ==="
+    ls -1 "$GEMINI_AGENTS_OUT/"
     if [ -d "$OUT_DIR/$CLAUDE_SKILLS_REL" ]; then
         echo ""
         echo "=== Skills ($CLAUDE_SKILLS_REL/) ==="
@@ -568,6 +647,10 @@ if [ "$LOCAL" = "1" ]; then
     elif [ "$AGENTS_REMAINING" -gt 0 ]; then
         echo "WARNING: $AGENTS_REMAINING unresolved placeholders:"
         grep '{{' "$AGENTS_MD_OUT"
+        exit 1
+    elif [ "$GEMINI_REMAINING" -gt 0 ]; then
+        echo "WARNING: $GEMINI_REMAINING unresolved placeholders:"
+        grep '{{' "$GEMINI_MD_OUT"
         exit 1
     else
         echo "✓ All placeholders resolved"
@@ -614,6 +697,9 @@ echo "  claude --dangerously-skip-permissions"
 echo ""
 echo "Codex:"
 echo "  codex --sandbox danger-full-access --ask-for-approval never"
+echo ""
+echo "Gemini:"
+echo "  gemini"
 echo ""
 echo "Then say: \"Run the pipeline.\""
 echo ""

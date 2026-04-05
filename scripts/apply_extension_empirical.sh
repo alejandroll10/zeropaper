@@ -5,12 +5,13 @@ TEMPLATE_ROOT="$1"
 PROJECT_ROOT="$2"
 AGENTS_OUT="$3"
 CODEX_AGENTS_OUT="$4"
-SKILLS_OUT="$5"
-AGENT_DIR="$6"
-LOCAL="$7"
+GEMINI_AGENTS_OUT="$5"
+SKILLS_OUT="$6"
+AGENT_DIR="$7"
+LOCAL="$8"
 MODEL_OVERRIDE_ARG=()
-if [ -n "$8" ]; then
-    MODEL_OVERRIDE_ARG=(--model-override "$8")
+if [ -n "$9" ]; then
+    MODEL_OVERRIDE_ARG=(--model-override "$9")
 fi
 
 EXT_ROOT="$TEMPLATE_ROOT/extensions/empirical"
@@ -31,6 +32,12 @@ if [ -f "$EXT_ROOT/agent_metadata/shared_agents.json" ]; then
         --metadata "$EXT_ROOT/agent_metadata/shared_agents.json" \
         --bodies-dir "$EXT_ROOT/agent_bodies/shared" \
         --output-dir "$CODEX_AGENTS_OUT"
+
+    python3 "$TEMPLATE_ROOT/scripts/assemble_gemini_agents.py" \
+        --metadata "$EXT_ROOT/agent_metadata/shared_agents.json" \
+        --bodies-dir "$EXT_ROOT/agent_bodies/shared" \
+        --output-dir "$GEMINI_AGENTS_OUT" \
+        "${MODEL_OVERRIDE_ARG[@]}"
 fi
 
 if [ -f "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" ]; then
@@ -44,6 +51,12 @@ if [ -f "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" ]; then
         --metadata "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" \
         --bodies-dir "$EXT_ROOT/agent_bodies/${AGENT_DIR}" \
         --output-dir "$CODEX_AGENTS_OUT"
+
+    python3 "$TEMPLATE_ROOT/scripts/assemble_gemini_agents.py" \
+        --metadata "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" \
+        --bodies-dir "$EXT_ROOT/agent_bodies/${AGENT_DIR}" \
+        --output-dir "$GEMINI_AGENTS_OUT" \
+        "${MODEL_OVERRIDE_ARG[@]}"
 else
     echo "  ⚠ No empiricist agent for variant '${AGENT_DIR}' — Stage 3b will be skipped at runtime"
 fi
