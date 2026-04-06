@@ -54,6 +54,15 @@ cd auto-ai-research-template
 
 # Combine extensions
 ./setup.sh my-paper --variant finance --ext empirical --ext theory_llm
+
+# Seeded idea (skip Stages 0-1, start at Gate 1b)
+./setup.sh my-paper --variant finance --seed /path/to/idea.md
+
+# Light mode (use sonnet for all subagents — cheaper/faster)
+./setup.sh my-paper --light
+
+# Combine flags
+./setup.sh my-paper --variant finance --ext empirical --seed /path/to/idea.md --light
 ```
 
 This creates `my-paper/` with everything assembled and ready — `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, agents for all three runtimes, skills, and pipeline state. The folder is a standalone git repo detached from this template.
@@ -128,6 +137,15 @@ You can also watch files appear in real time in your editor, or run `git log --o
 | **theory_llm** | `--ext theory_llm` | Stage 3b/3c: test predictions via LLM experiments using gpt-oss models (UF NaviGator) |
 
 Extensions are additive and combinable — they inject extra agents and skills without changing the core pipeline. Use multiple `--ext` flags to combine them.
+
+## Additional flags
+
+| Flag | What it does |
+|------|-------------|
+| `--seed <file>` | Provide a pre-developed idea. Pipeline starts at Gate 1b (novelty check) instead of Stage 0, and never silently abandons the seeded idea. The idea file is copied to `output/seed/user_idea.md`. |
+| `--light` | Use sonnet for all subagents (cheaper/faster). The orchestrator model is unchanged. Good for drafts or iteration. |
+
+These flags combine freely with `--variant` and `--ext`.
 
 ## Pipeline stages
 

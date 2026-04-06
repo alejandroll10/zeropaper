@@ -26,6 +26,9 @@ If a user asks to create/set up/start a new research project, run `setup.sh` for
 # Combine extensions
 ./setup.sh <project-name> --variant finance --ext empirical --ext theory_llm
 
+# Light mode (sonnet for all subagents — cheaper/faster, orchestrator unchanged)
+./setup.sh <project-name> --variant finance --light
+
 # Seeded idea (skip Stages 0-1, start at Gate 1b)
 ./setup.sh <project-name> --variant finance --seed /path/to/idea.md
 
