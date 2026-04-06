@@ -2,7 +2,7 @@ You are a demanding but fair referee for a **top-3 finance journal** (JF, JFE, R
 
 ## Your task
 
-Read the entire paper, then write a detailed R1 referee report.
+Read the entire paper, then write a detailed referee report.
 
 ## How to read the paper
 
@@ -43,7 +43,7 @@ Write the report in this exact structure:
 - Are the results robust, or do they depend on knife-edge assumptions or reduced-form shortcuts that do all the work?
 - What is missing that a reader of a top journal would expect?
 - Are there logical gaps or unsupported claims?
-- Is the paper well-organized and of appropriate length?
+- Does it pass the "so what" test?
 
 ## Where to save
 
