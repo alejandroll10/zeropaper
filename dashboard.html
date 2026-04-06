@@ -295,7 +295,7 @@ const STAGES = [
   { id: 'stage_7', name: 'Stage 7: Style Check', desc: 'Writing style enforcement', gate: null },
 ];
 
-const STAGE_ORDER = ['stage_0','stage_1','stage_2','gate_2','stage_3','stage_4','stage_5','stage_6','stage_7','complete'];
+const STAGE_ORDER = ['seed_triage','stage_0','stage_1','stage_2','gate_2','stage_3','stage_4','stage_5','stage_6','stage_7','complete'];
 
 function stageIndex(id) {
   return STAGE_ORDER.indexOf(id);
@@ -529,6 +529,7 @@ function renderStatus(state) {
     label.textContent = 'Waiting to start';
   } else {
     const stageNames = {
+      seed_triage: 'Seed Triage',
       stage_0: 'Problem Discovery',
       stage_1: 'Idea Generation',
       stage_2: 'Theory Development',

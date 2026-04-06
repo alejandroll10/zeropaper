@@ -55,14 +55,14 @@ cd auto-ai-research-template
 # Combine extensions
 ./setup.sh my-paper --variant finance --ext empirical --ext theory_llm
 
-# Seeded idea (skip Stages 0-1, start at Gate 1b)
-./setup.sh my-paper --variant finance --seed /path/to/idea.md
+# Seeded idea (creates output/seed/ — drop your files there before launching)
+./setup.sh my-paper --seed
 
 # Light mode (use sonnet for all subagents — cheaper/faster)
 ./setup.sh my-paper --light
 
 # Combine flags
-./setup.sh my-paper --variant finance --ext empirical --seed /path/to/idea.md --light
+./setup.sh my-paper --variant finance --ext empirical --seed --light
 ```
 
 This creates `my-paper/` with everything assembled and ready — `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, agents for all three runtimes, skills, and pipeline state. The folder is a standalone git repo detached from this template.
@@ -142,7 +142,7 @@ Extensions are additive and combinable — they inject extra agents and skills w
 
 | Flag | What it does |
 |------|-------------|
-| `--seed <file>` | Provide a pre-developed idea. Pipeline starts at Gate 1b (novelty check) instead of Stage 0, and never silently abandons the seeded idea. The idea file is copied to `output/seed/user_idea.md`. |
+| `--seed` | Create a seeded-idea project. Creates `output/seed/` — drop your idea files there (markdown, PDFs, drafts, etc.) before launching. Pipeline triages seed maturity and enters at the appropriate stage. Never silently abandons the seeded idea. |
 | `--light` | Use sonnet for all subagents (cheaper/faster). The orchestrator model is unchanged. Good for drafts or iteration. |
 
 These flags combine freely with `--variant` and `--ext`.

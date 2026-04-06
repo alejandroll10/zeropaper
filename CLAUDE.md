@@ -29,11 +29,11 @@ If a user asks to create/set up/start a new research project, run `setup.sh` for
 # Light mode (sonnet for all subagents — cheaper/faster, orchestrator unchanged)
 ./setup.sh <project-name> --variant finance --light
 
-# Seeded idea (skip Stages 0-1, start at Gate 1b)
-./setup.sh <project-name> --variant finance --seed /path/to/idea.md
+# Seeded idea (creates output/seed/ — drop your files there before launching)
+./setup.sh <project-name> --variant finance --seed
 
 # Seeded idea + empirical
-./setup.sh <project-name> --variant finance --seed /path/to/idea.md --ext empirical
+./setup.sh <project-name> --variant finance --seed --ext empirical
 ```
 
 This creates a standalone project folder with assembled CLAUDE.md, AGENTS.md, GEMINI.md, agents for all runtimes, and skills. After setup, tell the user to:
@@ -142,7 +142,7 @@ Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory
    - Claude agents → `.claude/agents/*.md`, Codex → `.codex/agents/*.toml`, Gemini → `.gemini/agents/*.md`
 5. Injects variant context (paper type, journal list, domain) into key agents
 6. Creates project structure (output/, paper/, code/, etc.) and initial pipeline state
-   - If `--seed`: copies seed file to `output/seed/user_idea.md`, sets `pipeline_state.json` to start at `gate_1b` with `"seeded": true`
+   - If `--seed`: creates `output/seed/` with a README, sets `pipeline_state.json` to start at `seed_triage` with `"seeded": true`
 7. Installs core Python deps (sympy, matplotlib) via `uv pip install`
 8. Assembles core skills:
    - Claude skills into `.claude/skills/`

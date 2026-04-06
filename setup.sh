@@ -1,12 +1,12 @@
 #!/bin/bash
 # Auto AI Research Template — Setup & Launch
-# Usage: ./setup.sh [project-name] [--variant finance|macro] [--ext empirical|theory_llm] [--seed <file>] [--light] [--local]
+# Usage: ./setup.sh [project-name] [--variant finance|macro] [--ext empirical|theory_llm] [--seed] [--light] [--local]
 #
 # --local  Skip git clone, use templates from this repo directly.
 #          Outputs to test_output/{variant}/ for inspection.
 # --ext    Add an extension (can be repeated). Available: empirical, theory_llm
-# --seed   Provide a pre-developed idea (file path). Pipeline starts at Gate 1b
-#          instead of Stage 0, and never silently abandons the seeded idea.
+# --seed   Create a seeded-idea project. Creates output/seed/ with instructions.
+#          Drop your idea files there before launching. Pipeline starts at seed_triage.
 # --light  Use sonnet for all subagents (cheaper/faster). Orchestrator model unchanged.
 #
 # Legacy: --variant finance_llm is shorthand for --variant finance --ext theory_llm
@@ -19,8 +19,7 @@ VARIANT="finance"
 LOCAL=0
 NEXT_IS_VARIANT=0
 NEXT_IS_EXT=0
-NEXT_IS_SEED=0
-SEED_FILE=""
+SEEDED=0
 LIGHT=0
 EXTENSIONS=()
 
@@ -28,7 +27,7 @@ for arg in "$@"; do
     case "$arg" in
         --variant)     NEXT_IS_VARIANT=1 ;;
         --ext)         NEXT_IS_EXT=1 ;;
-        --seed)        NEXT_IS_SEED=1 ;;
+        --seed)        SEEDED=1 ;;
         --light)       LIGHT=1 ;;
         --local)       LOCAL=1 ;;
         --theory-llm)  VARIANT="finance_llm" ;;  # legacy flag
@@ -40,9 +39,6 @@ for arg in "$@"; do
             elif [ "$NEXT_IS_EXT" = "1" ]; then
                 EXTENSIONS+=("$arg")
                 NEXT_IS_EXT=0
-            elif [ "$NEXT_IS_SEED" = "1" ]; then
-                SEED_FILE="$arg"
-                NEXT_IS_SEED=0
             else
                 PROJECT_NAME="$arg"
             fi
@@ -56,14 +52,6 @@ if [ "$NEXT_IS_VARIANT" = "1" ]; then
 fi
 if [ "$NEXT_IS_EXT" = "1" ]; then
     echo "Error: --ext requires a value (empirical, theory_llm)"
-    exit 1
-fi
-if [ "$NEXT_IS_SEED" = "1" ]; then
-    echo "Error: --seed requires a file path"
-    exit 1
-fi
-if [ -n "$SEED_FILE" ] && [ ! -f "$SEED_FILE" ]; then
-    echo "Error: seed file not found: $SEED_FILE"
     exit 1
 fi
 
@@ -110,10 +98,6 @@ GEMINI_DIR_REL=".gemini"
 GEMINI_AGENTS_REL="$GEMINI_DIR_REL/agents"
 GEMINI_SETTINGS_REL="$GEMINI_DIR_REL/settings.json"
 
-# Resolve seed file to absolute path early (before any cd)
-if [ -n "$SEED_FILE" ]; then
-    SEED_FILE="$(cd "$(dirname "$SEED_FILE")" && pwd)/$(basename "$SEED_FILE")"
-fi
 
 MODEL_OVERRIDE_ARGS=()
 if [ "$LIGHT" = "1" ]; then
@@ -317,7 +301,7 @@ else
 fi
 
 SEED_ARGS=()
-if [ -n "$SEED_FILE" ]; then
+if [ "$SEEDED" = "1" ]; then
     SEED_TEMPLATE="$TEMPLATE_ROOT/templates/shared/seed.md"
     if [ ! -f "$SEED_TEMPLATE" ]; then
         echo "Error: seed template not found: $SEED_TEMPLATE"
@@ -435,18 +419,31 @@ mkdir -p "$P/paper/sections" "$P/paper/referee_reports"
 mkdir -p "$P/process_log/sessions" "$P/process_log/decisions" "$P/process_log/discussions" "$P/process_log/patterns"
 mkdir -p "$P/references"
 
-# Copy seed file if provided
-if [ -n "$SEED_FILE" ]; then
+# Create seed folder with instructions if --seed
+if [ "$SEEDED" = "1" ]; then
     mkdir -p "$P/output/seed"
-    cp "$SEED_FILE" "$P/output/seed/user_idea.md"
-    echo "  ✓ Seed idea copied to output/seed/user_idea.md"
+    cat > "$P/output/seed/README.md" <<'SEEDREADME'
+# Seed folder
+
+Drop your idea files here before launching the pipeline. The pipeline will read
+everything in this folder as the seeded idea.
+
+You can put anything here: markdown notes, PDFs, paper drafts, evaluation
+reports, emails, code snippets — whatever describes the idea you want the
+pipeline to develop.
+
+The pipeline reads your files, builds a literature map, assesses maturity, and
+enters at the appropriate stage. It will never silently abandon your seeded idea.
+If a gate fails, it reports the issue rather than pivoting.
+SEEDREADME
+    echo "  ✓ Seed folder created at output/seed/ — drop your idea files there before launching"
 fi
 
 # Initial pipeline state
-if [ -n "$SEED_FILE" ]; then
+if [ "$SEEDED" = "1" ]; then
 cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
 {
-  "current_stage": "gate_1b",
+  "current_stage": "seed_triage",
   "problem_attempt": 1,
   "idea_round": 0,
   "theory_attempt": 1,
@@ -559,6 +556,16 @@ for ext in "${EXTENSIONS[@]}"; do
                 --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/theory_llm" \
                 --output-dir "$CODEX_SKILLS_OUT"
 
+            # Inject stage instructions into runtime docs at {{EXTENSION_STAGES}} placeholder
+            INJECT="$TEMPLATE_ROOT/extensions/theory_llm/stages_inject.md"
+            for doc in "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT"; do
+                python3 -c "
+import sys; p=sys.argv[1]; d=sys.argv[2]
+content=open(d).read(); inject=open(p).read()
+open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{{EXTENSION_STAGES}}'))
+" "$INJECT" "$doc"
+            done
+
             echo "  ✓ LLM experiment extension applied"
             ;;
         empirical)
@@ -581,6 +588,16 @@ for ext in "${EXTENSIONS[@]}"; do
                 --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/empirical" \
                 --output-dir "$CODEX_SKILLS_OUT"
 
+            # Inject stage instructions into runtime docs at {{EXTENSION_STAGES}} placeholder
+            INJECT="$TEMPLATE_ROOT/extensions/empirical/stages_inject.md"
+            for doc in "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT"; do
+                python3 -c "
+import sys; p=sys.argv[1]; d=sys.argv[2]
+content=open(d).read(); inject=open(p).read()
+open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{{EXTENSION_STAGES}}'))
+" "$INJECT" "$doc"
+            done
+
             echo "  ✓ Empirical extension applied (skills + agents)"
             ;;
         *)
@@ -589,6 +606,15 @@ for ext in "${EXTENSIONS[@]}"; do
             exit 1
             ;;
     esac
+done
+
+# Clean up leftover {{EXTENSION_STAGES}} placeholder from runtime docs
+for doc in "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT"; do
+    python3 -c "
+import sys; d=sys.argv[1]
+content=open(d).read()
+open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', '').rstrip()+'\n')
+" "$doc"
 done
 
 echo "  ✓ Codex custom agents assembled"
@@ -708,9 +734,9 @@ echo "Extensions: ${EXTENSIONS[*]:-none}"
 if [ "$LIGHT" = "1" ]; then
     echo "Mode: light (all subagents use sonnet)"
 fi
-if [ -n "$SEED_FILE" ]; then
-    echo "Seed: $(basename "$SEED_FILE") → output/seed/user_idea.md"
-    echo "Pipeline will start at Gate 1b (novelty check on seeded idea)"
+if [ "$SEEDED" = "1" ]; then
+    echo "Seeded: drop your idea files in output/seed/ before launching"
+    echo "Pipeline will triage seed maturity and enter at the appropriate stage"
 fi
 echo "Sandbox is pre-configured in $CLAUDE_SETTINGS_REL"
 echo "(Bash restricted to project folder, web access works freely)"

@@ -68,11 +68,7 @@ Stage 2: Theory Development  ──→ Gate 2: Math Audit (structured then free-
                                    Stage 3a: Theory Exploration (compute, verify, plot)
                                       ├── FAILS → back to Stage 2
                                       └── HOLDS/FRAGILE → proceed
-                                   Gate 3b: Empirical Feasibility (falsify-first, optional)
-                                      ├── FALSIFIED → back to Stage 1
-                                      └── OK → proceed
-Stage 3: Implications        ──→ Stage 3c/3d: LLM Experiments (optional)
-                                   Stage 3e: Full Empirical Analysis (optional)
+Stage 3: Implications        ──→ (extension stages injected here if applicable)
 Stage 4: Self-Attack          ──→ Gate 4: Scorer Decision (trajectory-based)
                                    ├── ADVANCE (75+) → Stage 5
                                    ├── REVISE  → back to Stage 2 (continue if Δ≥3, else escalate)
@@ -107,7 +103,7 @@ Initial state (created by setup.sh):
 }
 ```
 
-When `--seed` is used, setup.sh also adds `"seeded": true` and sets `"current_stage": "gate_1b"`.
+When `--seed` is used, setup.sh also adds `"seeded": true` and sets `"current_stage": "seed_triage"`. See the seeded idea mode section below.
 
 When you start the pipeline, set `"status": "running"` and begin appending to the history array.
 
@@ -142,11 +138,11 @@ Score 0-100. If below 50, re-run Stage 0 with different search terms. After 5 fa
 
 **Agents:** `idea-generator` + `idea-reviewer` (iterating)
 
-**How many ideas to generate:** The number of candidates should increase when the pool is weaker — more failed attempts mean more draws are needed to find a good one.
+**How many ideas to generate:** More candidates when the pool is weaker — more failures mean more draws needed.
 
 | Context | Ideas per round |
 |---------|----------------|
-| First time entering Stage 1 | 5 |
+| 1st time entering Stage 1 | 5 |
 | Returning from a failed theory (scorer MAJOR REWORK/ABANDON) | 10 |
 | Returning from a problem-level failure (Stage 0 re-run) | 10, and explicitly explore different territory |
 
@@ -180,7 +176,7 @@ Score 0-100. If below 50, re-run Stage 0 with different search terms. After 5 fa
 
 **Agent:** `novelty-checker`
 
-This is the first of two deep novelty checks. It runs on the selected idea *before* investing in theory development.
+1st of 2 novelty checks — runs on the selected idea *before* investing in theory development.
 
 1. Launch novelty-checker on `output/stage1/selected_idea.md` + `output/stage0/literature_map.md`
 2. Save result to `output/stage1/novelty_check_idea.md`
@@ -198,7 +194,7 @@ This is the first of two deep novelty checks. It runs on the selected idea *befo
 
 **Agent:** `idea-prototyper`
 
-Quick mathematical feasibility check — attempt the key derivation before investing in full theory development. **Always runs** (not optional), because even first-attempt ideas can have hidden tractability issues that the sketch doesn't reveal. Also performs a **surprise check** on TRACTABLE results: now that the math shows what the result looks like, is it non-obvious?
+Quick mathematical feasibility check — attempt the key derivation before investing in full theory development. **Always runs** (not optional), because even 1st-attempt ideas can have hidden tractability issues that the sketch doesn't reveal. Also performs a **surprise check** on TRACTABLE results: now that the math shows what the result looks like, is it non-obvious?
 
 1. Launch idea-prototyper on `output/stage1/selected_idea.md` + `output/stage0/problem_statement.md`
 2. Save result to `output/stage1/idea_prototype.md`
@@ -231,7 +227,7 @@ Quick mathematical feasibility check — attempt the key derivation before inves
 
 **Agents:** `math-auditor` then `math-auditor-freeform`
 
-Two audits run sequentially. The structured audit checks every derivation step-by-step. The free-form audit reads the theory as a skeptical reader and catches conceptual issues that step-by-step verification misses. Both must PASS before advancing.
+Two sequential audits — structured (step-by-step derivation check) then free-form (skeptical reader, catches conceptual issues). Both must PASS.
 
 **Step 1: Structured audit**
 
@@ -261,12 +257,12 @@ Two audits run sequentially. The structured audit checks every derivation step-b
 
 **Agent:** `novelty-checker`
 
-This is the second of two deep novelty checks. The idea was already checked at Gate 1b, but the full theory may overlap with prior work in ways the sketch did not reveal — the mechanism may be novel while the result is not, or the developed model may converge to a known framework.
+2nd novelty check. The idea passed at Gate 1b, but the full theory may overlap with prior work the sketch didn't reveal — novel mechanism, known result, or convergence to an existing framework.
 
 1. Launch novelty-checker on `output/stage2/theory_draft_vN.md`
 2. Save result to `output/stage2/novelty_check_vN.md`
 3. If KNOWN: abandon this theory, return to Stage 2 with new approach
-4. If INCREMENTAL: return to Stage 2 with novelty feedback. The theory must be reworked to deliver a result the literature does not already contain. Do not proceed to Stage 3a with an INCREMENTAL verdict — the scorer will hard-fail H4 on INCREMENTAL.
+4. If INCREMENTAL: return to Stage 2 with novelty feedback. Theory must deliver a result the literature doesn't already contain — scorer will hard-fail H4 on INCREMENTAL.
 5. If NOVEL: proceed to Stage 3a (theory exploration)
 6. Commit: `artifact: novelty check v{N} — {NOVEL/INCREMENTAL/KNOWN}`
 
@@ -274,7 +270,7 @@ This is the second of two deep novelty checks. The idea was already checked at G
 
 **Agent:** `theory-explorer`
 
-Computational exploration of the model — poke it, see what breaks, produce diagnostic plots. This catches results that are mathematically correct but quantitatively zero, conditions that don't hold at calibration, and knife-edge assumptions before investing in implications and paper writing.
+Computational exploration — implement the key result, check at calibration, explore parameter space, produce diagnostic plots. Catches results that are correct but quantitatively zero, conditions that fail at calibration, and knife-edge assumptions.
 
 1. Launch `theory-explorer` on the theory draft + math audit results + data inventory.
 2. The agent implements the key result computationally, checks it at calibration, explores the parameter space, verifies necessary conditions, and produces diagnostic plots.
@@ -284,20 +280,6 @@ Computational exploration of the model — poke it, see what breaks, produce dia
    - If result **doesn't hold** or is **effectively zero** at calibration: return to Stage 2 with the exploration results. The theory-generator needs to know what the computation found.
    - If result is **fragile** (holds only in a narrow parameter region): flag for the scorer. Proceed but the paper should be honest about this.
 5. Commit: `artifact: theory exploration — {HOLDS/FRAGILE/FAILS}`
-
-### Gate 3b: Empirical Feasibility (optional — empirical extension, falsify-first)
-
-**This gate runs only if** `empiricist` agent exists in `{{AGENT_DIR}}/`. If not present, skip to Stage 3.
-
-Quick falsification check: can this theory be calibrated at all? Do the key empirical moments exist? A theory that predicts the wrong sign on a well-measured moment is dead regardless of how elegant the implications are. Check this BEFORE investing in implications.
-
-1. Launch `empiricist` with a focused instruction: "Quick feasibility check only — download the 2-3 key moments this theory needs to match. Report whether the theory's predictions are in the right ballpark. Do NOT run a full analysis."
-2. Save to `output/stage3b/empirical_feasibility.md`
-3. If the key moments contradict the theory (wrong sign, off by an order of magnitude): flag as **FALSIFIED** — return to Stage 1 for a new idea. Don't waste time on implications for a theory the data already rejects.
-4. If moments are roughly consistent or unavailable: proceed to Stage 3.
-5. Commit: `artifact: empirical feasibility — {OK/FALSIFIED}`
-
----
 
 ## Stage 3: Implications
 
@@ -312,41 +294,7 @@ Quick falsification check: can this theory be calibrated at all? Do the key empi
 3. Append to the theory draft or write to `output/stage3/implications.md`
 4. Commit: `pipeline: stage 3 — implications developed`
 
----
-
-## Stage 3c/3d: LLM Experiments (optional — theory_llm extension)
-
-**These stages run only if** `llm_client.py` exists in the project root and `experiment-designer` agent exists in `{{AGENT_DIR}}/`. If not present, skip to the next optional stage or Stage 4.
-
-1. **Experiment plan.** Launch `experiment-designer` with instruction: "Write an experiment plan only — do not execute yet." The agent identifies predictions testable via LLM calls and writes `output/stage3b_experiments/experiment_plan.md` with: hypotheses, experimental design, controls, sample sizes, and expected outcomes.
-2. **Review the plan.** Check: does it test the right predictions? Are controls adequate? Is sample size sufficient? If not, provide feedback.
-3. **Execute.** Launch `experiment-designer` with the approved plan. The agent runs experiments using `llm_client.py`. Saves to `output/stage3b_experiments/`.
-4. **Stage 3d:** Launch `experiment-reviewer` on the design, code, raw results, and analysis. Evaluates methodology (internal validity, controls, sample size, statistical tests) and interpretation.
-
-| Decision | Action |
-|----------|--------|
-| **ACCEPT** | Proceed to Stage 4 (self-attacker receives experiment results too) |
-| **REVISE** | Re-run specific experiments or re-analyze. Max 2 revision rounds. |
-| **REDESIGN** | Fundamental methodology problem. Redesign and re-run. Max 1 redesign. |
-
-5. Commit: `artifact: experiments — {ACCEPT/REVISE/REDESIGN}`
-
----
-
-## Stage 3e: Full Empirical Analysis (optional — empirical extension)
-
-**This stage runs only if** `empiricist` agent exists in `{{AGENT_DIR}}/` and `{{SKILL_DIR}}/fred/` exists. If not present, skip to Stage 4.
-
-This is the full empirical analysis — deeper than the feasibility check at Gate 3b. Now that implications are developed, the empiricist can design proper tests, calibrations, and portfolio sorts.
-
-1. **Analysis plan.** Launch `empiricist` with instruction: "Write an analysis plan only — do not execute yet." The empiricist reads the theory, implications, data inventory, and feasibility results, then writes `output/stage3b/empirical_plan.md` describing: what tests to run, what data sources to use (and WHY those sources — reference the data inventory), what the expected results look like, and what would constitute support vs. rejection of the theory.
-2. **Review the plan.** Read the plan. Check: does it use the best available data? (If WRDS is available but the plan uses only CZ portfolios, reject the plan.) Does it test what the theory actually predicts? Is the identification strategy sound? If the plan is wrong, re-launch the empiricist with specific feedback.
-3. **Execute.** Launch `empiricist` with the approved plan. The agent executes the plan, fetches data via skills (FRED, Ken French, Chen-Zimmerman, WRDS, EDGAR), and runs the analysis. Saves to `output/stage3b/empirical_analysis.md` and `code/empirical.py`.
-4. All code must be written to files (`code/` for final, `code/tmp/` for scratch). Never run inline `python3 -c`.
-5. **Empirics audit.** Launch `empirics-auditor` on the empirical analysis + code + theory draft. The auditor runs the code, verifies results, checks methodology.
-   - If **PASS**: proceed to Stage 4. Self-attacker and scorer receive empirical results alongside the theory.
-   - If **FAIL**: re-launch `empiricist` with the audit feedback. Keep iterating as long as the number of issues is decreasing. Escalate only if the issue count plateaus or increases across two consecutive attempts.
-6. Commit: `artifact: empirics audit — {PASS/FAIL}`
+{{EXTENSION_STAGES}}
 
 ---
 
@@ -384,7 +332,7 @@ This is the full empirical analysis — deeper than the feasibility check at Gat
 | **field** | JME, JFQA, Rev Finance, Management Science, RED | 65+ | 45-64 | 30-44 | <30 |
 | **letters** | Economics Letters, Finance Research Letters | 55+ | 40-54 | 25-39 | <25 |
 
-**First scorer evaluation** (no prior score): use band logic from the table above.
+**1st scorer evaluation** (no prior score): use band logic from the table above.
 
 **Subsequent scorer evaluations** (has prior score): use score trajectory.
 
@@ -396,7 +344,7 @@ This is the full empirical analysis — deeper than the feasibility check at Gat
 | Delta < 3 points | **ESCALATE** — move up one level: REVISE → MAJOR REWORK → ABANDON (plateau, not converging) |
 | Score < (advance threshold + 5) on attempt 3+ | **ESCALATE** — regardless of delta. Still below the bar after two revisions suggests a ceiling. Regenerate. |
 
-**Hard ceiling:** After 8 total scorer evaluations on the same problem, escalate one level regardless of trajectory. This prevents slow-but-never-arriving loops while still leaving room for extensions to land.
+**Hard ceiling:** After 8 total scorer evaluations on same problem, escalate one level regardless of trajectory.
 
 Record all content scores in `process_log/pipeline_state.json` under `"scores"` so the trajectory can be computed: `"scores": { "v1": 60, "v2": 63, "v3": 67 }`.
 
@@ -514,69 +462,28 @@ When the core result is correct but thin, extend it with mathematically hard, ec
 ## File organization
 
 ```
-dashboard.html              # Live progress dashboard (serve with python3 -m http.server)
-output/
-├── data_inventory.md               # available data sources (written at startup)
-├── seed/                           # (--seed mode only)
-│   ├── user_idea.md                # original seed file provided by user
-│   ├── novelty_concern.md          # written if Gate 1b flags the idea as KNOWN
-│   ├── prototype_blockage.md       # written if Gate 1c is BLOCKED
-│   ├── novelty_concern_theory.md    # written if Gate 3 flags the full theory as KNOWN
-│   └── abandon_report.md           # written if pipeline cannot develop the idea
-├── stage0/
-│   ├── problem_statement.md
-│   └── literature_map.md
-├── stage1/
-│   ├── idea_sketches_r1.md
-│   ├── idea_review_r1.md
-│   ├── selected_idea.md
-│   ├── novelty_check_idea.md
-│   └── idea_prototype.md
-├── stage2/
-│   ├── theory_draft_v1.md
-│   ├── math_audit_v1.md
-│   ├── freeform_audit_v1.md
-│   └── novelty_check_v1.md
-├── stage3a/
-│   ├── exploration.md              # theory exploration report
-│   └── figures/                    # diagnostic plots
-├── stage3/
-│   └── implications.md
-├── stage3b/
-│   ├── empirical_feasibility.md    # Gate 3b quick falsification check
-│   └── empirical_analysis.md       # Stage 3e full empirical analysis
-├── stage3b_experiments/             # LLM experiments (--ext theory_llm)
-│   ├── experiment_design.md
-│   └── experiment_analysis.md
-├── stage4/
-│   ├── self_attack_v1.md
-│   └── scorer_decision_v1.md
-├── post_pipeline/
-│   ├── pending_audit_1.md
-│   └── audit_result_1.md
+output/                   # Pipeline outputs by stage
+├── seed/                 # (--seed mode only) user idea files + pipeline reports
+├── stage0/               # problem_statement.md, literature_map.md
+├── stage1/               # idea sketches, reviews, selected_idea.md, novelty + prototype
+├── stage2/               # theory drafts, math audits, novelty checks (versioned _v1, _v2…)
+├── stage3a/              # theory exploration report + figures/
+├── stage3/               # implications.md
+├── stage3b/              # empirical feasibility + full analysis (if --ext empirical)
+├── stage3b_experiments/  # LLM experiments (if --ext theory_llm)
+├── stage4/               # self-attack + scorer decision (versioned)
+├── post_pipeline/        # post-pipeline math audits
 code/
-├── utils/                          # pre-built helpers (wrds_client, download templates)
-├── explore/                        # theory-explorer scripts
-├── tmp/                            # scratch/intermediate scripts
-└── empirical.py                    # final empirical code
+├── utils/                # pre-built helpers (wrds_client, codex-math, download templates)
+├── explore/              # theory-explorer scripts
+├── tmp/                  # scratch/intermediate scripts
 paper/
 ├── main.tex
-├── sections/
-│   ├── introduction.tex
-│   ├── model.tex
-│   ├── results.tex
-│   ├── discussion.tex
-│   ├── conclusion.tex
-│   └── appendix.tex
+├── sections/             # introduction, model, results, discussion, conclusion, appendix
 ├── referee_reports/
-│   └── YYYY-MM-DD_v1.md
 process_log/
-├── pipeline_state.json
+├── pipeline_state.json   # current stage, scores, history
 ├── history.md
-├── sessions/
-├── discussions/
-├── decisions/
-└── patterns/
 ```
 
 ---
