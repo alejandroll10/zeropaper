@@ -267,6 +267,7 @@ Two sequential audits — structured (step-by-step derivation check) then free-f
    - If the auditor flagged a **load-bearing conjecture** (unproved claim that other results depend on): instruct the theory-generator to use `code/utils/codex_math/` (explore mode for proof strategies, write mode for proof attempts) before weakening the claim. Codex is an erratic genius — its output must be independently verified before incorporation.
    - Re-launch theory-generator in **mutate** mode with the draft + audit feedback
    - Keep iterating as long as the error count is decreasing (making progress). Escalate only if errors plateau or increase across two consecutive attempts — treat as theory failure, increment theory_attempt
+   - **After every 3rd theory version on the same attempt:** launch branch-manager with the current draft, audit feedback, idea sketches, and literature map (no scorer output — sections A and score references will be empty). If it recommends restart, escalate to Stage 1 with a different sketch rather than continuing to patch.
 5. If PASS: proceed to Step 2
 
 **Step 2: Free-form audit**
