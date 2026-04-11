@@ -118,6 +118,32 @@
       "model": "gemini-3-flash-preview"
     }
   },
+  "scorer-freeform": {
+    "name": "scorer-freeform",
+    "description": "Free-form quality assessment at Gate 4. Reads the theory holistically — framing, structure, publishability — without following the scoring rubric. Runs in parallel with the structured scorer; neither sees the other's output.",
+    "tools": "Read, Write",
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
+  "referee-freeform": {
+    "name": "referee-freeform",
+    "description": "Free-form referee report at Stage 6. Reads the paper as an editor — does it deserve space in this journal? Runs in parallel with the structured referee; neither sees the other's output.",
+    "tools": "Read, Write, Glob",
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
   "branch-manager": {
     "name": "branch-manager",
     "description": "Strategic advisor launched at every Gate 4 after scorer(s) return. Diagnoses whether the current theoretical path has ceilinged, surfaces concrete alternatives from the Round 1 sketch portfolio, and recommends continue/restructure/restart. Produces a structured 5-section report; does not make the gate decision.",

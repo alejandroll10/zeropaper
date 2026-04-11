@@ -171,7 +171,7 @@ Score 0-100. If below 50, return to Step 0b with a different gap. After 5 failur
 | Returning from a problem-level failure (Stage 0 re-run) | 10, and explicitly explore different territory |
 
 1. Read `output/stage0/problem_statement.md`, `output/stage0/literature_map.md`, and `output/data_inventory.md`
-2. If returning from a failed attempt, also read the previous scorer feedback and/or failed theory to understand what went wrong — instruct the idea-generator to avoid the same failure mode
+2. **If returning from a failed attempt:** first reread all `output/stage1/idea_sketches_r*.md` files. Identify which unused sketches are still viable given what the failed attempt revealed. Pick the next-best unused sketch before generating new ideas — only regenerate if no unused sketch is viable. Also read the previous scorer feedback and/or failed theory to understand what went wrong — instruct the idea-generator to avoid the same failure mode
 3. Launch idea-generator with the problem statement, literature map, **and data inventory** to brainstorm candidate mechanisms (see table above for count)
 4. Save sketches to `output/stage1/idea_sketches_rN.md` (N = round number)
 5. Commit: `artifact: idea sketches round {N}`
@@ -339,9 +339,9 @@ Computational exploration — implement the key result, check at calibration, ex
 
 ### Gate 4: Scorer Decision
 
-**Agent:** `scorer`
+**Agents:** `scorer` + `scorer-freeform` (launched in parallel — neither sees the other's output)
 
-1. Launch scorer with:
+1. Launch both scorers in parallel with the same inputs:
    - Theory draft: `output/stage2/theory_draft_vN.md`
    - Math audit (structured): `output/stage2/math_audit_vN.md`
    - Math audit (free-form): `output/stage2/freeform_audit_vN.md`
@@ -349,14 +349,14 @@ Computational exploration — implement the key result, check at calibration, ex
    - Novelty check (idea): `output/stage1/novelty_check_idea.md`
    - Novelty check (theory): `output/stage2/novelty_check_vN.md`
    - Self-attack: `output/stage4/self_attack_vN.md`
-2. Save result to `output/stage4/scorer_decision_vN.md`
-3. Commit: `artifact: scorer decision v{N}`
+2. Save results to `output/stage4/scorer_decision_vN.md` and `output/stage4/scorer_freeform_vN.md`
+3. Commit: `artifact: scorer decisions v{N} (structured + freeform)`
 
 **Agent:** `branch-manager`
 
 4. Launch branch-manager with:
    - Theory draft: `output/stage2/theory_draft_vN.md`
-   - Scorer output: `output/stage4/scorer_decision_vN.md`
+   - Both scorer outputs: `output/stage4/scorer_decision_vN.md`, `output/stage4/scorer_freeform_vN.md`
    - Full score history from `process_log/pipeline_state.json`
    - Stage 1 idea sketches: all `output/stage1/idea_sketches_r*.md` files (all rounds, not just r1)
    - Pipeline state: `process_log/pipeline_state.json`
@@ -422,21 +422,21 @@ Record all content scores in `process_log/pipeline_state.json` under `"scores"` 
 
 ## Stage 6: Referee Simulation
 
-**Agent:** `referee`
+**Agents:** `referee` + `referee-freeform` (launched in parallel — neither sees the other's output)
 
 1. Delete any previous reports in `paper/referee_reports/`
-2. Launch referee agent (fresh context, no knowledge of development process)
-3. Save report to `paper/referee_reports/YYYY-MM-DD_vN.md`
-4. Commit: `pipeline: stage 6 — referee report received`
+2. Launch both referees in parallel (fresh context, no knowledge of development process). Provide save paths: structured → `paper/referee_reports/YYYY-MM-DD_vN.md`, freeform → `paper/referee_reports/YYYY-MM-DD_vN_freeform.md`
+3. Commit after both complete
+4. Commit: `pipeline: stage 6 — referee reports received (structured + freeform)`
 
 ### Gate 5: Referee Decision
 
-Read the referee's recommendation:
+Read both referee reports. The structured referee provides numbered comments with action tags; the free-form referee provides editorial assessment and publishability verdict. Use both to inform the decision:
 
 | Recommendation | Action |
 |---------------|--------|
 | **Accept / Minor Revision** | Fix minor comments, proceed to Stage 7 (style check). |
-| **Major Revision** | **Triage first.** Categorize each referee comment using the referee's own tags (`[FIX]`/`[LIMITS]`/`[RESPONSE]`/`[NOTE]`) as a starting point. Only `[FIX]` items trigger main-text revisions. `[LIMITS]` items get one sentence in limitations. `[RESPONSE]` items go in the response letter only. Save triage to `paper/referee_reports/triage_rN.md`. Then revise only the `[FIX]` items. When a referee challenges an assumption, first try to prove the result without it or characterize exactly when it fails — weakening claims is the last resort (per "characterize, don't just prove"). Re-run Stage 6. Max 10 rounds; keep going as long as each round surfaces at least one genuinely new issue (not a variant of a previously-triaged concern). |
+| **Major Revision / Revise and Resubmit** | **Triage first.** Categorize each referee comment using the referee's own tags (`[FIX]`/`[LIMITS]`/`[RESPONSE]`/`[NOTE]`) as a starting point. Only `[FIX]` items trigger main-text revisions. `[LIMITS]` items get one sentence in limitations. `[RESPONSE]` items go in the response letter only. Save triage to `paper/referee_reports/triage_rN.md`. Then revise only the `[FIX]` items. When a referee challenges an assumption, first try to prove the result without it or characterize exactly when it fails — weakening claims is the last resort (per "characterize, don't just prove"). Re-run Stage 6. Max 10 rounds; keep going as long as each round surfaces at least one genuinely new issue (not a variant of a previously-triaged concern). |
 | **Reject** | Read the rejection reasons. If fixable: return to Stage 2 with referee feedback. If fundamental: return to Stage 0. |
 
 ---

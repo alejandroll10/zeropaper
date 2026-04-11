@@ -184,6 +184,8 @@ Agents are either **shared** (identical across variants) or **variant-specific**
 - `theory-explorer` — computational verification, calibration, parameter exploration, plots
 - `math-auditor` — checks derivations step-by-step
 - `math-auditor-freeform` — reads as skeptical reader
+- `scorer-freeform` — free-form quality assessment at Gate 4 (holistic read, no rubric)
+- `referee-freeform` — free-form referee report at Stage 6 (editorial assessment)
 - `novelty-checker` — searches web for prior work
 - `paper-writer` — writes LaTeX from inputs
 - `style` — checks writing style
