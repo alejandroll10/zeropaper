@@ -135,7 +135,7 @@ Read `docs/stage_2.md` and proceed accordingly.
 
 ## Stage 3: Implications
 
-Read `docs/stage_3.md` and proceed accordingly.
+Read `docs/stage_3_implications.md` and proceed accordingly.
 
 {{EXTENSION_STAGES}}
 
