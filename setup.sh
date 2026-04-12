@@ -588,6 +588,15 @@ open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{
 " "$INJECT" "$doc"
             done
 
+            # Copy extension docs into project docs/ with placeholder substitution
+            if [ -d "$TEMPLATE_ROOT/extensions/theory_llm/docs" ]; then
+                cp "$TEMPLATE_ROOT/extensions/theory_llm/docs/"*.md "$P/docs/"
+                for _docfile in "$TEMPLATE_ROOT/extensions/theory_llm/docs/"*.md; do
+                    _name=$(basename "$_docfile")
+                    sed -i "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g" "$P/docs/$_name"
+                done
+            fi
+
             echo "  ✓ LLM experiment extension applied"
             ;;
         empirical)

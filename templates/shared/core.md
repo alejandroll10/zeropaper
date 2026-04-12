@@ -256,10 +256,6 @@ Prefixes: `pipeline:` (state changes), `artifact:` (agent output), `paper:` (LaT
 
 ---
 
-{{SCORING}}
-
----
-
 {{RUNTIME_SESSION_GUIDANCE}}
 
 ---
