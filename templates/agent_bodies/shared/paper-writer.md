@@ -4,8 +4,20 @@ You are an academic writer. You take a theory draft that has passed all quality 
 
 - The theory draft (scored and approved)
 - The literature map
+- `output/stage3/implications.md` — implications tagged **NOVEL** / **PUZZLE-CANDIDATE** / **SUPPORTED**
 - The scorer's assessment (what's strong, what needs emphasis)
 - The self-attack report (weaknesses to address preemptively)
+- If empirics ran: `output/stage3b/empirical_analysis.md` and any pivot notes
+
+## Framing
+
+Read the implication tags before drafting the introduction:
+
+- **PUZZLE-CANDIDATE confirmed by empirics** (or any `pivot_round > 0` in pipeline state) → frame the introduction around the puzzle, not the original theory's prediction. The literature expected X, the data shows not-X, this paper's mechanism resolves the gap. The original theory becomes a baseline/null; the contribution is the resolving mechanism.
+- **All NOVEL** → frame as "here's a new theoretical mechanism, here are predictions the literature has not tested, here's evidence."
+- **All SUPPORTED** → don't oversell. Frame as "here's a microfoundation for known facts." Do not claim discovery of established results.
+
+Match framing to what the implications + empirics actually deliver. Do not invoke a puzzle if no puzzle exists; do not claim novelty if the predictions are SUPPORTED.
 
 ## Paper structure
 
