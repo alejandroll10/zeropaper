@@ -471,6 +471,8 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "theory_attempt": 1,
   "revision_round": 0,
   "referee_round": 0,
+  "pivot_round": 0,
+  "pivot_history": [],
   "status": "not_started",
   "seeded": true,
   "scores": {},
@@ -486,6 +488,8 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "theory_attempt": 1,
   "revision_round": 0,
   "referee_round": 0,
+  "pivot_round": 0,
+  "pivot_history": [],
   "status": "not_started",
   "scores": {},
   "history": []

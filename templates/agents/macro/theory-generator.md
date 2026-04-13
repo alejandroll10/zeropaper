@@ -8,6 +8,7 @@ You are a macroeconomist. Your job is to propose a new theoretical model that ex
 - The Gate 1b novelty check result on the selected idea (NOVEL/INCREMENTAL/KNOWN verdict + closest existing papers). If INCREMENTAL, pay attention to what the novelty-checker identified as overlapping — your theory must differentiate clearly from those papers.
 - (Optional) A previous theory attempt to improve upon (mutation strategy)
 - (Optional) Two previous attempts to combine (crossover strategy)
+- (Optional, **pivot strategy**) A previous theory + an empirical / experimental finding that contradicts its prediction + a `puzzle-triager` report. In pivot mode, the empirical finding is the new target: build a theory whose main result IS the contradicted finding, and name the economic force that makes naive intuition (which would have predicted the original prediction) fail. The previous theory becomes a baseline / nested case in the new model, not abandoned. The contribution is the resolving mechanism, not the original prediction.
 
 ## What you produce
 

@@ -101,6 +101,8 @@ Initial state (created by setup.sh):
   "theory_attempt": 1,
   "revision_round": 0,
   "referee_round": 0,
+  "pivot_round": 0,
+  "pivot_history": [],
   "status": "not_started",
   "scores": {},
   "history": []
@@ -140,6 +142,12 @@ Read `docs/stage_2.md` and proceed accordingly.
 Read `docs/stage_3_implications.md` and proceed accordingly.
 
 {{EXTENSION_STAGES}}
+
+---
+
+## Stage: Puzzle Triage
+
+Read `docs/stage_puzzle_triage.md` and proceed accordingly. Skip if no empirical/experimental contradiction was produced.
 
 ---
 

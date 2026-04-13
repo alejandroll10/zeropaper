@@ -157,6 +157,19 @@
       "model": "gemini-3-preview"
     }
   },
+  "puzzle-triager": {
+    "name": "puzzle-triager",
+    "description": "Triages contradictions between theory predictions and empirical/experimental results. Launched only when results contradict an implication. Produces a verdict (PIVOT / FIX-EMPIRICS / RECONCILE / BACK-TO-IDEA / HONEST-NULL) that routes the pipeline. A PIVOT verdict promotes the contradiction to the central question and instructs theory-generator to revise around the puzzle.",
+    "tools": "Read, Write",
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
   "theory-explorer": {
     "name": "theory-explorer",
     "description": "Computational exploration of a theory model. Launched after math audit passes (Stage 3a). Pokes the model numerically — what breaks, what's robust, where are the knife-edges. Produces diagnostic plots and a verification report.",
