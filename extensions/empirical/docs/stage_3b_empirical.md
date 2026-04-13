@@ -21,6 +21,20 @@ This is the full empirical analysis — deeper than the feasibility check at Gat
 3. **Execute.** Launch `empiricist` with the approved plan. The agent executes the plan, fetches data via skills (FRED, Ken French, Chen-Zimmerman, WRDS, EDGAR), and runs the analysis. Saves to `output/stage3b/empirical_analysis.md` and `code/empirical.py`.
 4. All code must be written to files (`code/` for final, `code/tmp/` for scratch). Never run inline `python3 -c`.
 5. **Empirics audit.** Launch `empirics-auditor` on the empirical analysis + code + theory draft. The auditor runs the code, verifies results, checks methodology.
-   - If **PASS**: proceed to Stage 4. Self-attacker and scorer receive empirical results alongside the theory.
+   - If **PASS**: proceed to **puzzle-triage entry check** (next step).
    - If **FAIL**: re-launch `empiricist` with the audit feedback. Keep iterating as long as the number of issues is decreasing. Escalate only if the issue count plateaus or increases across two consecutive attempts.
 6. Commit: `artifact: empirics audit — {PASS/FAIL}`
+
+## Puzzle-triage entry check (mandatory after empirics-auditor PASS)
+
+Before proceeding to Stage 4, you must check whether the empirical results contradict any prediction in `output/stage3/implications.md`.
+
+1. Read `output/stage3/implications.md` and identify which implications were tested.
+2. Read `output/stage3b/empirical_analysis.md` and the auditor's verification.
+3. For each tested implication: did the data contradict it (sign reversal, magnitude outside the predicted range, condition that should hold but failed)?
+4. Write `output/stage3b/contradiction_check.md` with one of:
+   - **NONE** — empirics confirm or are silent on every tested implication. Proceed to Stage 4.
+   - **CONTRADICTIONS FOUND** — list the contradicted implications and what the data shows. **Proceed to puzzle triage** (`docs/stage_puzzle_triage.md`), not Stage 4.
+5. Commit: `artifact: contradiction check — {NONE/CONTRADICTIONS FOUND}`
+
+This step is mandatory and may not be skipped — silently jumping to Stage 4 after empirics PASS bypasses the puzzle-pivot mechanism that exists to extract value from theory-empirics disagreements.
