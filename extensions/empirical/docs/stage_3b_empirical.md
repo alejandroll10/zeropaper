@@ -22,7 +22,7 @@ This is the full empirical analysis — deeper than the feasibility check at Gat
 4. All code must be written to files (`code/` for final, `code/tmp/` for scratch). Never run inline `python3 -c`.
 5. **Empirics audit.** Launch `empirics-auditor` on the empirical analysis + code + theory draft. The auditor runs the code, verifies results, checks methodology.
    - If **PASS**: proceed to **puzzle-triage entry check** (next step).
-   - If **FAIL**: re-launch `empiricist` with the audit feedback. Keep iterating as long as the number of issues is decreasing. Escalate only if the issue count plateaus or increases across two consecutive attempts.
+   - If **FAIL**: re-launch `empiricist` with the audit feedback. Keep iterating as long as the number of issues is decreasing. **Hard cap: 5 audit-fix attempts total.** Escalate if the issue count plateaus or increases across two consecutive attempts, OR if 5 attempts have been made. Escalation treats the empirical analysis as failed for this theory version → return to Stage 2 with the audit notes as input to theory-generator (the theory may be untestable as written).
 6. Commit: `artifact: empirics audit — {PASS/FAIL}`
 
 ## Puzzle-triage entry check (mandatory after empirics-auditor PASS)

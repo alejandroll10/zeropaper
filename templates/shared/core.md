@@ -72,7 +72,21 @@ Stage 2: Theory Development  ──→ Gate 2: Math Audit (structured then free-
                                    Stage 3a: Theory Exploration (compute, verify, plot)
                                       ├── FAILS → back to Stage 2
                                       └── HOLDS/FRAGILE → proceed
-Stage 3: Implications        ──→ (extension stages injected here if applicable)
+Gate 3b: Empirical Feasibility   (only if --ext empirical)
+                                   ├── FALSIFIED → back to Stage 1
+                                   └── OK → proceed
+Stage 3: Implications        ──→ derive predictions + gap-scout each → tag
+                                   NOVEL / PUZZLE-CANDIDATE / SUPPORTED / DEAD
+Stage 3e: Empirical Analysis     (only if --ext empirical, full test + audit)
+Stage 3c/3d: Experiments         (only if --ext theory_llm, design + review)
+Puzzle Triage                ──→ fires only if empirics/experiments contradict
+                                   ├── NORMAL-PROCEED → Stage 4
+                                   ├── FIX-EMPIRICS → re-run empirics
+                                   ├── RECONCILE → add scope condition, Gate 2
+                                   ├── BACK-TO-IDEA → Stage 1
+                                   ├── PIVOT → rebuild theory around contradiction
+                                   │            (re-run Gate 2/3/3a/3/empirics; max 2 pivots)
+                                   └── HONEST-NULL → Stage 5 with limits, or Stage 0
 Stage 4: Self-Attack          ──→ Gate 4: Scorer Decision (trajectory-based)
                                    ├── ADVANCE (75+) → Stage 5
                                    ├── REVISE  → back to Stage 2 (continue if Δ≥3, else escalate)
