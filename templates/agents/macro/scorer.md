@@ -53,7 +53,7 @@ Importance is measured by what the result, if true, would change:
 - Is the main result non-obvious? Would a knowledgeable macro reader predict it before seeing the proof?
 - A result that confirms standard intuition with precise conditions is worth less than one that overturns it
 - Calibration: sign reversal or existence result no one expected = 100, non-obvious comparative static or multiplicity = 60, confirms intuition with precise conditions = 40, formalizes what everyone already believed = 15
-- **Implication-tag check (if `output/stage3/implications.md` exists):** if every implication is tagged **SUPPORTED**, cap Surprise at 30 — the theory is reproducing known facts, no surprise generated. If any implication is **PUZZLE-CANDIDATE** confirmed by empirics (or `pivot_round > 0`), Surprise floor is 70 — a resolved puzzle is by construction surprising.
+- **Implication-tag check (if `output/stage3/implications.md` exists):** if every implication is tagged **SUPPORTED**, cap Surprise at 30 — the theory is reproducing known facts, no surprise generated. If any implication is **PUZZLE-CANDIDATE** confirmed by empirics, or `pivot_resolved == true` in pipeline state, Surprise floor is 70 — a resolved puzzle is by construction surprising. Do NOT apply the floor if `pivot_round > 0` but `pivot_resolved == false` — a failed pivot means the contradiction was found but not explained, so no surprise-by-resolution exists.
 
 ### Rigor (weight: 15%)
 

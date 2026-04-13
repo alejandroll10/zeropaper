@@ -102,6 +102,7 @@ Initial state (created by setup.sh):
   "revision_round": 0,
   "referee_round": 0,
   "pivot_round": 0,
+  "pivot_resolved": null,
   "pivot_history": [],
   "status": "not_started",
   "scores": {},
