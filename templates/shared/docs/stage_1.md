@@ -13,7 +13,7 @@
 1. Read `output/stage0/problem_statement.md`, `output/stage0/literature_map.md`, and `output/data_inventory.md`
 2. **If returning from a failed attempt:** first reread all `output/stage1/idea_sketches_r*.md` files. Identify which unused sketches are still viable given what the failed attempt revealed. Pick the next-best unused sketch before generating new ideas — only regenerate if no unused sketch is viable. Also read the previous scorer feedback and/or failed theory to understand what went wrong — instruct the idea-generator to avoid the same failure mode
 3. Launch idea-generator with the problem statement, literature map, **and data inventory** to brainstorm candidate mechanisms (see table above for count)
-4. Save sketches to `output/stage1/idea_sketches_rN.md` (N = round number)
+4. **Increment `idea_round` in `pipeline_state.json`** (starts at 0; becomes 1 on first entry). Save sketches to `output/stage1/idea_sketches_rN.md` where N = the new `idea_round` value. This counter feeds the 5-round escalation cap and the dashboard.
 5. Commit: `artifact: idea sketches round {N}`
 
 ## Gate 1: Idea Review

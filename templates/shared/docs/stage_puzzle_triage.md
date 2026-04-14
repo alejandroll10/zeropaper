@@ -31,18 +31,18 @@ Before launching the triager, verify the contradiction is real:
 | Verdict | Pipeline action |
 |---------|----------------|
 | **NORMAL-PROCEED** | (Triager flags an inconsistency — empirics did not actually contradict.) Proceed to Stage 4 and review the entry check. |
-| **FIX-EMPIRICS** | Re-launch `empiricist` with the triager's notes on what to improve. Re-enter at `empirical_analysis`. Theory unchanged. Do not increment `pivot_round`. |
-| **RECONCILE** | Launch `theory-generator` in `mutate` mode with instruction: "Add an explicit scope condition stating where the result holds. Empirical results show data sits outside that scope." Re-run Gate 2 (math audit) on the revised theory. Do not increment `pivot_round`. |
-| **BACK-TO-IDEA** | Return to Stage 1 with the triager report as input to the idea-reviewer. Increment `problem_attempt`. Skip if Stage 5 has begun (paper exists) — use HONEST-NULL instead. |
+| **FIX-EMPIRICS** | Re-launch `empiricist` with the triager's notes on what to improve. Re-enter at `empirical_analysis`. Theory unchanged. Do not increment `pivot_round`. **Cap: max 2 FIX-EMPIRICS rounds per puzzle.** Track in state via a `fix_empirics_rounds` counter (init 0, increment on each FIX-EMPIRICS verdict). On the 3rd triager call that would return FIX-EMPIRICS, force escalation to RECONCILE (if scope-restrictable) or HONEST-NULL (otherwise). |
+| **RECONCILE** | Launch `theory-generator` in `mutate` mode with instruction: "Add an explicit scope condition stating where the result holds. Empirical results show data sits outside that scope." **Increment `theory_version`.** Re-run Gate 2 (math audit), Gate 3 (novelty), Stage 3a (exploration), Stage 3 (implications), AND Stage 3e (full empirical analysis, if `--ext empirical`) / Stage 3c-3d (experiments, if `--ext theory_llm`) on the revised theory — the scope condition is a structural change and all downstream artifacts are stale. Do not increment `pivot_round`. |
+| **BACK-TO-IDEA** | Return to Stage 1 with the triager report as input to the idea-reviewer. **Do NOT increment `problem_attempt`** (the problem is unchanged — only the idea is being replaced). Set `current_stage: "stage_1"`. Skip if Stage 5 has begun (paper exists) — use HONEST-NULL instead. |
 | **PIVOT** | Run the **pivot sequence** documented below. |
-| **HONEST-NULL** | Set `pivot_resolved: false` in pipeline state (see State updates). Then two paths: (a) if Stage 5 has begun, document the failed prediction in the limitations section and proceed; (b) if no paper exists yet, return to Stage 0 with the failure notes. Do not pivot a third time. |
+| **HONEST-NULL** | Set `pivot_resolved: false` in pipeline state (see State updates). Then two paths: (a) if Stage 5 has begun, document the failed prediction in the limitations section, set `current_stage: "stage_5"` and proceed; (b) if no paper exists yet, set `current_stage: "stage_0"` and return to Stage 0 with the failure notes (also increment `problem_attempt`). Do not pivot a third time. |
 
 ## Pivot sequence (when verdict is PIVOT)
 
 A pivot is a full theory revision. The new theory needs new implications, lit-checks, and validation — not just empirical re-run. Follow this sequence end-to-end:
 
-1. **Update state.** Increment `pivot_round`. Append to `pivot_history`. Set `pivot_resolved: null` (will be set true/false after the pivoted theory's empirical run).
-2. **Pivoted theory.** Launch `theory-generator` in `pivot` strategy mode with: original theory, contradicted finding, triager report, literature map. The agent rebuilds around explaining the contradiction; original theory becomes a nested case.
+1. **Update state.** Increment `pivot_round`. **Also increment `theory_attempt`, reset `theory_version` to 1, and reset `fix_empirics_rounds` to 0** — the pivoted theory is a new theory with a fresh empirical budget, and all downstream `_vN.md` files (math audit, novelty check, self-attack, scorer) must use the new version numbers so they don't collide with the pre-pivot theory's files. Append to `pivot_history`. Set `pivot_resolved: null` (will be set true/false after the pivoted theory's empirical run).
+2. **Pivoted theory.** Launch `theory-generator` in `pivot` strategy mode with: original theory, contradicted finding, triager report, literature map. The agent rebuilds around explaining the contradiction; original theory becomes a nested case. Save the pivoted theory as `output/stage2/theory_draft_v1.md` (under the newly incremented `theory_attempt`) — all downstream `_vN.md` artifacts (audits, novelty, implications, scorer outputs) use this fresh version numbering.
 3. **Re-run Gate 2.** Math audit (structured + freeform) on the pivoted theory. Iterate as in Stage 2.
 4. **Re-run Gate 3.** Novelty check on the pivoted theory. KNOWN/INCREMENTAL → escalate.
 5. **Re-run Stage 3a.** Theory exploration on the pivoted theory.

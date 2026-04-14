@@ -1,11 +1,13 @@
-## Seeded idea mode
+## Stage: Seed Triage
+
+*(This is the section `pipeline_state.json`'s `"current_stage": "seed_triage"` refers to in seeded mode. Once the triage chooses an entry point and updates `current_stage` to the appropriate stage name, the pipeline proceeds normally from that stage.)*
 
 **This project was initialized with a pre-developed idea.** The idea files are in `output/seed/`.
 
 ### Entry: read and triage
 
 1. **Read the seed.** Read all files in `output/seed/` (ignore `README.md`). Understand what the user provided — it could be anything from a vague question to a complete theory with proofs to an empirical plan.
-2. **Build the literature map.** Launch `literature-scout` → `output/stage0/literature_map_broad.md`. Then launch `gap-scout` with the seed's topic as the pre-selected gap → `output/stage0/literature_map.md`. Always done regardless of maturity.
+2. **Build the literature map.** Launch `literature-scout` → `output/stage0/literature_map_broad.md`. Write a brief gap selection derived from the seed's topic to `output/stage0/gap_selection.md` (so downstream Stage 0 artifacts are not missing if the pipeline ever re-enters Stage 0). Then launch `gap-scout` with that gap selection → `output/stage0/literature_map.md`. Always done regardless of maturity.
 3. **Assess maturity and enter the pipeline at the appropriate stage.** Populate all prior-stage artifacts (problem statement, selected idea, theory draft, etc.) as needed to bring the pipeline up to the entry point. Preserve the user's framing and mechanism — do not reinterpret. Update `pipeline_state.json` to the chosen entry point and commit.
 
 ### Fallback overrides

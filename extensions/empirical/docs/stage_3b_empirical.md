@@ -8,7 +8,7 @@ Quick falsification check: can this theory be calibrated at all? Do the key empi
 
 1. Launch `empiricist` with a focused instruction: "Quick feasibility check only — download the 2-3 key moments this theory needs to match. Report whether the theory's predictions are in the right ballpark. Do NOT run a full analysis."
 2. Save to `output/stage3b/empirical_feasibility.md`
-3. If the key moments contradict the theory (wrong sign, off by an order of magnitude): flag as **FALSIFIED** — return to Stage 1 for a new idea. Don't waste time on implications for a theory the data already rejects.
+3. If the key moments contradict the theory (wrong sign, off by an order of magnitude): flag as **FALSIFIED** — increment `theory_attempt` and reset `theory_version` to 1, then return to Stage 1 for a new idea (the theory is dead; counter must advance so the "5 theories on same problem → Stage 0" escalation rule in core.md fires correctly). Don't waste time on implications for a theory the data already rejects.
 4. If moments are roughly consistent or unavailable: proceed to Stage 3.
 5. Commit: `artifact: empirical feasibility — {OK/FALSIFIED}`
 
