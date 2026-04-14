@@ -37,6 +37,8 @@ Before launching the triager, verify the contradiction is real:
 | **PIVOT** | Run the **pivot sequence** documented below. |
 | **HONEST-NULL** | Set `pivot_resolved: false` in pipeline state (see State updates). Then two paths: (a) if Stage 5 has begun, document the failed prediction in the limitations section, set `current_stage: "stage_5"` and proceed; (b) if no paper exists yet, set `current_stage: "stage_0"` and return to Stage 0 with the failure notes (also increment `problem_attempt`). Do not pivot a third time. |
 
+{{SEED_OVERRIDE_STAGE_PUZZLE_TRIAGE}}
+
 ## Pivot sequence (when verdict is PIVOT)
 
 A pivot is a full theory revision. The new theory needs new implications, lit-checks, and validation — not just empirical re-run. Follow this sequence end-to-end:

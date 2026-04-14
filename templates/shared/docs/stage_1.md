@@ -54,6 +54,8 @@
 
 4. Commit: `pipeline: gate 1b — novelty check on idea {NOVEL/INCREMENTAL/KNOWN}`
 
+{{SEED_OVERRIDE_STAGE_1_GATE_1B}}
+
 ## Gate 1c: Idea Prototype (tractability + surprise check)
 
 **Agent:** `idea-prototyper`
@@ -72,3 +74,7 @@ Quick mathematical feasibility check — attempt the key derivation before inves
 
 4. Commit: `pipeline: gate 1c — idea prototype {TRACTABLE/BLOCKED}, surprise: {SURPRISING/POTENTIALLY SURPRISING/OBVIOUS}`
 5. Update `process_log/pipeline_state.json` and commit: `pipeline: stage 1 complete — idea selected, novelty-checked, and prototyped`
+
+{{SEED_OVERRIDE_STAGE_1_GATE_1C}}
+
+{{SEED_OVERRIDE_STAGE_1_GATE_1_REJECT_ALL}}

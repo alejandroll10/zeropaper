@@ -41,6 +41,8 @@ Two sequential audits — structured (step-by-step derivation check) then free-f
    - Same rule: keep iterating while progress is being made, escalate if concerns plateau or increase
 5. If PASS: proceed to Gate 3
 
+{{SEED_OVERRIDE_STAGE_2_GATE_2}}
+
 ## Gate 3: Novelty Check on Full Theory
 
 **Agent:** `novelty-checker`
@@ -53,6 +55,8 @@ Two sequential audits — structured (step-by-step derivation check) then free-f
 4. If INCREMENTAL: return to Stage 2 with novelty feedback (increment `theory_version`). Theory must deliver a result the literature doesn't already contain — scorer will hard-fail H4 on INCREMENTAL. After Gate 2 + Gate 3 pass on the reworked theory, **re-run Stage 3a (exploration) AND Stage 3 (implications) before proceeding** — the theory changed, so `implications.md` and `exploration.md` are stale.
 5. If NOVEL: proceed to Stage 3a (theory exploration)
 6. Commit: `artifact: novelty check v{N} — {NOVEL/INCREMENTAL/KNOWN}`
+
+{{SEED_OVERRIDE_STAGE_2_GATE_3}}
 
 ## Stage 3a: Theory Exploration
 

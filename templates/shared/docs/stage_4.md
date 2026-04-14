@@ -78,3 +78,5 @@ Record all content scores in `process_log/pipeline_state.json` under `"scores"` 
 10. If REVISE/REWORK: pass only the **content feedback** to the theory-generator. Do NOT pass presentation notes — those are for the paper-writer.
 11. Update `process_log/pipeline_state.json` accordingly
 12. Commit: `pipeline: gate 4 — scorer {DECISION} (score: {N})`
+
+{{SEED_OVERRIDE_STAGE_4_GATE_4}}
