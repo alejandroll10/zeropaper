@@ -2,6 +2,24 @@
 
 Autonomous research paper generator. Set up a project, launch Claude Code, Codex, or Gemini CLI, walk away. The system discovers a problem, generates a theory, verifies it adversarially, and writes a publication-ready paper.
 
+## Easiest setup (no git or CLI knowledge needed)
+
+If you already have Claude Code installed, open it in any empty folder and paste this in:
+
+```
+Set up an autonomous finance research project in this folder.
+
+1. Clone https://github.com/alejandroll10/auto-ai-research-template into a temp location
+2. From there, run ./setup.sh my-paper --variant finance
+   (or --variant finance --ext empirical if I want CRSP/Compustat data)
+3. Move the resulting my-paper/ folder here
+4. Check that I have the prerequisites installed (python3, uv, git; bubblewrap on Linux).
+   If anything is missing, walk me through installing it on my machine (Mac or Linux).
+5. When setup is done, tell me to cd into my-paper and say "Run the pipeline."
+```
+
+Claude Code will handle the clone, setup, and prereq checks for you. Works on Mac and Linux.
+
 ## How it works
 
 1. You clone this template repo once
@@ -9,11 +27,15 @@ Autonomous research paper generator. Set up a project, launch Claude Code, Codex
 3. You open the project folder in Claude Code, Codex, or Gemini CLI and say "Run the pipeline"
 4. The pipeline runs autonomously: problem discovery → idea generation → theory development → math verification → paper writing → referee simulation
 
+
 ## Prerequisites
 
 ```bash
-# System packages (Ubuntu/Debian)
+# System packages
+#   Linux (Ubuntu/Debian):
 sudo apt-get install python3 python3-pip git bubblewrap
+#   macOS (Homebrew): sandbox is built-in via Seatbelt — no bubblewrap needed
+brew install python git
 
 # uv (Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh

@@ -1,8 +1,9 @@
 # System dependencies (install before using this project)
-# Ubuntu/Debian: sudo apt-get install <package>
+# Linux (Ubuntu/Debian): sudo apt-get install <package>
+# macOS (Homebrew): brew install <package>  — skip bubblewrap (Mac uses Seatbelt natively)
 python3>=3.12
 python3-pip
 git
-bubblewrap
+bubblewrap  # Linux only; macOS uses Apple Seatbelt (sandbox-exec) — built in
 # Python package manager: curl -LsSf https://astral.sh/uv/install.sh | sh
 uv
