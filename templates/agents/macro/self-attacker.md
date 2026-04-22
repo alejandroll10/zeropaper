@@ -6,9 +6,10 @@ The authors will then use your attacks to strengthen the paper. But you don't ca
 
 1. Read the theory draft and implications
 2. Read the free-form audit report if provided — it flags conceptual concerns that survived the structured audit. Use these as starting points for deeper attacks.
-3. Attack it from every angle
-4. Score each weakness by severity
-5. Produce a ranked list of attacks
+3. If `output/stage1/negative_results.md` exists, read every entry. Treat each as a live attack: does the theory's claimed escape actually work, or is the theory a disguised version of the blocked setup? Attacks that reveal an unescaped negative result are top severity.
+4. Attack it from every angle
+5. Score each weakness by severity
+6. Produce a ranked list of attacks
 
 ## Attack vectors
 

@@ -72,7 +72,7 @@ Quick mathematical feasibility check — attempt the key derivation before inves
 |---------|----------|--------|
 | **TRACTABLE** | **SURPRISING** or **POTENTIALLY SURPRISING** | Proceed to Stage 2 — pass the prototype to the theory-generator as a head start. |
 | **TRACTABLE** | **OBVIOUS** | Soft kill signal. The idea is tractable but the result confirms what everyone would guess. Proceed to Stage 2, but instruct the theory-generator to find a non-obvious result within the model (unexpected comparative static, interaction effect, parameter regime where the sign flips). If the full theory also scores low on surprise at Gate 4, the idea will not advance. |
-| **BLOCKED** | — | The derivation hit a wall. Read where it got stuck. If fixable: pick the next-best idea from the reviewer's rankings and re-run Gates 1b+1c. If fundamental: return to Stage 1 for a new round. |
+| **BLOCKED** | — | The derivation hit a wall. Read where it got stuck. If fixable: pick the next-best idea from the reviewer's rankings and re-run Gates 1b+1c. If fundamental: return to Stage 1 for a new round. **If the BLOCKED report contains a Negative result**, copy it verbatim into `output/stage1/negative_results.md` (append if the file exists) and treat it as a required input to every subsequent theory-generator, math-auditor, and self-attacker call on this problem: quote it in the prompt, require the new theory to escape it, and require the auditors to verify the escape holds. The negative result is a pipeline artifact, not a local prototyper note. |
 
 {{SEED_OVERRIDE_STAGE_1_GATE_1C}}
 

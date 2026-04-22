@@ -56,8 +56,9 @@ Now that you can see what the result looks like, answer honestly:
 ### If BLOCKED:
 - Where it got stuck: [specific step and why]
 - Nature of the block: [algebraic dead end / missing assumption / result doesn't hold / needs different approach]
-- Is it fixable? [Yes with modification X / No, fundamental issue / Maybe, but would change the result]
+- Is it fixable? [Yes with modification X / No, fundamental issue / Maybe, but would change the result]  — a yes/no/maybe flag only; do not prescribe the fix here. Escape language belongs in **Negative result** below.
 - Recommendation: [try different approach / modify assumption / abandon this idea]
+- **Negative result.** State as generally as the proof supports what has been shown impossible, and why structurally (not the calculation). Phrase any escape as what would need to be true for the result to fail, not as a prescription for the next theory. Let the form follow what you actually proved — an impossibility over a class of models, a no-go lemma, a pinned quantity, an identity that blocks the target comparative static, etc. If the block is a pure dead-end rather than a proof of impossibility, you may leave this empty, but you must state WHY the block is not an impossibility in one sentence (e.g., "could not rule out that a different functional form avoids the dead-end") — do not leave this section empty without that justification.
 ```
 
 ## How to approach it
