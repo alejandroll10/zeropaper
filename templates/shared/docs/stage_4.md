@@ -5,7 +5,7 @@
 1. Launch self-attacker on the theory draft + implications + theory exploration results (if available)
 2. Save result to `output/stage4/self_attack_vN.md`
 3. Commit: `artifact: self-attack v{N}`
-4. **Triage the concerns.** Launch `triager` with: input = `output/stage4/self_attack_vN.md` plus all prior triage files `output/stage4/triage_v*.md` (if any), output path = `output/stage4/triage_vN.md`, context = `gate-4`. Triager applies the rules (severity-≥7 default to `[FIX]`, re-raises of prior soft-triaged concerns auto-upgrade to `[FIX]`, written justifications for downgrades) and produces the triage file. Only `[FIX]` items feed into the theory-generator for revision; the rest are held for Stage 5 (paper-writer) or the response letter. Do not edit the triager's output — if you disagree with a classification, re-launch the triager with explicit instructions, do not silently override.
+4. **Triage the concerns.** Launch `triager` with: input = `output/stage4/self_attack_vN.md`, output path = `output/stage4/triage_vN.md`, context = `gate-4`. Triager applies the rules (severity-≥7 defaults to `[FIX]`; downgrades require a written justification) and produces the triage file. Only `[FIX]` items feed into the theory-generator for revision; the rest are held for Stage 5 (paper-writer) or the response letter. Do not edit the triager's output — if you disagree with a classification, re-launch the triager with explicit instructions, do not silently override.
 5. Commit: `artifact: concern triage v{N}`
 
 ## Gate 4: Scorer Decision

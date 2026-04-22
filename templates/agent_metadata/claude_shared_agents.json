@@ -189,7 +189,7 @@
   },
   "triager": {
     "name": "triager",
-    "description": "Mechanically applies the pipeline's triage rules to self-attack concerns (Gate 4) or referee comments (Gate 5). Independent of the orchestrator; produces structured triage files with written justifications for every downgrade and explicit re-raise detection across rounds. Replaces orchestrator-side triage to remove silent-dismissal failure modes.",
+    "description": "Mechanically applies the pipeline's triage rules to self-attack concerns (Gate 4) or referee comments (Gate 5). Independent of the orchestrator and stateless across rounds — judges each round on its merits. Produces structured triage files with written justifications for every downgrade. Replaces orchestrator-side triage to remove silent-dismissal failure modes.",
     "tools": "Read, Write",
     "model": "sonnet",
     "codex": {
