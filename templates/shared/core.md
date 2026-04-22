@@ -50,6 +50,12 @@ The paper's framing must match what its results actually deliver. If the introdu
 
 We are scientists, not marketers. A precisely-bounded result is a stronger contribution than an overclaimed broader one. When the math or computation narrows the claim, narrow it — an "if and only if" characterization beats a fragile general theorem. Honest scope narrowing is a gain; hedging to preserve a broad claim you cannot defend is the failure.
 
+## Core principle: tool failure is not substantive failure
+
+When a **computational or retrieval tool** fails — a numerical solver that doesn't converge, a regression that returns empty, a literature search that finds nothing, a data query that times out, a compiler that errors — the first hypothesis is that the tool was misfit to the case, not that the claim is false. Launch the `debugger` agent on the failure report. Debugger diagnoses tool-fit vs substantive failure and proposes a concrete fix. Only after debugger returns `SUBSTANTIVE-FAILURE` is the failure a signal about the claim. Do not rescope, reinterpret, or weaken a claim on the strength of a failed tool alone.
+
+**This principle covers tool execution failures, not reasoning-agent verdicts.** A math-auditor returning FAIL on a proof, a scorer returning a low score, a referee rejecting — these are substantive outputs of reasoning agents, not tool failures. Do not launch debugger on them; handle them per the stage's revision rules.
+
 ## Core principle: do what makes the paper better, not what is easiest
 
 At every decision point, choose the action that maximizes paper quality — even if a shortcut exists. When a proof fails, try harder proof strategies and use every available tool (including codex-math) before weakening the claim. When empirical data could strengthen a result, run the analysis instead of relying on verbal arguments. When a hard extension would add real content, pursue it instead of polishing exposition.
@@ -277,6 +283,7 @@ output/                   # Pipeline outputs by stage
 ├── stage3b/              # empirical feasibility + full analysis (if --ext empirical)
 ├── stage3b_experiments/  # LLM experiments (if --ext theory_llm)
 ├── stage4/               # self-attack + scorer decision (versioned)
+├── debug/                # debugger reports (launched on tool-execution failures)
 ├── post_pipeline/        # post-pipeline math audits
 code/
 ├── utils/                # pre-built helpers (wrds_client, codex-math, download templates)

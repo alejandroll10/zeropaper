@@ -200,6 +200,19 @@
       "model": "gemini-3-flash-preview"
     }
   },
+  "debugger": {
+    "name": "debugger",
+    "description": "Launched when a computational or retrieval tool (solver, regression, symbolic verifier, literature or data query, compiler) has failed. Determines whether the failure reflects tool-fit issues or a genuine substantive failure of the claim. Returns TOOL-FIT-ISSUE with a concrete proposed fix, or SUBSTANTIVE-FAILURE with a written argument for why tool-fit is ruled out. Defaults toward TOOL-FIT-ISSUE under uncertainty — the cost of a false SUBSTANTIVE verdict (rescoped real results) is higher than a false TOOL-FIT verdict (one more debug cycle). Not launched on reasoning-agent verdicts (math-auditor FAIL, scorer REVISE, referee Reject) — those are substantive outputs, not tool failures.",
+    "tools": "Read, Bash, Write",
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.4",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
   "theory-explorer": {
     "name": "theory-explorer",
     "description": "Computational exploration of a theory model. Launched after math audit passes (Stage 3a). Pokes the model numerically — what breaks, what's robust, where are the knife-edges. Produces diagnostic plots and a verification report.",
