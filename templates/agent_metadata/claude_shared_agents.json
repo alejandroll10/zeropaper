@@ -110,8 +110,8 @@
   },
   "style": {
     "name": "style",
-    "description": "Paper style editor. The orchestrator launches this agent at Stage 7 of the pipeline. Reads the paper and flags violations of the style guide.",
-    "tools": "Read, Glob, Grep",
+    "description": "Paper style editor. The orchestrator launches this agent at Stage 7 of the pipeline. Edits mechanical style violations directly in `paper/sections/*.tex` and writes flagged judgment calls to `paper/style_report.md`.",
+    "tools": "Read, Edit, Write, Glob, Grep",
     "model": "sonnet",
     "codex": {
       "model": "gpt-5.4",
