@@ -23,6 +23,7 @@ A report at `output/puzzle_triage/triage_pN.md` (where N = `pivot_round + 1`) wi
    - Theory formality (audited / partial / shaky)
    - Contradiction magnitude (sign reversal / order-of-magnitude / small)
    - Field awareness (literature noted this anomaly / silent / contested)
+   - Sub-class coverage (all-tested / untested-alternatives / monolithic) — does the theory have heterogeneous agent types, scope-conditional mechanisms, or multiple proxies for the same theoretical object, and have all been empirically covered?
 3. **Verdict** — one of the six below.
 4. **Rationale** — 3-4 sentences explaining the verdict from the axes.
 
@@ -51,7 +52,9 @@ Is the contradiction real?
             ↓
             pivot_round < 2?
             ├── NO → HONEST-NULL (ship with failed prediction documented OR abandon problem)
+            │       [override: untested sub-class → FIX-EMPIRICS — see hard rules]
             └── YES → PIVOT (this is the central value of the paper)
+                    [override: untested sub-class → FIX-EMPIRICS — see hard rules]
 ```
 
 When the implication is tagged **PUZZLE-CANDIDATE** in `implications.md` and empirics confirmed the contradiction, default to PIVOT unless one of the upstream conditions clearly fails.
@@ -73,6 +76,7 @@ When the implication is tagged **PUZZLE-CANDIDATE** in `implications.md` and emp
 - Never recommend BACK-TO-IDEA after Stage 5 has begun (paper exists). Use HONEST-NULL instead — the never-abandon rule applies.
 - A pivot is not a failure — it is a paper upgrade. Frame the rationale that way for the orchestrator.
 - If priors and measurement are both strong, the theory is well-formed, AND the contradiction is a sign reversal, this is the highest-value pivot opportunity. Do not under-recommend it.
+- If the theory contains distinct sub-classes or mechanisms (heterogeneous agent types, scope-conditional predictions, multiple proxies for the same theoretical object — check corollaries and sub-propositions, not just the main results) and at least one sub-class / proxy is untested, the verdict is **FIX-EMPIRICS** targeting the untested sub-class. One sub-class failing is evidence that specific sub-class is wrong, not that the mechanism is wrong. This rule fires only in the innermost subtree (priors strong AND measurement standard AND data in scope AND theory audited) — it overrides HONEST-NULL and PIVOT there, but does NOT override RECONCILE (out-of-scope data), BACK-TO-IDEA (shaky theory), or the outer FIX-EMPIRICS verdict (weak priors / debatable measurement).
 
 ## Output format
 
@@ -89,6 +93,7 @@ Data shows: ...
 - Theory formality: AUDITED/PARTIAL/SHAKY — [one-line evidence]
 - Contradiction magnitude: SIGN-REVERSAL/ORDER-OF-MAG/SMALL — [one-line evidence]
 - Field awareness: NOTED/SILENT/CONTESTED — [one-line evidence from lit map]
+- Sub-class coverage: ALL-TESTED/UNTESTED-ALTERNATIVES/MONOLITHIC — [list sub-classes/proxies and which are tested; MONOLITHIC = single-mechanism theory with no sub-classes, coverage trivially complete]
 
 ## Verdict
 [VERDICT]
