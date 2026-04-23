@@ -124,7 +124,7 @@ assemble_claude_variant_agents() {
     [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
 
     python3 "$template_root/scripts/assemble_claude_agents.py" \
-        --metadata "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
+        --metadata "$template_root/templates/agent_metadata/claude_variant_agents.json" \
         --bodies-dir "$template_root/templates/agents/${variant}" \
         --shared-bodies-dir "$template_root/templates/agent_bodies/shared" \
         "${vocab_args[@]}" \
@@ -177,7 +177,7 @@ assemble_codex_variant_agents() {
     [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
 
     python3 "$template_root/scripts/assemble_codex_subagents.py" \
-        --metadata "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
+        --metadata "$template_root/templates/agent_metadata/claude_variant_agents.json" \
         --bodies-dir "$template_root/templates/agents/${variant}" \
         --shared-bodies-dir "$template_root/templates/agent_bodies/shared" \
         "${vocab_args[@]}" \
@@ -217,7 +217,7 @@ assemble_gemini_variant_agents() {
     [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
 
     python3 "$template_root/scripts/assemble_gemini_agents.py" \
-        --metadata "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
+        --metadata "$template_root/templates/agent_metadata/claude_variant_agents.json" \
         --bodies-dir "$template_root/templates/agents/${variant}" \
         --shared-bodies-dir "$template_root/templates/agent_bodies/shared" \
         "${vocab_args[@]}" \
@@ -391,7 +391,7 @@ assemble_claude_shared_agents "$TEMPLATE_ROOT" "$AGENTS_OUT"
 assemble_codex_shared_agents "$TEMPLATE_ROOT" "$CODEX_AGENTS_OUT"
 assemble_gemini_shared_agents "$TEMPLATE_ROOT" "$GEMINI_AGENTS_OUT"
 
-if [ -f "$TEMPLATE_ROOT/templates/agent_metadata/claude_${AGENT_DIR}_agents.json" ]; then
+if [ -f "$TEMPLATE_ROOT/templates/agent_metadata/claude_variant_agents.json" ]; then
     assemble_claude_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$AGENTS_OUT"
     assemble_codex_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$CODEX_AGENTS_OUT"
     assemble_gemini_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$GEMINI_AGENTS_OUT"

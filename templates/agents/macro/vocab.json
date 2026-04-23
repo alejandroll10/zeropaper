@@ -2,6 +2,7 @@
   "MECHANISM_TERM": "channel",
   "MECHANISM_TERM_PLURAL": "channels",
   "MECHANISM_TERM_CAP": "Channel",
+  "DOMAIN": "macroeconomic",
   "SUBMISSION_TIER": "top-5 economics journal",
 
   "H2_CHECK": "Could a reader write down the equilibrium? Are agents' problems specified, market clearing stated, equilibrium concept defined?",

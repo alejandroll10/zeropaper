@@ -50,6 +50,24 @@ def load_body(agent_id, bodies_dir, shared_bodies_dir=None, vocab=None):
     return body
 
 
+def apply_vocab_to_metadata(metadata, vocab, source):
+    """Substitute `{{KEY}}` in each string value of the metadata dict.
+
+    Returns a new dict. Non-string values pass through unchanged. Unresolved
+    keys raise KeyError (same fail-loud behavior as body substitution), so
+    `{{DOMAIN}}` in a shared metadata file cannot silently ship unresolved.
+    """
+    if vocab is None:
+        return metadata
+    result = {}
+    for key, value in metadata.items():
+        if isinstance(value, str):
+            result[key] = _apply_vocab(value, vocab, f"{source}:{key}")
+        else:
+            result[key] = value
+    return result
+
+
 def _apply_vocab(body, vocab, source):
     missing = []
 

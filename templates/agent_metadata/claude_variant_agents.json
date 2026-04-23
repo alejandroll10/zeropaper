@@ -66,7 +66,7 @@
   },
   "theory-generator": {
     "name": "theory-generator",
-    "description": "Proposes new macroeconomic theory models. The orchestrator launches this agent at Stage 2 (Theory Development). Supports fresh, mutate, and crossover strategies based on attempt history.",
+    "description": "Proposes new {{DOMAIN}} theory models. The orchestrator launches this agent at Stage 2 (Theory Development). Supports fresh, mutate, and crossover strategies based on attempt history.",
     "tools": "Read, Write",
     "model": "opus",
     "codex": {

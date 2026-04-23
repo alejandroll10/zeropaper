@@ -2,6 +2,7 @@
   "MECHANISM_TERM": "mechanism",
   "MECHANISM_TERM_PLURAL": "mechanisms",
   "MECHANISM_TERM_CAP": "Mechanism",
+  "DOMAIN": "finance",
   "SUBMISSION_TIER": "top-3 finance journal",
 
   "H2_CHECK": "Could a reader write down the agents' optimization problem?",

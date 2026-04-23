@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from agent_body_loader import load_body, load_vocab
+from agent_body_loader import apply_vocab_to_metadata, load_body, load_vocab
 
 FIELD_ORDER = ["name", "description", "tools", "skills", "model", "background", "memory"]
 IGNORED_FIELDS = {"codex", "gemini"}
@@ -51,6 +51,9 @@ def main():
     vocab = load_vocab(args.vocab)
 
     for agent_id, agent_metadata in metadata.items():
+        agent_metadata = apply_vocab_to_metadata(
+            agent_metadata, vocab, f"{args.metadata}:{agent_id}"
+        )
         if args.model_override and "model" in agent_metadata:
             agent_metadata = {**agent_metadata, "model": args.model_override}
         body = load_body(agent_id, args.bodies_dir, args.shared_bodies_dir, vocab)
