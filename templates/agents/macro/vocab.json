@@ -73,5 +73,17 @@
   "SELF_ATTACK_COMPLETENESS_BULLETS": "- What obvious extensions or cases are missing?\n- Are there parameter ranges where the model breaks down?\n- What happens in the limit? As key parameters go to 0 or infinity?\n- Is welfare analysis missing when it should be present?\n- Does the paper connect to data or just exist in theory-land?",
   "SELF_ATTACK_LITERATURE_EXTRA": "\n- Is a claimed \"new\" result actually a special case of something known?",
   "SELF_ATTACK_TARGET_EXAMPLE": "Assumption on policy commitment",
-  "SELF_ATTACK_RULE_EXAMPLE": "Assumption 2 (Calvo pricing) is doing all the work and the result vanishes with state-dependent pricing (see Golosov-Lucas 2007), so the paper's quantitative claims are fragile"
+  "SELF_ATTACK_RULE_EXAMPLE": "Assumption 2 (Calvo pricing) is doing all the work and the result vanishes with state-dependent pricing (see Golosov-Lucas 2007), so the paper's quantitative claims are fragile",
+
+  "THEORY_GEN_ROLE": "macroeconomist",
+  "THEORY_ENV_DESC": "[Agents, timing, markets, stochastic structure — only what's needed]",
+  "THEORY_AGENTS_SECTION": "### Agents' problems\n[What each agent type maximizes, subject to what constraints. Write out the Bellman equation or static optimization problem explicitly.]\n\n### Equilibrium concept\n[Competitive equilibrium, recursive competitive equilibrium, Markov perfect equilibrium, etc. State the definition precisely: market clearing conditions, consistency requirements, fixed points.]",
+  "THEORY_ECON_DESC": "[WHY does the result hold? In economics, not algebra. A reader who skips the math should understand. What economic force drives agents' behavior and how does it aggregate?]",
+  "THEORY_COMP_STATICS_SECTION": "[How the result changes with key parameters. Signs proven, intuition given.]\n\n## Special cases\n[Show how the model nests or connects to known benchmarks. What parameter restriction recovers the standard result? This grounds the contribution.]",
+  "THEORY_IMPLICATIONS_SECTION": "[What testable predictions follow? What moments in the data should this model match? What policy implications emerge?]\n\n## Welfare analysis\n[If the model has policy implications: characterize the welfare effects. Define the welfare measure, solve the planner's problem or compute welfare costs of business cycles / policy interventions.]",
+  "THEORY_FRESH_BULLETS": "- **Clarity first, polish later.** The first draft's job is to make the argument clear and checkable — not perfect. Write the setup so a reader can verify the proof. Write the proof so every step is explicit. Don't optimize exposition, don't work out every comparative static, don't add extensions. Those come after the gates pass.\n- Start from first principles. What's the simplest GE model that could explain the puzzle?\n- One key friction, one channel, one main result. Add nothing unnecessary.\n- Choose the equilibrium concept carefully — it should be standard for the model class.\n- Ask: if I remove any assumption, does the result break? If not, the assumption doesn't belong.\n- Show how the model nests the frictionless benchmark as a special case.",
+  "THEORY_WEAKEST_POINT_LIST": "math error, lack of novelty, unclear channel, equilibrium issues",
+  "THEORY_PARSIMONY_THRESHOLD": "3 key assumptions beyond standard GE",
+  "THEORY_SANITY_EXAMPLE_BAD": "a multiplier of 0.001",
+  "THEORY_EXTRA_RULES": "\n- **Equilibrium must be well-defined.** State the equilibrium concept, verify market clearing, address existence and (ideally) uniqueness.\n- **Ground in benchmarks.** Show what parameter restriction recovers the RBC/NK/representative-agent result. The reader needs to know what's new vs. what's standard."
 }
