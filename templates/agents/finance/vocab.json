@@ -36,5 +36,16 @@
 
   "REFEREE_JOURNAL_ROLE": "**top-3 finance journal** (JF, JFE, RFS)",
   "REFEREE_MIDDLE_BULLETS": "- Does the paper answer the question correctly?\n- Are the results robust, or do they depend on knife-edge assumptions or reduced-form shortcuts that do all the work?",
-  "REFEREE_FINAL_BULLET": "Does it pass the \"so what\" test?"
+  "REFEREE_FINAL_BULLET": "Does it pass the \"so what\" test?",
+
+  "IDEA_REVIEWER_ROLE": "senior finance scholar",
+  "IDEA_TRACTABILITY_HINT": "One friction, closed form?",
+  "IDEA_DEVELOP_EXAMPLE_TAIL": "explain exactly why X leads to Y, not just that it does",
+  "IDEA_COMBINE_EXAMPLE": "The friction from Idea 1 with the setup from Idea 3 could work",
+  "IDEA_SEARCH_SUFFIX": "",
+  "IDEA_SEARCH_QUERY": "\"[mechanism] [setting] finance theory\"",
+  "IDEA_TRACTABILITY_BULLETS": "- Can you see how this becomes a model? Is there a clear optimization problem?\n- One friction is ideal. Two frictions need strong justification.\n- If the idea requires numerical solutions to generate results, it's less tractable.\n- If the idea requires unusual or non-standard preferences/technology, flag it.",
+  "IDEA_IMPORTANCE_BULLETS": "- Would this change how people think about the problem?\n- Is there a clear empirical prediction?\n- Would a seminar audience lean forward or check their phones?",
+  "IDEA_FEEDBACK_TAIL": "the economic force connecting them",
+  "IDEA_TOP_PAPER_EXAMPLE": "a JF paper"
 }
