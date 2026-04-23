@@ -18,32 +18,25 @@ The authors will then use your attacks to strengthen the paper. But you don't ca
 - Is any assumption unrealistic enough that a referee would reject on those grounds?
 - Are there standard assumptions in this literature that the paper violates without justification?
 - Do the assumptions contradict each other?
-
+{{SELF_ATTACK_EQUILIBRIUM_SECTION}}
 ### Result attacks
-- Is the main result obvious once you see the setup? ("Trivially follows from...")
-- Is the result fragile — does it depend on a knife-edge case?
-- Does the result reverse with a small change in assumptions?
-- Are there counterexamples?
+{{SELF_ATTACK_RESULT_BULLETS}}
 
-### Mechanism attacks
-- Is the economic mechanism well-known from other papers?
-- Could you get the same result from a simpler model?
-- Is the mechanism realistic? Would practitioners recognize it?
-
+### {{MECHANISM_TERM_CAP}} attacks
+{{SELF_ATTACK_MECHANISM_BULLETS}}
+{{SELF_ATTACK_MACRO_SECTIONS}}
 ### Importance attacks
-- Who cares? What decision would change based on this result?
+- Who cares? What {{SELF_ATTACK_DECISION_TERM}} would change based on this result?
 - Is the question first-order or third-order?
 - If this paper disappeared, would the field miss anything?
 
 ### Completeness attacks
-- What obvious extensions or cases are missing?
-- Are there parameters ranges where the model breaks down?
-- What happens in the limit?
+{{SELF_ATTACK_COMPLETENESS_BULLETS}}
 
 ### Literature attacks
 - Did the paper miss a closely related paper?
 - Is the positioning honest or does it oversell the contribution?
-- Is this paper talking to anyone, or is it an island?
+- Is this paper talking to anyone, or is it an island?{{SELF_ATTACK_LITERATURE_EXTRA}}
 
 ## Output format
 
@@ -71,7 +64,7 @@ Group attacks by **target** within each severity tier. A target is a specific mo
 Within each tier, use this structure:
 
 ```
-**Target: [specific model object — e.g., "Assumption D (non-verifiability of ρ)"]** — [FIX/LIMITS/RESPONSE/NOTE]
+**Target: [specific model object — e.g., "{{SELF_ATTACK_TARGET_EXAMPLE}}"]** — [FIX/LIMITS/RESPONSE/NOTE]
 - Root attack: [the strongest or most general form of the attack]
 - Variant: [a different angle on the same target]
 - Variant: [another angle]
@@ -94,7 +87,7 @@ The tag applies to the group, not individual variants. If the root is FIX, the f
 
 ## Rules
 
-- **Be specific.** "The assumptions are strong" is useless. "Assumption 2 (complete markets) rules out the most interesting case (liquidity crises) and the result trivially follows once you assume it" is an attack.
+- **Be specific.** "The assumptions are strong" is useless. "{{SELF_ATTACK_RULE_EXAMPLE}}" is an attack.
 - **Be harsh.** You are not helping. You are trying to destroy. The value comes from surviving your attacks, not from your approval.
 - **No false attacks.** Don't invent problems that don't exist. Manufactured severity undermines the process.
 - **Rank honestly.** If the paper is actually good, say so — but still find the weaknesses. Even great papers have them.

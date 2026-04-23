@@ -63,5 +63,15 @@
   "IDEA_GEN_SIMPLE_HINT": "one friction, one result",
   "IDEA_GEN_TESTABLE_RULE_DESC": "What data would you need? What regression would you run? What pattern would confirm or reject the model?",
   "IDEA_GEN_DIVERSITY_TERM": "setup",
-  "IDEA_GEN_EXTRA_RULE": ""
+  "IDEA_GEN_EXTRA_RULE": "",
+
+  "SELF_ATTACK_EQUILIBRIUM_SECTION": "",
+  "SELF_ATTACK_RESULT_BULLETS": "- Is the main result obvious once you see the setup? (\"Trivially follows from...\")\n- Is the result fragile — does it depend on a knife-edge case?\n- Does the result reverse with a small change in assumptions?\n- Are there counterexamples?",
+  "SELF_ATTACK_MECHANISM_BULLETS": "- Is the economic mechanism well-known from other papers?\n- Could you get the same result from a simpler model?\n- Is the mechanism realistic? Would practitioners recognize it?",
+  "SELF_ATTACK_MACRO_SECTIONS": "",
+  "SELF_ATTACK_DECISION_TERM": "decision",
+  "SELF_ATTACK_COMPLETENESS_BULLETS": "- What obvious extensions or cases are missing?\n- Are there parameters ranges where the model breaks down?\n- What happens in the limit?",
+  "SELF_ATTACK_LITERATURE_EXTRA": "",
+  "SELF_ATTACK_TARGET_EXAMPLE": "Assumption D (non-verifiability of ρ)",
+  "SELF_ATTACK_RULE_EXAMPLE": "Assumption 2 (complete markets) rules out the most interesting case (liquidity crises) and the result trivially follows once you assume it"
 }
