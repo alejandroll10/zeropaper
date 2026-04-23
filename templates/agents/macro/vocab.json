@@ -63,5 +63,15 @@
   "IDEA_GEN_SIMPLE_HINT": "one friction, tractable equilibrium",
   "IDEA_GEN_TESTABLE_RULE_DESC": "What moments would it match? What regression would you run?",
   "IDEA_GEN_DIVERSITY_TERM": "model architecture",
-  "IDEA_GEN_EXTRA_RULE": "\n- **Think about equilibrium.** You should be able to say what agents optimize, how markets clear, and what pins down the key objects."
+  "IDEA_GEN_EXTRA_RULE": "\n- **Think about equilibrium.** You should be able to say what agents optimize, how markets clear, and what pins down the key objects.",
+
+  "SELF_ATTACK_EQUILIBRIUM_SECTION": "\n### Equilibrium attacks\n- Is the equilibrium well-defined? Can you actually compute it?\n- Is the equilibrium unique, or are there multiple equilibria the paper ignores?\n- Is the equilibrium concept appropriate for the model? (e.g., competitive equilibrium when agents have market power)\n- What happens to determinacy? Are there indeterminate regions the paper ignores?\n- Does the equilibrium exist for all claimed parameter ranges?\n",
+  "SELF_ATTACK_RESULT_BULLETS": "- Is the main result obvious once you see the setup? (\"Trivially follows from...\")\n- Is the result fragile — does it depend on a knife-edge case or specific functional forms?\n- Does the result reverse with a small change in assumptions?\n- Are there counterexamples?\n- Is this a local result masquerading as global?",
+  "SELF_ATTACK_MECHANISM_BULLETS": "- Is the economic channel well-known from other papers?\n- Could you get the same result from a simpler model?\n- Is the channel realistic? Would practitioners or policymakers recognize it?\n- Is the channel quantitatively important or just qualitatively present?",
+  "SELF_ATTACK_MACRO_SECTIONS": "\n### Lucas critique and robustness attacks\n- Does the result survive if agents' expectations adjust to the policy change?\n- Is the result specific to a particular expectation formation process (RE, adaptive, etc.)?\n- Would the result hold under a different information structure?\n- Is the result robust to the stochastic process assumed for shocks?\n\n### Calibration and quantitative attacks\n- If the paper claims quantitative relevance: are the parameter values reasonable?\n- Can the key parameters be identified from data?\n- How sensitive is the result to the calibration?\n- Does the model match the moments it claims to match?\n",
+  "SELF_ATTACK_DECISION_TERM": "policy advice",
+  "SELF_ATTACK_COMPLETENESS_BULLETS": "- What obvious extensions or cases are missing?\n- Are there parameter ranges where the model breaks down?\n- What happens in the limit? As key parameters go to 0 or infinity?\n- Is welfare analysis missing when it should be present?\n- Does the paper connect to data or just exist in theory-land?",
+  "SELF_ATTACK_LITERATURE_EXTRA": "\n- Is a claimed \"new\" result actually a special case of something known?",
+  "SELF_ATTACK_TARGET_EXAMPLE": "Assumption on policy commitment",
+  "SELF_ATTACK_RULE_EXAMPLE": "Assumption 2 (Calvo pricing) is doing all the work and the result vanishes with state-dependent pricing (see Golosov-Lucas 2007), so the paper's quantitative claims are fragile"
 }
