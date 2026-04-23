@@ -32,5 +32,9 @@
 
   "RULES_FEEDBACK_EXAMPLE": "how the wealth distribution amplifies the aggregate effect",
   "INFLATION_PHENOMENA_LIST": "a recession, a crisis, a first-order policy question",
-  "INFLATION_EXAMPLE": "A paper that says \"explains the Great Recession\" but whose model only characterizes a narrow transmission channel scores Importance on the channel, not the recession framing."
+  "INFLATION_EXAMPLE": "A paper that says \"explains the Great Recession\" but whose model only characterizes a narrow transmission channel scores Importance on the channel, not the recession framing.",
+
+  "REFEREE_JOURNAL_ROLE": "**top-5 economics journal** (AER, Econometrica, QJE, JPE, ReStud) or a leading macro field journal (JME, JEDC, AEJ:Macro)",
+  "REFEREE_MIDDLE_BULLETS": "- Is the equilibrium well-defined and properly characterized?\n- Are the results correct and robust, or do they depend on knife-edge assumptions?\n- Does the paper clearly identify the economic channel driving the results?\n- Does the model nest standard benchmarks (RBC, NK) as special cases?\n- Are the welfare implications properly analyzed (if policy-relevant)?\n- Is there a connection to data — calibration, matchable moments, testable predictions?",
+  "REFEREE_FINAL_BULLET": "Is the paper well-organized and of appropriate length?"
 }

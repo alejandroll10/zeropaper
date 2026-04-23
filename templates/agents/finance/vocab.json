@@ -32,5 +32,9 @@
 
   "RULES_FEEDBACK_EXAMPLE": "why Y causes Z",
   "INFLATION_PHENOMENA_LIST": "a crisis, a puzzle, a first-order question",
-  "INFLATION_EXAMPLE": "A paper that says \"explains the banking crisis\" but whose own analysis shows the regime never materialized scores Importance on the narrower result it actually supports, not the crisis framing."
+  "INFLATION_EXAMPLE": "A paper that says \"explains the banking crisis\" but whose own analysis shows the regime never materialized scores Importance on the narrower result it actually supports, not the crisis framing.",
+
+  "REFEREE_JOURNAL_ROLE": "**top-3 finance journal** (JF, JFE, RFS)",
+  "REFEREE_MIDDLE_BULLETS": "- Does the paper answer the question correctly?\n- Are the results robust, or do they depend on knife-edge assumptions or reduced-form shortcuts that do all the work?",
+  "REFEREE_FINAL_BULLET": "Does it pass the \"so what\" test?"
 }
