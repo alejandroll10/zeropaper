@@ -119,10 +119,15 @@ assemble_claude_variant_agents() {
     local template_root="$1"
     local variant="$2"
     local dest_dir="$3"
+    local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
+    local vocab_args=()
+    [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
 
     python3 "$template_root/scripts/assemble_claude_agents.py" \
         --metadata "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
         --bodies-dir "$template_root/templates/agents/${variant}" \
+        --shared-bodies-dir "$template_root/templates/agent_bodies/shared" \
+        "${vocab_args[@]}" \
         --output-dir "$dest_dir" \
         "${MODEL_OVERRIDE_ARGS[@]}"
 }
@@ -167,12 +172,16 @@ assemble_codex_variant_agents() {
     local template_root="$1"
     local variant="$2"
     local dest_dir="$3"
+    local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
+    local vocab_args=()
+    [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
 
-    assemble_codex_subagents_from_parts \
-        "$template_root" \
-        "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
-        "$template_root/templates/agents/${variant}" \
-        "$dest_dir"
+    python3 "$template_root/scripts/assemble_codex_subagents.py" \
+        --metadata "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
+        --bodies-dir "$template_root/templates/agents/${variant}" \
+        --shared-bodies-dir "$template_root/templates/agent_bodies/shared" \
+        "${vocab_args[@]}" \
+        --output-dir "$dest_dir"
 }
 
 assemble_gemini_agents_from_parts() {
@@ -203,12 +212,17 @@ assemble_gemini_variant_agents() {
     local template_root="$1"
     local variant="$2"
     local dest_dir="$3"
+    local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
+    local vocab_args=()
+    [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
 
-    assemble_gemini_agents_from_parts \
-        "$template_root" \
-        "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
-        "$template_root/templates/agents/${variant}" \
-        "$dest_dir"
+    python3 "$template_root/scripts/assemble_gemini_agents.py" \
+        --metadata "$template_root/templates/agent_metadata/claude_${variant}_agents.json" \
+        --bodies-dir "$template_root/templates/agents/${variant}" \
+        --shared-bodies-dir "$template_root/templates/agent_bodies/shared" \
+        "${vocab_args[@]}" \
+        --output-dir "$dest_dir" \
+        "${MODEL_OVERRIDE_ARGS[@]}"
 }
 
 assemble_claude_skills() {
