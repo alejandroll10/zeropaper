@@ -73,5 +73,17 @@
   "SELF_ATTACK_COMPLETENESS_BULLETS": "- What obvious extensions or cases are missing?\n- Are there parameters ranges where the model breaks down?\n- What happens in the limit?",
   "SELF_ATTACK_LITERATURE_EXTRA": "",
   "SELF_ATTACK_TARGET_EXAMPLE": "Assumption D (non-verifiability of ρ)",
-  "SELF_ATTACK_RULE_EXAMPLE": "Assumption 2 (complete markets) rules out the most interesting case (liquidity crises) and the result trivially follows once you assume it"
+  "SELF_ATTACK_RULE_EXAMPLE": "Assumption 2 (complete markets) rules out the most interesting case (liquidity crises) and the result trivially follows once you assume it",
+
+  "THEORY_GEN_ROLE": "finance theorist",
+  "THEORY_ENV_DESC": "[Agents, timing, markets — only what's needed]",
+  "THEORY_AGENTS_SECTION": "### Agents' problem\n[What each agent type maximizes, subject to what constraints]",
+  "THEORY_ECON_DESC": "[WHY does the result hold? In economics, not algebra. A reader who skips the math should understand.]",
+  "THEORY_COMP_STATICS_SECTION": "[How the result changes with parameters. Signs proven, intuition given.]",
+  "THEORY_IMPLICATIONS_SECTION": "[What testable predictions follow? What should we see in the data if this model is right?]",
+  "THEORY_FRESH_BULLETS": "- **Clarity first, polish later.** The first draft's job is to make the argument clear and checkable — not perfect. Write the setup so a reader can verify the proof. Write the proof so every step is explicit. Don't optimize exposition, don't work out every comparative static, don't add extensions. Those come after the gates pass.\n- Start from first principles. What's the simplest model that could explain the puzzle?\n- One friction, one mechanism, one result. Add nothing unnecessary.\n- Ask: if I remove any assumption, does the result break? If not, the assumption doesn't belong.",
+  "THEORY_WEAKEST_POINT_LIST": "math error, lack of novelty, unclear mechanism",
+  "THEORY_PARSIMONY_THRESHOLD": "3 assumptions",
+  "THEORY_SANITY_EXAMPLE_BAD": "a half-life of 10,000 years",
+  "THEORY_EXTRA_RULES": ""
 }
