@@ -1,0 +1,36 @@
+{
+  "MECHANISM_TERM": "mechanism",
+  "MECHANISM_TERM_PLURAL": "mechanisms",
+  "SUBMISSION_TIER": "top-3 finance journal",
+
+  "H2_CHECK": "Could a reader write down the agents' optimization problem?",
+  "H2_SHORT_LABEL": "Well-defined setup",
+  "H5_CHECK": "The \"mechanism\" section explains WHY in economics, not algebra",
+
+  "IMPORTANCE_100": "changes a first-order decision that practitioners or policymakers make routinely (e.g., asset pricing model choice, core regulatory design, optimal contract form). Requires generality and immediate consequence.",
+  "IMPORTANCE_85": "changes how a specific subfield approaches a class of questions, with downstream effects on empirical work, future theory, or a concrete policy debate within five years.",
+  "IMPORTANCE_70": "sharpens an identifiable policy trade-off in a specific institutional context, or changes how researchers in a narrower subfield think about a specific question. Typical ceiling for JFE-quality theory.",
+  "IMPORTANCE_55": "formalizes something people roughly believed, with precise conditions that clarify when it holds. No immediate decision change, but the characterization is sharper than what existed.",
+  "IMPORTANCE_40": "internally interesting but does not connect to any decision, question, or empirical fact anyone acts on.",
+  "IMPORTANCE_20": "minor extension or special case.",
+  "IMPORTANCE_OUTCOME": "decision",
+
+  "NOVELTY_CALIBRATION": "new mechanism = 100, known mechanism in new setting with surprising implication = 80, known mechanism in new setting with predictable implication = 40",
+
+  "SURPRISE_READER": "knowledgeable reader",
+  "SURPRISE_CALIBRATION": "sign reversal or existence result no one expected = 100, non-obvious comparative static = 60, confirms intuition with precise conditions = 40, formalizes what everyone already believed = 15",
+
+  "RIGOR_100": "full proof, all assumptions explicitly stated, boundary behavior characterized where relevant to the main result.",
+  "RIGOR_80": "correct proof with clearly stated assumptions. **Default for theorems that pass both structured and free-form math audits.** Not all edge cases need exhaustive treatment; if the result is clean under its stated assumptions, 80 is the expected score. Score below 80 only if reader-noticeable gaps exist despite audit passage.",
+  "RIGOR_60": "argument is clear but has gaps a careful reader would notice. Not hand-waving, but some steps are asserted rather than shown.",
+
+  "PARSIMONY_100": "every assumption is used in the main result. Every proposition contributes to the headline. Nothing can be cut without breaking the paper.",
+  "PARSIMONY_40_FIRST": "mechanisms",
+
+  "FERTILITY_BULLETS": "- Does it nest existing results?\n- Does it suggest empirical tests?",
+  "FERTILITY_CALIBRATION": "reframes a literature = 100, dead-end result = 20",
+
+  "RULES_FEEDBACK_EXAMPLE": "why Y causes Z",
+  "INFLATION_PHENOMENA_LIST": "a crisis, a puzzle, a first-order question",
+  "INFLATION_EXAMPLE": "A paper that says \"explains the banking crisis\" but whose own analysis shows the regime never materialized scores Importance on the narrower result it actually supports, not the crisis framing."
+}

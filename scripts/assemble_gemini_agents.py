@@ -1,7 +1,11 @@
 #!/usr/bin/env python3
 import argparse
 import json
+import sys
 from pathlib import Path
+
+sys.path.insert(0, str(Path(__file__).parent))
+from agent_body_loader import load_body, load_vocab
 
 # Claude tool name → Gemini tool name
 TOOL_MAP = {
@@ -80,18 +84,19 @@ def main():
     parser.add_argument("--metadata", required=True)
     parser.add_argument("--bodies-dir", required=True)
     parser.add_argument("--output-dir", required=True)
+    parser.add_argument("--shared-bodies-dir", default=None)
+    parser.add_argument("--vocab", default=None)
     parser.add_argument("--model-override", default=None,
                         help="Force all agents to this model (e.g. sonnet)")
     args = parser.parse_args()
 
     metadata = json.loads(Path(args.metadata).read_text())
-    bodies_dir = Path(args.bodies_dir)
     output_dir = Path(args.output_dir)
     output_dir.mkdir(parents=True, exist_ok=True)
+    vocab = load_vocab(args.vocab)
 
     for agent_id, agent_metadata in metadata.items():
-        body_path = bodies_dir / f"{agent_id}.md"
-        body = body_path.read_text()
+        body = load_body(agent_id, args.bodies_dir, args.shared_bodies_dir, vocab)
         rendered = render_agent(agent_metadata, body, args.model_override)
         (output_dir / f"{agent_id}.md").write_text(rendered)
 
