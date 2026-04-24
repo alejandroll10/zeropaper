@@ -5,6 +5,7 @@
     "tools": "Bash, Read, Write, WebSearch, WebFetch",
     "skills": ["bib-verify"],
     "model": "sonnet",
+    "effort": "low",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "low"
@@ -18,6 +19,7 @@
     "description": "Quick mathematical prototype of a selected idea. Launched between idea selection and full theory development to verify tractability. Attempts the key derivation — if the main result doesn't go through, kills the idea before expensive theory investment.",
     "tools": "Read, Write",
     "model": "opus",
+    "effort": "high",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "high"
@@ -32,6 +34,7 @@
     "tools": "WebSearch, WebFetch, Bash, Read, Write, Glob, Grep",
     "skills": ["openalex"],
     "model": "sonnet",
+    "effort": "medium",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "medium"
@@ -45,6 +48,7 @@
     "description": "Free-form math verification agent. The orchestrator launches this agent at Gate 2 after the structured math audit passes. Reads the theory as a skeptical reader and flags anything that feels wrong, without following a step-by-step re-derivation protocol.",
     "tools": "Read, Write",
     "model": "opus",
+    "effort": "high",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "high"
@@ -58,6 +62,7 @@
     "description": "Adversarial math verification agent. The orchestrator launches this agent at Gate 2 after theory development. Verifies all derivations step-by-step. Must pass before theory advances.",
     "tools": "Read, Write",
     "model": "opus",
+    "effort": "xhigh",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "xhigh"
@@ -72,6 +77,7 @@
     "tools": "WebSearch, WebFetch, Bash, Read, Write",
     "skills": ["openalex"],
     "model": "sonnet",
+    "effort": "medium",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "medium"
@@ -85,6 +91,7 @@
     "description": "Writes the LaTeX paper from a scored theory draft. The orchestrator launches this agent at Stage 5 after the scorer returns ADVANCE. Produces publication-ready sections.",
     "tools": "Read, Write, Edit, Glob, Grep",
     "model": "opus",
+    "effort": "medium",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "medium"
@@ -98,6 +105,7 @@
     "description": "Background documentation agent that records the research process. The orchestrator launches this agent after every stage transition and gate decision. Runs in the background so the pipeline continues uninterrupted.",
     "tools": "Read, Write, Edit, Bash, Grep, Glob",
     "model": "sonnet",
+    "effort": "medium",
     "background": true,
     "memory": "project",
     "codex": {
@@ -113,6 +121,7 @@
     "description": "Paper style editor. The orchestrator launches this agent at Stage 7 of the pipeline. Edits mechanical style violations directly in `paper/sections/*.tex` and writes flagged judgment calls to `paper/style_report.md`.",
     "tools": "Read, Edit, Write, Glob, Grep",
     "model": "sonnet",
+    "effort": "medium",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "medium"
@@ -127,6 +136,7 @@
     "tools": "WebSearch, WebFetch, Bash, Read, Write, Glob, Grep",
     "skills": ["openalex"],
     "model": "sonnet",
+    "effort": "medium",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "medium"
@@ -140,6 +150,7 @@
     "description": "Free-form quality assessment at Gate 4. Reads the theory holistically — framing, structure, publishability — without following the scoring rubric. Runs in parallel with the structured scorer; neither sees the other's output.",
     "tools": "Read, Write",
     "model": "opus",
+    "effort": "high",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "high"
@@ -153,6 +164,7 @@
     "description": "Free-form referee report at Stage 6. Reads the paper as an editor — does it deserve space in this journal? Runs in parallel with the structured referee; neither sees the other's output.",
     "tools": "Read, Write, Glob",
     "model": "opus",
+    "effort": "high",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "high"
@@ -166,6 +178,7 @@
     "description": "Mechanism-focused referee at Stage 6. Evaluates whether the paper's economic mechanism delivers the claimed result for the claimed reason — not whether the math is correct (math-auditor handles that) or whether the paper fits the journal (referee-freeform handles that). Returns a verdict on mechanism validity: VALID / PARTIAL / MISATTRIBUTED / DECORATIVE. Runs in parallel with the other two referees; sees neither their output nor prior reports.",
     "tools": "Read, Write, Glob",
     "model": "opus",
+    "effort": "high",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "high"
@@ -179,6 +192,7 @@
     "description": "Strategic advisor launched at every Gate 4 after scorer(s) return. Diagnoses whether the current theoretical path has ceilinged, surfaces concrete alternatives from the Round 1 sketch portfolio, and recommends continue/restructure/restart. Produces a structured 5-section report; does not make the gate decision.",
     "tools": "Read, Write",
     "model": "opus",
+    "effort": "high",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "high"
@@ -192,6 +206,7 @@
     "description": "Triages contradictions between theory predictions and empirical/experimental results. Launched only when results contradict an implication. Produces a verdict (PIVOT / FIX-EMPIRICS / RECONCILE / BACK-TO-IDEA / HONEST-NULL) that routes the pipeline. A PIVOT verdict promotes the contradiction to the central question and instructs theory-generator to revise around the puzzle.",
     "tools": "Read, Write",
     "model": "opus",
+    "effort": "high",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "high"
@@ -205,6 +220,7 @@
     "description": "Mechanically applies the pipeline's triage rules to self-attack concerns (Gate 4) or referee comments (Gate 5). Independent of the orchestrator and stateless across rounds — judges each round on its merits. Produces structured triage files with written justifications for every downgrade. Replaces orchestrator-side triage to remove silent-dismissal failure modes.",
     "tools": "Read, Write",
     "model": "sonnet",
+    "effort": "medium",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "medium"
@@ -218,6 +234,7 @@
     "description": "Launched when a computational or retrieval tool (solver, regression, symbolic verifier, literature or data query, compiler) has failed. Determines whether the failure reflects tool-fit issues or a genuine substantive failure of the claim. Returns TOOL-FIT-ISSUE with a concrete proposed fix, or SUBSTANTIVE-FAILURE with a written argument for why tool-fit is ruled out. Defaults toward TOOL-FIT-ISSUE under uncertainty — the cost of a false SUBSTANTIVE verdict (rescoped real results) is higher than a false TOOL-FIT verdict (one more debug cycle). Not launched on reasoning-agent verdicts (math-auditor FAIL, scorer REVISE, referee Reject) — those are substantive outputs, not tool failures.",
     "tools": "Read, Bash, Write",
     "model": "opus",
+    "effort": "high",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "high"
@@ -231,6 +248,7 @@
     "description": "Computational exploration of a theory model. Launched after math audit passes (Stage 3a). Pokes the model numerically — what breaks, what's robust, where are the knife-edges. Produces diagnostic plots and a verification report.",
     "tools": "Bash, Read, Write, Glob",
     "model": "opus",
+    "effort": "high",
     "codex": {
       "model": "gpt-5.4",
       "model_reasoning_effort": "high"

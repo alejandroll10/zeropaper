@@ -7,7 +7,7 @@ from pathlib import Path
 sys.path.insert(0, str(Path(__file__).parent))
 from agent_body_loader import apply_vocab_to_metadata, load_body, load_vocab
 
-FIELD_ORDER = ["name", "description", "tools", "skills", "model", "background", "memory"]
+FIELD_ORDER = ["name", "description", "tools", "skills", "model", "effort", "background", "memory"]
 IGNORED_FIELDS = {"codex", "gemini"}
 
 
@@ -56,6 +56,11 @@ def main():
         )
         if args.model_override and "model" in agent_metadata:
             agent_metadata = {**agent_metadata, "model": args.model_override}
+            # --light overrides model to sonnet; drop effort so the sonnet
+            # subagent uses its default allocation rather than inheriting
+            # the opus-tuned xhigh/high levels (which would defeat the
+            # cost-reduction intent of --light).
+            agent_metadata.pop("effort", None)
         body = load_body(agent_id, args.bodies_dir, args.shared_bodies_dir, vocab)
         rendered = render_agent(agent_metadata, body)
         (output_dir / f"{agent_id}.md").write_text(rendered)
