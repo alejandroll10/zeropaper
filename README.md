@@ -80,6 +80,9 @@ cd auto-ai-research-template
 # Seeded idea (creates output/seed/ — drop your files there before launching)
 ./setup.sh my-paper --seed
 
+# Manual mode (research toolkit — no autonomous pipeline, you drive the agents)
+./setup.sh my-toolkit --manual
+
 # Light mode (use sonnet for all subagents — cheaper/faster)
 ./setup.sh my-paper --light
 
@@ -165,9 +168,10 @@ Extensions are additive and combinable — they inject extra agents and skills w
 | Flag | What it does |
 |------|-------------|
 | `--seed` | Create a seeded-idea project. Creates `output/seed/` — drop your idea files there (markdown, PDFs, drafts, etc.) before launching. Pipeline triages seed maturity and enters at the appropriate stage. Never silently abandons the seeded idea. |
+| `--manual` | Set up the same agents and skills as a research toolkit — no autonomous pipeline. The runtime doc lists every agent and skill with a one-line description; you invoke them yourself. Useful when you want the math-auditor, novelty-checker, theory-explorer, paper-writer, etc. as standalone helpers without committing to the end-to-end loop. Mutually exclusive with `--seed`. |
 | `--light` | Use sonnet for all subagents (cheaper/faster). The orchestrator model is unchanged. Good for drafts or iteration. |
 
-These flags combine freely with `--variant` and `--ext`.
+These flags combine freely with `--variant` and `--ext` (except `--manual` and `--seed`).
 
 ## Pipeline stages
 
