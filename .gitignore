@@ -12,6 +12,9 @@ references/
 # Local test artifacts from ./setup.sh <name> --local
 demo_*/
 
+# Paper about the pipeline — lives in its own repo
+paper-system/
+
 # Local skill-test sandbox (replicates a deployed project for skill verification)
 _skill_test_sandbox/
 
