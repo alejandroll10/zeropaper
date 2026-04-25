@@ -1,13 +1,16 @@
 #!/bin/bash
 # Auto AI Research Template — Setup & Launch
-# Usage: ./setup.sh [project-name] [--variant finance|macro] [--ext empirical|theory_llm] [--seed] [--light] [--local]
+# Usage: ./setup.sh [project-name] [--variant finance|macro] [--ext empirical|theory_llm] [--seed|--manual] [--light] [--local]
 #
-# --local  Skip git clone, use templates from this repo directly.
-#          Outputs to test_output/{variant}/ for inspection.
-# --ext    Add an extension (can be repeated). Available: empirical, theory_llm
-# --seed   Create a seeded-idea project. Creates output/seed/ with instructions.
-#          Drop your idea files there before launching. Pipeline starts at seed_triage.
-# --light  Use sonnet for all subagents (cheaper/faster). Orchestrator model unchanged.
+# --local   Skip git clone, use templates from this repo directly.
+#           Outputs to test_output/{variant}/ for inspection.
+# --ext     Add an extension (can be repeated). Available: empirical, theory_llm
+# --seed    Create a seeded-idea project. Creates output/seed/ with instructions.
+#           Drop your idea files there before launching. Pipeline starts at seed_triage.
+# --manual  Manual mode: assemble agents/skills as a research toolkit, no autonomous
+#           pipeline. The runtime doc lists what's available and lets you drive.
+#           Mutually exclusive with --seed.
+# --light   Use sonnet for all subagents (cheaper/faster). Orchestrator model unchanged.
 #
 # Legacy: --variant finance_llm is shorthand for --variant finance --ext theory_llm
 
@@ -20,6 +23,7 @@ LOCAL=0
 NEXT_IS_VARIANT=0
 NEXT_IS_EXT=0
 SEEDED=0
+MANUAL=0
 LIGHT=0
 EXTENSIONS=()
 
@@ -28,6 +32,7 @@ for arg in "$@"; do
         --variant)     NEXT_IS_VARIANT=1 ;;
         --ext)         NEXT_IS_EXT=1 ;;
         --seed)        SEEDED=1 ;;
+        --manual)      MANUAL=1 ;;
         --light)       LIGHT=1 ;;
         --local)       LOCAL=1 ;;
         --theory-llm)  VARIANT="finance_llm" ;;  # legacy flag
@@ -52,6 +57,12 @@ if [ "$NEXT_IS_VARIANT" = "1" ]; then
 fi
 if [ "$NEXT_IS_EXT" = "1" ]; then
     echo "Error: --ext requires a value (empirical, theory_llm)"
+    exit 1
+fi
+
+if [ "$MANUAL" = "1" ] && [ "$SEEDED" = "1" ]; then
+    echo "Error: --manual and --seed are mutually exclusive"
+    echo "  --manual disables the autonomous pipeline; --seed configures the pipeline to consume a user-supplied idea."
     exit 1
 fi
 
@@ -253,7 +264,9 @@ if [ "$LOCAL" = "1" ]; then
     mkdir -p "$OUT_DIR/$GEMINI_DIR_REL"
     cp "$SCRIPT_DIR/$GEMINI_SETTINGS_REL" "$OUT_DIR/$GEMINI_DIR_REL/"
     cp "$SCRIPT_DIR/.gitignore" "$OUT_DIR/"
-    cp "$SCRIPT_DIR/dashboard.html" "$OUT_DIR/"
+    if [ "$MANUAL" = "0" ]; then
+        cp "$SCRIPT_DIR/dashboard.html" "$OUT_DIR/"
+    fi
 
     echo "Local test mode: $VARIANT → $OUT_DIR"
 else
@@ -293,16 +306,82 @@ fi
 # ── Assemble runtime docs ──
 echo "Assembling runtime docs for variant: $VARIANT..."
 
-CORE="$TEMPLATE_ROOT/templates/shared/core.md"
-RUNTIME_SESSION="$TEMPLATE_ROOT/templates/runtime/claude/session.md"
+if [ "$MANUAL" = "1" ]; then
+    CORE="$TEMPLATE_ROOT/templates/shared/core_manual.md"
+    # In manual mode, each runtime gets its own session guidance and no discipline block.
+    CLAUDE_SESSION="$TEMPLATE_ROOT/templates/runtime/claude/session_manual.md"
+    CODEX_SESSION="$TEMPLATE_ROOT/templates/runtime/codex/session_manual.md"
+    GEMINI_SESSION="$TEMPLATE_ROOT/templates/runtime/gemini/session_manual.md"
+else
+    CORE="$TEMPLATE_ROOT/templates/shared/core.md"
+    # In autonomous mode, all runtimes share the Claude session block and codex/gemini add discipline.
+    CLAUDE_SESSION="$TEMPLATE_ROOT/templates/runtime/claude/session.md"
+    CODEX_SESSION="$CLAUDE_SESSION"
+    GEMINI_SESSION="$CLAUDE_SESSION"
+fi
 SCORING_FILE="$TEMPLATE_ROOT/templates/scoring/${AGENT_DIR}.md"
+SCORING_ARGS=()
+if [ "$MANUAL" = "0" ]; then
+    SCORING_ARGS=(--scoring "$SCORING_FILE")
+fi
 
-for f in "$CORE" "$RUNTIME_SESSION" "$SCORING_FILE"; do
+REQUIRED_FILES=("$CORE" "$CLAUDE_SESSION" "$CODEX_SESSION" "$GEMINI_SESSION")
+[ "$MANUAL" = "0" ] && REQUIRED_FILES+=("$SCORING_FILE")
+for f in "${REQUIRED_FILES[@]}"; do
     if [ ! -f "$f" ]; then
         echo "Error: $f not found"
         exit 1
     fi
 done
+
+# ── Manual mode: pre-generate agent and skill catalogs for runtime docs ──
+CATALOG_ARGS=()
+if [ "$MANUAL" = "1" ]; then
+    CATALOG_TMPDIR="$(mktemp -d)"
+    trap 'rm -rf "$CATALOG_TMPDIR"' EXIT
+    AGENT_CATALOG_FILE="$CATALOG_TMPDIR/agents.md"
+    SKILL_CATALOG_FILE="$CATALOG_TMPDIR/skills.md"
+
+    AGENT_METADATA_ARGS=(
+        --metadata "$TEMPLATE_ROOT/templates/agent_metadata/claude_shared_agents.json"
+        --metadata "$TEMPLATE_ROOT/templates/agent_metadata/claude_variant_agents.json"
+    )
+    SKILL_METADATA_ARGS=(
+        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/codex_math_skills.json"
+        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/bib_verify_skills.json"
+        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/openalex_skills.json"
+    )
+    for ext in "${EXTENSIONS[@]}"; do
+        case "$ext" in
+            empirical)
+                AGENT_METADATA_ARGS+=(
+                    --metadata "$TEMPLATE_ROOT/extensions/empirical/agent_metadata/shared_agents.json"
+                    --metadata "$TEMPLATE_ROOT/extensions/empirical/agent_metadata/${AGENT_DIR}_agents.json"
+                )
+                SKILL_METADATA_ARGS+=(
+                    --metadata "$TEMPLATE_ROOT/templates/skill_metadata/empirical_skills.json"
+                )
+                ;;
+            theory_llm)
+                AGENT_METADATA_ARGS+=(
+                    --metadata "$TEMPLATE_ROOT/extensions/theory_llm/agent_metadata/agents.json"
+                )
+                SKILL_METADATA_ARGS+=(
+                    --metadata "$TEMPLATE_ROOT/templates/skill_metadata/theory_llm_skills.json"
+                )
+                ;;
+        esac
+    done
+
+    python3 "$TEMPLATE_ROOT/scripts/generate_catalog.py" \
+        "${AGENT_METADATA_ARGS[@]}" \
+        --output "$AGENT_CATALOG_FILE"
+    python3 "$TEMPLATE_ROOT/scripts/generate_catalog.py" \
+        "${SKILL_METADATA_ARGS[@]}" \
+        --output "$SKILL_CATALOG_FILE"
+
+    CATALOG_ARGS=(--agent-catalog "$AGENT_CATALOG_FILE" --skill-catalog "$SKILL_CATALOG_FILE")
+fi
 
 if [ "$LOCAL" = "1" ]; then
     CLAUDE_MD_OUT="$OUT_DIR/CLAUDE.md"
@@ -326,8 +405,8 @@ fi
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --core "$CORE" \
-    --session "$RUNTIME_SESSION" \
-    --scoring "$SCORING_FILE" \
+    --session "$CLAUDE_SESSION" \
+    "${SCORING_ARGS[@]}" \
     --paper-type "$PAPER_TYPE" \
     --target-journals "$TARGET_JOURNALS" \
     --domain-areas "$DOMAIN_AREAS" \
@@ -335,38 +414,47 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --agent-dir "$CLAUDE_AGENTS_REL" \
     --skill-dir "$CLAUDE_SKILLS_REL" \
     "${SEED_ARGS[@]}" \
+    "${CATALOG_ARGS[@]}" \
     --output "$CLAUDE_MD_OUT"
 
-CODEX_DISCIPLINE="$TEMPLATE_ROOT/templates/runtime/codex/session.md"
+CODEX_DISCIPLINE_ARGS=()
+if [ "$MANUAL" = "0" ]; then
+    CODEX_DISCIPLINE_ARGS=(--discipline "$TEMPLATE_ROOT/templates/runtime/codex/session.md")
+fi
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --core "$CORE" \
-    --session "$RUNTIME_SESSION" \
-    --scoring "$SCORING_FILE" \
+    --session "$CODEX_SESSION" \
+    "${SCORING_ARGS[@]}" \
     --paper-type "$PAPER_TYPE" \
     --target-journals "$TARGET_JOURNALS" \
     --domain-areas "$DOMAIN_AREAS" \
     --doc-name "AGENTS.md" \
     --agent-dir "$CODEX_AGENTS_REL" \
     --skill-dir "$CODEX_SKILLS_REL" \
-    --discipline "$CODEX_DISCIPLINE" \
+    "${CODEX_DISCIPLINE_ARGS[@]}" \
     "${SEED_ARGS[@]}" \
+    "${CATALOG_ARGS[@]}" \
     --output "$AGENTS_MD_OUT"
 
-GEMINI_DISCIPLINE="$TEMPLATE_ROOT/templates/runtime/gemini/session.md"
+GEMINI_DISCIPLINE_ARGS=()
+if [ "$MANUAL" = "0" ]; then
+    GEMINI_DISCIPLINE_ARGS=(--discipline "$TEMPLATE_ROOT/templates/runtime/gemini/session.md")
+fi
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --core "$CORE" \
-    --session "$RUNTIME_SESSION" \
-    --scoring "$SCORING_FILE" \
+    --session "$GEMINI_SESSION" \
+    "${SCORING_ARGS[@]}" \
     --paper-type "$PAPER_TYPE" \
     --target-journals "$TARGET_JOURNALS" \
     --domain-areas "$DOMAIN_AREAS" \
     --doc-name "GEMINI.md" \
     --agent-dir "$GEMINI_AGENTS_REL" \
     --skill-dir "$GEMINI_DIR_REL/skills" \
-    --discipline "$GEMINI_DISCIPLINE" \
+    "${GEMINI_DISCIPLINE_ARGS[@]}" \
     "${SEED_ARGS[@]}" \
+    "${CATALOG_ARGS[@]}" \
     --output "$GEMINI_MD_OUT"
 
 echo "  ✓ Runtime docs assembled (CLAUDE.md + AGENTS.md + GEMINI.md)"
@@ -442,10 +530,14 @@ fi
 
 mkdir -p "$P/code/analysis" "$P/code/download" "$P/code/tmp" "$P/code/explore"
 mkdir -p "$P/data"
-mkdir -p "$P/output/stage0" "$P/output/stage1" "$P/output/stage2" "$P/output/stage3" "$P/output/stage3a/figures" "$P/output/stage4" "$P/output/puzzle_triage" "$P/output/post_pipeline"
 mkdir -p "$P/paper/sections" "$P/paper/referee_reports"
-mkdir -p "$P/process_log/sessions" "$P/process_log/decisions" "$P/process_log/discussions" "$P/process_log/patterns"
 mkdir -p "$P/references"
+if [ "$MANUAL" = "1" ]; then
+    mkdir -p "$P/output"
+else
+    mkdir -p "$P/output/stage0" "$P/output/stage1" "$P/output/stage2" "$P/output/stage3" "$P/output/stage3a/figures" "$P/output/stage4" "$P/output/puzzle_triage" "$P/output/post_pipeline"
+    mkdir -p "$P/process_log/sessions" "$P/process_log/decisions" "$P/process_log/discussions" "$P/process_log/patterns"
+fi
 
 # Copy per-stage documentation (referenced from CLAUDE.md/AGENTS.md/GEMINI.md pointer blocks)
 mkdir -p "$P/docs"
@@ -510,8 +602,10 @@ SEEDREADME
     echo "  ✓ Seed folder created at output/seed/ — drop your idea files there before launching"
 fi
 
-# Initial pipeline state
-if [ "$SEEDED" = "1" ]; then
+# Initial pipeline state (skipped in manual mode — no autonomous pipeline)
+if [ "$MANUAL" = "1" ]; then
+    : # no pipeline state
+elif [ "$SEEDED" = "1" ]; then
 cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
 {
   "current_stage": "seed_triage",
@@ -552,7 +646,9 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
 JSONEOF
 fi
 
-touch "$P/process_log/history.md"
+if [ "$MANUAL" = "0" ]; then
+    touch "$P/process_log/history.md"
+fi
 
 echo "  ✓ Project structure created"
 
@@ -842,17 +938,26 @@ rm -f README.md
 rm -f CLAUDE_REFACTOR_PLAN.md
 rm -f requirements.system
 rm -f texput.log
+if [ "$MANUAL" = "1" ]; then
+    rm -f dashboard.html
+fi
 echo "  ✓ Template files removed"
 
 git add -A
-git commit -m "setup: initialized ${VARIANT} variant pipeline" -q
+if [ "$MANUAL" = "1" ]; then
+    git commit -m "setup: initialized ${VARIANT} variant toolkit (manual mode)" -q
+else
+    git commit -m "setup: initialized ${VARIANT} variant pipeline" -q
+fi
 
 echo ""
 echo "============================================"
-echo "  Setup complete: $PROJECT_NAME ($VARIANT)"
+if [ "$MANUAL" = "1" ]; then
+    echo "  Setup complete: $PROJECT_NAME ($VARIANT, manual mode)"
+else
+    echo "  Setup complete: $PROJECT_NAME ($VARIANT)"
+fi
 echo "============================================"
-echo ""
-echo "To run the autonomous pipeline:"
 echo ""
 echo "  cd $PROJECT_NAME"
 echo ""
@@ -865,7 +970,11 @@ echo ""
 echo "Gemini:"
 echo "  gemini --yolo"
 echo ""
-echo "Then say: \"Run the pipeline.\""
+if [ "$MANUAL" = "1" ]; then
+    echo "Manual mode — read the runtime doc for the agent and skill catalog, then drive."
+else
+    echo "Then say: \"Run the pipeline.\""
+fi
 echo ""
 echo "Variant: $VARIANT"
 echo "Extensions: ${EXTENSIONS[*]:-none}"

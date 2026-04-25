@@ -8,7 +8,7 @@ sys.path.insert(0, str(Path(__file__).parent))
 from agent_body_loader import apply_vocab_to_metadata, load_body, load_vocab
 
 FIELD_ORDER = ["name", "description", "tools", "skills", "model", "effort", "background", "memory"]
-IGNORED_FIELDS = {"codex", "gemini"}
+IGNORED_FIELDS = {"codex", "gemini", "pipeline_only"}
 
 
 def format_value(value):

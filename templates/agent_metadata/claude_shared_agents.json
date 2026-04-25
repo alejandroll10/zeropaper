@@ -3,7 +3,9 @@
     "name": "bib-verifier",
     "description": "Verifies the paper's bibliography against OpenAlex (and a WebSearch fallback for SSRN/recent papers). Launched after paper-writer drafts and after referee rounds that change citations, before marking the pipeline complete. Reports VERIFIED / RESOLVED / FABRICATED counts and a fix list; does not edit the bibliography itself.",
     "tools": "Bash, Read, Write, WebSearch, WebFetch",
-    "skills": ["bib-verify"],
+    "skills": [
+      "bib-verify"
+    ],
     "model": "sonnet",
     "effort": "low",
     "codex": {
@@ -16,7 +18,7 @@
   },
   "idea-prototyper": {
     "name": "idea-prototyper",
-    "description": "Quick mathematical prototype of a selected idea. Launched between idea selection and full theory development to verify tractability. Attempts the key derivation — if the main result doesn't go through, kills the idea before expensive theory investment.",
+    "description": "Quick mathematical prototype of a selected idea. Launched between idea selection and full theory development to verify tractability. Attempts the key derivation \u2014 if the main result doesn't go through, kills the idea before expensive theory investment.",
     "tools": "Read, Write",
     "model": "opus",
     "effort": "high",
@@ -32,7 +34,9 @@
     "name": "literature-scout",
     "description": "Searches the web for relevant papers, surveys existing literature, and builds a literature map. The orchestrator launches this agent at Stage 0 (Problem Discovery).",
     "tools": "WebSearch, WebFetch, Bash, Read, Write, Glob, Grep",
-    "skills": ["openalex"],
+    "skills": [
+      "openalex"
+    ],
     "model": "sonnet",
     "effort": "medium",
     "codex": {
@@ -73,9 +77,11 @@
   },
   "novelty-checker": {
     "name": "novelty-checker",
-    "description": "Adversarial novelty verification. The orchestrator launches this agent twice — at Gate 1b (on the selected idea, before theory development) and at Gate 3 (on the full theory, after math audit). Checks whether the content is genuinely new or a known result repackaged.",
+    "description": "Adversarial novelty verification. The orchestrator launches this agent twice \u2014 at Gate 1b (on the selected idea, before theory development) and at Gate 3 (on the full theory, after math audit). Checks whether the content is genuinely new or a known result repackaged.",
     "tools": "WebSearch, WebFetch, Bash, Read, Write",
-    "skills": ["openalex"],
+    "skills": [
+      "openalex"
+    ],
     "model": "sonnet",
     "effort": "medium",
     "codex": {
@@ -114,7 +120,8 @@
     },
     "gemini": {
       "model": "gemini-3-flash-preview"
-    }
+    },
+    "pipeline_only": true
   },
   "style": {
     "name": "style",
@@ -134,7 +141,9 @@
     "name": "gap-scout",
     "description": "Deep literature search on a pre-selected gap. Launched at Stage 0 after the broad scan. Surveys adjacent literatures, identifies the closest competitor, maps open questions without pre-specifying a framework, and validates whether the gap is actually open.",
     "tools": "WebSearch, WebFetch, Bash, Read, Write, Glob, Grep",
-    "skills": ["openalex"],
+    "skills": [
+      "openalex"
+    ],
     "model": "sonnet",
     "effort": "medium",
     "codex": {
@@ -147,7 +156,7 @@
   },
   "scorer-freeform": {
     "name": "scorer-freeform",
-    "description": "Free-form quality assessment at Gate 4. Reads the theory holistically — framing, structure, publishability — without following the scoring rubric. Runs in parallel with the structured scorer; neither sees the other's output.",
+    "description": "Free-form quality assessment at Gate 4. Reads the theory holistically \u2014 framing, structure, publishability \u2014 without following the scoring rubric. Runs in parallel with the structured scorer; neither sees the other's output.",
     "tools": "Read, Write",
     "model": "opus",
     "effort": "high",
@@ -161,7 +170,7 @@
   },
   "referee-freeform": {
     "name": "referee-freeform",
-    "description": "Free-form referee report at Stage 6. Reads the paper as an editor — does it deserve space in this journal? Runs in parallel with the structured referee; neither sees the other's output.",
+    "description": "Free-form referee report at Stage 6. Reads the paper as an editor \u2014 does it deserve space in this journal? Runs in parallel with the structured referee; neither sees the other's output.",
     "tools": "Read, Write, Glob",
     "model": "opus",
     "effort": "high",
@@ -175,7 +184,7 @@
   },
   "referee-mechanism": {
     "name": "referee-mechanism",
-    "description": "Mechanism-focused referee at Stage 6. Evaluates whether the paper's economic mechanism delivers the claimed result for the claimed reason — not whether the math is correct (math-auditor handles that) or whether the paper fits the journal (referee-freeform handles that). Returns a verdict on mechanism validity: VALID / PARTIAL / MISATTRIBUTED / DECORATIVE. Runs in parallel with the other two referees; sees neither their output nor prior reports.",
+    "description": "Mechanism-focused referee at Stage 6. Evaluates whether the paper's economic mechanism delivers the claimed result for the claimed reason \u2014 not whether the math is correct (math-auditor handles that) or whether the paper fits the journal (referee-freeform handles that). Returns a verdict on mechanism validity: VALID / PARTIAL / MISATTRIBUTED / DECORATIVE. Runs in parallel with the other two referees; sees neither their output nor prior reports.",
     "tools": "Read, Write, Glob",
     "model": "opus",
     "effort": "high",
@@ -199,7 +208,8 @@
     },
     "gemini": {
       "model": "gemini-3-preview"
-    }
+    },
+    "pipeline_only": true
   },
   "puzzle-triager": {
     "name": "puzzle-triager",
@@ -213,11 +223,12 @@
     },
     "gemini": {
       "model": "gemini-3-preview"
-    }
+    },
+    "pipeline_only": true
   },
   "triager": {
     "name": "triager",
-    "description": "Mechanically applies the pipeline's triage rules to self-attack concerns (Gate 4) or referee comments (Gate 5). Independent of the orchestrator and stateless across rounds — judges each round on its merits. Produces structured triage files with written justifications for every downgrade. Replaces orchestrator-side triage to remove silent-dismissal failure modes.",
+    "description": "Mechanically applies the pipeline's triage rules to self-attack concerns (Gate 4) or referee comments (Gate 5). Independent of the orchestrator and stateless across rounds \u2014 judges each round on its merits. Produces structured triage files with written justifications for every downgrade. Replaces orchestrator-side triage to remove silent-dismissal failure modes.",
     "tools": "Read, Write",
     "model": "sonnet",
     "effort": "medium",
@@ -227,11 +238,12 @@
     },
     "gemini": {
       "model": "gemini-3-flash-preview"
-    }
+    },
+    "pipeline_only": true
   },
   "debugger": {
     "name": "debugger",
-    "description": "Launched when a computational or retrieval tool (solver, regression, symbolic verifier, literature or data query, compiler) has failed. Determines whether the failure reflects tool-fit issues or a genuine substantive failure of the claim. Returns TOOL-FIT-ISSUE with a concrete proposed fix, or SUBSTANTIVE-FAILURE with a written argument for why tool-fit is ruled out. Defaults toward TOOL-FIT-ISSUE under uncertainty — the cost of a false SUBSTANTIVE verdict (rescoped real results) is higher than a false TOOL-FIT verdict (one more debug cycle). Not launched on reasoning-agent verdicts (math-auditor FAIL, scorer REVISE, referee Reject) — those are substantive outputs, not tool failures.",
+    "description": "Launched when a computational or retrieval tool (solver, regression, symbolic verifier, literature or data query, compiler) has failed. Determines whether the failure reflects tool-fit issues or a genuine substantive failure of the claim. Returns TOOL-FIT-ISSUE with a concrete proposed fix, or SUBSTANTIVE-FAILURE with a written argument for why tool-fit is ruled out. Defaults toward TOOL-FIT-ISSUE under uncertainty \u2014 the cost of a false SUBSTANTIVE verdict (rescoped real results) is higher than a false TOOL-FIT verdict (one more debug cycle). Not launched on reasoning-agent verdicts (math-auditor FAIL, scorer REVISE, referee Reject) \u2014 those are substantive outputs, not tool failures.",
     "tools": "Read, Bash, Write",
     "model": "opus",
     "effort": "high",
@@ -245,7 +257,7 @@
   },
   "theory-explorer": {
     "name": "theory-explorer",
-    "description": "Computational exploration of a theory model. Launched after math audit passes (Stage 3a). Pokes the model numerically — what breaks, what's robust, where are the knife-edges. Produces diagnostic plots and a verification report.",
+    "description": "Computational exploration of a theory model. Launched after math audit passes (Stage 3a). Pokes the model numerically \u2014 what breaks, what's robust, where are the knife-edges. Produces diagnostic plots and a verification report.",
     "tools": "Bash, Read, Write, Glob",
     "model": "opus",
     "effort": "high",
