@@ -168,7 +168,7 @@ Extensions are additive and combinable — they inject extra agents and skills w
 | Flag | What it does |
 |------|-------------|
 | `--seed` | Create a seeded-idea project. Creates `output/seed/` — drop your idea files there (markdown, PDFs, drafts, etc.) before launching. Pipeline triages seed maturity and enters at the appropriate stage. Never silently abandons the seeded idea. |
-| `--manual` | Set up the same agents and skills as a research toolkit — no autonomous pipeline. The runtime doc lists every agent and skill with a one-line description; you invoke them yourself. Useful when you want the math-auditor, novelty-checker, theory-explorer, paper-writer, etc. as standalone helpers without committing to the end-to-end loop. Mutually exclusive with `--seed`. |
+| `--manual` | Set up the same agents and skills as a research toolkit — no autonomous pipeline. The runtime doc lists every agent and skill with a one-line description; you invoke them yourself. Useful when you want the math-auditor, novelty-checker, theory-explorer, paper-writer, polish-* agents, etc. as standalone helpers without committing to the end-to-end loop. Mutually exclusive with `--seed`. **Paths are fixed**: agents read from `paper/main.tex`, `paper/sections/*.tex`, `output/`, `references/` — drop your existing manuscript into `paper/` (or symlink) before invoking. |
 | `--light` | Use sonnet for all subagents (cheaper/faster). The orchestrator model is unchanged. Good for drafts or iteration. |
 
 These flags combine freely with `--variant` and `--ext` (except `--manual` and `--seed`).
@@ -189,7 +189,11 @@ Stage 3e: Full Empirical Analysis (optional, if --ext empirical)
 Stage 4: Self-Attack          → Gate 4: Scorer Decision
 Stage 5: Paper Writing
 Stage 6: Referee Simulation   → Gate 5: Referee Decision
-Stage 7: Style Check          → Done
+Stage 7: Style Check
+Stage 8: Bibliography Verify
+Stage 9: Polish               → Done (six parallel polish agents — consistency,
+                                 formula, numerics, institutions, equilibria,
+                                 bibliography — triaged + applied; max 2 rounds)
 ```
 
 Each gate is adversarial. Failed theories get revised, reworked, or abandoned. The system loops until it produces a paper that passes simulated referee review.
@@ -212,6 +216,13 @@ Each gate is adversarial. Failed theories get revised, reworked, or abandoned. T
 | `paper-writer` | Assembles LaTeX paper |
 | `referee` | Simulates top-journal R1 review |
 | `style` | Enforces writing style guide |
+| `polish-consistency` | Cross-section contradictions, label/object mismatches, headings vs. text |
+| `polish-formula` | Re-derives every numbered equation in the rendered paper (codex-math + sympy) |
+| `polish-numerics` | Recomputes every numerical claim from stated parameters |
+| `polish-institutions` | Verifies real-world claims and faithful characterization of cited papers |
+| `polish-equilibria` | Catches multiple equilibria, missing LLN/continuum assumptions, reduced-form/structural bridges |
+| `polish-bibliography` | Per-citation prose-claim verification via OpenAlex |
+| `bib-verifier` | Verifies cite-key validity against OpenAlex |
 | `scribe` | Background documentation of the process |
 | `empiricist` | Empirical analysis (if `--ext empirical`) |
 | `empirics-auditor` | Verifies empirical code and results (if `--ext empirical`) |
