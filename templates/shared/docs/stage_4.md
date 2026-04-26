@@ -20,6 +20,7 @@
    - Novelty check (idea): `output/stage1/novelty_check_idea.md`
    - Novelty check (theory): `output/stage2/novelty_check_vN.md`
    - **Implications with lit-check tags:** `output/stage3/implications.md` (for the SUPPORTED-cap / PUZZLE-CANDIDATE-floor rules on Surprise)
+   - **Puzzle-triage report(s):** any `output/puzzle_triage/triage_pN.md` files that exist (needed for the Surprise-floor rule's measurement-quality gate on PUZZLE-CANDIDATE)
    - **Pipeline state:** pass `pivot_round` and `pivot_resolved` so the scorer knows whether a pivot fired and whether it resolved
    - Self-attack: `output/stage4/self_attack_vN.md`
    - **Structured scorer only, on revisions (N ≥ 2):** also pass the prior theory draft (`output/stage2/theory_draft_v{N-1}.md`) and the `## Unverified claims` section of the prior math audit (`output/stage2/math_audit_v{N-1}.md`). Do NOT pass any prior scorer output or prior score to either agent — the structured scorer scores independently; the freeform scorer is history-blind.
@@ -64,11 +65,17 @@
 |-----------|--------|
 | Score ≥ advance threshold | **ADVANCE** — always, regardless of trajectory |
 | Score < abandon threshold | **ABANDON** — always, regardless of trajectory |
-| Delta ≥ 3 points | **CONTINUE** — one more iteration in current band (improving, worth continuing) |
+| Delta ≥ 3 points, substantive change | **CONTINUE** — one more iteration in current band (improving, worth continuing) |
+| Delta ≥ 3 points, cosmetic change only | **ESCALATE** — reframing is not progress (see "Substantive vs cosmetic delta" below) |
 | Delta < 3 points | **ESCALATE** — move up one level: REVISE → MAJOR REWORK → ABANDON (plateau, not converging) |
 | Score < (advance threshold + 5) on attempt 3+ | **ESCALATE** — regardless of delta. Still below the bar after two revisions suggests a ceiling. Regenerate. |
 
 **Hard ceiling:** After 8 total scorer evaluations on same problem, escalate one level regardless of trajectory.
+
+**Substantive vs cosmetic delta.** Branch-manager classifies the v(N)→v(N−1) diff at every Gate 4 (Section A of its report). The orchestrator uses that verdict; on COSMETIC, escalate even if Δ≥3.
+
+- **Substantive:** new theorem/lemma/proposition with proof, new proof of a previously-conjectured claim, removed or narrowed unverified claim, new mechanism with economic content, new comparative static derived from the model, new load-bearing extension or scope condition, empirical/numerical result that changes a calibration.
+- **Cosmetic** (treat as typos — fixable when wrong, but score-neutral): rewording the contribution sentence, reorganizing sections, sharper or narrower abstract framing, broader-interpretation paragraphs invoking larger phenomena without new results, label promotions or demotions (Lemma ↔ Theorem) without new content, restructuring the paper around an already-existing result (promoting a different result to the headline) without new math, renaming a variable or mechanism, additional defensive prose.
 
 Record all content scores in `process_log/pipeline_state.json` under `"scores"` so the trajectory can be computed: `"scores": { "v1": 60, "v2": 63, "v3": 67 }`.
 

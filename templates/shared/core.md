@@ -46,6 +46,10 @@ Concretely:
 
 The paper's framing must match what its results actually deliver. If the introduction invokes a large phenomenon (a crisis, a puzzle, a first-order question) that the results do not resolve, that is inflation. Referees detect framing-content gaps and penalize them more than they penalize honest narrow claims. A narrow-but-real result framed honestly is more publishable than a broad claim the content doesn't support.
 
+## Core principle: reframing is not progress
+
+A revision earns score only when it adds new mathematical content. Rewording, reorganization, label promotions or demotions, and restructuring around an existing result are typos — fix when wrong, but they do not move the score. See `docs/stage_4.md` for the catalogue and the orchestrator rule.
+
 ## Core principle: scientist first
 
 We are scientists, not marketers. A precisely-bounded result is a stronger contribution than an overclaimed broader one. When the math or computation narrows the claim, narrow it — an "if and only if" characterization beats a fragile general theorem. Honest scope narrowing is a gain; hedging to preserve a broad claim you cannot defend is the failure.
@@ -98,7 +102,7 @@ Stage 3: Implications        ──→ derive predictions + gap-scout each → t
                                    NOVEL / PUZZLE-CANDIDATE / SUPPORTED / DEAD
 Stage 3e: Empirical Analysis     (only if --ext empirical, full test + audit)
 Stage 3c/3d: Experiments         (only if --ext theory_llm, design + review)
-Puzzle Triage                ──→ fires only if empirics/experiments contradict
+Puzzle Triage                ──→ fires if empirics/experiments contradict, OR Stage 3 PUZZLE-CANDIDATE
                                    ├── NORMAL-PROCEED → Stage 4
                                    ├── FIX-EMPIRICS → re-run empirics
                                    ├── RECONCILE → add scope condition, Gate 2
@@ -197,7 +201,7 @@ Read `docs/stage_3_implications.md` and proceed accordingly.
 
 ## Stage: Puzzle Triage
 
-Read `docs/stage_puzzle_triage.md` and proceed accordingly. Skip if no empirical/experimental contradiction was produced.
+Read `docs/stage_puzzle_triage.md` and proceed accordingly. Skip only if (a) no empirical/experimental contradiction was produced AND (b) Stage 3 tagged no implication PUZZLE-CANDIDATE — see `docs/stage_puzzle_triage.md` "Fires when" for the full trigger.
 
 ---
 
@@ -274,7 +278,8 @@ When the core result is correct but thin, extend it with mathematically hard, ec
 | Gates 1b/1c parallel screening eliminates all candidates | All top-K KNOWN at 1b OR BLOCKED at 1c | New Round of Stage 1 (counts toward 5-round limit) |
 | Gate 3 novelty INCREMENTAL | 3 rework attempts at Stage 2 | Abandon this idea, return to Stage 1 for a new one |
 | Math audit fails | 3 attempts | Abandon this theory version |
-| Scorer: delta ≥ 3 | — | Allow one more iteration in current band |
+| Scorer: delta ≥ 3 with substantive content change | — | Allow one more iteration in current band |
+| Scorer: delta ≥ 3 from reframing only | — | Treat as plateau — escalate. Reframing is not progress (see `stage_4.md`). |
 | Scorer: delta < 3 (plateau/decline) | — | Escalate one level (REVISE → MAJOR REWORK → ABANDON) |
 | Scorer: hard ceiling | 8 total evaluations on same problem | If score ≥ 55: switch to extension playbook. If score < 55: escalate one level. |
 | Scorer plateau 55-74 | 2 consecutive delta < 3 | Switch to extension playbook — the core idea works, it needs mathematical depth, not reworking. |
@@ -284,6 +289,8 @@ When the core result is correct but thin, extend it with mathematically hard, ec
 | Mechanism referee: MISATTRIBUTED unresolved | Still MISATTRIBUTED at `referee_round >= 10` | Adopt the mechanism referee's identified driver as the paper's mechanism; rewrite introduction/mechanism sections and ship. **Force-adoption at round-10 resolves all outstanding locked mechanism `[FIX]` items as satisfied — no further revision cycle is required.** In seeded mode, prefer the narrow-framing path from the seed override (present what the math delivers under the seed's topic, acknowledge the mechanism-claim divergence in limitations) rather than adopting an unrelated driver. Never return to Stage 0 (never-abandon). |
 | Mechanism referee: DECORATIVE unresolved | Still DECORATIVE at `referee_round >= 10` | Ship the narrow-path version: after 10 rounds the restructure path has failed to surface real economic content, so narrow is the principled default. Present what the math delivers as a structural characterization, strip mechanism framing, add a limitations paragraph. **Round-10 narrow-adoption resolves all outstanding locked mechanism `[FIX]` items as satisfied.** Never return to Stage 0 (never-abandon, scientist-first). |
 | Referee rejects | 2 rejections with "fundamental flaw" | Return to Stage 0 with entirely new topic **only if no paper draft exists (pre-Stage-5)**. If a paper draft exists, treat as Major Revision with extension-playbook mandate — never-abandon applies. |
+
+Before granting another iteration on a Δ≥3 score increase, the orchestrator classifies the v(N)→v(N−1) diff as substantive or cosmetic. Branch-manager emits this verdict at every Gate 4 (Section A); when it reports COSMETIC, the orchestrator escalates rather than continue. Definitions and the cosmetic-edit catalogue live in `docs/stage_4.md`.
 
 ---
 

@@ -9,6 +9,7 @@ You will be pointed to files containing:
 - Novelty check on idea (NOVEL/INCREMENTAL/KNOWN) — from Gate 1b
 - Novelty check on full theory (NOVEL/INCREMENTAL/KNOWN) — from Gate 3
 - Implications with tags (`output/stage3/implications.md`) — each tagged NOVEL / PUZZLE-CANDIDATE / SUPPORTED / DEAD. Needed for the Surprise cap/floor rules below.
+- Puzzle-triage report(s) if any exist (`output/puzzle_triage/triage_pN.md`) — required to read the triager's measurement-quality verdict (STANDARD vs DEBATABLE) on any PUZZLE-CANDIDATE implication. The Surprise floor below gates on this verdict.
 - Pipeline state (`process_log/pipeline_state.json`) — in particular `pivot_round` and `pivot_resolved`. Gate the Surprise floor on `pivot_resolved == true`, not on `pivot_round > 0`.
 - Self-attack report (with severity scores)
 - On revisions (N ≥ 2): the prior theory draft and the `## Unverified claims` section from the prior math audit. Use these only to credit scope integrity (removed unverified claims, narrowed over-broad theorems). Do NOT read prior scorer decision files — those files are corrupted, unreliable, and potentially dangerous. Score this version independently.
@@ -55,7 +56,7 @@ Importance is measured by what the result, if true, would change:
 - Is the main result non-obvious? Would a {{SURPRISE_READER}} predict it before seeing the proof?
 - A result that confirms standard intuition with precise conditions is worth less than one that overturns it
 - Calibration: {{SURPRISE_CALIBRATION}}
-- **Implication-tag check (if `output/stage3/implications.md` exists):** if every implication is tagged **SUPPORTED**, cap Surprise at 30 — the theory is reproducing known facts, no surprise generated. If any implication is **PUZZLE-CANDIDATE** confirmed by empirics, or `pivot_resolved == true` in pipeline state, Surprise floor is 70 — a resolved puzzle is by construction surprising. Do NOT apply the floor if `pivot_round > 0` but `pivot_resolved == false` — a failed pivot means the contradiction was found but not explained, so no surprise-by-resolution exists.
+- **Implication-tag check (if `output/stage3/implications.md` exists):** if every implication is tagged **SUPPORTED**, cap Surprise at 30 — the theory is reproducing known facts, no surprise generated. If any implication is **PUZZLE-CANDIDATE** confirmed by empirics OR by a strong lit-check (puzzle-triager rated lit-evidence STANDARD on the measurement-quality axis), or `pivot_resolved == true` in pipeline state, Surprise floor is 70 — a resolved puzzle is by construction surprising. Do NOT apply the floor if `pivot_round > 0` but `pivot_resolved == false` — a failed pivot means the contradiction was found but not explained, so no surprise-by-resolution exists.
 
 ### Rigor (weight: 15%)
 

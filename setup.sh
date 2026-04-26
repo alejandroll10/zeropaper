@@ -619,6 +619,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "bib_verify_round": 0,
   "pivot_resolved": null,
   "pivot_history": [],
+  "triaged_lit_implications": [],
   "status": "not_started",
   "seeded": true,
   "scores": {},
@@ -639,6 +640,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "bib_verify_round": 0,
   "pivot_resolved": null,
   "pivot_history": [],
+  "triaged_lit_implications": [],
   "status": "not_started",
   "scores": {},
   "history": []

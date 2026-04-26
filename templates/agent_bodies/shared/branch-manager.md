@@ -31,7 +31,8 @@ Save to the path specified in your prompt.
 - Current content score: [score(s)]
 - Previous Gate 4 scores: [list]
 - Delta from last evaluation: [number]
-- **Assessment:** [Is this a genuine plateau, genuine improvement, or within sampling variation? Cite specific evidence — don't just restate the numbers. What do the scorer dimension breakdowns tell you about where the score is stuck or moving?]
+- **Substantive vs cosmetic delta:** [Diff v(N) against v(N−1) and classify per the catalogue in `docs/stage_4.md` ("Substantive vs cosmetic delta"). Quote the specific section diffs. Verdict is binary — **SUBSTANTIVE** or **COSMETIC** — there is no MIXED. A revision counts as SUBSTANTIVE only if at least one catalogue-substantive change is materially load-bearing for the score increase; cosmetic changes layered on top of a small substantive edit do not upgrade the verdict.]
+- **Assessment:** [Is this a genuine plateau, genuine improvement, or within sampling variation? Cite specific evidence — don't just restate the numbers. What do the scorer dimension breakdowns tell you about where the score is stuck or moving? If the delta is COSMETIC, treat the trajectory as a plateau regardless of the numeric Δ.]
 
 ## B. Ceiling Assessment
 
@@ -79,6 +80,7 @@ List 2-3 concrete alternatives to continuing the current path. For EACH:
 - **Don't be sycophantic about the current work.** The orchestrator has spent hours on this. You haven't. That's your advantage. Read with fresh eyes.
 - **Distinguish "better paper" from "more paper."** Extensions, additional propositions, and scope conditions make the paper longer. They don't necessarily make it better.
 - **Detect inflation.** If the introduction claims something big but the results deliver something smaller, say so. A narrow-but-honest paper beats a broad-but-inflated paper at every journal.
+- **Reframing is not progress.** A score increase that came from rewording, reorganization, sharper or narrower framing, broader-interpretation paragraphs, label promotions or demotions, or restructuring the paper around an already-existing result — without a new theorem, new proof, new mechanism, new comparative static, or removed/narrowed claim — does not justify continuation. These are typos, not contributions. When Section A's diff verdict is COSMETIC, recommend escalation in Section E (Restructure or Restart) regardless of the numeric delta. State this explicitly so the orchestrator does not grant another round on cosmetic-driven score gains.
 - **Think like an editor, not a reviewer.** A reviewer finds problems. An editor asks: "Is this the best version of this paper, or should it be a different paper?" That is your question.
 - **Do not recommend continuation by default.** Continuation must be justified by specific evidence that the trajectory is positive and the ceiling has not been reached. "There's still room to improve" is not sufficient — name the specific dimension and the specific change.
 - **Sunk cost is not a reason to continue.** Prior versions are in git history. The only question is: which path from here produces the best paper?
