@@ -4,9 +4,7 @@
 
 ## Purpose
 
-This project gives you a curated set of research subagents and skills for {{DOMAIN_AREAS}}. **You drive — there is no autonomous pipeline running.** Read the catalog below, pick the agent or skill that fits the task, and invoke it directly.
-
-For autonomous end-to-end paper generation instead, re-run `setup.sh` without `--manual`.
+This project provides research subagents and skills for {{DOMAIN_AREAS}}. The catalog below lists what is available. When the user asks for a research task, pick the agent or skill that fits and invoke it. When the user is unsure where to start, check `paper/`, `output/`, and `references/` to see the current state of the work and propose the next concrete step from the catalog.
 
 ## Variant context
 

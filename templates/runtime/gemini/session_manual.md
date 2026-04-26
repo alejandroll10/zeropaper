@@ -1,6 +1,6 @@
 ## How to use this toolkit
 
-There is no autonomous pipeline. The user drives — they will ask for specific research tasks (build a literature map, audit a proof, get a referee read, write a section, run an empirical test).
+The user will ask for specific research tasks (build a literature map, audit a proof, get a referee read, write a section, run an empirical test). When the user is unsure what to do next, read `paper/main.tex`, list `paper/sections/`, list `output/`, and list `references/`. Use what you find to propose two or three concrete next steps from the catalog rather than guessing.
 
 ### Use the subagents
 
