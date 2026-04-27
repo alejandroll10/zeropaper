@@ -10,7 +10,7 @@ When the user is unsure what to do next, do not guess. Read `paper/main.tex`, li
 
 Also detect which "shape" the paper is in by checking `paper/`:
 - **Empty `paper/sections/`, no `paper/.git`** → ask the user whether to import an existing paper into `paper/` or launch `paper-writer` to create one from scratch.
-- **`paper/.git` exists** → user has dropped in a separate paper repo. Confirm `.gitignore` contains `paper/` (replacing any `paper/*.foo` lines); if not, propose adding it so the outer git stops seeing the nested repo as untracked. Then proceed.
+- **`paper/.git` exists** → user has dropped in a separate paper repo. Confirm `.gitignore` has a bare `paper/` line; if not, propose adding it so the outer git stops seeing the nested repo as untracked (the existing `paper/*.foo` lines become harmless once `paper/` is excluded). Then proceed.
 - **`paper/sections/*.tex` files exist, no `paper/.git`** → paper is in place as flat files. Proceed.
 
 ### Agent launch and monitoring

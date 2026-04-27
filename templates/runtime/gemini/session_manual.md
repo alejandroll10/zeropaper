@@ -2,6 +2,8 @@
 
 The user will ask for specific research tasks (build a literature map, audit a proof, get a referee read, write a section, run an empirical test). When the user is unsure what to do next, read `paper/main.tex`, list `paper/sections/`, list `output/`, and list `references/`. Use what you find to propose two or three concrete next steps from the catalog rather than guessing.
 
+Also detect which "shape" the paper is in by checking `paper/`: empty `paper/sections/` with no `paper/.git` → ask whether to import an existing paper or launch `paper-writer`; `paper/.git` exists → user has dropped in a separate paper repo, confirm `.gitignore` has a bare `paper/` line and add it if missing; `paper/sections/*.tex` exist with no `paper/.git` → flat-files pattern, proceed.
+
 ### Use the subagents
 
 The agent catalog above lists subagents in `.gemini/agents/` — that's the value of this toolkit. When the user asks for something an agent does, launch the agent with the appropriate prompt and inputs. Do not do the work yourself. Math audits, novelty checks, referee reads, theory exploration, paper sections, empirical analyses — these belong to the agents.
