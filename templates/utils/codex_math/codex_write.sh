@@ -30,6 +30,10 @@ mkdir -p "$OUTDIR"
 if echo "$INPUT" | grep -qE '^.+:[0-9]+-[0-9]+$'; then
     # file:lines format
     FILE=$(echo "$INPUT" | cut -d: -f1)
+    if [ ! -f "$FILE" ]; then
+        echo "ERROR: '$FILE' does not exist (parsed from '$INPUT' as file:lines)" >&2
+        exit 1
+    fi
     RANGE=$(echo "$INPUT" | cut -d: -f2)
     START=$(echo "$RANGE" | cut -d- -f1)
     END=$(echo "$RANGE" | cut -d- -f2)
@@ -39,6 +43,15 @@ elif [ -f "$INPUT" ]; then
     # File path
     CONTENT=$(cat "$INPUT")
     SAFE_NAME="proof_$(basename "$INPUT" | tr '.' '_')"
+elif [[ "$INPUT" == */*.* ]] || [[ "$INPUT" =~ \.(tex|md|txt|json|py|lean)$ ]]; then
+    # Looks like a file path but does not exist — refuse to treat as inline text.
+    # A typoed path silently sent as the theorem statement wastes tokens on a
+    # meaningless prompt (codex would dutifully "prove" the literal filename).
+    # The `*/*.*` glob requires both a slash AND a dot, so inline math text like
+    # "f/g is concave" or "\partial U / \partial x" is not caught here.
+    echo "ERROR: '$INPUT' looks like a file path but does not exist." >&2
+    echo "       If you meant inline text, remove slashes and file extensions." >&2
+    exit 1
 else
     # Inline text
     CONTENT="$INPUT"
