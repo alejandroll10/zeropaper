@@ -73,7 +73,7 @@ The difference: the good prompt gives Codex everything it needs to work independ
 - **Include parameter domains.** Codex needs to know whether parameters are positive, bounded, in (0,1), etc.
 - **State the standard of proof.** "A valid proof must handle all boundary cases" or "a counterexample must give specific numerical parameter values."
 - **Ask for multiple strategies when exploring.** Codex may fail with one approach but succeed with another.
-- **Do not ask Codex to read files.** It cannot. Always pipe content into the prompt via the scripts or manually.
+- **Pipe content inline; do not have Codex read files itself.** On a properly configured host Codex *can* `cat` files in the workspace, but reading from inside the sandbox is fragile (depends on `bwrap` being functional — see Sandbox model below) and adds a tool call. The scripts already pre-extract content; for ad-hoc prompts, paste the content into the prompt yourself.
 
 ## Mode 1: Verify a proof
 
@@ -133,18 +133,24 @@ Result saved to `output/codex_explorations/`.
 - Suggest a proof strategy you haven't tried
 - Confirm the result is likely true but hard to prove (→ try harder, or restrict the parameter space)
 
-## Sandbox limitations
+## Sandbox model
 
-Codex runs in a strict sandbox. **All shell commands fail** — `cat`, `sed`, `grep`, `python`, file writes, everything. Codex cannot read any file on disk and cannot write any file. It is a pure reasoning engine that receives text in and returns text out.
+Codex with `--full-auto` runs in the `workspace-write` sandbox:
 
-The `-o /tmp/file.txt` flag works because the *Codex CLI* (running outside the sandbox) captures Codex's final message. Codex itself never touches the filesystem.
+- **Shell + Python available.** `cat`, `grep`, `sed`, `python3` (including `sympy`) all work.
+- **Read access everywhere** the user can read.
+- **Write access only** in `workdir`, `/tmp`, `$TMPDIR`, and `~/.codex/memories`. Writes outside those zones fail with `Read-only file system`.
 
-**The scripts handle all of this.** They:
-1. Extract content from files before calling Codex (via `extract_block.sh`)
-2. Pipe the content into the prompt as inline text
-3. Capture Codex's response via `-o` and save it to the output directory
+**Ubuntu 24.04 host gotcha.** The sandbox uses bubblewrap, which needs unprivileged user namespaces. Ubuntu 24.04's default AppArmor policy blocks this for unconfined binaries — every codex shell command then fails with `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`. One-time fix:
 
-**Do not ask Codex to read files, write files, or run code.** It will try, fail silently or with `bwrap` errors, and waste tokens. If you need Codex to analyze something, extract it first and pass it as text in the prompt.
+```bash
+sudo sysctl kernel.apparmor_restrict_unprivileged_userns=0
+echo 'kernel.apparmor_restrict_unprivileged_userns = 0' | sudo tee /etc/sysctl.d/60-apparmor-namespace.conf
+sudo sysctl --system
+# sanity: bwrap --unshare-all --bind / / true && echo OK
+```
+
+**Our scripts don't depend on the sandbox shell.** They use `-o "$TMP"` so the Codex CLI (running outside the sandbox) captures the model's final message regardless, and they pre-extract file content via `extract_block.sh` rather than asking codex to `cat` files. So `codex_verify.sh`, `codex_write.sh`, and `codex_explore.sh` work identically whether or not bwrap can start. If you write ad-hoc codex prompts, you can rely on shell + python on a working host; on a broken one, pass content inline.
 
 ## Dual audit pattern
 
