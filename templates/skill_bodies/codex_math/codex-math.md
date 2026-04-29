@@ -161,6 +161,18 @@ code/utils/codex_math/codex_verify.sh paper/model.tex "Proposition 3" high
 - Both FAIL on same step → real error
 - Disagreement → investigate the specific step manually
 
+## Runtime behavior and output capture
+
+Hard proofs at `high` effort routinely run 1–5 minutes; do not assume a hang. The terminal shows a session header, then a short progress paragraph mid-thinking ("I'm thinking about..."), then the final answer streams once reasoning completes. Those middle paragraphs are the model summarizing its own reasoning — not the answer. Do not paste them into the paper.
+
+**What gets saved to disk:** only the final answer (with a header prefix), in the directory below. Reasoning summaries appear in the terminal but are not captured.
+
+**To capture the full session** (e.g., for debugging or to record what codex was thinking), pipe the script output through `tee`:
+
+```bash
+bash code/utils/codex_math/codex_verify.sh paper/sections/model.tex "Proposition 7" high 2>&1 | tee output/codex_logs/prop7.log
+```
+
 ## Output locations
 
 | Mode | Default output directory |
