@@ -5,7 +5,7 @@
     "tools": "Read, Write, Bash, Glob, Grep",
     "model": "opus",
     "codex": {
-      "model": "gpt-5.4",
+      "model": "gpt-5.5",
       "model_reasoning_effort": "high"
     },
     "gemini": {
@@ -18,7 +18,7 @@
     "tools": "Read, Write, Glob, Grep",
     "model": "opus",
     "codex": {
-      "model": "gpt-5.4",
+      "model": "gpt-5.5",
       "model_reasoning_effort": "high"
     },
     "gemini": {

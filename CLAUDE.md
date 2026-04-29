@@ -173,7 +173,7 @@ Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory
 
 | Skill | Description |
 |-------|-------------|
-| `codex-math` | OpenAI Codex (gpt-5.4) for proof verification, writing, and exploration. Erratic genius — ~50% false positive rate, always triage. Scripts at `code/utils/codex_math/`. |
+| `codex-math` | OpenAI Codex (gpt-5.5) for proof verification, writing, and exploration. Erratic genius — substantial false-positive rate (historically ~50% on gpt-5.4; not recalibrated for gpt-5.5), always triage. Scripts at `code/utils/codex_math/`. |
 
 ## How setup.sh works
 

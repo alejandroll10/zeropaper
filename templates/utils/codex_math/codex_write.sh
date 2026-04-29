@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Ask Codex (gpt-5.4) to write a mathematical proof or derivation.
+# Ask Codex (gpt-5.5) to write a mathematical proof or derivation.
 # Accepts either a theorem statement from a file or inline text.
 #
 # Usage:
@@ -48,7 +48,7 @@ fi
 OUTFILE="${OUTDIR}/${SAFE_NAME}.md"
 TMP="/tmp/codex_write_${SAFE_NAME}_$$.txt"
 
-echo "[codex-math] Writing proof (gpt-5.4, effort=$EFFORT)..."
+echo "[codex-math] Writing proof (gpt-5.5, effort=$EFFORT)..."
 
 codex exec --full-auto --skip-git-repo-check \
     -c "model_reasoning_effort=\"$EFFORT\"" \

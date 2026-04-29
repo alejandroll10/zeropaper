@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify a mathematical proof using OpenAI Codex (gpt-5.4).
+# Verify a mathematical proof using OpenAI Codex (gpt-5.5).
 # Extracts the block, pipes it to Codex, saves the result.
 #
 # Usage:
@@ -36,7 +36,7 @@ if [ -z "$CONTENT" ]; then
     exit 1
 fi
 
-echo "[codex-math] Sending to Codex (gpt-5.4, effort=$EFFORT)..."
+echo "[codex-math] Sending to Codex (gpt-5.5, effort=$EFFORT)..."
 
 codex exec --full-auto --skip-git-repo-check \
     -c "model_reasoning_effort=\"$EFFORT\"" \

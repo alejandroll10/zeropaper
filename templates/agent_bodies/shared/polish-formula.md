@@ -19,7 +19,7 @@ For every numbered equation, lemma, proposition, corollary in the rendered paper
 
 ## Tools
 
-- **codex-math skill** for symbolic re-derivation. Use `code/utils/codex_math/codex_verify.sh <file> <pattern> [effort]` on a self-contained derivation block (e.g., `codex_verify.sh paper/sections/model.tex "Proposition 9" high`). Codex returns ~50% false positives; you triage. A codex VALID with a derivation that traces from definitions through to the paper's stated result confirms; a codex INVALID that points to a specific step you can independently verify is a real finding.
+- **codex-math skill** for symbolic re-derivation. Use `code/utils/codex_math/codex_verify.sh <file> <pattern> [effort]` on a self-contained derivation block (e.g., `codex_verify.sh paper/sections/model.tex "Proposition 9" high`). Codex returns a substantial fraction of false positives (see the codex-math skill for the historical rate and triage protocol); you triage. A codex VALID with a derivation that traces from definitions through to the paper's stated result confirms; a codex INVALID that points to a specific step you can independently verify is a real finding.
 - **sympy via Bash** for quick algebraic checks: substitute parameter values into both the paper's formula and your re-derivation, compare numerically. A 6-decimal mismatch is a real finding regardless of what codex says.
 
 ## What you do NOT do

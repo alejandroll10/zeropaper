@@ -1,16 +1,16 @@
 ## What this is
 
-OpenAI Codex (gpt-5.4) as a mathematical co-processor. Codex runs non-interactively via `codex exec` and returns structured results. Use it for hard proof problems that resist direct attempts.
+OpenAI Codex (gpt-5.5) as a mathematical co-processor. Codex runs non-interactively via `codex exec` and returns structured results. Use it for hard proof problems that resist direct attempts.
 
 Scripts are at `code/utils/codex_math/`. Three modes: verify, write, explore.
 
 ## The erratic genius caveat
 
-Codex is an excellent mathematician but produces false positives at a ~50% rate. It is brilliant and unreliable. Treat every output as a lead, not a verdict.
+Codex is an excellent mathematician but produces a substantial fraction of false positives — historically observed near ~50% on `gpt-5.4`, and not separately recalibrated for the current default (`gpt-5.5`). It is brilliant and unreliable. Treat every output as a lead, not a verdict.
 
-**Real catches (~50%):** concrete counterexamples, dimensional/sign errors, genuine logical gaps, missing existence arguments, incorrect domain specifications.
+**Real catches:** concrete counterexamples, dimensional/sign errors, genuine logical gaps, missing existence arguments, incorrect domain specifications.
 
-**False positives (~50%):** flagging standard conventions as errors, demanding unnecessary generality, over-interpreting degenerate cases, flagging stated assumptions as "unjustified," missing paper-level context.
+**False positives:** flagging standard conventions as errors, demanding unnecessary generality, over-interpreting degenerate cases, flagging stated assumptions as "unjustified," missing paper-level context.
 
 **How to tell them apart:**
 - A real catch involves a specific counterexample or points to a concrete step that doesn't follow

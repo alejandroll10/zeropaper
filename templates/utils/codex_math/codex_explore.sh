@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Ask Codex (gpt-5.4) to explore a mathematical conjecture or question.
+# Ask Codex (gpt-5.5) to explore a mathematical conjecture or question.
 # Codex investigates rigorously: proves, disproves, or characterizes.
 #
 # Usage:
