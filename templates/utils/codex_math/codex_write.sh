@@ -50,7 +50,7 @@ TMP="/tmp/codex_write_${SAFE_NAME}_$$.txt"
 
 echo "[codex-math] Writing proof (gpt-5.4, effort=$EFFORT)..."
 
-codex exec --full-auto \
+codex exec --full-auto --skip-git-repo-check \
     -c "model_reasoning_effort=\"$EFFORT\"" \
     -o "$TMP" \
     "You are a mathematician writing a proof for a top economics journal. Write a complete, publication-ready proof.
