@@ -24,6 +24,9 @@ import os
 import sys
 
 import pandas as pd
+from dotenv import load_dotenv
+
+load_dotenv()
 
 HOST = '127.0.0.1'
 PORT = 23847
@@ -78,11 +81,18 @@ def wrds_start():
         raise FileNotFoundError(f"wrds_server.py not found at {server_script}")
 
     print("[wrds_client] Starting WRDS server (check Duo notification)...")
+    # wrds.Connection silently drops the wrds_password kwarg, so the spawned server
+    # needs PGPASSWORD in its env for libpq to authenticate.
+    server_env = {**os.environ}
+    wrds_pass = os.getenv('WRDS_PASS')
+    if wrds_pass:
+        server_env['PGPASSWORD'] = wrds_pass
     subprocess.Popen(
         [sys.executable, server_script],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
-        start_new_session=True
+        start_new_session=True,
+        env=server_env,
     )
 
     # Wait for server to be ready (Duo can take a while)

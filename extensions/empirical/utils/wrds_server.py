@@ -54,6 +54,11 @@ def _safe_raw_sql(db, sql):
     except TypeError as e:
         if 'immutabledict' not in str(e):
             raise
+    except AttributeError as e:
+        # pandas >= 2.2 with wrds.raw_sql: pd.read_sql_query rejects the
+        # raw psycopg2 Connection ("'Connection' object has no attribute 'cursor'")
+        if "'Connection' object has no attribute 'cursor'" not in str(e):
+            raise
     except Exception as e:
         if 'immutabledict' not in str(e):
             raise
@@ -69,9 +74,15 @@ def _safe_raw_sql(db, sql):
 def connect_wrds():
     """Establish WRDS connection (triggers Duo 2FA)."""
     import wrds
+    # wrds.Connection silently drops the wrds_password kwarg (sql.py:62 hardcodes
+    # self._password = ""). Set PGPASSWORD so libpq picks it up — makes this function
+    # self-sufficient when launched directly (without start_services.sh / wrds_client).
+    wrds_pass = os.getenv('WRDS_PASS')
+    if wrds_pass:
+        os.environ['PGPASSWORD'] = wrds_pass
     db = wrds.Connection(
         wrds_username=os.getenv('WRDS_USER'),
-        wrds_password=os.getenv('WRDS_PASS')
+        wrds_password=wrds_pass
     )
     print(f"[wrds_server] Connected to WRDS as {os.getenv('WRDS_USER')}")
     return db

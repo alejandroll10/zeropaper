@@ -26,11 +26,46 @@ def get_wrds():
     global _DB
     if _DB is None:
         import wrds
+        # wrds.Connection silently drops the wrds_password kwarg (sql.py:62 hardcodes
+        # self._password = ""), so libpq sees an empty-password URI. Set PGPASSWORD
+        # in the env before connecting — libpq picks it up before the empty URI value.
+        wrds_pass = os.getenv('WRDS_PASS')
+        if wrds_pass:
+            os.environ['PGPASSWORD'] = wrds_pass
         _DB = wrds.Connection(
             wrds_username=os.getenv('WRDS_USER'),
-            wrds_password=os.getenv('WRDS_PASS')
+            wrds_password=wrds_pass
         )
     return _DB
+
+def _safe_raw_sql(db, sql):
+    """Mirror of wrds_server._safe_raw_sql: works around two wrds.raw_sql bugs.
+
+    `wrds.Connection.raw_sql()` hardcodes `dtype_backend="numpy_nullable"` which trips
+    `sqlalchemy.cyextension.immutabledict.immutabledict is not a sequence` on some
+    queries (LIKE, pg_tables, information_schema, certain GROUP BY ... COUNT(*)).
+    On pandas >= 2.2, `pd.read_sql_query` also rejects the raw psycopg2 Connection
+    with "'Connection' object has no attribute 'cursor'". Both shapes fall through
+    to a manual sqlalchemy path that constructs the DataFrame from raw rows.
+    """
+    try:
+        return db.raw_sql(sql)
+    except TypeError as e:
+        if 'immutabledict' not in str(e):
+            raise
+    except AttributeError as e:
+        if "'Connection' object has no attribute 'cursor'" not in str(e):
+            raise
+    except Exception as e:
+        if 'immutabledict' not in str(e):
+            raise
+    from sqlalchemy import text
+    with db.engine.connect() as conn:
+        result = conn.execute(text(sql))
+        cols = list(result.keys())
+        rows = [tuple(r) for r in result.fetchall()]
+    return pd.DataFrame(rows, columns=cols)
+
 
 def query(sql):
     """Run a SQL query against WRDS and return a DataFrame.
@@ -41,7 +76,7 @@ def query(sql):
     Returns:
         pandas DataFrame
     """
-    return get_wrds().raw_sql(sql)
+    return _safe_raw_sql(get_wrds(), sql)
 
 def crsp_monthly(start='1963-07-01', end='2024-12-31', shrcd=(10, 11), exchcd=(1, 2, 3)):
     """Download CRSP monthly stock file with market cap.
