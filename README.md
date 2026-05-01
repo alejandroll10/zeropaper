@@ -12,7 +12,7 @@ This is a research instrument, not a submission tool. Outputs are **drafts** tha
 
 **Outputs are watermarked.** PDFs produced by this pipeline carry a non-cosmetic provenance watermark. Detection methodology is shared privately with journal editors on request. Removing, modifying, or obfuscating the watermark terminates the license automatically (§4).
 
-**Cost.** A full run consumes substantial API credits — order-of-magnitude tens to low hundreds of US dollars per project, depending on iteration count, model selection (`--light` is cheaper), and extensions. The pipeline does not cap spend; set provider-side rate limits if this matters to you.
+**Cost.** A full pipeline run costs roughly **$2 per paper** at typical settings — see the companion paper for benchmarks. Most users will run comfortably inside the rate limits of the **higher subscription tiers** of Claude Code, Codex, or Gemini CLI, with no separate API billing required (the orchestrator and most subagents run on subscription quota). Pay-per-token API access is also supported. Three runs a day costs nothing extra on a max plan; ~100 papers/month works out to roughly $200 total at API rates. Heavy iteration, large empirical extensions, or `--ext theory_llm` runs can push individual costs modestly higher.
 
 **Commercial use is prohibited** without a separate written license (§5). Ordinary academic use by individual researchers, students, and non-profit institutions is unrestricted (subject to §2–§4).
 
