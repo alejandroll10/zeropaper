@@ -150,7 +150,7 @@ Initial state (created by setup.sh):
   "reject_cosmetic_round": 0,
   "target_journal_tier": "top-5",
   "pivot_round": 0,
-  "fix_empirics_rounds": 0,
+  "fix_empirics_round": 0,
   "bib_verify_round": 0,
   "polish_round": 0,
   "regeneration_round": 0,
