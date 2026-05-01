@@ -1,0 +1,46 @@
+% =====================================================================
+% DO NOT MODIFY THE PIPELINE-MANAGED LINES BELOW.
+% Removing arpipeline.sty, the \usepackage{arpipeline} line, or the
+% PIPELINE-MANAGED markers may break downstream pipeline tooling
+% (dashboard, deployment audit, verification). Edit \title, \author,
+% \date, \begin{abstract}...\end{abstract}, the \input lines, and the
+% bibliography commands freely. paper-writer adds \input lines for new
+% section files under paper/sections/ as the paper grows.
+% =====================================================================
+\documentclass[11pt]{article}
+
+% PIPELINE-MANAGED — DO NOT MODIFY
+\usepackage[utf8]{inputenc}
+\usepackage{hyperref}
+\IfFileExists{arpipeline.sty}{\usepackage{arpipeline}}{}
+% END PIPELINE-MANAGED
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{natbib}
+\usepackage{graphicx}
+\usepackage{booktabs}
+
+\title{TITLE PLACEHOLDER}
+\author{AUTHOR PLACEHOLDER}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+ABSTRACT PLACEHOLDER --- paper-writer fills this at Stage 5.
+\end{abstract}
+
+% paper-writer: add \input lines for each section file under paper/sections/
+% Example:
+%   \input{sections/introduction}
+%   \input{sections/model}
+%   \input{sections/results}
+%   \input{sections/conclusion}
+
+\bibliographystyle{plainnat}
+\IfFileExists{bib.bib}{\bibliography{bib}}{}
+
+\end{document}

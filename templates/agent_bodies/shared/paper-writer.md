@@ -61,7 +61,7 @@ Write each section to a separate file in `paper/sections/`:
 
 ## Also update
 
-- `paper/main.tex` — add `\input` commands for all section files
+- `paper/main.tex` — add `\input` commands for all section files. **The skeleton ships with a `% PIPELINE-MANAGED` block in the preamble that loads `arpipeline.sty`. Do not modify or remove the lines marked `PIPELINE-MANAGED`, do not delete `paper/arpipeline.sty`, and do not remove the `\usepackage{arpipeline}` line.** These are pipeline infrastructure (deployment fingerprint, downstream verification); removing them may break dashboard/audit tooling. Edit `\title`, `\author`, `\date`, the abstract, the `\input` lines, and the bibliography commands freely.
 - `references/references.md` — ensure every cited paper is listed
 
 ## Style rules (mandatory)
