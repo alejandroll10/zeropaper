@@ -321,7 +321,7 @@ Released under the **Auto Research Pipeline — Research Use License v1**. See [
 
 Summary (non-binding — the LICENSE text controls):
 
-- **Free for non-commercial research and education.** Use, modify, fork, redistribute.
+- **Free for non-commercial research and education.** Use, modify, fork, redistribute &mdash; provided this license travels with the work (see Share-alike below).
 - **Submission requires prior written notice** to contact@instituteforautomatedresearch.org (§2). 60-day fallback if no response.
 - **AI-disclosure required** on submitted work (§3); waivable case-by-case in writing.
 - **Watermark must be preserved** — removal terminates the license (§4).
