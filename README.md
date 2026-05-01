@@ -25,7 +25,7 @@ If you already have Claude Code installed, open it in any empty folder and paste
 ```
 Set up an autonomous finance research project in this folder.
 
-1. Clone https://github.com/alejandroll10/auto-ai-research-template into a temp location
+1. Clone https://github.com/alejandroll10/zeropaper into a temp location
 2. From there, run ./setup.sh my-paper --variant finance
    (or --variant finance --ext empirical if I want CRSP/Compustat data)
 3. Move the resulting my-paper/ folder here
@@ -71,8 +71,8 @@ npm install -g @google/gemini-cli
 ### Step 1: Clone this template (once)
 
 ```bash
-git clone https://github.com/alejandroll10/auto-ai-research-template.git
-cd auto-ai-research-template
+git clone https://github.com/alejandroll10/zeropaper.git
+cd zeropaper
 ```
 
 ### Step 2: Create a project

@@ -315,7 +315,7 @@ else
     fi
 
     echo "Cloning template into $PROJECT_NAME..."
-    git clone https://github.com/alejandroll10/auto-ai-research-template.git "$PROJECT_NAME"
+    git clone https://github.com/alejandroll10/zeropaper.git "$PROJECT_NAME"
     cd "$PROJECT_NAME"
     git remote remove origin
 
