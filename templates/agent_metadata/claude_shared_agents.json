@@ -228,7 +228,7 @@
   },
   "branch-manager": {
     "name": "branch-manager",
-    "description": "Strategic advisor launched at every Gate 4 after scorer(s) return. Diagnoses whether the current theoretical path has ceilinged, surfaces concrete alternatives from the Round 1 sketch portfolio, and recommends continue/restructure/restart. Produces a structured 5-section report; does not make the gate decision.",
+    "description": "Strategic advisor. Launched at (a) every Gate 4 after scorer(s) return, (b) Gate 5-Reject as a substantive-vs-cosmetic check on deepening attempts (context=gate-5-reject, with a gate-5-reject-regen variant for regeneration entry), and (c) the Stage 2 audit loop every 3rd theory version. Diagnoses whether the current path has ceilinged, surfaces alternatives from the Round 1 sketch portfolio, and recommends continue/restructure/restart. Produces a structured report; does not make the gate decision.",
     "tools": "Read, Write",
     "model": "opus",
     "effort": "high",

@@ -132,6 +132,8 @@ Stage 8: Bibliography Verify  ──→
 Stage 9: Polish               ──→ Done (six parallel polish agents + triage + paper-writer; max 2 rounds)
 ```
 
+**Stage labels.** Letter suffixes (`2b`, `3a`, `3b`) are extension-conditional or sequence-internal sub-stages within a block, not top-level stages. `2b` runs after Gates 2/3 inside Stage 2's block; `3a`/`3b` are the empirical / theory_llm extensions paired with Stage 3 (Implications). `Gate 3a-feasibility` carries the `3a` label because it is the empirical extension's pre-check, not because it sits inside Stage 3.
+
 ---
 
 ## Pipeline state
