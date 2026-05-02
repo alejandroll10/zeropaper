@@ -1,10 +1,26 @@
-# Data files (large, may be proprietary)
-data/*.csv
-data/*.parquet
-data/*.h5
-data/*.dta
-data/*.xlsx
+# Data files (large, may be proprietary) — recursive globs so files in
+# data/<subdir>/ are caught too (top-level-only globs miss those).
+data/**/*.csv
+data/**/*.parquet
+data/**/*.h5
+data/**/*.dta
+data/**/*.xlsx
 data/crsp_daily_raw/
+
+# Large binary blobs anywhere in the repo
+*.zip
+*.tar
+*.tar.gz
+*.tgz
+*.gz
+*.7z
+*.npy
+*.npz
+*.pkl
+*.pickle
+*.feather
+*.arrow
+*.bin
 
 # Python
 __pycache__/
@@ -37,7 +53,6 @@ paper/*.blg
 paper/*.bcf
 paper/*.log
 paper/*.out
-paper/*.pdf
 paper/*.run.xml
 paper/*.synctex.gz
 paper/*.fdb_latexmk
