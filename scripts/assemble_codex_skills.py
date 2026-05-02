@@ -6,11 +6,21 @@ from pathlib import Path
 FIELD_ORDER = ["name", "description"]
 
 
+def yaml_scalar(value):
+    if isinstance(value, bool):
+        return "true" if value else "false"
+    if isinstance(value, (int, float)):
+        return str(value)
+    s = str(value)
+    escaped = s.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
+
+
 def render_skill(metadata, body):
     lines = ["---"]
     for key in FIELD_ORDER:
         if key in metadata:
-            lines.append(f"{key}: {metadata[key]}")
+            lines.append(f"{key}: {yaml_scalar(metadata[key])}")
     lines.extend(["---", "", body.rstrip(), ""])
     return "\n".join(lines)
 

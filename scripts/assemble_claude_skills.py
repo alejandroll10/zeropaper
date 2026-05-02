@@ -9,7 +9,11 @@ FIELD_ORDER = ["name", "description", "user-invocable", "argument-hint", "allowe
 def format_value(value):
     if isinstance(value, bool):
         return "true" if value else "false"
-    return str(value)
+    if isinstance(value, (int, float)):
+        return str(value)
+    s = str(value)
+    escaped = s.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
 
 
 def render_skill(metadata, body):

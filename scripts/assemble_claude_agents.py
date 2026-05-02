@@ -16,7 +16,9 @@ def format_value(value):
         return "true" if value else "false"
     if isinstance(value, list):
         return "[" + ", ".join(str(v) for v in value) + "]"
-    return str(value)
+    s = str(value)
+    escaped = s.replace("\\", "\\\\").replace('"', '\\"')
+    return f'"{escaped}"'
 
 
 def render_agent(metadata, body):
