@@ -38,12 +38,12 @@ The editor's aggregation rules are spelled out in its agent body (`editor.md`). 
 
 ## Journal-fit handling
 
-If the editor recommends **Downgrade** (e.g., from `top-5` to `field`):
-- Update `target_journal_tier` in `process_log/pipeline_state.json` to the editor's recommended tier.
+If the editor recommends **Downgrade** (one rung down the variant ladder, `{{TIER_LADDER_PROSE}}`):
+- Update `target_journal_tier` in `process_log/pipeline_state.json` to the editor's recommended tier (one rung down the ladder above).
 - Recompute the Gate 4 advance threshold for the new tier (per the table in `docs/stage_4.md`).
 - If the aggregated verdict is **Accept** or **Minor Revision** at the new tier (i.e., the current paper already clears the new threshold per its most recent score), proceed to Stage 7.
 - If the aggregated verdict is **Major Revision** (Rule 2 escape from Reject, or Rule 3 + Rule 5 cross-referee tier signal), continue the loop targeting the lower tier.
-- **Re-launching Stage 6 after a tier change.** The referees' variant context is baked at deploy time and does not auto-update from `target_journal_tier`. To propagate the new tier, the orchestrator MUST include the following block in each referee's launch prompt on the next round: `> Tier override: the pipeline's active target tier has been updated to {new_tier} (e.g., for "field": JME, JFQA, Rev Finance, Management Science, RED). Evaluate this paper's fit against that tier, not the original {old_tier} target. The bar for Accept/Minor/Major/Reject must be calibrated to the new tier.` Replace `{new_tier}` and `{old_tier}` with the actual values. Do this for `referee`, `referee-freeform`, and `referee-mechanism` on every round after the tier change, until the pipeline ships.
+- **Re-launching Stage 6 after a tier change.** The referees' variant context is baked at deploy time and does not auto-update from `target_journal_tier`. To propagate the new tier, the orchestrator MUST include the following block in each referee's launch prompt on the next round: `> Tier override: the pipeline's active target tier has been updated to {new_tier} (variant tier examples — {{TIER_DOWNGRADE_EXAMPLES}}). Evaluate this paper's fit against that tier, not the original {old_tier} target. The bar for Accept/Minor/Major/Reject must be calibrated to the new tier.` Replace `{new_tier}` and `{old_tier}` with the actual values. Do this for `referee`, `referee-freeform`, and `referee-mechanism` on every round after the tier change, until the pipeline ships.
 - Commit: `pipeline: gate 5 — target tier downgraded to {tier} per editor recommendation`.
 
 If the editor recommends **Upgrade** (rare): same procedure with the higher tier, including the same tier-override prompt block on subsequent referee launches.

@@ -47,15 +47,11 @@
    - **Content score + content feedback**: determines the gate decision. Only substantive theory issues (new math needed, proofs to fix, mechanisms to clarify).
    - **Presentation notes**: expositional improvements (reframe abstract, soften claims, reorder sections). These do NOT affect the score or gate decision. Save them — they are forwarded to the paper-writer at Stage 5.
    Also read the **freeform scorer** output (`scorer_freeform_vN.md`) for holistic assessment; if the freeform scorer's score estimate diverges significantly (±10 points) from the structured score, note the discrepancy and factor it into the branch-manager review.
-9. Use the **content score** for state-dependent escalation. **Read `target_journal_tier` from `process_log/pipeline_state.json`** to select the correct row of the table below — this field is initialized to `top-5` at setup but may be updated mid-run by the Stage 6 `editor` agent (Downgrade or Upgrade recommendations, see `docs/stage_6.md` "Journal-fit handling"). Do not assume the original target tier; always read the current value.
+9. Use the **content score** for state-dependent escalation. **Read `target_journal_tier` from `process_log/pipeline_state.json`** to select the correct row of the table below — this field is initialized to `{{INITIAL_TIER}}` at setup but may be updated mid-run by the Stage 6 `editor` agent (Downgrade or Upgrade recommendations, see `docs/stage_6.md` "Journal-fit handling"). Do not assume the original target tier; always read the current value. The variant's tier ladder is `{{TIER_LADDER_PROSE}}`.
 
-**Scoring is absolute** — 80 means top-5 journal quality regardless of target. The advance threshold depends on the target journal tier. Default tiers:
+**Scoring is absolute** — 80 means top-5 journal quality regardless of target. The advance threshold depends on the target journal tier. Default tiers (variant-specific):
 
-| Target tier | Examples | Advance | Revise | Rework | Abandon |
-|-------------|----------|---------|--------|--------|---------|
-| **top-5** | AER, JF, Econometrica, QJE, JPE, ReStud, JFE, RFS | 75+ | 55-74 | 35-54 | <35 |
-| **field** | JME, JFQA, Rev Finance, Management Science, RED | 65+ | 45-64 | 30-44 | <30 |
-| **letters** | Economics Letters, Finance Research Letters | 55+ | 40-54 | 25-39 | <25 |
+{{TIER_TABLE}}
 
 **1st scorer evaluation** (no prior score): use band logic from the table above.
 

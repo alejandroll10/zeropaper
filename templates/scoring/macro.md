@@ -21,6 +21,6 @@
 | Parsimony | 10% | Tractable GE with one key friction, every assumption load-bearing = 100, one or two robustness extensions = 80, multiple non-load-bearing extensions = 60, kitchen-sink DSGE = 20. Assumptions added to address audits but not used in main proof count against. **Exception: scope conditions that reflect a genuine mathematical necessity surfaced by the math audit or theory-explorer do NOT count against parsimony — they are Rigor.** |
 | Fertility | 10% | Reframes a literature or changes policy thinking = 100, dead-end result = 20 |
 
-Threshold to advance: 75+
+Threshold to advance: tier-dependent — see `docs/stage_4.md` tier table (defaults: `top-5` 80+, `field` 65+, `letters` 55+).
 
 **Scope integrity (applies across dimensions; any theory version after v1, including within-Gate-2 iterations).** If the current version removed a claim that was unverified or falsified in a prior version, or narrowed an over-broad theorem to its proved scope, treat this as positive — credit +Rigor (accurate characterization) rather than -Parsimony or -Surprise (narrower claim). Honest scope narrowing is a gain, not a loss. Does not apply at v1 (no prior version exists).

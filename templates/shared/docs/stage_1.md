@@ -2,7 +2,7 @@
 
 **Agents:** `idea-generator` + `idea-reviewer` (iterating)
 
-**Regeneration round.** A regeneration round fires when the prior theory attempt succeeded but ceilinged at 55-74, branch-manager §E recommends Regenerate, and `regeneration_round == 0` for this problem (see `core.md` escalation table). The orchestrator increments `regeneration_round` to N *before* entering Stage 1, so when this section is read, `regeneration_round` already equals the new N — and `learnings_r{N}.md` and `paper_archive/r{N}/` use the same N (the post-increment value). On a regeneration entry:
+**Regeneration round.** A regeneration round fires when the prior theory attempt succeeded but ceilinged in the REVISE band for the current target tier (see `docs/stage_4.md` tier table — e.g., 60-79 for `top-5`, 55-74 for `top-3-fin`, 45-64 for `field`), branch-manager §E recommends Regenerate, and `regeneration_round == 0` for this problem (see `core.md` escalation table). The orchestrator increments `regeneration_round` to N *before* entering Stage 1, so when this section is read, `regeneration_round` already equals the new N — and `learnings_r{N}.md` and `paper_archive/r{N}/` use the same N (the post-increment value). On a regeneration entry:
 - Pass `output/stage1/learnings_r{regeneration_round}.md` (produced by branch-manager) to **both** idea-generator and idea-reviewer alongside the lit map.
 - **At step 2 below, take the explicit Regeneration short-circuit** (added at the top of step 2) — do not consult the runner-up or unused-sketch priorities; the existing portfolio is by assumption exhausted.
 - Sketches must not repeat any mechanism in `stage1_candidates.sketch_name` or the learnings file's "exhausted mechanisms" list.

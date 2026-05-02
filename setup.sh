@@ -80,6 +80,10 @@ case "$VARIANT" in
         DOMAIN_AREAS="finance theory — asset pricing, corporate finance, information economics, market design, financial intermediation, or behavioral finance"
         JOURNAL_LIST="Top-3 finance: JF, JFE, RFS. Also: Review of Finance, Management Science, JFQA. Top accounting: JAR, JAE, TAR, RAS. Top-5 econ: AER, Econometrica, QJE, JPE, ReStud."
         AGENT_DIR="finance"
+        INITIAL_TIER="top-3-fin"
+        TIER_LADDER_PROSE='top-5 → top-3-fin → field → letters'
+        TIER_LIST_INLINE='`top-5`, `top-3-fin`, `field`, `letters`'
+        TIER_DOWNGRADE_EXAMPLES='for `top-3-fin`: JF, JFE, RFS; for `field`: JFQA, Review of Finance, Management Science; for `letters`: Finance Research Letters, Economics Letters'
         ;;
     macro)
         PAPER_TYPE="macroeconomics theory paper"
@@ -87,6 +91,10 @@ case "$VARIANT" in
         DOMAIN_AREAS="macroeconomics"
         JOURNAL_LIST="Top-5 econ: AER, Econometrica, QJE, JPE, ReStud. Top-3 finance: JF, JFE, RFS. Macro field: JME, JEDC, AEJ:Macro, AEJ:Micro, JIE, JET, RED."
         AGENT_DIR="macro"
+        INITIAL_TIER="top-5"
+        TIER_LADDER_PROSE='top-5 → field → letters'
+        TIER_LIST_INLINE='`top-5`, `field`, `letters`'
+        TIER_DOWNGRADE_EXAMPLES='for `field`: JME, JEDC, AEJ:Macro, RED; for `letters`: Economics Letters'
         ;;
     *)
         echo "Unknown variant: $VARIANT"
@@ -431,6 +439,9 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --paper-type "$PAPER_TYPE" \
     --target-journals "$TARGET_JOURNALS" \
     --domain-areas "$DOMAIN_AREAS" \
+    --initial-tier "$INITIAL_TIER" \
+    --tier-ladder-prose "$TIER_LADDER_PROSE" \
+    --tier-list-inline "$TIER_LIST_INLINE" \
     --doc-name "CLAUDE.md" \
     --agent-dir "$CLAUDE_AGENTS_REL" \
     --skill-dir "$CLAUDE_SKILLS_REL" \
@@ -450,6 +461,9 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --paper-type "$PAPER_TYPE" \
     --target-journals "$TARGET_JOURNALS" \
     --domain-areas "$DOMAIN_AREAS" \
+    --initial-tier "$INITIAL_TIER" \
+    --tier-ladder-prose "$TIER_LADDER_PROSE" \
+    --tier-list-inline "$TIER_LIST_INLINE" \
     --doc-name "AGENTS.md" \
     --agent-dir "$CODEX_AGENTS_REL" \
     --skill-dir "$CODEX_SKILLS_REL" \
@@ -470,6 +484,9 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --paper-type "$PAPER_TYPE" \
     --target-journals "$TARGET_JOURNALS" \
     --domain-areas "$DOMAIN_AREAS" \
+    --initial-tier "$INITIAL_TIER" \
+    --tier-ladder-prose "$TIER_LADDER_PROSE" \
+    --tier-list-inline "$TIER_LIST_INLINE" \
     --doc-name "GEMINI.md" \
     --agent-dir "$GEMINI_AGENTS_REL" \
     --skill-dir "$GEMINI_DIR_REL/skills" \
@@ -593,8 +610,14 @@ mkdir -p "$P/docs"
 cp "$TEMPLATE_ROOT/templates/shared/docs/"*.md "$P/docs/"
 # Substitute variant placeholders (same ones assemble_runtime_doc.py handles for core.md)
 for _docfile in "$P/docs/"*.md; do
-    sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g" "$_docfile" && rm "${_docfile}.bak"
+    sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g; s|{{INITIAL_TIER}}|$INITIAL_TIER|g; s|{{TIER_LADDER_PROSE}}|$TIER_LADDER_PROSE|g; s|{{TIER_LIST_INLINE}}|$TIER_LIST_INLINE|g; s|{{TIER_DOWNGRADE_EXAMPLES}}|$TIER_DOWNGRADE_EXAMPLES|g" "$_docfile" && rm "${_docfile}.bak"
 done
+
+# Inject the variant-specific tier table into stage_4.md (multi-line content via sed -r)
+TIER_TABLE_FILE="$TEMPLATE_ROOT/templates/shared/tier_tables/${VARIANT}.md"
+if [ -f "$TIER_TABLE_FILE" ] && [ -f "$P/docs/stage_4.md" ]; then
+    sed -i.bak -e "/{{TIER_TABLE}}/r $TIER_TABLE_FILE" -e "/{{TIER_TABLE}}/d" "$P/docs/stage_4.md" && rm "$P/docs/stage_4.md.bak"
+fi
 
 # Function to substitute {{SEED_OVERRIDE_*}} placeholders in all docs in $P/docs/.
 # Called after shared docs copy AND after each extension copies its own docs, so
@@ -672,6 +695,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "pivot_resolved": null,
   "pivot_history": [],
   "triaged_lit_implications": [],
+  "target_journal_tier": "__INITIAL_TIER__",
   "status": "not_started",
   "seeded": true,
   "scores": {},
@@ -680,6 +704,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "history": []
 }
 JSONEOF
+    sed -i.bak "s|__INITIAL_TIER__|$INITIAL_TIER|g" "$P/process_log/pipeline_state.json" && rm "$P/process_log/pipeline_state.json.bak"
 else
 cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
 {
@@ -698,6 +723,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "pivot_resolved": null,
   "pivot_history": [],
   "triaged_lit_implications": [],
+  "target_journal_tier": "__INITIAL_TIER__",
   "seeded": false,
   "status": "not_started",
   "scores": {},
@@ -706,6 +732,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "history": []
 }
 JSONEOF
+    sed -i.bak "s|__INITIAL_TIER__|$INITIAL_TIER|g" "$P/process_log/pipeline_state.json" && rm "$P/process_log/pipeline_state.json.bak"
 fi
 
 if [ "$MANUAL" = "0" ]; then

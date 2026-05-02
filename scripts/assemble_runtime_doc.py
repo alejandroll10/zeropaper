@@ -12,6 +12,12 @@ def main():
     parser.add_argument("--paper-type", required=True)
     parser.add_argument("--target-journals", required=True)
     parser.add_argument("--domain-areas", required=True)
+    parser.add_argument("--initial-tier", required=True,
+                        help="Variant default for target_journal_tier (e.g., 'top-3-fin' for finance, 'top-5' for macro)")
+    parser.add_argument("--tier-ladder-prose", required=True,
+                        help="Variant tier ladder shown in prose (e.g., 'top-5 → top-3-fin → field → letters')")
+    parser.add_argument("--tier-list-inline", required=True,
+                        help="Variant tier enum as backtick-wrapped comma list (e.g., '`top-5`, `top-3-fin`, `field`, `letters`')")
     parser.add_argument("--doc-name", required=True)
     parser.add_argument("--agent-dir", required=True)
     parser.add_argument("--skill-dir", required=True)
@@ -50,6 +56,9 @@ def main():
     content = content.replace("{{PAPER_TYPE}}", args.paper_type)
     content = content.replace("{{TARGET_JOURNALS}}", args.target_journals)
     content = content.replace("{{DOMAIN_AREAS}}", args.domain_areas)
+    content = content.replace("{{INITIAL_TIER}}", args.initial_tier)
+    content = content.replace("{{TIER_LADDER_PROSE}}", args.tier_ladder_prose)
+    content = content.replace("{{TIER_LIST_INLINE}}", args.tier_list_inline)
     content = content.replace("{{AGENT_DIR}}", args.agent_dir)
     content = content.replace("{{SKILL_DIR}}", args.skill_dir)
     content = content.replace("{{SEED_OVERRIDE}}", seed_block)

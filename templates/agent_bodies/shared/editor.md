@@ -30,7 +30,7 @@ A single file at the path the orchestrator gives you (`paper/referee_reports/edi
 - Structured referee report: `paper/referee_reports/YYYY-MM-DD_vN.md` — verdict: [Accept | Minor Revision | Major Revision | Reject]
 - Free-form referee report: `paper/referee_reports/YYYY-MM-DD_vN_freeform.md` — verdict: [Accept | Minor Revision | Major Revision | Reject]
 - Mechanism referee report: `paper/referee_reports/YYYY-MM-DD_vN_mechanism.md` — verdict: [MECHANISM-VALID | MECHANISM-PARTIAL | MECHANISM-MISATTRIBUTED | MECHANISM-DECORATIVE]
-- Target journal tier (from pipeline state): [top-5 | field | letters]
+- Target journal tier (from pipeline state): [top-5 | top-3-fin (finance variant only) | field | letters]
 
 ## Aggregated verdict
 
@@ -66,7 +66,7 @@ The triager runs on this list, not on the raw three reports. Merge duplicates, r
 
 **Justification:** [Read the three referee reports for tier-fit signals — comments like "this is interesting but not at the level of {target journal}", "the contribution is real but narrower than {target} typically publishes", "would be a strong field paper", or the inverse "this is more than {target} requires." If two or more referees signal tier-misfit in the same direction, recommend the change. Otherwise keep. Write the specific quoted phrases from the referees that drove your call.]
 
-**If Downgrade is recommended:** the orchestrator will update `target_journal_tier` in pipeline state, recompute the Gate 4 advance threshold, and decide whether the current paper already clears the new threshold (in which case ship; otherwise re-enter the loop at the new tier). You do not make that downstream decision — only the recommendation.
+**If Downgrade is recommended:** Downgrade walks one rung down the variant's tier ladder — finance: `top-5 → top-3-fin → field → letters`; macro: `top-5 → field → letters`. Pick the next rung below the current target, not an arbitrary lower tier. The orchestrator will update `target_journal_tier` in pipeline state, recompute the Gate 4 advance threshold, and decide whether the current paper already clears the new threshold (in which case ship; otherwise re-enter the loop at the new tier). You do not make that downstream decision — only the recommendation.
 
 ## Editorial summary (one paragraph)
 
@@ -91,7 +91,7 @@ If at least one referee (structured or freeform) recommends **Reject**, the aggr
 
 **The one allowed escape:** you may downgrade Reject to Major Revision **only** if the rejecting referee's stated reason is **clearly journal-fit, not paper quality**. The bar is high:
 
-- **Tier-fit Reject (escape allowed):** the referee explicitly says the paper is publishable, just at a different venue. Both halves must be present in the rejecting referee's report — (a) "publishable" / "would be a strong contribution" / "interesting and correct" *and* (b) "but at {lower-tier journal or field}" / "rather than {target}" / "in a more specialized outlet." Examples that qualify: "This is a strong field paper, not a top-3 paper." / "I would recommend this for {field journal} but not for {target}." / "Publishable, just not in this journal."
+- **Tier-fit Reject (escape allowed):** the referee explicitly says the paper is publishable, just at a different venue. Both halves must be present in the rejecting referee's report — (a) "publishable" / "would be a strong contribution" / "interesting and correct" *and* (b) "but at {lower-tier journal or field}" / "rather than {target}" / "in a more specialized outlet." Examples that qualify: "This is a strong field paper, not a top-3 finance journal paper." / "I would recommend this for {field journal} but not for {target}." / "Publishable, just not in this journal."
 - **Quality Reject (escape NOT allowed):** the referee says the paper falls short of the target's bar without endorsing publication elsewhere. Examples that do **not** qualify: "Not strong enough for {target}." / "The contribution does not rise to the level required." / "Below the journal's threshold." A statement that the paper is below the target's bar, without a positive endorsement of a lower-tier venue, is a quality Reject.
 
 When the escape applies, set the aggregated verdict to **Major Revision** AND set the journal-fit recommendation to **Downgrade**, so the loop continues at a tier the rejecting referee considers appropriate. This escape requires a one-paragraph written justification quoting **both halves** of the rejecting referee's tier-fit language verbatim. If you can quote (a) but not (b), or (b) but not (a), the verdict is Reject. **No other Reject downgrade is allowed.** "The other two referees were more positive" is not an escape — Reject is on the basis of the rejecting referee's read of the paper, not a vote count.

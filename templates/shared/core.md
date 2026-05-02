@@ -111,7 +111,7 @@ Puzzle Triage                ──→ fires if empirics/experiments contradict,
                                    │            (re-run Gate 2, Gate 3, Stage 2b, Stage 3, empirics; max 2 pivots)
                                    └── HONEST-NULL → Stage 5 with limits, or Stage 0
 Stage 4: Self-Attack          ──→ Gate 4: Scorer Decision (trajectory-based)
-                                   ├── ADVANCE (75+) → Stage 5
+                                   ├── ADVANCE (≥ tier threshold — see docs/stage_4.md) → Stage 5
                                    ├── REVISE  → back to Stage 2 (continue if Δ≥3, else escalate)
                                    ├── MAJOR REWORK → back to Stage 1 (continue if Δ≥3, else escalate)
                                    └── ABANDON → back to Stage 0 (max 5×)
@@ -151,7 +151,7 @@ Initial state (created by setup.sh):
   "theory_version": 1,
   "referee_round": 0,
   "reject_cosmetic_round": 0,
-  "target_journal_tier": "top-5",
+  "target_journal_tier": "{{INITIAL_TIER}}",
   "pivot_round": 0,
   "fix_empirics_round": 0,
   "bib_verify_round": 0,
@@ -182,7 +182,7 @@ When you start the pipeline, set `"status": "running"` and begin appending to th
 
 **`reject_cosmetic_round`:** Tracks consecutive cosmetic-deepening attempts when responding to a Stage 6 Reject verdict. Increments when branch-manager (gate-5-reject context) returns COSMETIC on a deepen attempt; resets to 0 on a SUBSTANTIVE deepen, on a Regeneration Round entry, or on falling back to standard Major Revision after the deepen path is exhausted. See `docs/stage_6.md` Reject row for the full state machine.
 
-**`target_journal_tier`:** The active journal tier for Gate 4 advance threshold and Stage 6 referee variant context. Initialized to `top-5`. The Stage 6 `editor` agent may recommend a tier change (Downgrade or Upgrade) based on cross-referee tier-fit signals; on Downgrade, the orchestrator updates this field and recomputes the Gate 4 advance threshold per `docs/stage_4.md`. Allowed values: `top-5` / `field` / `letters`. See `docs/stage_6.md` "Journal-fit handling" for the procedure.
+**`target_journal_tier`:** The active journal tier for Gate 4 advance threshold and Stage 6 referee variant context. Initialized to `{{INITIAL_TIER}}` for this variant. The Stage 6 `editor` agent may recommend a tier change (Downgrade or Upgrade) based on cross-referee tier-fit signals; on Downgrade, the orchestrator updates this field to one rung down the variant ladder and recomputes the Gate 4 advance threshold per `docs/stage_4.md`. The variant's tier ladder is `{{TIER_LADDER_PROSE}}`; allowed values are {{TIER_LIST_INLINE}}. (Legacy state files with `"target_journal_tier": "top-5"` remain valid in both variants — `top-5` is the top rung in both ladders.) See `docs/stage_6.md` "Journal-fit handling" for the procedure.
 
 **`archived_best_score_r{N}`:** Records the best Gate 4 score achieved on the pre-regeneration paper at the moment Regeneration Round N begins. Initialized to `null` (key `archived_best_score_r1` is in the initial schema; for N>1 the orchestrator appends `archived_best_score_r{N}` dynamically at regeneration entry). Consumers in `docs/stage_1.md` step 2 (regeneration re-entry) read this to compare the regenerated attempt's eventual Gate 4 score against the archived value; if the regenerated attempt does not strictly beat the archive, restore the archived paper from `paper_archive/r{N}/` and ship. A `null` value means no archive comparison applies (no regeneration has fired on this branch).
 
@@ -295,7 +295,7 @@ After the pipeline is complete (`"status": "complete"`), any new or modified pro
 
 **Once a paper draft exists (Stage 5+), the pipeline must produce a finished paper.** Do not loop back to Stage 0 after investing in paper writing. Instead, use the deepening playbook below to strengthen the paper. A regeneration round per the escalation table is permitted post-Stage-5; it re-enters at Stage 1, not Stage 0.
 
-If the scorer plateaus in the 55-74 range or the referee gives Major Revision with structural concerns (result is fragile, too narrow, or shallow):
+If the scorer plateaus in the REVISE band for the current target tier (see `docs/stage_4.md` — e.g., 60-79 for `top-5`, 55-74 for `top-3-fin`, 45-64 for `field`) or the referee gives Major Revision with structural concerns (result is fragile, too narrow, or shallow):
 
 ### Deepening playbook
 
@@ -306,7 +306,7 @@ When the core result is correct but thin, extend it with mathematically hard, ec
 
 **How to apply:** Identify the specific economic weakness from scorer/self-attack feedback. Pick 1-2 extensions that test whether the channel survives under realistic features. Prove the result or prove it breaks (a counterexample is as valuable as a positive result). Re-run Gate 2 + Gate 4 on extensions.
 
-**When to extend vs. start over:** Score 55+ with correct core → extend. Score < 35 or core wrong → start over. Novelty KNOWN → start over.
+**When to extend vs. start over:** Score in the REVISE band or above for the current target tier with correct core → extend. Score in the ABANDON band or core wrong → start over. Novelty KNOWN → start over.
 
 ---
 
@@ -322,16 +322,16 @@ When the core result is correct but thin, extend it with mathematically hard, ec
 | Scorer: delta ≥ 3 with substantive content change | — | Allow one more iteration in current band |
 | Scorer: delta ≥ 3 from reframing only | — | Treat as plateau — escalate. Reframing is not progress (see `stage_4.md`). |
 | Scorer: delta < 3 (plateau/decline) | — | Escalate one level (REVISE → MAJOR REWORK → ABANDON) |
-| Scorer: hard ceiling | 8 total evaluations on same problem | If score ≥ 55: switch to deepening playbook. If score < 55: escalate one level. |
-| Scorer plateau 55-74 | 2 consecutive delta < 3 | Switch to deepening playbook — the core idea works, it needs mathematical depth, not reworking. |
-| Scorer plateau 55-74, branch-manager §E = Regenerate, no prior regen on this problem (`regeneration_round == 0`), **not seeded** | — | Fire regeneration round at Stage 1 (see `docs/stage_1.md` "Regeneration round"). Increment `regeneration_round` *before* re-entering Stage 1. **Takes precedence over the deepening-playbook row above when both fire** — Regenerate is the §E verdict that supersedes the default plateau routing. **At most one regeneration per problem:** if the regenerated attempt also plateaus, this row no longer fires (`regeneration_round > 0`) and the "Scorer plateau 55-74" row directly above applies — switch to the deepening playbook. |
+| Scorer: hard ceiling | 8 total evaluations on same problem | If score is in the REVISE band or above for the current target tier (see `docs/stage_4.md`): switch to deepening playbook. Otherwise (MAJOR REWORK or ABANDON band): escalate one level. |
+| Scorer plateau in the REVISE band for the current target tier | 2 consecutive delta < 3 | Switch to deepening playbook — the core idea works, it needs mathematical depth, not reworking. |
+| Scorer plateau in the REVISE band for the current target tier, branch-manager §E = Regenerate, no prior regen on this problem (`regeneration_round == 0`), **not seeded** | — | Fire regeneration round at Stage 1 (see `docs/stage_1.md` "Regeneration round"). Increment `regeneration_round` *before* re-entering Stage 1. **Takes precedence over the deepening-playbook row above when both fire** — Regenerate is the §E verdict that supersedes the default plateau routing. **At most one regeneration per problem:** if the regenerated attempt also plateaus, this row no longer fires (`regeneration_round > 0`) and the plateau row directly above applies — switch to the deepening playbook. |
 | Theory scored ABANDON | 5 theories on same problem | Change the problem (Stage 0) |
 | Problem viability fails | 5 problems | Pick the best scoring problem and proceed anyway |
 | Editor: Major Revision (aggregated verdict) | Structural concerns (fragile, narrow, shallow) | Use deepening playbook. Triage editor's canonical comment list; revise; re-run Stage 6. Be patient — keep going as long as each round surfaces any new issue. Max 10 rounds. |
 | Mechanism referee: MISATTRIBUTED unresolved | Still MISATTRIBUTED at `referee_round >= 10` | Adopt the mechanism referee's identified driver as the paper's mechanism; rewrite introduction/mechanism sections and ship. **Force-adoption at round-10 resolves all outstanding locked mechanism `[FIX]` items as satisfied — no further revision cycle is required.** In seeded mode, prefer the narrow-framing path from the seed override (present what the math delivers under the seed's topic, acknowledge the mechanism-claim divergence in limitations) rather than adopting an unrelated driver. Never return to Stage 0 (never-abandon). |
 | Mechanism referee: DECORATIVE unresolved | Still DECORATIVE at `referee_round >= 10` | Ship the narrow-path version: after 10 rounds the restructure path has failed to surface real economic content, so narrow is the principled default. Present what the math delivers as a structural characterization, strip mechanism framing, add a limitations paragraph. **Round-10 narrow-adoption resolves all outstanding locked mechanism `[FIX]` items as satisfied.** Never return to Stage 0 (never-abandon, scientist-first). |
 | Editor: Reject (aggregated verdict) | — | Stage 6 fires only post-Stage-5, so a paper draft always exists; never-abandon. Reject routes through triage → deepen directive → deepen mandate (see `docs/stage_6.md` Reject row for full procedure). The pre-Stage-5 "Stage 0 / Stage 2" branches do not exist at this point. On two consecutive cosmetic deepen attempts, the orchestrator routes through the Regeneration Round protocol if eligible (`regeneration_round == 0`, not seeded), otherwise falls back to standard Major Revision (never-abandon). |
-| Editor: Downgrade tier recommendation | — | Update `target_journal_tier` in pipeline state, recompute Gate 4 advance threshold per the new tier. If aggregated verdict is Accept/Minor Revision at the new tier (current paper clears the new threshold), proceed to Stage 7. If Major Revision, continue the loop targeting the lower tier; the next round's referees inherit the updated tier in their variant context. See `docs/stage_6.md` "Journal-fit handling". |
+| Editor: Downgrade tier recommendation | — | Update `target_journal_tier` in pipeline state to one rung down the variant ladder (`{{TIER_LADDER_PROSE}}`), recompute Gate 4 advance threshold per the new tier. If aggregated verdict is Accept/Minor Revision at the new tier (current paper clears the new threshold), proceed to Stage 7. If Major Revision, continue the loop targeting the lower tier; the next round's referees inherit the updated tier in their variant context. See `docs/stage_6.md` "Journal-fit handling". |
 
 Before granting another iteration on a Δ≥3 score increase, the orchestrator classifies the v(N)→v(N−1) diff as substantive or cosmetic. Branch-manager emits this verdict at every Gate 4 (Section A); when it reports COSMETIC, the orchestrator escalates rather than continue. Definitions and the cosmetic-edit catalogue live in `docs/stage_4.md`.
 

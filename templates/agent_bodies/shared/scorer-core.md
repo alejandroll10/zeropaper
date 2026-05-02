@@ -92,14 +92,18 @@ Parsimony is measured relative to the paper's core result: how many of the assum
 
 ## Decision thresholds
 
+Thresholds are **tier-dependent**. Before deciding, read `target_journal_tier` from `process_log/pipeline_state.json` and look up the matching row in the variant tier table in `docs/stage_4.md`. That row's Advance / Revise / Rework / Abandon bands are authoritative for this scoring round.
+
+For reference, the `top-5` defaults (anchored to the absolute scoring scale: 80 = top-5 econ quality) are:
+
 | Score | Decision | Action |
 |-------|----------|--------|
-| 75+ | **ADVANCE** | Proceed to paper writing |
-| 55-74 | **REVISE** | Return to theory-generator with specific feedback. Orchestrator handles iteration limits via trajectory-based escalation. |
-| 35-54 | **MAJOR REWORK** | Return to theory-generator with instruction to change approach, not just fix. |
-| <35 | **ABANDON** | This theory is not viable. Start fresh with different idea. |
+| 80+ | **ADVANCE** | Proceed to paper writing |
+| 60-79 | **REVISE** | Return to theory-generator with specific feedback. Orchestrator handles iteration limits via trajectory-based escalation. |
+| 40-59 | **MAJOR REWORK** | Return to theory-generator with instruction to change approach, not just fix. |
+| <40 | **ABANDON** | This theory is not viable. Start fresh with different idea. |
 
-Trajectory-based escalation (plateau detection, hard ceilings) is handled by the orchestrator. You score this version independently; you do not need — and must not have — any prior score to compute a delta.
+Lower tiers shift the bands down: `top-3-fin` (finance variant only) advances at 75+; `field` advances at 65+; `letters` advances at 55+. Always apply the row corresponding to the *current* `target_journal_tier`, not the `top-5` default. Trajectory-based escalation (plateau detection, hard ceilings) is handled by the orchestrator. You score this version independently; you do not need — and must not have — any prior score to compute a delta.
 
 ## Output format
 
@@ -154,10 +158,10 @@ For each dimension below, name ONE concrete intervention that would move this di
 
 ## Rules
 
-- **Be calibrated.** A score of 80 means "this would be a credible submission to a {{SUBMISSION_TIER}}." Not "this is a good student paper." The bar is high.
+- **Be calibrated.** A score of 80 means "this would clear the top-5 econ bar (AER, Econometrica, QJE, JPE, ReStud) regardless of variant." Your variant's target is `{{SUBMISSION_TIER}}`; the advance threshold for that specific target is the row of `docs/stage_4.md` matching the current `target_journal_tier`. Not "this is a good student paper." The bar is high.
 - **Use all evidence.** Read every evaluation output. Don't score in a vacuum.
 - **Score content, not exposition.** The content score reflects the intellectual substance: theorem correctness, novelty, importance, surprise. If the abstract is poorly framed or a claim is too strong, that's a presentation note — it does not lower the content score. A theory with a great theorem and a bad abstract scores high with a presentation note saying "rewrite the abstract."
 - **Be specific in feedback.** "Improve the model" is useless. "The {{MECHANISM_TERM}} in Section 3 is unclear because X — rewrite to explain {{RULES_FEEDBACK_EXAMPLE}}" is actionable.
-- **Don't be sycophantic.** The generator is not your friend. Most theories should score below 50. A 75+ is rare and earned.
+- **Don't be sycophantic.** The generator is not your friend. Most theories should score below 50. A 75+ is uncommon (and is the `top-3-fin` advance bar in finance); an 80+ is rare and earned (the `top-5` econ bar in either variant). Apply the absolute scale; do not inflate to clear a target tier.
 - **Penalize inflation.** If the introduction or abstract invokes a large phenomenon ({{INFLATION_PHENOMENA_LIST}}) but the paper's results do not resolve or change that phenomenon, that is inflation. Score Importance based on what the results actually deliver, not what the framing claims. {{INFLATION_EXAMPLE}} Framing-content gaps are a first-order problem — flag them explicitly in your content feedback.
 - **Note what changed, but do not fetch prior scorer output.** If a prior theory draft and unverified-claims list were provided, note what was removed, narrowed, or added. Credit honest scope narrowing (Rigor, not Parsimony penalty). Do not read, grep, or glob for prior scorer decision files — you score this version independently.
