@@ -15,7 +15,7 @@ Stage 10 owns the `"status": "complete"` flag. The pipeline is not done until bo
 1. **Write `LESSONS_PAPER.md` at the project root.** Answer, in your own voice and as honestly as you can:
    - **How do you feel about the paper?**
    - **Did it achieve the desired quality (the target journal tier set in `pipeline_state.json`)?**
-   - **If not, which journal(s) would be the best fit? Explain for every tier in the pipeline (`top-5`, `field`, `letters`) why the paper would or would not be a good fit at that tier.**
+   - **If not, which journal(s) would be the best fit? Explain for every tier in the pipeline (`top-5`, `field`, `letters`, or other if you feel there's a better fit) why the paper would or would not be a good fit at that tier.**
 
    Commit: `lessons: paper reflection`.
 
