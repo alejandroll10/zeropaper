@@ -2,6 +2,16 @@
 
 This file covers two sub-stages: **Gate 3a-feasibility** (empirical feasibility, runs *before* Stage 3 implications) and **Stage 3a** (full empirical analysis, runs *after* Stage 3 implications). In `pipeline_state.json`, use `"stage_3a_feasibility"` during feasibility and `"stage_3a"` during full analysis.
 
+## Preflight: data-source liveness (before any `empiricist` launch in this stage)
+
+`start_services.sh` ran once at session start and produced `output/data_inventory.md`, but a long Stage 2 iteration may have outlived the WRDS session. Before each `empiricist` launch in this stage (Gate 3a-feasibility, Stage 3a plan, Stage 3a execute, and any re-fire), the orchestrator must verify the WRDS server is still reachable:
+
+```bash
+PYTHONPATH=code python3 -c "from utils.wrds_client import wrds_ping; exit(0 if wrds_ping() else 1)"
+```
+
+If the ping returns False, attempt one restart with `bash code/utils/start_services.sh`. If that also fails, halt the stage by setting `pipeline_state.json:status = "halted_wrds_unreachable"` rather than launching the empiricist into a stack of failed queries — re-run when access is restored. This preflight is cheap (sub-second when healthy) and prevents the most common silent stall in empirical runs. The same rule applies to the FIX-EMPIRICS empiricist re-launch in `docs/stage_puzzle_triage.md`, the Stage 6 Reject re-fire in `docs/stage_6.md` (which routes through this stage's "Re-fire on theory revision" section), and any future empiricist launch site.
+
 ## Gate 3a-feasibility: Empirical Feasibility (falsify-first)
 
 Quick falsification check: can this theory be calibrated at all? Do the key empirical moments exist? A theory that predicts the wrong sign on a well-measured moment is dead regardless of how elegant the implications are. Check this BEFORE investing in implications.
