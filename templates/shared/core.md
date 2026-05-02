@@ -129,7 +129,8 @@ Stage 6: Referee Simulation   ──→ editor (aggregates 3 reports → canonic
                                        target_journal_tier and may immediately ship Accept/Minor)
 Stage 7: Style Check          ──→
 Stage 8: Bibliography Verify  ──→
-Stage 9: Polish               ──→ Done (seven parallel polish agents + triage + paper-writer + style re-run; max 2 rounds)
+Stage 9: Polish               ──→ (seven parallel polish agents + triage + paper-writer + style re-run; max 2 rounds)
+Stage 10: Lessons             ──→ Done (orchestrator writes LESSONS_PAPER.md + LESSONS_PIPELINE.md)
 ```
 
 **Stage labels.** Letter suffixes (`2b`, `3a`, `3b`) are extension-conditional or sequence-internal sub-stages within a block, not top-level stages. `2b` runs after Gates 2/3 inside Stage 2's block; `3a`/`3b` are the empirical / theory_llm extensions paired with Stage 3 (Implications). `Gate 3a-feasibility` carries the `3a` label because it is the empirical extension's pre-check, not because it sits inside Stage 3.
@@ -265,6 +266,12 @@ Read `docs/stage_8.md` and proceed accordingly.
 ## Stage 9: Polish
 
 Read `docs/stage_9.md` and proceed accordingly.
+
+---
+
+## Stage 10: Lessons
+
+Read `docs/stage_10.md` and proceed accordingly.
 
 ---
 

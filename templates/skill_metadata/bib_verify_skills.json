@@ -1,7 +1,7 @@
 {
   "bib-verify": {
     "name": "bib-verify",
-    "description": "Verify the paper's bibliography against OpenAlex. Catches hallucinated, mistitled, or wrong-year citations before the paper ships. Runs `code/utils/bib_verify/verify_bib.sh` and writes a triage report to `output/bib_verification.md`. Use after paper-writer drafts, after any referee round that changes citations, and before marking the pipeline complete.",
+    "description": "Verify the paper's bibliography against OpenAlex. Catches hallucinated, mistitled, or wrong-year citations before the paper ships. Runs `code/utils/bib_verify/verify_bib.sh` and writes a triage report to `output/bib_verification.md`. Use after paper-writer drafts, after any referee round that changes citations, and before Stage 10 marks the pipeline complete.",
     "claude": {
       "user-invocable": true,
       "argument-hint": "[references-file-path]",

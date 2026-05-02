@@ -1,7 +1,7 @@
 {
   "bib-verifier": {
     "name": "bib-verifier",
-    "description": "Verifies the paper's bibliography against OpenAlex (and a WebSearch fallback for SSRN/recent papers). Launched at (a) Stage 5 immediately after the initial paper draft (early-verify pass), (b) Stage 8 after every referee round that changes citations, and (c) Stage 9 as a final one-shot post-polish pass before marking the pipeline complete. Reports VERIFIED / RESOLVED / FABRICATED counts and a fix list; does not edit the bibliography itself.",
+    "description": "Verifies the paper's bibliography against OpenAlex (and a WebSearch fallback for SSRN/recent papers). Launched at (a) Stage 5 immediately after the initial paper draft (early-verify pass), (b) Stage 8 after every referee round that changes citations, and (c) Stage 9 as a final one-shot post-polish pass before Stage 10 marks the pipeline complete. Reports VERIFIED / RESOLVED / FABRICATED counts and a fix list; does not edit the bibliography itself.",
     "tools": "Bash, Read, Write, WebSearch, WebFetch",
     "skills": [
       "bib-verify"
