@@ -62,6 +62,15 @@
       "allowed-tools": "Bash, Read, Write"
     }
   },
+  "sec-funds": {
+    "name": "sec-funds",
+    "description": "Parse SEC fund-specific filings from EDGAR — N-CEN (annual census: advisers, underwriters, securities lending, expense waivers), NPORT-P (monthly portfolio holdings), and N-1A/485BPOS Risk/Return XBRL (per-share-class fee tables: management fee, 12b-1, gross/net expense ratio). Free path to mutual-fund fees/holdings without CRSP. Use for mutual-fund fee, retirement/DC-channel, and holdings-based research.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[registrant CIK or form type]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
   "wrds": {
     "name": "wrds",
     "description": "Query WRDS (Wharton Research Data Services) for CRSP, Compustat, IBES, options, insider trading, and other financial databases. Use for firm-level stock returns, accounting data, analyst forecasts, and cross-sectional/panel analysis.",
