@@ -12,7 +12,7 @@ This is a research instrument, not a submission tool. Outputs are **drafts** tha
 
 **Outputs are watermarked.** PDFs produced by this pipeline carry a non-cosmetic provenance watermark. Detection methodology is shared privately with journal editors on request. Removing, modifying, or obfuscating the watermark terminates the license automatically (§4).
 
-**Cost.** Recommended path: a **max subscription tier** of Claude Code, Codex, or Gemini CLI (≈$200/month) supports roughly **100 papers/month**, which works out to ~**$2 per paper effective** — see the [companion paper](https://ssrn.com/abstract=6687378) for benchmarks. Pay-per-token API access is also supported but is **substantially more expensive** (order ~$2,000 per paper at current rates), because the pipeline burns large token volumes across many subagent dispatches. Subscription is the path designed for academic use; pay-per-token is for users with credits to burn or strict per-call control needs.
+**Cost.** Recommended path: a **max subscription tier** of Claude Code, Codex, or Gemini CLI (≈$200/month) supports roughly **100 papers/month**, which works out to ~**$2 per paper effective** — see the [companion paper](https://instituteforautomatedresearch.org/papers/iar-m/iar-m-001) for benchmarks. Pay-per-token API access is also supported but is **substantially more expensive** (order ~$2,000 per paper at current rates), because the pipeline burns large token volumes across many subagent dispatches. Subscription is the path designed for academic use; pay-per-token is for users with credits to burn or strict per-call control needs.
 
 **Commercial use is prohibited** without a separate written license (§5). Ordinary academic use by individual researchers, students, and non-profit institutions is unrestricted (subject to §2–§4).
 
@@ -360,4 +360,18 @@ For licensing inquiries: contact@instituteforautomatedresearch.org
 
 If you use this software in research, please cite the companion paper:
 
-> Lopez-Lira, Alejandro. *ZeroPaper: An Autonomous Research System.* SSRN, May 2026. https://ssrn.com/abstract=6687378
+> Lopez-Lira, Alejandro. *ZeroPaper: An Autonomous Research System.* IAR Methodology Papers No. IAR-M-001, Institute for Automated Research, May 2026. https://instituteforautomatedresearch.org/papers/iar-m/iar-m-001 — doi:[10.5281/zenodo.20127843](https://doi.org/10.5281/zenodo.20127843)
+
+```bibtex
+@techreport{lopezlira2026zeropaper,
+  author      = {Lopez-Lira, Alejandro},
+  title       = {{ZeroPaper: An Autonomous Research System}},
+  institution = {Institute for Automated Research},
+  type        = {IAR Methodology Papers},
+  number      = {IAR-M-001},
+  year        = {2026},
+  month       = {5},
+  doi         = {10.5281/zenodo.20127843},
+  url         = {https://instituteforautomatedresearch.org/papers/iar-m/iar-m-001}
+}
+```
