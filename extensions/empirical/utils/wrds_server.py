@@ -20,7 +20,10 @@ Usage:
         # Fall back to direct connection
         ...
 
-Server writes its PID to code/utils/.wrds_server.pid for cleanup.
+The server is per-host (one process per machine on the fixed port). Its
+PID file is therefore host-global ($XDG_RUNTIME_DIR or the system temp
+dir, named .wrds_server_<port>.pid), not next to this file — see
+_pid_file_path().
 
 Connection recovery
 --------------------
@@ -38,6 +41,7 @@ import os
 import sys
 import json
 import socket
+import tempfile
 import threading
 import signal
 from dotenv import load_dotenv
@@ -46,7 +50,24 @@ load_dotenv()
 
 HOST = '127.0.0.1'
 PORT = 23847  # arbitrary high port
-PID_FILE = os.path.join(os.path.dirname(__file__), '.wrds_server.pid')
+
+def _pid_file_path():
+    """Host-global PID path, keyed by port.
+
+    The WRDS server is per-host (one process per machine on PORT), so its
+    PID file must be host-global too — NOT next to __file__. A per-directory
+    pid file meant each deployed project tracked only the server it
+    personally started: project B's restart-guard never saw project A's
+    server, and running the server from the template repo polluted the
+    source tree. A single host path fixes both: the restart-guard works
+    across every project sharing the one server, and no repo is touched.
+    Prefer $XDG_RUNTIME_DIR (per-user, tmpfs, auto-cleaned on logout);
+    fall back to the system temp dir.
+    """
+    base = os.environ.get('XDG_RUNTIME_DIR') or tempfile.gettempdir()
+    return os.path.join(base, f'.wrds_server_{PORT}.pid')
+
+PID_FILE = _pid_file_path()
 MAX_MSG = 10 * 1024 * 1024  # 10MB max message size
 
 # Substrings that identify a connection-level (not query-level) failure.
@@ -329,7 +350,15 @@ def handle_client(conn, state):
             response = {'status': 'ok', 'msg': 'shutting down'}
             send_response(conn, response)
             conn.close()
-            os._exit(0)
+            # Signal the main process instead of os._exit(0) so the
+            # registered cleanup() runs: closes the WRDS connection and
+            # removes the (now host-global) pid file. Falls back to a hard
+            # exit if signalling fails for any reason.
+            try:
+                os.kill(os.getpid(), signal.SIGTERM)
+                return
+            except Exception:
+                os._exit(0)
         else:
             response = {'status': 'error', 'msg': f'unknown command: {cmd}'}
 
@@ -351,31 +380,54 @@ def send_response(conn, response):
     conn.sendall(header + data)
 
 def main():
-    # Check if already running
+    # Cheap pre-check: a recorded, still-alive PID means a server is up.
     if os.path.exists(PID_FILE):
-        with open(PID_FILE) as f:
-            old_pid = int(f.read().strip())
         try:
+            with open(PID_FILE) as f:
+                old_pid = int(f.read().strip())
             os.kill(old_pid, 0)  # Check if process exists
             print(f"[wrds_server] Already running (PID {old_pid})")
             return
-        except OSError:
-            pass  # Old process is dead, continue
+        except (OSError, ValueError):
+            pass  # Old process is dead / pid file junk — continue
 
-    # Write PID
+    # Bind FIRST, before the expensive WRDS connect + Duo. The port is the
+    # authoritative per-host singleton guard: if another server is already
+    # listening (e.g. started by a different project, with a stale/missing
+    # pid file), bind() fails with EADDRINUSE and we exit cleanly WITHOUT
+    # touching the pid file the live server owns. Note SO_REUSEADDR does not
+    # let a second process steal an actively-listened socket, so this is a
+    # true mutual-exclusion check.
+    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        server.bind((HOST, PORT))
+    except OSError as e:
+        print(f"[wrds_server] Port {PORT} already in use ({e}); "
+              f"another server is running. Exiting.")
+        server.close()
+        return
+    server.listen(5)
+
+    # We own the port — record our PID (overwrites a stale one).
     with open(PID_FILE, 'w') as f:
         f.write(str(os.getpid()))
 
-    # Connect to WRDS (triggers Duo)
+    # Connect to WRDS (triggers Duo on first connect)
     print("[wrds_server] Connecting to WRDS (check Duo notification)...")
     state = WrdsState(connect_wrds())
-
-    # Start server
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
-    server.bind((HOST, PORT))
-    server.listen(5)
     print(f"[wrds_server] Listening on {HOST}:{PORT}")
+
+    def _remove_pid_if_ours():
+        # Only remove the pid file if it still records THIS process — a
+        # racing server that took over the port must not have its pid
+        # file deleted out from under it.
+        try:
+            with open(PID_FILE) as f:
+                if int(f.read().strip()) == os.getpid():
+                    os.remove(PID_FILE)
+        except (OSError, ValueError):
+            pass
 
     def cleanup(signum, frame):
         print("\n[wrds_server] Shutting down...")
@@ -384,8 +436,7 @@ def main():
         except Exception:
             pass
         server.close()
-        if os.path.exists(PID_FILE):
-            os.remove(PID_FILE)
+        _remove_pid_if_ours()
         sys.exit(0)
 
     signal.signal(signal.SIGINT, cleanup)

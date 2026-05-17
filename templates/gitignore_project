@@ -62,5 +62,8 @@ paper/*.lof
 paper/*.lot
 paper/*-SAVE-ERROR
 
-# WRDS server runtime
+# WRDS server runtime — legacy/defensive. Current wrds_server.py writes its
+# PID host-globally ($XDG_RUNTIME_DIR or temp dir), not into code/utils/. This
+# rule still protects projects deployed on older code, and the brief window
+# during an update.sh refresh, from a stray tracked pid file.
 code/utils/.wrds_server.pid
