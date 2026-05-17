@@ -1,4 +1,13 @@
 {
+  "bls-census": {
+    "name": "bls-census",
+    "description": "Free labor-force, demographic, and earnings panels from the BLS public data API (LFPR, employment, payrolls, CPI/PPI — no key needed), Census ACS5 / basic-monthly CPS (county demographics and CPS person extracts — free key required), and SSA OACT period life tables. Zero overlap with WRDS/CRSP. Use for shift-share / Bartik instruments (cohort aging, local labor demand, retirement-channel shifters), labor-finance, household-finance, and macro-cross-section work.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[BLS series ID, ACS variable, or description]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
   "chen-zimmerman": {
     "name": "chen-zimmerman",
     "description": "Open Source Asset Pricing dataset (Chen & Zimmerman 2022). 212 firm-level anomaly signals with portfolio returns. Use for cross-sectional calibration, testing anomaly predictions, and constructing characteristic-sorted portfolios.",

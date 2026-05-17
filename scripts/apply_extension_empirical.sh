@@ -113,6 +113,14 @@ if ! grep -q 'FRED_API_KEY' "$ENV_FILE" 2>/dev/null; then
 # FRED API key (free): https://fred.stlouisfed.org/docs/api/api_key.html
 FRED_API_KEY=your-key-here
 
+# BLS public data API key (OPTIONAL — keyless works at lower limits).
+# Free: https://data.bls.gov/registrationEngine/
+BLS_API_KEY=your-key-here
+
+# Census API key (REQUIRED for any ACS/CPS request — keyless tier retired).
+# Free: https://api.census.gov/data/key_signup.html
+CENSUS_API_KEY=your-key-here
+
 # WRDS credentials: https://wrds-www.wharton.upenn.edu/
 WRDS_USER=your-username
 WRDS_PASS=your-password
