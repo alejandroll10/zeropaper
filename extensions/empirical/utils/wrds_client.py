@@ -104,6 +104,13 @@ def wrds_start():
 
     raise TimeoutError("WRDS server did not start within 2 minutes. Check Duo.")
 
+def _raise(prefix, resp):
+    """Raise a RuntimeError from an error response, tagging connection-level
+    failures so callers can distinguish a wedged server from bad SQL."""
+    kind = resp.get('error_kind')
+    tag = f" [{kind} error]" if kind else ""
+    raise RuntimeError(f"{prefix}{tag}: {resp['msg']}")
+
 def wrds_query(sql, timeout=300):
     """Run a SQL query against WRDS via the persistent server.
 
@@ -113,10 +120,14 @@ def wrds_query(sql, timeout=300):
 
     Returns:
         pandas DataFrame
+
+    The server transparently recovers a dropped/poisoned connection and
+    retries once before returning an error; resp['recovered'] is True when
+    that happened.
     """
     resp = _send_request({'cmd': 'query', 'sql': sql}, timeout=timeout)
     if resp['status'] == 'error':
-        raise RuntimeError(f"WRDS query failed: {resp['msg']}")
+        _raise("WRDS query failed", resp)
     from io import StringIO
     return pd.read_json(StringIO(resp['data']), orient='split')
 
@@ -124,14 +135,14 @@ def wrds_list_tables(library):
     """List tables in a WRDS library."""
     resp = _send_request({'cmd': 'list_tables', 'library': library})
     if resp['status'] == 'error':
-        raise RuntimeError(f"WRDS list_tables failed: {resp['msg']}")
+        _raise("WRDS list_tables failed", resp)
     return resp['tables']
 
 def wrds_describe(library, table):
     """Describe a WRDS table (columns, types, row count)."""
     resp = _send_request({'cmd': 'describe', 'library': library, 'table': table})
     if resp['status'] == 'error':
-        raise RuntimeError(f"WRDS describe failed: {resp['msg']}")
+        _raise("WRDS describe failed", resp)
     from io import StringIO
     return pd.read_json(StringIO(resp['data']), orient='split')
 
