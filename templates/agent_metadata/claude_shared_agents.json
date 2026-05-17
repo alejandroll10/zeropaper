@@ -452,5 +452,21 @@
     "gemini": {
       "model": "gemini-3-preview"
     }
+  },
+  "faithful-drift-auditor": {
+    "name": "faithful-drift-auditor",
+    "description": "Faithful-mode contribution-drift auditor. Launched only on --faithful runs, at Gate 4 (before the plateau-ship decision) and Gate 5 (before ship). Independently compares the paper's headline contribution and stated results against the contract's verbatim Headline: line in output/seed/mechanism_contract.md and emits DRIFT / NO-DRIFT \u2014 a verdict the orchestrator cannot author. Closes the self-referential drift check. Does not edit paper or contract files.",
+    "category": "evaluator",
+    "tools": "Read, Write, Glob, Grep",
+    "model": "opus",
+    "effort": "high",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    },
+    "pipeline_only": true
   }
 }

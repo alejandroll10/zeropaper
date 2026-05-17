@@ -22,7 +22,7 @@ Per `CLAUDE.md` ("no unsolved or undocumented architectural limits"), additions 
 
 ---
 
-## Faithful-mode contribution-drift check is orchestrator-self-performed
+## Faithful-mode contribution-drift check is orchestrator-self-performed — CLOSED (#29)
 
 **Scope:** `--faithful` runs (all variants/extensions).
 
@@ -30,6 +30,8 @@ Per `CLAUDE.md` ("no unsolved or undocumented architectural limits"), additions 
 
 **Mitigation in place (not closure):** the contract now carries a single verbatim `Headline:` sentence (faithful.md Step 0) so the check is anchored to a near-string-level referent rather than fuzzy prose; the routing table, Gate-5 and Gate-4 overrides, and the developing-agent inject pointer all reference that one sentence; MISATTRIBUTED/DECORATIVE are the sole authorized in-place `Headline:` updates and must write back to `mechanism_contract.md`. This narrows but does not eliminate the self-referential gap — classification of "publishability-driven vs correctness-driven demotion" is still an orchestrator judgment.
 
-**What would close it:** an external framing-audit agent (not the orchestrator) invoked at Gate 4 and Gate 5 that reads `output/seed/mechanism_contract.md`'s `Headline:` line and the current abstract, and emits a DRIFT / NO-DRIFT verdict the orchestrator cannot author — the same impartial-evaluator pattern faithful mode already uses for scorer/referee. Requires a new shared agent body + metadata + wiring into the two gate docs.
+**Closure:** the external `faithful-drift-auditor` shared evaluator agent (body `agent_bodies/shared/faithful-drift-auditor.md`, metadata `category: evaluator`, `pipeline_only`) is now launched at Gate 4 (plateau-ship rule) and Gate 5 (ship gate). It independently compares the paper's headline contribution and stated results against the live `Headline:` line in `mechanism_contract.md` and emits `DRIFT` / `NO-DRIFT` to `output/seed/drift_audit_gate{N}_r*.md`; the orchestrator cannot author the verdict, and `DRIFT` is a non-bypassable restore-gate (re-audit until `NO-DRIFT` before advancing/shipping). As an evaluator it does not receive the faithful inject pointer. This applies the same impartial-evaluator pattern faithful mode uses for scorer/referee.
 
-**Tracking:** [issue #29](https://github.com/alejandroll10/zeropaper/issues/29) (companion follow-up; the v1 minimal-edit "faithful = frozen" patch is shipped, the external-agent upgrade is deferred).
+**Residual (accepted, bounded):** the orchestrator still *executes* the restore action and re-launches the auditor; a maximally adversarial orchestrator could in principle ignore the verdict. This is the identical residual already accepted for every faithful evaluator (scorer/referee/math-auditor) — the verdict is independent and on-disk, so the failure is detectable post-hoc rather than self-rationalized silently. Not separately tracked.
+
+**Tracking:** [issue #29](https://github.com/alejandroll10/zeropaper/issues/29) — closeable; both the v1 "faithful = frozen" patch and this external-agent upgrade are shipped.
