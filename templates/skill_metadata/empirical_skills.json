@@ -53,6 +53,15 @@
       "allowed-tools": "Bash, Read, Write, WebFetch"
     }
   },
+  "hrs-scf": {
+    "name": "hrs-scf",
+    "description": "Household-survey panels for retirement, wealth, and household balance sheets. SCF (Survey of Consumer Finances, Federal Reserve, triennial 1989–2022) downloads with NO key — Summary Extract and Full Public Data Set with 5 multiply-imputed implicates. HRS (Health & Retirement Study / RAND HRS Longitudinal File) is registration-walled: the helper reads a user-placed extract from data/hrs_scf/hrs/ (the realistic workflow — bulk download after accepting the data-use agreement) and documents the registration step; it never fails silently. Use for retirement timing, IRA/401(k) balances by cohort, wealth distribution, and household-finance micro-validation (e.g. pairing HRS individual retirement timing with macro Bartik shifters). Rollover/pension-disposition events need HRS detailed-pension stems supplied via stems= (documented, not the default panel).",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[SCF year, RAND HRS variable, or description]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
   "ken-french": {
     "name": "ken-french",
     "description": "Download factor returns, portfolio returns, and breakpoints from the Ken French Data Library. Use for asset pricing calibration, computing alphas, and building test assets.",
