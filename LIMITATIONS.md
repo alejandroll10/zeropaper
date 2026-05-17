@@ -19,3 +19,17 @@ Per `CLAUDE.md` ("no unsolved or undocumented architectural limits"), additions 
 **Tracking:** [issue #18](https://github.com/alejandroll10/zeropaper/issues/18). Blocked on (a) finance pair shipping first so the architecture is settled (#17), and (b) empirical macro tooling existing in the macro variant (currently the macro variant is theory-only).
 
 **Interim behavior:** the finance `identification-designer` and `identification-auditor` both return `OUT-OF-SCOPE` if the plan invokes a macro-style design — they do not silently apply finance standards to macro work. The orchestrator's step-3 handling in `extensions/empirical/docs/stage_3a_empirical.md` flags `OUT-OF-SCOPE` for the macro variant and either reframes the empirical work as descriptive / model-fit or escalates.
+
+---
+
+## Faithful-mode contribution-drift check is orchestrator-self-performed
+
+**Scope:** `--faithful` runs (all variants/extensions).
+
+**Failure mode:** the `--faithful` "frozen" guards (contribution `Headline:` sentence and stated results are contract-immovable; publishability/editor-driven re-headlining → `[RESPONSE]`; results not re-derived away) are enforced by the **orchestrator comparing the current draft against the contract's `Headline:` sentence**. The orchestrator is the same agent that, under plateau/referee pressure, has the incentive to rationalize a drift as a within-contribution reorganization. This is a self-referential check: an orchestrator that drifts can also mis-classify its own drift as compliant. The `victori-faithful-1` run is the witnessed instance — an editor-directed contribution re-headline ("bounded-attribution design as contribution") was routed as `[FIX]`, shipped at pipeline `COMPLETE`, and only an operator commit restored the seed framing.
+
+**Mitigation in place (not closure):** the contract now carries a single verbatim `Headline:` sentence (faithful.md Step 0) so the check is anchored to a near-string-level referent rather than fuzzy prose; the routing table, Gate-5 and Gate-4 overrides, and the developing-agent inject pointer all reference that one sentence; MISATTRIBUTED/DECORATIVE are the sole authorized in-place `Headline:` updates and must write back to `mechanism_contract.md`. This narrows but does not eliminate the self-referential gap — classification of "publishability-driven vs correctness-driven demotion" is still an orchestrator judgment.
+
+**What would close it:** an external framing-audit agent (not the orchestrator) invoked at Gate 4 and Gate 5 that reads `output/seed/mechanism_contract.md`'s `Headline:` line and the current abstract, and emits a DRIFT / NO-DRIFT verdict the orchestrator cannot author — the same impartial-evaluator pattern faithful mode already uses for scorer/referee. Requires a new shared agent body + metadata + wiring into the two gate docs.
+
+**Tracking:** [issue #29](https://github.com/alejandroll10/zeropaper/issues/29) (companion follow-up; the v1 minimal-edit "faithful = frozen" patch is shipped, the external-agent upgrade is deferred).
