@@ -8,6 +8,15 @@
       "allowed-tools": "Bash, Read, Write"
     }
   },
+  "call-reports": {
+    "name": "call-reports",
+    "description": "Quarterly bank balance sheets / income statements without WRDS's bank library or S&P CIQ. Three free no-key sources, each with a different ID: (1) FFIEC CDR bulk SDF — literal RCON/RIAD-coded Call Reports for every FDIC-insured bank, keyed by IDRSSD, scraped from the ASP.NET bulk-download form (the documented free path, brittle by design); (2) FR Y-9C BHCF flat files — consolidated bank-holding-company statements, BHCK-coded, keyed by RSSD9001 (Chicago Fed 1986Q1-2021Q1 live, NIC user-placed for 2021Q2+); (3) FDIC Financial Data API — robust standardized (non-RCON) panel keyed by CERT, the reliable fallback and the RSSD<->CERT crosswalk. Use for the banking / monetary-transmission / intermediary-asset-pricing channel: bank lending, deposits, liquidity regulation, CET1 capital, NIM.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[quarter e.g. 2023Q4, RSSD/CERT id, or RCON code]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
   "chen-zimmerman": {
     "name": "chen-zimmerman",
     "description": "Open Source Asset Pricing dataset (Chen & Zimmerman 2022). 212 firm-level anomaly signals with portfolio returns. Use for cross-sectional calibration, testing anomaly predictions, and constructing characteristic-sorted portfolios.",
