@@ -97,6 +97,26 @@ assert len(one) == 1 and int(one.iloc[0]["IDRSSD"]) == JPM_BANK_RSSD
 print(f"  banks (IDRSSD): {n:,} | RCON/RCFD2170 aggregate ${ta_tn:.1f}T")
 print(f"  rssdids filter -> 1 row for JPMorgan (RSSD {JPM_BANK_RSSD})")
 
+# === Test 5b: multi-part schedule merge (no silent column truncation) ===
+print("\n=== Test 5b: RCRII (split into 4 SDF files) merges fully ===")
+ri = call_report("2023Q4", schedule="RI")           # single-part baseline
+rcrii = call_report("2023Q4", schedule="RCRII")      # 4-part, column-split
+assert len(rcrii) == n, \
+    f"RCRII row count {len(rcrii)} != RC bank count {n} " \
+    "(outer-merge row inflation, NaN-key dup, or truncation)"
+assert rcrii["IDRSSD"].nunique() == n, \
+    f"RCRII unique IDRSSD {rcrii['IDRSSD'].nunique()} != RC {n}"
+# part 1 alone is ~244 cols; a correct 4-part merge is far wider
+assert len(rcrii.columns) > 400, \
+    f"RCRII only {len(rcrii.columns)} cols — parts 2-4 silently dropped"
+ni = pd.to_numeric(ri.get("RIAD4340"), errors="coerce")  # net income YTD
+assert ni.notna().sum() > 3000 and 100 < ni.fillna(0).sum() / 1e6 < 600, \
+    f"RI net income (RIAD4340) implausible: ${ni.fillna(0).sum()/1e6:.0f}B"
+print(f"  RCRII: {rcrii['IDRSSD'].nunique():,} banks, "
+      f"{len(rcrii.columns)} cols (4 parts merged, 0 dup rows)")
+print(f"  RI RIAD4340 net income YTD aggregate: "
+      f"${ni.fillna(0).sum()/1e6:.0f}B (2023 full year)")
+
 # === Test 6: bank_panel across quarters (FDIC source, HARD) ===
 print("\n=== Test 6: bank_panel('2023Q1','2023Q4', source='fdic') ===")
 # a few large banks -> one small request/quarter (keeps us under the

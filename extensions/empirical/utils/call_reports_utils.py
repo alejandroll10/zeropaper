@@ -383,17 +383,37 @@ def _ffiec_zip(period_mmddyyyy, deadline=900):
     return data
 
 
-def _read_sdf_member(zbytes, schedule):
-    """Read one tab-delimited schedule file out of an FFIEC SDF bundle.
+def _parse_sdf_part(raw):
+    """Parse one SDF tab-delimited file: row 0 = MDRM codes (header),
+    row 1 = human descriptions (dropped), data from row 2. The first
+    column is ``IDRSSD``."""
+    df = pd.read_csv(io.StringIO(raw), sep="\t", dtype=str, low_memory=False)
+    if (len(df) and "IDRSSD" in df.columns
+            and not str(df.iloc[0]["IDRSSD"]).strip().isdigit()):
+        df = df.iloc[1:].reset_index(drop=True)
+    if "IDRSSD" in df.columns:
+        df["IDRSSD"] = pd.to_numeric(df["IDRSSD"],
+                                     errors="coerce").astype("Int64")
+    return df
 
-    SDF files: row 0 = MDRM codes (header), row 1 = human descriptions,
-    data from row 2. Column 0 is always ``IDRSSD``.
+
+def _read_sdf_member(zbytes, schedule):
+    """Read a schedule out of an FFIEC SDF bundle.
+
+    Large schedules (RCB, RCL, RCN, RCO, RCQ, RCRII, RCT, ...) are split
+    by the FFIEC into "(1 of N)" files that share the IDRSSD key but carry
+    DIFFERENT MDRM columns. Reading only the first part would silently drop
+    the rest of that schedule's variables, so every part is read and the
+    parts are outer-merged on IDRSSD into the full wide table.
     """
     z = zipfile.ZipFile(io.BytesIO(zbytes))
     names = z.namelist()
     want = schedule.upper()
-    # files look like "FFIEC CDR Call Schedule RC 12312023(...).txt"
-    cand = [n for n in names if re.search(rf"Schedule {want}\b", n, re.I)]
+    # files look like "FFIEC CDR Call Schedule RC 12312023.txt" or
+    # "... Schedule RCRII 12312023(3 of 4).txt"; \b after the (escaped)
+    # code stops 'RC' from matching 'RCA'/'RCRII' etc.
+    cand = [n for n in names
+            if re.search(rf"Schedule {re.escape(want)}\b", n, re.I)]
     if not cand and want in ("POR", "BULK POR"):
         cand = [n for n in names if "POR" in n.upper()]
     if not cand:
@@ -401,16 +421,40 @@ def _read_sdf_member(zbytes, schedule):
             f"schedule {schedule!r} not in bundle; members: "
             + ", ".join(os.path.basename(n) for n in names)
         )
-    with z.open(cand[0]) as f:
-        raw = f.read().decode("latin-1")
-    df = pd.read_csv(io.StringIO(raw), sep="\t", dtype=str, low_memory=False)
-    # drop the description row if present (its IDRSSD cell isn't numeric)
-    if (len(df) and "IDRSSD" in df.columns
-            and not str(df.iloc[0]["IDRSSD"]).strip().isdigit()):
-        df = df.iloc[1:].reset_index(drop=True)
-    if "IDRSSD" in df.columns:
-        df["IDRSSD"] = pd.to_numeric(df["IDRSSD"], errors="coerce").astype("Int64")
-    return df
+
+    def _part_idx(name):
+        m = re.search(r"\((\d+) of (\d+)\)", name)
+        # 0 (not 1) for an unmarked file so it sorts strictly before an
+        # explicit "(1 of N)" part, avoiding a sort-key tie if FFIEC ever
+        # ships both an unlabeled and a labeled part for one schedule.
+        return int(m.group(1)) if m else 0
+
+    cand.sort(key=_part_idx)
+    parts = []
+    for name in cand:
+        with z.open(name) as f:
+            parts.append(_parse_sdf_part(f.read().decode("latin-1")))
+    if len(parts) == 1:
+        if "IDRSSD" not in parts[0].columns:
+            raise ValueError(
+                f"schedule {schedule!r} file has no IDRSSD key column — "
+                "refusing to return an unkeyed table."
+            )
+        return parts[0]
+    merged = parts[0]
+    for nxt in parts[1:]:
+        if "IDRSSD" not in nxt.columns or "IDRSSD" not in merged.columns:
+            raise ValueError(
+                f"multi-part schedule {schedule!r} cannot be merged: a "
+                "part is missing the IDRSSD key — refusing to return a "
+                "silently truncated table."
+            )
+        # keep only IDRSSD + columns not already present, so the join adds
+        # the new part's MDRM codes without suffix collisions
+        new_cols = ["IDRSSD"] + [c for c in nxt.columns
+                                 if c != "IDRSSD" and c not in merged.columns]
+        merged = merged.merge(nxt[new_cols], on="IDRSSD", how="outer")
+    return merged.reset_index(drop=True)
 
 
 def _ffiec_cache(period_end):
@@ -439,8 +483,10 @@ def call_report(quarter, rssdids=None, schedule="RC", refresh=False):
         quarter: '2023Q4', '12/31/2023', (2023, 4), etc.
         rssdids: optional iterable of IDRSSD (Fed RSSD) ints to filter to.
         schedule: SDF schedule code — 'RC' (balance sheet), 'RI' (income),
-            'RCR' (regulatory capital), 'POR' (panel of reporters: bank
-            identity), etc. Default 'RC'.
+            'RCRI'/'RCRII' (regulatory capital parts I/II; no plain 'RCR'),
+            'POR' (panel of reporters: bank identity + FDIC cert), etc.
+            Default 'RC'. Multi-part schedules are auto-merged on IDRSSD;
+            an unknown code raises ValueError listing the bundle members.
         refresh: re-download even if the bundle is cached.
 
     Returns: DataFrame keyed by IDRSSD with that schedule's MDRM columns.

@@ -59,8 +59,17 @@ jpm = call_report('2023Q4', schedule='RC', rssdids=[852218])  # one bank
 ```
 
 Schedule codes are the SDF bundle's: `RC` (balance sheet), `RI` (income),
-`RCR` (regulatory capital), `RCO`, `RCN`, `POR` (Panel of Reporters — bank
-identity/name/address), etc. Columns are literal **MDRM codes**.
+`RCRI`/`RCRII` (regulatory capital parts I/II — there is **no** `RCR`
+file), `RCB`, `RCO`, `RCN`, `POR` (Panel of Reporters — bank identity,
+incl. an in-file `FDIC Certificate Number` you can use as a free
+RSSD→CERT crosswalk), etc. Columns are literal **MDRM codes**. An unknown
+code raises a `ValueError` listing every member file in the bundle.
+
+**Large schedules are FFIEC-split across `(1 of N)` files** (RCB, RCL,
+RCN, RCO, RCQ, RCRII, RCT, …): the parts share `IDRSSD` but carry
+*different* MDRM columns. `call_report` reads **all** parts and
+outer-merges them on `IDRSSD` into the full wide table — you get every
+variable, one row per bank, never a silently truncated subset.
 
 **The RCON vs RCFD trap.** Total assets is `RCON2170` *or* `RCFD2170`,
 never both populated for a given bank: `RCON…` = domestic-offices-only
@@ -149,8 +158,9 @@ Rules of thumb:
   quarters. Use `source='ffiec'` only when a referee needs literal RCON
   provenance.
 - **Regulatory-capital (CET1/tier-1) study:** FFIEC `call_report(q,
-  schedule='RCR')` for the RCON-coded capital schedule, or FDIC `RBCT1J`
-  for a standardized tier-1 series.
+  schedule='RCRII')` for the RCON-coded capital schedule (auto-merged
+  across its 4 SDF parts), or FDIC `RBCT1J` for a standardized tier-1
+  series.
 - **Intermediary asset pricing (holding-company leverage):** `y9c` BHCK
   equity / assets at the consolidated BHC level; bank-level Call Reports
   miss the holding-company leverage that the He–Kelly–Manela channel uses.
