@@ -75,7 +75,11 @@ print("\n=== Test 5: call_report('2023Q4','RC') — RCON2170, count banks ===")
 try:
     rc = call_report("2023Q4", schedule="RC")
 except Exception as e:  # noqa: BLE001 - brittle path: SKIP, never FAIL
-    if FFIEC_FORM_BRITTLENESS.split(".")[0] in str(e) or "FFIEC" in str(e):
+    import requests as _rq
+    _unreachable = isinstance(e, (_rq.exceptions.RequestException,
+                                  OSError, TimeoutError))
+    if (FFIEC_FORM_BRITTLENESS.split(".")[0] in str(e)
+            or "ffiec" in str(e).lower() or _unreachable):
         print(f"  SKIP (not FAIL): FFIEC bulk form unreachable/changed.\n"
               f"  -> {str(e)[:160]}")
         print("\nALL TESTS PASSED (FFIEC RCON path skipped — see message)")
@@ -94,6 +98,13 @@ ta_tn = ta.sum() / 1e9  # RCON values are $thousands -> $trillions
 assert 18 < ta_tn < 30, f"RCON-coded aggregate assets {ta_tn:.1f}T implausible"
 one = call_report("2023Q4", schedule="RC", rssdids=[JPM_BANK_RSSD])
 assert len(one) == 1 and int(one.iloc[0]["IDRSSD"]) == JPM_BANK_RSSD
+# numeric coercion: arithmetic must work WITHOUT explicit pd.to_numeric
+assert pd.api.types.is_numeric_dtype(rc["RCON2170"]), \
+    f"RCON2170 not coerced numeric (dtype={rc['RCON2170'].dtype}) — " \
+    "raw-string regression: rc['RCON2170'].sum() would concatenate"
+assert str(rc["IDRSSD"].dtype) == "Int64", "IDRSSD must stay Int64"
+direct = rc["RCON2170"].sum() / 1e9  # no pd.to_numeric wrapper
+assert 5 < direct < 30, f"direct RCON2170 sum implausible: {direct:.1f}T"
 print(f"  banks (IDRSSD): {n:,} | RCON/RCFD2170 aggregate ${ta_tn:.1f}T")
 print(f"  rssdids filter -> 1 row for JPMorgan (RSSD {JPM_BANK_RSSD})")
 

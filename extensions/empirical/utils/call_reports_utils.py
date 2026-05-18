@@ -34,7 +34,7 @@ Usage:
     from utils.call_reports_utils import (
         call_report, y9c, bank_panel,
         fdic_financials, fdic_institutions, nic_link,
-        list_call_periods, RC_COMMON_VARS,
+        list_call_periods, parse_quarter, RC_COMMON_VARS,
     )
 
     rc   = call_report('2023Q4', schedule='RC')       # RCON-coded, FFIEC
@@ -75,6 +75,7 @@ import io
 import os
 import re
 import time
+import warnings
 import zipfile
 from datetime import datetime
 
@@ -383,10 +384,32 @@ def _ffiec_zip(period_mmddyyyy, deadline=900):
     return data
 
 
+# An MDRM data column is a 4-letter mnemonic prefix + 4-char item code
+# (RCON2170, RCFD2170, RIAD4340, BHCK2170, BHCP3210, RCOA..., RSSD9001...).
+# TEXT-prefixed mnemonics (TEXT4862 = free-text fields) are genuinely
+# textual and must NOT be coerced to numbers.
+_MDRM_RE = re.compile(r"^[A-Z]{4}[0-9A-Z]{4}$")
+
+
+def _coerce_mdrm_numeric(df, skip=()):
+    """Coerce every MDRM-coded value column to numeric (errors->NaN) so
+    callers can do arithmetic directly. Files are read as all-string (the
+    SDF/BHCF format has no type info); leaving value columns as strings
+    silently turns `df['RCON2170'].sum()` into string concatenation —
+    exactly the kind of silent-wrong-result the codebase forbids. Human-
+    named columns (POR identity fields) and TEXT* mnemonics are left as
+    strings; key columns in `skip` are left untouched."""
+    for c in df.columns:
+        if c in skip or c.startswith("TEXT") or not _MDRM_RE.match(c):
+            continue
+        df[c] = pd.to_numeric(df[c], errors="coerce")
+    return df
+
+
 def _parse_sdf_part(raw):
     """Parse one SDF tab-delimited file: row 0 = MDRM codes (header),
     row 1 = human descriptions (dropped), data from row 2. The first
-    column is ``IDRSSD``."""
+    column is ``IDRSSD``. MDRM value columns are coerced to numeric."""
     df = pd.read_csv(io.StringIO(raw), sep="\t", dtype=str, low_memory=False)
     if (len(df) and "IDRSSD" in df.columns
             and not str(df.iloc[0]["IDRSSD"]).strip().isdigit()):
@@ -394,6 +417,7 @@ def _parse_sdf_part(raw):
     if "IDRSSD" in df.columns:
         df["IDRSSD"] = pd.to_numeric(df["IDRSSD"],
                                      errors="coerce").astype("Int64")
+    df = _coerce_mdrm_numeric(df, skip=("IDRSSD",))
     return df
 
 
@@ -490,6 +514,8 @@ def call_report(quarter, rssdids=None, schedule="RC", refresh=False):
         refresh: re-download even if the bundle is cached.
 
     Returns: DataFrame keyed by IDRSSD with that schedule's MDRM columns.
+        MDRM value columns are numeric ($thousands; TEXT* fields stay
+        string); IDRSSD is Int64.
 
     Raises RuntimeError (FFIEC_FORM_BRITTLENESS) if the bulk form flow
     breaks — fall back to fdic_financials() for standardized fields.
@@ -556,7 +582,8 @@ def y9c(quarter, rssdids=None, refresh=False):
         rssdids: optional iterable of RSSD9001 (the BHC's RSSD) ints.
         refresh: re-download / re-read even if cached.
 
-    Returns: DataFrame keyed by RSSD9001 with BHCK/BHCP columns.
+    Returns: DataFrame keyed by RSSD9001 (Int64) with BHCK/BHCP columns
+        coerced to numeric ($thousands; TEXT* fields stay string).
     """
     _ensure_dir()
     year, qtr, pe, _ = parse_quarter(quarter)
@@ -567,6 +594,9 @@ def y9c(quarter, rssdids=None, refresh=False):
             # a bad parquet cached by a pre-guard version: delete & re-fetch
             os.remove(pq)
             return y9c(quarter, rssdids=rssdids, refresh=True)
+        # parquet written by a pre-fix version is all-string; re-coerce
+        # (idempotent for caches written after the numeric fix)
+        df = _coerce_mdrm_numeric(df, skip=("RSSD9001",))
     else:
         within_chicago = (year, qtr) <= (BHCF_LAST_YEAR, BHCF_LAST_QTR)
         raw = None
@@ -593,8 +623,9 @@ def y9c(quarter, rssdids=None, refresh=False):
                     "Download the BHCF/Y-9C 'Financial Data' bundle for "
                     f"{pe:%Y-%m} from the NIC Financial Data Download page "
                     f"({NIC_DATADOWNLOAD_URL}) — it is behind Akamai bot "
-                    "protection so it cannot be fetched server-side — and "
-                    f"place the file at {DATA_DIR}/bhcf{pe:%Y%m}.csv "
+                    "protection so it cannot be fetched server-side — "
+                    "unzip the downloaded bundle and place the flat file "
+                    f"at {DATA_DIR}/bhcf{pe:%Y%m}.csv "
                     "(or .txt). Pre-2021Q2 quarters are fetched "
                     "automatically; only in-window vintages need this "
                     "one-time manual step."
@@ -613,6 +644,9 @@ def y9c(quarter, rssdids=None, refresh=False):
                 "malformed table (no RSSD9001 column). Refusing to cache a "
                 "bad file; re-check the source URL or the user-placed file."
             )
+        # coerce BHCK/BHCP/etc. value columns to numeric before caching so
+        # bhc['BHCK2170'].sum() is arithmetic, not string concatenation
+        df = _coerce_mdrm_numeric(df, skip=("RSSD9001",))
         df.to_parquet(pq)
     if "RSSD9001" in df.columns:
         df["RSSD9001"] = pd.to_numeric(df["RSSD9001"], errors="coerce").astype("Int64")
@@ -710,6 +744,10 @@ def fdic_institutions(certs=None, rssdids=None, active_only=True):
 
     Returns CERT, NAME, FED_RSSD, CITY, STALP, ACTIVE, etc. Either filter
     by `certs`, by `rssdids` (FED_RSSD), or pull all (active) institutions.
+
+    NOTE: if both `certs` and `rssdids` are given the filter is AND
+    (intersection) — a row must match a cert AND an rssd. To resolve two
+    disjoint id sets, make two calls.
     """
     parts = []
     if active_only:
@@ -763,7 +801,14 @@ def bank_panel(start_quarter, end_quarter, vars=None, source="fdic",
         certs: filter by FDIC CERT (fdic source).
         schedule: SDF schedule for source='ffiec' (default 'RC').
 
-    Returns: long DataFrame with a 'quarter' column.
+    Returns: long DataFrame with a 'quarter' column. Note the per-source
+    schema asymmetry: source='ffiec' frames carry a ``period_end``
+    (datetime) column; source='fdic' frames carry ``REPDTE`` (str
+    YYYYMMDD) instead — they are not row-compatible across sources.
+
+    A requested ``vars`` entry absent from a quarter's response is NOT
+    silently dropped: a UserWarning is emitted naming the quarter and the
+    missing variable(s) (the column is still NaN-filled by the concat).
     """
     frames = []
     for (y, q) in _quarter_range(start_quarter, end_quarter):
@@ -777,6 +822,14 @@ def bank_panel(start_quarter, end_quarter, vars=None, source="fdic",
         else:
             raise ValueError(f"source must be 'fdic' or 'ffiec', got {source!r}")
         if vars is not None:
+            missing = [v for v in vars if v not in df.columns]
+            if missing:
+                warnings.warn(
+                    f"bank_panel: requested var(s) {missing} absent from "
+                    f"{source} response for {y}Q{q}; that quarter will be "
+                    "NaN for these columns in the stacked panel.",
+                    stacklevel=2,
+                )
             cols = [c for c in keycols if c in df.columns] + \
                    [v for v in vars if v in df.columns]
             df = df[cols]

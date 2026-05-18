@@ -97,6 +97,13 @@ bhc = y9c('2020Q4')                       # BHCK/BHCP cols, keyed RSSD9001
 bhc = y9c('2020Q4', rssdids=[1039502])    # one BHC (JPMorgan & Co.)
 ```
 
+BHCK/BHCP dollar fields are in **$thousands** (same MDRM convention as
+RCON/RIAD — divide by `1e6` for billions, `1e9` for trillions). The
+helper coerces every MDRM-coded value column (RCON/RIAD/BHCK/BHCP/RSSD…)
+to numeric, so `bhc['BHCK2170'].sum()` is arithmetic. Stays non-numeric:
+the `IDRSSD`/`RSSD9001` keys (Int64), `TEXT*` free-text fields, and
+human-named POR identity columns (e.g. `Financial Institution Name`).
+
 For **2021Q2 or later** the helper raises an instructive `RuntimeError`:
 download the BHCF "Financial Data" bundle for that quarter from the NIC
 Financial Data Download page (`www.ffiec.gov/npw/FinancialReport/DataDownload`,
