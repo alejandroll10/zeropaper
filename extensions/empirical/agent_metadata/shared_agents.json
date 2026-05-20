@@ -27,6 +27,20 @@
       "model": "gemini-3-preview"
     }
   },
+  "method-checker": {
+    "name": "method-checker",
+    "description": "Adversarial review of empiricist method choices for canonical-package availability. Launched at Stage 3a step 7.5 after empirics-auditor PASS, in parallel with data-integrity-auditor and data-selection-auditor. Flags every place the empiricist wrote custom code for an econometric method that has a canonical, author-maintained package — the failure mode behind GitHub issue #36 (HonestDiD, Sensemakr reimplementations that reproduce but silently disagree with the canonical on defaults, small-sample corrections, edge cases). The `canonical-packages` skill provides the policy + (a)–(d) justification taxonomy + lookup recipes; the agent discovers actual package names on demand via its training knowledge plus PyPI / CRAN / SSC queries (Bash curl + WebFetch). Enforces the (a)–(d) justification taxonomy: any custom implementation of a canonical-available method without (a) genuinely-novel / (b) canonical-lacks-feature / (c) canonical-not-in-language / (d) operator-directed is a REVISE. Subprocess wrappers around R/Stata canonicals (rpy2, subprocess) are canonical use, NOT flagged. Returns PASS / REVISE / FAIL with severity-ranked flags (Critical/Moderate/Minor) and a confirmed-gap list for legitimate custom implementations. Does not check code execution (empirics-auditor), data correctness (data-integrity-auditor), sample selection (data-selection-auditor), or identification (identification-auditor).",
+    "category": "evaluator",
+    "tools": "Bash, Read, Write, Glob, Grep, WebFetch, WebSearch",
+    "model": "sonnet",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "medium"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
   "data-selection-auditor": {
     "name": "data-selection-auditor",
     "description": "Adversarial audit of sample-SELECTION correctness. Launched at Stage 3a step 7.5 after empirics-auditor PASS, in parallel with data-integrity-auditor, before the puzzle-triage entry check. Re-runs the documented inclusion criteria against the source with relaxed filters and diffs candidate identifiers vs cached identifiers to surface silent exclusions. Runs the selection-correctness checklist: silent sample exclusion, filter text-vs-code mismatch, cross-method universe drift, treatment-assignment mismatch, outcome-coding mismatch, cohort-definition drift code-vs-text, snapshot-vs-time-varying covariate, coverage-vs-external-benchmark. Returns PASS / REVISE / FAIL with severity-ranked named failure modes. Does not audit identification (identification-auditor), code execution (empirics-auditor), or field-content correctness (data-integrity-auditor, its sibling).",

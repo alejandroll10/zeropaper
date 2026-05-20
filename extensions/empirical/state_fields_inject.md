@@ -1,6 +1,7 @@
   "stage3a_theory_version": null,
   "identification_plan_revision_round": 0,
   "data_integrity_round": 0,
+  "method_check_round": 0,
   "claim_grounding_round": 0,
   "paper_writer_pse_round": 0,
   "paper_writer_pse_claim_ids": [],

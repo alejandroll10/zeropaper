@@ -1507,14 +1507,27 @@ if os.path.exists(state_path):
             if k == "identification_plan_revision_round":
                 new["data_integrity_round"] = 0
         data = new
-    if "claim_grounding_round" not in data:
-        # Insert immediately after data_integrity_round. Counter for the Stage 5 step 5a
-        # claim-grounding pipeline (enumerator -> grounder -> verifier) GROUNDER-ERROR
-        # re-fire loop (hard cap 3). PAPER-SIDE-ERROR re-fires reset this to 0.
+    if "method_check_round" not in data:
+        # Insert immediately after data_integrity_round. Counter for the Stage 3a step 7.5
+        # method-checker REVISE loop (hard cap 3) — tracked separately from data audits because
+        # the method REVISE fix loop edits code/imports rather than re-running the cache.
         new = {}
         for k, v in data.items():
             new[k] = v
             if k == "data_integrity_round":
+                new["method_check_round"] = 0
+        data = new
+    if "claim_grounding_round" not in data:
+        # Insert immediately after method_check_round. Counter for the Stage 5 step 5a
+        # claim-grounding pipeline (enumerator -> grounder -> verifier) GROUNDER-ERROR
+        # re-fire loop (hard cap 3). PAPER-SIDE-ERROR re-fires reset this to 0.
+        # Anchor on method_check_round (not data_integrity_round) so the documented
+        # key order data_integrity_round -> method_check_round -> claim_grounding_round
+        # is preserved on fresh deploys where all three keys are added in this pass.
+        new = {}
+        for k, v in data.items():
+            new[k] = v
+            if k == "method_check_round":
                 new["claim_grounding_round"] = 0
         data = new
     if "paper_writer_pse_round" not in data:

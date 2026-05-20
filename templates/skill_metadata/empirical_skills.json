@@ -17,6 +17,15 @@
       "allowed-tools": "Bash, Read, Write"
     }
   },
+  "canonical-packages": {
+    "name": "canonical-packages",
+    "description": "Policy + procedure for not reimplementing econometric methods that have canonical, author-maintained packages. Field-tier finance referees (JF/JFE/RFS) reject custom code that re-derives well-known estimators (HonestDiD, Sensemakr, Callaway-Sant'Anna, wild cluster bootstrap, etc.) — see GitHub issue #36. This skill does NOT catalog packages; it tells you when to look one up (before writing code for any named econometric method), where to look (method author's site, PyPI, CRAN, Stata SSC, WebSearch), and how to document a legitimate deviation via the (a)–(d) justification taxonomy. The actual canonical-package discovery is done on demand by the empiricist (before coding) and by the `method-checker` agent (during audit at Stage 3a step 7.5) using PyPI / CRAN / SSC queries plus training knowledge.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[method name or paper citation]",
+      "allowed-tools": "Bash, Read, WebFetch"
+    }
+  },
   "chen-zimmerman": {
     "name": "chen-zimmerman",
     "description": "Open Source Asset Pricing dataset (Chen & Zimmerman 2022). 212 firm-level anomaly signals with portfolio returns. Use for cross-sectional calibration, testing anomaly predictions, and constructing characteristic-sorted portfolios.",
