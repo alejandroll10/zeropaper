@@ -1507,6 +1507,37 @@ if os.path.exists(state_path):
             if k == "identification_plan_revision_round":
                 new["data_integrity_round"] = 0
         data = new
+    if "claim_grounding_round" not in data:
+        # Insert immediately after data_integrity_round. Counter for the Stage 5 step 5a
+        # claim-grounding pipeline (enumerator -> grounder -> verifier) GROUNDER-ERROR
+        # re-fire loop (hard cap 3). PAPER-SIDE-ERROR re-fires reset this to 0.
+        new = {}
+        for k, v in data.items():
+            new[k] = v
+            if k == "data_integrity_round":
+                new["claim_grounding_round"] = 0
+        data = new
+    if "paper_writer_pse_round" not in data:
+        # Insert immediately after claim_grounding_round. Counter for consecutive
+        # PAPER-SIDE-ERROR re-fires of paper-writer at Stage 5 step 5a; resets to 0
+        # on claim-verifier PASS or on a PAPER-SIDE-ERROR cycle whose failure-claim-ID
+        # set overlaps <50% with the prior cycle (substantively different failures).
+        new = {}
+        for k, v in data.items():
+            new[k] = v
+            if k == "claim_grounding_round":
+                new["paper_writer_pse_round"] = 0
+        data = new
+    if "paper_writer_pse_claim_ids" not in data:
+        # Insert immediately after paper_writer_pse_round. Stores the claim_id set from
+        # the most recent PAPER-SIDE-ERROR claim_verification.md so the orchestrator can
+        # compute >50% overlap against the next PSE cycle without re-reading prior reports.
+        new = {}
+        for k, v in data.items():
+            new[k] = v
+            if k == "paper_writer_pse_round":
+                new["paper_writer_pse_claim_ids"] = []
+        data = new
     with open(state_path, "w") as f:
         json.dump(data, f, indent=2)
         f.write("\n")

@@ -40,5 +40,47 @@
     "gemini": {
       "model": "gemini-3-preview"
     }
+  },
+  "claim-enumerator": {
+    "name": "claim-enumerator",
+    "description": "Deterministic regex enumeration of every numerical claim in the paper draft. Launched at Stage 5 step 5a after the paper-writer marker-scan loop completes, before claim-grounder. Walks `paper/sections/*.tex` plus `paper/main.tex` and the populated `paper/internet_appendix.tex` if present, extracts every numerical token (coefficients, SEs, t-stats, p-values, confidence intervals, sample sizes, descriptive statistics, percentages, ratios, counts, dollars, basis points, R², persistence/half-lives, sample-defining date ranges) with file:line location and surrounding context, and writes `output/stage5/paper_claims.json`. Produces the canonical claim list both downstream agents (claim-grounder, claim-verifier) must achieve 100% coverage against. Does not match claims to empiricist outputs (claim-grounder) or verify file:field:value resolution (claim-verifier).",
+    "category": "developing",
+    "tools": "Read, Bash, Write, Glob, Grep",
+    "model": "sonnet",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "medium"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
+  "claim-grounder": {
+    "name": "claim-grounder",
+    "description": "LLM-judgment matching of every enumerated numerical claim to its source in empiricist outputs. Launched at Stage 5 step 5a after claim-enumerator completes, before claim-verifier. Reads `output/stage5/paper_claims.json` and locates each claim in `output/stage3a/` (empirical_analysis files, cached JSONs, regression-output tables, descriptive-statistics tables). Writes `output/stage5/paper_source_map.json` with one entry per enumerated claim: `{claim_id, status, file, field_path, cited_value, paper_value, tolerance_used, derivation}` (or status=NEEDS_EMPIRICIST with a description and null citation fields if no source resolves). Entry count must equal enumerator count. Does not enumerate (claim-enumerator) or verify resolution (claim-verifier).",
+    "category": "developing",
+    "tools": "Read, Write, Glob, Grep",
+    "model": "sonnet",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "medium"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
+  "claim-verifier": {
+    "name": "claim-verifier",
+    "description": "Adversarial programmatic verification of grounder citations. Launched at Stage 5 step 5a after claim-grounder completes; the last gate before Stage 5 step 6 (early bib-verify). Reads `output/stage5/paper_claims.json` and `output/stage5/paper_source_map.json` and runs four checks per entry via Bash: (1) source-map entry count equals enumerator count (coverage); (2) cited file exists on disk; (3) field path resolves in the cited file (JSON key path / regression-table cell); (4) cited value matches paper text within rounding tolerance. Writes TWO outputs: `output/stage5/claim_verification.md` (human-readable PASS/REVISE report with per-failure GROUNDER-ERROR / PAPER-SIDE-ERROR / ENUMERATOR-DRIFT classification) AND `output/stage5/claim_verification_summary.json` (machine-readable: verdict, enumerator_drift, totals, grounder_error_claim_ids, pse_claim_ids, needs_empiricist_claim_ids, failure_index — the orchestrator parses this for routing and counter updates). REVISE routes: GROUNDER-ERROR → re-fire claim-grounder; PAPER-SIDE-ERROR → re-fire paper-writer per the existing Stage 5 step 5 marker-scan procedure; ENUMERATOR-DRIFT → re-fire claim-enumerator first. Full enumeration by default — no sampling. Does not enumerate (claim-enumerator) or match claims to sources (claim-grounder).",
+    "category": "evaluator",
+    "tools": "Bash, Read, Write, Glob, Grep",
+    "model": "sonnet",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "medium"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
   }
 }

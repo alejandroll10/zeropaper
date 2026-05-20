@@ -1,6 +1,6 @@
 # CLAUDE.md — Meta Project: Pipeline Template Development
 
-AFTER EVERY BIG CHANGE  SPAN A SONNET AGENT TO REVIEW YOUR CHANGES FOR ISSUES. IF ANY ISSUES ARE FOUND, ADD A NEW ROUND OF AUDITING AFTER FIXING THE CURRENT ROUND'S ISSUES (EVEN IF THERE ARE ONLY MINOR CHANGES). ITERATE UNTIL DONE.
+AFTER EVERY BIG CHANGE, LAUNCH A SONNET AGENT TO REVIEW YOUR CHANGES FOR ISSUES. IF ANY ISSUES ARE FOUND, ADD A NEW ROUND OF AUDITING AFTER FIXING THE CURRENT ROUND'S ISSUES (EVEN IF THERE ARE ONLY MINOR CHANGES). ITERATE UNTIL DONE.
 
 WHEN ADDING A NEW INFRASTRUCTURE PATH TO `setup.sh` (DIR OR FILE THAT GETS DEPLOYED), ALSO ADD IT TO THE `candidate_dirs` / `candidate_files` LIST IN THE MANIFEST EMISSION BLOCK (`setup.sh:1184`); OTHERWISE `update.sh` WILL SILENTLY SKIP IT WHEN REFRESHING EXISTING DEPLOYMENTS.
 
@@ -295,5 +295,12 @@ Agents are either **shared** (identical across variants) or **variant-specific**
 **Extension agents** (added by `--ext` flags):
 - `empiricist` — empirical analysis (variant-specific, `--ext empirical`)
 - `empirics-auditor` — verifies empirical code/results (shared, `--ext empirical`)
+- `data-integrity-auditor` — verifies cached field-content against source (shared, `--ext empirical`)
+- `data-selection-auditor` — verifies cached sample against documented inclusion rule (shared, `--ext empirical`)
+- `identification-designer` — designs the identification strategy at Stage 1 step 4 (variant-specific, finance only in v1, `--ext empirical`)
+- `identification-auditor` — adversarial audit of identification strategy at Stage 3a step 3 (variant-specific, finance only in v1, `--ext empirical`)
+- `claim-enumerator` — deterministic regex enumeration of numerical claims in the paper draft → `paper_claims.json` (shared, `--ext empirical`, Stage 5 step 5a)
+- `claim-grounder` — LLM-judgment match of every enumerated claim to its empiricist-output source → `paper_source_map.json` (shared, `--ext empirical`, Stage 5 step 5a)
+- `claim-verifier` — programmatic file/field/value verification of grounder citations with coverage check → REVISE feeds back to grounder or paper-writer (shared, `--ext empirical`, Stage 5 step 5a)
 - `experiment-designer` — LLM experiments (shared, `--ext theory_llm`)
 - `experiment-reviewer` — validates experiment methodology (shared, `--ext theory_llm`)
