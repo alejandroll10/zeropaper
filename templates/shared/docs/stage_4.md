@@ -20,8 +20,10 @@
    - Theory exploration: `output/stage2b/exploration.md` (if available — computational verification and diagnostic plots)
 <!-- THEORY_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
-   - Identification audit: `output/stage3a/identification_audit.md` (Stage 1 design + Stage 3a plan; the H3 hard requirement gates on this)
-   - Empirics audit: `output/stage3a/empirics_audit.md` (the H3 hard requirement also gates on this)
+   - Identification audit: `output/stage3a/identification_audit.md` (Stage 1 design + Stage 3a plan; H3 gates on this)
+   - Empirics audit: `output/stage3a/empirics_audit.md` (H3 gates on this)
+   - Data-integrity audit: `output/stage3a/data_integrity_audit.md` (H3 gates on this — step 7.5)
+   - Data-selection audit: `output/stage3a/data_selection_audit.md` (H3 gates on this — step 7.5)
    - (Math audit and theory exploration files do not exist under empirical-first; do NOT attempt to read `output/stage2/math_audit_*.md` or `output/stage2b/exploration.md`.)
 <!-- EMPIRICAL_FIRST_END -->
    - Novelty check (idea): `output/stage1/novelty_check_idea.md`
@@ -34,7 +36,7 @@
    - **Structured scorer only, on revisions (N ≥ 2):** also pass the prior theory draft (`output/stage2/theory_draft_v{N-1}.md`) and the `## Unverified claims` section of the prior math audit (`output/stage2/math_audit_v{N-1}.md`). Do NOT pass any prior scorer output or prior score to either agent — the structured scorer scores independently; the freeform scorer is history-blind.
 <!-- THEORY_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
-   - **Structured scorer only, on revisions (N ≥ 2):** also pass the prior theory draft (`output/stage2/theory_draft_v{N-1}.md`) and the prior identification + empirics audit reports if they were re-fired alongside the theory revision. (Empirical-first has no math audit's `## Unverified claims` section to read; the analogous "what was unresolved last round" content lives in the prior `output/stage3a/identification_audit.md` REVISE notes and the prior `output/stage3a/empirics_audit.md` issue list.) Do NOT pass any prior scorer output or prior score to either agent.
+   - **Structured scorer only, on revisions (N ≥ 2):** also pass the prior theory draft (`output/stage2/theory_draft_v{N-1}.md`) and the prior identification, empirics, data-integrity, and data-selection audit reports if they were re-fired alongside the theory revision. (Empirical-first has no math audit's `## Unverified claims` section to read; the analogous "what was unresolved last round" content lives in the prior audit REVISE notes from `output/stage3a/`.) Do NOT pass any prior scorer output or prior score to either agent.
 <!-- EMPIRICAL_FIRST_END -->
 2. Save results to `output/stage4/scorer_decision_vN.md` and `output/stage4/scorer_freeform_vN.md`
 3. Commit: `artifact: scorer decisions v{N} (structured + freeform)`

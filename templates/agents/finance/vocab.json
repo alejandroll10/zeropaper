@@ -12,6 +12,7 @@
   "H3_FAIL_ROUTING": "REVISE with specific fixes from math audit",
   "H3_OUTPUT_LABEL": "Math correct",
   "H3_OUTPUT_EVIDENCE": "[from math audit]",
+  "H3_BRIEF": "math correctness",
   "EMPIRICS_AUDITOR_MODE_BLOCK": "",
   "H5_CHECK": "The \"mechanism\" section explains WHY in economics, not algebra",
 

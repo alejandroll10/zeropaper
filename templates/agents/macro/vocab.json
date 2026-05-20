@@ -12,6 +12,7 @@
   "H3_FAIL_ROUTING": "REVISE with specific fixes from math audit",
   "H3_OUTPUT_LABEL": "Math correct",
   "H3_OUTPUT_EVIDENCE": "[from math audit]",
+  "H3_BRIEF": "math correctness",
   "EMPIRICS_AUDITOR_MODE_BLOCK": "",
   "H5_CHECK": "The draft explains WHY the result holds in terms of economic forces — not just algebra. A macro seminar audience would understand the mechanism.",
 

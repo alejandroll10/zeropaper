@@ -1498,6 +1498,15 @@ if os.path.exists(state_path):
             if k == "stage3a_theory_version":
                 new["identification_plan_revision_round"] = 0
         data = new
+    if "data_integrity_round" not in data:
+        # Insert immediately after identification_plan_revision_round. Counter for the
+        # Stage 3a step 7.5 data-integrity + data-selection auditor REVISE loop (hard cap 3).
+        new = {}
+        for k, v in data.items():
+            new[k] = v
+            if k == "identification_plan_revision_round":
+                new["data_integrity_round"] = 0
+        data = new
     with open(state_path, "w") as f:
         json.dump(data, f, indent=2)
         f.write("\n")

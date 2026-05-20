@@ -12,5 +12,33 @@
     "gemini": {
       "model": "gemini-3-preview"
     }
+  },
+  "data-integrity-auditor": {
+    "name": "data-integrity-auditor",
+    "description": "Adversarial audit of cached-data CONTENT correctness. Launched at Stage 3a step 7.5 after empirics-auditor PASS, in parallel with data-selection-auditor, before the puzzle-triage entry check. Re-queries the source database for a sampled subset of identifiers and compares against cached values. Runs the content-correctness checklist: placeholder/sentinel-as-category, field-semantics mismatch, transform-collapses-categories, outcome-derived covariate (perfect-predictor), duplicate event records, crosswalk completeness, cache staleness, cache contention, doc-vs-code vintage mismatch. Returns PASS / REVISE / FAIL with severity-ranked named failure modes. Does not audit identification (identification-auditor), code execution (empirics-auditor), or sample selection (data-selection-auditor, its sibling).",
+    "category": "evaluator",
+    "tools": "Bash, Read, Write, Glob, Grep",
+    "model": "sonnet",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "medium"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
+  "data-selection-auditor": {
+    "name": "data-selection-auditor",
+    "description": "Adversarial audit of sample-SELECTION correctness. Launched at Stage 3a step 7.5 after empirics-auditor PASS, in parallel with data-integrity-auditor, before the puzzle-triage entry check. Re-runs the documented inclusion criteria against the source with relaxed filters and diffs candidate identifiers vs cached identifiers to surface silent exclusions. Runs the selection-correctness checklist: silent sample exclusion, filter text-vs-code mismatch, cross-method universe drift, treatment-assignment mismatch, outcome-coding mismatch, cohort-definition drift code-vs-text, snapshot-vs-time-varying covariate, coverage-vs-external-benchmark. Returns PASS / REVISE / FAIL with severity-ranked named failure modes. Does not audit identification (identification-auditor), code execution (empirics-auditor), or field-content correctness (data-integrity-auditor, its sibling).",
+    "category": "evaluator",
+    "tools": "Bash, Read, Write, Glob, Grep",
+    "model": "sonnet",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "medium"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
   }
 }
