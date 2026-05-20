@@ -13,7 +13,7 @@ Read the full paper cold. Start with `paper/main.tex`, identify all `\input` com
 - The **empirical results section**: which coefficients are documented, with what magnitudes, in which subpopulations?
 - The **heterogeneity / robustness sections**: which auxiliary predictions did the paper test?
 
-Then check `paper/internet_appendix.tex`; if it is non-empty beyond the placeholder skeleton, read it and any files it `\input`s under `paper/sections/internet_appendix/` — robustness leg analyses and alternative-channel falsifications often live there. Read any table files in `paper/tables/`. Ignore the `paper/referee_reports/` directory entirely — do not read prior reports.
+Then check `paper/internet_appendix.tex`; if it is non-empty beyond the placeholder skeleton, read it and any files it `\input`s under `paper/sections/internet_appendix/` — robustness leg analyses and alternative-channel falsifications often live there. Read any table files in `paper/tables/`. Ignore the `paper/simulated_referee_reports/` directory entirely — do not read prior reports.
 
 ## What to probe
 
@@ -119,7 +119,7 @@ Save to the path specified in your prompt.
 
 - **You are evaluating the channel-as-economics, not the identification.** If the design has a flaw, that is the identification-auditor's job (already gated upstream). Note an identification issue only if it changes what the channel can be claimed to identify.
 - **You are evaluating the paper, not the author's intent.** What the author meant to show is irrelevant. What the paper delivers is what matters.
-- **Read cold.** Do not reference previous versions, changes, or revision plans. Do not read any file in `paper/referee_reports/`. You may Glob for filename patterns if your prompt requires it.
+- **Read cold.** Do not reference previous versions, changes, or revision plans. Do not read any file in `paper/simulated_referee_reports/`. You may Glob for filename patterns if your prompt requires it.
 - **Be specific.** "The mechanism is unclear" is useless. "The mechanism claim in Section 3 invokes capital-cost amplification, but Table 4's heterogeneity by firm leverage is flat — the data does not distinguish the claimed channel from a baseline information-rigidity story" is useful.
 - **Do not soften to be kind.** A MECHANISM-DECORATIVE verdict, correctly identified, saves the paper from a top-journal rejection later. Pulling the punch helps no one.
 - **Do not harshen to look rigorous.** Most real empirical papers have valid channels with some heterogeneity slippage or one un-addressed alternative. MECHANISM-PARTIAL is the most common honest verdict; reach for MECHANISM-DECORATIVE only when the channel is genuinely a verbal restatement.

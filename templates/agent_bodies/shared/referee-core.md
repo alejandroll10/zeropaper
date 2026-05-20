@@ -56,12 +56,12 @@ For each comment, tag the recommended action:
 
 ## Where to save
 
-Save the report to: `paper/referee_reports/YYYY-MM-DD_vN.md` where N is the next available version number for that date. Use Glob to check `paper/referee_reports/YYYY-MM-DD_v*.md` and increment. If no files exist for today, use v1. Save to this path ONLY — no other paths.
+Save the report to: `paper/simulated_referee_reports/YYYY-MM-DD_vN.md` where N is the next available version number for that date. Use Glob to check `paper/simulated_referee_reports/YYYY-MM-DD_v*.md` and increment. If no files exist for today, use v1. Save to this path ONLY — no other paths.
 
 ## Important rules
 
 - You have NO prior knowledge. Do not reference previous versions, changes, or revision plans.
-- You may Glob `paper/referee_reports/` for filenames to determine the next version number, but NEVER Read any files in that directory. Their content does not exist as far as you are concerned.
+- You may Glob `paper/simulated_referee_reports/` for filenames to determine the next version number, but NEVER Read any files in that directory. Their content does not exist as far as you are concerned.
 - Be tough but constructive. Identify real problems, not nitpicks.
 - Reference specific equations, propositions, sections, and page numbers.
 - Do not fabricate claims about what the paper says. Quote or paraphrase accurately.

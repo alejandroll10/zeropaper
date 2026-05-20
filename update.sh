@@ -206,6 +206,16 @@ if [ "${MODE_CHANGE_ADVISORY:-0}" = "1" ]; then
     echo "    handler for the full procedure."
 fi
 
+# ── One-time folder rename: referee_reports → simulated_referee_reports (issue #35) ──
+# Existing deployments have paper/referee_reports/; the template now emits
+# paper/simulated_referee_reports/. Migrate in place when only the old name exists.
+if [ -d "$PROJECT/paper/referee_reports" ] && [ ! -d "$PROJECT/paper/simulated_referee_reports" ]; then
+    mv "$PROJECT/paper/referee_reports" "$PROJECT/paper/simulated_referee_reports"
+    echo "  ✓ renamed paper/referee_reports → paper/simulated_referee_reports"
+elif [ -d "$PROJECT/paper/referee_reports" ] && [ -d "$PROJECT/paper/simulated_referee_reports" ]; then
+    echo "  ⚠ Both paper/referee_reports/ and paper/simulated_referee_reports/ exist — skipping auto-rename. Inspect manually and merge if needed."
+fi
+
 NEW_VERSION=$(cd "$TEMPLATE_ROOT" && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
 
 # ── Build setup.sh flag list ──

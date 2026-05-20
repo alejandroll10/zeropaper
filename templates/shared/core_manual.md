@@ -37,7 +37,7 @@ code/
 paper/
 ├── main.tex
 ├── sections/
-└── referee_reports/
+└── simulated_referee_reports/
 ```
 
 Reference docs for each research step are also in `docs/` if you want to read how a particular step is normally handled.

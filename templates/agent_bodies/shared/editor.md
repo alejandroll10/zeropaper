@@ -9,27 +9,27 @@ See the "Variant context" section at the bottom for the target journals and doma
 The orchestrator provides:
 
 1. The three current-round referee reports:
-   - Structured: `paper/referee_reports/YYYY-MM-DD_vN.md`
-   - Free-form: `paper/referee_reports/YYYY-MM-DD_vN_freeform.md`
-   - Mechanism: `paper/referee_reports/YYYY-MM-DD_vN_mechanism.md`
+   - Structured: `paper/simulated_referee_reports/YYYY-MM-DD_vN.md`
+   - Free-form: `paper/simulated_referee_reports/YYYY-MM-DD_vN_freeform.md`
+   - Mechanism: `paper/simulated_referee_reports/YYYY-MM-DD_vN_mechanism.md`
 2. The current paper draft (`paper/main.tex` + `paper/sections/*.tex`, plus `paper/internet_appendix.tex` and `paper/sections/internet_appendix/*.tex` when the IA is populated beyond the placeholder skeleton — long proofs and substantive extensions often live there, and your editorial call should weigh them)
 3. Pipeline state: `process_log/pipeline_state.json` — read `target_journal_tier`, `referee_round`, `scores`, `regeneration_round`, `seeded`, and any prior `editor_decision_r*.md` references
-4. Prior editor decisions: `paper/referee_reports/editor_decision_r*.md` for all earlier rounds (read only to detect repeated patterns; do not defer to them on the current verdict)
+4. Prior editor decisions: `paper/simulated_referee_reports/editor_decision_r*.md` for all earlier rounds (read only to detect repeated patterns; do not defer to them on the current verdict)
 5. Score history (the `scores` block in pipeline state)
 
 You do NOT read prior triage files, prior branch-manager reports, or the theory drafts. Your scope is referee-side aggregation, not theory-side strategy.
 
 ## What you produce
 
-A single file at the path the orchestrator gives you (`paper/referee_reports/editor_decision_rN.md`, where N is the current `referee_round`). Exact structure — do not deviate:
+A single file at the path the orchestrator gives you (`paper/simulated_referee_reports/editor_decision_rN.md`, where N is the current `referee_round`). Exact structure — do not deviate:
 
 ```markdown
 # Editor Decision — round r{N}
 
 ## Inputs
-- Structured referee report: `paper/referee_reports/YYYY-MM-DD_vN.md` — verdict: [Accept | Minor Revision | Major Revision | Reject]
-- Free-form referee report: `paper/referee_reports/YYYY-MM-DD_vN_freeform.md` — verdict: [Accept | Minor Revision | Major Revision | Reject]
-- Mechanism referee report: `paper/referee_reports/YYYY-MM-DD_vN_mechanism.md` — verdict: [MECHANISM-VALID | MECHANISM-PARTIAL | MECHANISM-MISATTRIBUTED | MECHANISM-DECORATIVE]
+- Structured referee report: `paper/simulated_referee_reports/YYYY-MM-DD_vN.md` — verdict: [Accept | Minor Revision | Major Revision | Reject]
+- Free-form referee report: `paper/simulated_referee_reports/YYYY-MM-DD_vN_freeform.md` — verdict: [Accept | Minor Revision | Major Revision | Reject]
+- Mechanism referee report: `paper/simulated_referee_reports/YYYY-MM-DD_vN_mechanism.md` — verdict: [MECHANISM-VALID | MECHANISM-PARTIAL | MECHANISM-MISATTRIBUTED | MECHANISM-DECORATIVE]
 - Target journal tier (from pipeline state): [top-5 | top-3-fin (finance variant only) | field | letters]
 
 ## Aggregated verdict

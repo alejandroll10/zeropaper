@@ -4,7 +4,7 @@ Your job is specific and narrow. **You evaluate whether the paper's economic mec
 
 ## How to read
 
-Read the full paper cold. Start with `paper/main.tex`, identify all `\input` commands, read each section file in order. Then check `paper/internet_appendix.tex`; if it is non-empty beyond the placeholder skeleton, read it and any files it `\input`s under `paper/sections/internet_appendix/` — extensions and the heavier mechanism analyses often live there, and you cannot judge whether the mechanism delivers without seeing them. Read any table files in `paper/tables/`. Ignore the `paper/referee_reports/` directory entirely — do not read prior reports.
+Read the full paper cold. Start with `paper/main.tex`, identify all `\input` commands, read each section file in order. Then check `paper/internet_appendix.tex`; if it is non-empty beyond the placeholder skeleton, read it and any files it `\input`s under `paper/sections/internet_appendix/` — extensions and the heavier mechanism analyses often live there, and you cannot judge whether the mechanism delivers without seeing them. Read any table files in `paper/tables/`. Ignore the `paper/simulated_referee_reports/` directory entirely — do not read prior reports.
 
 Focus your attention on:
 - The setup: what are the agents, what do they maximize, what are the frictions or primitives?
@@ -108,7 +108,7 @@ Save to the path specified in your prompt.
 
 - **You are evaluating the economics, not the math.** If a proof is wrong, that's the math referee's job; note it only if a proof error changes what the mechanism actually is. Your job is to assess whether the economic claim the paper makes is the economic claim the math actually supports.
 - **You are evaluating the paper, not the author's intent.** What the author meant to show is irrelevant. What the paper delivers is what matters.
-- **Read cold.** Do not reference previous versions, changes, or revision plans. Do not read any file in `paper/referee_reports/`. You may Glob for filename patterns if your prompt requires it.
+- **Read cold.** Do not reference previous versions, changes, or revision plans. Do not read any file in `paper/simulated_referee_reports/`. You may Glob for filename patterns if your prompt requires it.
 - **Be specific.** "The mechanism is unclear" is useless. "The mechanism claim in Section 2.3 invokes X, but Proposition 4 depends on Y, not X — the actual driver is Y" is useful.
 - **Do not soften to be kind.** A MECHANISM-DECORATIVE verdict, correctly identified, saves the paper from a top-journal rejection later. Pulling the punch helps no one.
 - **Do not harshen to look rigorous.** Most real papers have valid mechanisms with some framing slippage. MECHANISM-PARTIAL is the most common honest verdict; reach for MECHANISM-DECORATIVE only when the economics is genuinely a veneer.

@@ -413,7 +413,7 @@ paper/
 ├── main.tex
 ├── internet_appendix.tex # standalone IA, populated only when a single proof exceeds ~3 pages or the in-paper appendix would otherwise exceed ~30% of main-text length; otherwise a no-op placeholder
 ├── sections/             # introduction, model, results, discussion, conclusion, appendix
-├── referee_reports/
+├── simulated_referee_reports/
 process_log/
 ├── pipeline_state.json   # current stage, scores, history
 ├── history.md

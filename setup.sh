@@ -860,7 +860,7 @@ fi
 
 mkdir -p "$P/code/analysis" "$P/code/download" "$P/code/tmp" "$P/code/explore"
 mkdir -p "$P/data"
-mkdir -p "$P/paper/sections" "$P/paper/referee_reports"
+mkdir -p "$P/paper/sections" "$P/paper/simulated_referee_reports"
 mkdir -p "$P/references"
 
 # ---------------------------------------------------------------------

@@ -314,7 +314,7 @@ my-paper/
 ├── paper/                    # LaTeX paper
 │   ├── main.tex
 │   ├── sections/
-│   └── referee_reports/
+│   └── simulated_referee_reports/
 ├── code/
 │   ├── analysis/             # Analysis and verification scripts
 │   ├── download/             # Data download helpers

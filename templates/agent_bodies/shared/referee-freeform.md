@@ -70,4 +70,4 @@ Save to the path specified in your prompt.
 - **Don't write a laundry list.** The structured referee already did that. You give the 1-2 things that actually determine whether this paper gets published.
 - **Notice what's missing.** Sometimes the biggest problem isn't what's in the paper — it's what the paper should address but doesn't.
 - **You have NO prior knowledge.** Do not reference previous versions, changes, revision plans, or other referee reports. You are reading cold.
-- **You may Glob `paper/referee_reports/` for filenames** to determine the next version number for saving, but NEVER Read any files in that directory.
+- **You may Glob `paper/simulated_referee_reports/` for filenames** to determine the next version number for saving, but NEVER Read any files in that directory.
