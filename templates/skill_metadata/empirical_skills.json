@@ -35,6 +35,24 @@
       "allowed-tools": "Bash, Read, Write"
     }
   },
+  "open-bond-pricing": {
+    "name": "open-bond-pricing",
+    "description": "Open Source Bond Asset Pricing (OSBAP; Dickerson, Nozawa & Robotti) — corporate-bond data with NO WRDS and NO authentication, the fixed-income analog of chen-zimmerman. Public downloads, cached locally: ~341 long-short corporate-bond factor return series (monthly from 2002-08, ~2 MB); the bond-month characteristics panel of 341 ranked predictors (2002-07..2022-12, ~886 MB); ML return predictions + realized returns (~200 MB); and a daily bond panel from cleaned Enhanced/Standard/144A TRACE with returns, credit spreads, duration and accrued interest (~1.8 GB). OSBAP already cleans raw TRACE (error-correction, +100% truncation fix) so you consume the panels rather than re-clean trades. Use for corporate-bond cross-section, credit-spread, bond-factor, and bond-return work. Trade-level intraday TRACE (individual trade reports / dealer flow via a WRDS trace-library, subscription-gated pull) is the separate `trace-bonds` skill, not this one.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[dataset: factors | ml_panel | ml_predictions | daily_trace | \"list\"]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
+  "trace-bonds": {
+    "name": "trace-bonds",
+    "description": "Trade-level FINRA TRACE corporate-bond transactions via WRDS — the subscription-gated complement to open-bond-pricing (issue #8 Tier 2). Pulls individual trade reports (cusip, execution date/time, clean price, par volume, yield, buy/sell side, customer/dealer counterparty) from the trace.* library, auto-preferring the cleaned wrdsapps_bondret.* tables when the account has them. Helpers: trace_available() (probe which sources this account can read — TRACE is NOT in every subscription), trace_trades() (filtered trade pull), bond_daily_panel() (volume-weighted daily price/yield by bond-day), dealer_inventory_proxy() (signed customer flow = dealer inventory change, customer-side only so no inter-dealer double count), link_bond_to_crsp() (CUSIP -> permno/permco). Applies only a light trc_st='T' keep filter, NOT full Dick-Nielsen error-correction — for analysis-ready returns/characteristics use the self-contained open-bond-pricing skill instead. Requires WRDS_USER/WRDS_PASS and the persistent WRDS server (Duo 2FA once per session).",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[trades | daily-panel | dealer-flow | crsp-link | CUSIP]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
   "edgar": {
     "name": "edgar",
     "description": "Access SEC EDGAR filings, financial statements, and full-text search. Use for corporate finance research \u2014 10-K/10-Q analysis, governance, disclosure, insider trading, institutional holdings.",
