@@ -1,9 +1,18 @@
-"""Test call-reports skill (issue #7) — FFIEC CDR + FR Y-9C + FDIC API.
+"""Test call-reports skill (issues #7, #33) — FFIEC CDR + FR Y-9C + FDIC API.
 
 Acceptance (issue #7):
   * Pull one quarter's Call Report, extract RCON-coded variables
     (RCON2170 total assets), and count banks.
   * Exercise the RSSD <-> CERT linking crosswalk.
+
+Acceptance (issue #33 — bank -> holding-company rollup):
+  * bank_to_holder() maps a known bank RSSD to its known top-holder RSSD,
+    hand-checked (852218 -> 1039502 JPMorgan; 480228 -> 1073757 BofA).
+  * bank_panel(holder=True) attaches the rollup key point-in-time.
+  * nic_relationships()/nic_attributes() raise the documented Akamai-wall
+    RuntimeError when no bulk file is placed (HARD — the wall is a stated
+    limit, like the Y-9C 2021Q2+ manual step), and the source='nic' walk
+    is exercised only when a user file is present (documented SKIP).
 
 Test policy mirrors the codebase convention (hrs-scf): the reliable,
 no-key paths (FDIC API; Chicago Fed pre-2021Q1 BHCF) are HARD assertions;
@@ -19,11 +28,15 @@ import sys
 
 from utils.call_reports_utils import (
     call_report, y9c, bank_panel, fdic_financials, fdic_institutions,
-    nic_link, parse_quarter, FFIEC_FORM_BRITTLENESS,
+    nic_link, bank_to_holder, nic_relationships, nic_attributes,
+    parse_quarter, FFIEC_FORM_BRITTLENESS,
 )
 
 JPM_BANK_RSSD = 852218   # JPMorgan Chase Bank, N.A. (a bank)
 JPM_BANK_CERT = 628
+JPM_HOLDER_RSSD = 1039502  # JPMorgan Chase & Co. (the top BHC) — the y9c example
+BOFA_BANK_RSSD = 480228  # Bank of America, N.A.
+BOFA_HOLDER_RSSD = 1073757  # Bank of America Corp (top BHC)
 
 # === Test 1: quarter parsing ===
 print("=== Test 1: parse_quarter ===")
@@ -69,6 +82,102 @@ try:
 except RuntimeError as e:
     assert "cutoff" in str(e) and "NIC" in str(e), f"wrong error: {e}"
     print("  2023Q4 (post-2021Q1): documented manual-download RuntimeError OK")
+
+# === Test 4b: bank_to_holder — issue #33 ACCEPTANCE (HARD, no key) ===
+# Placed before the brittle FFIEC path so it runs regardless of FFIEC
+# reachability (Test 5 may sys.exit early when the bulk form is down).
+print("\n=== Test 4b: bank_to_holder — bank RSSD -> top holder RSSD ===")
+h = bank_to_holder([JPM_BANK_RSSD, BOFA_BANK_RSSD]).set_index("bank_rssd")
+assert int(h.loc[JPM_BANK_RSSD, "holder_rssd"]) == JPM_HOLDER_RSSD, \
+    f"JPM bank {JPM_BANK_RSSD} should roll up to BHC {JPM_HOLDER_RSSD}"
+assert int(h.loc[BOFA_BANK_RSSD, "holder_rssd"]) == BOFA_HOLDER_RSSD, \
+    f"BofA bank {BOFA_BANK_RSSD} should roll up to BHC {BOFA_HOLDER_RSSD}"
+assert not bool(h.loc[JPM_BANK_RSSD, "is_independent"])
+# the JPM holder RSSD is exactly the BHC the y9c example pulls
+assert JPM_HOLDER_RSSD == 1039502
+# scalar input -> one row
+assert len(bank_to_holder(JPM_BANK_RSSD)) == 1
+# point-in-time path (financials RSSDHCR per REPDTE)
+hp = bank_to_holder(JPM_BANK_RSSD, asof="2020Q4")
+assert int(hp.iloc[0]["holder_rssd"]) == JPM_HOLDER_RSSD, "point-in-time rollup"
+assert hp.iloc[0]["asof"] == "2020-12-31"
+# unresolved id (not FDIC-insured) -> total mapping, NA holder, no raise
+hu = bank_to_holder([999999999])
+assert len(hu) == 1 and pd.isna(hu.iloc[0]["holder_rssd"])
+# an independent bank (its own top holder) -> is_independent True.
+# RSSD 37 = Bank of Hancock County, a known independent bank (RSSDHCR=<NA>);
+# hardcoded so the assertion always runs (no full-table pull, no if-guard).
+_d = bank_to_holder(37)
+assert bool(_d.iloc[0]["is_independent"]) and \
+    int(_d.iloc[0]["holder_rssd"]) == 37, "independent-bank rollup"
+print(f"  {JPM_BANK_RSSD} -> {JPM_HOLDER_RSSD} (JPMorgan & Co), "
+      f"{BOFA_BANK_RSSD} -> {BOFA_HOLDER_RSSD} (BofA Corp); "
+      "scalar/vector/asof/unresolved/independent all OK")
+
+# === Test 4c: bank_panel(holder=True) attaches point-in-time rollup key ===
+print("\n=== Test 4c: bank_panel(holder=True, source='fdic') ===")
+# include an independent bank (no holding company) to verify it is NOT
+# left as NaN holder (which a default groupby would silently drop, and
+# dropna=False would wrongly lump all independents into one group)
+_ind = fdic_institutions(rssdids=[37])  # Bank of Hancock County (own holder)
+_ind_cert = int(_ind.iloc[0]["CERT"]) if len(_ind) else None
+_certs = [JPM_BANK_CERT, 3510] + ([_ind_cert] if _ind_cert else [])
+hp_panel = bank_panel("2023Q3", "2023Q4", vars=["ASSET"], source="fdic",
+                      certs=_certs, holder=True)
+assert {"holder_rssd", "holder_name"}.issubset(hp_panel.columns), \
+    "holder=True must attach holder_rssd/holder_name"
+assert str(hp_panel["holder_rssd"].dtype) == "Int64", "holder_rssd must be Int64"
+_jpm = hp_panel[hp_panel["CERT"] == JPM_BANK_CERT]
+assert (_jpm["holder_rssd"] == JPM_HOLDER_RSSD).all(), \
+    "JPM rows must carry the BHC holder RSSD each quarter"
+if _ind_cert:
+    _indrows = hp_panel[hp_panel["CERT"] == _ind_cert]
+    assert _indrows["holder_rssd"].notna().all() and \
+        (_indrows["holder_rssd"] == 37).all(), \
+        "independent bank must roll up to its OWN RSSD (37), not NaN"
+# the rollup is groupby-able to the holding-company level; the independent
+# bank survives as its own group (not silently dropped)
+agg = hp_panel.groupby(["quarter", "holder_rssd"])["ASSET"].sum()
+assert len(agg) > 0
+if _ind_cert:
+    assert 37 in agg.index.get_level_values("holder_rssd"), \
+        "independent bank silently dropped by groupby('holder_rssd')"
+print(f"  panel carries Int64 holder_rssd (incl. independent banks); "
+      f"groupby holder -> {len(agg)} holder-quarters")
+
+# === Test 4d: NIC bulk wall — documented manual-download (issue #33) ===
+print("\n=== Test 4d: nic_relationships/nic_attributes Akamai-wall behavior ===")
+import os as _os
+from utils.call_reports_utils import DATA_DIR as _DD, _nic_discover
+_have_rel = _nic_discover("relationships") is not None
+if _have_rel:
+    rel = nic_relationships()
+    assert "ID_RSSD_PARENT" in rel.columns and "ID_RSSD_OFFSPRING" in rel.columns
+    assert str(rel["ID_RSSD_OFFSPRING"].dtype) == "Int64"
+    nh = bank_to_holder(JPM_BANK_RSSD, source="nic", asof="2020Q4")
+    assert int(nh.iloc[0]["bank_rssd"]) == JPM_BANK_RSSD
+    # asof format must match the FDIC path (YYYY-MM-DD), not raw YYYYMMDD
+    assert nh.iloc[0]["asof"] == "2020-12-31", \
+        f"NIC asof should be ISO YYYY-MM-DD, got {nh.iloc[0]['asof']!r}"
+    print(f"  user-placed NIC file found: {len(rel):,} relationship edges; "
+          "source='nic' walk + asof format OK")
+else:
+    for fn in (lambda: nic_relationships(),
+               lambda: nic_attributes(which="active")):
+        try:
+            fn()
+            raise AssertionError("NIC helper should raise when no file placed")
+        except RuntimeError as e:
+            assert "Akamai" in str(e) and "browser" in str(e), \
+                f"NIC wall error not instructive: {e}"
+    # bad 'which' is a hard ValueError regardless of file presence
+    try:
+        nic_attributes(which="bogus")
+        raise AssertionError("bad which should raise ValueError")
+    except ValueError:
+        pass
+    print("  no user file placed: documented Akamai-wall RuntimeError OK "
+          "(source='nic' walk SKIPPED — drop a NIC bulk file to exercise it)")
 
 # === Test 5: FFIEC CDR literal RCON — ACCEPTANCE (HARD if reachable) ===
 print("\n=== Test 5: call_report('2023Q4','RC') — RCON2170, count banks ===")

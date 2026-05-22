@@ -130,10 +130,73 @@ literal-RCON `call_report` pulls (brittle, slower).
 ### The RSSD ↔ CERT crosswalk
 
 ```python
-fdic_institutions(certs=[628])            # -> NAME, FED_RSSD, ...
+fdic_institutions(certs=[628])            # -> NAME, FED_RSSD, RSSDHCR, ...
 fdic_institutions(rssdids=[852218])       # reverse lookup
-nic_link(852218)                          # RSSD -> CERT + identity
+nic_link(852218)                          # RSSD -> CERT + identity + holder
 ```
+
+### Rolling banks up to their holding company
+
+```python
+bank_to_holder(852218)                    # JPMorgan bank RSSD -> 1039502 (the BHC)
+bank_to_holder([852218, 480228])          # vectorized; one row per input
+bank_to_holder(852218, asof='2020Q4')     # point-in-time top holder
+panel = bank_panel('2021Q1', '2023Q4',    # panel WITH the rollup key attached
+        vars=['ASSET','DEP'], source='fdic', holder=True)
+panel.groupby(['quarter','holder_rssd'])['ASSET'].sum()   # consolidate to holder
+```
+
+`bank_to_holder` is the **correct, no-name-match** way to consolidate
+bank-level Call Reports to the holding-company level. It reads the
+**Regulatory High Holder** (`RSSDHCR`/`NAMEHCR`) that the FDIC carries
+(sourced from NIC) — no API key, **not** behind the NIC Akamai wall.
+`asof=None` is the current snapshot (`/institutions`); an `asof` quarter
+spec is point-in-time (`/financials`, which carries `RSSDHCR` per
+`REPDTE`). Returns one row per input RSSD with `holder_rssd`,
+`holder_name`, `is_independent` (a bank that is its own top holder), and
+`<NA>` holder fields for an unresolved id (not FDIC-insured / absent that
+quarter). The verifiable hand-check: bank RSSD `852218` → holder RSSD
+`1039502`, which is exactly the BHC RSSD the `y9c` example pulls.
+
+`bank_panel(..., holder=True)` attaches `holder_rssd`/`holder_name` so you
+can `groupby` the holder. For `source='fdic'` the holder is point-in-time
+(rides along in the same call); for `source='ffiec'` the Call Report has
+no holder field, so it is mapped at the **current** snapshot (a documented
+asymmetry — not as-of the panel quarter).
+
+**FBO caveat.** `RSSDHCR` is the top of the *domestic* regulatory chain.
+For US subsidiaries of foreign banking organizations it stops at the US
+intermediate holding company, **not** the foreign ultimate parent (e.g.
+Santander Bank NA → Santander Holdings USA, not Banco Santander S.A.).
+This is a NIC definition, not a retrieval gap — use `nic_relationships()`
+to walk above the US IHC when the foreign parent is needed.
+
+### Full ownership tree (NIC bulk — manual download)
+
+For the *multi-level* tree (intermediate parents, equity percentages,
+historical as-of edges) — beyond the single top-holder hop FDIC gives —
+use the NIC bulk relationships/attributes tables:
+
+```python
+rel  = nic_relationships()                # parent/offspring edges, CTRL_IND, PCT_EQUITY
+attr = nic_attributes(which='active')     # entity descriptors, keyed ID_RSSD
+rel.merge(attr, left_on='ID_RSSD_OFFSPRING', right_on='ID_RSSD')   # join-ready
+bank_to_holder(852218, source='nic', asof='2020Q4')   # walk controlling-parent edges
+```
+
+The NIC Financial Data Download host is behind **Akamai bot protection**
+that 403s server/datacenter IPs on every path (same wall as `y9c`
+2021Q2+). These helpers attempt a best-effort fetch and otherwise raise an
+instructive `RuntimeError`: download the CSV bundle in a browser and drop
+the file (e.g. `CSV_RELATIONSHIPS.ZIP` or its extracted `.CSV`) anywhere
+under `data/call_reports/` — the filename just has to contain the table
+name. `source='nic'` walks controlling parent edges (`CTRL_IND=1`, or
+unrecorded — null control status is conservatively treated as controlling)
+active at `asof` up to the top holder; when a node has several controlling
+parents it follows the one with the largest recorded `PCT_EQUITY` (a
+documented heuristic — note the ambiguity if you rely on it). **For the
+common bank→top-holder rollup you do not need this file —
+`bank_to_holder()` (FDIC) is the no-download path.**
 
 ## The ID linking nightmare
 
@@ -152,10 +215,10 @@ Rules of thumb:
 - **Bank-level** analysis → key on RSSD (`IDRSSD`). **Holding-company**
   analysis → key on the BHC's `RSSD9001` from Y-9C.
 - A BHC's RSSD is **not** its lead bank's RSSD. To roll banks up to their
-  holder, do **not** name-match — use the NIC bulk relationships/attributes
-  CSVs (`CSV_RELATIONSHIPS`, `CSV_ATTRIBUTES`) from the NIC Financial Data
-  Download, joined on `ID_RSSD`. `nic_link`'s docstring documents this; it
-  itself only does the reliable RSSD↔CERT lookup via the FDIC API.
+  holder, do **not** name-match — use `bank_to_holder()` (the no-key FDIC
+  Regulatory-High-Holder path), or `nic_relationships()`/`nic_attributes()`
+  (joined on `ID_RSSD`) when you need the full multi-level tree. `nic_link`
+  does the reliable RSSD↔CERT lookup and now also returns `RSSDHCR`.
 - `RSSD9001` (reporter) vs `RSSD9999` (as-of date) — `9001` is the entity.
 
 ## Standard operations
@@ -171,8 +234,11 @@ Rules of thumb:
 - **Intermediary asset pricing (holding-company leverage):** `y9c` BHCK
   equity / assets at the consolidated BHC level; bank-level Call Reports
   miss the holding-company leverage that the He–Kelly–Manela channel uses.
-- **Merge banks to holders:** FDIC `FED_RSSD` → NIC relationships table →
-  top-holder RSSD; aggregate Call Report items by holder.
+- **Merge banks to holders:** `bank_panel(start, end, source='fdic',
+  holder=True)` then `groupby(['quarter','holder_rssd']).sum()` — the
+  point-in-time FDIC high-holder rollup, no manual download. Use
+  `nic_relationships()` only when you need intermediate-tier consolidation
+  or ownership percentages.
 
 ## Rules
 
@@ -187,8 +253,9 @@ Rules of thumb:
   a stated NIC bot-protection limit, not a helper bug; report it in the
   data appendix the way the `hrs-scf` registration step is reported.
 - **Never join on a guessed ID.** RSSD↔CERT is a lookup
-  (`fdic_institutions`); bank↔holder is the NIC relationships table. No
-  name matching for entity resolution.
+  (`fdic_institutions`); bank↔holder is `bank_to_holder()` (FDIC
+  high-holder) or the NIC relationships table. No name matching for entity
+  resolution.
 - **Report the source per series.** FFIEC RCON, Chicago-Fed/NIC BHCK, and
   FDIC standardized fields are *not* interchangeable line items; state
   which produced each number.
