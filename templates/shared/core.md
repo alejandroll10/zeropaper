@@ -423,7 +423,7 @@ process_log/
 
 ## Commit protocol
 
-**Commit after every file write, stage transition, gate decision, and agent output.** Never batch. Update `process_log/pipeline_state.json` (including history array with timestamp) before committing stage transitions.
+**Commit after every file write, stage transition, gate decision, and agent output.** Never batch. Update `process_log/pipeline_state.json` (including history array with timestamp) before committing stage transitions. After a stage-transition or gate-decision commit, if a git remote is configured (`git remote` is non-empty), push it (`git push`, or `git push -u origin HEAD` on first push); if no remote exists, skip silently.
 
 Prefixes: `pipeline:` (state changes), `artifact:` (agent output), `paper:` (LaTeX), `scribe:` (docs).
 
