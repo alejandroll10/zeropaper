@@ -34,6 +34,7 @@ Usage:
     from utils.call_reports_utils import (
         call_report, y9c, bank_panel,
         fdic_financials, fdic_institutions, nic_link,
+        bank_to_holder, nic_relationships, nic_attributes,
         list_call_periods, parse_quarter, RC_COMMON_VARS,
     )
 
@@ -44,6 +45,8 @@ Usage:
     pan  = bank_panel('2022Q1', '2023Q4',              # robust FDIC panel
                       vars=['ASSET', 'DEP', 'NETINC'])
     xwalk = nic_link(852218)                           # RSSD <-> CERT <-> name
+    hold = bank_to_holder(852218)                      # bank RSSD -> top holder
+    rel  = nic_relationships()                         # full ownership tree
 
 --------------------------------------------------------------------------
 THE ID LINKING NIGHTMARE (read before merging anything)
@@ -61,14 +64,15 @@ There is NO single bank identifier. The four you will meet:
     so CERT <-> RSSD is a lookup, never an algorithm.
   * SNL/CIQ key, RSSD9001 vs RSSD9999 (the as-of-date RSSD), and the
     "lead bank" vs "top holder" distinction — a BHC's RSSD is NOT its
-    lead bank's RSSD. To roll banks up to their holder you need the NIC
-    relationships table (`nic_link` documents the bulk path).
+    lead bank's RSSD. To roll banks up to their holder use
+    `bank_to_holder()` (the no-key FDIC high-holder path); for the full
+    multi-level ownership tree use `nic_relationships()`/`nic_attributes()`.
 
 Rules of thumb:
   * Never assume RSSD == CERT. They are unrelated integers.
   * Bank-level analysis: key on RSSD (IDRSSD). Holding-company analysis:
     key on the BHC's RSSD9001 from Y-9C. To consolidate banks to holders
-    use NIC relationships, not a name match.
+    use `bank_to_holder()` (or the NIC relationships tree), not a name match.
   * The FDIC API is the cheapest reliable RSSD<->CERT crosswalk.
 """
 import io
@@ -733,8 +737,12 @@ def fdic_financials(quarter, certs=None, fields=None):
         "filters": flt, "fields": ",".join(core), "limit": 1000,
     })
     df = pd.DataFrame(rows)
+    # NAMEHCR (regulatory high-holder NAME) is text like NAME; coercing it
+    # to numeric would silently NaN it out (it rides along when
+    # bank_to_holder/bank_panel request the high-holder fields).
+    text_cols = ("NAME", "STALP", "REPDTE", "NAMEHCR")
     for c in df.columns:
-        if c not in ("NAME", "STALP", "REPDTE"):
+        if c not in text_cols:
             df[c] = pd.to_numeric(df[c], errors="coerce")
     return df
 
@@ -742,8 +750,15 @@ def fdic_financials(quarter, certs=None, fields=None):
 def fdic_institutions(certs=None, rssdids=None, active_only=True):
     """FDIC institution directory — the CERT <-> FED_RSSD crosswalk.
 
-    Returns CERT, NAME, FED_RSSD, CITY, STALP, ACTIVE, etc. Either filter
-    by `certs`, by `rssdids` (FED_RSSD), or pull all (active) institutions.
+    Returns CERT, NAME, FED_RSSD, RSSDHCR, NAMEHCR, CITY, STALP, ACTIVE,
+    etc. Either filter by `certs`, by `rssdids` (FED_RSSD), or pull all
+    (active) institutions.
+
+    `RSSDHCR` / `NAMEHCR` are the RSSD and name of the bank's **Regulatory
+    High Holder** — the top of its holding-company chain, sourced by the
+    FDIC from NIC. This is the no-key, non-walled path used by
+    `bank_to_holder()` to roll banks up to their holder (current snapshot;
+    for point-in-time use `bank_to_holder(..., asof=...)`).
 
     NOTE: if both `certs` and `rssdids` are given the filter is AND
     (intersection) — a row must match a cert AND an rssd. To resolve two
@@ -758,12 +773,17 @@ def fdic_institutions(certs=None, rssdids=None, active_only=True):
         parts.append("(" + " OR ".join(f"FED_RSSD:{int(r)}" for r in rssdids) + ")")
     flt = " AND ".join(parts) if parts else ""
     params = {
-        "fields": "CERT,NAME,FED_RSSD,CITY,STALP,ACTIVE,BKCLASS,ESTYMD",
+        "fields": "CERT,NAME,FED_RSSD,RSSDHCR,NAMEHCR,CITY,STALP,ACTIVE,"
+                  "BKCLASS,ESTYMD",
         "limit": 1000,
     }
     if flt:
         params["filters"] = flt
-    return pd.DataFrame(_fdic_paged("institutions", params))
+    df = pd.DataFrame(_fdic_paged("institutions", params))
+    for c in ("CERT", "FED_RSSD", "RSSDHCR"):
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce").astype("Int64")
+    return df
 
 
 def nic_link(rssdid):
@@ -772,22 +792,422 @@ def nic_link(rssdid):
     Practical RSSD <-> CERT crosswalk via the FDIC institutions API
     (reliable, no key). Returns a one-row DataFrame (or empty if the RSSD
     is a holding company / non-FDIC entity — those have an RSSD but no
-    CERT).
+    CERT). The returned row also carries RSSDHCR / NAMEHCR (the bank's
+    regulatory high holder).
 
-    True NIC ownership *hierarchy* (parent/child, lead bank vs top holder)
-    is NOT a name match: download the NIC bulk relationships/attributes
-    CSVs from https://www.ffiec.gov/npw/FinancialReport/DataDownload
-    (CSV_RELATIONSHIPS, CSV_ATTRIBUTES) and join on ID_RSSD. That bulk
-    file is the only correct way to roll banks up to their holding company.
+    To roll a bank up to its holding company use ``bank_to_holder()`` (the
+    no-key FDIC path, sourced from NIC) — NOT a name match. For the full
+    multi-level ownership tree (intermediate parents, equity percentages,
+    as-of edges) use ``nic_relationships()`` / ``nic_attributes()``.
     """
     inst = fdic_institutions(rssdids=[int(rssdid)], active_only=False)
     return inst
 
 
+# ── bank → holding-company rollup ──
+
+def _as_rssd_list(rssdids):
+    """Normalize a scalar or iterable of RSSD ids to a list of plain ints.
+
+    Raises a clear ValueError on NA/None/NaN inputs rather than the opaque
+    int(NAType) TypeError — a caller passing a panel column with missing
+    ids should be told to drop them (the output mapping is total, so a
+    silent drop would break the one-row-per-input guarantee)."""
+    raw = (list(rssdids)
+           if isinstance(rssdids, (list, tuple, set, pd.Series, pd.Index))
+           else [rssdids])
+    if any(x is None or (isinstance(x, float) and pd.isna(x)) or x is pd.NA
+           for x in raw):
+        raise ValueError(
+            "rssdids contains NA/None values; drop them before calling "
+            "bank_to_holder (e.g. panel['IDRSSD'].dropna()).")
+    return [int(x) for x in raw]
+
+
+def bank_to_holder(rssdids, asof=None, source="fdic"):
+    """Map bank RSSD(s) to their top regulatory-high-holder RSSD.
+
+    The correct, no-name-match way to roll bank-level Call Reports up to
+    the holding-company level. ``source='fdic'`` (default) reads the
+    Regulatory High Holder (RSSDHCR/NAMEHCR) the FDIC carries (sourced from
+    NIC) — no key, not behind the NIC Akamai wall:
+
+      * ``asof=None`` — current snapshot, via the FDIC ``/institutions``
+        directory (one call for all ids).
+      * ``asof='2020Q4'`` (any parse_quarter spec) — point-in-time, via the
+        FDIC ``/financials`` endpoint, which carries RSSDHCR per REPDTE.
+
+    ``source='nic'`` instead walks the controlling-parent edges of a
+    user-placed NIC relationships file (``nic_relationships()``) as of
+    ``asof`` (default today) — this is the only path that also gives the
+    *intermediate* tree; it needs the manually downloaded bulk file.
+
+    FBO caveat: RSSDHCR is the top of the **domestic** regulatory chain.
+    For US subsidiaries of foreign banking organizations it stops at the
+    US intermediate holding company (IHC), NOT the foreign ultimate parent
+    (e.g. Santander Bank NA rolls up to Santander Holdings USA, not Banco
+    Santander S.A.). This is a NIC definition, not a retrieval gap; walk
+    ``nic_relationships()`` above the IHC if you need the foreign parent.
+    The ``asof`` output column is ``YYYY-MM-DD`` (point-in-time/NIC) or
+    None (current FDIC snapshot).
+
+    Args:
+        rssdids: a bank RSSD (IDRSSD) int, or an iterable of them.
+        asof: None (current) or a quarter spec for point-in-time.
+        source: 'fdic' (default, robust) or 'nic' (multi-level, manual file).
+
+    Returns: DataFrame, one row per input rssd, columns
+        ``bank_rssd, holder_rssd, holder_name, is_independent, asof,
+        source`` (plus ``bank_name`` for source='fdic'). A bank that is its
+        own top holder (no higher holder) has ``holder_rssd == bank_rssd``
+        and ``is_independent=True``; an unresolved id (not FDIC-insured /
+        absent that quarter) has ``<NA>`` holder fields. The mapping is
+        total: every input id yields exactly one row, in input order.
+    """
+    ids = _as_rssd_list(rssdids)
+    if source == "nic":
+        return _bank_to_holder_nic(ids, asof)
+    if source != "fdic":
+        raise ValueError(f"source must be 'fdic' or 'nic', got {source!r}")
+
+    # A single FED_RSSD can match several FDIC institution records — the
+    # bank's RSSD persists across CERT reassignments (mergers/renames). The
+    # holder RSSD is identical across them, but only the ACTIVE row carries
+    # the current high-holder NAME, and (for asof) only the CERT that filed
+    # that quarter has a financials row. So: prefer the ACTIVE record for
+    # identity, and keep ALL CERTs per RSSD for the point-in-time match.
+    inst = fdic_institutions(rssdids=ids, active_only=False)
+
+    def _is_active(row):
+        return pd.to_numeric(row.get("ACTIVE"), errors="coerce") == 1
+
+    best = {}              # rssd -> preferred (active) institution row
+    rssd_certs = {}        # rssd -> [all historical certs]
+    if not inst.empty and "FED_RSSD" in inst.columns:
+        for _, r in inst.iterrows():
+            fr = r.get("FED_RSSD")
+            if pd.isna(fr):
+                continue
+            fr = int(fr)
+            if fr not in best or (_is_active(r) and not _is_active(best[fr])):
+                best[fr] = r
+            ct = r.get("CERT")
+            if pd.notna(ct):
+                rssd_certs.setdefault(fr, []).append(int(ct))
+
+    if asof is None:
+        rows = []
+        for rid in ids:
+            r = best.get(rid)
+            rows.append(_holder_row(
+                rid, source="fdic", asof=None, found=(r is not None),
+                bank_name=(None if r is None else r.get("NAME")),
+                hcr=(None if r is None else r.get("RSSDHCR")),
+                hcr_name=(None if r is None else r.get("NAMEHCR")),
+            ))
+        return pd.DataFrame(rows)
+
+    # point-in-time: financials carries RSSDHCR per REPDTE, keyed by CERT.
+    # Query every historical CERT, then match each RSSD to whichever of its
+    # CERTs actually filed that quarter.
+    _, _, pe, _ = parse_quarter(asof)
+    all_certs = sorted({c for cs in rssd_certs.values() for c in cs})
+    fin_by_cert = {}
+    if all_certs:
+        fin = fdic_financials(
+            asof, certs=all_certs,
+            fields=["CERT", "REPDTE", "RSSDHCR", "NAMEHCR"])
+        if not fin.empty and "CERT" in fin.columns:
+            for _, r in fin.iterrows():
+                ct = r.get("CERT")
+                if pd.notna(ct):
+                    fin_by_cert[int(ct)] = r
+    rows = []
+    for rid in ids:
+        r = next((fin_by_cert[c] for c in rssd_certs.get(rid, [])
+                  if c in fin_by_cert), None)
+        bn = best.get(rid)
+        rows.append(_holder_row(
+            rid, source="fdic", asof=f"{pe:%Y-%m-%d}", found=(r is not None),
+            bank_name=(None if bn is None else bn.get("NAME")),
+            hcr=(None if r is None else r.get("RSSDHCR")),
+            hcr_name=(None if r is None else r.get("NAMEHCR")),
+        ))
+    return pd.DataFrame(rows)
+
+
+def _holder_row(bank_rssd, source, asof, found, bank_name, hcr, hcr_name):
+    """Assemble one bank_to_holder output row.
+
+    `found` is whether the authoritative holder-source row (FDIC
+    institutions row for asof=None, or the financials row at the requested
+    REPDTE) was located. Not-found -> unresolved (<NA> holder). Found with
+    RSSDHCR absent/0/self -> the bank is its own top holder (independent).
+    """
+    if not found:
+        holder, holder_name, indep = pd.NA, pd.NA, pd.NA
+    else:
+        hcr_num = pd.to_numeric(hcr, errors="coerce")
+        hcr_int = int(hcr_num) if pd.notna(hcr_num) else None
+        if hcr_int in (None, 0) or hcr_int == bank_rssd:   # no higher holder
+            holder, holder_name, indep = bank_rssd, (hcr_name or bank_name), True
+        else:
+            holder, holder_name, indep = hcr_int, (hcr_name or pd.NA), False
+    row = {
+        "bank_rssd": bank_rssd,
+        "holder_rssd": holder,
+        "holder_name": holder_name,
+        "is_independent": indep,
+        "asof": asof,
+        "source": source,
+    }
+    if source == "fdic":
+        row["bank_name"] = bank_name if bank_name is not None else pd.NA
+    return row
+
+
+# ── NIC bulk relationships / attributes (full ownership tree) ──
+#
+# The NIC Financial Data Download (NIC_DATADOWNLOAD_URL) serves the bulk
+# CSV_RELATIONSHIPS / CSV_ATTRIBUTES / CSV_TRANSFORMATIONS bundles, but the
+# whole npw host is behind Akamai bot protection that 403s datacenter/cloud
+# IPs on every path (verified for the static-data dir and the predictable
+# ZIP names alike) — the same wall that forces y9c() 2021Q2+ onto a
+# user-placed file. nic_relationships()/nic_attributes() therefore attempt a
+# best-effort fetch and, on the expected 403, fail loud with the manual
+# download path, then read a user-placed file. For the common bank->top-
+# holder rollup you usually do NOT need these — bank_to_holder() (FDIC) is
+# the no-download path; the bulk file is for the multi-level tree, equity
+# percentages, and historical as-of edges.
+
+NIC_BULK = {
+    # kind -> (fetch filename on the SPA, regex matching a user-placed file)
+    "relationships": ("CSV_RELATIONSHIPS.ZIP", r"RELATIONSHIPS"),
+    "attributes_active": ("CSV_ATTRIBUTES_ACTIVE.ZIP", r"ATTRIBUTES.*ACTIVE"),
+    "attributes_closed": ("CSV_ATTRIBUTES_CLOSED.ZIP", r"ATTRIBUTES.*CLOSED"),
+    "attributes_branches": ("CSV_ATTRIBUTES_BRANCHES.ZIP",
+                            r"ATTRIBUTES.*BRANCH"),
+    "transformations": ("CSV_TRANSFORMATIONS.ZIP", r"TRANSFORMATIONS"),
+}
+
+_NIC_REL_KEYS = ("ID_RSSD_PARENT", "ID_RSSD_OFFSPRING")
+_NIC_ATTR_KEY = "ID_RSSD"
+
+
+def _nic_wall_message(kind, fname):
+    return (
+        f"NIC bulk '{kind}' file not found and could not be fetched. The "
+        f"NIC Financial Data Download ({NIC_DATADOWNLOAD_URL}) is behind "
+        "Akamai bot protection that 403s server/datacenter IPs, so it "
+        "cannot be pulled programmatically (same wall as y9c 2021Q2+). "
+        "Open that page in a browser, choose the relevant download "
+        f"(CSV format), and place the downloaded file (e.g. {fname} or its "
+        f"extracted .CSV) anywhere under {DATA_DIR}/ — the name just has to "
+        "contain the table name. This is a one-time manual step; "
+        "bank_to_holder() (FDIC) needs no download for the top-holder "
+        "rollup."
+    )
+
+
+def _nic_discover(kind):
+    """Find a user-placed NIC bulk file for `kind` anywhere under DATA_DIR
+    (recursively; zip or csv, case-insensitive, with or without a date
+    prefix) — matching the 'place it anywhere under data/call_reports/'
+    instruction in the wall message."""
+    import glob
+    _fname, pat = NIC_BULK[kind]
+    rx = re.compile(pat, re.I)
+    hits = []
+    for p in glob.glob(os.path.join(DATA_DIR, "**", "*"), recursive=True):
+        base = os.path.basename(p)
+        if base.lower().endswith((".zip", ".csv")) and rx.search(base.upper()):
+            hits.append(p)
+    # prefer .CSV over .ZIP (already extracted), then most recently modified
+    hits.sort(key=lambda p: (p.lower().endswith(".zip"), -os.path.getmtime(p)))
+    return hits[0] if hits else None
+
+
+def _nic_read_csv_bytes(path):
+    """Return the CSV text from a user-placed NIC file (a .csv directly, or
+    the single .csv member of a .zip)."""
+    if path.lower().endswith(".zip"):
+        z = zipfile.ZipFile(path)
+        members = [n for n in z.namelist() if n.lower().endswith(".csv")]
+        if not members:
+            raise RuntimeError(
+                f"NIC zip {os.path.basename(path)} has no .csv member; "
+                f"members: {z.namelist()}")
+        with z.open(members[0]) as f:
+            return f.read().decode("latin-1")
+    with open(path, "rb") as f:
+        return f.read().decode("latin-1")
+
+
+def _nic_fetch(kind):
+    """Best-effort fetch of a NIC bulk ZIP. Expected to 403 from a server
+    IP (Akamai); returns the CSV text on the off chance it works, else
+    None so the caller falls back to the manual-file message."""
+    fname, _ = NIC_BULK[kind]
+    url = NIC_DATADOWNLOAD_URL.rsplit("/", 2)[0] + "/StaticData/DataDownload/" + fname
+    try:
+        r = requests.get(url, headers=_UA, timeout=(10, 120))
+    except requests.RequestException:
+        return None
+    if r.status_code != 200 or not r.content[:2] == b"PK":
+        return None
+    try:
+        z = zipfile.ZipFile(io.BytesIO(r.content))
+        members = [n for n in z.namelist() if n.lower().endswith(".csv")]
+        if not members:
+            return None
+        with z.open(members[0]) as f:
+            return f.read().decode("latin-1")
+    except zipfile.BadZipFile:
+        return None
+
+
+def _nic_load(kind):
+    """Load a NIC bulk table: user-placed file first (authoritative), else a
+    best-effort fetch, else fail loud with the manual path. Returns CSV text."""
+    placed = _nic_discover(kind)
+    if placed is not None:
+        return _nic_read_csv_bytes(placed)
+    text = _nic_fetch(kind)
+    if text is not None:
+        return text
+    fname, _ = NIC_BULK[kind]
+    raise RuntimeError(_nic_wall_message(kind, fname))
+
+
+def nic_relationships(refresh=False):
+    """NIC bulk **relationships** table — the parent/child ownership edges.
+
+    Returns a DataFrame keyed by the (ID_RSSD_PARENT, ID_RSSD_OFFSPRING)
+    edge with the timing/control columns (DT_START, DT_END, CTRL_IND,
+    PCT_EQUITY, ...). ID columns are Int64 and join-ready against
+    ``nic_attributes()`` on ID_RSSD. Requires a user-placed NIC bulk file
+    (see module note / the raised message) — the npw host is Akamai-walled.
+
+    `refresh` is accepted for signature symmetry; the file is read fresh
+    every call (it is small relative to the FFIEC SDF bundles).
+    """
+    _ensure_dir()
+    text = _nic_load("relationships")
+    df = pd.read_csv(io.StringIO(text), dtype=str, low_memory=False)
+    missing = [k for k in _NIC_REL_KEYS if k not in df.columns]
+    if missing:
+        raise RuntimeError(
+            f"NIC relationships file is missing key column(s) {missing}; "
+            f"got columns {list(df.columns)[:12]}... — schema may have "
+            "changed or the wrong file was placed.")
+    for c in (*_NIC_REL_KEYS, "DT_START", "DT_END", "CTRL_IND", "RELN_LVL"):
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce").astype("Int64")
+    for c in ("PCT_EQUITY",):
+        if c in df.columns:
+            df[c] = pd.to_numeric(df[c], errors="coerce")
+    return df
+
+
+def nic_attributes(which="active", refresh=False):
+    """NIC bulk **attributes** table — entity descriptors keyed by ID_RSSD.
+
+    Args:
+        which: 'active' (default), 'closed', or 'branches' — selects the
+            CSV_ATTRIBUTES_{ACTIVE,CLOSED,BRANCHES} bundle.
+        refresh: accepted for symmetry (file is read fresh each call).
+
+    Returns a DataFrame keyed by ID_RSSD (Int64), join-ready against
+    ``nic_relationships()``. Requires a user-placed NIC bulk file.
+    """
+    kind = {"active": "attributes_active", "closed": "attributes_closed",
+            "branches": "attributes_branches"}.get(which)
+    if kind is None:
+        raise ValueError(
+            f"which must be 'active', 'closed', or 'branches', got {which!r}")
+    _ensure_dir()
+    text = _nic_load(kind)
+    df = pd.read_csv(io.StringIO(text), dtype=str, low_memory=False)
+    if _NIC_ATTR_KEY not in df.columns:
+        raise RuntimeError(
+            f"NIC attributes file is missing key column {_NIC_ATTR_KEY!r}; "
+            f"got columns {list(df.columns)[:12]}... — schema may have "
+            "changed or the wrong file was placed.")
+    df[_NIC_ATTR_KEY] = pd.to_numeric(
+        df[_NIC_ATTR_KEY], errors="coerce").astype("Int64")
+    return df
+
+
+def _bank_to_holder_nic(ids, asof):
+    """source='nic' path of bank_to_holder: walk controlling-parent edges of
+    the NIC relationships file up to the top holder, as of `asof`."""
+    pe = datetime.now() if asof is None else parse_quarter(asof)[2]
+    asof_int = int(pe.strftime("%Y%m%d"))
+    asof_str = pe.strftime("%Y-%m-%d")   # uniform with the FDIC-path format
+    rel = nic_relationships()
+    has_ctrl = "CTRL_IND" in rel.columns
+    has_dates = "DT_START" in rel.columns and "DT_END" in rel.columns
+    # offspring -> list of (parent, pct_equity) active & controlling at asof
+    edges = {}
+    for _, r in rel.iterrows():
+        par, off = r["ID_RSSD_PARENT"], r["ID_RSSD_OFFSPRING"]
+        if pd.isna(par) or pd.isna(off):
+            continue
+        # keep controlling edges only; a null CTRL_IND is conservatively
+        # treated as controlling (kept), not dropped
+        if has_ctrl and pd.notna(r["CTRL_IND"]) and int(r["CTRL_IND"]) != 1:
+            continue
+        if has_dates:
+            ds, de = r.get("DT_START"), r.get("DT_END")
+            if pd.notna(ds) and int(ds) > asof_int:
+                continue
+            # DT_END open-ended sentinel is 99991231; some older NIC
+            # snapshots use 0 — treat both as "not yet ended"
+            if pd.notna(de) and int(de) != 0 and int(de) < asof_int:
+                continue
+        pct = r.get("PCT_EQUITY")
+        edges.setdefault(int(off), []).append(
+            (int(par), float(pct) if pd.notna(pct) else -1.0))
+
+    def top_of(start):
+        cur, visited = start, {start}
+        while True:
+            parents = edges.get(cur)
+            if not parents:
+                return cur, (start != cur)
+            # pick the controlling parent with the largest recorded equity
+            # (sorted(), not list.sort(), so we don't mutate the shared
+            # edges[cur] list during the walk)
+            ordered = sorted(parents, key=lambda t: t[1], reverse=True)
+            nxt = next((p for p, _ in ordered if p not in visited), None)
+            if nxt is None:                # cycle guard
+                return cur, (start != cur)
+            visited.add(nxt)
+            cur = nxt
+
+    rows = []
+    for rid in ids:
+        if rid in edges:                   # rid appears as an offspring
+            holder, has_parent = top_of(rid)
+            rows.append({
+                "bank_rssd": rid, "holder_rssd": holder, "holder_name": pd.NA,
+                "is_independent": (not has_parent),
+                "asof": asof_str, "source": "nic",
+            })
+        else:
+            # rid never appears as an offspring -> no controlling parent on
+            # record at asof => it is its own top holder
+            rows.append({
+                "bank_rssd": rid, "holder_rssd": rid, "holder_name": pd.NA,
+                "is_independent": True, "asof": asof_str, "source": "nic",
+            })
+    return pd.DataFrame(rows)
+
+
 # ── multi-quarter panel ──
 
 def bank_panel(start_quarter, end_quarter, vars=None, source="fdic",
-               rssdids=None, certs=None, schedule="RC"):
+               rssdids=None, certs=None, schedule="RC", holder=False):
     """Stack quarterly bank data into a long panel.
 
     Args:
@@ -800,6 +1220,16 @@ def bank_panel(start_quarter, end_quarter, vars=None, source="fdic",
         rssdids: filter by IDRSSD (ffiec) — ignored for fdic (use certs).
         certs: filter by FDIC CERT (fdic source).
         schedule: SDF schedule for source='ffiec' (default 'RC').
+        holder: if True, append a ``holder_rssd`` (and, for fdic,
+            ``holder_name``) column giving each bank's top regulatory
+            holder — the documented correct rollup key (groupby it to
+            consolidate to the holding-company level). For source='fdic'
+            this is **point-in-time** (the RSSDHCR the FDIC reports for that
+            REPDTE, fetched in the same call — no extra requests). For
+            source='ffiec' the Call Report carries no holder field, so the
+            holder is mapped via bank_to_holder() at the **current**
+            snapshot (a documented asymmetry: ffiec holder is not as-of the
+            panel quarter). Aggregate with care across reorganizations.
 
     Returns: long DataFrame with a 'quarter' column. Note the per-source
     schema asymmetry: source='ffiec' frames carry a ``period_end``
@@ -816,9 +1246,20 @@ def bank_panel(start_quarter, end_quarter, vars=None, source="fdic",
             df = call_report((y, q), rssdids=rssdids, schedule=schedule)
             keycols = ["quarter", "period_end", "IDRSSD"]
         elif source == "fdic":
-            df = fdic_financials((y, q), certs=certs)
+            fields = None
+            if holder:
+                # extend the standard FDIC core set with the high-holder
+                # fields so the rollup key rides along point-in-time
+                fields = ["CERT", "REPDTE", "NAME", "STALP", "ASSET", "DEP",
+                          "LNLSNET", "EQ", "NETINC", "NIMY", "RBCT1J", "ROA",
+                          "ROE", "RSSDHCR", "NAMEHCR"]
+            df = fdic_financials((y, q), certs=certs, fields=fields)
             df.insert(0, "quarter", f"{y}Q{q}")
             keycols = ["quarter", "CERT", "REPDTE", "NAME"]
+            if holder:
+                df = df.rename(columns={"RSSDHCR": "holder_rssd",
+                                        "NAMEHCR": "holder_name"})
+                keycols += ["holder_rssd", "holder_name"]
         else:
             raise ValueError(f"source must be 'fdic' or 'ffiec', got {source!r}")
         if vars is not None:
@@ -834,4 +1275,54 @@ def bank_panel(start_quarter, end_quarter, vars=None, source="fdic",
                    [v for v in vars if v in df.columns]
             df = df[cols]
         frames.append(df)
-    return pd.concat(frames, ignore_index=True)
+    panel = pd.concat(frames, ignore_index=True)
+    if holder and source == "ffiec":
+        # IDRSSD is Int64 from the SDF parser, but coerce defensively so a
+        # stray non-numeric id can't raise an opaque int() error here
+        uniq = [int(x) for x in pd.to_numeric(panel["IDRSSD"],
+                                              errors="coerce").dropna().unique()]
+        hmap = bank_to_holder(uniq) if uniq else pd.DataFrame()
+        if not hmap.empty:
+            hmap = hmap[["bank_rssd", "holder_rssd", "holder_name"]]
+            panel = panel.merge(hmap, left_on="IDRSSD",
+                                right_on="bank_rssd", how="left").drop(
+                                columns="bank_rssd")
+            # bank_to_holder mixes int (resolved/independent) and pd.NA
+            # (RSSD absent from the FDIC directory) -> object column; cast
+            # to Int64 so resolved values compare/group correctly (an
+            # unresolvable bank stays <NA>, genuinely-unknown holder)
+            if "holder_rssd" in panel.columns:
+                panel["holder_rssd"] = pd.to_numeric(
+                    panel["holder_rssd"], errors="coerce").astype("Int64")
+    if holder and source == "fdic" and "holder_rssd" in panel.columns:
+        # FDIC reports RSSDHCR=NULL for banks with no higher holder. Left as
+        # NaN, those banks would (a) be silently dropped by a default
+        # groupby('holder_rssd') and (b) all collapse into one NaN group
+        # under dropna=False — both wrong. An independent bank IS its own
+        # top holder, so fill its holder_rssd with its own RSSD (resolved
+        # CERT->FED_RSSD; RSSD is time-invariant) and its holder_name with
+        # its own NAME, matching bank_to_holder's is_independent semantics.
+        hr = pd.to_numeric(panel["holder_rssd"], errors="coerce")
+        indep = hr.isna() | (hr == 0)
+        if indep.any() and "CERT" in panel.columns:
+            ucerts = [int(c) for c in panel.loc[indep, "CERT"].dropna().unique()]
+            inst = fdic_institutions(certs=ucerts, active_only=False) \
+                if ucerts else pd.DataFrame()
+            cert_to_rssd = {}
+            if not inst.empty and {"CERT", "FED_RSSD"}.issubset(inst.columns):
+                for _, r in inst.iterrows():
+                    ct, fr = r.get("CERT"), r.get("FED_RSSD")
+                    act = pd.to_numeric(r.get("ACTIVE"), errors="coerce") == 1
+                    if pd.notna(ct) and pd.notna(fr) and (
+                            int(ct) not in cert_to_rssd or act):
+                        cert_to_rssd[int(ct)] = int(fr)
+            own = panel.loc[indep, "CERT"].map(
+                lambda c: cert_to_rssd.get(int(c)) if pd.notna(c) else None)
+            hr = hr.astype("Float64")
+            hr[indep] = own.astype("Float64").values
+            panel["holder_rssd"] = hr
+            if "holder_name" in panel.columns and "NAME" in panel.columns:
+                panel.loc[indep, "holder_name"] = panel.loc[indep, "NAME"]
+        panel["holder_rssd"] = pd.to_numeric(
+            panel["holder_rssd"], errors="coerce").astype("Int64")
+    return panel
