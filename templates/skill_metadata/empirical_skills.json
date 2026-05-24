@@ -125,6 +125,15 @@
       "allowed-tools": "Bash, Read, Write"
     }
   },
+  "treasury-yields": {
+    "name": "treasury-yields",
+    "description": "Daily zero-coupon Treasury yield curves, NO WRDS, NO auth — the gap left by FRED's par-yield-only coverage (DGS10 et al.). Three sources: (1) GSW nominal (Gürkaynak-Sack-Wright 2007, Fed FEDS 200628) — daily 1961+, Svensson 1980+ / Nelson-Siegel pre-1980, ships fitted parameters BETA0-3/TAU1-2 plus implied zero yields SVENY01-30, par SVENPY01-30, forwards SVENF/SVEN1F; (2) GSW TIPS real curve + breakeven inflation (GSW 2008, FEDS 200805) — daily 1999+, TIPSY/TIPSPY/TIPSF panels plus TIPS5F5 5y5y-forward; (3) Liu-Wu (JFE 2021) — daily and monthly nominal zeros 1961-2025, cubic-spline alternative to GSW for robustness checks. Helpers: gsw_nominal()/gsw_tips() return the full panel; liu_wu(freq) reads the Google-Sheets export; yield_on(date, maturity, source) does scalar lookup with integer fast path and Svensson closed-form for continuous maturity; ns_factors() returns published BETA0-3/TAU1-2 without refitting (BETA0 ≈ level, BETA1 ≈ -slope, BETA2 ≈ curvature). Use for term-structure, monetary-policy-surprise, duration-matched discounting, and real-rate/inflation-expectation work.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[gsw-nominal | gsw-tips | liu-wu | yield-on | ns-factors]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
   "wrds": {
     "name": "wrds",
     "description": "Query WRDS (Wharton Research Data Services) for CRSP, Compustat, IBES, options, insider trading, and other financial databases. Use for firm-level stock returns, accounting data, analyst forecasts, and cross-sectional/panel analysis.",
