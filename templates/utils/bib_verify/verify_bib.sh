@@ -144,9 +144,9 @@ print(f"**VERIFIED:** {counts.get('VERIFIED', 0)}  •  "
       f"**MISS:** {counts.get('MISS', 0)}")
 print()
 print("Status meanings:")
-print("- **VERIFIED** — title match ≥ 0.85 in OpenAlex (high confidence the paper exists as cited).")
-print("- **RESOLVED** — partial match (0.60–0.85). Likely the same paper but title/year differ; review manually.")
-print("- **MISS** — no good OpenAlex hit. Could be SSRN-only, very recent, or fabricated. Run a WebSearch fallback before deciding.")
+print("- **VERIFIED** — title match ≥ 0.85 in OpenAlex. If a DOI is present, Crossref also confirmed title and authors (`doi_confirmed: true`).")
+print("- **RESOLVED** — partial match (0.60–0.85), or year off by >1. If a DOI is present, Crossref still confirmed (`doi_confirmed: true`). Review manually for typos / stale year.")
+print("- **MISS** — either no good OpenAlex hit, OR OpenAlex matched but Crossref disagreed on title/authors (`doi_confirmed: false`, see `note` for `doi-mismatch`). A `doi-mismatch` MISS is strong evidence of a wrong-paper collision. Otherwise SSRN-only / very recent / fabricated — run a WebSearch fallback before deciding.")
 print()
 for status in ("MISS", "RESOLVED", "VERIFIED"):
     bucket = [r for r in rows if r["status"] == status]

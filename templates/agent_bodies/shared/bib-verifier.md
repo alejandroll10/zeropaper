@@ -10,10 +10,14 @@ You verify that every citation in the paper's bibliography corresponds to a real
 1. **Run the verification script:** `code/utils/bib_verify/verify_bib.sh [path]`
    - Pass the references file path if you have one; omit to auto-detect (`paper/references.bib`, `references/references.bib`, `references/references.md`, `paper/references.md`).
    - Produces `output/bib_verification.md` (human-readable) and `output/bib_verification.jsonl` (machine-readable).
-2. **Read the JSONL.** Each line is one entry with a status:
-   - **VERIFIED** — OpenAlex match, similarity ≥ 0.85, year within ±1. No action.
-   - **RESOLVED** — partial match: similarity 0.60–0.85, OR similarity ≥ 0.85 with a year off by more than 1 (a `note: year mismatch ...` field flags the latter case). Glance at the matched venue/authors. If clearly the right paper with a typo or stale year, log a fix. If a wrong-paper collision, treat as MISS.
-   - **MISS** — no good OpenAlex hit. Run the WebSearch fallback below.
+2. **Read the JSONL.** Each line is one entry with a status and a `doi_confirmed` field (`true` / `false` / `null`):
+   - **VERIFIED** — OpenAlex match, similarity ≥ 0.85, year within ±1. If `doi_confirmed: true`, Crossref also agreed on title and authors. No action.
+   - **RESOLVED** — partial match: similarity 0.60–0.85, OR similarity ≥ 0.85 with a year off by more than 1 (a `note: year mismatch ...` field flags the latter case). If `doi_confirmed: true`, Crossref agreed and the cite is the right paper with a typo or stale year — log a fix. If `doi_confirmed: null` — disambiguate via the `note`:
+     - `note: no-doi-on-match` (or no DOI note at all): the OpenAlex match has no DOI (e.g. SSRN/NBER working paper). Glance at venue/authors; demote to MISS if it looks like a wrong-paper collision.
+     - `note: crossref-fetch-failed: ...`: Crossref was unreachable on this cite. Treat as unconfirmed — glance at venue/authors and either accept tentatively (if it looks right) or flag for re-run.
+   - **MISS** — read the `note`:
+     - `note: doi-mismatch ...` (and `doi_confirmed: false`): the OpenAlex title-match hit a *different* real paper than the cite. Strong evidence of fabrication or misattribution — skip the WebSearch fallback and route it straight to LIKELY FABRICATIONS.
+     - Otherwise: no good OpenAlex hit. Run the WebSearch fallback below.
 3. **WebSearch fallback for every MISS.** OpenAlex misses SSRN-only working papers and very recent preprints, so MISS ≠ fabricated. For each MISS, run searches in this order:
    - `"Exact Title Of Paper" author-last-name`
    - `"Exact Title" site:ssrn.com`

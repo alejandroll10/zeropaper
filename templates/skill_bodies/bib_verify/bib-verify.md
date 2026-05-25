@@ -13,13 +13,14 @@ Backing script: `code/utils/bib_verify/verify_bib.sh`. Reads `EMAIL` from `.env`
 ## How to run
 
 ```bash
-# Auto-detects paper/references.bib, references/references.bib,
-# references/references.md, or paper/references.md (in that order)
+# Auto-detects references/references.md, paper/references.md,
+# references/references.bib, or paper/references.bib (in that order —
+# .md first matches paper-writer's canonical path).
 code/utils/bib_verify/verify_bib.sh
 
 # Or pass an explicit file
-code/utils/bib_verify/verify_bib.sh references/references.md
 code/utils/bib_verify/verify_bib.sh paper/references.bib
+code/utils/bib_verify/verify_bib.sh references/references.md
 ```
 
 Outputs:
@@ -30,9 +31,11 @@ Outputs:
 
 | Status | What it means | What to do |
 |--------|---------------|------------|
-| **VERIFIED** | OpenAlex returned a hit with title similarity ≥ 0.85 and matching year. High confidence the paper exists as cited. | Nothing. Move on. |
-| **RESOLVED** | Title similarity 0.60–0.85, or year off by >1. Probably the same paper, but the cite is sloppy. | Read the matched title/venue. If it's clearly the right paper with a typo in the cite, fix the cite. If not, demote to MISS and triage. |
-| **MISS** | No good OpenAlex match. Three possibilities: (a) SSRN-only working paper not indexed, (b) very recent (last few months), (c) fabricated. | Run the SSRN/WebSearch fallback below. Only mark as fabricated after the fallback also fails. |
+| **VERIFIED** | OpenAlex returned a hit with title similarity ≥ 0.85 and matching year. If the match has a DOI, Crossref was also queried and the title/authors are consistent (`doi_confirmed: true`). High confidence the paper exists as cited. | Nothing. Move on. |
+| **RESOLVED** | Title similarity 0.60–0.85, or year off by >1. Probably the same paper, but the cite is sloppy. Crossref still ran and the DOI is consistent (or the match had no DOI). | Read the matched title/venue. If it's clearly the right paper with a typo in the cite, fix the cite. If not, demote to MISS and triage. |
+| **MISS** | One of: (a) no good OpenAlex match, (b) OpenAlex matched but Crossref disagreed on title or authors (`doi_confirmed: false`, see the `note` for the mismatch) — i.e. a title collision with a real paper that is **not** the cited one, (c) SSRN-only working paper not indexed, (d) very recent (last few months), (e) fabricated. | Read the `note`: a `doi-mismatch` MISS is strong evidence the cite is fabricated or misattributed. Otherwise run the SSRN/WebSearch fallback below; only mark as fabricated after the fallback also fails. |
+
+The `doi_confirmed` field on each JSONL entry is `true` (Crossref agreed), `false` (Crossref disagreed — already demoted to MISS), or `null` (the OpenAlex match had no DOI, or Crossref was unreachable — see the `note`).
 
 ## SSRN / WebSearch fallback for MISS entries
 
@@ -73,7 +76,7 @@ After both passes, write a triage section to `output/bib_verification.md` (appen
 
 ## Rules
 
-- **Don't accept the verdict blindly.** OpenAlex sometimes returns a high-similarity match that is the wrong paper (common-title collisions). For RESOLVED entries, glance at the venue and authors before treating it as a fix.
+- **Don't accept the verdict blindly.** OpenAlex can return a high-similarity match for the wrong paper (common-title collisions). The Crossref DOI check closes most of this gap — a `doi-mismatch` note on a MISS means the OpenAlex hit was on a different paper than the cite — but for RESOLVED entries with `doi_confirmed: null` (no DOI, e.g. SSRN/NBER), still glance at venue and authors.
 - **Don't auto-edit the bibliography.** Report findings; let the caller (paper-writer or human) decide how to fix. Editing `.tex` or the references file is downstream of this skill's job.
 - **EMAIL is required for the polite pool.** If `EMAIL` is missing from `.env`, the script still works but rate limits are tighter and lookups may fail. Warn if you notice many `api-error` notes in the report.
 - **MISS ≠ fabricated.** Always run the WebSearch fallback before declaring fabrication. False accusations of fabrication are as bad as missing real ones.
