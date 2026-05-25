@@ -84,6 +84,16 @@ db.list_tables(library='crsp')         # tables in a library
 db.describe_table('crsp', 'msf')       # columns, types, row count
 ```
 
+## Before declaring a variable/table unavailable
+
+"Not in WRDS" is a substantive claim — never reach it as an easy-path default. Before concluding a variable, table, code value, or time window isn't there, run this protocol and log the result to `output/stage3a/data_search_log.md`:
+
+1. **List tables.** `db.list_tables(library=...)` and grep the names for the concept. CRSP delisting/event tables (`mse`, `dsedelist`, `dse`, `dlret`) are easy to miss because they aren't in the headline table list below.
+2. **Try canonical alternates.** Tables and field names get renamed across DB migrations. For delisting info try `mse` / `dsedelist` / `dlret`. For legacy CRSP fields, check `describe_table()` for the modern name. For Compustat fundamentals, try both `funda` (annual) and `fundq` (quarterly) plus `compm` variants.
+3. **Search column descriptions.** `db.describe_table(lib, tbl)` returns a dataframe with column descriptions — grep those for the concept, not just exact field names.
+4. **WebSearch for renames.** Query "WRDS [library] [concept] table name" or "[concept] CRSP [year] migration" — vendors publish migration notes that reveal the post-rename home.
+5. **Only then is "not available" substantiated.** Write the negative-search log: what you queried, what came back, what alternates you tried, and the WebSearch results. A documentation-only check ("the docs don't mention it") is not a substitute when the question is whether a result is a coding artifact — pull the data.
+
 ## Key libraries and tables
 
 ### CRSP (crsp) — Stock returns and prices

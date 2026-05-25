@@ -23,7 +23,7 @@ Quick falsification check: can this theory be calibrated at all? Do the key empi
 3. If the key moments contradict the theory (wrong sign, off by an order of magnitude) **and** the proxy/design passed the caution above: flag as **FALSIFIED** — increment `theory_attempt` and reset `theory_version` to 1, then return to Stage 1 for a new idea (the theory is dead; counter must advance so the "5 theories on same problem → Stage 0" escalation rule in core.md fires correctly). Don't waste time on implications for a theory the data already rejects.
 
 {{SEED_OVERRIDE_STAGE_3A_FALSIFIED}}
-4. If moments are roughly consistent or unavailable: proceed to Stage 3.
+4. If moments are roughly consistent: proceed to Stage 3. If the empiricist declares any moment **unavailable**, require a negative-search log at `output/stage3a/data_search_log.md` documenting the query attempts (`list_tables`/`describe_table` for WRDS, provider catalog search for FRED/PWT/OECD/World Bank, canonical alternates tried, WebSearch for renames). If the log is missing or the search is shallow (no alternates tried, no description grep, no WebSearch), the "unavailable" verdict is not substantiated — return to the empiricist for a real search. Only proceed to Stage 3 once the log exists or the moment is confirmed truly absent.
 5. Commit: `artifact: empirical feasibility — {OK/FALSIFIED}`
 
 ## Stage 3a: Full Empirical Analysis
