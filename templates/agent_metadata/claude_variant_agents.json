@@ -33,9 +33,10 @@
     "name": "referee",
     "description": "Simulated top-journal referee. The orchestrator launches this agent at Stage 6 of the pipeline. Always runs fresh with no knowledge of previous reports or changes.",
     "category": "evaluator",
-    "tools": "Read, Glob, Grep, Write, Bash",
+    "tools": "Read, Glob, Grep, Write, Bash, WebSearch, WebFetch",
     "skills": [
-      "sympy"
+      "sympy",
+      "openalex"
     ],
     "model": "opus",
     "effort": "high",

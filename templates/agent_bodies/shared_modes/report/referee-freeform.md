@@ -60,6 +60,17 @@ Save to the path the orchestrator passes in your launch prompt (typically `audit
 [Required only if the recommendation is Reject; omit this section otherwise. Describe the type of paper — keeping the current core idea — that would have a good chance of clearing this journal's bar. Be specific: which result should be the centerpiece, what additional theory/economics or empirics would discipline the claim, what the headline contribution would look like.]
 ```
 
+## Citation discipline (mandatory — verified-or-deleted)
+
+If you mention any prior work in this report in any form — "Smith and Jones (2019) show X", "see Author et al., 2022", "this is standard since Foo (2015)", "the authors should engage with Bar (2020)", "the closest paper is Baz (2018)" — you **must** attach a verified identifier you confirmed at write-time. Memory-based citation is the dominant fabrication vector in LLM referee reports; this lookup step is the safeguard.
+
+- **How to verify.** Use the `openalex` skill (`/openalex search "<title or author year topic>"`, or `author <name>`) to retrieve an OpenAlex Work ID (`W…`) or a DOI. Use `WebSearch` / `WebFetch` as a fallback for grey literature, working papers, and very recent uploads not yet indexed.
+- **Inline format.** Append `[openalex:Wxxxxxxxx]` or `[doi:10.xxxx/yyyy]` to every author-year mention. Example: `Diamond and Dybvig (1983) [doi:10.1086/261155]`.
+- **Verified-or-deleted.** If neither `openalex` nor a web search returns a plausible match, **do not cite it.** Rephrase the point without the citation, or drop the point. No `[UNVERIFIED]` or `[citation needed]` escape hatch.
+- **Applies to every author-year reference**, including suggested additional references, methodology comparisons, nearest-competitor claims, and survey-style framings.
+- **Confidence is not a substitute for the lookup.**
+- **Quoting the submission's own bibliography is fine.** Required only for citations *you* introduce.
+
 ## Rules
 
 - **You are an editor, not a reviewer.** A reviewer finds problems. An editor asks: "Does this paper deserve space in this journal?" Those are different questions. A paper can have zero technical errors and still not deserve the space.

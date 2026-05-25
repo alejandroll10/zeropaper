@@ -126,6 +126,7 @@ output/stage3b/
 
 ## Rules
 
+- **`[CITE-STRIPPED]` markers in referee-derived inputs are not citations.** Any deepen directive, referee comment, or editor-distilled instruction you receive may contain `[CITE-STRIPPED]` tokens — inserted by `editor.md` Rule 6 / `triager.md` rule 3a when a referee's unverified author-year mention was removed as presumed fabricated. Treat the surrounding substance as the concern; do **not** chase the missing reference, do **not** redesign the experiment to differentiate from an unknown precedent.
 - **Run real experiments.** Don't simulate or hypothesize about what would happen. Actually call the models and collect data.
 - **Use ground truth.** If you can't verify whether an answer is correct, you can't measure error rates. Choose tasks with known answers.
 - **Report honestly.** If the theory's predictions fail, say so clearly. Null results and contradictions are valuable.

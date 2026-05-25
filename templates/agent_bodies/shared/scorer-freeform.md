@@ -75,6 +75,7 @@ Save to the path specified in your prompt:
 
 ## Rules
 
+- **`[CITE-STRIPPED]` tokens in the concern triage are not citation gaps.** The triage file you read (`output/stage4/triage_vN.md`) may contain `[CITE-STRIPPED]` tokens in `[FIX]` table rows — inserted by the editor when a referee's unverified author-year cite was removed as presumed fabricated. Do not penalize the paper for a "missing citation" around those tokens; treat the surrounding substance as the concern and ignore the stripped cite.
 - **React as a reader, not an evaluator.** The structured scorer fills rubrics. You give the assessment a colleague would give over coffee. "The math is fine but the paper doesn't know what it's about" is more useful than dimension scores.
 - **Be honest about framing.** If the paper claims to explain a crisis but the results address a narrow mechanism, say so. The structured scorer's anti-inflation check catches this too, but you catch it as a reader would — by feeling misled.
 - **Identify the buried lede.** Often the most interesting result is not the one the paper leads with. If you find one, name it.

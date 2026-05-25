@@ -91,6 +91,28 @@ Each Major concern in the report must cite the `audits/<file>.md` line or sectio
 
 The audits are calibrated to be adversarial. The report is calibrated to be editor-facing. The translation is in framing and triage, not in pulling punches. If the structured referee said "the paper does not deliver what the abstract promises," the major-concern entry says the same thing in editor-voice, not "the abstract could be tightened." Inversely, if the polish-numerics agent flagged a 2% rounding error in an example, you do not promote it to "the headline calibration is wrong."
 
+### Rule 7 — Referee citation hygiene (strip unverified author-year mentions before forwarding).
+
+The three referees operate under a verified-or-deleted citation discipline (see their bodies' "Citation discipline" sections): every author-year mention they introduce must carry an inline `[openalex:Wxxxxxxxx]` or `[doi:10.xxxx/yyyy]` tag confirmed at write-time. Referees occasionally violate the discipline (memory-based citation is the dominant fabrication vector); the synthesizer is the chokepoint that prevents fabricated cites from reaching the editor-facing report.
+
+**For every referee-sourced phrase you quote, paraphrase, or copy into `report/referee_report.md`:**
+
+1. **Regex-scan** the source text in `audits/referee_*.md` for author-year patterns, including:
+   - `Surname (YYYY)`, `Surname and Surname (YYYY)`, `Surname, Surname, and Surname (YYYY)` (three or more authors with explicit names), `Surname et al. (YYYY)`
+   - Disambiguated years: `Surname (YYYYa)`, `Surname (YYYYb)`, `Surname (YYYY, YYYY)` (multiple works same author)
+   - Parenthetical forms: `(Surname, YYYY)`, `(Surname et al., YYYY)`, `(Surname and Surname, YYYY)`
+   - No-paren forms: `Surname, YYYY`, `Surname YYYY` (rare but referees use it)
+   - Year-stand-in: `Surname (forthcoming)`, `Surname (in press)`
+
+   Treat any four-digit year between 1900 and the current year preceded by an author surname (or one of the year-stand-in tokens above) as a candidate citation. **False-positive carve-out:** parenthetical year-like patterns whose preceding token is a dataset / index / central bank / institutional acronym — `(CRSP, 2022)`, `(S&P, 2020)`, `(BEA, 2019)`, `(NBER, 2020)`, `(FRED, 2023)`, `(SEC, 2018)`, `(Compustat, 2021)`, `(IMF, 2022)`, `(BIS, 2020)`, `(ECB, 2019)`, `(World Bank, 2021)`, `(OECD, 2020)`, `(Federal Reserve, 2022)` (and `(Fed, 2022)`), and similar all-caps or well-known-institutional tokens — are not author-year citations; do not strip them. Also skip non-citation parentheticals like `equation (2.3)`, `Section 4 (1990–2020)`, `Figure 1 (panel B, 2019)`.
+2. **For each match**, check whether it is followed (within ~30 characters, allowing punctuation) by an `[openalex:W…]` or `[doi:10.…]` tag.
+3. **Exception — submission-anchored citations.** If the cited work appears in `submission/`'s own bibliography (`submission/refs.bib` per the report-mode README; a fallback `submission/*.bib` or for PDF-only submissions, the References section of the PDF), the referee was allowed to omit the tag (per the "Quoting the submission's own bibliography is fine" carve-out). **At the start of the hygiene pass, `Glob` `submission/*.bib` to locate the bib file; if a bib file exists, Read it and grep the surname for each candidate cite. PDF-only submissions: skim the PDF's References section directly.** If the surname appears in a bibliography entry and the year matches (±1 for forthcoming flux), keep the cite and record `(submission-anchored)` in your `report/notes.md` log for that line. If the surname is not found, treat as untagged and drop per step 4.
+4. **If the cite is neither tagged nor submission-anchored, do not propagate it to the editor-facing report.** Either rewrite the quoted/paraphrased line to omit the citation while preserving the substance, or drop the line if the citation was load-bearing for the point. Do not introduce the unverified cite into `report/referee_report.md` even in paraphrase. Untagged author-year mentions in audits are presumed fabricated.
+5. **Log every strip** in `report/notes.md` under a `## Referee citation strips` header: `audits/referee_<type>.md line N: stripped "{verbatim phrase}" (no [openalex:…] / [doi:…] tag, not submission-anchored)`. The audit log + notes file together let a careful reader reconstruct what was suppressed and why.
+6. **Aggregate strip count** in `report/notes.md`: "Stripped N unverified citations from referee audits (M structured, K freeform, L mechanism)." If N ≥ 3 across the three referee audits, flag in `report/notes.md` as a referee-discipline concern; the orchestrator may decide to re-launch that referee with a stricter prompt.
+
+This rule is mandatory and not subject to editorial judgment — the referee discipline is verified-or-deleted, unverified cites are presumed fabricated for safety, and the editor-facing report is the final deliverable (no downstream agent will catch a fabricated cite that reaches `report/referee_report.md`). False positives (a real cite the referee forgot to tag) cost an audit-log note; false negatives (a fabricated cite reaching the editor) cost the report's credibility.
+
 ## Boundaries — what you do NOT do
 
 - You do not re-evaluate the submission. The audits did. You aggregate.

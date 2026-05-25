@@ -191,7 +191,10 @@
     "name": "referee-freeform",
     "description": "Free-form referee report at Stage 6. Reads the paper as an editor \u2014 does it deserve space in this journal? Runs in parallel with the structured referee; neither sees the other's output.",
     "category": "evaluator",
-    "tools": "Read, Write, Glob",
+    "tools": "Read, Write, Glob, Bash, WebSearch, WebFetch",
+    "skills": [
+      "openalex"
+    ],
     "model": "opus",
     "effort": "high",
     "codex": {
@@ -206,9 +209,10 @@
     "name": "referee-mechanism",
     "description": "Mechanism-focused referee at Stage 6. Evaluates whether the paper's economic mechanism delivers the claimed result for the claimed reason \u2014 not whether the math is correct (math-auditor handles that) or whether the paper fits the journal (referee-freeform handles that). Returns a verdict on mechanism validity: VALID / PARTIAL / MISATTRIBUTED / DECORATIVE. Runs in parallel with the other two referees; sees neither their output nor prior reports.",
     "category": "evaluator",
-    "tools": "Read, Write, Bash, Glob",
+    "tools": "Read, Write, Bash, Glob, WebSearch, WebFetch",
     "skills": [
-      "sympy"
+      "sympy",
+      "openalex"
     ],
     "model": "opus",
     "effort": "high",
@@ -224,7 +228,7 @@
     "name": "editor",
     "description": "Aggregates the three Stage 6 referee reports (structured + freeform + mechanism) into a single Gate 5 routing verdict, produces a canonical comment list for the triager, and emits a journal-fit verdict. Adversarial impartiality: any Reject vote not honored requires a written quote of the rejecting referee's tier-fit language; mechanism MISATTRIBUTED/DECORATIVE forces Major Revision. Sits between the referees and the triager. Does not score, triage, propose revisions, or recommend strategy.",
     "category": "evaluator",
-    "tools": "Read, Write, Glob",
+    "tools": "Read, Write, Glob, Grep",
     "model": "opus",
     "effort": "high",
     "codex": {
@@ -240,7 +244,7 @@
     "name": "report-synthesizer",
     "description": "Aggregates every audits/*.md finding into a single editor-facing referee report at report/referee_report.md, with a single verdict (Accept / Minor revision / Major revision / Reject) and a deduplicated, weight-triaged concern list. Intended only for --mode report — in other modes the agent is assembled into the project but never invoked (no orchestrator instruction references it). Sits between the parallel audit fan-out and the user. Adversarial impartiality: any Reject vote not honored requires a written quote of BOTH halves of the rejecting referee's tier-fit language (publishability + lower-tier endorsement); mechanism MISATTRIBUTED/DECORATIVE forces Major revision at minimum, and an independent Reject from structured or freeform can still escalate to Reject. Does not re-evaluate the submission, does not iterate, does not edit the submission.",
     "category": "evaluator",
-    "tools": "Read, Write, Glob",
+    "tools": "Read, Write, Glob, Grep",
     "model": "opus",
     "effort": "high",
     "codex": {

@@ -58,6 +58,17 @@ For each comment, tag the recommended action:
 
 Save the report to: `paper/simulated_referee_reports/YYYY-MM-DD_vN.md` where N is the next available version number for that date. Use Glob to check `paper/simulated_referee_reports/YYYY-MM-DD_v*.md` and increment. If no files exist for today, use v1. Save to this path ONLY — no other paths.
 
+## Citation discipline (mandatory — verified-or-deleted)
+
+If you mention any prior work in this report in any form — "Smith and Jones (2019) show X", "see Author et al., 2022", "this is standard since Foo (2015)", "the authors should engage with Bar (2020)", "the closest paper is Baz (2018)" — you **must** attach a verified identifier you confirmed at write-time. Memory-based citation is the dominant fabrication vector in LLM referee reports; this lookup step is the safeguard.
+
+- **How to verify.** Use the `openalex` skill (`/openalex search "<title or author year topic>"`, or `author <name>`, etc.) to retrieve an OpenAlex Work ID (`W…`) or a DOI. Use `WebSearch` / `WebFetch` as a fallback for grey literature, working papers, and very recent uploads not yet indexed.
+- **Inline format.** Append `[openalex:Wxxxxxxxx]` or `[doi:10.xxxx/yyyy]` to every author-year mention. Example: `Diamond and Dybvig (1983) [doi:10.1086/261155]` or `Brunnermeier and Pedersen (2009) [openalex:W2031234567]`.
+- **Verified-or-deleted.** If neither `openalex` nor a web search returns a plausible match for the work you intend to cite, **do not cite it.** Rephrase the point without the citation, or drop the point. There is no `[UNVERIFIED]` or `[citation needed]` escape hatch — those tags will be treated as fabrications by the downstream synthesizer/triager and may cause your report to be discarded.
+- **Applies to every author-year reference**, including: characterizations of cited prior work ("Smith (2019) shows…"), suggested additional references ("the authors should engage with…"), methodology comparisons ("standard since…"), nearest-competitor claims ("the closest paper is…"), and survey-style framings ("a large literature, e.g., X, Y, Z").
+- **Confidence is not a substitute for the lookup.** Even when you are sure the work exists, verify at write-time — that's the discipline. The cost of one lookup is far below the cost of a fabricated cite reaching the paper draft.
+- **Quoting the paper's own bibliography is fine.** If the paper itself cites a work and you are commenting on that cite (e.g., "the characterization of Smith (2019) on p. 12 is wrong"), you do not need a separate OpenAlex/DOI tag — the reference is anchored in the manuscript. Required only for citations *you* introduce.
+
 ## Important rules
 
 - You have NO prior knowledge. Do not reference previous versions, changes, or revision plans.

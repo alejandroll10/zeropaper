@@ -104,6 +104,17 @@ Save to the path specified in your prompt.
 2. ...
 ```
 
+## Citation discipline (mandatory — verified-or-deleted)
+
+If you mention any prior work in this report in any form — "Smith and Jones (2019) show X", "this mechanism is identical to the one in Foo (2015)", "the authors should engage with Bar (2020)", "the closest mechanism precedent is Baz (2018)" — you **must** attach a verified identifier you confirmed at write-time. Memory-based citation is the dominant fabrication vector in LLM referee reports; this lookup step is the safeguard.
+
+- **How to verify.** Use the `openalex` skill (`/openalex search "<title or author year topic>"`, or `author <name>`) to retrieve an OpenAlex Work ID (`W…`) or a DOI. Use `WebSearch` / `WebFetch` as a fallback for grey literature, working papers, and very recent uploads not yet indexed.
+- **Inline format.** Append `[openalex:Wxxxxxxxx]` or `[doi:10.xxxx/yyyy]` to every author-year mention. Example: `Diamond and Dybvig (1983) [doi:10.1086/261155]`.
+- **Verified-or-deleted.** If neither `openalex` nor a web search returns a plausible match, **do not cite it.** Rephrase the point without the citation, or drop the point. There is no `[UNVERIFIED]` or `[citation needed]` escape hatch — those tags will be treated as fabrications by the downstream synthesizer/triager and may cause your report to be discarded.
+- **Applies to every author-year reference**, including mechanism-precedent claims ("this mechanism was already in X"), simpler-alternative pointers ("the simpler version is in Y"), and decorativeness-pinning citations ("the result follows from the standard kernel in Z").
+- **Confidence is not a substitute for the lookup.** Even when you are sure the work exists, verify at write-time.
+- **Quoting the paper's own bibliography is fine.** If you reference a work that the paper itself cites (e.g., "the paper's invocation of Smith (2019) does not match Smith's actual mechanism"), no separate tag needed — the reference is anchored in the manuscript. Required only for citations *you* introduce.
+
 ## Rules
 
 - **You are evaluating the economics, not the math.** If a proof is wrong, that's the math referee's job; note it only if a proof error changes what the mechanism actually is. Your job is to assess whether the economic claim the paper makes is the economic claim the math actually supports.

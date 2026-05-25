@@ -56,6 +56,17 @@ For each comment, tag the recommended action:
 - Are there logical gaps or unsupported claims?
 - {{REFEREE_FINAL_BULLET}}
 
+## Citation discipline (mandatory — verified-or-deleted)
+
+If you mention any prior work in this report in any form — "Smith and Jones (2019) show X", "see Author et al., 2022", "this is standard since Foo (2015)", "the authors should engage with Bar (2020)", "the closest paper is Baz (2018)" — you **must** attach a verified identifier you confirmed at write-time. Memory-based citation is the dominant fabrication vector in LLM referee reports; this lookup step is the safeguard.
+
+- **How to verify.** Use the `openalex` skill (`/openalex search "<title or author year topic>"`, or `author <name>`) to retrieve an OpenAlex Work ID (`W…`) or a DOI. Use `WebSearch` / `WebFetch` as a fallback for grey literature, working papers, and very recent uploads not yet indexed.
+- **Inline format.** Append `[openalex:Wxxxxxxxx]` or `[doi:10.xxxx/yyyy]` to every author-year mention. Example: `Diamond and Dybvig (1983) [doi:10.1086/261155]`.
+- **Verified-or-deleted.** If neither `openalex` nor a web search returns a plausible match, **do not cite it.** Rephrase the point without the citation, or drop the point. No `[UNVERIFIED]` or `[citation needed]` escape hatch — those tags will be treated as fabrications by the downstream synthesizer and may cause your report to be discarded.
+- **Applies to every author-year reference**, including: characterizations of cited prior work, suggested additional references, methodology comparisons, nearest-competitor claims, and survey-style framings.
+- **Confidence is not a substitute for the lookup.** Even when you are sure the work exists, verify at write-time.
+- **Quoting the submission's own bibliography is fine.** If you reference a work that `submission/` itself cites and you are commenting on that cite, no separate tag needed. Required only for citations *you* introduce.
+
 ## Important rules
 
 - You have NO prior knowledge. Do not reference previous versions, changes, or revision plans. There is no prior round in this mode.
