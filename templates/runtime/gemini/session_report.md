@@ -1,0 +1,60 @@
+## Self-review after the report drafts
+
+AFTER THE SYNTHESIZER PRODUCES `report/referee_report.md`, LAUNCH A FRESH SUBAGENT TO REVIEW THE REPORT AGAINST `audits/*.md` AND `submission/`. IT CHECKS THREE THINGS: (1) IS EVERY MAJOR CONCERN TRACEABLE TO AN AUDIT FILE OR EXPLICITLY MARKED AS A SYNTHESIZER NOTE? (2) DO THE STRENGTHS ACCURATELY REFLECT WHAT THE PAPER DELIVERS? (3) IS THE VERDICT CONSISTENT WITH THE WEIGHT OF CONCERNS RAISED? IF ANY OF THE THREE FAIL, FIX AND RE-REVIEW. ITERATE UNTIL CLEAN.
+
+The review is on the *report*, not on the submission — we never edit the submission.
+
+## How to run a report
+
+When the user says "start" or "run", check `submission/`. If empty, point them at `submission/README.md` and stop. Otherwise:
+
+1. Run Step 1 (Triage) inline — read `submission/`, write `process_log/triage.md`.
+2. Launch the Step 2 audit fan-out in parallel. Background-launch the web-dependent ones (`novelty-checker`, `polish-bibliography`, `polish-institutions`, `bib-verifier`); foreground the rest.
+3. Poll background agents' output files every few minutes. If a file is empty or not growing after a few checks, re-launch with the same prompt.
+4. Once all audits have written to `audits/`, launch `report-synthesizer`.
+5. Run the self-review pass above.
+
+Each subagent invocation must include a self-contained prompt — the agent does not see this conversation. Point it at the specific `submission/` paths it should read and the `audits/<name>.md` path it should write.
+
+## Update the audit log
+
+At launch, compute one `submission/` directory hash and record it in `process_log/audit_log.md` under a `submission_hash:` header. Use whichever of these works on this host (Linux usually has `sha256sum`; macOS usually has `shasum -a 256`):
+
+```
+find submission/ -type f | sort | xargs sha256sum   | sha256sum
+find submission/ -type f | sort | xargs shasum -a 256 | shasum -a 256
+```
+
+Then, after each audit agent completes, append a row to the same log recording the agent name, the timestamp, and the output path. All audits in one run share the launch-time hash. The synthesizer reads this log to confirm coverage before producing the report. If you re-launched a hung background agent, log both invocations (the first as "abandoned").
+
+### Use the subagents
+
+The agent catalog above lists subagents in `.gemini/agents/` — that's the value of this mode. Math audits, novelty checks, referee reads, citation verification, institution checks — these belong to the agents. Do not do the audit work yourself.
+
+### Read before you launch
+
+- Before launching an agent, re-read its instructions in the agent file. Do not paraphrase from memory.
+- Before launching the synthesizer, confirm every audit has produced a non-empty file in `audits/`.
+
+### Adversarial agents must be adversarial
+
+The audit agents are adversarial by design. Do not soften their outputs. The synthesizer's job — not yours — is to triage which findings make it into the final report.
+
+## What this mode does not do
+
+- Does not edit `submission/` for any reason.
+- Does not iterate on the report after the self-review pass converges.
+- Does not write a recommendation letter, response-to-authors document, or revision plan — only the referee report.
+- Does not invoke generative agents in this mode: `theory-generator`, `paper-writer`, `idea-generator`, `idea-reviewer`, `idea-prototyper`, `theory-explorer`.
+- Does not invoke pipeline-management agents: `scribe`, `triager`, `puzzle-triager`, `branch-manager`, `editor` (the synthesizer plays the editor-aggregation role here).
+- Does not invoke the pipeline's internal scoring agents `scorer` / `scorer-freeform` (their verdicts are ADVANCE/REVISE/ABANDON, calibrated for revising our own draft — not editor-facing).
+- Does not invoke broad-survey agents `literature-scout`, `gap-scout` (refereeing evaluates a specific submission, not a literature map).
+- Does not invoke `style` (a style editor that modifies LaTeX in place — and we never modify the submission).
+- Does not invoke `faithful-drift-auditor` (there is no mechanism contract for an external submission to drift from).
+- Does not invoke extension *generative* agents: `empiricist`, `identification-designer` (`--ext empirical`), `experiment-designer` (`--ext theory_llm`) — these design and run new analyses; in report mode we only audit what the submission already contains.
+
+**Exception — reactive launches only:** `debugger` may be launched if an audit agent's tool call fails (e.g., a `polish-formula` `codex-math` shell-out errors). It is not part of the parallel fan-out; launch it only on a specific tool-failure report from another agent.
+
+## Skills
+
+User-invocable skills in `{{SKILL_DIR}}/` can be triggered with `/skill-name <args>` in Gemini. In report mode the main relevant skills are `openalex` (for citation sanity-checks) and `codex-math` (for spot-checking flagged derivations).

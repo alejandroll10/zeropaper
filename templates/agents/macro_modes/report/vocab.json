@@ -1,0 +1,10 @@
+{
+  "_comment_purpose": "Vocab overlay for --mode report (macro variant). Merged on top of templates/agents/macro/vocab.json by setup.sh; only fields whose meaning changes under report mode appear here. Fields not listed inherit from the base macro vocab.",
+
+  "_comment_scope": "Report mode redeploys only the referee* trio plus the audit agents — none of the generative agents (idea-generator, theory-generator, scorer, self-attacker, paper-writer) run. Their vocab keys (IDEA_*, THEORY_*, SCORER_*, SELF_ATTACK_*, etc.) are therefore irrelevant; we override only what the referee* bodies (which DO run, with shared_modes/report/ body overlays) actually need rewritten.",
+
+  "_comment_referee_journal_role": "The base referee-core.md treats the paper as if produced by this pipeline (its own draft). Under report mode the paper is an external submission under review; we re-anchor the journal-role string so the referee internalizes that framing in the report header and in any prose that quotes the role.",
+  "REFEREE_JOURNAL_ROLE": "**top-5 economics journal** (AER, Econometrica, QJE, JPE, ReStud) or a leading macro field journal (JME, JEDC, AEJ:Macro), evaluating an external submission under review",
+
+  "_comment_inherited_bullets": "REFEREE_MIDDLE_BULLETS and REFEREE_FINAL_BULLET are intentionally NOT overridden. The base macro values are appropriate for external-submission refereeing and reused as-is. If a future editor finds these unreferenced in a report-only deployment, that is by design — the report-mode overlay of referee-core.md still expands them."
+}

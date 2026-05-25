@@ -1,6 +1,6 @@
 #!/bin/bash
 # Auto AI Research Template — Setup & Launch
-# Usage: ./setup.sh [project-name] [--variant finance|macro] [--mode empirical-first]
+# Usage: ./setup.sh [project-name] [--variant finance|macro] [--mode empirical-first|report]
 #                  [--ext empirical|theory_llm] [--seed|--faithful|--manual] [--light] [--local]
 #
 # --local   Skip git clone, use templates from this repo directly.
@@ -13,6 +13,12 @@
 #                                Auto-implies --ext empirical. Finance variant only
 #                                in v1; macro is gated on adding identification
 #                                tooling there.
+#             report           — referee an external paper submission instead of
+#                                generating one. Reads submission/, fans out audit
+#                                agents in parallel, synthesizes report/referee_report.md.
+#                                One-shot, no stages/gates/state. Mutually exclusive
+#                                with --seed, --faithful, --manual. Composes with
+#                                --ext empirical / --ext theory_llm / --light.
 # --seed    Create a seeded-idea project. Creates output/seed/ with instructions.
 #           Drop your idea files there before launching. Pipeline starts at seed_triage.
 #           Soft semantics: the pipeline preserves the seed's mechanism but may
@@ -84,8 +90,21 @@ if [ "$NEXT_IS_EXT" = "1" ]; then
     exit 1
 fi
 if [ "$NEXT_IS_MODE" = "1" ]; then
-    echo "Error: --mode requires a value (empirical-first)"
+    echo "Error: --mode requires a value (empirical-first, report)"
     exit 1
+fi
+
+if [ "$MODE" = "report" ]; then
+    if [ "$MANUAL" = "1" ]; then
+        echo "Error: --mode report is mutually exclusive with --manual"
+        echo "  --mode report IS a workflow (audit fan-out + synthesis); --manual would defeat the point."
+        exit 1
+    fi
+    if [ "$SEEDED" = "1" ]; then
+        echo "Error: --mode report is mutually exclusive with --seed and --faithful"
+        echo "  --mode report evaluates an external submission; there is no seed to develop and no contract to honor."
+        exit 1
+    fi
 fi
 
 if [ "$MANUAL" = "1" ] && [ "$SEEDED" = "1" ]; then
@@ -126,9 +145,22 @@ if [ -n "$MODE" ]; then
                 echo "Info: --mode empirical-first implies --ext empirical (auto-added)."
             fi
             ;;
+        report)
+            # Report mode: referee an external submission instead of generating a paper.
+            # Composes with --ext empirical / --ext theory_llm (adds extension auditors
+            # to the fan-out) and with --light. No auto-implied extension — a theory-
+            # only submission can be refereed without empirical agents.
+            case "$VARIANT" in
+                finance|macro) : ;;
+                *)
+                    echo "Error: --mode report supports --variant finance or macro."
+                    exit 1
+                    ;;
+            esac
+            ;;
         *)
             echo "Unknown mode: $MODE"
-            echo "Available modes: empirical-first"
+            echo "Available modes: empirical-first, report"
             exit 1
             ;;
     esac
@@ -184,6 +216,13 @@ if [ "$MODE" = "empirical-first" ]; then
             DOC_SUBTITLE="Autonomous Empirical Paper Pipeline"
             ;;
     esac
+elif [ "$MODE" = "report" ]; then
+    # Report mode reframes the project as refereeing an external submission rather
+    # than generating a paper. PAPER_TYPE and DOC_SUBTITLE flow into the assembled
+    # runtime doc (core_report.md). DOMAIN_AREAS keeps the variant's value — the
+    # referee agents are calibrated to that domain (the journal-role string).
+    PAPER_TYPE="external paper submission under review"
+    DOC_SUBTITLE="Autonomous Referee Report Pipeline"
 fi
 
 # ── Resolve paths ──
@@ -424,7 +463,9 @@ if [ "$LOCAL" = "1" ]; then
     mkdir -p "$OUT_DIR/$GEMINI_DIR_REL"
     cp "$SCRIPT_DIR/$GEMINI_SETTINGS_REL" "$OUT_DIR/$GEMINI_DIR_REL/"
     cp "$SCRIPT_DIR/.gitignore" "$OUT_DIR/"
-    if [ "$MANUAL" = "0" ]; then
+    # dashboard.html visualizes pipeline_state.json; report mode (one-shot audit
+    # fan-out) doesn't produce one, so the dashboard would be empty/misleading.
+    if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
         cp "$SCRIPT_DIR/dashboard.html" "$OUT_DIR/"
     fi
 
@@ -480,6 +521,14 @@ if [ "$MANUAL" = "1" ]; then
     CLAUDE_SESSION="$TEMPLATE_ROOT/templates/runtime/claude/session_manual.md"
     CODEX_SESSION="$TEMPLATE_ROOT/templates/runtime/codex/session_manual.md"
     GEMINI_SESSION="$TEMPLATE_ROOT/templates/runtime/gemini/session_manual.md"
+elif [ "$MODE" = "report" ]; then
+    CORE="$TEMPLATE_ROOT/templates/shared/core_report.md"
+    # Report mode follows the manual-mode pattern of per-runtime session files
+    # (each runtime has slightly different orchestration affordances), with no
+    # discipline block (the workflow IS the discipline).
+    CLAUDE_SESSION="$TEMPLATE_ROOT/templates/runtime/claude/session_report.md"
+    CODEX_SESSION="$TEMPLATE_ROOT/templates/runtime/codex/session_report.md"
+    GEMINI_SESSION="$TEMPLATE_ROOT/templates/runtime/gemini/session_report.md"
 else
     CORE="$TEMPLATE_ROOT/templates/shared/core.md"
     # In autonomous mode, all runtimes share the Claude session block and codex/gemini add discipline.
@@ -626,7 +675,11 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --output "$CLAUDE_MD_OUT"
 
 CODEX_DISCIPLINE_ARGS=()
-if [ "$MANUAL" = "0" ]; then
+# Discipline injection is autonomous-pipeline orchestration guidance (Stage 0→10
+# routing, gate handling, etc.). Manual mode has no pipeline; report mode has its
+# own runtime workflow in core_report.md and session_report.md and would only get
+# noise from the autonomous orchestrator's discipline.
+if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
     CODEX_DISCIPLINE_ARGS=(--discipline "$TEMPLATE_ROOT/templates/runtime/codex/session.md")
 fi
 
@@ -650,7 +703,8 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --output "$AGENTS_MD_OUT"
 
 GEMINI_DISCIPLINE_ARGS=()
-if [ "$MANUAL" = "0" ]; then
+# See CODEX_DISCIPLINE_ARGS comment above; same rationale for report mode.
+if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
     GEMINI_DISCIPLINE_ARGS=(--discipline "$TEMPLATE_ROOT/templates/runtime/gemini/session.md")
 fi
 
@@ -703,6 +757,49 @@ fi
 
 echo "  ✓ Agents assembled (shared + ${AGENT_DIR})"
 
+# ── Prune agents not used in --mode report ──
+# Report mode only invokes the audit fan-out + report-synthesizer. Generative,
+# pipeline-management, scoring, broad-survey, and writing-style agents have no
+# job here. Removing them at assembly time prevents accidental invocation and
+# keeps the deployed .claude/agents/ catalog focused. Audit, polish-*, referee*,
+# bib-verifier, novelty-checker, self-attacker, debugger, report-synthesizer
+# stay; extension generative agents (empiricist, identification-designer,
+# experiment-designer) are pruned per-extension below by the same function.
+prune_report_mode_agents() {
+    [ "$MODE" = "report" ] || return 0
+    local _name
+    for _name in "$@"; do
+        rm -f "$AGENTS_OUT/${_name}.md" "$CODEX_AGENTS_OUT/${_name}.toml" "$GEMINI_AGENTS_OUT/${_name}.md"
+    done
+}
+
+# Core agents not deployed in report mode (rationale documented in
+# templates/runtime/{claude,codex,gemini}/session_report.md's "What this mode
+# does not do" block). Extension generative agents are pruned in the extension
+# block below after they have been assembled.
+prune_report_mode_agents \
+    theory-generator \
+    paper-writer \
+    idea-generator \
+    idea-reviewer \
+    idea-prototyper \
+    theory-explorer \
+    scribe \
+    triager \
+    puzzle-triager \
+    branch-manager \
+    editor \
+    scorer \
+    scorer-freeform \
+    literature-scout \
+    gap-scout \
+    style \
+    faithful-drift-auditor
+
+if [ "$MODE" = "report" ]; then
+    echo "  ✓ Pruned generative / management agents for --mode report"
+fi
+
 # ── Inject variant context into agents ──
 VARIANT_BLOCK="
 ## Variant context
@@ -711,7 +808,7 @@ VARIANT_BLOCK="
 - **Domain:** ${DOMAIN_AREAS}
 "
 
-for agent in literature-scout gap-scout novelty-checker theory-explorer referee referee-freeform scorer scorer-freeform editor branch-manager paper-writer style; do
+for agent in literature-scout gap-scout novelty-checker theory-explorer referee referee-freeform scorer scorer-freeform editor branch-manager paper-writer style report-synthesizer; do
     if [ -f "$AGENTS_OUT/$agent.md" ]; then
         echo "$VARIANT_BLOCK" >> "$AGENTS_OUT/$agent.md"
     fi
@@ -858,10 +955,44 @@ else
     P="."
 fi
 
-mkdir -p "$P/code/analysis" "$P/code/download" "$P/code/tmp" "$P/code/explore"
-mkdir -p "$P/data"
-mkdir -p "$P/paper/sections" "$P/paper/simulated_referee_reports"
-mkdir -p "$P/references"
+if [ "$MODE" = "report" ]; then
+    # Report mode: read-only `submission/` (user drops the paper here), parallel
+    # `audits/` outputs, single `report/referee_report.md` deliverable, and a
+    # process log. No `paper/`, `code/`, `data/`, or `references/` — there is no
+    # paper to write, no code to run on behalf of the authors, no data to fetch.
+    # (The empirical extension still installs `code/utils/` for shared skills,
+    # but no `code/analysis/` etc.)
+    mkdir -p "$P/submission" "$P/audits" "$P/report" "$P/process_log"
+    cat > "$P/submission/README.md" <<'SUBREADME'
+# submission/ — drop the paper to be refereed here
+
+Supported formats:
+
+- PDF only — `submission/paper.pdf`
+- LaTeX source bundle — `submission/main.tex` + `submission/sections/*.tex` + `submission/refs.bib` (optionally `submission/tables/`, `submission/figures/`, an internet appendix)
+- Both — PDF for the audit agents that prefer typeset output, source for the
+  agents that re-derive equations or verify cite keys
+
+The pipeline treats this directory as **read-only**. Audit agents read from
+here; they write to `audits/<name>.md`. The synthesizer writes the final
+report to `report/referee_report.md`. The original submission is never
+modified.
+
+After dropping the submission, launch the runtime (claude / codex / gemini)
+and say "run" or "start". The orchestrator runs Step 1 triage, fans out the
+audit agents in parallel, then launches `report-synthesizer` to produce the
+editor-facing referee report.
+
+Each deployment is one-shot. If the editor sends a revised submission later,
+that is a fresh `setup.sh --mode report ...` deployment on a fresh
+`submission/` folder; this folder is not designed for v1/v2 cycling.
+SUBREADME
+else
+    mkdir -p "$P/code/analysis" "$P/code/download" "$P/code/tmp" "$P/code/explore"
+    mkdir -p "$P/data"
+    mkdir -p "$P/paper/sections" "$P/paper/simulated_referee_reports"
+    mkdir -p "$P/references"
+fi
 
 # ---------------------------------------------------------------------
 # Pipeline fingerprint: arpipeline.sty + main.tex skeleton
@@ -878,27 +1009,38 @@ if [ -z "$ARP_UUID" ]; then
     echo "       Aborting setup; install python3 and retry." >&2
     exit 1
 fi
-sed -e "s|{{ARP_UUID}}|$ARP_UUID|g" \
-    -e "s|{{ARP_VERSION}}|$ARP_VERSION|g" \
-    -e "s|{{ARP_DATE}}|$ARP_DATE|g" \
-    "$TEMPLATE_ROOT/templates/paper_skeleton/arpipeline.sty.template" \
-    > "$P/paper/arpipeline.sty"
-# Don't clobber an existing main.tex (e.g. --seed mode where the user has
-# pre-populated paper/main.tex). The .sty above is always overwritten —
-# it is pipeline infrastructure with a fresh UUID per deployment.
-if [ ! -f "$P/paper/main.tex" ]; then
-    cp "$TEMPLATE_ROOT/templates/paper_skeleton/main.tex.template" "$P/paper/main.tex"
-fi
-# Internet appendix skeleton. paper-writer only populates it when a proof
-# exceeds ~3 pages or the in-paper appendix would otherwise blow past ~30%
-# of main-text length; otherwise it stays a no-op placeholder. Same skip-
-# if-exists guard as main.tex above.
-if [ ! -f "$P/paper/internet_appendix.tex" ]; then
-    cp "$TEMPLATE_ROOT/templates/paper_skeleton/internet_appendix.tex.template" "$P/paper/internet_appendix.tex"
+# Skip the paper-skeleton install entirely under --mode report — there is no
+# paper being produced, so the fingerprint .sty, main.tex, and IA template
+# have nothing to attach to. The ARP_UUID is still recorded in the deployment
+# manifest below for traceability.
+if [ "$MODE" != "report" ]; then
+    sed -e "s|{{ARP_UUID}}|$ARP_UUID|g" \
+        -e "s|{{ARP_VERSION}}|$ARP_VERSION|g" \
+        -e "s|{{ARP_DATE}}|$ARP_DATE|g" \
+        "$TEMPLATE_ROOT/templates/paper_skeleton/arpipeline.sty.template" \
+        > "$P/paper/arpipeline.sty"
+    # Don't clobber an existing main.tex (e.g. --seed mode where the user has
+    # pre-populated paper/main.tex). The .sty above is always overwritten —
+    # it is pipeline infrastructure with a fresh UUID per deployment.
+    if [ ! -f "$P/paper/main.tex" ]; then
+        cp "$TEMPLATE_ROOT/templates/paper_skeleton/main.tex.template" "$P/paper/main.tex"
+    fi
+    # Internet appendix skeleton. paper-writer only populates it when a proof
+    # exceeds ~3 pages or the in-paper appendix would otherwise blow past ~30%
+    # of main-text length; otherwise it stays a no-op placeholder. Same skip-
+    # if-exists guard as main.tex above.
+    if [ ! -f "$P/paper/internet_appendix.tex" ]; then
+        cp "$TEMPLATE_ROOT/templates/paper_skeleton/internet_appendix.tex.template" "$P/paper/internet_appendix.tex"
+    fi
 fi
 
 if [ "$MANUAL" = "1" ]; then
     mkdir -p "$P/output"
+elif [ "$MODE" = "report" ]; then
+    # Report mode has no stages, no pipeline_state.json, no session/decision/
+    # discussion/pattern logs to accumulate. The submission/audits/report/
+    # process_log skeleton was created above; nothing else here.
+    :
 else
     # Stage 2b (theory exploration) is permanently skipped under
     # --mode empirical-first; don't create the empty dir there.
@@ -908,18 +1050,23 @@ else
     mkdir -p "$P/process_log/sessions" "$P/process_log/decisions" "$P/process_log/discussions" "$P/process_log/patterns"
 fi
 
-# Copy per-stage documentation (referenced from CLAUDE.md/AGENTS.md/GEMINI.md pointer blocks)
+# Copy per-stage documentation (referenced from CLAUDE.md/AGENTS.md/GEMINI.md pointer blocks).
+# Skipped in report mode — there are no stages to document, and the audit
+# conventions live in core_report.md itself. The session pointer files
+# (start_session_*.md) are written into docs/ separately by --session-out.
 mkdir -p "$P/docs"
-cp "$TEMPLATE_ROOT/templates/shared/docs/"*.md "$P/docs/"
-# Substitute variant placeholders (same ones assemble_runtime_doc.py handles for core.md)
-for _docfile in "$P/docs/"*.md; do
-    sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g; s|{{INITIAL_TIER}}|$INITIAL_TIER|g; s|{{TIER_LADDER_PROSE}}|$TIER_LADDER_PROSE|g; s|{{TIER_LIST_INLINE}}|$TIER_LIST_INLINE|g; s|{{TIER_DOWNGRADE_EXAMPLES}}|$TIER_DOWNGRADE_EXAMPLES|g" "$_docfile" && rm "${_docfile}.bak"
-done
+if [ "$MODE" != "report" ]; then
+    cp "$TEMPLATE_ROOT/templates/shared/docs/"*.md "$P/docs/"
+    # Substitute variant placeholders (same ones assemble_runtime_doc.py handles for core.md)
+    for _docfile in "$P/docs/"*.md; do
+        sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g; s|{{INITIAL_TIER}}|$INITIAL_TIER|g; s|{{TIER_LADDER_PROSE}}|$TIER_LADDER_PROSE|g; s|{{TIER_LIST_INLINE}}|$TIER_LIST_INLINE|g; s|{{TIER_DOWNGRADE_EXAMPLES}}|$TIER_DOWNGRADE_EXAMPLES|g" "$_docfile" && rm "${_docfile}.bak"
+    done
 
-# Inject the variant-specific tier table into stage_4.md (multi-line content via sed -r)
-TIER_TABLE_FILE="$TEMPLATE_ROOT/templates/shared/tier_tables/${VARIANT}.md"
-if [ -f "$TIER_TABLE_FILE" ] && [ -f "$P/docs/stage_4.md" ]; then
-    sed -i.bak -e "/{{TIER_TABLE}}/r $TIER_TABLE_FILE" -e "/{{TIER_TABLE}}/d" "$P/docs/stage_4.md" && rm "$P/docs/stage_4.md.bak"
+    # Inject the variant-specific tier table into stage_4.md (multi-line content via sed -r)
+    TIER_TABLE_FILE="$TEMPLATE_ROOT/templates/shared/tier_tables/${VARIANT}.md"
+    if [ -f "$TIER_TABLE_FILE" ] && [ -f "$P/docs/stage_4.md" ]; then
+        sed -i.bak -e "/{{TIER_TABLE}}/r $TIER_TABLE_FILE" -e "/{{TIER_TABLE}}/d" "$P/docs/stage_4.md" && rm "$P/docs/stage_4.md.bak"
+    fi
 fi
 
 # Function to substitute {{SEED_OVERRIDE_*}} placeholders in all docs in $P/docs/.
@@ -1060,9 +1207,26 @@ SEEDREADME
     fi
 fi
 
-# Initial pipeline state (skipped in manual mode — no autonomous pipeline)
+# Initial pipeline state (skipped in manual mode — no autonomous pipeline; also
+# skipped in report mode — no stages or routing to track, just the audit log)
 if [ "$MANUAL" = "1" ]; then
     : # no pipeline state
+elif [ "$MODE" = "report" ]; then
+    # Seed the audit log so the synthesizer has a stable file to read at the end.
+    # The orchestrator appends the launch-time submission hash + per-agent rows
+    # per session_report.md's "Update the audit log" instructions.
+    cat > "$P/process_log/audit_log.md" <<'AUDITLOG'
+# Audit log
+
+The orchestrator computes one submission_hash at launch and records it here,
+then appends one row per audit agent on completion. The synthesizer reads this
+log before producing the report to confirm coverage.
+
+submission_hash: <not yet computed — set at launch>
+
+| agent | started | completed | output |
+|-------|---------|-----------|--------|
+AUDITLOG
 elif [ "$SEEDED" = "1" ]; then
 cat > "$P/process_log/pipeline_state.json" <<JSONEOF
 {
@@ -1123,7 +1287,7 @@ JSONEOF
     sed -i.bak "s|__INITIAL_TIER__|$INITIAL_TIER|g" "$P/process_log/pipeline_state.json" && rm "$P/process_log/pipeline_state.json.bak"
 fi
 
-if [ "$MANUAL" = "0" ]; then
+if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
     touch "$P/process_log/history.md"
 fi
 
@@ -1374,6 +1538,14 @@ PYEOF
             fi
             inject_bash_background_into_agents "${_tllm_bash_agents[@]}"
 
+            # Report mode: --ext theory_llm is install-only (skills + LLM client).
+            # Both experiment-designer (generative) and experiment-reviewer (audit
+            # of pipeline-produced experiments) are pruned — there are no
+            # pipeline-produced experiments to review on an external submission.
+            prune_report_mode_agents experiment-designer experiment-reviewer
+            if [ "$MODE" = "report" ]; then
+                rm -f "$P/docs/stage_3b_experiments.md"
+            fi
             echo "  ✓ LLM experiment extension applied"
             ;;
         empirical)
@@ -1579,6 +1751,27 @@ PYEOF
             fi
             inject_bash_background_into_agents "${_empirical_bash_agents[@]}"
 
+            # Report mode: --ext empirical is install-only (WRDS/FRED/Census/SEC
+            # skills + utility scripts). All audit agents that ship with the
+            # empirical extension are pruned — they were designed against the
+            # pipeline's own empiricist output (output/stage3a/empirical_analysis.md,
+            # code/empirical.py) and would need substantial rewrites to operate on
+            # an external submission. The base referees handle empirical refereeing
+            # at the editorial level. Full code-level empirical auditing of
+            # external submissions is a v2 feature. The generative empiricist /
+            # identification-designer are pruned for the usual reason.
+            prune_report_mode_agents \
+                empiricist identification-designer \
+                empirics-auditor identification-auditor \
+                data-integrity-auditor data-selection-auditor method-checker \
+                claim-enumerator claim-grounder claim-verifier
+            # Empirical extension also creates output/stage3a/ unconditionally
+            # and copies stage_3a_empirical.md into docs/. Both are pipeline-
+            # workflow artifacts irrelevant to report mode — remove them.
+            if [ "$MODE" = "report" ]; then
+                rmdir "$P/output/stage3a" 2>/dev/null || true
+                rm -f "$P/docs/stage_3a_empirical.md"
+            fi
             echo "  ✓ Empirical extension applied (skills + agents)"
             ;;
         *)
@@ -1889,7 +2082,7 @@ rm -f README.md
 rm -f CLAUDE_REFACTOR_PLAN.md
 rm -f requirements.system
 rm -f texput.log
-if [ "$MANUAL" = "1" ]; then
+if [ "$MANUAL" = "1" ] || [ "$MODE" = "report" ]; then
     rm -f dashboard.html
 fi
 echo "  ✓ Template files removed"
@@ -1897,6 +2090,8 @@ echo "  ✓ Template files removed"
 git add -A
 if [ "$MANUAL" = "1" ]; then
     git commit -m "setup: initialized ${VARIANT} variant toolkit (manual mode)" -q
+elif [ "$MODE" = "report" ]; then
+    git commit -m "setup: initialized ${VARIANT} variant referee-report deployment" -q
 else
     git commit -m "setup: initialized ${VARIANT} variant pipeline" -q
 fi
@@ -1939,6 +2134,8 @@ echo ""
 echo "============================================"
 if [ "$MANUAL" = "1" ]; then
     echo "  Setup complete: $PROJECT_NAME ($VARIANT, manual mode)"
+elif [ "$MODE" = "report" ]; then
+    echo "  Setup complete: $PROJECT_NAME ($VARIANT, --mode report)"
 else
     echo "  Setup complete: $PROJECT_NAME ($VARIANT)"
 fi
@@ -1957,6 +2154,11 @@ echo "  gemini --yolo"
 echo ""
 if [ "$MANUAL" = "1" ]; then
     echo "Manual mode — read the runtime doc for the agent and skill catalog, then drive."
+elif [ "$MODE" = "report" ]; then
+    echo "Drop the submission to be refereed in submission/ (PDF or LaTeX source bundle), then say: \"run\""
+    echo "  - core_report.md fans out the audit agents in parallel"
+    echo "  - report-synthesizer aggregates them into report/referee_report.md"
+    echo "  - one-shot; for a revised submission re-run setup.sh on a fresh folder"
 else
     echo "Then say: \"Run the pipeline.\""
 fi

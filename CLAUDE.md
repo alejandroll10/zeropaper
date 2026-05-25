@@ -72,6 +72,11 @@ If a user asks to create/set up/start a new research project, run `setup.sh` for
 
 # Manual mode + empirical extension
 ./setup.sh <project-name> --variant finance --manual --ext empirical
+
+# Report mode (referee an external submission instead of generating one)
+./setup.sh <project-name> --variant finance --mode report
+./setup.sh <project-name> --variant macro --mode report
+./setup.sh <project-name> --variant finance --mode report --ext empirical
 ```
 
 `--manual` is mutually exclusive with `--seed` and `--faithful`. It assembles `core_manual.md` instead of `core.md`, auto-generates an agent/skill catalog from the metadata files, swaps in per-runtime `session_manual.md` files, and skips creating `process_log/pipeline_state.json`, the `output/stage*` subdirs, and `dashboard.html`. Pipeline-only agents (`scribe`, `triager`, `puzzle-triager`, `branch-manager`) are still assembled into `.claude/agents/` etc. but flagged `pipeline_only: true` in metadata so `scripts/generate_catalog.py` hides them from the user-facing catalog.
@@ -195,6 +200,7 @@ Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory
 | Mode | Flag | Status | Variants | Notes |
 |------|------|--------|----------|-------|
 | `empirical-first` | `--mode empirical-first` | Working (v1) | `finance` | Auto-implies `--ext empirical`. Stage 1's identification design is the primary deliverable; Stage 2 produces a prose+DAG mechanism (no theorems); Gate 2 / Stage 2b skipped; scorer H3 = identification+empirics audits; H1 subtitle becomes "Autonomous Empirical Paper Pipeline". Optional `--ext theory` for post-results structural support deferred to v2 ([#26](https://github.com/alejandroll10/zeropaper/issues/26)).
+| `report` | `--mode report` | Working (v1) | `finance`, `macro` | Reframes the project as refereeing an external submission. User drops the paper in `submission/`; the orchestrator runs a triage step, fans out all audit agents (`math-auditor` + freeform, `polish-{formula,numerics,consistency,equilibria,identification,prose,bibliography,institutions}`, `bib-verifier`, `novelty-checker`, `self-attacker`, `referee` / `referee-freeform` / `referee-mechanism`) in parallel against the submission, then `report-synthesizer` aggregates `audits/*.md` into `report/referee_report.md` with a single verdict (Accept / Minor revision / Major revision / Reject). One-shot, no stages, no `pipeline_state.json`, no `dashboard.html`. Mutually exclusive with `--seed`, `--faithful`, `--manual`, `--mode empirical-first`. Composes with `--light`. Composes with `--ext empirical` and `--ext theory_llm` in **install-only** mode: the extension's *skills* install (WRDS/FRED/Census/SEC helpers, OpenAlex, LLM-experiment client) so the audit agents can spot-check external data or call an LLM if needed, but the extensions' *audit agents* (`empirics-auditor`, `identification-auditor`, `data-integrity-auditor`, `data-selection-auditor`, `method-checker`, `claim-{enumerator,grounder,verifier}`, `experiment-reviewer`) are pruned — they were designed against the pipeline's own empiricist output and would need substantial rewrites for external submissions. The base referees evaluate empirical submissions holistically (identification, magnitude, robustness at editorial level); deep code-level adversarial auditing of external empirical submissions is a v2 feature. Generative agents (`theory-generator`, `paper-writer`, `idea-*`, `theory-explorer`), pipeline-management agents (`scribe`, `triager`, `puzzle-triager`, `branch-manager`, `editor`), scoring agents (`scorer`, `scorer-freeform`), broad-survey agents (`literature-scout`, `gap-scout`), the `style` editor, `faithful-drift-auditor`, and extension generative agents (`empiricist`, `identification-designer`, `experiment-designer`) are pruned at assembly time via `prune_report_mode_agents` in `setup.sh`. H1 subtitle becomes "Autonomous Referee Report Pipeline".
 
 ## Core skills (all variants)
 

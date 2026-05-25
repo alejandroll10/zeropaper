@@ -236,6 +236,22 @@
     },
     "pipeline_only": true
   },
+  "report-synthesizer": {
+    "name": "report-synthesizer",
+    "description": "Aggregates every audits/*.md finding into a single editor-facing referee report at report/referee_report.md, with a single verdict (Accept / Minor revision / Major revision / Reject) and a deduplicated, weight-triaged concern list. Intended only for --mode report — in other modes the agent is assembled into the project but never invoked (no orchestrator instruction references it). Sits between the parallel audit fan-out and the user. Adversarial impartiality: any Reject vote not honored requires a written quote of BOTH halves of the rejecting referee's tier-fit language (publishability + lower-tier endorsement); mechanism MISATTRIBUTED/DECORATIVE forces Major revision at minimum, and an independent Reject from structured or freeform can still escalate to Reject. Does not re-evaluate the submission, does not iterate, does not edit the submission.",
+    "category": "evaluator",
+    "tools": "Read, Write, Glob",
+    "model": "opus",
+    "effort": "high",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    },
+    "pipeline_only": true
+  },
   "branch-manager": {
     "name": "branch-manager",
     "description": "Strategic advisor. Launched at (a) every Gate 4 after scorer(s) return, (b) Gate 5-Reject as a substantive-vs-cosmetic check on deepening attempts (context=gate-5-reject, with a gate-5-reject-regen variant for regeneration entry), and (c) the Stage 2 audit loop every 3rd theory version. Diagnoses whether the current path has ceilinged, surfaces alternatives from the Round 1 sketch portfolio, and recommends continue/restructure/restart. Produces a structured report; does not make the gate decision.",
