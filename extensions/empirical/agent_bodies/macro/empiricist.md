@@ -82,6 +82,9 @@ When the model makes quantitative predictions that can be compared to known empi
 ### [Section per type of analysis performed]
 [Tables, estimates, interpretation]
 
+## Headline claims
+[1-5 numerical claims, each prefixed with the [HEADLINE] tag and assigned a snake_case claim_id in brackets. These are the load-bearing numbers — the calibration moment the model is built to match, the IRF peak the paper cites, the cross-country slope coefficient the abstract reports. Format: `- [HEADLINE] [claim_id: consumption_growth_autocorr] The autocorrelation of annual real consumption growth (NIPA, 1947-2019) is 0.43.` The `headline-replicator` agent at Stage 3a step 6.5 will recompute each of these via an independent path and FAIL the audit if it cannot.]
+
 ## Assessment
 [How well does the data support the theory? What's confirmed, what's not, what couldn't be tested?]
 
@@ -105,3 +108,4 @@ Final code in `code/empirical.py`, scratch in `code/tmp/`.
 - **HP filter parameter.** Use λ=1600 for quarterly data, λ=6.25 for annual. State it explicitly.
 - **Reproducible scripts.** Every script must set `np.random.seed(42)` (or equivalent) at the top. Log the input data file paths and date ranges used. Anyone re-running the script should get the same output.
 - **Structured output.** Save results as JSON (`output/stage3a/results.json`) for machine readability AND LaTeX tables (`output/stage3a/tables/`) for direct inclusion in the paper. Use `df.to_latex()` or write `\begin{tabular}` directly. Every table should be a standalone `.tex` file. Every figure should be a standalone `.pdf` or `.png` with labeled axes.
+- **Tag headline claims explicitly.** Every load-bearing numerical claim — the calibration moment the model is built to match, the IRF peak the paper cites, the cross-country slope coefficient the abstract reports — must appear in the `## Headline claims` section with a `[HEADLINE]` prefix and a snake_case `[claim_id: …]`. Typical count: 1-5; never more than 8. The downstream `headline-replicator` agent (Stage 3a step 6.5) recomputes each tagged claim via an independent aggregation path (different merge key, different aggregation order, raw source rather than processed cache, alternative canonical estimator package) and FAILs the stage if any tagged claim disagrees beyond tolerance, if the script is absent, or if the analysis contains no `[HEADLINE]` tags at all. Under-tagging (missing a number that is clearly headline) and over-tagging (tagging every business-cycle moment) both produce findings. The tags are what the replicator binds to; without them the gate cannot fire.

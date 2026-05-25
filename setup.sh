@@ -1670,13 +1670,32 @@ if os.path.exists(state_path):
             if k == "stage3a_theory_version":
                 new["identification_plan_revision_round"] = 0
         data = new
-    if "data_integrity_round" not in data:
+    if "headline_replication_round" not in data:
         # Insert immediately after identification_plan_revision_round. Counter for the
-        # Stage 3a step 7.5 data-integrity + data-selection auditor REVISE loop (hard cap 3).
+        # Stage 3a step 6.5 headline-replicator substantive-disagreement re-fire loop
+        # (hard cap 3). Resets to 0 on PASS, on no_headline_tags / source_unreachable /
+        # trivially_equivalent_path routings, on step-7.5 substantive data FAIL re-execution,
+        # on any step-7 empirics-auditor re-fire that materially changes code/empirical.py
+        # or headline content, on Stage 3a re-fire entry per "Re-fire on theory revision",
+        # and on puzzle-triage FIX-EMPIRICS re-entry. Anchored on identification_plan_revision_round
+        # (Stage 3a step 3) so the key order reflects pipeline-execution order:
+        # identification_plan_revision_round -> headline_replication_round -> data_integrity_round
+        # -> method_check_round.
         new = {}
         for k, v in data.items():
             new[k] = v
             if k == "identification_plan_revision_round":
+                new["headline_replication_round"] = 0
+        data = new
+    if "data_integrity_round" not in data:
+        # Insert immediately after headline_replication_round. Counter for the
+        # Stage 3a step 7.5 data-integrity + data-selection auditor REVISE loop (hard cap 3).
+        # Anchor on headline_replication_round (added immediately above) so the documented
+        # key order is preserved on fresh deploys where both keys are added in this pass.
+        new = {}
+        for k, v in data.items():
+            new[k] = v
+            if k == "headline_replication_round":
                 new["data_integrity_round"] = 0
         data = new
     if "method_check_round" not in data:
@@ -1764,6 +1783,7 @@ PYEOF
                 empiricist identification-designer \
                 empirics-auditor identification-auditor \
                 data-integrity-auditor data-selection-auditor method-checker \
+                headline-replicator \
                 claim-enumerator claim-grounder claim-verifier
             # Empirical extension also creates output/stage3a/ unconditionally
             # and copies stage_3a_empirical.md into docs/. Both are pipeline-

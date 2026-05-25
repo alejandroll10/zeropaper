@@ -1,13 +1,27 @@
 {
   "empirics-auditor": {
     "name": "empirics-auditor",
-    "description": "Adversarial empirical verification agent. The orchestrator launches this agent after the empiricist completes Stage 3a. Reviews empirical analysis and code for correctness. Must pass before advancing.",
+    "description": "Adversarial empirical verification agent. The orchestrator launches this agent after the empiricist completes Stage 3a and after headline-replicator emits empirics_verify_result.json. Reviews empirical analysis and code for correctness — data construction, methodology, interpretation. Reads the replicator's verify result as one of its inputs; does NOT itself re-derive headline numbers (the replicator owns that). Must pass before advancing.",
     "category": "evaluator",
     "tools": "Bash, Read, Write, Glob, Grep",
     "model": "opus",
     "codex": {
       "model": "gpt-5.5",
       "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
+  "headline-replicator": {
+    "name": "headline-replicator",
+    "description": "Independent recomputation of every [HEADLINE]-tagged numerical claim in the empiricist's analysis via a DIFFERENT aggregation path — alternative merge key, different aggregation order, raw source rather than cache, or alternative canonical estimator package. Launched at Stage 3a step 6.5 (after empiricist completes, before empirics-auditor). Writes code/tmp/empirics_verify.py and output/stage3a/empirics_verify_result.json with per-claim {reported, replicated, relative_delta, agree, path_class}. Catches deterministic merge/grouping bugs that survive code-reads, cache-field checks, and re-execution (the failure mode behind GitHub issue #42). Auto-FAIL if the script is absent, any path is trivially equivalent (importing empiricist's helpers, reading cached output, re-running empirical.py), or any claim disagrees beyond tolerance. Does not audit methodology (empirics-auditor), data content (data-integrity-auditor), sample membership (data-selection-auditor), or canonical-package use (method-checker).",
+    "category": "evaluator",
+    "tools": "Bash, Read, Write, Glob, Grep",
+    "model": "sonnet",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "medium"
     },
     "gemini": {
       "model": "gemini-3-preview"

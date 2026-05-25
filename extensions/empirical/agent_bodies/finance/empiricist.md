@@ -70,6 +70,9 @@ When the model makes quantitative predictions that can be compared to known empi
 ### [Section per type of analysis performed]
 [Tables, estimates, interpretation]
 
+## Headline claims
+[1-5 numerical claims, each prefixed with the [HEADLINE] tag and assigned a snake_case claim_id in brackets. These are the load-bearing numbers — the long-short spread the paper is built around, the calibration moment that closes the model, the headline coefficient the abstract cites. Format: `- [HEADLINE] [claim_id: long_short_alpha] The decile 10 minus decile 1 portfolio earns a value-weighted FF3 alpha of 0.42% per month (t=2.8).` The `headline-replicator` agent at Stage 3a step 6.5 will recompute each of these via an independent path and FAIL the audit if it cannot.]
+
 ## Assessment
 [How well does the data support the theory? What's confirmed, what's not, what couldn't be tested?]
 
@@ -92,3 +95,4 @@ Final code in `code/empirical.py`, scratch in `code/tmp/`.
 - **Standard errors matter.** Always report them. A "consistent" result with t=0.8 is not evidence.
 - **Reproducible scripts.** Every script must set `np.random.seed(42)` (or equivalent) at the top. Log the input data file paths and date ranges used. Anyone re-running the script should get the same output.
 - **Structured output.** Save results as JSON (`output/stage3a/results.json`) for machine readability AND LaTeX tables (`output/stage3a/tables/`) for direct inclusion in the paper. Use `df.to_latex()` or write `\begin{tabular}` directly. Every table should be a standalone `.tex` file. Every figure should be a standalone `.pdf` or `.png` with labeled axes.
+- **Tag headline claims explicitly.** Every load-bearing numerical claim — the long-short spread the contribution rests on, the calibration moment that closes the model, the headline regression coefficient the abstract will cite — must appear in the `## Headline claims` section with a `[HEADLINE]` prefix and a snake_case `[claim_id: …]`. Typical count: 1-5; never more than 8. The downstream `headline-replicator` agent (Stage 3a step 6.5) recomputes each tagged claim via an independent aggregation path (different merge key, different aggregation order, raw source rather than processed cache) and FAILs the stage if any tagged claim disagrees beyond tolerance, if the script is absent, or if the analysis contains no `[HEADLINE]` tags at all. Under-tagging (missing a number that is clearly headline) and over-tagging (tagging every robustness coefficient) both produce findings. The tags are what the replicator binds to; without them the gate cannot fire.
