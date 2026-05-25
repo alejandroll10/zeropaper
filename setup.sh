@@ -2099,8 +2099,21 @@ fi
 # ── Optional: auto-publish to a GitHub org if the current user is a member ──
 # Set PUBLISH_ORG=<org> (or leave the default) to opt in. Silently skipped for
 # non-members so other users of this template just get a local repo.
-PUBLISH_ORG="${PUBLISH_ORG:-automated-papers-produced}"
-PUBLISH_VISIBILITY="${PUBLISH_VISIBILITY:-private}"
+#
+# Opt-out paths:
+#   - PUBLISH_ORG= ./setup.sh ...      (single -, so an explicit empty string
+#                                       is honored — :- would substitute the
+#                                       default and re-enable publishing)
+#   - --mode report runs auto-disable below (refereeing external submissions
+#     involves someone else's unpublished work; default-publish is unsafe).
+PUBLISH_ORG="${PUBLISH_ORG-automated-papers-produced}"
+PUBLISH_VISIBILITY="${PUBLISH_VISIBILITY-private}"
+# Report mode handles external (often confidential) submissions; never auto-
+# publish those. The user can still push manually if they want.
+if [ "$MODE" = "report" ] && [ -n "$PUBLISH_ORG" ]; then
+    echo "  (skipping publish — --mode report deploys are kept local by default)"
+    PUBLISH_ORG=""
+fi
 # GitHub repo name = <project>-<first 8 chars of ARP_UUID>. The suffix is the
 # same deployment fingerprint baked into paper/arpipeline.sty (and every PDF
 # the pipeline produces), so the repo URL is a 1:1 lookup for the deployment.
