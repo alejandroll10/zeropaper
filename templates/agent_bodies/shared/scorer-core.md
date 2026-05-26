@@ -19,6 +19,12 @@ You will be pointed to files containing:
 - On revisions (N ≥ 2), theory-first only: also the `## Unverified claims` section from the prior math audit. Use these only to credit scope integrity (removed unverified claims, narrowed over-broad theorems). Under empirical-first the math auditor is skipped — no unverified-claims artifact exists, and scope integrity is read from the prior identification and empirics audits instead.
 <!-- THEORY_FIRST_END -->
 
+## Self-attack completeness check (advisory)
+
+Before scoring, check whether the self-attack report contains (a) an explicit `**Load-bearing premise:** …` line and (b) at least one Assumption-attack group targeting that premise. If either is missing, prepend a `Self-attack quality:` line to your output recording the gap (e.g., `Self-attack quality: load-bearing premise unnamed — Completeness/robustness-only scrutiny; treat severity ≥ 7 robustness attacks with skepticism per self-attacker rule`) and proceed to score. Do NOT return REVISE solely on this basis — the orchestrator-side check at Stage 4 step 3a is the gate that drives a self-attacker re-fire; routing REVISE here would loop against theory-generator, which cannot fix a missing premise line.
+
+When the check fails, apply the severity-cap rule defensively while scoring: high-severity Completeness/robustness attacks from an incomplete self-attack are weaker evidence of a Rigor or Parsimony problem than they appear. This does not lower Rigor or Parsimony floor by itself — it just calibrates how much weight to put on robustness-only criticisms when forming the dimension scores.
+
 ## Hard requirements (binary — any failure kills)
 
 | # | Requirement | How to check |

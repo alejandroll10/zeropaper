@@ -9,9 +9,10 @@ The authors will then use your attacks to strengthen the paper. But you don't ca
 1. Read the theory draft and implications
 2. Read the free-form audit report if provided — it flags conceptual concerns that survived the structured audit. Use these as starting points for deeper attacks.
 3. If `output/stage1/negative_results.md` exists, read every entry. Treat each as a live attack: does the theory's claimed escape actually work, or is the theory a disguised version of the blocked setup? Attacks that reveal an unescaped negative result are top severity.
-4. Attack it from every angle
-5. Score each weakness by severity
-6. Produce a ranked list of attacks
+4. **Identify the load-bearing premise.** In one sentence, state the single assumption, data choice, or methodological step the headline result most depends on — the thing that, if wrong, makes the paper wrong (not just less robust). Record it as `**Load-bearing premise:** …` in the output. Attack it exhaustively in Assumption attacks before moving to other categories. The premise must satisfy two anchors: (a) **theory-anchored** — it appears in, or is directly implied by, the theory draft's stated assumptions, data choices, or methodology (not invented for this report); and (b) **headline-critical** — removing it makes the headline result unprovable or unidentified, not merely less general. A generic background assumption ("agents have preferences," "data are observed") does not satisfy (b); the strongest non-strawman test is "if a referee challenged this specific premise, would the paper survive on its current argument?" If no, that is the load-bearing premise. **Multi-piece exception:** if the contribution is genuinely multi-piece — each piece independently load-bearing for the union thesis, matching scorer-core's H1 multi-piece exception — name one premise per piece, listed as `**Load-bearing premise [piece K — short label]:** …` for each. Each piece's premise must satisfy (a) and (b) independently; the severity cap below then applies per-piece.
+5. Attack it from every angle
+6. Score each weakness by severity
+7. Produce a ranked list of attacks
 
 ## Attack vectors
 
@@ -46,6 +47,8 @@ Save to the path specified in your prompt:
 
 ```markdown
 # Self-Attack Report — [Model Name]
+
+**Load-bearing premise:** [one sentence — the single assumption, data choice, or methodological step the headline result most depends on. Multi-piece contributions: one `**Load-bearing premise [piece K — label]:** …` line per piece.]
 
 ## Attacks by severity
 
@@ -94,3 +97,4 @@ The tag applies to the group, not individual variants. If the root is FIX, the f
 - **No false attacks.** Don't invent problems that don't exist. Manufactured severity undermines the process.
 - **Rank honestly.** If the paper is actually good, say so — but still find the weaknesses. Even great papers have them.
 - **Severity 10 means FATAL.** Use it sparingly. A severity-10 attack means the paper concept is fundamentally flawed, not just that a proof has a gap.
+- **Load-bearing first.** A robustness-style attack — in *any* section (Completeness, Result, {{MECHANISM_TERM_CAP}}, or otherwise) — *whose target is not a load-bearing premise* cannot exceed severity 6 unless an Assumption attack targeting the relevant load-bearing premise of equal-or-greater severity also appears in the report. "Robustness-style" means the attack questions whether the result holds across alternative specifications, parameter ranges, edge cases, or extensions, rather than questioning whether the load-bearing premise of the headline is correct. **Multi-piece application:** when multiple premises are named (one per piece), the cap applies per-piece — a robustness attack on piece K's domain is capped at 6 unless an Assumption attack on piece K's premise of equal-or-greater severity also appears; an Assumption attack on a different piece's premise does not unlock piece K. (Carve-out: if a load-bearing premise *is itself* a Completeness-shaped assumption — e.g., "results hold across functional forms" — an attack targeting that premise can be filed under Completeness at unrestricted severity, and counts as the required premise attack for the purpose of this rule.) Robustness scrutiny of unrelated targets is downstream of the load-bearing question; if the relevant premise is unaddressed, the severity ceiling on those sits at 6.
