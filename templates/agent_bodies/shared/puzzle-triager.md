@@ -35,6 +35,8 @@ A report at `output/puzzle_triage/triage_pN.md` (where N = `pivot_round + 1`) wi
 
 Use the decision tree below. When in doubt, flag uncertainty in the rationale rather than guessing.
 
+**Entry gate — STRENGTHENING-PROBE.** Before applying the decision tree, look up the contradicted spec's role tag in `output/stage3a/empirical_analysis.md` (or `empirical_plan.md`/`output/stage3b/` for theory_llm). Each test/spec subsection in those files carries a `[ROLE: LOAD-BEARING]` or `[ROLE: STRENGTHENING-PROBE]` tag (per `empiricist.md`'s spec-role schema, or `experiment-designer.md` for theory_llm). If the contradicting spec is tagged `STRENGTHENING-PROBE`: produce verdict **PROBE-NULL** with rationale "spec was an optional strengthening probe; baseline analysis intact; no theory revision warranted." Do not run the decision tree below. This gate applies only to empirical/experimental contradictions on tagged specs — PUZZLE-CANDIDATE lit-check evidence (from gap-scout) does not have a spec role; apply the decision tree as written for those. If the contradicting empirical spec is untagged (legacy analysis, or the tag is absent), treat the missing tag as `LOAD-BEARING` and proceed through the decision tree — fail-safe to scrutiny, not to silence.
+
 ```
 Is the contradiction real?
 ├── Priors weak OR measurement debatable
@@ -68,6 +70,7 @@ When the implication is tagged **PUZZLE-CANDIDATE** in `implications.md` and emp
 | Verdict | Orchestrator action |
 |---------|--------------------|
 | **NORMAL-PROCEED** | Use this only if empirics actually confirmed the theory. The orchestrator should not have launched you in that case. Flag the inconsistency. |
+| **PROBE-NULL** | The contradicted spec was tagged `STRENGTHENING-PROBE` (entry gate). Orchestrator records "probe null — baseline intact" in the pipeline log and proceeds to Stage 4 as if no contradiction occurred. No theory revision, no pivot, no honest-null. The probe result remains in `empirical_analysis.md` for transparency but does not count as a "PUZZLE-CANDIDATE confirmed by empirics" for downstream scorer/paper-writer routing. |
 | **FIX-EMPIRICS** | Empiricist re-runs with better design / data / identification. Theory unchanged. |
 | **RECONCILE** | Theory-generator adds a scope-condition statement. No pivot, no full revision. |
 | **BACK-TO-IDEA** | Stage 1 with the failure note as input. Theory was not strong enough to bet on. |

@@ -71,8 +71,13 @@ Save to the path specified in your prompt. **Learnings-file output:** at `gate-4
 ## B. Ceiling Assessment
 
 - **Has the current approach ceilinged?** Yes / No / Unclear
-- **Evidence for ceiling:** [Specific weaknesses that CANNOT be fixed within the current framework — theoretical dead ends, framing traps, structural problems. Not "the paper could be better" — that's always true. Name the binding constraint.]
+- **Ceiling type (required if Yes/Unclear):** **STRUCTURAL** or **REACHABLE**.
+  - **STRUCTURAL** = the binding constraint is inherent to the problem or the available variation — irreducible sample size, scope of the question, a parameter the data cannot identify, a theorem that does not admit further sharpening on this approach. No additional work *on this paper* moves the score.
+  - **REACHABLE** = a specific, namable search would plausibly move the score — a better data source, a cleaner identification design, a sub-sample test, a tighter theoretical sharpening, a sub-class probe — that has not yet been attempted.
+- **Evidence for ceiling:** [Specific weaknesses that CANNOT be fixed within the current framework. Not "the paper could be better" — that's always true. Name the binding constraint. **Count only `LOAD-BEARING`-tagged spec failures** (per the role-tag schema in `empiricist.md`) as ceiling evidence. A `STRENGTHENING-PROBE` null is *not* ceiling evidence — it is by definition an optional spec whose failure does not move the headline; treating one as a ceiling signal walks the framing down on an optional probe (operator field report T6). If the empirical analysis is untagged (legacy or absent role tags), treat empirical contradictions conservatively as load-bearing rather than as probes — fail-safe to scrutiny.]
 - **Evidence against ceiling:** [Specific dimensions where the current draft could plausibly gain 5+ points with targeted work. Be concrete: which dimension, what change, why 5+ points is plausible.]
+- **If STRUCTURAL:** the deepening playbook (more robustness, more extensions, more scope conditions, more theorems, more polish) does **not** move a structural ceiling and must not be invoked. Section E should select Ship-at-current-tier (Continue with no deepening), Restructure around a different headline, Restart from an unused sketch, or Regenerate — not Continue-with-deepening. "More paper" is not "better paper" against a structural ceiling (operator field report T7).
+- **If REACHABLE:** Section E must name the *specific* search — the data source, the identification design, the sub-sample, the sub-class test, the theoretical sharpening. Generic recommendations ("add robustness," "explore more extensions," "deepen the theory") are forbidden when the ceiling has been classified REACHABLE. If you cannot name the specific search, the ceiling is not in fact reachable on the evidence you have — downgrade to STRUCTURAL or Unclear.
 
 ## C. Paper Strategy Assessment
 
@@ -98,6 +103,8 @@ List 2-3 concrete alternatives to continuing the current path. For EACH:
 <!-- THEORY_ONLY_GUARD_START -->
 **Theory-only mode.** Do not recommend or invoke empirical analysis in §D/§E — alternatives must be theory-internal (math extension, reframe, sketch-restart, regenerate).
 <!-- THEORY_ONLY_GUARD_END -->
+
+**Structural-ceiling guard.** If §B classified the ceiling as **STRUCTURAL**, do not propose any deepening-playbook alternative in §D — no "add more robustness," no "extend the model," no "add another theorem," no "tighten a scope condition." The allowed alternative shapes under STRUCTURAL are: ship-at-current-tier (Continue with no deepening), structural reframe around a different headline, restart from an unused Stage-1 sketch, and Regenerate (subject to the gating in the Regenerate spec below). The required alternatives in this section (sketch-restart, structural reframe) still apply.
 
 **Required:** At least one alternative must be a restart from Stage 1 using a specific unused sketch from the Round 1 portfolio. Name the sketch, summarize its direction, and explain why it might work where the current approach is stuck.
 
