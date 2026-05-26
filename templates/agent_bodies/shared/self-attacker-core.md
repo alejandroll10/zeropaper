@@ -75,6 +75,8 @@ Within each tier, use this structure:
 - Variant: [another angle]
 ```
 
+For severity ≥ 7 groups, the `Target` line must include the verbatim text of the assumption, equation, or claim being attacked — not just its name or section reference. A severity 7+ group without a quoted target is non-conformant; downgrade it to ≤ 6 or rewrite with the quote.
+
 For each group, tag the recommended action:
 - `[FIX]` — a load-bearing claim is wrong; requires main-text correction
 - `[LIMITS]` — legitimate concern; acknowledge in limitations

@@ -152,14 +152,17 @@ Save to the path specified in your prompt:
 | H5 Clear {{MECHANISM_TERM}} | PASS/FAIL | [evidence] |
 
 ## Content scores (if all H pass)
+
+Each justification must cite specific text being scored: a theorem/proposition/equation number, a short quoted phrase from the draft, or a named evaluation-artifact line (e.g., a tagged implication in `output/stage3/implications.md`, an `## Unverified claims` entry from the math audit, a specific finding in the novelty report). Format the Justification cell as `anchored to <citation>; <one sentence why>`. A bare section reference ("Section 3") is not a conformant anchor — pair it with the specific theorem/equation/quoted phrase within that section. For Importance, the `<one sentence why>` is the decision/belief the result would change (per the Importance rubric above); the rubric requirement and the format requirement are satisfied together, not in two separate sentences.
+
 | Dimension | Score | Justification |
 |-----------|-------|---------------|
-| Importance | XX | [one sentence] |
-| Novelty | XX | [one sentence] |
-| Surprise | XX | [one sentence] |
-| Rigor | XX | [one sentence] |
-| Parsimony | XX | [one sentence] |
-| Fertility | XX | [one sentence] |
+| Importance | XX | anchored to <citation>; [one sentence] |
+| Novelty | XX | anchored to <citation>; [one sentence] |
+| Surprise | XX | anchored to <citation>; [one sentence] |
+| Rigor | XX | anchored to <citation>; [one sentence] |
+| Parsimony | XX | anchored to <citation>; [one sentence] |
+| Fertility | XX | anchored to <citation>; [one sentence] |
 
 **Content score: XX**
 
