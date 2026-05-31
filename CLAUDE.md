@@ -12,6 +12,10 @@ This is the **template repository** for the autonomous research paper pipeline. 
 
 This file is tracked in git but **overwritten by `setup.sh`** in cloned projects. It is for our development work only. The pipeline's CLAUDE.md that end users see is assembled by `setup.sh` from `templates/shared/core.md` + `templates/runtime/claude/session.md` + per-variant vocab substitution. (Variant-specific scorer calibrations live in `templates/agents/{variant}/vocab.json` and are substituted into the scorer agent body, not appended as a separate block.)
 
+## Sibling repo: the IAR website + wiki
+
+The pipeline's empirical dataset skills (`templates/skill_bodies/empirical/<dataset>.md`, mirrored into `extensions/empirical/skills/<dataset>/SKILL.md`) and the IAR wiki dataset pages (`src/content/docs/datasets/*` in `github.com/institute-for-automated-research/website`) are two mirrors of the same dataset knowledge, kept in sync both ways. When a change here affects a wiki page or a published paper PDF/landing page (dataset access or gotchas, citation format, provenance disclosure), file the issue **in the website repo** (`gh issue create --repo institute-for-automated-research/website`), not here. The website repo's CLAUDE.md carries the reciprocal rule for changes that originate there.
+
 ## Working principle: no unsolved or undocumented architectural limits
 
 When auditing or editing the pipeline, if a known architectural limit is identified (e.g., a self-referential check, a subjective rule, an enforcement gap, a missing producer for a consumed artifact), do not leave it acknowledged-and-moved-on. Either (a) solve it in the same pass, or (b) document it explicitly — in the relevant agent body, doc file, or a dedicated `LIMITATIONS.md` — with the failure mode it can produce and what would be needed to close it. Acknowledged-but-undocumented limits accumulate silently and produce surprises in future runs.
