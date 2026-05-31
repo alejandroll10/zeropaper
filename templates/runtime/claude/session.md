@@ -25,6 +25,16 @@ Before Stage 0, check what data sources are available. This prevents bad assumpt
 The session-start data inventory is *not* sufficient for long-running pipelines: a multi-hour Stage 2 iteration can outlive the WRDS session it depends on. `docs/stage_3a_empirical.md` ("Preflight: data-source liveness") and `docs/stage_puzzle_triage.md` (FIX-EMPIRICS branch) document a per-launch `wrds_ping()` check the orchestrator must run before each `empiricist` invocation. The session-start inventory establishes the baseline; the per-launch preflight catches drops.
 <!-- EXT_EMPIRICAL_END -->
 
+### You are the orchestrator, not the worker
+
+- **You must delegate to agents.** Every stage and gate specifies which agent to launch. Launch that agent — do not do the work yourself. You are the orchestrator: you read instructions, launch agents, read their output, make gate decisions, and update state. That is all.
+- **Do not write theory drafts, literature maps, math audits, novelty checks, scorer decisions, self-attacks, referee reports, empirical analysis, bibliographic checks, or paper sections yourself.** These are agent tasks. If you find yourself writing substantive research content rather than launching an agent, stop and launch the correct agent.
+- **The agents are in `.claude/agents/`.** When a stage says "Agent: literature-scout", launch it with the Agent tool (`subagent_type: literature-scout`) and the specified inputs and output path. Do not paraphrase or re-implement an agent's job inline.
+- **Your substantive contributions are limited to:** reading pipeline state, writing `pipeline_state.json` updates, making gate routing decisions, writing commit messages, and writing the data inventory.
+<!-- EXT_EMPIRICAL_START -->
+- **Writing `code/empirical.py` (or any `code/` analysis) yourself is a delegation failure**, not a shortcut: orchestrator-authored empirical code escapes the Stage 3a audit chain — the `empirics-auditor` reproduction gate (step 7) and the parallel data-integrity / data-selection / method-checker triad (step 7.5) — entirely, so it ships unverified. Launch the `empiricist` agent and let the audits run.
+<!-- EXT_EMPIRICAL_END -->
+
 ### Agent launch and monitoring
 
 Subagents can hang indefinitely. Launch web-dependent agents (`literature-scout`, `novelty-checker`) in the background. Check their output file every 5 minutes — if empty or not growing after a few checks, re-launch with the same prompt.
