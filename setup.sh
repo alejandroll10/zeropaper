@@ -462,7 +462,14 @@ if [ "$LOCAL" = "1" ]; then
     cp "$SCRIPT_DIR/$CLAUDE_SETTINGS_REL" "$OUT_DIR/$CLAUDE_DIR_REL/"
     mkdir -p "$OUT_DIR/$GEMINI_DIR_REL"
     cp "$SCRIPT_DIR/$GEMINI_SETTINGS_REL" "$OUT_DIR/$GEMINI_DIR_REL/"
-    cp "$SCRIPT_DIR/.gitignore" "$OUT_DIR/"
+    # Project-specific gitignore (tracks paper/, output/, code/; ignores data
+    # blobs + build artifacts). Production mode copies this at the cleanup step
+    # (line ~1878), but --local exits before reaching it, so copy it here too.
+    # Using the template repo's own .gitignore would ignore paper/, output/,
+    # code/, process_log/ — and since .gitignore is in the manifest's
+    # files_replace list, update.sh would then clobber a real project's correct
+    # gitignore with one that untracks the entire research output.
+    cp "$SCRIPT_DIR/templates/gitignore_project" "$OUT_DIR/.gitignore"
     # dashboard.html visualizes pipeline_state.json; report mode (one-shot audit
     # fan-out) doesn't produce one, so the dashboard would be empty/misleading.
     if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
