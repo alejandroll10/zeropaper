@@ -1325,8 +1325,8 @@ fi
 
 # ── Install core Python deps ──
 if [ "$LOCAL" = "0" ]; then
-    uv pip install sympy matplotlib -q 2>/dev/null \
-        || echo "Note: install core deps manually: uv pip install sympy matplotlib"
+    uv pip install sympy matplotlib certifi -q 2>/dev/null \
+        || echo "Note: install core deps manually: uv pip install sympy matplotlib certifi"
 fi
 
 # ── Assemble core skills ──

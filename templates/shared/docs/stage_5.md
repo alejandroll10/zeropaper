@@ -56,4 +56,11 @@
    Verifier PASS resets `claim_grounding_round` and `claim_format_reexport_round` to 0 and unblocks step 6. Never let a draft ship with verifier REVISE outstanding. Empirics-auditor at Stage 3a audits code/results, not paper claims — do not route GROUNDER-ERROR or PAPER-SIDE-ERROR claim failures back to it for adjudication. (This is not in tension with the VERIFIER-LIMITATION loop above: the empirics-auditor PASS in that loop is the standard quality gate on the empiricist's *re-exported JSON output*, exactly as in any Stage 3a re-fire — it is not adjudicating the paper claim.)
 <!-- EXT_EMPIRICAL_END -->
 6. **Early bib-verify.** Launch `bib-verifier` on the draft. Same procedure as Stage 8 (OpenAlex + WebSearch fallback). If fabrications or fix-needed cites are found, re-launch paper-writer to drop or correct them before referees see the draft. Stage 8 still runs near the end as the final cite-key check; Stage 9 (polish) then audits the prose-level claims about each cite.
-7. Commit: `pipeline: stage 5 — paper draft written`
+7. **Build the PDF and verify the build.** This is the canonical build procedure — use it for every subsequent rebuild too (polish, referee-response revisions, post-pipeline edits), not just the first draft.
+   - **Recipe:** build with `latexmk -pdf main.tex` (and again on `internet_appendix.tex` if it was populated). `latexmk` sequences `pdflatex` + `bibtex`/`biber` and re-runs to convergence on its own. **Never** hand-roll bare `pdflatex` passes — they resolve `\ref` but skip the bibliography, so every `\cite` renders undefined and the References section ships empty.
+   - **Gate.** A build counts as clean only if all three hold (a passing `\ref` resolution is necessary but not sufficient — it does not cover `\cite` or layout):
+     1. `grep -c 'Citation.*undefined' main.log` returns `0`.
+     2. The References/bibliography renders — `main.bbl` is non-empty (`grep -c bibitem main.bbl` > 0) and a References section is present in the PDF.
+     3. No bad overflow — LaTeX prints overflows as `Overfull \hbox (NNNpt too wide) ...`; confirm none exceeds 40pt. `awk -F'(' '/Overfull \\hbox/{split($2,a,"pt"); if (a[1]+0>40) print}' main.log` must return nothing (sub-40pt boxes are harmless and ignored).
+   - If any check fails, fix it (run the full `latexmk` recipe; correct cite keys or `references.bib`; fix the offending table/float) and rebuild before committing. Do not report the build as clean on the strength of `\ref` resolution alone.
+8. Commit: `pipeline: stage 5 — paper draft written`
