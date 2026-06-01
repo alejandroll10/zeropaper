@@ -5,3 +5,4 @@
   "claim_grounding_round": 0,
   "paper_writer_pse_round": 0,
   "paper_writer_pse_claim_ids": [],
+  "claim_format_reexport_round": 0,

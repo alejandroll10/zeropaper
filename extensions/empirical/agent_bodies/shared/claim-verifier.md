@@ -12,7 +12,9 @@ Your verification is programmatic, not visual. Reading the JSON and "seeing that
 
 ## What you do
 
-Run four checks, in order. The first failing check halts that claim's verification and emits the corresponding failure tag; later checks for that claim need not run, but ALL claims are checked for ALL applicable gates — do not stop scanning after the first failure.
+**Dispatch by status first.** Before running any gate, route each entry by its `status`: `GROUNDED` entries go through Gates 1–4 below; `NEEDS_REEXPORT` entries go straight to the `NEEDS_REEXPORT entries` section (they do not pass through Gates 2–4); `NEEDS_EMPIRICIST` entries go straight to the `NEEDS_EMPIRICIST entries` section. Gate 1 (coverage) still runs over the full entry set regardless of status. Do not feed `NEEDS_REEXPORT` or `NEEDS_EMPIRICIST` entries through Gates 2–4 — their `field_path` is null by construction and the gates would mis-tag them. The status-handler sections are not pure passthroughs: each runs a derivation-tag hygiene check that can reclassify the entry to **GROUNDER-ERROR / invalid-derivation-tag** (when the grounder left a stray `derivation` tag on a no-cited-field entry) before its normal VERIFIER-LIMITATION / PAPER-SIDE-ERROR routing — see those sections.
+
+Run four checks, in order, on the `GROUNDED` entries. The first failing check halts that claim's verification and emits the corresponding failure tag; later checks for that claim need not run, but ALL claims are checked for ALL applicable gates — do not stop scanning after the first failure.
 
 ### Gate 1 — Coverage
 
@@ -37,11 +39,12 @@ For each source-map entry with `status == "GROUNDED"`:
 
 For each entry that passed Gate 2:
 
+- **Format pre-check (run first, before any path resolution).** The verifier resolves field paths in exactly two formats: JSON (`.json`) and LaTeX tables (the `table_label::row_label::col_N` grammar, in `paper/tables/*.tex`, `output/stage3a/tables/*.tex`, or any `.tex` the grounder cited with that grammar). If `entry.file` passed Gate 2 (the file exists) but is neither — a CSV, parquet, pickle, feather, `.npy`, Stata `.dta`, `.txt`, or any other format the two resolvers below cannot parse — do **NOT** attempt path resolution and do **NOT** fall through to the near-match / no-match split below. Emit **VERIFIER-LIMITATION / format-unsupported** for that `claim_id`, recording `entry.file` so the empiricist knows which output to re-export. This is the single most consequential branch in this gate: a value that genuinely exists in a non-parseable file is **not** a fabrication, and tagging it `PAPER-SIDE-ERROR / field-nonexistent` (which routes to paper-writer to *drop* the claim) would silently delete a real result. The `format-unsupported` bucket is disjoint from both GROUNDER-ERROR and PAPER-SIDE-ERROR and routes to the empiricist for a JSON re-export (see Routing). Decide format by extension and a quick content sniff (a `.json` that does not parse as JSON is itself a problem — emit `format-unsupported` and note the parse failure rather than guessing).
 - For JSON files: parse the file with `python3 -c "import json,sys; ..."` and walk `entry.field_path` using a deterministic resolver. Dot-paths (`a.b.c`), bracket-indexed paths (`a.b[0].c`), and mixed forms must all resolve via the same resolver — use a small helper script under `code/utils/` if one exists or write one inline.
 - For LaTeX-table sources: parse `entry.field_path` as `table_label::row_label::col_N` and confirm the table file contains that label, that row, and that column. A simple Grep + awk pattern suffices for most paper-writer-authored tables.
-- If the field path does not resolve, the failure tag depends on the cause:
-  - **Field path is a near-match to an existing field** (e.g., `row_3::rd_by_sic_stratum` when the file contains `row_3::rd_by_industry_decomposition`) → **GROUNDER-ERROR / field-typo**. Report the closest-matching field(s) so the grounder can fix on re-fire.
-  - **Field path has no near-match anywhere in the file** (e.g., `full_sic2_table` when no such key exists at any depth) → **PAPER-SIDE-ERROR / field-nonexistent**. The grounder is not failing to find a typo; the cited concept does not exist in the empiricist's outputs. This usually means paper-writer authored a claim ex nihilo and the grounder rationalized a citation rather than emitting `[NEEDS EMPIRICIST]`.
+- If the field path does not resolve (in a format the verifier *can* parse), the failure tag depends on the cause:
+  - **Field path is a near-match to an existing field** (e.g., `row_3::rd_by_sic_stratum` when the file contains `row_3::rd_by_industry_decomposition`) → **GROUNDER-ERROR / field-typo**. Report the closest-matching field(s) so the grounder can fix on re-fire. **Additionally, resolve the value at the closest-matching field and compare it to `entry.paper_value` within `entry.tolerance_used`.** If it matches, append `note: value at corrected path matches paper text` to the failure detail — the failure is a pure path-label typo, not a substantive value error or fabrication. It stays GROUNDER-ERROR / field-typo (the grounder must still fix the path), but the annotation tells the operator and orchestrator that the underlying number is correct, so a "field-typo" count does not get misread as a fabrication-risk count. If the value at the corrected path does *not* match, say so explicitly (`note: value at corrected path also differs from paper text`) — that is a stronger signal worth surfacing.
+  - **Field path has no near-match anywhere in the file** (e.g., `full_sic2_table` when no such key exists at any depth) → **PAPER-SIDE-ERROR / field-nonexistent**. The grounder is not failing to find a typo; the cited concept does not exist in the empiricist's outputs. This usually means paper-writer authored a claim ex nihilo and the grounder rationalized a citation rather than emitting `[NEEDS EMPIRICIST]`. (Reach this branch only after the format pre-check above has confirmed the file *is* JSON or a LaTeX table — a non-parseable format is `format-unsupported`, never `field-nonexistent`.)
 
 The split between near-match and no-match is judgmental, but the decision rule is: if a programmatic edit-distance / longest-common-subsequence check against the file's actual fields would have surfaced the right field, it's GROUNDER-ERROR (the field exists, grounder typo'd the path). If no field in the file plausibly corresponds, it's PAPER-SIDE-ERROR (the cited content is not in the file at all).
 
@@ -77,12 +80,21 @@ Dispatch on `entry.derivation` (the four branches below are mutually exclusive �
 
   Any `derivation` value not matched by Branches 1–4 (a genuinely unknown tag) = **GROUNDER-ERROR / invalid-derivation-tag** with a note that the tag is not in the v1 vocabulary.
 
+### `NEEDS_REEXPORT` entries
+
+For each source-map entry with `status == "NEEDS_REEXPORT"` (the grounder found the value only in a non-parseable file and is explicitly requesting a JSON re-export rather than citing a source it knows the verifier cannot resolve):
+
+- **Derivation-tag hygiene check first.** If `entry.derivation != null` on a `NEEDS_REEXPORT` entry, classify the claim as **GROUNDER-ERROR / invalid-derivation-tag** *instead of* VERIFIER-LIMITATION for this round (it goes in `grounder_error_claim_ids` only, NOT in `verifier_limitation_claim_ids` — the id-lists stay disjoint and `failure_index` has exactly one entry for the claim). A derivation tag is meaningless on an entry with no cited field to re-apply a transform to, so a stray tag is a grounder bug that must be fixed first; the grounder's re-fire drops the tag, and the entry resurfaces as a clean `NEEDS_REEXPORT` on the next verifier run, where it routes to the empiricist re-export below. Set `detail` to name the stray tag and the fix ("remove the derivation tag; this entry has no cited field").
+- Otherwise (the normal case, `derivation == null`): emit **VERIFIER-LIMITATION / format-unsupported**, quoting the grounder's `reexport_description` (carry it into the `failure_index` entry's `reexport_description` field so the empiricist gets the exact column/row/key to re-export) and recording `entry.file` (the non-parseable source the grounder saw the value in).
+- Do NOT run Gates 2–4 on these entries; `field_path` is null by construction (a non-parseable file has no resolvable path grammar).
+- For the normal case (`derivation == null`), this is the grounder-initiated route to the same bucket the Gate-3 format pre-check produces for `GROUNDED` entries that slipped through citing a non-parseable file. Both land in `verifier_limitation_claim_ids` and route to the empiricist re-export — they are the prevention (grounder declares it) and the backstop (verifier catches it) for the same failure mode. (Stray-derivation entries do not reach this route — they were reclassified to GROUNDER-ERROR by the hygiene check above.)
+
 ### `NEEDS_EMPIRICIST` entries
 
 For each source-map entry with `status == "NEEDS_EMPIRICIST"`:
 
-- Emit **PAPER-SIDE-ERROR / needs-empiricist** with the grounder's `needs_empiricist_description` quoted.
-- If `entry.derivation != null` on a `NEEDS_EMPIRICIST` entry, *additionally* emit **GROUNDER-ERROR / invalid-derivation-tag** for the same `claim_id` — the derivation tag is meaningless on an entry with no cited field, and a stray tag indicates a grounder error worth surfacing even though Gate 4 dispatch never runs for this status. (Gates 2–3 fail first on `NEEDS_EMPIRICIST` entries because `file` and `field_path` are null, so Gate 4 is never reached — without this explicit handler, the invalid-tag flag would be silently lost.)
+- **Derivation-tag hygiene check first.** If `entry.derivation != null` on a `NEEDS_EMPIRICIST` entry, classify the claim as **GROUNDER-ERROR / invalid-derivation-tag** *instead of* PAPER-SIDE-ERROR / needs-empiricist for this round (it goes in `grounder_error_claim_ids` only, NOT in `pse_claim_ids` / `needs_empiricist_claim_ids` — the id-lists stay disjoint and `failure_index` has exactly one entry for the claim). The derivation tag is meaningless on an entry with no cited field, so a stray tag is a grounder bug fixed first; the grounder's re-fire drops the tag and the entry resurfaces as a clean `NEEDS_EMPIRICIST` on the next verifier run, where it routes to paper-writer below. Set `detail` to name the stray tag and the fix.
+- Otherwise (the normal case, `derivation == null`): emit **PAPER-SIDE-ERROR / needs-empiricist** with the grounder's `needs_empiricist_description` quoted. (Gates 2–4 are never reached for this status because `file` and `field_path` are null and the status dispatch routes here directly.)
 - Paper-writer's re-fire under PAPER-SIDE-ERROR routing will follow the existing Stage 5 step 5 procedure: drop the claim, or re-fire `empiricist` per the Stage 3a re-fire if the missing number is load-bearing.
 
 ## Output format
@@ -111,14 +123,21 @@ Save to `output/stage5/claim_verification.md`:
 | 2 — File existence       |   |   | file-missing: X |
 | 3 — Field-path           |   |   | grounder/field-typo: X; paper/field-nonexistent: Y |
 | 4 — Value match          |   |   | grounder/cited-vs-source: X; grounder/invalid-derivation-tag: Y; paper/value-mismatch: Z; paper/derivation-invalid: W; paper/tolerance-undefined: V |
+| (status-handler hygiene) |   |   | grounder/invalid-derivation-tag (from NEEDS_REEXPORT/NEEDS_EMPIRICIST): X |
 | (NEEDS_EMPIRICIST count) |   |   | paper/needs-empiricist: X |
+| (VERIFIER-LIMITATION)    |   |   | format-unsupported: X |
 
-**Total claims**: N   **Grounded & verified**: G   **GROUNDER-ERROR**: E_g   **PAPER-SIDE-ERROR**: E_p
+**Total claims**: N   **Grounded & verified**: G   **GROUNDER-ERROR**: E_g   **PAPER-SIDE-ERROR**: E_p   **VERIFIER-LIMITATION**: E_v
+
+(VERIFIER-LIMITATION failures are format-blindness, not fabrication — they are reported in their own line and excluded from the PAPER-SIDE-ERROR total so a reader never confounds "the checker cannot parse this file" with "this number is unsourced." The fabrication-relevant count is E_p, not E_p + E_v.)
+
+(The `invalid-derivation-tag` failure mode appears in two table rows — Gate 4, where a stale multi-source derivation tag on a GROUNDED entry is caught, and the status-handler hygiene row, where a stray derivation tag on a NEEDS_REEXPORT/NEEDS_EMPIRICIST entry is caught before Gates 2–4 run. Both are the same tag and both roll into `grounder_error_count` / `E_g`. The two rows exist only to show where the failure was caught; do not double-count a single claim_id, and do not create any additional ad-hoc rows. A stray-derivation hygiene failure is GROUNDER-ERROR for this round and is NOT also counted under `format-unsupported` or `needs-empiricist`.)
 
 ## Routing
 - **If ENUMERATOR-DRIFT: YES** — re-fire `claim-enumerator` first. Skip the bullets below until the verifier re-runs on a fresh enumeration.
 - **GROUNDER-ERROR ({E_g} failures)**: re-fire `claim-grounder` with the failure list below. `claim_grounding_round` increments to {N+1}.
-- **PAPER-SIDE-ERROR ({E_p} failures)**: re-fire `paper-writer` with the failure list below; paper-writer follows Stage 5 step 5 marker-scan procedure (drop the claim, or re-fire `empiricist` per Stage 3a re-fire). On re-write, step 5a restarts from `claim-enumerator`; `claim_grounding_round` resets to 0.
+- **PAPER-SIDE-ERROR ({E_p} failures)**: re-fire `paper-writer` with the failure list below; paper-writer follows Stage 5 step 5 marker-scan procedure (drop the claim, or re-fire `empiricist` per Stage 3a re-fire). On re-write, step 5a restarts from `claim-enumerator`; `claim_grounding_round` and `claim_format_reexport_round` both reset to 0 (the claim set has changed).
+- **VERIFIER-LIMITATION ({E_v} failures)**: re-fire `empiricist` to re-export the cited value(s) as JSON (Stage 3a re-fire), then re-run `claim-grounder` and the verifier. Do **NOT** route these to paper-writer and do **NOT** drop the claims — the numbers exist, only in a format the verifier cannot parse. The orchestrator bounds this loop with `claim_format_reexport_round` (see Stage 5 step 5a).
 
 (If both GROUNDER-ERROR and PAPER-SIDE-ERROR are present and ENUMERATOR-DRIFT is NO, the orchestrator handles GROUNDER-ERROR first per Stage 5 step 5a; the verifier re-runs on grounder PASS, and any remaining PAPER-SIDE-ERROR routes to paper-writer.)
 
@@ -165,11 +184,13 @@ Also save to `output/stage5/claim_verification_summary.json`:
     "grounded_and_verified": <int>,
     "grounder_error_count": <int>,
     "paper_side_error_count": <int>,
-    "needs_empiricist_count": <int>
+    "needs_empiricist_count": <int>,
+    "verifier_limitation_count": <int>
   },
   "grounder_error_claim_ids": ["C0019", "C0023", ...],
   "pse_claim_ids": ["C0044", "C0061", ...],
   "needs_empiricist_claim_ids": ["C0019", ...],
+  "verifier_limitation_claim_ids": ["C0072", ...],
   "failure_index": {
     "C0019": {
       "class": "GROUNDER-ERROR",
@@ -188,6 +209,16 @@ Also save to `output/stage5/claim_verification_summary.json`:
       "cited_value_or_status": "-0.55 in output/stage3a/baseline.json::treatment_post.coef",
       "closest_matches": null,
       "detail": "outside 0.001 absolute tolerance"
+    },
+    "C0072": {
+      "class": "VERIFIER-LIMITATION",
+      "tag": "format-unsupported",
+      "paper_location": "results.tex:88",
+      "paper_value": "0.31",
+      "cited_value_or_status": "output/stage3a/portfolio_sorts.csv (CSV — verifier cannot resolve field paths in this format)",
+      "closest_matches": null,
+      "reexport_description": "Decile-10-minus-1 VW spread (0.31) lives in column `ls_spread`, row `decile_10_1` of output/stage3a/portfolio_sorts.csv — re-export this value (or the whole table) to a JSON output.",
+      "detail": "source file exists but is CSV; re-export to JSON required before the value can be verified"
     }
   }
 }
@@ -196,24 +227,25 @@ Also save to `output/stage5/claim_verification_summary.json`:
 Schema notes:
 
 - `pse_claim_ids` is the canonical list the orchestrator reads to compute the Jaccard overlap against `pipeline_state.json:paper_writer_pse_claim_ids` (the PSE-cycle cap check in Stage 5 step 5a). Order is not semantically significant; uniqueness across the list is required.
-- `grounder_error_claim_ids` and `pse_claim_ids` are disjoint (a claim_id appears in at most one). `needs_empiricist_claim_ids` is a subset of `pse_claim_ids` (NEEDS_EMPIRICIST entries are tagged as PSE).
-- `failure_index` covers every failing claim_id with enough detail for the orchestrator to route without re-reading the markdown report. Every claim_id in `grounder_error_claim_ids` or `pse_claim_ids` MUST appear in `failure_index` with every field below populated (`null` is acceptable only where the field genuinely does not apply):
-  - `class`: `"GROUNDER-ERROR"` or `"PAPER-SIDE-ERROR"`
-  - `tag`: the specific failure-mode tag (`field-typo`, `coverage-shortfall`, `cited-vs-source-mismatch`, `invalid-derivation-tag`, `file-missing`, `field-nonexistent`, `value-mismatch`, `derivation-invalid`, `tolerance-undefined`, `needs-empiricist`)
+- `grounder_error_claim_ids`, `pse_claim_ids`, and `verifier_limitation_claim_ids` are mutually disjoint (a claim_id appears in at most one). `needs_empiricist_claim_ids` is a subset of `pse_claim_ids` (NEEDS_EMPIRICIST entries are tagged as PSE). `verifier_limitation_claim_ids` is NOT a subset of `pse_claim_ids` — format-unsupported failures are their own class and must never be counted into `paper_side_error_count` or `pse_claim_ids`, because the orchestrator routes PSE to paper-writer (which drops claims) while VERIFIER-LIMITATION routes to the empiricist (which re-exports them). Conflating the two is the exact bug this class was added to fix.
+- `failure_index` covers every failing claim_id with enough detail for the orchestrator to route without re-reading the markdown report. Every claim_id in `grounder_error_claim_ids`, `pse_claim_ids`, or `verifier_limitation_claim_ids` MUST appear in `failure_index` with every field below populated (`null` is acceptable only where the field genuinely does not apply):
+  - `class`: `"GROUNDER-ERROR"`, `"PAPER-SIDE-ERROR"`, or `"VERIFIER-LIMITATION"`
+  - `tag`: the specific failure-mode tag (`field-typo`, `coverage-shortfall`, `cited-vs-source-mismatch`, `invalid-derivation-tag`, `file-missing`, `field-nonexistent`, `value-mismatch`, `derivation-invalid`, `tolerance-undefined`, `needs-empiricist`, `format-unsupported`)
   - `paper_location`: `relative/path:line` from the paper draft
   - `paper_value`: the value as it appears in the paper text (string)
   - `citation_in_map`: `file :: field_path` from the source map (for GROUNDER-ERROR entries that have a citation in the map; `null` for `coverage-shortfall`)
   - `closest_matches`: list of nearest-matching fields with edit-distance or similar score. REQUIRED for GROUNDER-ERROR `field-typo` (the grounder needs the candidate fields to fix on re-fire). `null` for every other tag: `coverage-shortfall` (no citation exists yet, nothing to match), `cited-vs-source-mismatch` (field path resolved correctly, only the transcribed value was wrong), `invalid-derivation-tag` (semantic-tag failure, not a path failure), and every PAPER-SIDE-ERROR tag (the grounder is not the agent being re-fired).
-  - `cited_value_or_status`: `actual_value` formatted with its location (for PAPER-SIDE-ERROR `value-mismatch` and `derivation-invalid`) or the grounder's `needs_empiricist_description` (for `needs-empiricist`); `null` where the failure is structural and there is no cited value
+  - `cited_value_or_status`: `actual_value` formatted with its location (for PAPER-SIDE-ERROR `value-mismatch` and `derivation-invalid`), the grounder's `needs_empiricist_description` (for `needs-empiricist`), or the non-parseable source file and its format (for VERIFIER-LIMITATION `format-unsupported`, e.g. `"output/stage3a/portfolio_sorts.csv (CSV)"`); `null` where the failure is structural and there is no cited value
+  - `reexport_description`: REQUIRED on VERIFIER-LIMITATION `format-unsupported` entries that originated from a grounder `NEEDS_REEXPORT` status — copy the grounder's `reexport_description` verbatim so the empiricist gets the exact column/row/key to re-export without re-reading `paper_source_map.json`. `null` for the Gate-3-backstop case (a `GROUNDED` entry the grounder cited against a non-parseable file without writing a `reexport_description`) and `null` for every non-VERIFIER-LIMITATION tag. **When `reexport_description` is `null` on a `format-unsupported` entry, the non-parseable source file the empiricist must re-export is in `cited_value_or_status` (e.g. `"output/stage3a/portfolio_sorts.csv (CSV)"`), and the value to re-export is in `paper_value`** — the empiricist reads those two fields for backstop cases.
   - `detail`: one-sentence human-readable explanation matching the markdown table's `detail` column
 - On PASS, `verdict: "PASS"`, all counts zero, all id-lists empty, `enumerator_drift.detected: false`. The summary is still emitted.
 - On REVISE with ENUMERATOR-DRIFT: YES, `enumerator_drift.detected: true` and the orchestrator routes on that field before reading the per-claim lists (per Stage 5 step 5a).
 
 ## Verdict rules
 
-- **PASS** — Gate 1 passes (coverage exact, enumerator-drift <2%), and Gates 2/3/4 produce zero failures, and zero `NEEDS_EMPIRICIST` entries remain. Reset `pipeline_state.json:claim_grounding_round` to 0, reset `paper_writer_pse_round` to 0, reset `paper_writer_pse_claim_ids` to `[]`, and unblock Stage 5 step 6 (early bib-verify).
-- **REVISE** — any failures in Gates 1–4 or any `NEEDS_EMPIRICIST` entries. The verifier always emits REVISE in this case — there is no "minor" failure threshold here, because a single fabricated number in a paper draft is an unrecoverable referee event if it ships. The routing distinguishes GROUNDER-ERROR (cheap to fix, re-fire grounder) from PAPER-SIDE-ERROR (paper-writer must intervene), but both flavors halt the gate.
-- **No FAIL verdict.** Unlike data auditors, the verifier has no "hard escalation" path; the failures it identifies are always fixable in one of the two re-fire loops. The `claim_grounding_round` cap (3) handles the case where the grounder cannot converge — at the cap, the orchestrator halts for operator routing per the Stage 5 step 5a documentation.
+- **PASS** — Gate 1 passes (coverage exact, enumerator-drift <2%), and Gates 2/3/4 produce zero failures, and zero `NEEDS_EMPIRICIST` entries remain, and zero `VERIFIER-LIMITATION / format-unsupported` entries remain (every claim-bearing value must resolve in a parseable source before the draft ships). Reset `pipeline_state.json:claim_grounding_round` to 0, reset `paper_writer_pse_round` to 0, reset `paper_writer_pse_claim_ids` to `[]`, reset `claim_format_reexport_round` to 0, and unblock Stage 5 step 6 (early bib-verify).
+- **REVISE** — any failures in Gates 1–4, any `NEEDS_EMPIRICIST` entries, or any `VERIFIER-LIMITATION / format-unsupported` entries. The verifier always emits REVISE in this case — there is no "minor" failure threshold here, because a single fabricated number in a paper draft is an unrecoverable referee event if it ships. The routing distinguishes GROUNDER-ERROR (cheap to fix, re-fire grounder), PAPER-SIDE-ERROR (paper-writer must intervene), and VERIFIER-LIMITATION (empiricist re-export — the number is real, just unparseable), but all three flavors halt the gate.
+- **No FAIL verdict.** Unlike data auditors, the verifier has no "hard escalation" path; the failures it identifies are always fixable in one of the re-fire loops. The `claim_grounding_round` cap (3) handles the case where the grounder cannot converge, and the `claim_format_reexport_round` cap handles a re-export loop that does not converge — at either cap, the orchestrator halts for operator routing per the Stage 5 step 5a documentation.
 
 ## Operating constraints
 

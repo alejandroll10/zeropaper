@@ -17,10 +17,12 @@ Treat the citation as a load-bearing contract, not a formality. A citation that 
 For every entry in `paper_claims.json`:
 
 1. **Read the claim** — `raw_value`, `claim_type`, `paper_location`, `context_window`, `context_hints`. The context disambiguates which empiricist output the value belongs to when the same number appears in multiple specifications.
-2. **Locate the source** — search `output/stage3a/` for a file containing this value in a position consistent with the claim's context. Use `Grep` for value strings; use `Read` on the cached JSONs to inspect the schema; use `Glob` to enumerate `output/stage3a/*.json` and walk them when the value is not obviously located.
+2. **Locate the source** — search `output/stage3a/` for a file containing this value in a position consistent with the claim's context. Use `Grep` for value strings; use `Read` on the cached JSONs to inspect the schema; use `Glob` to enumerate `output/stage3a/*.json` and walk them when the value is not obviously located. **Cite only parseable formats.** The verifier resolves field paths in exactly two formats: JSON (`output/stage3a/*.json`) and LaTeX tables (`paper/tables/*.tex`, `output/stage3a/tables/*.tex`). A value you can *see* in a CSV, parquet, pickle, `.dta`, `.npy`, or `.txt` file is one the verifier *cannot* resolve — do NOT cite the non-parseable file (it will register as format-unsupported and waste a round). Use the `NEEDS_REEXPORT` path in step 5 instead.
 3. **Resolve the field path** — for JSON sources, write the full key path using either dot notation (`tables.baseline.coefficients.treatment_post`, `summary_stats.assets.mean`) or bracket notation for array indices (`regression_specs[0].results.beta`). For table-LaTeX sources, write `table_label::row_label::column` (e.g., `tab:baseline::treatment_post::col_1`). Open the source file via Read and visually confirm the path lands on the value you intend to cite. You do not have Bash; the verifier owns programmatic path-resolution. Your responsibility is that the path you write is consistent with the file you cited and precise enough that the verifier can resolve it without guessing — when in doubt, use the simplest dotted form and let the verifier's resolver handle it.
 4. **Confirm the value matches** — read the field at the cited path and confirm it equals the paper's `raw_value` within rounding tolerance (typically 0.001 absolute or 0.5% relative for coefficients; exact match for integers and sample sizes; same significance-star tier for stars). If the source value is `-0.2342` and the paper says `-0.234`, that is a match. If the source says `-0.234` and the paper says `-0.243`, that is NOT a match — emit `[NEEDS EMPIRICIST]` rather than citing a wrong value.
-5. **If no source resolves** — emit `[NEEDS EMPIRICIST: <description>]` in the entry slot, with the description naming what number is missing and where it appears in the paper. Do not invent a citation. Do not cite a file that does not contain this value.
+5. **If no parseable source resolves** — distinguish two cases:
+   - **The value exists, but only in a non-parseable file** (you found it in a CSV/parquet/pickle/etc. under `output/stage3a/`): set `status: "NEEDS_REEXPORT"`, point `file` at the non-parseable source where you saw the value, set `field_path: null`, and write a `reexport_description` naming the value and the column/row/key where it lives so the empiricist can re-export it as JSON. This is NOT a fabrication and NOT a missing number — it is a format problem the empiricist fixes by re-exporting. Do not downgrade it to `NEEDS_EMPIRICIST` (which routes to paper-writer to drop the claim).
+   - **No source contains the value at all** (not in any file, parseable or not): set `status: "NEEDS_EMPIRICIST"` and emit `[NEEDS EMPIRICIST: <description>]` naming what number is missing and where it appears in the paper. Do not invent a citation. Do not cite a file that does not contain this value.
 6. **Write `output/stage5/paper_source_map.json`** in the schema below.
 
 ## Disambiguation rules
@@ -48,11 +50,12 @@ Write to `output/stage5/paper_source_map.json`:
   "total_claims": <int>,
   "grounded": <int>,
   "needs_empiricist": <int>,
+  "needs_reexport": <int>,
   "coverage_pct": <float>,
   "entries": [
     {
       "claim_id": "C0001",
-      "status": "GROUNDED | NEEDS_EMPIRICIST",
+      "status": "GROUNDED | NEEDS_EMPIRICIST | NEEDS_REEXPORT",
       "file": "output/stage3a/baseline_regression.json",
       "field_path": "results.treatment_post.coefficient",
       "cited_value": -0.2342,
@@ -70,6 +73,15 @@ Write to `output/stage5/paper_source_map.json`:
       "cited_value": null,
       "paper_value": "0.18",
       "needs_empiricist_description": "Placebo coefficient in alternative-bandwidth column not present in any output/stage3a/ file. Paper text claims `placebo β = 0.18 (SE 0.04)` in robustness.tex:73 but no placebo specification appears in the empiricist's outputs."
+    },
+    {
+      "claim_id": "C0072",
+      "status": "NEEDS_REEXPORT",
+      "file": "output/stage3a/portfolio_sorts.csv",
+      "field_path": null,
+      "cited_value": null,
+      "paper_value": "0.31",
+      "reexport_description": "Decile-10-minus-1 VW spread (0.31) appears in column `ls_spread`, row `decile_10_1` of output/stage3a/portfolio_sorts.csv. Paper cites it at results.tex:88. Re-export this table (or at least this value) to a JSON output so the verifier can resolve it."
     }
   ]
 }
@@ -77,7 +89,9 @@ Write to `output/stage5/paper_source_map.json`:
 
 Schema notes:
 
-- `total_claims` MUST equal the enumerator's `total_claims`. Coverage is computed as `grounded / total_claims`. The grounder is forbidden to skip claims — every enumerator entry must have a source-map entry, even if that entry is `NEEDS_EMPIRICIST`.
+- `total_claims` MUST equal the enumerator's `total_claims`. Coverage is computed as `grounded / total_claims`, and `grounded + needs_empiricist + needs_reexport == total_claims`. The grounder is forbidden to skip claims — every enumerator entry must have a source-map entry, even if that entry is `NEEDS_EMPIRICIST` or `NEEDS_REEXPORT`.
+- `status` is one of `GROUNDED` (cited a parseable JSON/LaTeX source that the verifier can resolve), `NEEDS_EMPIRICIST` (the value exists in no output at all — paper-writer must drop the claim or re-fire the empiricist), or `NEEDS_REEXPORT` (the value exists but only in a non-parseable file — the empiricist must re-export it as JSON). `NEEDS_REEXPORT` is NOT a fabrication signal: do not use it when the number is simply missing, and do not use `NEEDS_EMPIRICIST` when the number is present but in the wrong format. The two route to different agents.
+- `reexport_description` (present only on `NEEDS_REEXPORT` entries) names the value, the non-parseable file, and the column/row/key where it lives, in enough detail that the empiricist can re-export it without re-deriving it. `file` points at the non-parseable source; `field_path` and `cited_value` are `null`.
 - `cited_value` is the raw numeric value as it appears in the source file (no string formatting, no LaTeX wrapping).
 - `paper_value` is the string from `paper_claims.json:raw_value` so the verifier can re-check the rounding tolerance without re-reading the paper.
 - `tolerance_used` documents which rounding rule you applied; the verifier will replay this. Use one of: `"exact"` (counts, sample sizes, integer-valued claims), `"0.001 absolute"` (coefficients, SEs), `"0.5% relative"` (large dollar amounts, percentages), `"same significance tier"` (p-value stars), `"5% relative"` (basis-point claims), or a custom rule with rationale in `notes`.
@@ -86,12 +100,14 @@ Schema notes:
   - **Multi-source derivation handle** (verifier skips the `paper_value` math check; the underlying components are separately enumerated and verified on their own rows): `"see_adjacent_claims"`. This is NOT a single-source transform — do not expect the verifier to recompute anything from the cited field for `see_adjacent_claims` entries.
   - Multi-source derivations that the paper does NOT show with the components inline (ratios, differences, share-of-totals stated without scaffolding) are NOT a valid derivation tag in v1 — emit `NEEDS_EMPIRICIST` instead.
 - `derivation_visible` is `true` if the paper text shows the derivation step (e.g., "the ratio of $0.234$ to $0.117$ is $2.0$"), `false` if the paper just states the derived value without scaffolding. Null for non-derived claims.
+- `derivation` (and `derivation_visible`) MUST be `null` on `NEEDS_EMPIRICIST` and `NEEDS_REEXPORT` entries. A derivation tag describes a transform applied to a *cited field*; these statuses have no cited field (`field_path` is null), so any non-null derivation is meaningless. The verifier treats a stray tag here as a grounder bug and reclassifies the entry to GROUNDER-ERROR / invalid-derivation-tag (routing it back to you to drop the tag) — so leaving these null avoids a wasted re-fire round.
 
 ## Operating constraints
 
 - **One entry per enumerator claim. No skipping. No merging.** The verifier compares entry counts; coverage shortfall is a hard REVISE.
 - **Cite only fields you can see in the file.** Open the cited file via Read and visually locate the value at the path you are about to cite. A citation that the verifier cannot resolve programmatically is a GROUNDER-ERROR and routes back to you, so the closer your written path matches the file's actual structure (no typos, correct nesting, correct array indices), the fewer re-fire rounds you will cost the pipeline.
 - **`[NEEDS EMPIRICIST]` is honest, not a fallback.** If the paper claims a number no empiricist output contains, mark it `NEEDS_EMPIRICIST` rather than citing the closest-looking field. Paper-writer will re-fire the empiricist for the missing number per the existing Stage 5 step 5 procedure.
+- **Cite only parseable formats; otherwise `NEEDS_REEXPORT`.** The verifier can resolve field paths only in JSON and LaTeX tables. If the best (or only) source for a value is a CSV, parquet, pickle, `.dta`, `.npy`, or any other format, do NOT cite it as `GROUNDED` — your visual `Read` can see the value but the verifier's programmatic read cannot, so it would register as format-unsupported and cost a wasted round. Emit `NEEDS_REEXPORT` with a `reexport_description` so the empiricist re-exports the value to JSON. This is distinct from `NEEDS_EMPIRICIST`: the number exists, it is just in the wrong format.
 - **Do not silently fix paper-side values.** If the paper says `-0.243` and the empiricist's output says `-0.234`, cite the empiricist's value as `cited_value: -0.234` and let the verifier flag the value mismatch as PAPER-SIDE-ERROR. The grounder does not rewrite the paper; that is paper-writer's job under PAPER-SIDE-ERROR routing.
 - **Use the empiricist's versioned files.** Numbers introduced via `output/stage3a/empirical_analysis_v<claim_id>.md` (the Stage 5 step 5 re-fire loop) live in their versioned outputs. A late-added placebo coefficient is in `empirical_analysis_v_placebo.md` or a sibling JSON, not in the original `empirical_analysis.md`. Walk the versioned files when the original does not contain a value.
 - **Code is not a source.** Do not cite `code/empirical.py:142` as the source of a coefficient. The source is the output the code wrote out, not the literal in the script.

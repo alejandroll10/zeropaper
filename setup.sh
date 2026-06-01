@@ -1749,6 +1749,19 @@ if os.path.exists(state_path):
             if k == "paper_writer_pse_round":
                 new["paper_writer_pse_claim_ids"] = []
         data = new
+    if "claim_format_reexport_round" not in data:
+        # Insert immediately after paper_writer_pse_claim_ids. Counter for consecutive
+        # VERIFIER-LIMITATION (format-unsupported) re-fires at Stage 5 step 5a: a claim
+        # whose value exists only in a non-parseable file (CSV/parquet/pickle) routes to
+        # the empiricist for a JSON re-export, NOT to paper-writer to drop. Hard cap 2;
+        # independent of claim_grounding_round and the PSE counters. Resets to 0 on
+        # claim-verifier PASS.
+        new = {}
+        for k, v in data.items():
+            new[k] = v
+            if k == "paper_writer_pse_claim_ids":
+                new["claim_format_reexport_round"] = 0
+        data = new
     with open(state_path, "w") as f:
         json.dump(data, f, indent=2)
         f.write("\n")
