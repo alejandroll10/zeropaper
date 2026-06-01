@@ -217,9 +217,10 @@ def project(work: dict) -> dict:
         for t in (work.get("topics") or [])[:4]
         if t.get("display_name")
     ]
+    doi = work.get("doi") or ""
     row = {
         "openalex_id": work.get("id"),
-        "doi": work.get("doi"),
+        "doi": doi.replace("https://doi.org/", "") or None,
         "title": work.get("title") or work.get("display_name"),
         "year": work.get("publication_year"),
         "date": work.get("publication_date"),
@@ -350,7 +351,7 @@ def cmd_refs(args, mailto: str) -> int:
     ids = "|".join(r.rsplit("/", 1)[-1] for r in refs)
     payload = http_get(
         "/works",
-        {"filter": f"openalex_id:{ids}", "per-page": str(len(refs)), "select": work_fields(args.abstracts)},
+        {"filter": f"openalex_id:{ids}", "per-page": str(min(len(refs), 200)), "select": work_fields(args.abstracts)},
         mailto,
     )
     rows = [project(w) for w in (payload.get("results") or [])]
