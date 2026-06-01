@@ -77,7 +77,7 @@ VENUE_ALIASES = {
 WORK_FIELDS = (
     "id,doi,title,display_name,publication_year,publication_date,"
     "primary_location,authorships,cited_by_count,referenced_works,"
-    "concepts,topics,open_access,language,type"
+    "topics,open_access,language,type"
 )
 
 
@@ -205,13 +205,12 @@ def project(work: dict) -> dict:
                 if (inst or {}).get("display_name")
             ],
         })
-    # OpenAlex concepts/topics: a ready substitute classification where a venue
-    # prints no JEL codes (e.g. The Journal of Finance). Keep the salient ones.
-    concepts = [
-        c.get("display_name")
-        for c in (work.get("concepts") or [])
-        if c.get("display_name") and (c.get("score") or 0) >= 0.3
-    ][:8]
+    # OpenAlex topics: a ready substitute subject classification where a venue
+    # prints no JEL codes (e.g. The Journal of Finance). We do NOT emit the
+    # legacy `concepts` field — OpenAlex has deprecated it, and it keyword-matches
+    # titles so noisily that even a score>=0.3 filter leaves junk (e.g. "Forestry"
+    # for a cross-sections-of-returns paper). `topics` is the clean replacement
+    # and is what the only consumer (the IAR distiller) reads.
     topics = [
         t.get("display_name")
         for t in (work.get("topics") or [])[:4]
@@ -233,7 +232,6 @@ def project(work: dict) -> dict:
         "open_access_pdf": (work.get("open_access") or {}).get("oa_url"),
         "n_references": len(work.get("referenced_works") or []),
         "author_details": author_details,
-        "concepts": concepts,
         "topics": topics,
     }
     if "abstract_inverted_index" in work:
