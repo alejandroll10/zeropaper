@@ -77,7 +77,7 @@ VENUE_ALIASES = {
 WORK_FIELDS = (
     "id,doi,title,display_name,publication_year,publication_date,"
     "primary_location,authorships,cited_by_count,referenced_works,"
-    "open_access,language,type"
+    "concepts,topics,open_access,language,type"
 )
 
 
@@ -188,10 +188,35 @@ def project(work: dict) -> dict:
     primary = work.get("primary_location") or {}
     src = primary.get("source") or {}
     authors = []
+    author_details = []
     for au in (work.get("authorships") or [])[:8]:
-        nm = (au.get("author") or {}).get("display_name")
-        if nm:
-            authors.append(nm)
+        a = au.get("author") or {}
+        nm = a.get("display_name")
+        if not nm:
+            continue
+        authors.append(nm)
+        orcid = a.get("orcid")
+        author_details.append({
+            "name": nm,
+            "orcid": orcid.rsplit("/", 1)[-1] if orcid else None,
+            "institutions": [
+                (inst or {}).get("display_name")
+                for inst in (au.get("institutions") or [])
+                if (inst or {}).get("display_name")
+            ],
+        })
+    # OpenAlex concepts/topics: a ready substitute classification where a venue
+    # prints no JEL codes (e.g. The Journal of Finance). Keep the salient ones.
+    concepts = [
+        c.get("display_name")
+        for c in (work.get("concepts") or [])
+        if c.get("display_name") and (c.get("score") or 0) >= 0.3
+    ][:8]
+    topics = [
+        t.get("display_name")
+        for t in (work.get("topics") or [])[:4]
+        if t.get("display_name")
+    ]
     row = {
         "openalex_id": work.get("id"),
         "doi": work.get("doi"),
@@ -206,6 +231,9 @@ def project(work: dict) -> dict:
         "type": work.get("type"),
         "open_access_pdf": (work.get("open_access") or {}).get("oa_url"),
         "n_references": len(work.get("referenced_works") or []),
+        "author_details": author_details,
+        "concepts": concepts,
+        "topics": topics,
     }
     if "abstract_inverted_index" in work:
         row["abstract"] = reconstruct_abstract(work.get("abstract_inverted_index"))
