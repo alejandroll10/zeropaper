@@ -25,6 +25,13 @@ Flag: "striking," "novel," "important," "significant" (describing results, not s
 ### Future research / plans
 Delete any sentence of the form "I leave X for future research," "I plan to," "I intend to," "an interesting direction for future research." Remove the whole sentence.
 
+### Throat-clearing and prose tells
+Openers and connectors that add no content. Cochrane calls these "clearing your throat."
+- **Edit (strike the phrase, keep the rest of the sentence):** "In this paper we," "In this section we," "It is well known that," non-terminal "In summary,". Preview/recall connectors — "As we will see in Table N," "Recall from Section N," "As noted above," — strike the connector, keep the claim.
+- **Flag (rewrite needs judgment):** an opening sentence that states philosophy or motivation rather than the contribution ("Economists have long debated…," "The X literature has long been interested in…"); "this paper contributes to the growing/nascent literature on X"; "we shed light on"; "this study/paper examines"; a cute opening quotation. These need rewriting around the actual contribution — the author decides.
+- **Flag:** "illustrative test," "illustrative empirical work" (Cochrane: never frame work as illustrative; but cutting is the author's call).
+- **Edit:** abbreviated author names in prose ("FF show that") → spell out ("Fama and French show that").
+
 ### Word choice — edit
 - utilize → use
 - employ → use

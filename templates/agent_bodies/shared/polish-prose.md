@@ -24,6 +24,10 @@ This is a content-economy audit, not a style edit. The `style` agent (Stage 7) h
 
 7. **Buried thesis sentences.** A sentence of the form "this paper shows X" or "the result is Y" or "we provide a closed-form characterization of Y" that is more than two paragraphs into the introduction. The thesis should land on or near page 1.
 
+8. **Estimate-first / throat-clearing opener.** Read the first sentence of `introduction.tex`. Flag (critical) if it opens with a **bare statistical result** — a coefficient, t-statistic, standard error, p-value, or R² with no economic content (e.g., "The coefficient on bank leverage is −0.42 (t = −3.8)") — or with **philosophy / literature throat-clearing** ("Economists have long…", "The X literature has long been interested in…") rather than the paper's concrete contribution. A number in sentence 1 is *not* itself a defect: a magnitude that carries economic meaning ("levered banks cut lending 1.6× more sharply in downturns") is a correct contribution-first opening (Cochrane). The defect is a *bare* statistic or throat-clearing occupying the lead position. Quote the offending sentence and give the contribution-first rewrite. Also flag (major) a rhetorical-question opener ("Why do levered banks cut lending more sharply?") — Cochrane prefers the contribution stated as a fact, and none of the pipeline's current target journals favor question hooks; downgrade to minor only if the paper's target journal is one that explicitly does.
+
+9. **Missing economic force in paragraph 1.** Flag (major) if, by the end of the introduction's first paragraph, the prose has not named the economic force behind the result concretely enough that a reader knows what drives it: at minimum the operative friction (or departure from the frictionless benchmark) and the agents through whom it operates. Naming all of {agent, friction, channel} is not required — naming the mechanism *in substance* is. "Collateral revaluation forces banks to deleverage when asset prices fall" satisfies; "a financial friction is at work" does not. A result stated without its force reads as a regression dump. This is the positive complement to item 8 — item 8 catches a bad *opening sentence*; item 9 catches an introduction that states the finding but never says *why*. Quote paragraph 1 and name what's missing. **Double-count suppression:** if item 8 already fired critical on the opener *and* paragraph 1 also lacks the force, do not file a separate item-9 finding — instead append to the item-8 finding the note "Additionally: paragraph 1 does not name the economic force (friction + agents) behind this result."
+
 ## What you do NOT do
 
 - You don't check formula correctness — `polish-formula` does that.
@@ -46,7 +50,7 @@ Write `output/polish_prose_r{N}.md` where `{N}` is the current value of the `pol
 
 ### 1. <One-line title — e.g., "Caveat 'A4 is parameterization, not derivation' restated 5 times">
 **Severity:** critical
-**Pattern type:** [repeated caveat | hedge stacking | abstract bloat | undefined acronym | defensive framing | buried thesis | section-opener resummary]
+**Pattern type:** [repeated caveat | hedge stacking | abstract bloat | undefined acronym | defensive framing | buried thesis | section-opener resummary | estimate-first opener | missing economic force]
 **Canonical home:** §1 intro contribution paragraph
 **Restatement anchors (each instance to drop or compress):**
 > Abstract, sentence 3: "A4 imposes ΔΠ = ρ·B·(1−µ) — a parameterization, not a primitive derivation"
@@ -73,8 +77,8 @@ Write `output/polish_prose_r{N}.md` where `{N}` is the current value of the `pol
 
 Severity rubric:
 
-- **critical** — a caveat restated 4+ times; an abstract over 100 words (criterion a; alone suffices); an abstract that fails 2+ of criteria b/c/d; a contribution paragraph led by defensive framing; a thesis sentence that does not appear by the end of page 2; an undefined acronym in the title or abstract. These are visible to the first-pass reader and hurt the paper's perceived confidence.
-- **major** — a caveat restated 2–3 times beyond the canonical home; hedge stacking on a load-bearing claim; a section opener whose first sentence paraphrases the previous section's last sentence; an abstract that fails 1 of criteria b/c/d (word-count breach is `critical`, not `major`); an undefined acronym in the main text.
+- **critical** — a caveat restated 4+ times; an abstract over 100 words (criterion a; alone suffices); an abstract that fails 2+ of criteria b/c/d; a contribution paragraph led by defensive framing; a thesis sentence that does not appear by the end of page 2; an undefined acronym in the title or abstract; an introduction whose first sentence is a bare statistical result or philosophy/literature throat-clearing (item 8). These are visible to the first-pass reader and hurt the paper's perceived confidence.
+- **major** — a caveat restated 2–3 times beyond the canonical home; hedge stacking on a load-bearing claim; a section opener whose first sentence paraphrases the previous section's last sentence; an abstract that fails 1 of criteria b/c/d (word-count breach is `critical`, not `major`); an undefined acronym in the main text; an introduction whose first paragraph never names the economic force (item 9); a rhetorical-question opener under contribution-first house style (item 8).
 - **minor** — single hedge stack in a non-load-bearing sentence; mild section-opener overlap; a single restatement of a caveat that is already in its canonical home.
 
 ## Triage discipline
