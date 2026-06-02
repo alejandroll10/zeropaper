@@ -47,3 +47,21 @@ Per `CLAUDE.md` ("no unsolved or undocumented architectural limits"), additions 
 **Tracking:** no issue yet — file one if a paper design actually requires SSA tables. Until then this is documented-and-deferred per `CLAUDE.md`.
 
 **Interim behavior:** documented in the skill body (`templates/skill_bodies/empirical/bls-census.md`, "SSA period life table" section + `## Rules`) and the helper docstring; `ssa_period_life_table()` raises a clear `RuntimeError` on the 403 rather than returning bad data; the skill's test treats SSA as best-effort (PASS on data, SKIP on the documented 403) so it never produces a false test failure.
+
+---
+
+## Core-bypass guard: gate enforcement and default-mode orchestrator coverage are partial
+
+**Scope:** the core-bypass degradation guard (issue #51) — `docs/core_bypass.md`, `inject_core_bypass_into_agents` (setup.sh), the `{{CORE_BYPASS_GUARD}}` placeholder, `process_log/degradation_ledger.md`.
+
+**Failure mode (two residual gaps relative to #51's full ask):**
+
+1. **No gate mechanically enforces NON-BINDING.** The doctrine says "a non-binding verification does not satisfy a gate," and the session entry point now surfaces a non-empty ledger when reporting `complete`/`halted_*` (closing the "ledger written but never read" gap). But the gates themselves — `scorer`, `editor`, `referee`, the polish auditors — do not read `degradation_ledger.md` or check for NON-BINDING verdicts. So a NON-BINDING bib-verify (e.g. OpenAlex down → WebSearch fallback) is surfaced to the operator but does not, by itself, block the scorer/editor from advancing the paper. The "can't pass as checked" rule is enforced at report time (operator-visible), not at gate time (mechanical).
+
+2. **Default mode does not record orchestrator-only bypasses (conditions 2-3).** Gate-skipped and designated-agent-substituted are events only the orchestrator can detect (an agent can't see that it was skipped). The default (no-flag) deploy intentionally leaves the orchestrator doc (`core.md`) untouched to avoid runtime-doc growth (issue #27), so in default mode only agent-detectable bypasses (conditions 1 and 4 — source-fallback, tool-misclassification) are recorded. Conditions 2-3 are enforced only under `--halt-on-core-bypass`, which injects the orchestrator-side guard sentence.
+
+**What would close it:** (1) add a hard-requirement check to `scorer` (and the Stage 6 `editor`) that reads `degradation_ledger.md` and treats any unresolved `binding? = yes` row whose core is a gate the paper relies on as a blocking condition (REVISE/hold), so a non-binding verification cannot satisfy the gate mechanically, not just visibly. (2) Inject a minimal orchestrator-side recording instruction even in default mode — either a one-line pointer in `core.md` (accepting a small #27 cost) or a recording step in the relevant stage docs (`docs/stage_*.md`, which are pointed-to files, not the runtime-doc budget) at each gate's skip/substitution decision point.
+
+**Tracking:** [issue #51](https://github.com/alejandroll10/zeropaper/issues/51) (kept open for these follow-ups).
+
+**Interim behavior:** the surfacing hook in `templates/runtime/claude/session.md` (shared by all three runtimes) guarantees a non-empty ledger is reported to the operator at `complete`/`halted_*`, so a degraded run is never presented as clean success even though the gates do not yet block on it; conditions 2-3 are fully enforced under `--halt-on-core-bypass`.
