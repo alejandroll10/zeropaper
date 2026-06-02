@@ -50,6 +50,7 @@ SEEDED=0
 FAITHFUL=0
 MANUAL=0
 LIGHT=0
+HALT_ON_CORE_BYPASS=0
 EXTENSIONS=()
 
 for arg in "$@"; do
@@ -61,6 +62,7 @@ for arg in "$@"; do
         --faithful)    FAITHFUL=1; SEEDED=1 ;;  # faithful implies seeded folder structure
         --manual)      MANUAL=1 ;;
         --light)       LIGHT=1 ;;
+        --halt-on-core-bypass) HALT_ON_CORE_BYPASS=1 ;;
         --local)       LOCAL=1 ;;
         --theory-llm)  VARIANT="finance_llm" ;;  # legacy flag
         -*)            echo "Unknown option: $arg"; exit 1 ;;
@@ -646,6 +648,15 @@ else
     SESSION_OUT_DIR="docs"
 fi
 
+# Flag-gated halt pointer at {{CORE_BYPASS_GUARD}} in the orchestrator doc. Default
+# (flag absent) leaves the placeholder empty — recording stays agent-driven via the
+# injected pointer + docs/core_bypass.md and the runtime doc does not grow. No-op
+# for core_manual.md / core_report.md, which lack the placeholder.
+BYPASS_HALT_ARGS=()
+if [ "$HALT_ON_CORE_BYPASS" = "1" ]; then
+    BYPASS_HALT_ARGS=(--core-bypass-halt)
+fi
+
 SEED_ARGS=()
 if [ "$FAITHFUL" = "1" ]; then
     SEED_TEMPLATE="$TEMPLATE_ROOT/templates/shared/faithful.md"
@@ -678,6 +689,7 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --skill-dir "$CLAUDE_SKILLS_REL" \
     --session-out "$SESSION_OUT_DIR/start_session_claude.md" \
     "${SEED_ARGS[@]}" \
+    "${BYPASS_HALT_ARGS[@]}" \
     "${CATALOG_ARGS[@]}" \
     --output "$CLAUDE_MD_OUT"
 
@@ -706,6 +718,7 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --session-out "$SESSION_OUT_DIR/start_session_codex.md" \
     "${CODEX_DISCIPLINE_ARGS[@]}" \
     "${SEED_ARGS[@]}" \
+    "${BYPASS_HALT_ARGS[@]}" \
     "${CODEX_CATALOG_ARGS[@]}" \
     --output "$AGENTS_MD_OUT"
 
@@ -731,6 +744,7 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --session-out "$SESSION_OUT_DIR/start_session_gemini.md" \
     "${GEMINI_DISCIPLINE_ARGS[@]}" \
     "${SEED_ARGS[@]}" \
+    "${BYPASS_HALT_ARGS[@]}" \
     "${CATALOG_ARGS[@]}" \
     --output "$GEMINI_MD_OUT"
 
@@ -921,6 +935,70 @@ inject_bash_background_into_agents() {
     done
 }
 
+# `inject_core_bypass_into_agents` appends the core-bypass guard pointer (issue
+# #51) to agents that, mid-run, depend on a binding external source or a binding
+# verification tool and could silently downgrade to a non-binding fallback when it
+# is unavailable — i.e. agents that can themselves *detect* a bypass (source/cert
+# failure, or a tool failure being misread as "source down", bypass conditions 1
+# and 4 in docs/core_bypass.md). Gate-skip / agent-substitution (conditions 2-3)
+# are orchestrator-only events an agent can't see while running, so those are
+# enforced by the flag-gated orchestrator pointer, not this inject. Unconditional like the
+# bash-background injector (subagents never see the runtime doc, and recording is
+# the default behavior regardless of the --halt-on-core-bypass flag; the flag only
+# adds the orchestrator-side halt pointer in the runtime doc). The pointer text
+# degrades gracefully when there is no process_log/ (manual mode). File-existence
+# guards make passing a not-yet-assembled agent a harmless no-op.
+inject_core_bypass_into_agents() {
+    local _inject_file="$TEMPLATE_ROOT/templates/shared/core_bypass_inject.md"
+    if [ ! -f "$_inject_file" ]; then
+        echo "Error: core-bypass inject template not found: $_inject_file" >&2
+        exit 1
+    fi
+    local _block
+    _block=$(cat "$_inject_file")
+    local _agent
+    for _agent in "$@"; do
+        if [ -f "$AGENTS_OUT/$_agent.md" ]; then
+            printf '\n%s\n' "$_block" >> "$AGENTS_OUT/$_agent.md"
+        fi
+        if [ -f "$CODEX_AGENTS_OUT/$_agent.toml" ]; then
+            awk -v block="$_block" '
+            { lines[NR] = $0 }
+            /^'\'''\'''\''$/ { last = NR }
+            END {
+                for (i = 1; i <= NR; i++) {
+                    if (i == last) print block
+                    print lines[i]
+                }
+            }' "$CODEX_AGENTS_OUT/$_agent.toml" > "$CODEX_AGENTS_OUT/$_agent.toml.tmp" \
+            && mv "$CODEX_AGENTS_OUT/$_agent.toml.tmp" "$CODEX_AGENTS_OUT/$_agent.toml"
+        fi
+        if [ -f "$GEMINI_AGENTS_OUT/$_agent.md" ]; then
+            printf '\n%s\n' "$_block" >> "$GEMINI_AGENTS_OUT/$_agent.md"
+        fi
+    done
+}
+
+# Core (shared + variant) agents with a binding runtime dependency they could
+# silently downgrade. Explicit list (not metadata-derived): "depends on a binding
+# source/tool at run time" is not an existing metadata category, and an explicit,
+# auditable list is clearer than approximating it via --has-tool. Keep in sync
+# when adding such an agent. Extension agents get the pointer in their own blocks.
+#   bib-verifier / novelty-checker / polish-bibliography / polish-institutions
+#     — external lit sources (OpenAlex / Crossref / WebSearch).
+#   math-auditor{,-freeform} — the codex-math tool; covered by bypass condition 4
+#     (a codex-math outage must not be misread as "unverifiable, pass anyway").
+_core_bypass_agents=(
+    bib-verifier
+    novelty-checker
+    polish-bibliography
+    polish-institutions
+    math-auditor
+    math-auditor-freeform
+)
+inject_core_bypass_into_agents "${_core_bypass_agents[@]}"
+echo "  ✓ Core-bypass guard pointer injected into binding-source agents"
+
 # Core developing agents — list comes from metadata `category: "developing"`,
 # the single source of truth (see scripts/list_agents_by_category.py).
 mapfile -t _core_developing_agents < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
@@ -1074,6 +1152,12 @@ if [ "$MODE" != "report" ]; then
     if [ -f "$TIER_TABLE_FILE" ] && [ -f "$P/docs/stage_4.md" ]; then
         sed -i.bak -e "/{{TIER_TABLE}}/r $TIER_TABLE_FILE" -e "/{{TIER_TABLE}}/d" "$P/docs/stage_4.md" && rm "$P/docs/stage_4.md.bak"
     fi
+else
+    # Report mode skips the bulk stage-doc copy, but the core-bypass guard still
+    # applies (the audit agents verify an external submission against binding
+    # sources like OpenAlex). Copy just the doctrine doc the injected agent
+    # pointer references. It has no variant placeholders, so no substitution.
+    cp "$TEMPLATE_ROOT/templates/shared/docs/core_bypass.md" "$P/docs/"
 fi
 
 # Function to substitute {{SEED_OVERRIDE_*}} placeholders in all docs in $P/docs/.
@@ -1256,6 +1340,7 @@ cat > "$P/process_log/pipeline_state.json" <<JSONEOF
   "status": "not_started",
   "seeded": true,
   "faithful": $([ "$FAITHFUL" = "1" ] && echo true || echo false),
+  "halt_on_core_bypass": $([ "$HALT_ON_CORE_BYPASS" = "1" ] && echo true || echo false),
   "scores": {},
   "stage2b_theory_version": null,
   "stage1_candidates": [],
@@ -1284,6 +1369,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "target_journal_tier": "__INITIAL_TIER__",
   "seeded": false,
   "faithful": false,
+  "halt_on_core_bypass": __HALT_ON_CORE_BYPASS__,
   "status": "not_started",
   "scores": {},
   "stage2b_theory_version": null,
@@ -1291,11 +1377,33 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "history": []
 }
 JSONEOF
-    sed -i.bak "s|__INITIAL_TIER__|$INITIAL_TIER|g" "$P/process_log/pipeline_state.json" && rm "$P/process_log/pipeline_state.json.bak"
+    sed -i.bak "s|__INITIAL_TIER__|$INITIAL_TIER|g; s|__HALT_ON_CORE_BYPASS__|$([ "$HALT_ON_CORE_BYPASS" = "1" ] && echo true || echo false)|g" "$P/process_log/pipeline_state.json" && rm "$P/process_log/pipeline_state.json.bak"
 fi
 
 if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
     touch "$P/process_log/history.md"
+fi
+
+# Core-bypass degradation ledger (issue #51). Seeded for every autonomous mode
+# that has a process_log/ (i.e. non-manual, including report mode). Agents and the
+# orchestrator append one row per silent-degradation event per docs/core_bypass.md;
+# a non-empty ledger must surface in the run summary. Manual mode has no process_log/,
+# so the agent pointer there degrades to "state it in your returned report."
+if [ "$MANUAL" = "0" ]; then
+    cat > "$P/process_log/degradation_ledger.md" <<'LEDGEREOF'
+# Degradation ledger — core-bypass events
+
+Each row records a point where a **core** (a binding external source, a
+verification gate, or a designated agent / stage step) was unavailable, skipped,
+substituted, or replaced by a weaker fallback. See `docs/core_bypass.md` for the
+guard. Default behavior is record-and-surface; under `--halt-on-core-bypass`
+(`"halt_on_core_bypass": true` in pipeline_state.json) the run halts after
+recording. A non-empty ledger MUST appear in the run summary — a degraded run
+never reports clean success. Empty = no core was bypassed.
+
+| timestamp | stage | core | condition | why | fallback | binding? | action |
+|-----------|-------|------|-----------|-----|----------|----------|--------|
+LEDGEREOF
 fi
 
 # Faithful mode: seed pivot_log.md with a header + table skeleton so the
@@ -1545,6 +1653,10 @@ PYEOF
             fi
             inject_bash_background_into_agents "${_tllm_bash_agents[@]}"
 
+            # Core-bypass guard: the LLM API is a binding source for both the
+            # designer (runs experiments) and the reviewer (re-checks them).
+            inject_core_bypass_into_agents experiment-designer experiment-reviewer
+
             # Report mode: --ext theory_llm is install-only (skills + LLM client).
             # Both experiment-designer (generative) and experiment-reviewer (audit
             # of pipeline-produced experiments) are pruned — there are no
@@ -1790,6 +1902,15 @@ PYEOF
             fi
             inject_bash_background_into_agents "${_empirical_bash_agents[@]}"
 
+            # Core-bypass guard: empirical agents that read a binding data source
+            # (WRDS/EDGAR/FRED) or verify the pipeline's empirics against it. The
+            # injector's file-existence guards make pruned/absent agents a no-op
+            # (e.g. macro has no identification-auditor; report mode prunes these).
+            inject_core_bypass_into_agents \
+                empiricist empirics-auditor headline-replicator \
+                data-integrity-auditor data-selection-auditor method-checker \
+                claim-grounder claim-verifier identification-auditor
+
             # Report mode: --ext empirical is install-only (WRDS/FRED/Census/SEC
             # skills + utility scripts). All audit agents that ship with the
             # empirical extension are pruned — they were designed against the
@@ -1961,6 +2082,7 @@ EXT_JSON=$(python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' "${EXTE
 SEEDED_BOOL=$([ "$SEEDED" = "1" ] && echo True || echo False)
 MANUAL_BOOL=$([ "$MANUAL" = "1" ] && echo True || echo False)
 LIGHT_BOOL=$([ "$LIGHT" = "1" ] && echo True || echo False)
+HALT_ON_CORE_BYPASS_BOOL=$([ "$HALT_ON_CORE_BYPASS" = "1" ] && echo True || echo False)
 
 python3 <<PYEMIT
 import json
@@ -2025,6 +2147,7 @@ manifest = {
         "seeded": $SEEDED_BOOL,
         "manual": $MANUAL_BOOL,
         "light": $LIGHT_BOOL,
+        "halt_on_core_bypass": $HALT_ON_CORE_BYPASS_BOOL,
     },
     "infrastructure": {
         "dirs_replace": [d for d in candidate_dirs if (project / d).is_dir()],

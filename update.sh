@@ -107,7 +107,7 @@ command -v python3 >/dev/null 2>&1 || { echo "update.sh requires python3"; exit 
 # Every setup.sh flag that affects what gets deployed must be read here AND
 # re-passed in the SETUP_FLAGS block below — drift between the two breaks the
 # round-trip on update. Currently tracked: variant, mode, extensions, seeded,
-# manual, light. When adding a new setup.sh flag, update both blocks.
+# manual, light, halt_on_core_bypass. When adding a new setup.sh flag, update both blocks.
 if [ -f "$MANIFEST" ]; then
     VARIANT=$(jq -r .variant "$MANIFEST")
     MODE=$(jq -r '.mode // ""' "$MANIFEST")
@@ -115,6 +115,7 @@ if [ -f "$MANIFEST" ]; then
     SEEDED=$(jq -r .flags.seeded "$MANIFEST")
     MANUAL=$(jq -r .flags.manual "$MANIFEST")
     LIGHT=$(jq -r .flags.light "$MANIFEST")
+    HALT_ON_CORE_BYPASS=$(jq -r '.flags.halt_on_core_bypass // false' "$MANIFEST")
     OLD_VERSION=$(jq -r .template_version "$MANIFEST")
     mode_str="${MODE:-(none)}"
     echo "Found manifest: variant=$VARIANT, mode=$mode_str, extensions=[${EXTENSIONS[*]}], template=$OLD_VERSION"
@@ -140,6 +141,9 @@ else
     [ -d "$PROJECT/output/seed" ] && SEEDED=true || SEEDED=false
     [ ! -d "$PROJECT/output/stage0" ] && [ ! -f "$PROJECT/dashboard.html" ] && MANUAL=true || MANUAL=false
     LIGHT=false
+    # Pre-manifest deploys predate the core-bypass guard; default off. The
+    # operator can re-assert it by re-running setup with --halt-on-core-bypass.
+    HALT_ON_CORE_BYPASS=false
     OLD_VERSION="(pre-manifest)"
 
     if [ -z "$VARIANT" ] && [ -z "$OVERRIDE_VARIANT" ]; then
@@ -227,6 +231,7 @@ for ext in "${EXTENSIONS[@]}"; do SETUP_FLAGS+=( --ext "$ext" ); done
 [ "$SEEDED" = "true" ] && SETUP_FLAGS+=( --seed )
 [ "$MANUAL" = "true" ] && SETUP_FLAGS+=( --manual )
 [ "$LIGHT" = "true" ] && SETUP_FLAGS+=( --light )
+[ "$HALT_ON_CORE_BYPASS" = "true" ] && SETUP_FLAGS+=( --halt-on-core-bypass )
 
 # ── Deploy fresh into tmp ──
 TMP=$(mktemp -d)

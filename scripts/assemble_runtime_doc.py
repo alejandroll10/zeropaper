@@ -28,6 +28,11 @@ def main():
                         help="Path to seed override markdown (omit for empty)")
     parser.add_argument("--discipline", default=None,
                         help="Path to runtime discipline markdown (omit for empty)")
+    parser.add_argument("--core-bypass-halt", action="store_true",
+                        help="Inject the flag-gated halt-on-core-bypass pointer at "
+                             "{{CORE_BYPASS_GUARD}}. Default (flag absent) leaves it empty: "
+                             "recording is agent-driven via docs/core_bypass.md and does not "
+                             "touch the runtime doc.")
     parser.add_argument("--agent-catalog", default=None,
                         help="Path to pre-generated agent catalog markdown (manual mode)")
     parser.add_argument("--skill-catalog", default=None,
@@ -69,6 +74,20 @@ def main():
     content = content.replace("{{AGENT_DIR}}", args.agent_dir)
     content = content.replace("{{SKILL_DIR}}", args.skill_dir)
     content = content.replace("{{SEED_OVERRIDE}}", seed_block)
+    if args.core_bypass_halt:
+        core_bypass_guard = (
+            "\n**Core-bypass guard active (`--halt-on-core-bypass`).** Treat a bypassed "
+            "core as a hard stop, not a fallback: if a binding source is unreachable, a "
+            "verification gate would be skipped or advanced past, a designated agent is "
+            "substituted, or a tool/connectivity/cert failure looks like a source outage, "
+            "first rule out a local tool-fit failure, then follow `docs/core_bypass.md` — "
+            "record the event in `process_log/degradation_ledger.md` and set "
+            '`status = "halted_core_bypass"` for operator review instead of continuing on a '
+            "weaker path.\n"
+        )
+    else:
+        core_bypass_guard = ""
+    content = content.replace("{{CORE_BYPASS_GUARD}}", core_bypass_guard)
     content = content.replace("{{RUNTIME_DISCIPLINE}}", discipline_block)
     content = content.replace("{{AGENT_CATALOG}}", agent_catalog)
     content = content.replace("{{SKILL_CATALOG}}", skill_catalog)
