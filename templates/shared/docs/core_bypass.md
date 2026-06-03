@@ -47,6 +47,18 @@ pass as verified. When `pipeline_state.json` has `"halt_on_core_bypass": true`
 (set by `--halt-on-core-bypass`), also set `status = "halted_core_bypass"` and
 stop for operator review — the session entry point treats `halted_*` as terminal.
 
+**Completion is blocked on an unresolved binding bypass even in default mode.** A
+ledger row with `binding? = yes` is *unresolved* until the binding source is
+restored, that verification is re-run, and the row's `action` is set to
+`resolved`. The session entry point refuses to set `status = "complete"` while any
+unresolved binding row exists — it sets `status = "halted_core_bypass"` instead.
+So the default never reports clean success on a non-binding verification either; it
+just halts at completion (the terminal backstop) rather than at the bypass itself
+(which is what the flag does). This is what makes "ran to success while a core was
+silently downgraded" impossible regardless of where the bypass occurred. Resolved
+rows and non-binding-flagged rows (`binding? = no`) are surfaced but do not block
+completion.
+
 ## Ledger format
 
 | timestamp | stage | core | condition | why | fallback | binding? | action |
@@ -54,4 +66,9 @@ stop for operator review — the session entry point treats `halted_*` as termin
 
 `condition` ∈ {`source-unavailable`, `gate-skipped`, `agent-substituted`,
 `tool-misclassified`}; `binding?` = `yes` if the verdict is now NON-BINDING;
-`action` = `recorded` or `halted`.
+`action` ∈ {`recorded`, `halted`, `resolved`}. A `binding? = yes` row is
+*unresolved* until its `action` is set to `resolved` (binding source restored and
+the verification re-run); an unresolved binding row blocks `status = "complete"`.
+Only an operator-driven recovery may mark a row `resolved` — a running session is
+**not** authorized to self-clear a binding bypass (it cannot know the source was
+genuinely remedied), and doing so to unblock completion is itself a core bypass.

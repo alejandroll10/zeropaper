@@ -1401,6 +1401,16 @@ guard. Default behavior is record-and-surface; under `--halt-on-core-bypass`
 recording. A non-empty ledger MUST appear in the run summary — a degraded run
 never reports clean success. Empty = no core was bypassed.
 
+`action` ∈ {`recorded`, `halted`, `resolved`}. A `binding? = yes` row is
+*unresolved* until the binding source is restored, the verification is re-run, and
+its `action` is set to `resolved`. An unresolved binding row blocks
+`status = "complete"` even in the default deploy: the session refuses to complete
+and sets `status = "halted_core_bypass"` instead. This is the terminal backstop.
+Only an operator-driven recovery may set a row `resolved` (a running session is not
+authorized to self-clear). Report mode has no `pipeline_state.json` / `status`
+machine, so the blocking rule does not apply there — rows are recorded and
+surfaced in the returned report only.
+
 | timestamp | stage | core | condition | why | fallback | binding? | action |
 |-----------|-------|------|-----------|-----|----------|----------|--------|
 LEDGEREOF
