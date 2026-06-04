@@ -55,10 +55,19 @@
   },
   "edgar": {
     "name": "edgar",
-    "description": "Access SEC EDGAR filings, financial statements, and full-text search. Use for corporate finance research \u2014 10-K/10-Q analysis, governance, disclosure, insider trading, institutional holdings.",
+    "description": "Access SEC EDGAR filings, financial statements, and full-text search. Use for corporate finance research — 10-K/10-Q analysis, governance, disclosure, insider trading, institutional holdings, and open-end fund registration (Form N-1A: mutual fund / ETF prospectus, strategy, fees, classification — rr:* XBRL not us-gaap, one trust covers many series/classes). For investment-adviser registration (CRD/IARD, not on EDGAR) see form-adv; for N-CEN/NPORT-P/485BPOS fee-table parsing see sec-funds.",
     "claude": {
       "user-invocable": true,
       "argument-hint": "[company-name, ticker, or CIK]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
+  "form-adv": {
+    "name": "form-adv",
+    "description": "SEC Form ADV via IAPD (Investment Adviser Public Disclosure) — free, public, no API key. Registration form every SEC- or state-registered investment adviser files. NOT on EDGAR: uses CRD/IARD identifiers (CRD numbers, 801-/802- file numbers), not CIK. Three access paths: the IAPD firm-report PDF (reports.adviserinfo.sec.gov/reports/ADV/{CRD}/PDF/{CRD}.pdf), the firm/individual search API (resolve name→CRD), and the SEC FOIA bulk structured Part 1 filing-data zips for population-scale panels. Use for classifying advisers/funds (hedge-fund vs mutual-fund adviser, private-fund flags via Schedule D 7.B.1), adviser AUM and client/employee counts, ownership, and disciplinary history. Gotchas: AUM is regulated AUM (RAUM, gross, not net); SEC vs state vs exempt-reporting-adviser regimes differ in coverage; Part 2 brochure is prose, not fields; bulk filenames embed date ranges. Join to EDGAR-based 13-F / N-1A holdings via a hand-built CRD↔CIK crosswalk (no shared key) — use the edgar skill for the holdings side.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[firm name, CRD number, or description]",
       "allowed-tools": "Bash, Read, Write"
     }
   },
@@ -113,6 +122,33 @@
     "claude": {
       "user-invocable": true,
       "argument-hint": "[table-name or description]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
+  "ravenpack": {
+    "name": "ravenpack",
+    "description": "RavenPack News Analytics (LICENSED — paid subscription, no free tier; access path documented but NOT exercised here, no provenance badge). Converts unstructured news into structured timestamped entity-event records with sentiment, relevance, and novelty scores plus a topic taxonomy. Access direct from the vendor (flat-file dumps + feed) or via WRDS where licensed. Use for news-based signals: event studies, attention/sentiment measures, mapping stories to tickers. Gotchas: filter on RELEVANCE first; deduplicate echoes with the Event Novelty Score (ENS); timestamps are UTC (align to trading calendar and use point-in-time to avoid look-ahead); sentiment scales differ between RavenPack 1.0 and later editions; records key on RP_ENTITY_ID, not ticker/PERMNO (entity mapping is its own step).",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[entity, ticker, topic, or description]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
+  "factset-lionshares": {
+    "name": "factset-lionshares",
+    "description": "FactSet LionShares / FactSet Ownership (LICENSED — paid subscription, no free tier; access path documented but NOT exercised here, no provenance badge). Position-level panel of global institutional and fund equity holdings assembled from 13-F and equivalents and fund disclosures, with each holder classified by type (mutual fund, hedge fund, pension, bank, insurance). Access direct from FactSet or via WRDS where licensed. Use for ownership / institutional-investor work needing holdings plus a holder-type split. Gotchas: holdings are stale between report dates (carried forward, not live); 13-F reports lag up to 45 days and confidential-treatment requests omit positions; institution vs fund level can double-count — pick one; holder classification has edge cases (multi-strategy, manager changes); identifiers are FactSet's own (build a crosswalk to PERMNO/CIK); non-US coverage is sparser than US 13-F.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[holder name, security, or description]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
+  "revelio": {
+    "name": "revelio",
+    "description": "Revelio Labs workforce / human-capital panel (LICENSED — paid subscription, no free tier; access path documented but NOT exercised here, no provenance badge; WRDS availability NOT confirmed). Firm-level panel built from public professional profiles and job postings: headcount, hiring/attrition flows, role and seniority mix, skills, education (advanced-degree share of staff), inferred compensation, sentiment; mapped to companies and tickers where listed. Access direct from Revelio (feed / API / cloud share). Use for labor / human-capital channels: workforce composition, hiring dynamics, staff education. Gotchas: coverage skews white-collar / US / large firms (levels are estimates, prefer within-firm changes); profiles are self-reported and inferred (noisy titles/dates); historical panels get restated (pin the vintage); join on the Revelio company id and confirm parent/subsidiary/ticker mapping; timing is inferred, not point-in-time disclosure; define metrics like advanced-degree share explicitly.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[company, ticker, or workforce metric]",
       "allowed-tools": "Bash, Read, Write"
     }
   },

@@ -101,6 +101,27 @@ r = requests.get(url, headers=headers)
 | `13F-HR` | Institutional holdings | Quarterly portfolio positions of large investors |
 | `S-1` | IPO registration | Pre-IPO financials, risk factors |
 | `SC 13D/G` | Beneficial ownership | Large shareholder positions (>5%) |
+| `N-1A` | Open-end fund registration | Mutual fund / ETF prospectus, strategy, fees, classification |
+
+## Gotchas (the ones that bite pipelines)
+
+- **No `User-Agent` → HTTP 403.** The #1 EDGAR failure. A request with no (or a
+  default `python-requests`) User-Agent is rejected outright. Always send a
+  descriptive `Name email` string.
+- **Rate limit: 10 requests/second, hard.** `edgartools` throttles for you; for
+  the direct API add `time.sleep(0.1)` between calls and never parallelize
+  blindly — sustained bursts get the host IP blocked, not just throttled.
+- **CIK must be 10-digit zero-padded** in `data.sec.gov` URLs (`CIK0000320193`,
+  not `CIK320193` or `320193`). `Company("TICKER")` hides this; the raw API
+  does not.
+- **Use XBRL for cross-company work, not filing text.** Narrative text and table
+  formatting vary by filer and year; `us-gaap:*` facts are standardized.
+- **XBRL coverage starts ~2009** and tag usage drifts: revenue may be
+  `us-gaap:Revenues` *or*
+  `us-gaap:RevenueFromContractWithCustomerExcludingAssessedTax`. Check both.
+- **Amendments & restatements.** `10-K/A` supersedes `10-K`; a company can
+  restate prior XBRL facts. Pin the accession number when reproducibility
+  matters.
 
 ## Common XBRL facts
 
@@ -157,6 +178,44 @@ for f in form4s:
     trade = f.obj()
     print(f"{f.filing_date}: {trade.reporting_owner} — {trade.transactions}")
 ```
+
+## Form N-1A: open-end fund registration
+
+`N-1A` is the registration statement and prospectus for **open-end investment
+companies** — mutual funds and most ETFs. It is the EDGAR source for what a
+fund *says it is*: investment objective, strategy, fee table, share classes,
+adviser. Papers that classify funds (growth vs value, active vs index) read
+N-1A prospectus text. Pull it like any other form (also matches `N-1A/A`):
+
+```python
+from edgar import Company
+filings = Company("0002100194").get_filings(form="N-1A")
+# Or across all registrants via full-text search: forms=N-1A on efts.sec.gov
+```
+
+### N-1A gotchas (fund filings are not company filings)
+
+- **No `us-gaap` XBRL facts.** N-1A is a registration document, not a financial
+  report; its XBRL is the **risk/return summary** taxonomy (`rr:*`), not
+  `us-gaap:*`. `get_facts()` financials do not apply here. (The `rr:` fee-table
+  parsing lives in the `sec-funds` skill.)
+- **One trust filer covers many series and classes.** A single N-1A filer (the
+  trust) can cover dozens of funds (**series**) each with multiple share
+  **classes**, keyed by EDGAR `S######` / `C######` identifiers, not tickers.
+  Resolve series/class before attributing a prospectus to a fund.
+- **`485BPOS` / `485APOS` carry the updates.** The initial `N-1A` is filed once;
+  ongoing annual prospectus updates arrive as `485BPOS` (immediately effective)
+  and `485APOS` (post-effective amendment). For a *current* prospectus, follow
+  the 485 stream, not the original N-1A.
+- **ETFs file N-1A too.** Most ETFs register as open-end funds, so they are
+  N-1A filers; only a few structures (e.g. some commodity pools) are not.
+- **Classification is prose, not a tagged field.** Objective and strategy are
+  text in the prospectus; a clean style label means parsing text or mapping the
+  SEC series/class metadata, not reading one field.
+
+For investment-adviser registration (not on EDGAR — CRD/IARD, not CIK), see the
+`form-adv` skill. For N-CEN / NPORT-P / 485BPOS fee-table parsing, see
+`sec-funds`.
 
 ## Performance tips
 - **CIK lookup:** Use `Company("TICKER")` — edgartools resolves ticker to CIK automatically.
