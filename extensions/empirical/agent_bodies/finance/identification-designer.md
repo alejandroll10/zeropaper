@@ -130,6 +130,13 @@ Pick from this menu when constructing candidates. Each has a current-best-practi
 - **Software:** [`did_imputation`, `csdid`, `HonestDiD`, etc.]
 - **Strength rank (1–5):** [5 = ideal for this question on this data; 1 = barely defensible]
 - **Reference papers:** [3-5 closest published precedents using this design for a similar question]
+- **Source selection (load-bearing design variables):** one row per variable this strategy's identification *hinges on* — running/forcing variable, treatment indicator, instrument, the focal LHS/RHS the estimand is about. Do **not** list controls, FE buckets, or auxiliary covariates here (that is the empiricist's plan).
+
+  | variable | role in design | chosen source | sample cutoff | cutoff citation |
+  |----------|----------------|---------------|---------------|-----------------|
+  | [e.g., Russell market-cap rank] | [e.g., forcing variable for RD around index inclusion] | [e.g., FTSE Russell index membership merged with CRSP June market cap] | [the numeric threshold the design assumes, e.g., the Russell 1000/2000 reconstitution rank cutoff; or `none` if the design has no threshold] | [the regulation, SEC release, dataset codebook, or paper that **defines** the threshold value — not one that merely uses it, e.g., the FTSE Russell reconstitution methodology; `N/A` only when `sample cutoff` is `none`] |
+
+  Wording rules (identical to the empiricist's `## Source selection` table so the empiricist can copy these rows verbatim): the `cutoff citation` must name the document that *defines* the threshold (a Gompers-Metrick (2001) cite for a 5% cutoff is wrong if G-M used 10%); an intuition-only cutoff is a fail-loud bug, write `none` for the cutoff rather than inventing a citation.
 
 ### Strategy 2 — [Name]
 [Same structure]
