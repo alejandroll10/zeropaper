@@ -32,6 +32,45 @@ TIMEOUT = 12
 RETRIES = 2
 BACKOFF = 1.5
 
+# Surname-token noise to strip. Replaces the old `len >= 3` filter, which
+# silently discarded short *real* surnames (Li, Wu, Bo, Ma, He, An, Xi) and so
+# could not anchor an author check on them (issue #54). Tokens are matched
+# post-normalize_title (lowercased, punctuation stripped), so all entries are
+# lowercase. Two distinct classes, handled differently by `_filter_particles`:
+#
+# - Generational suffixes (jr, sr, iii) are NEVER a surname, so they are dropped
+#   unconditionally — even when they are the only token. ("John Jr" must NOT
+#   leave a spurious {jr} surname signal that can false-demote a 1-author cite.)
+# - Name particles (de, van, da) CAN be a real standalone surname in some
+#   traditions (Vietnamese "Do"/"Da", rare "De"/"Di"). They are dropped only
+#   when a non-particle token co-occurs, so "da Silva" reduces to {silva} while
+#   a standalone "Do" keeps {do}.
+_GENERATIONAL_SUFFIXES = frozenset({
+    "jr", "sr", "jnr", "snr", "ii", "iii", "iv",
+})
+_SURNAME_PARTICLE_STOPLIST = frozenset({
+    "de", "di", "du", "da", "del", "della", "dos", "das", "do",
+    "la", "le", "el", "lo", "von", "van", "der", "den", "ter", "ten",
+    "af", "av", "al", "bin", "ibn", "abu", "mac", "mc",
+})
+
+
+def _filter_particles(tokens: set[str]) -> set[str]:
+    """Strip generational suffixes (always) and name particles (if not all).
+
+    Generational suffixes (jr/iii) are dropped unconditionally — they are never
+    a surname. Name particles are dropped only when a non-particle token remains,
+    so a standalone "Do"/"De" surname keeps its token (the particle IS the
+    signal). Residual risk: two distinct authors that each reduce to the same
+    bare particle would intersect in `author_overlap`; this needs a malformed
+    Crossref `family` field that is only a particle (e.g. "van", "al") — well-
+    formed records carry a non-particle token that wins — so exposure is
+    negligible.
+    """
+    tokens = {t for t in tokens if t and t not in _GENERATIONAL_SUFFIXES}
+    kept = {t for t in tokens if t not in _SURNAME_PARTICLE_STOPLIST}
+    return kept or tokens
+
 
 def load_env_email() -> str:
     email = os.environ.get("EMAIL", "").strip().strip('"').strip("'")
@@ -131,9 +170,11 @@ def _surname_tokens(author: str) -> set[str]:
 
     Normalization folds hyphens, spaces, and punctuation to a single space (via
     `normalize_title`), so "Lopez-Lira" and "Lopez Lira" both yield {lopez, lira}.
-    Tokens shorter than 3 chars are dropped to suppress noise (initials, particles
-    like "de"/"di"/"le"). One-character initials are also caught by the pre-norm
-    `[A-Z]\\.?` filter on the last raw segment.
+    Name particles and generational suffixes (de/di/le, jr/iii) are dropped via
+    `_SURNAME_PARTICLE_STOPLIST` rather than by length, so short real surnames
+    (Li, Wu, He, Ma) are kept and can anchor the author check (issue #54).
+    One-character initials are also caught by the pre-norm `[A-Z]\\.?` filter on
+    the last raw segment.
     """
     raw_parts = [p for p in re.split(r"[\s,.]+", author) if p]
     # Drop bare initials like "J." or "K"
@@ -142,20 +183,20 @@ def _surname_tokens(author: str) -> set[str]:
         return set()
     # Last raw segment usually carries the surname (incl. hyphenated/multiword).
     surname = raw_parts[-1]
-    return {t for t in normalize_title(surname).split() if len(t) >= 3}
+    return _filter_particles(set(normalize_title(surname).split()))
 
 
 def _crossref_surname_tokens(author: dict) -> set[str]:
     family = author.get("family") or ""
-    return {t for t in normalize_title(family).split() if len(t) >= 3}
+    return _filter_particles(set(normalize_title(family).split()))
 
 
 def author_overlap(cited_authors: list[str], crossref_authors: list[dict]) -> float:
     """Fraction of cited authors whose surname tokens intersect any Crossref author's.
 
-    Returns -1.0 when there is no signal on either side. A "match" requires set
-    intersection on length-≥3 tokens, so unanchored substrings (e.g. "Li" ⊂
-    "Liang") cannot drive a false match.
+    Returns -1.0 when there is no signal on either side. A "match" requires
+    whole-token set intersection (after dropping name particles), so unanchored
+    substrings (e.g. "Li" ⊂ "Liang") cannot drive a false match.
     """
     cited_sets = [s for s in (_surname_tokens(a) for a in cited_authors or []) if s]
     if not cited_sets:
@@ -238,15 +279,16 @@ def verify(cite: dict, mailto: str, threshold: float) -> dict:
             cited_author_count = sum(1 for a in (cite.get("authors") or []) if _surname_tokens(a))
             # Demote to MISS when DOI contradicts the cite:
             #   - title sim < 0.6, OR
-            #   - author overlap is 0 with >=2 cited authors carrying a usable surname.
-            # Known blind spots (see issue #54): (i) a 1-author cite with a
-            # fabricated surname can pass if title sim >= 0.6 (no author signal
-            # demands a second confirmer); (ii) surnames <3 chars after
-            # normalization (Li, Wu, Bo) get filtered out, so a cite with all
-            # short-surname authors has cited_author_count==0 and can't trigger
-            # the author-branch demotion. Caught downstream by the
-            # polish-bibliography claim check and the WebSearch fallback.
-            if t_sim < 0.6 or (a_overlap == 0.0 and cited_author_count >= 2):
+            #   - author overlap is 0 with >=1 cited author carrying a usable surname.
+            # The author branch fires on a single fabricated surname (issue #54
+            # blind spot 1); a_overlap is 0.0 only when both sides carry surname
+            # signal and none intersect (the no-signal case returns -1.0 and is
+            # excluded by the == 0.0 test), so a real 1-author cite whose Crossref
+            # romanization differs is the only false-demote risk — rare, and
+            # caught by the bib-verifier WebSearch fallback on the resulting MISS.
+            # Short real surnames (Li, Wu) are no longer dropped (blind spot 2),
+            # so all-short-surname cites now carry signal too.
+            if t_sim < 0.6 or (a_overlap == 0.0 and cited_author_count >= 1):
                 out["status"] = "MISS"
                 out["doi_confirmed"] = False
                 notes.append(
