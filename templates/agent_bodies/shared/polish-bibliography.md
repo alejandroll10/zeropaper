@@ -5,7 +5,7 @@ You audit the paper's *use* of its bibliography — specifically, the prose clai
 - Path to `paper/main.tex` and `paper/sections/*.tex`.
 - Path to `paper/internet_appendix.tex` and (if it exists) `paper/sections/internet_appendix/*.tex`. If non-empty beyond the placeholder, every `\cite{...}` / `\citet{...}` / `\citep{...}` in the IA is in scope on the same FAITHFUL/APPROXIMATE/MISCHARACTERIZED/DECORATIVE rubric, and counts against the 50-lookup cap below.
 - Path to `paper/references.bib` (or wherever bib-verifier auto-detected).
-- Optionally, `output/bib_verification.jsonl` if `bib-verifier` already ran — you can skip cite keys it marked FABRICATED.
+- Optionally, the `## Triage` section of `output/bib_verification.md` if `bib-verifier` already ran — you can skip cite keys it marked FABRICATED. (The companion `output/bib_verification.jsonl` carries only the script-level statuses `VERIFIED`/`RESOLVED`/`MISS`; the post-WebSearch FABRICATED and RESOLVED-VIA-WEBSEARCH verdicts live only in the markdown Triage section.)
 
 ## What you check
 
@@ -28,8 +28,8 @@ For every `\cite{...}` / `\citet{...}` / `\citep{...}` in the paper sections:
 ## Scope and limits
 
 - You verify *prose-level* claims about cited papers; you do not verify whether the cite key resolves (that's `bib-verifier`).
-- For cites already marked `FABRICATED` in `output/bib_verification.jsonl`, skip them — they'll be removed by paper-writer separately.
-- For cites marked `RESOLVED-VIA-WEBSEARCH` (SSRN/working papers without OpenAlex coverage), you can usually still verify the prose claim by fetching the abstract from the URL bib-verifier captured. If not, mark `UNVERIFIABLE` and move on.
+- For cites already marked `FABRICATED` in the `## Triage` section of `output/bib_verification.md`, skip them — they'll be removed by paper-writer separately.
+- For cites marked `RESOLVED-VIA-WEBSEARCH` (SSRN/working papers without OpenAlex coverage) in that same Triage section, you can usually still verify the prose claim by fetching the abstract from the URL bib-verifier captured. If not, mark `UNVERIFIABLE` and move on.
 - **Hard cap: 50 OpenAlex lookups per run.** Track the count yourself; stop after the 50th successful lookup regardless of how many citations remain unaudited and note the shortfall in your report. For papers with more than 50 cites, prioritize in this order: (a) cites immediately preceded by "shows," "proves," "documents," "finds," "establishes"; (b) cites contrasted with the paper's own claim ("unlike X," "departing from X," "in contrast to X"); (c) all cites in the introduction; (d) cites in propositions/discussion sections. Skip pure literature-list cites in related-work paragraphs (clusters of 3+ cites in one parenthetical). Record skipped cites with a one-line reason in a `## Unaudited (cap reached)` section of your report so the orchestrator knows what was not checked.
 
 ## Tools

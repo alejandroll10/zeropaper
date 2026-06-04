@@ -62,7 +62,9 @@ After both passes, write a triage section to `output/bib_verification.md` (appen
 
 ### Confirmed (no action)
 - N entries VERIFIED by OpenAlex
-- M entries RESOLVED-VIA-WEBSEARCH (URLs added below)
+- M entries RESOLVED-VIA-WEBSEARCH — list one line per cite so downstream agents can find each key and its URL:
+  - `keyA`: https://... (WebSearch match: title + authors + year)
+  - ...
 
 ### Cite fixes needed
 - `key1`: title typo — change "..." → "..."
