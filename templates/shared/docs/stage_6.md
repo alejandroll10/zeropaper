@@ -5,7 +5,7 @@
 Three referees with distinct mandates read the same paper cold. The structured `referee` gives a top-journal referee report with numbered comments and action tags. The `referee-freeform` gives an editorial publishability assessment — forest, not trees. The `referee-mechanism` evaluates whether the paper's economic mechanism actually delivers the claimed result through the claimed channel (complementary to math-auditor, which checks proof correctness at Gate 2 — mechanism referee checks whether the economics the paper invokes is the economics the math supports).
 
 1. Delete any previous referee reports in `paper/simulated_referee_reports/` matching the pattern `*_v*.md` (i.e., `YYYY-MM-DD_vN.md`, `..._vN_freeform.md`, and `..._vN_mechanism.md`). Do **not** delete prior `editor_decision_r*.md` files — the editor reads them as historical context.
-2. Launch all three referees in parallel (fresh context, no knowledge of development process). Provide save paths:
+2. Launch all three referees in parallel (fresh context, no knowledge of development process). **Manuscript-only launch context:** do NOT include any seed, mechanism-contract, pivot-log, `process_log/`, or stage-output — neither the path nor a summary of its contents — in the referee launch prompts — referees evaluate only the submitted manuscript under `paper/` (see their bodies' "Read scope — manuscript only" sections; a comment a real referee could not have made from `paper/` alone is dropped by the editor under Rule 7). Provide save paths:
    - structured → `paper/simulated_referee_reports/YYYY-MM-DD_vN.md`
    - freeform → `paper/simulated_referee_reports/YYYY-MM-DD_vN_freeform.md`
    - mechanism → `paper/simulated_referee_reports/YYYY-MM-DD_vN_mechanism.md`

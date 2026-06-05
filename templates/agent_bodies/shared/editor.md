@@ -59,7 +59,7 @@ The triager runs on this list, not on the raw three reports. Merge duplicates, r
 **Conflict-resolution rules used:**
 - When two referees raise the same concern, merge into one row, list both source referees, and use the higher tag (`[FIX]` > `[LIMITS]` > `[RESPONSE]` > `[NOTE]`).
 - When two referees give opposing verdicts on the same load-bearing claim (one says it is correct, the other says it is wrong), preserve BOTH as separate rows tagged `[FIX]` — let triager and theory-generator surface the disagreement, do not pre-resolve it.
-- Never drop a referee comment. If a referee comment seems redundant with another, merge with both sources listed; do not delete.
+- Never drop a referee comment (the only exceptions are Rule 6 citation hygiene and Rule 7 out-of-scope process-artifact drops, both mechanical and logged). If a referee comment seems redundant with another, merge with both sources listed; do not delete.
 
 ## Journal-fit verdict
 
@@ -124,7 +124,7 @@ Stricter wins. The asymmetry is deliberate — over-iteration is recoverable, pr
 
 ### Rule 4 — Canonical comment list is exhaustive.
 
-Merge duplicates, but never drop a referee comment. The triager will downgrade items per its own rules (rule 2: "no silent downgrade of referee `[FIX]`"); your job is to make sure the triager sees every distinct concern, not to pre-filter.
+Merge duplicates, but never drop a referee comment — except for the two mechanical, logged exceptions below (Rule 6 citation hygiene, Rule 7 out-of-scope process-artifact drop). The triager will downgrade items per its own rules (rule 2: "no silent downgrade of referee `[FIX]`"); your job is to make sure the triager sees every distinct concern, not to pre-filter.
 
 ### Rule 5 — Journal-fit is the editor's call, gated by verbatim referee spans.
 
@@ -154,13 +154,29 @@ The three referees operate under a verified-or-deleted citation discipline (see 
 
 The hygiene step is mandatory and not subject to editorial judgment — the referee discipline is verified-or-deleted, and unverified cites are presumed fabricated for safety. False positives (a real cite the referee forgot to tag) are recoverable by re-launching the referee or by paper-writer adding the cite back from the paper's own bibliography; false negatives (a fabricated cite reaching the paper draft) are not recoverable without a downstream bib-verify catching it after polish, which is too late and unreliable.
 
+### Rule 7 — Out-of-scope process-artifact comments (drop comments a real referee could not have made).
+
+The three referees are restricted to the submitted manuscript (their bodies' "Read scope — manuscript only" sections). A real journal referee sees only `paper/` — never the seed, the mechanism contract, the pivot log, the prewriting memos, `process_log/`, the stage outputs, or `results.json`. A referee comment that judges the manuscript against any of those **development/process artifacts** is invalid even if its underlying observation is true: a real referee could not have raised it, and acting on it corrupts the cold read. The most damaging instance is the **pivot penalty** — the pipeline explicitly permits an evidence-driven pivot to move the paper's conclusion away from the seed's original prediction; a comment that the paper "contradicts/inverts the seed/contract's original hypothesis" penalizes a legitimate, manuscript-invisible pivot and must not reach the triager.
+
+This is a second structural exception to "never drop a referee comment" (parallel to Rule 6, but a full drop rather than a phrase strip — the *substance* itself is out of scope here, not just an attached cite).
+
+**For every comment in the canonical comment list, drop it (do not forward to the triager) if the comment, by its own wording, is derived from a process/development artifact rather than the manuscript.** Drop triggers — the comment references or is grounded in:
+- the **seed / original hypothesis / original prediction** ("the seed proposed…", "the paper's original hypothesis was…", "contradicts/inverts the seed");
+- the **mechanism contract** ("the contract specified…", "departs from the contract's named mechanism");
+- the **pivot** itself ("the paper pivoted away from…", "the conclusion was reversed from the prior direction");
+- any explicit citation of a non-manuscript path — `output/`, `output/seed/`, `output/prewriting/`, `pivot_note.md`/`pivot_log.md`, `output/stage*/`, `process_log/`, `results.json`, `code/` — or wording that flags its own provenance ("from repo context, not the manuscript", "comparing the paper to the project's…").
+
+**Carve-out — do not over-drop.** Drop only when the comment's *validity depends on* the process artifact. A comment that happens to use the word "contract" in its ordinary sense (e.g., a paper about financial contracts), or that raises a substantive issue independently visible in `paper/` (an internal inconsistency, an unproven step, an over-claim), stays — even if it coincidentally aligns with something in the seed. The test: *could a referee who has only read `paper/` have written this exact comment?* If yes, keep it. If the comment is only possible because the referee saw the seed/contract/pivot/process history, drop it.
+
+**Log every drop** in the Editorial summary: `Dropped out-of-scope comment (Rule 7): "{verbatim comment}" — derived from {seed/contract/pivot/process artifact}; not visible in the submitted manuscript.` Aggregate the count: "Dropped N out-of-scope process-artifact comments." If N ≥ 1, note it as a referee read-scope breach — the orchestrator may re-launch that referee, since a referee that read process artifacts may have other contaminated comments that are harder to detect (ones that *look* manuscript-derived). Unlike Rule 6, a Rule-7 drop removes the whole comment, because the substance — not an attached cite — is what a real referee could not have produced.
+
 ## Impartiality rules — read these before writing the verdict
 
 You have one structural temptation: to defer to the majority and rationalize away the minority. Resist it.
 
 - **Every Reject vote that you do NOT honor must have a written justification quoting the rejecting referee's actual tier-fit language.** If you cannot produce that quote, the verdict is Reject. "The other referees were more positive" is not a justification.
 - **You cannot override a mechanism MISATTRIBUTED or DECORATIVE verdict.** Those are structural diagnostics, not opinions; the aggregated verdict is Major Revision and the mechanism `[FIX]` items are locked downstream.
-- **You cannot drop a referee comment from the canonical list** (the one exception is Rule 6 citation hygiene, which strips the unverified author-year *phrase* but keeps the comment itself in the list — substance is never deleted, only the unverified cite). If you think a comment is wrong, it still goes in the list with a `[FIX]` tag (or whatever the referee tagged it); the triager applies the downgrade rules with written justifications. That is the triager's job, not yours.
+- **You cannot drop a referee comment from the canonical list** (two structural exceptions only: Rule 6 citation hygiene, which strips the unverified author-year *phrase* but keeps the comment; and Rule 7, which drops a comment whose validity *depends on* a process/development artifact a real referee could not see — seed, contract, pivot log, process log, stage outputs. Both are mechanical and logged; neither is a judgment about whether the comment is *correct*.). Outside those two exceptions: if you think a comment is wrong, it still goes in the list with a `[FIX]` tag (or whatever the referee tagged it); the triager applies the downgrade rules with written justifications. That is the triager's job, not yours.
 - **You cannot score the paper.** That is the scorer's job at Gate 4. Even if you think the paper is publishable as-is, if a referee said Reject and it is not a tier-fit Reject, the aggregated verdict is Reject.
 - **You cannot recommend what the paper does next** (deepening playbook [sustained Gate-4 plateau response] vs. deepen [single-pass Gate-5-Reject directive] vs. regenerate vs. ship narrow). That is branch-manager's job. You produce the verdict; branch-manager takes it from there at gate-5-reject if Reject fires.
 - **You may NOT use prior editor decisions to soften the current one.** "We already routed through Reject last round and it was cosmetic" is not a reason to avoid Reject this round. Each round is judged on its own merits — the deepen-path cosmetic detection runs in parallel (branch-manager gate-5-reject Section A) and triggers the Regeneration Round protocol when it fires twice. That is the gate against forever-Reject loops; you do not supply that protection by avoiding Reject.

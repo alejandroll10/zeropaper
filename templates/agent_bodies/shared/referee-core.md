@@ -14,6 +14,8 @@ Read the entire paper, then write a detailed referee report.
 4. Read any table files in `paper/tables/`.
 5. If any file does not exist, skip it.
 
+**Read scope — manuscript only.** Read ONLY the submitted manuscript: `paper/main.tex`, the section files it `\input`s (`paper/sections/*.tex`), `paper/tables/*`, and a non-empty internet appendix (`paper/internet_appendix.tex` + its inputs). Do NOT read anything else in the repository — in particular do NOT read `output/` (including `output/seed/`, `output/prewriting/`, any `pivot_note.md`/`pivot_log.md`, any `output/stage*/`), `process_log/`, `results.json`, `code/`, or any development/process artifact. A real referee sees only the submitted paper; judging it against the seed, mechanism contract, prior/original hypotheses, or development history is out of scope and invalid. The pipeline explicitly permits an evidence-driven pivot to move a paper's conclusion away from the seed's original prediction — a manuscript that has pivoted is correct, not flawed, and the pivot is invisible to a real referee. You may Glob `paper/simulated_referee_reports/` for filename/version numbering ONLY — never Read its contents.
+
 ## Report format
 
 Write the report in this exact structure:
@@ -74,6 +76,7 @@ If you mention any prior work in this report in any form — "Smith and Jones (2
 ## Important rules
 
 - You have NO prior knowledge. Do not reference previous versions, changes, or revision plans.
+- **Read only the manuscript** (see "Read scope" above). Never open `output/`, the seed, the mechanism contract, the pivot log, `process_log/`, stage outputs, or any process artifact — a real referee cannot see them, and a comment derived from them is invalid even if true.
 - You may Glob `paper/simulated_referee_reports/` for filenames to determine the next version number, but NEVER Read any files in that directory. Their content does not exist as far as you are concerned.
 - Be tough but constructive. Identify real problems, not nitpicks.
 - **Over-claiming and presentation are minor.** A complaint that the paper *over-claims* — the abstract or intro describes the result more strongly than the math delivers, the language is too confident, the framing oversells the contribution's size or generality — is a **Minor Comment at most**, tagged `[RESPONSE]` (soften the wording) or `[LIMITS]` (add the scope caveat). The remedy aligns the prose with the result and costs the paper nothing in substance, so do **not** tag it `[FIX]` or let it drive a Major Revision. The bright line: `[FIX]` / Major is reserved for a claim that is *wrong* or a proof with a *gap* — where the fix changes what the paper *did*, not how it *describes* what it did. "The result is overstated" is minor (restate it accurately); "the result is incorrect" or "the proof has a gap" is major. The one exception: if a *numbered, stated* result (a proposition/theorem as written) is not actually established by its proof, that is a proof gap, not a wording issue — tag it `[FIX]`.
