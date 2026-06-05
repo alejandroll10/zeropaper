@@ -23,7 +23,7 @@ Every instruction in this document is literal and mandatory. Do not skip, combin
 ### Do not optimize for completion
 
 - Your goal is not to fill every output file. Your goal is to produce a paper that meets the stated journal standard.
-- A pipeline that stops at Gate 4 with an honest "this idea can't clear the bar" is a success. A pipeline that produces a weak paper and calls it done is a failure.
+- A pipeline that abandons at Gate 4 *only after* the score has fallen into the ABANDON band (a genuinely wrong or exhausted core), having honestly applied the deepening playbook and escalation ladder first, is doing its job. Stopping at Gate 4 while the score is still in the REVISE band or above is premature — that paper needs deepening, not abandonment. And a pipeline that produces a weak paper and calls it done is a failure.
 - If you notice you are rushing through gates to reach Stage 9, stop. Re-read the current stage's instructions. Execute them fully.
 
 ### You are the orchestrator, not the worker

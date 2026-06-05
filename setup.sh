@@ -174,23 +174,23 @@ case "$VARIANT" in
         PAPER_TYPE="finance theory paper"
         TARGET_JOURNALS="top-3 finance journal (JF, JFE, RFS)"
         DOMAIN_AREAS="finance theory — asset pricing, corporate finance, information economics, market design, financial intermediation, or behavioral finance"
-        JOURNAL_LIST="Top-3 finance: JF, JFE, RFS. Also: Review of Finance, Management Science, JFQA, JF Insights & Perspectives (JFIP — slotted at field tier; ≤7k words, single-insight, no R&R). Top accounting: JAR, JAE, TAR, RAS. Top-5 econ: AER, Econometrica, QJE, JPE, ReStud."
+        JOURNAL_LIST="Top-3 finance: JF, JFE, RFS, JF Insights & Perspectives (JFIP — top-3-fin tier on quality bar, JF-equivalent standard; CV credit lags; ≤7k words, single-insight, no R&R). Also: Review of Finance, Management Science, JFQA. Top accounting: JAR, JAE, TAR, RAS. Top-5 econ: AER, Econometrica, QJE, JPE, ReStud."
         AGENT_DIR="finance"
         INITIAL_TIER="top-3-fin"
         TIER_LADDER_PROSE='top-5 → top-3-fin → field → letters'
         TIER_LIST_INLINE='`top-5`, `top-3-fin`, `field`, `letters`'
-        TIER_DOWNGRADE_EXAMPLES='for `top-3-fin`: JF, JFE, RFS; for `field`: JFQA, Review of Finance, Management Science, JF Insights \& Perspectives; for `letters`: Economics Letters'
+        TIER_DOWNGRADE_EXAMPLES='for `top-3-fin`: JF, JFE, RFS, JF Insights \& Perspectives; for `field`: JFQA, Review of Finance, Management Science; for `letters`: Economics Letters'
         ;;
     macro)
         PAPER_TYPE="macroeconomics theory paper"
         TARGET_JOURNALS="top-5 economics journal (AER, Econometrica, QJE, JPE, ReStud) or leading macro field journal (JME, JEDC, AEJ:Macro)"
         DOMAIN_AREAS="macroeconomics"
-        JOURNAL_LIST="Top-5 econ: AER, Econometrica, QJE, JPE, ReStud. Top-3 finance: JF, JFE, RFS. Macro field: JME, JEDC, AEJ:Macro, AEJ:Micro, JIE, JET, RED, AER Insights (≤6k words, single-mechanism — slotted at field tier on current market read)."
+        JOURNAL_LIST="Top-5 econ: AER, Econometrica, QJE, JPE, ReStud, AER Insights (top-5 tier on quality bar, AER-equivalent 'same standards'; CV credit lags; ≤6k words, single-mechanism). Top-3 finance: JF, JFE, RFS. Macro field: JME, JEDC, AEJ:Macro, AEJ:Micro, JIE, JET, RED."
         AGENT_DIR="macro"
         INITIAL_TIER="top-5"
         TIER_LADDER_PROSE='top-5 → field → letters'
         TIER_LIST_INLINE='`top-5`, `field`, `letters`'
-        TIER_DOWNGRADE_EXAMPLES='for `field`: JME, JEDC, AEJ:Macro, RED, AER Insights; for `letters`: Economics Letters'
+        TIER_DOWNGRADE_EXAMPLES='for `top-5`: AER, Econometrica, QJE, JPE, ReStud, AER Insights; for `field`: JME, JEDC, AEJ:Macro, RED; for `letters`: Economics Letters'
         ;;
     *)
         echo "Unknown variant: $VARIANT"
@@ -1341,6 +1341,7 @@ cat > "$P/process_log/pipeline_state.json" <<JSONEOF
   "pivot_history": [],
   "triaged_lit_implications": [],
   "target_journal_tier": "__INITIAL_TIER__",
+  "initial_journal_tier": "__INITIAL_TIER__",
   "status": "not_started",
   "seeded": true,
   "faithful": $([ "$FAITHFUL" = "1" ] && echo true || echo false),
@@ -1371,6 +1372,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "pivot_history": [],
   "triaged_lit_implications": [],
   "target_journal_tier": "__INITIAL_TIER__",
+  "initial_journal_tier": "__INITIAL_TIER__",
   "seeded": false,
   "faithful": false,
   "halt_on_core_bypass": __HALT_ON_CORE_BYPASS__,

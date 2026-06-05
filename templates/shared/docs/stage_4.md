@@ -87,7 +87,7 @@
 | Delta ≥ 3 points, substantive change | **CONTINUE** — one more iteration in current band (improving, worth continuing) |
 | Delta ≥ 3 points, cosmetic change only | **ESCALATE** — reframing is not progress (see "Substantive vs cosmetic delta" below) |
 | Delta < 3 points | **ESCALATE** — move up one level: REVISE → MAJOR REWORK → ABANDON (plateau, not converging) |
-| Score < (advance threshold + 5) on attempt 3+ | **ESCALATE** — regardless of delta. Still below the bar after two revisions suggests a ceiling. Regenerate. |
+| Score < (advance threshold + 5) on attempt 3+ | **ESCALATE only after a deepening check.** If the score is in the REVISE band, first apply the deepening playbook — close-but-below after two revisions usually means the core needs more depth, not a new core; escalate only if deepening produces no Δ≥3 substantive gain. If the score is already in the MAJOR REWORK or ABANDON band, escalate (toward Regenerate) regardless of delta. |
 
 **Hard ceiling:** After 8 total scorer evaluations on same problem, escalate one level regardless of trajectory.
 

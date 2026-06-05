@@ -69,6 +69,7 @@ Save to the path specified in your prompt:
 ## Publishability verdict
 - **Target journal:** [from variant context]
 - **Verdict:** [Ready to submit / Needs restructuring / Needs more work / Not viable at this target]
+  - Use **Not viable at this target** only for a structural ceiling — the contribution itself cannot reach this tier even with a clean revision keeping the core idea. A fixable shortfall (missing depth, an unproven step, a framing gap) is **Needs more work** or **Needs restructuring**, not "not viable." If you do select "Not viable," state the specific structural reason in the next field.
 - **If not ready:** [What specifically needs to change — not a laundry list, the 1-2 things that matter most]
 
 ## Score estimate

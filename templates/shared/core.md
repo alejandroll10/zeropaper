@@ -15,7 +15,7 @@ At every stage, evaluate the current state of the paper on its merits — not on
 Concretely:
 - If a comparative static reverses during the math audit, update the result and rewrite the interpretation. Don't try to preserve the old claim.
 - If a "central result" turns out to be a special case of something broader, elevate the broader result and demote the original.
-- If the scorer finds the current theory is at a ceiling (score plateau), abandon and regenerate rather than continuing to polish.
+- If the scorer finds the current theory is at a ceiling (score plateau), route by band, not reflexively to abandonment: a plateau in the **REVISE band or above** goes to the deepening playbook (the core idea works — give it mathematical/empirical depth, do not abandon it); a plateau in the **MAJOR REWORK or ABANDON band** regenerates (as does a REVISE-band plateau only when branch-manager §E explicitly recommends Regenerate and `regeneration_round == 0`). See the escalation table and `docs/stage_4.md`. Regeneration is the response to an exhausted idea, not to a still-improvable one.
 - If empirical results contradict the theory, report honestly and revise the theory — don't cherry-pick supportive tests.
 
 ## Core principle: stress-test operator proposals before adopting them
@@ -146,7 +146,9 @@ Stage 6: Referee Simulation   ──→ editor (aggregates 3 reports → canonic
                                                 (theory or empirics; never extend); branch-manager
                                                 substantive/cosmetic check; cosmetic ×2 → theory failure
                                    └── (editor may also recommend Downgrade tier, which lowers
-                                       target_journal_tier and may immediately ship Accept/Minor)
+                                       target_journal_tier and may immediately ship Accept/Minor;
+                                       or Upgrade, which raises it back toward the initial target —
+                                       the mechanism that undoes an earlier over-eager downgrade)
 Stage 7: Style Check          ──→
 Stage 8: Bibliography Verify  ──→
 Stage 9: Polish               ──→ (eight parallel polish agents + triage + paper-writer + style re-run; max 2 rounds)
@@ -172,6 +174,7 @@ Initial state (created by setup.sh):
   "referee_round": 0,
   "reject_cosmetic_round": 0,
   "target_journal_tier": "{{INITIAL_TIER}}",
+  "initial_journal_tier": "{{INITIAL_TIER}}",
   "pivot_round": 0,
   "fix_empirics_round": 0,
   "bib_verify_round": 0,
@@ -207,7 +210,9 @@ When you start the pipeline, set `"status": "running"` and begin appending to th
 
 **`reject_cosmetic_round`:** Tracks consecutive cosmetic-deepening attempts when responding to a Stage 6 Reject verdict. Increments when branch-manager (gate-5-reject context) returns COSMETIC on a deepen attempt; resets to 0 on a SUBSTANTIVE deepen, on a Regeneration Round entry, or on falling back to standard Major Revision after the deepen path is exhausted. See `docs/stage_6.md` Reject row for the full state machine.
 
-**`target_journal_tier`:** The active journal tier for Gate 4 advance threshold and Stage 6 referee variant context. Initialized to `{{INITIAL_TIER}}` for this variant. The Stage 6 `editor` agent may recommend a tier change (Downgrade or Upgrade) based on cross-referee tier-fit signals; on Downgrade, the orchestrator updates this field to one rung down the variant ladder and recomputes the Gate 4 advance threshold per `docs/stage_4.md`. The variant's tier ladder is `{{TIER_LADDER_PROSE}}`; allowed values are {{TIER_LIST_INLINE}}. (Legacy state files with `"target_journal_tier": "top-5"` remain valid in both variants — `top-5` is the top rung in both ladders.) See `docs/stage_6.md` "Journal-fit handling" for the procedure.
+**`target_journal_tier`:** The active journal tier for Gate 4 advance threshold and Stage 6 referee variant context. Initialized to `{{INITIAL_TIER}}` for this variant. The Stage 6 `editor` agent may recommend a tier change (Downgrade or Upgrade) based on cross-referee tier-fit signals; the orchestrator updates this field one rung down (Downgrade) or one rung up (Upgrade) the variant ladder and recomputes the Gate 4 advance threshold per `docs/stage_4.md`. Upgrade is the mechanism that restores a paper toward its initial (highest) target after an earlier over-eager downgrade, and is a normal outcome — not rare — up to the project's initial tier.
+
+**`initial_journal_tier`:** Read-only. Set once to `{{INITIAL_TIER}}` at deploy time and **never modified** by the pipeline. It records the project's original (highest) target so the editor can mechanically tell whether the current `target_journal_tier` sits below it (an earlier downgrade) and therefore whether an Upgrade back toward the original target is in play. The orchestrator must not write this field after setup. The variant's tier ladder is `{{TIER_LADDER_PROSE}}`; allowed values are {{TIER_LIST_INLINE}}. (Legacy state files with `"target_journal_tier": "top-5"` remain valid in both variants — `top-5` is the top rung in both ladders.) See `docs/stage_6.md` "Journal-fit handling" for the procedure.
 
 **`archived_best_score_r{N}`:** Records the best Gate 4 score achieved on the pre-regeneration paper at the moment Regeneration Round N begins. Initialized to `null` (key `archived_best_score_r1` is in the initial schema; for N>1 the orchestrator appends `archived_best_score_r{N}` dynamically at regeneration entry). Consumers in `docs/stage_1.md` step 2 (regeneration re-entry) read this to compare the regenerated attempt's eventual Gate 4 score against the archived value; if the regenerated attempt does not strictly beat the archive, restore the archived paper from `paper_archive/r{N}/` and ship. A `null` value means no archive comparison applies (no regeneration has fired on this branch).
 
@@ -385,6 +390,7 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 | Mechanism referee: DECORATIVE unresolved | Still DECORATIVE at `referee_round >= 10` | Ship the narrow-path version: after 10 rounds the restructure path has failed to surface real economic content, so narrow is the principled default. Present what the math delivers as a structural characterization, strip mechanism framing, add a limitations paragraph. **Round-10 narrow-adoption resolves all outstanding locked mechanism `[FIX]` items as satisfied.** Never return to Stage 0 (never-abandon, scientist-first). |
 | Editor: Reject (aggregated verdict) | — | Stage 6 fires only post-Stage-5, so a paper draft always exists; never-abandon. Reject routes through triage → deepen directive → deepen mandate (see `docs/stage_6.md` Reject row for full procedure). The pre-Stage-5 "Stage 0 / Stage 2" branches do not exist at this point. On two consecutive cosmetic deepen attempts, the orchestrator routes through the Regeneration Round protocol if eligible (`regeneration_round == 0`, not seeded), otherwise falls back to standard Major Revision (never-abandon). |
 | Editor: Downgrade tier recommendation | — | Update `target_journal_tier` in pipeline state to one rung down the variant ladder (`{{TIER_LADDER_PROSE}}`), recompute Gate 4 advance threshold per the new tier. If aggregated verdict is Accept/Minor Revision at the new tier (current paper clears the new threshold), proceed to Stage 7. If Major Revision, continue the loop targeting the lower tier; the next round's referees inherit the updated tier in their variant context. See `docs/stage_6.md` "Journal-fit handling". |
+| Editor: Upgrade tier recommendation | — | Update `target_journal_tier` to one rung **up** the variant ladder (`{{TIER_LADDER_PROSE}}`), recompute Gate 4 advance threshold per the new tier. This is the mechanism that undoes an earlier over-eager downgrade: restoring a paper toward its initial (highest) target is a normal outcome, not a rare one. Continue the loop targeting the higher tier; the next round's referees inherit the updated tier in their variant context. Upgrading *above* the project's initial target is the rare case (needs unambiguous cross-referee support per editor Rule 5). See `docs/stage_6.md` "Journal-fit handling". |
 
 Before granting another iteration on a Δ≥3 score increase, the orchestrator classifies the v(N)→v(N−1) diff as substantive or cosmetic. Branch-manager emits this verdict at every Gate 4 (Section A); when it reports COSMETIC, the orchestrator escalates rather than continue. Definitions and the cosmetic-edit catalogue live in `docs/stage_4.md`.
 

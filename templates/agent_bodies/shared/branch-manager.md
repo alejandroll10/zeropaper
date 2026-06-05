@@ -85,7 +85,7 @@ This section evaluates the paper as a whole — not just the theory, but how it 
 
 - **What is the strongest result in the current draft?** [Name it. Is it the headline result, or is it buried? If buried, say so.]
 - **Does the framing match the content?** [Does the introduction promise something the results deliver? If the intro invokes a big phenomenon but the results address a narrower question, that is a framing-content gap. Name it.]
-- **Is this paper aimed at the right journal?** [Given the current score and trajectory, what journal tier is this paper plausibly targeting? If the answer is lower than the initial target, say so explicitly.]
+- **Is this paper aimed at the right journal?** [Anchor on `initial_journal_tier` from pipeline state — the project's original/highest target — not just the current score. If the trajectory is tracking below that initial target, do not stop at observing it: name the specific intervention — a new theorem, a new test, a sharper result, not a framing change or a scope reduction — that would plausibly close the gap back to the initial target. Only if no such intervention exists (the gap is a structural ceiling in the contribution itself) report the lower tier as the genuine ceiling. Sorting the paper down is the last resort, not the observation.]
 - **What would a referee's first-order concern be?** [Not a laundry list — the single biggest thing a referee at the target journal would object to. Is it fixable within the current approach?]
 - **Is the paper getting longer without getting better?** [Count the extensions, scope conditions, and defensive paragraphs added in recent versions. Are they strengthening the contribution or diluting it?]
 
