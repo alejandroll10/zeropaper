@@ -13,6 +13,8 @@
 
 **Agents:** `scorer` + `scorer-freeform` (launched in parallel — neither sees the other's output)
 
+**Bypass recording (default mode too).** Skipping this gate, advancing past it without a result, or running its task via a substitute agent is a core bypass *unless this doc sanctions it* — record a `gate-skipped` / `agent-substituted` row in `process_log/degradation_ledger.md` before continuing (`docs/core_bypass.md`).
+
 1. Launch both scorers in parallel with the same inputs:
    - Theory draft: `output/stage2/theory_draft_vN.md`
 <!-- THEORY_FIRST_START -->

@@ -17,6 +17,8 @@ Three referees with distinct mandates read the same paper cold. The structured `
 
 The orchestrator does NOT read the three referee reports directly to form a Gate 5 verdict. The `editor` agent is the verdict aggregator — it reads the three reports + paper draft + scorer history + target tier + pipeline state and produces the canonical Gate 5 routing decision. This removes silent-aggregation failures (e.g., a Reject vote from the freeform referee being implicitly outvoted by Major Revision verdicts from the other two).
 
+**Bypass recording (default mode too).** Launching fewer than the three referees, skipping the `editor` aggregation and forming a Gate 5 verdict yourself, or running any of these agents' tasks via a substitute is a core bypass *unless this doc sanctions it* — record a `gate-skipped` / `agent-substituted` row in `process_log/degradation_ledger.md` before continuing (`docs/core_bypass.md`).
+
 4. Launch `editor` with:
    - The three referee reports from step 2
    - The current paper draft (`paper/main.tex` + `paper/sections/*.tex`)

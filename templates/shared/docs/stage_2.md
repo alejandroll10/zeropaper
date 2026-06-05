@@ -23,6 +23,8 @@
 
 Two sequential audits — structured (step-by-step derivation check) then free-form (skeptical reader, catches conceptual issues). Both must PASS.
 
+**Bypass recording (default mode too).** Skipping this gate, advancing past it without a result, continuing despite a FAIL, or running its task via a substitute agent is a core bypass *unless this doc sanctions it* — record a `gate-skipped` / `agent-substituted` row in `process_log/degradation_ledger.md` before continuing (`docs/core_bypass.md`).
+
 **Step 1: Structured audit**
 
 1. Launch math-auditor on `output/stage2/theory_draft_vN.md`

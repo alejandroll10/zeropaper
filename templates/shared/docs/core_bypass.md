@@ -39,6 +39,26 @@ its designated agents.
    cannot be reported as "checked"; it does not satisfy a gate.
 4. **Surface it** — a non-empty ledger appears in the run summary.
 
+## Orchestrator-detected bypasses (conditions 2–3)
+
+Conditions 1 and 4 are agent-detectable (a binding-source agent sees its own
+source go down). Conditions 2 (gate-skipped / advanced-past / continued despite
+FAIL) and 3 (designated-agent-substituted) are *orchestrator* decisions — no agent
+can see that a gate was skipped or its task handed to a substitute. So the
+orchestrator records these itself: **when you skip a verification gate, advance
+past one without a result, continue despite a FAIL, or run a designated agent's
+task via a substitute path, append a `gate-skipped` / `agent-substituted` row to
+`process_log/degradation_ledger.md` before continuing** — in default mode too, not
+only under `--halt-on-core-bypass`. This is the recording half; the terminal
+completion-block (below) does the enforcing.
+
+**Scope — only *unsanctioned* skips.** A skip a stage doc explicitly sanctions is
+not a bypass and gets no row: e.g. empirical-first permanently skips Gate 2 (math
+audit) and Stage 2b by design (`docs/stage_2.md`). Record only a skip or
+substitution that the stage's own routing does **not** authorize. When unsure
+whether a skip is sanctioned, record it (`binding? = no` if you judge it
+non-degrading) — a surfaced false positive is cheaper than a silent bypass.
+
 ## Record by default; halt is opt-in
 
 Default is **record-and-surface** (steps 2–4): the run continues so an unattended

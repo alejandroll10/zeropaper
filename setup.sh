@@ -941,8 +941,12 @@ inject_bash_background_into_agents() {
 # is unavailable — i.e. agents that can themselves *detect* a bypass (source/cert
 # failure, or a tool failure being misread as "source down", bypass conditions 1
 # and 4 in docs/core_bypass.md). Gate-skip / agent-substitution (conditions 2-3)
-# are orchestrator-only events an agent can't see while running, so those are
-# enforced by the flag-gated orchestrator pointer, not this inject. Unconditional like the
+# are orchestrator-only events an agent can't see while running, so they are not
+# recorded by this inject; the orchestrator records them itself in default mode via
+# the per-gate "Bypass recording" pointer in docs/stage_{2,4,5,6}.md (issue #61,
+# off the runtime-doc char budget since stage docs are read on demand). The
+# --halt-on-core-bypass flag additionally injects an orchestrator-side halt pointer
+# into the runtime doc. Unconditional like the
 # bash-background injector (subagents never see the runtime doc, and recording is
 # the default behavior regardless of the --halt-on-core-bypass flag; the flag only
 # adds the orchestrator-side halt pointer in the runtime doc). The pointer text
