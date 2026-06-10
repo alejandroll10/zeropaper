@@ -6,8 +6,9 @@
 % PIPELINE-MANAGED below. These are pipeline infrastructure (deployment
 % fingerprint, downstream verification, dashboard tracking).
 %
-% Edit \title, \author, \date, \begin{abstract}...\end{abstract}, the
-% \input lines, and the bibliography commands freely. paper-writer adds
+% Edit \title, \date, \begin{abstract}...\end{abstract}, the
+% \input lines, and the bibliography commands freely. Leave \author as
+% shipped (anonymized for double-blind review). paper-writer adds
 % \input lines for new section files under paper/sections/ as the paper
 % grows.
 % =====================================================================
@@ -29,7 +30,8 @@
 \doublespacing
 
 \title{TITLE PLACEHOLDER}
-\author{AUTHOR PLACEHOLDER}
+% Anonymized for double-blind review. paper-writer must NOT de-anonymize.
+\author{[Author names withheld for double-blind review]}
 \date{\today}
 
 \begin{document}
