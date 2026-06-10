@@ -261,7 +261,7 @@
     "description": "Strategic advisor. Launched at (a) every Gate 4 after scorer(s) return, (b) Gate 5-Reject as a substantive-vs-cosmetic check on deepening attempts (context=gate-5-reject, with a gate-5-reject-regen variant for regeneration entry), and (c) the Stage 2 audit loop every 3rd theory version. Diagnoses whether the current path has ceilinged, surfaces alternatives from the Round 1 sketch portfolio, and recommends continue/restructure/restart. Produces a structured report; does not make the gate decision.",
     "category": "evaluator",
     "tools": "Read, Write",
-    "model": "opus",
+    "model": "claude-fable-5",
     "effort": "high",
     "codex": {
       "model": "gpt-5.5",
@@ -271,6 +271,21 @@
       "model": "gemini-3-preview"
     },
     "pipeline_only": true
+  },
+  "last-resort": {
+    "name": "last-resort",
+    "description": "General-purpose escalation agent for stubborn problems the normal pipeline cannot crack. Launched at the orchestrator's discretion (no automatic trigger) when a derivation will not close, a gate keeps failing after the stage's revision rules are exhausted, a tool defies the debugger, or a run is otherwise stuck and the alternative is abandonment. Runs on a stronger model (claude-fable-5) with broad tool access. Receives the stuck artifact plus the full prior-failure history. Returns a routable deliverable: either a concrete proposed fix (handed back to the normal pipeline) or a reasoned GENUINELY-STUCK verdict with why. Does NOT self-certify — any fix it proposes re-enters the existing gate (math-auditor / scorer / referee / empirics-auditor) for verification.",
+    "category": "developing",
+    "tools": "Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch",
+    "model": "claude-fable-5",
+    "effort": "high",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
   },
   "puzzle-triager": {
     "name": "puzzle-triager",

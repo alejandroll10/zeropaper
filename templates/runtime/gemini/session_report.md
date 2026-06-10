@@ -51,6 +51,7 @@ The audit agents are adversarial by design. Do not soften their outputs. The syn
 - Does not invoke broad-survey agents `literature-scout`, `gap-scout` (refereeing evaluates a specific submission, not a literature map).
 - Does not invoke `style` (a style editor that modifies LaTeX in place — and we never modify the submission).
 - Does not invoke `faithful-drift-auditor` (there is no mechanism contract for an external submission to drift from).
+- Does not invoke `last-resort` (the stronger-model escalation agent for stubborn pipeline problems — report mode is one-shot, with no stuck pipeline to unstick).
 - Does not invoke extension *generative* agents: `empiricist`, `identification-designer` (`--ext empirical`), `experiment-designer` (`--ext theory_llm`) — these design and run new analyses; in report mode we only audit what the submission already contains.
 
 **Exception — reactive launches only:** `debugger` may be launched if an audit agent's tool call fails (e.g., a `polish-formula` `codex-math` shell-out errors). It is not part of the parallel fan-out; launch it only on a specific tool-failure report from another agent.

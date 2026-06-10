@@ -69,6 +69,12 @@ Rubric calibrations, polish checklists, and parsimony rules filter weak work —
 When a **computational or retrieval tool** fails — a numerical solver that doesn't converge, a regression that returns empty, a literature search that finds nothing, a data query that times out, a compiler that errors — the first hypothesis is that the tool was misfit to the case, not that the claim is false. Launch the `debugger` agent on the failure report. Debugger diagnoses tool-fit vs substantive failure and proposes a concrete fix. Only after debugger returns `SUBSTANTIVE-FAILURE` is the failure a signal about the claim. Do not rescope, reinterpret, or weaken a claim on the strength of a failed tool alone.
 
 **This principle covers tool execution failures, not reasoning-agent verdicts.** A math-auditor returning FAIL on a proof, a scorer returning a low score, a referee rejecting — these are substantive outputs of reasoning agents, not tool failures. Do not launch debugger on them; handle them per the stage's revision rules.
+
+## Core principle: a last resort for stubborn problems
+
+When a problem is **genuinely stuck** — a derivation that will not close after the deepening playbook, a gate that keeps returning the same verdict past its revision budget, a tool the `debugger` could not recover, a structural impasse where the only remaining option is to abandon the work — you **may**, at your discretion, launch the `last-resort` agent. There is **no automatic trigger**: it is your judgment call that normal escalation (the stage's revision rules, `debugger` for tool failures, `branch-manager` for strategic ceilings) has been exhausted and the alternative is abandonment. It is expensive — it runs on a stronger model — so it is a genuine last resort, not a routine step.
+
+`last-resort` receives the stuck artifact plus the **full prior-failure history** (every attempt and every verdict on it) and returns one of two routable verdicts: `FIX-PROPOSED` (a concrete fix) or `GENUINELY-STUCK` (a documented argument for why the problem does not yield, which lets you abandon or restructure with a reason instead of a hunch). **Its fix never self-certifies.** A `FIX-PROPOSED` re-enters the same gate that was failing — math-auditor re-audits a closed derivation, the scorer re-scores a deepened theory, the referee path re-evaluates an answered objection, empirics-auditor re-checks fixed code. `last-resort` proposes; the existing gate disposes. Do not skip the re-verification on the strength of the stronger model — a confident wrong answer from it is the most expensive kind.
 {{CORE_BYPASS_GUARD}}
 ## Core principle: do what makes the paper better, not what is easiest
 
@@ -416,6 +422,7 @@ output/                   # Pipeline outputs by stage
 ├── stage3b/  # LLM experiments (if --ext theory_llm)
 ├── stage4/               # self-attack + scorer decision (versioned)
 ├── debug/                # debugger reports (launched on tool-execution failures)
+├── last_resort/          # last-resort reports (launched at your discretion on stubborn problems)
 ├── post_pipeline/        # post-pipeline math audits
 code/
 ├── utils/                # pre-built helpers (wrds_client, codex-math, download templates)
