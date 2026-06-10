@@ -91,4 +91,61 @@
   }%
 }
 %
+% =====================================================================
+% Layer 5 — build-time table-legibility instrumentation (issue #85)
+% ---------------------------------------------------------------------
+% A wide results table wrapped in \resizebox{\textwidth}{!}{<tabular>}
+% scales to exactly \textwidth and therefore can NEVER emit an
+% "Overfull \hbox" — so the Stage-5 build-verify overfull gate is blind
+% to it by construction, and the table can ship in microscopic,
+% unreadable font. This wraps \resizebox so that when it scales a *table*
+% (content that opens a tabular) below a legibility floor, it writes the
+% distinctive token ARPIPELINE-SHRUNK to the .log; the Stage-5 gate greps
+% for it. We measure the REALIZED scale (final box width / natural box
+% width) rather than parse the size argument ourselves — this lets
+% graphicx do its own argument parsing and correctly distinguishes a
+% shrink-down (flagged) from a harmless stretch-up (ignored, scale >= 1).
+% Figures are excluded: only content that actually opens a tabular sets
+% the flag, so a legitimately down-scaled figure is not touched. Entirely
+% no-ops if graphicx / \resizebox is not loaded. Helper macros are
+% defined here at load time (so their parameter text is not stored inside
+% the \AtBeginDocument hook); the \let/\def rewiring happens at
+% begin-document, after every package — incl. graphicx — has loaded.
+\newif\ifarp@tabseen
+\newsavebox{\arp@natbox}
+\newsavebox{\arp@resbox}
+\newcommand{\arp@legfloor}{0.6}% flag a table scaled below this fraction of its natural width
+% (@ is already a letter inside a package — no \makeatletter needed here, and a
+%  stray \makeatother would mis-tokenize the @-commands in the hook read below.)
+\newcommand{\arp@resizebox@star}[3]{\arp@orig@resizebox*{#1}{#2}{#3}}% starred form: pass through, not measured
+\newcommand{\arp@resizebox@plain}[3]{%
+  \global\arp@tabseenfalse
+  \sbox\arp@natbox{#3}%                                   natural content (sets the flag if a tabular ran)
+  \sbox\arp@resbox{\arp@orig@resizebox{#1}{#2}{\usebox\arp@natbox}}% graphicx parses the size arg
+  \ifarp@tabseen
+    \ifdim\wd\arp@resbox<\arp@legfloor\wd\arp@natbox
+      \typeout{ARPIPELINE-SHRUNK: a table was scaled to \the\wd\arp@resbox\space from natural width \the\wd\arp@natbox\space (below the \arp@legfloor\space legibility floor) -- re-typeset it without \string\resizebox-shrinking (footnotesize/tabularx, a landscape/sidewaystable, or relegate it to the Internet Appendix).}%
+    \fi
+  \fi
+  \usebox\arp@resbox
+}
+\AtBeginDocument{%
+  \makeatletter
+  % Mark whenever a tabular environment opens inside a measured box.
+  \@ifundefined{tabular}{}{%
+    \let\arp@orig@tabular\tabular
+    \def\tabular{\global\arp@tabseentrue\arp@orig@tabular}%
+  }%
+  \@ifundefined{tabular*}{}{%
+    \expandafter\let\expandafter\arp@orig@tabularstar\csname tabular*\endcsname
+    \expandafter\def\csname tabular*\endcsname{\global\arp@tabseentrue\arp@orig@tabularstar}%
+  }%
+  % Wrap \resizebox (preserving its starred form) to measure table shrink.
+  \@ifundefined{resizebox}{}{%
+    \let\arp@orig@resizebox\resizebox
+    \def\resizebox{\@ifstar{\arp@resizebox@star}{\arp@resizebox@plain}}%
+  }%
+  \makeatother
+}
+%
 \endinput

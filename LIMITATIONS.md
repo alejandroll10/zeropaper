@@ -50,6 +50,26 @@ Per `CLAUDE.md` ("no unsolved or undocumented architectural limits"), additions 
 
 ---
 
+## Table-legibility gate catches `\resizebox`-shrink, not every illegibility vector
+
+**Scope:** the Stage-5 build-verify table-legibility check (issue #85) — `arpipeline.sty` Layer 5 instrumentation + Stage-5 gate check 6 + the paper-writer wide-table guidance.
+
+**Failure mode:** the gate measures the realized scale of each `\resizebox{...}{...}{<tabular>}` and fails the build (`ARPIPELINE-SHRUNK`) when a table is scaled below 0.6× its natural width. This closes the dominant illegibility vector — a wide table wrapped in `\resizebox{\textwidth}{!}` that defeats the overfull gate by construction — but it does **not** catch every way a table can ship illegibly small:
+
+1. **Font-size shrink without `\resizebox`.** A table set directly in `\tiny`/`\scriptsize` (or `\input` of a table that hard-codes a tiny font) that happens to *fit* the text block emits no `\resizebox` to measure and no overfull `\hbox` to flag, so it ships unread. Only the *scaling* path is instrumented, not the *font-command* path.
+2. **`\resizebox*` (starred) is pass-through, not measured.** The starred form (sizes by total height) is rare for tables, so it is forwarded to graphicx unmeasured to avoid reimplementing star handling. A `\resizebox*`-shrunk wide table would not be flagged.
+3. **Non-`tabular` table bodies.** The tabular-detection flag is set by `tabular` / `tabular*`. This *also* covers `tabularx` (verified — it expands to a `tabular` on its final pass, so a `\resizebox`-shrunk `tabularx` is correctly flagged, though you would rarely wrap `tabularx` in a shrinking `\resizebox` since it already fits to width), and `longtable` cannot be `\resizebox`'d at all. The genuine gaps are: a bare `array`/custom-alignment exhibit that never opens `tabular`, and an image-of-a-table (`\includegraphics` of a pre-rendered table) — the latter reads as a figure and is out of scope by construction.
+
+In all three, the residual is a *missed catch* (a genuinely illegible table can still slip through), not a false alarm or a correctness corruption: the paper-writer guidance (Lever A) steers away from all of them, and the dominant `\resizebox`-shrink vector is now a hard gate.
+
+**What would close it:** (1) instrument the font-size path too — e.g. redefine `tabular` to record the active font size at `\begin{tabular}` and flag when a table body is typeset below a `\scriptsize`-equivalent floor regardless of how it got there; this subsumes both the `\resizebox` and the bare-`\tiny` vectors and would let Layer 5 drop the scale measurement entirely. (2) Add a `\resizebox*` measured branch (measure `\wd` the same way; the star only changes the height basis, which the width-ratio test ignores). (3) For the genuine point-3 gaps, set the detection flag from a bare `array` as well (covering custom-alignment exhibits that never open `tabular`); image-of-table is only reachable by the rendered-PDF approach below. The rendered-PDF glyph-height approach from #85's option (b) (and #71's figure-legibility render-and-read) would catch all vectors including image-of-table, at the cost of parsing the PDF.
+
+**Tracking:** [issue #85](https://github.com/alejandroll10/zeropaper/issues/85) covers the table-legibility class; these residual vectors are the documented remainder after the `\resizebox`-shrink fix. File a follow-up if a field report shows a bare-`\tiny` or `\resizebox*` table shipping illegibly.
+
+**Interim behavior:** the dominant vector (`\resizebox`-to-`\textwidth` shrink) is a hard Stage-5 gate failure; the paper-writer wide-table guidance instructs against the font-command and starred paths as well, so the residual vectors are steered against at generation time even though they are not mechanically gated.
+
+---
+
 ## Core-bypass guard: early gate-time detection and orchestrator-only bypass recording remain optimizations
 
 **Scope:** the core-bypass degradation guard (issue #51) — `docs/core_bypass.md`, `inject_core_bypass_into_agents` (setup.sh), the `{{CORE_BYPASS_GUARD}}` placeholder, `process_log/degradation_ledger.md`.
