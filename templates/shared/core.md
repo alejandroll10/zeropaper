@@ -141,10 +141,10 @@ Puzzle Triage                ──→ fires if empirics/experiments contradict,
                                    ├── PIVOT → rebuild theory around contradiction
                                    │            (re-run Gate 2, Gate 3, Stage 2b, Stage 3, empirics — Gate 2/2b skipped under empirical-first; max 2 pivots)
                                    └── HONEST-NULL → Stage 5 with limits, or Stage 0
-Stage 4: Self-Attack          ──→ Gate 4: Scorer Decision (trajectory-based)
+Stage 4: Self-Attack          ──→ Gate 4: Scorer Decision (content-verdict-based)
                                    ├── ADVANCE (≥ tier threshold — see docs/stage_4.md) → Stage 5
-                                   ├── REVISE  → back to Stage 2 (continue if Δ≥3, else escalate)
-                                   ├── MAJOR REWORK → back to Stage 1 (continue if Δ≥3, else escalate)
+                                   ├── REVISE  → back to Stage 2 (continue if substantive, else escalate)
+                                   ├── MAJOR REWORK → back to Stage 1 (continue if substantive, else escalate)
                                    └── ABANDON → back to Stage 0 (max 5×)
 Stage 5: Paper Writing        ──→
 Stage 6: Referee Simulation   ──→ editor (aggregates 3 reports → canonical comment list +
@@ -392,11 +392,10 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 | Identification audit fails | 3 plan-revision rounds (cap from `stage_3a_empirical.md`) | Treat as FAIL — empiricist selects a different design from the menu, or escalate per `stage_3a_empirical.md` step 3 routing |
 | Empirics audit fails | 5 audit-fix attempts (cap from `stage_3a_empirical.md`) | Treat as theory-version failure — re-fire theory-generator (mechanism mode) with the audit notes as input |
 <!-- EMPIRICAL_FIRST_END -->
-| Scorer: delta ≥ 3 with substantive content change | — | Allow one more iteration in current band |
-| Scorer: delta ≥ 3 from reframing only | — | Treat as plateau — escalate. Reframing is not progress (see `stage_4.md`). |
-| Scorer: delta < 3 (plateau/decline) | — | Escalate one level (REVISE → MAJOR REWORK → ABANDON) |
+| Scorer: **SUBSTANTIVE** diff (per branch-manager) | — | Allow one more iteration in current band — the deepening is working |
+| Scorer: **COSMETIC** diff (per branch-manager) | — | Treat as plateau — escalate. Reframing is not progress (see `stage_4.md`). |
 | Scorer: hard ceiling | 8 total evaluations on same problem | If score is in the REVISE band or above for the current target tier (see `docs/stage_4.md`): switch to deepening playbook. Otherwise (MAJOR REWORK or ABANDON band): escalate one level. |
-| Scorer plateau in the REVISE band for the current target tier | 2 consecutive delta < 3 | Switch to deepening playbook — the core idea works, it needs mathematical depth, not reworking. |
+| Scorer plateau in the REVISE band for the current target tier | 2 consecutive substantive revisions with no real gain | Switch to deepening playbook — the core idea works, it needs mathematical depth, not reworking. |
 | Scorer plateau in the REVISE band for the current target tier, branch-manager §E = Regenerate, no prior regen on this problem (`regeneration_round == 0`), **not seeded** | — | Fire regeneration round at Stage 1 (see `docs/stage_1.md` "Regeneration round"). Increment `regeneration_round` *before* re-entering Stage 1. **Takes precedence over the deepening-playbook row above when both fire** — Regenerate is the §E verdict that supersedes the default plateau routing. **At most one regeneration per problem:** if the regenerated attempt also plateaus, this row no longer fires (`regeneration_round > 0`) and the plateau row directly above applies — switch to the deepening playbook. |
 | Theory scored ABANDON | 5 theories on same problem | Change the problem (Stage 0) |
 | Problem viability fails | 5 problems | Pick the best scoring problem and proceed anyway |
@@ -407,7 +406,7 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 | Editor: Downgrade tier recommendation | — | Update `target_journal_tier` in pipeline state to one rung down the variant ladder (`{{TIER_LADDER_PROSE}}`), recompute Gate 4 advance threshold per the new tier. If aggregated verdict is Accept/Minor Revision at the new tier (current paper clears the new threshold), proceed to Stage 7. If Major Revision, continue the loop targeting the lower tier; the next round's referees inherit the updated tier in their variant context. See `docs/stage_6.md` "Journal-fit handling". |
 | Editor: Upgrade tier recommendation | — | Update `target_journal_tier` to one rung **up** the variant ladder (`{{TIER_LADDER_PROSE}}`), recompute Gate 4 advance threshold per the new tier. This is the mechanism that undoes an earlier over-eager downgrade: restoring a paper toward its initial (highest) target is a normal outcome, not a rare one. Continue the loop targeting the higher tier; the next round's referees inherit the updated tier in their variant context. Upgrading *above* the project's initial target is the rare case (needs the editor's Rule 5 quote gate cleared in that direction — two verbatim same-direction structural-ceiling spans from two different referees). See `docs/stage_6.md` "Journal-fit handling". |
 
-Before granting another iteration on a Δ≥3 score increase, the orchestrator classifies the v(N)→v(N−1) diff as substantive or cosmetic. Branch-manager emits this verdict at every Gate 4 (Section A); when it reports COSMETIC, the orchestrator escalates rather than continue. Definitions and the cosmetic-edit catalogue live in `docs/stage_4.md`.
+Before granting another iteration in the current band, the orchestrator classifies the v(N)→v(N−1) diff as substantive or cosmetic. Branch-manager emits this verdict at every Gate 4 (Section A); when it reports COSMETIC, the orchestrator escalates rather than continue. Definitions and the cosmetic-edit catalogue live in `docs/stage_4.md`.
 
 ---
 

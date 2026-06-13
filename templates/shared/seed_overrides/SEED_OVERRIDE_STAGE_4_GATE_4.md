@@ -4,4 +4,4 @@
 
 **Gate 4 ABANDON**: stop and write `output/seed/abandon_report.md` with a post-mortem. Do NOT return to Stage 0 or Stage 1 to pick a different idea.
 
-**Escalation rules**: the "5 theories → Stage 0" and "delta < 3 → escalate one level" rules do NOT apply in seeded mode in a way that swaps the idea. If the scorer plateaus, switch to the deepening playbook (deeper math, new characterizations) while preserving the mechanism.
+**Escalation rules**: the "5 theories → Stage 0" and the plateau-escalation rules (see `stage_4.md` — COSMETIC diff or repeated no-gain SUBSTANTIVE revisions) do NOT apply in seeded mode in a way that swaps the idea. If the scorer plateaus, switch to the deepening playbook (deeper math, new characterizations) while preserving the mechanism.

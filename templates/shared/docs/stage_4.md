@@ -76,22 +76,21 @@
 
 {{TIER_TABLE}}
 
-**1st scorer evaluation** (no prior score): use band logic from the table above.
+**1st scorer evaluation** (no prior score): use the band from the table above.
 
-**Subsequent scorer evaluations** (has prior score): use score trajectory.
+**Subsequent evaluations** (has a prior score): the CONTINUE-vs-ESCALATE call is driven by `branch-manager`'s **SUBSTANTIVE / COSMETIC** verdict on the v(N)→v(N−1) diff (a content judgment about whether the draft actually changed), *not* by a raw numeric delta — a few points of score movement is not, by itself, the signal.
 
 | Condition | Action |
 |-----------|--------|
-| Score ≥ advance threshold | **ADVANCE** — always, regardless of trajectory |
-| Score < abandon threshold | **ABANDON** — always, regardless of trajectory |
-| Delta ≥ 3 points, substantive change | **CONTINUE** — one more iteration in current band (improving, worth continuing) |
-| Delta ≥ 3 points, cosmetic change only | **ESCALATE** — reframing is not progress (see "Substantive vs cosmetic delta" below) |
-| Delta < 3 points | **ESCALATE** — move up one level: REVISE → MAJOR REWORK → ABANDON (plateau, not converging) |
-| Score < (advance threshold + 5) on attempt 3+ | **ESCALATE only after a deepening check.** If the score is in the REVISE band, first apply the deepening playbook — close-but-below after two revisions usually means the core needs more depth, not a new core; escalate only if deepening produces no Δ≥3 substantive gain. If the score is already in the MAJOR REWORK or ABANDON band, escalate (toward Regenerate) regardless of delta. |
+| Score ≥ advance threshold | **ADVANCE** |
+| Score < abandon threshold | **ABANDON** |
+| Change is **SUBSTANTIVE** (per branch-manager) | **CONTINUE** — the deepening is working; one more iteration in the current band |
+| Change is **COSMETIC** (per branch-manager) | **ESCALATE** — reframing is not progress (see "Substantive vs cosmetic delta" below) |
+| Score < (advance threshold + 5) on attempt 3+ | **Deepening check first.** In the REVISE band, apply the deepening playbook before escalating — close-but-below after two revisions usually means the core needs more depth, not a new core; escalate only if deepening yields no substantive gain. In the REWORK/ABANDON band, escalate (toward Regenerate) regardless. |
 
-**Hard ceiling:** After 8 total scorer evaluations on same problem, escalate one level regardless of trajectory.
+**Hard ceiling:** after 8 total scorer evaluations on the same problem, escalate one level regardless of trajectory.
 
-**Substantive vs cosmetic delta.** Branch-manager classifies the v(N)→v(N−1) diff at every Gate 4 (Section A of its report). The orchestrator uses that verdict; on COSMETIC, escalate even if Δ≥3.
+**Substantive vs cosmetic delta.** Branch-manager classifies the v(N)→v(N−1) diff at every Gate 4 (Section A of its report). The orchestrator uses that verdict; on COSMETIC, escalate even if the score rose.
 
 - **Substantive:** new theorem/lemma/proposition with proof, new proof of a previously-conjectured claim, removed or narrowed unverified claim, new mechanism with economic content, new comparative static derived from the model, new load-bearing extension or scope condition, empirical/numerical result that changes a calibration.
 - **Cosmetic** (treat as typos — fixable when wrong, but score-neutral): rewording the contribution sentence, reorganizing sections, sharper or narrower abstract framing, broader-interpretation paragraphs invoking larger phenomena without new results, label promotions or demotions (Lemma ↔ Theorem) without new content, restructuring the paper around an already-existing result (promoting a different result to the headline) without new math, renaming a variable or mechanism, additional defensive prose.
