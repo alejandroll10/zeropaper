@@ -249,6 +249,20 @@ Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory
    - Copies utilities, creates dirs, appends API keys to `.env`
 10. Removes template infrastructure, detaches from origin, commits initial state
 
+## Subagent model availability & fallback
+
+Agent metadata pins an **ideal** model per agent (e.g. `branch-manager` / `last-resort` → `fable`). If that model is unavailable on the account at setup time (a provider suspension — as happened when Claude Fable 5 / Mythos 5 were suspended by US export-control directive on 2026-06-12 — or simply no access), a pinned subagent would **hard-fail at launch with no fallback** (the Task tool returns "<model> is currently unavailable"; it does **not** silently downgrade to another model). To prevent that, `setup.sh` resolves models at assembly time:
+
+- **Probe** (`scripts/resolve_model_fallbacks.py`): for each distinct model pinned across the Claude agent metadata, run the *same* `claude` CLI that will run the agents (`claude -p --model <id>`) and classify by output content (the unavailable message returns rc=0, so detection is by marker string `"is currently unavailable"` / the fable-mythos-access URL, not exit code). Runtime-accurate by construction — an API-key probe can disagree with the CLI's account access.
+- **Fallback chains** (`templates/model_fallbacks.json`): each model maps to an ordered chain (`fable → opus → sonnet`, etc.). An unavailable model is remapped to the first chain entry that is not itself unavailable.
+- **Apply** (`scripts/apply_model_remap.py`): a single post-assembly pass rewrites the `model:` frontmatter in every assembled `.claude/agents/*.md` (base + variant + every extension), so one pass covers all agents without threading remap args through each assembler call site.
+- **Self-healing:** because metadata declares the *ideal* model, when a suspended model is restored the probe passes and no remap is applied — new deployments use the ideal again with no template edit.
+- **Flags / safety net:** `--no-model-probe` skips the live probe (CI / offline) and relies on a static known-unavailable list (`fable,mythos,...`), which also catches the known suspension when the probe is inconclusive (e.g. `claude` not on PATH). The list is the `--known-unavailable` arg in `setup.sh`; update it if a new model is suspended and you can't probe.
+
+**Known limitation (documented, not solved):** only **Claude** subagent models are probed/remapped. Codex (`gpt-5.5`) and Gemini (`gemini-3-preview`) subagents use a different provider/CLI; their availability is not checked. If an OpenAI/Google model used by the codex/gemini runtimes is withdrawn, those agents would hard-fail the same way — closing that would require per-provider probes (an `openai`/`gemini` CLI check) and provider-specific fallback chains. The `model_fallbacks.json` schema and the resolver/apply split are already provider-agnostic; what's missing is the per-runtime probe command and wiring the apply pass over `.codex/agents` / `.gemini/agents`.
+
+These four paths (`templates/model_fallbacks.json`, `scripts/resolve_model_fallbacks.py`, `scripts/apply_model_remap.py`) are **build-time only** — used during `setup.sh`, never copied into deployed projects — so they are intentionally absent from the deployment manifest.
+
 ## Adding a new variant
 
 1. Create agent metadata: `templates/agent_metadata/claude_{variant}_agents.json`
@@ -297,8 +311,8 @@ Agents are either **shared** (identical across variants) or **variant-specific**
 - `novelty-checker` — searches web for prior work
 - `paper-writer` — writes LaTeX from inputs
 - `style` — checks writing style
-- `branch-manager` — strategic advisor at Gate 4 + Stage 2 audit loop (every 3rd theory version); diagnoses ceiling/alternatives. Runs on `claude-fable-5` (rare, low-token, high-leverage strategic reasoning)
-- `last-resort` — general-purpose escalation agent for stubborn problems; launched at orchestrator discretion (no auto-trigger) when normal escalation is exhausted and the alternative is abandonment. Runs on the stronger `claude-fable-5` model with broad tool access; receives the full failure history; returns `FIX-PROPOSED` (re-verified by the existing gate — never self-certifies) or `GENUINELY-STUCK`. Visible in the manual-mode catalog; pruned in `--mode report`
+- `branch-manager` — strategic advisor at Gate 4 + Stage 2 audit loop (every 3rd theory version); diagnoses ceiling/alternatives. Pinned to `fable` (rare, low-token, high-leverage strategic reasoning), with automatic setup-time fallback to `opus` when fable is unavailable — see "Subagent model availability & fallback"
+- `last-resort` — general-purpose escalation agent for stubborn problems; launched at orchestrator discretion (no auto-trigger) when normal escalation is exhausted and the alternative is abandonment. Pinned to the stronger `fable` model (with automatic setup-time fallback to `opus` when fable is unavailable) with broad tool access; receives the full failure history; returns `FIX-PROPOSED` (re-verified by the existing gate — never self-certifies) or `GENUINELY-STUCK`. Visible in the manual-mode catalog; pruned in `--mode report`
 - `scribe` — documents the process
 
 **Variant-specific** (different prompts per domain):

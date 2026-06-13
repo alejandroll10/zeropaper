@@ -1,7 +1,8 @@
 #!/bin/bash
 # Auto AI Research Template — Setup & Launch
 # Usage: ./setup.sh [project-name] [--variant finance|macro] [--mode empirical-first|report]
-#                  [--ext empirical|theory_llm] [--seed|--faithful|--manual] [--light] [--local]
+#                  [--ext empirical|theory_llm] [--seed|--faithful|--manual] [--light]
+#                  [--no-model-probe] [--local]
 #
 # --local   Skip git clone, use templates from this repo directly.
 #           Outputs to test_output/{variant}/ for inspection.
@@ -33,6 +34,10 @@
 #           pipeline. The runtime doc lists what's available and lets you drive.
 #           Mutually exclusive with --seed and --faithful.
 # --light   Use sonnet for all subagents (cheaper/faster). Orchestrator model unchanged.
+# --no-model-probe  Skip the live claude-CLI availability probe. Agent models are
+#           still remapped off the built-in known-unavailable list (fable/mythos
+#           → opus), but newly-suspended models won't be auto-detected. Use in CI
+#           or offline setups where launching `claude` at setup time isn't wanted.
 #
 # Legacy: --variant finance_llm is shorthand for --variant finance --ext theory_llm
 
@@ -51,6 +56,7 @@ FAITHFUL=0
 MANUAL=0
 LIGHT=0
 HALT_ON_CORE_BYPASS=0
+MODEL_PROBE=1
 EXTENSIONS=()
 
 for arg in "$@"; do
@@ -63,6 +69,7 @@ for arg in "$@"; do
         --manual)      MANUAL=1 ;;
         --light)       LIGHT=1 ;;
         --halt-on-core-bypass) HALT_ON_CORE_BYPASS=1 ;;
+        --no-model-probe) MODEL_PROBE=0 ;;
         --local)       LOCAL=1 ;;
         --theory-llm)  VARIANT="finance_llm" ;;  # legacy flag
         -*)            echo "Unknown option: $arg"; exit 1 ;;
@@ -764,6 +771,56 @@ else
     mkdir -p "$AGENTS_OUT"
     mkdir -p "$CODEX_AGENTS_OUT"
     mkdir -p "$GEMINI_AGENTS_OUT"
+fi
+
+# ── Resolve unavailable Claude subagent models → fallbacks ──
+# Agent metadata pins an *ideal* model per agent (e.g. `fable`). If that model is
+# unavailable on this account at setup time (a provider suspension, or no access),
+# the pinned subagent would hard-fail at launch with no fallback. Probe each
+# distinct model with the *same* claude CLI that will run the agents (runtime-
+# accurate), and compute a remap of any unavailable model → the first available
+# entry in its fallback chain (templates/model_fallbacks.json). Applied as a
+# single post-assembly pass below (after extensions), so base + variant + every
+# extension agent is covered. Self-healing: when a suspended model is restored
+# the probe passes and no remap is applied. `--no-model-probe` skips the live
+# probe and relies on the known-unavailable safety list. Claude models only —
+# Codex (gpt-5.5) / Gemini (gemini-3-preview) subagents use a different provider.
+_model_meta_args=()
+for _mf in "$TEMPLATE_ROOT/templates/agent_metadata/claude_shared_agents.json" \
+           "$TEMPLATE_ROOT/templates/agent_metadata/claude_variant_agents.json" \
+           "$TEMPLATE_ROOT"/extensions/*/agent_metadata/*.json; do
+    [ -f "$_mf" ] && _model_meta_args+=(--metadata "$_mf")
+done
+_model_probe_flag=()
+[ "$MODEL_PROBE" = "0" ] && _model_probe_flag=(--no-probe)
+_model_extra_args=()
+[ "$LIGHT" = "1" ] && _model_extra_args=(--extra-model sonnet)
+if [ "$MODEL_PROBE" = "1" ]; then
+    echo "Probing subagent model availability (use --no-model-probe to skip)..."
+else
+    echo "Resolving subagent models (live probe disabled; using known-unavailable list)..."
+fi
+MODEL_REMAP_ARGS=()
+_model_remap_pairs=()
+# Capture into a variable (not `< <(...)`): process substitution does not
+# propagate the resolver's exit status under `set -e`, so a resolver crash
+# would silently leave unavailable models pinned. Fail loud instead — a
+# nonzero exit means a template bug (bad JSON, python error), not a benign
+# probe miss (the resolver handles a missing claude CLI internally, exit 0).
+if ! _model_resolver_out=$(python3 "$TEMPLATE_ROOT/scripts/resolve_model_fallbacks.py" \
+    --fallbacks "$TEMPLATE_ROOT/templates/model_fallbacks.json" \
+    --known-unavailable "fable,mythos,claude-fable-5,claude-mythos-5" \
+    "${_model_probe_flag[@]}" "${_model_extra_args[@]}" "${_model_meta_args[@]}"); then
+    echo "Error: subagent model resolver failed — aborting rather than shipping agents pinned to an unavailable model." >&2
+    exit 1
+fi
+while IFS= read -r _pair; do
+    [ -n "$_pair" ] && _model_remap_pairs+=("$_pair") && MODEL_REMAP_ARGS+=(--remap "$_pair")
+done <<< "$_model_resolver_out"
+if [ ${#_model_remap_pairs[@]} -gt 0 ]; then
+    echo "  ✓ Model fallback resolved — remapping: ${_model_remap_pairs[*]}"
+else
+    echo "  ✓ Model fallback resolved — all pinned models available"
 fi
 
 assemble_claude_shared_agents "$TEMPLATE_ROOT" "$AGENTS_OUT"
@@ -2091,6 +2148,16 @@ PYEOF
 apply_seed_overrides
 
 echo "  ✓ Codex custom agents assembled"
+
+# ── Apply model-availability remap to assembled Claude agents ──
+# Single post-assembly pass (after base + variant + every extension agent exists):
+# rewrite the `model:` frontmatter for any model the probe found unavailable,
+# repointing it to the resolved fallback. Claude agents dir only — see the
+# "Resolve unavailable Claude subagent models" block above for rationale.
+if [ ${#MODEL_REMAP_ARGS[@]} -gt 0 ]; then
+    python3 "$TEMPLATE_ROOT/scripts/apply_model_remap.py" --dir "$AGENTS_OUT" "${MODEL_REMAP_ARGS[@]}"
+    echo "  ✓ Subagent model remap applied to $AGENTS_OUT"
+fi
 
 # ── Emit deployment manifest ──
 # Records what setup.sh produced as "infrastructure" — paths that update.sh

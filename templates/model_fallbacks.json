@@ -1,0 +1,19 @@
+{
+  "_comment": "Ordered fallback chains for Claude subagent models. If a model pinned in agent metadata is unavailable at setup time (probed via the claude CLI, or matched against the known-unavailable list when probing is off), setup.sh remaps it to the first AVAILABLE model in its chain. Keyed by both the alias form (opus/sonnet/fable) and the full-id form, since agent metadata may use either. Order = most-capable-first within tier. Self-healing: when a suspended model is restored, the probe passes and no remap is applied. Build-time only — not copied into deployed projects.",
+
+  "fable": ["opus", "sonnet"],
+  "claude-fable-5": ["claude-opus-4-8", "claude-sonnet-4-6"],
+  "mythos": ["opus", "sonnet"],
+  "claude-mythos-5": ["claude-opus-4-8", "claude-sonnet-4-6"],
+
+  "opus": ["sonnet", "haiku"],
+  "claude-opus-4-8": ["claude-opus-4-7", "claude-opus-4-6", "claude-sonnet-4-6"],
+  "claude-opus-4-7": ["claude-opus-4-6", "claude-sonnet-4-6"],
+  "claude-opus-4-6": ["claude-sonnet-4-6"],
+
+  "sonnet": ["haiku"],
+  "claude-sonnet-4-6": ["claude-sonnet-4-5", "claude-haiku-4-5"],
+
+  "haiku": [],
+  "claude-haiku-4-5": []
+}
