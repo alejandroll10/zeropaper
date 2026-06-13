@@ -6,7 +6,7 @@
 2. Choose strategy:
    - Attempt 1: develop the selected idea into a full theory, building on the prototype's derivation
    - Attempt 2+: mutate (if previous attempt had good elements) or fresh with different approach
-3. Launch theory-generator with the selected idea, problem statement, literature map, **`output/stage1/negative_results.md` if it exists** (BLOCKED prototypes from prior Stage-1 rounds — orchestrator must pass this in explicitly so a regenerated or re-attempted theory cannot silently re-propose a known-blocked sketch), and strategy.
+3. Launch theory-generator with the selected idea, problem statement, literature map, **`output/stage1/negative_results.md` if it exists** (BLOCKED-IMPOSSIBLE prototypes from prior Stage-1 rounds — only proven impossibilities propagate here, not mere difficulty stalls — orchestrator must pass this in explicitly so a regenerated or re-attempted theory cannot silently re-propose a known-impossible sketch), and strategy.
 <!-- THEORY_FIRST_START -->
    Pass the same file to `math-auditor` and `self-attacker` on their launches in step 4 below and at Stage 4. On mutate / crossover / pivot relaunches, also point theory-generator at the prior `output/stage2/math_audit_v*.md` and `output/stage2/freeform_audit_v*.md` files for this attempt — the agent reads them to avoid repeating error classes flagged in earlier versions.
 <!-- THEORY_FIRST_END -->

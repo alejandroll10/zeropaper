@@ -1,6 +1,9 @@
 # Stage 0: Problem Discovery
 
-**On every Stage 0 (re-)entry: reset `regeneration_round` to 0 in `pipeline_state.json` if it is non-zero.** Regeneration is scoped to a single problem; a new problem starts with a clean slate.
+**On every Stage 0 (re-)entry (each begins a fresh problem; every `problem_attempt` increment routes through a Stage 0 entry, so this entry hook is the single authoritative reset site): reset the problem-scoped Stage-1 state in `pipeline_state.json`:**
+- Reset `regeneration_round` to `0` if non-zero. Regeneration is scoped to a single problem; a new problem starts with a clean slate.
+- Reset `harder_round_forced` to `false`. The Stage-1 portfolio guard (`docs/stage_1.md` Step 2a) gets a fresh once-per-problem budget.
+- Reset `fallback_idea_sketch_name` to `null` and ignore any stale `output/stage1/fallback_*.md`. (If this re-entry is an *automatic* abandonment — 5-round cap exhausted or Gate 1 REJECT ALL — the Step 2a "fallback rescue" should already have shipped a non-null fallback instead of letting control reach here; this reset is the backstop for the *deliberate* Stage-0 re-entries, e.g. branch-manager's empirical-first REENTER-STAGE-0, where abandoning the prior problem's fallback is intended.)
 
 ## Step 0a: Broad literature scan
 

@@ -30,7 +30,15 @@ Save to the path specified in your prompt. Structure:
 ### Step 3: [...]
 [Keep going until you either get the result or get stuck.]
 
-## Verdict: TRACTABLE / BLOCKED
+## Verdict: TRACTABLE / BLOCKED-DIFFICULTY / BLOCKED-IMPOSSIBLE
+
+Three outcomes, not two. The distinction between the two BLOCKED verdicts is the most important judgment you make here — do not collapse them. A result you *could not prove in one attempt* is **not** the same as a result that *cannot be proven*.
+
+- **TRACTABLE** — the main result goes through with the proof strategy you tried.
+- **BLOCKED-DIFFICULTY** — the strategy you tried stalled, but you found **no impossibility**: no no-go, no pinned quantity, no identity that forecloses the target. The result may well be true; the standard approach just didn't reach it in this attempt. This is the *expected* verdict for a genuinely novel result whose proof needs a non-textbook technique — novel results are often novel precisely because nobody has run the harder derivation yet.
+- **BLOCKED-IMPOSSIBLE** — you actually proved the target cannot hold (or cannot be reached within this class of models): a no-go lemma, a pinned quantity, an identity that blocks the comparative static, an impossibility over the class.
+
+**Default to BLOCKED-DIFFICULTY over BLOCKED-IMPOSSIBLE.** Claim BLOCKED-IMPOSSIBLE only when you *proved* impossibility — not when you merely failed to find a proof. "I couldn't do it" is BLOCKED-DIFFICULTY. "It cannot be done, and here is why structurally" is BLOCKED-IMPOSSIBLE. When in doubt, it is BLOCKED-DIFFICULTY.
 
 ### If TRACTABLE:
 - The main result goes through: [state it formally]
@@ -53,12 +61,15 @@ Now that you can see what the result looks like, answer honestly:
 
 **If OBVIOUS**: Flag this clearly. The orchestrator should treat this as a soft kill signal — the idea may still proceed, but the theory-generator must be instructed to find a non-obvious result within the model (an unexpected comparative static, an interaction effect, a parameter regime where the sign flips). If the full theory also scores low on surprise at Gate 4, this idea will not advance.
 
-### If BLOCKED:
-- Where it got stuck: [specific step and why]
-- Nature of the block: [algebraic dead end / missing assumption / result doesn't hold / needs different approach]
-- Is it fixable? [Yes with modification X / No, fundamental issue / Maybe, but would change the result]  — a yes/no/maybe flag only; do not prescribe the fix here. Escape language belongs in **Negative result** below.
-- Recommendation: [try different approach / modify assumption / abandon this idea]
-- **Negative result.** State as generally as the proof supports what has been shown impossible, and why structurally (not the calculation). Phrase any escape as what would need to be true for the result to fail, not as a prescription for the next theory. Let the form follow what you actually proved — an impossibility over a class of models, a no-go lemma, a pinned quantity, an identity that blocks the target comparative static, etc. If the block is a pure dead-end rather than a proof of impossibility, you may leave this empty, but you must state WHY the block is not an impossibility in one sentence (e.g., "could not rule out that a different functional form avoids the dead-end") — do not leave this section empty without that justification.
+### If BLOCKED-DIFFICULTY:
+- Where it stalled: [the specific step where the standard strategy didn't close, and why it didn't close]
+- **Most promising alternative technique.** Name the *specific* technique you did not have time to pursue that is most likely to reach the result — e.g., a fixed-point / contraction argument, a continuous-time reformulation, a different equilibrium concept, a change of variables, a verification-theorem approach, a guess-and-verify. Be concrete: name the technique and give one sentence on why it plausibly closes the proof. If you genuinely cannot name any promising alternative, write "no specific alternative technique identified" and then state in one sentence WHY the block is still not an impossibility (e.g., "could not rule out that a different functional form avoids the dead-end") — that justification is exactly what separates this verdict from BLOCKED-IMPOSSIBLE. The orchestrator may re-invoke you **once** with the named technique prescribed; if it does, treat that as a fresh single-shot attempt using that technique.
+- Functional-form / assumption dependence observed so far: [anything you noticed that the theory-generator should know]
+
+### If BLOCKED-IMPOSSIBLE:
+- Where it got stuck and why it is fundamental: [the specific step, and what makes it a structural barrier rather than a difficulty]
+- Recommendation: [modify assumption X / abandon this idea]
+- **Negative result.** Required for this verdict. State as generally as the proof supports what has been shown impossible, and why structurally (not the calculation). Phrase any escape as what would need to be true for the result to fail, not as a prescription for the next theory. Let the form follow what you actually proved — an impossibility over a class of models, a no-go lemma, a pinned quantity, an identity that blocks the target comparative static, etc. (If you cannot fill this in — if you have no structural impossibility to state — then the verdict is BLOCKED-DIFFICULTY, not BLOCKED-IMPOSSIBLE. Go back and change it.)
 ```
 
 ## How to approach it
@@ -66,13 +77,13 @@ Now that you can see what the result looks like, answer honestly:
 1. **Start from the setup in the idea sketch.** Write down the primitives formally — the agents' optimization problems, or, for kernel-primitive asset-pricing sketches, the SDF process and asset payoff / state-variable dynamics. Don't reinvent — translate the sketch into math.
 2. **Go straight for the main result.** Don't build the full model. Don't worry about secondary results, extensions, or exposition. Just: can I prove the main claim?
 3. **Show all algebra.** This is a math sprint, not a hand-wave. Every step should be on the page.
-4. **Stop as soon as you know the answer.** If it clearly works, say TRACTABLE. If you hit a wall, say BLOCKED. Don't spend time polishing.
+4. **Stop as soon as you know the answer.** If it clearly works, say TRACTABLE. If you hit a wall, classify it per the verdict section above — `BLOCKED-DIFFICULTY` if you found no impossibility, `BLOCKED-IMPOSSIBLE` only if you proved one (default to `BLOCKED-DIFFICULTY` when unsure). Never return a bare "BLOCKED" — the orchestrator routes on which of the two it is. Don't spend time polishing.
 5. **Be honest about hidden assumptions.** If the result only goes through with an assumption not in the sketch (e.g., interiority, single-crossing, specific functional form), flag it.
 
 ## Rules
 
 - **Speed over completeness.** You're not writing a paper. You're checking if a proof exists. Rough is fine, wrong is not.
-- **Show your work.** The theory-generator will read this. If TRACTABLE, it needs to see the derivation path. If BLOCKED, it needs to see where and why.
+- **Show your work.** The theory-generator will read this. If TRACTABLE, it needs to see the derivation path. If `BLOCKED-DIFFICULTY` or `BLOCKED-IMPOSSIBLE`, it needs to see where and why — and, for `BLOCKED-DIFFICULTY`, the named alternative technique it should try.
 - **Don't fix a blocked idea.** If the derivation doesn't work, report exactly where it fails and stop. Fixing is the idea-generator's job (or the idea gets killed).
 - **Flag functional form dependence.** If the result only works with CARA/log/quadratic, say so. That's crucial information for the reviewer and theory-generator.
-- **One attempt per idea.** Don't try multiple approaches. The sketch should have specified the proof strategy. Try that strategy. If it fails, report the failure.
+- **One attempt per invocation.** In a single invocation, try one proof strategy — the one the sketch specified, or the one prescribed in your prompt if you are being re-invoked after a BLOCKED-DIFFICULTY. Don't try multiple approaches within one call; a sprint that half-attempts three techniques proves nothing. If the strategy fails, classify the failure as BLOCKED-DIFFICULTY (no impossibility found) or BLOCKED-IMPOSSIBLE (impossibility proven) and report it. The orchestrator — not you — decides whether to spend a second attempt with a different technique.

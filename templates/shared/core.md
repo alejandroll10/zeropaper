@@ -99,9 +99,14 @@ Stage 1: Idea Generation     ──→ Gate 1: Idea Review (iterates with genera
                                    Step 1: K novelty-checkers in parallel
                                      └── drop KNOWN; survivors continue
                                    Step 2: prototypers on survivors in parallel
-                                     └── drop BLOCKED (Negative results →
-                                         stage1/negative_results.md, sequential append)
-                                   Step 3: tiebreak among TRACTABLE survivors
+                                     ├── TRACTABLE / BLOCKED-DIFFICULTY / BLOCKED-IMPOSSIBLE
+                                     ├── NOVEL + BLOCKED-DIFFICULTY → one harder-technique retry
+                                     └── drop both BLOCKED kinds; only BLOCKED-IMPOSSIBLE
+                                         → stage1/negative_results.md (sequential append)
+                                   Step 2a: portfolio guard — if only INCREMENTAL survives but
+                                     a NOVEL idea died on difficulty, force one harder round
+                                     (fallback snapshotted; fires once per problem)
+                                   Step 3: tiebreak among TRACTABLE survivors (+ fallback)
                                      (novelty tier > surprise tier > reviewer rank)
                                      → winner copied to canonical files
                                    ├── all K eliminated → new Round of Stage 1
@@ -224,10 +229,14 @@ When you start the pipeline, set `"status": "running"` and begin appending to th
 
 {{EMPIRICAL_STATE3A_DOC}}
 {{THEORY_LLM_STATE3B_DOC}}
-**`stage1_candidates`:** Records every sketch screened at Gates 1b/1c during Stage 1. Each entry: `{round, rank, sketch_name, novelty, prototype, surprise, eliminated, winner}` — `round` is the `idea_round` value when the entry was last written; `rank` is the idea-reviewer ADVANCE position (1..K) **within that round** (rank is unique per-round, NOT unique across the array); verdict fields are `null` until the agent runs. The flags mean:
-- `eliminated: true` — screened as dead. Set **only** for KNOWN at 1b or BLOCKED at 1c. Never re-nominate.
+**`stage1_candidates`:** Records every sketch screened at Gates 1b/1c during Stage 1. Each entry: `{round, rank, sketch_name, novelty, prototype, surprise, prototype_retry, eliminated, winner}` — `round` is the `idea_round` value when the entry was last written; `rank` is the idea-reviewer ADVANCE position (1..K) **within that round** (rank is unique per-round, NOT unique across the array); verdict fields are `null` until the agent runs. `prototype` takes one of `TRACTABLE` / `BLOCKED-DIFFICULTY` / `BLOCKED-IMPOSSIBLE` (proof difficulty vs proven impossibility — see `docs/stage_1.md` Gate 1c). `prototype_retry` is `0` or `1`: it records whether the one permitted harder-technique re-attempt (NOVEL + `BLOCKED-DIFFICULTY` only) was spent on this candidate. The flags mean:
+- `eliminated: true` — screened out. Set for KNOWN at 1b, or `BLOCKED-IMPOSSIBLE` / `BLOCKED-DIFFICULTY` at 1c. Never re-nominate. Only `BLOCKED-IMPOSSIBLE` is a *proven* dead end (it propagated a negative result); `BLOCKED-DIFFICULTY` is "hard, unresolved" — eliminated from selection but not a no-go, and the `prototype` field preserves which it was for the audit trail.
 - `winner: true` — the sketch whose theory is currently being developed downstream. If the theory later fails, this sketch has already been tried and should not be re-nominated.
 - `eliminated: false AND winner: false` — a TRACTABLE survivor that lost the tiebreak. **This is a pre-vetted runner-up** and is the preferred re-nomination on re-entry after a failed theory (see `docs/stage_1.md` step 2).
+
+**`harder_round_forced`:** Boolean, initialized `false`. Set `true` the one time the Stage-1 portfolio guard (`docs/stage_1.md` Step 2a) fires for the current problem — when a round's only TRACTABLE survivors are INCREMENTAL but a NOVEL idea ended `BLOCKED-DIFFICULTY`, forcing one harder idea-generation round before the incremental survivor can advance. The guard checks this field so it fires **at most once per problem**. **Reset to `false` on every Stage 0 (re-)entry** (a Stage 0 re-run is a fresh problem and earns a fresh guard); the authoritative reset hook is the top of `docs/stage_0.md`, and every `problem_attempt` increment routes through a Stage 0 entry.
+
+**`fallback_idea_sketch_name`:** Initialized `null`. When the portfolio guard fires it is set to the `sketch_name` of the best current TRACTABLE survivor, which the guard simultaneously snapshots to `output/stage1/fallback_idea.md` (+ `fallback_novelty_check.md`, `fallback_idea_prototype.md`). It points at the idea the next Step 3 tiebreak must include as an extra candidate so the guard never costs a shippable idea (`docs/stage_1.md` Step 2a/Step 3). Cleared back to `null` in exactly three places: (i) the Step 3 tiebreak that consumes it, (ii) the Step 2a "fallback rescue" that ships it when Stage 1 would otherwise abandon to Stage 0, and (iii) **on every Stage 0 (re-)entry** (clear it and ignore any stale `fallback_*.md`, via the same `docs/stage_0.md` reset hook as `harder_round_forced` above). Lifecycle rule (iii) is what lets every Step 3 treat a non-null value as "belongs to the current problem."
 
 Entries accumulate across Rounds — do not clear between Rounds. **Deduplicate by `sketch_name`**: if an entry with the same `sketch_name` already exists when Step 7 of Stage 1 runs, update it in place (new `round`, new `rank`, verdict fields reset to `null` for re-screening) rather than appending a duplicate. Lookups that need "the current winner" must filter by `winner: true` (at most one such entry should exist at any time during a run); lookups that need "pre-vetted runner-ups" filter by `eliminated: false AND winner: false`.
 
@@ -373,8 +382,8 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 | Situation | After N failures | Action |
 |-----------|-----------------|--------|
 | Idea review iterates | 5 rounds | Pick the best idea and advance to Gate 1b |
-| Idea review rejects all | 1 rejection | Return to Stage 0 for a different problem |
-| Gates 1b/1c parallel screening eliminates all candidates | All top-K KNOWN at 1b OR BLOCKED at 1c | New Round of Stage 1 (counts toward 5-round limit) |
+| Idea review rejects all | 1 rejection | Return to Stage 0 for a different problem (ship a pending portfolio-guard fallback first if `fallback_idea_sketch_name` is non-null — see `docs/stage_1.md` Gate 1 REJECT ALL row) |
+| Gates 1b/1c parallel screening eliminates all candidates | All top-K KNOWN at 1b OR BLOCKED (-DIFFICULTY/-IMPOSSIBLE) at 1c | New Round of Stage 1 (counts toward 5-round limit). NOVEL+BLOCKED-DIFFICULTY ideas get one harder-technique retry first; if only INCREMENTAL survives while a NOVEL idea died on difficulty, the Step-2a portfolio guard forces a harder round (once per problem) |
 | Gate 3 novelty INCREMENTAL | 3 rework attempts at Stage 2 | Abandon this idea, return to Stage 1 for a new one |
 <!-- THEORY_FIRST_START -->
 | Math audit fails | 3 attempts | Abandon this theory version |
