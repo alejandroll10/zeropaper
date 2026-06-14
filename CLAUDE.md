@@ -38,6 +38,8 @@ Concretely:
 
 If a user asks to create/set up/start a new research project, run `setup.sh` for them:
 
+> **`--local` is a debug flag, never a real run.** It skips the git clone, dumps assembled output into `test_output/{variant}/` for inspection, and **exits before** the production steps (dependency install, origin detach, initial commit, cleanup). Use it *only* to verify template assembly (placeholder resolution, agent/skill files, marker stripping) — typically against a `/tmp` target. A full, deployable run is the plain `./setup.sh <project-name> ...` form **without** `--local`; the `--local` examples below appear only under "Adding a new variant/mode" because they are assembly tests, not paper runs.
+
 ```bash
 # Basic finance theory
 ./setup.sh <project-name> --variant finance
