@@ -29,7 +29,7 @@ When the check fails, apply the severity-cap rule defensively while scoring: hig
 
 | # | Requirement | How to check |
 |---|------------|-------------|
-| H1 | **One clear idea** | Can you state the contribution in one sentence from the theory draft? **Multi-piece contributions pass H1 if the union is statable as a single thesis** (e.g., "an algebraic identity that yields both a within-asset characterization and a methodological observation"). H1 fails only when the paper is two unrelated papers stapled together. |
+| H1 | **One clear idea** | Can you state the contribution in one sentence from the theory draft? **Multi-piece contributions pass H1 if the union is statable as a single thesis that each piece is load-bearing for** (e.g., "an algebraic identity that yields both a within-asset characterization and a methodological observation"). A unifying claim counts as a thesis ("X raises Y through mechanism Z" qualifies, including for applied/empirical papers); a one-sentence umbrella that merely lists what the paper covers ("we study several aspects of X") does not. H1 fails when the paper is unrelated results stapled together. |
 | H2 | **Setup is well-defined** | {{H2_CHECK}} |
 | H3 | **{{H3_REQUIREMENT}}** | {{H3_CHECK}} |
 | H4 | **The result is new** | Novelty check returned NOVEL → PASS. KNOWN → FAIL. INCREMENTAL → cross-check against the Gate 3 novelty report: if Gate 3 identified a distinguishing result (a new comparative static, a sign reversal, an additional assumption that changes the conclusion, or a new empirical implication), the theory passes H4 and is scored on its merits. If Gate 3 found no distinguishing result, INCREMENTAL is FAIL. |
@@ -96,13 +96,13 @@ Rigor is measured by whether the core argument is airtight under the assumptions
 
 ### Parsimony (weight: 10%)
 
-Parsimony is measured relative to the paper's core result: how many of the assumptions and model elements are load-bearing for the main result, versus added for scope, defense, or extension?
+Parsimony is measured relative to the paper's core result: how many of the assumptions and model elements are load-bearing for the main result, versus added for scope, defense, or extension? Count assumptions and frictions, not implications — one friction that yields many implications is parsimonious, not a violation.
 
 - **100**: {{PARSIMONY_100}}
 - **80**: one or two assumptions or propositions exist as robustness or extension. Core model is clean.
 - **60**: the paper has a clear core but also carries multiple extensions, alternate formulations, or scope conditions that expand the paper without expanding the contribution proportionally.
 - **40**: kitchen-sink. Multiple {{PARSIMONY_40_FIRST}}, welfare treatments, appendices addressing concerns not load-bearing for the main result.
-- **20**: reads as a collection of related results rather than a single paper.
+- **20**: reads as a collection of *unrelated* results, or multiple unrelated frictions, with no single thesis each is load-bearing for.
 
 **An assumption added to address an audit concern or referee objection, but not used in the proof of the main result, counts against parsimony.** Scope conditions, alternative formulations, and "we also show" extensions are parsimony violations unless genuinely central to the contribution. **Multi-piece exception:** when the paper's contribution is structurally multi-piece and each piece is load-bearing for the union thesis (apply the same standard as H1 — is the union statable as a single thesis only with this piece present?), the multi-piece structure itself is not a Parsimony violation — the test is whether the pieces are load-bearing, not whether they could be flattened to a single proposition.
 
