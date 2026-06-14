@@ -36,6 +36,8 @@ Save to the path specified in your prompt. Structure:
 **Weaknesses:** [What's the problem?]
 **Verdict:** DEVELOP / REFINE / COMBINE WITH [other idea] / DROP
 
+**Model-first ideas are valid.** A `model-first` idea (a model — or a real-world fact to explain — whose headline emerges in development, with no committed result yet) is judged on the *promise of the model* and whether its outcome is genuinely hard to predict — NOT on having a committed result. Do not penalize it for an open headline; an unpredictable-outcome model is a strength, not a gap. **But check the tag is honest:** if a `model-first` idea's "conjecture" reads like a result any theorist would pre-commit to (the sign is obvious, the direction is clear from the setup), it is a result-first idea wearing a model-first label — require a re-label to result-first (so it gets the committed-result prototype check), don't let it dodge scrutiny.
+
 ### Idea 2: [Name]
 ...
 
@@ -60,9 +62,9 @@ or
 **ADVANCE** — Top K ideas ranked for parallel screening at Gates 1b/1c (1 ≤ K ≤ 3):
 <!-- THEORY_FIRST_START -->
 
-1. **[Idea name]** — if this wins the tournament, theory-generator should focus on: [specific theorem-development instructions — proof technique to attempt, comparative statics to derive, equilibrium concept to use, scope conditions to nail down]
-2. **[Idea name]** — if this wins, theory-generator should focus on: [specific theorem-development instructions]
-3. **[Idea name]** — if this wins, theory-generator should focus on: [specific theorem-development instructions]
+1. **[Idea name]** — if this wins the tournament, theory-generator should focus on: [specific theorem-development instructions — proof technique to attempt, comparative statics to derive, equilibrium concept to use, scope conditions to nail down. **For a `model-first` idea, do NOT prescribe a target theorem to prove** — instruct theory-generator to develop the model and harvest its implications, naming the equilibrium concept and the regions/limits worth exploring, and let the headline emerge at Stage 2b.]
+2. **[Idea name]** — if this wins, theory-generator should focus on: [specific theorem-development instructions; for model-first, develop-and-harvest instructions per #1]
+3. **[Idea name]** — if this wins, theory-generator should focus on: [specific theorem-development instructions; for model-first, develop-and-harvest instructions per #1]
 <!-- THEORY_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 

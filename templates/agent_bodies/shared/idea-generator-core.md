@@ -28,8 +28,11 @@ Save to the path specified in your prompt. For each idea, develop it enough that
 ### Equilibrium logic
 {{IDEA_GEN_LOGIC_DESC}}
 
-### Main result
-{{IDEA_GEN_RESULT_DESC}}
+### Approach: result-first | model-first
+[**result-first** = you commit a specific main result the model will prove. **model-first** = you commit a model (or a real-world fact to explain) whose headline result you cannot confidently predict ex ante — the result emerges in development. Choose whichever the idea naturally is.]
+
+### Main result (result-first) — or Conjectured result + open question (model-first)
+{{IDEA_GEN_RESULT_DESC}} For a model-first idea, instead give your best *conjecture* of what the model will yield plus the open question it answers — flagged as a conjecture to be confirmed or overturned in development, not a committed claim.
 
 ### Proof sketch
 {{IDEA_GEN_PROOF_DESC}}
@@ -54,6 +57,7 @@ Save to the path specified in your prompt. For each idea, develop it enough that
 - Each idea should use a **different {{IDEA_GEN_DIFFERENT_MECHANISM}}**. Don't just vary the setup of the same idea.{{IDEA_GEN_EXTRA_BRAINSTORM_BULLET}}
 - At least one idea should be unconventional or surprising.
 - At least one should be simple and clean ({{IDEA_GEN_SIMPLE_HINT}}).
+- At least one idea should be **model-first**: a model whose outcome a knowledgeable colleague genuinely could not call in advance, or a real-world fact whose explaining mechanism is non-obvious. Aim for an *unpredictable outcome*, not a pre-decided surprising result — the latter just smuggles the result-first habit back in.
 - **Multi-piece sketches are valid Round 1 forms.** A sketch whose contribution is two load-bearing pieces (e.g., a structural identity + a within-class characterization) is fine when the union is the natural shape of the result. Do not pre-flatten to "single mechanism" if the natural shape is multi-piece.
 
 ### Round 2+ (with reviewer feedback)

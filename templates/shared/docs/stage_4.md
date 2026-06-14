@@ -94,6 +94,7 @@
 
 - **Substantive:** new theorem/lemma/proposition with proof, new proof of a previously-conjectured claim, removed or narrowed unverified claim, new mechanism with economic content, new comparative static derived from the model, new load-bearing extension or scope condition, empirical/numerical result that changes a calibration.
 - **Cosmetic** (treat as typos — fixable when wrong, but score-neutral): rewording the contribution sentence, reorganizing sections, sharper or narrower abstract framing, broader-interpretation paragraphs invoking larger phenomena without new results, label promotions or demotions (Lemma ↔ Theorem) without new content, restructuring the paper around an already-existing result (promoting a different result to the headline) without new math, renaming a variable or mechanism, additional defensive prose.
+  - *Model-first carve-out:* selecting or centering the headline on a result that was **newly developed in this cycle** (model-first headline emergence at Stage 2b) is **substantive, not cosmetic** — the result is new content the development produced, not a relabelling. Cosmetic covers only re-headlining among results that already existed without new math.
 
 Record all content scores in `process_log/pipeline_state.json` under `"scores"` so the trajectory can be computed: `"scores": { "v1": 60, "v2": 63, "v3": 67 }`.
 
