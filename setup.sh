@@ -180,7 +180,7 @@ case "$VARIANT" in
     finance)
         PAPER_TYPE="finance theory paper"
         TARGET_JOURNALS="top-3 finance journal (JF, JFE, RFS)"
-        DOMAIN_AREAS="finance theory — asset pricing, corporate finance, information economics, market design, financial intermediation, or behavioral finance"
+        DOMAIN_AREAS="finance — asset pricing, corporate finance, information economics, market design, financial intermediation, banking, household finance, and behavioral finance. Scope is broad, and the following are SUFFICIENT (not necessary) conditions: a model involving an asset market, a firm or manager optimizing value, risk (borne, shared, or priced), banks/credit/lending, or households allocating across assets is in finance scope even when the topic looks like IO, information economics, or regulation. These are sufficient, not necessary — a paper can be finance without any of them."
         JOURNAL_LIST="Top-3 finance: JF, JFE, RFS, JF Insights & Perspectives (JFIP — top-3-fin tier on quality bar, JF-equivalent standard; CV credit lags; ≤7k words, single-insight, no R&R). Also: Review of Finance, Management Science, JFQA. Top accounting: JAR, JAE, TAR, RAS. Top-5 econ: AER, Econometrica, QJE, JPE, ReStud."
         AGENT_DIR="finance"
         INITIAL_TIER="top-3-fin"
