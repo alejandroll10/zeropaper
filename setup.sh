@@ -52,6 +52,7 @@ NEXT_IS_VARIANT=0
 NEXT_IS_EXT=0
 NEXT_IS_MODE=0
 SEEDED=0
+USER_PASSED_SEED=0   # distinct from SEEDED, which --faithful also sets; used to detect a --seed + --faithful collision
 FAITHFUL=0
 MANUAL=0
 LIGHT=0
@@ -64,14 +65,14 @@ for arg in "$@"; do
         --variant)     NEXT_IS_VARIANT=1 ;;
         --ext)         NEXT_IS_EXT=1 ;;
         --mode)        NEXT_IS_MODE=1 ;;
-        --seed)        SEEDED=1 ;;
+        --seed)        SEEDED=1; USER_PASSED_SEED=1 ;;
         --faithful)    FAITHFUL=1; SEEDED=1 ;;  # faithful implies seeded folder structure
         --manual)      MANUAL=1 ;;
         --light)       LIGHT=1 ;;
         --halt-on-core-bypass) HALT_ON_CORE_BYPASS=1 ;;
         --no-model-probe) MODEL_PROBE=0 ;;
         --local)       LOCAL=1 ;;
-        --theory-llm)  VARIANT="finance_llm" ;;  # legacy flag
+        --theory-llm)  [[ " ${EXTENSIONS[*]} " =~ " theory_llm " ]] || EXTENSIONS+=("theory_llm") ;;  # legacy alias for --ext theory_llm (does not touch --variant)
         -*)            echo "Unknown option: $arg"; exit 1 ;;
         *)
             if [ "$NEXT_IS_VARIANT" = "1" ]; then
@@ -122,16 +123,20 @@ if [ "$MANUAL" = "1" ] && [ "$SEEDED" = "1" ]; then
     exit 1
 fi
 
-# --faithful set both FAITHFUL and SEEDED above. If the user explicitly passed
-# --seed in the same invocation, the modes have collapsed to faithful (which
-# subsumes --seed's folder structure) — that is fine. The error case is one
-# we cannot detect after the case statement: passing both flags is silently
-# treated as --faithful. Document that in --help if the script grows one.
+# --faithful sets both FAITHFUL and SEEDED above. USER_PASSED_SEED tracks whether
+# --seed was *also* passed explicitly; the documented contract is "pass one or the
+# other, not both" (CLAUDE.md), so honor it with a hard error rather than silently
+# collapsing to faithful.
+if [ "$FAITHFUL" = "1" ] && [ "$USER_PASSED_SEED" = "1" ]; then
+    echo "Error: --seed and --faithful are mutually exclusive — pass one, not both."
+    echo "  --faithful is a stricter variant of --seed (it already creates output/seed/ and starts at seed_triage)."
+    exit 1
+fi
 
 # ── Expand legacy finance_llm variant ──
 if [ "$VARIANT" = "finance_llm" ]; then
     VARIANT="finance"
-    EXTENSIONS+=("theory_llm")
+    [[ " ${EXTENSIONS[*]} " =~ " theory_llm " ]] || EXTENSIONS+=("theory_llm")
 fi
 
 # ── Mode validation and dependency expansion ──
@@ -173,6 +178,24 @@ if [ -n "$MODE" ]; then
             exit 1
             ;;
     esac
+fi
+
+# ── Deduplicate EXTENSIONS ──
+# Belt-and-suspenders: each add site above is individually guarded, but a user can
+# still reach a duplicate by combining the legacy alias with the modern form
+# (e.g. --theory-llm --ext theory_llm, or --variant finance_llm --ext theory_llm).
+# A duplicate would make the extension's assembly/.env steps run twice. Collapse to
+# unique values once, after all add sites have run.
+if [ "${#EXTENSIONS[@]}" -gt 0 ]; then
+    _seen_ext=" "
+    _deduped_ext=()
+    for _ext in "${EXTENSIONS[@]}"; do
+        if [[ "$_seen_ext" != *" $_ext "* ]]; then
+            _deduped_ext+=("$_ext")
+            _seen_ext+="$_ext "
+        fi
+    done
+    EXTENSIONS=("${_deduped_ext[@]}")
 fi
 
 # ── Variant configuration ──
