@@ -175,14 +175,29 @@ def _surname_tokens(author: str) -> set[str]:
     (Li, Wu, He, Ma) are kept and can anchor the author check (issue #54).
     One-character initials are also caught by the pre-norm `[A-Z]\\.?` filter on
     the last raw segment.
+
+    Name order: a comma signals "Lastname, Firstname" order (the BibTeX default),
+    so the surname is the segment *before* the first comma. Without a comma the
+    string is "Firstname ... Lastname" order and the surname is the last token.
+    (Issue #105: the old code split on whitespace/comma/period together,
+    discarding the comma, and always took the last token — which is the *given*
+    name in "Lastname, Firstname" entries, yielding doi_author_overlap=0.0 and
+    systematic false MISS verdicts.)
     """
-    raw_parts = [p for p in re.split(r"[\s,.]+", author) if p]
-    # Drop bare initials like "J." or "K"
-    raw_parts = [p for p in raw_parts if not re.match(r"^[A-Z]\.?$", p)]
-    if not raw_parts:
-        return set()
-    # Last raw segment usually carries the surname (incl. hyphenated/multiword).
-    surname = raw_parts[-1]
+    author = author.strip()
+    if "," in author:
+        # "Lastname, Firstname[, suffix]" — surname is the pre-comma segment
+        # (keeps hyphenated/multiword surnames and standalone particles intact;
+        # normalize_title + _filter_particles handle the rest).
+        surname = author.split(",", 1)[0]
+    else:
+        raw_parts = [p for p in re.split(r"[\s.]+", author) if p]
+        # Drop bare initials like "J." or "K"
+        raw_parts = [p for p in raw_parts if not re.match(r"^[A-Z]\.?$", p)]
+        if not raw_parts:
+            return set()
+        # Last raw segment carries the surname (incl. hyphenated/multiword).
+        surname = raw_parts[-1]
     return _filter_particles(set(normalize_title(surname).split()))
 
 
