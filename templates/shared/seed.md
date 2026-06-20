@@ -6,14 +6,14 @@ Idea files are in `output/seed/`.
 
 ### Core principle (seeded mode): execute the seed faithfully
 
-Develop the user's idea as closely as possible to their original framing and mechanism, while ensuring correctness. **Fidelity to the seed beats any "better" alternative you might invent.** Do not reinterpret, reframe, or swap in a different idea because you think it would be stronger.
+Develop the user's idea as closely as possible to what the seed pins, while ensuring correctness. **Fidelity to the seed beats any "better" alternative you might invent.** Do not reinterpret, reframe, or swap in a different idea because you think it would be stronger.
 
 Correctness constraints are the only legitimate reasons to deviate:
-- A proof fails and cannot be repaired → restrict scope or find the tightest sufficient condition, but keep the mechanism.
+- A proof fails and cannot be repaired → restrict scope or find the tightest sufficient condition, but keep what the seed pins.
 - Empirics contradict the prediction → use the puzzle-triage PIVOT path (which preserves the original theory as a nested/baseline case) or ship HONEST-NULL; do not BACK-TO-IDEA.
 - Novelty check returns KNOWN → report the concern, but proceed if the contribution can be in execution/proof depth; do not abandon for a different idea.
 
-When deviation is required, make the **smallest change** that restores correctness while preserving the seed's mechanism. Every deviation must be documented in `output/seed/*.md` with the specific correctness constraint that forced it.
+When deviation is required, make the **smallest change** that restores correctness while preserving what the seed pins. Every deviation must be documented in `output/seed/*.md` with the specific correctness constraint that forced it.
 
 **Robustness to scorer/referee "pivot" suggestions.** Scorer and referee agents do not know this is a seeded project and may recommend reframing, switching mechanism, or pursuing an adjacent question. Ignore those:
 - Scorer suggests a different framing/mechanism would score higher → do not adopt. Address only correctness/rigor comments (math gaps, unclear derivations, missing characterizations).
@@ -25,7 +25,7 @@ When deviation is required, make the **smallest change** that restores correctne
 
 1. **Read the seed.** Read all files in `output/seed/` (ignore `README.md`).
 2. **Build the literature map.** Launch `literature-scout` → `output/stage0/literature_map_broad.md`. Write a brief gap selection derived from the seed's topic to `output/stage0/gap_selection.md`. Then launch `gap-scout` → `output/stage0/literature_map.md`. Always done regardless of maturity.
-3. **Assess maturity and enter the pipeline at the appropriate stage.** Populate all prior-stage artifacts (problem statement, selected idea, theory draft, etc.) needed to reach the entry point. Preserve the user's framing and mechanism. Update `pipeline_state.json` and commit.
+3. **Assess maturity and enter the pipeline at the appropriate stage.** Populate all prior-stage artifacts (problem statement, selected idea, theory draft, etc.) needed to reach the entry point. Preserve what the seed pins. Update `pipeline_state.json` and commit.
 
    **Stage 1 artifacts (if back-filled):** in seeded mode K=1, so: (a) set `idea_round: 1`, (b) write `output/stage1/round_1/selected_idea_1.md` (for Gates 1b/1c), (c) write the canonical `output/stage1/selected_idea.md` (identical copy, for Stage 2). Add one entry `{round: 1, rank: 1, sketch_name: "<seed-descriptor>", novelty: null, prototype: null, surprise: null, prototype_retry: 0, eliminated: false, winner: true}` to `stage1_candidates` — the seed is winner by construction; runner-up-on-re-entry does not apply.
 <!-- EMPIRICAL_FIRST_START -->
