@@ -27,7 +27,7 @@ Save to the path specified in your prompt. Structure:
 | Criterion | Score (1-5) | Assessment |
 |-----------|-------------|------------|
 | Novelty potential | X | [Is this likely new? Quick web search if unsure.] |
-| Tractability | X | [Can this be modeled cleanly? {{IDEA_TRACTABILITY_HINT}}] |
+| Tractability | X | [Is it viable — well-posed, not *proven* impossible? (difficulty is not a low score; see "Select on ceiling") {{IDEA_TRACTABILITY_HINT}}] |
 | Importance | X | [Assume it works perfectly — is the best-case result a "so what" or a "wow"?] |
 | Clarity of {{MECHANISM_TERM}} | X | [Is the economic force specific and well-identified?] |
 | Risk of being known | X | [How likely is it that this already exists?] |
@@ -37,6 +37,8 @@ Save to the path specified in your prompt. Structure:
 **Verdict:** DEVELOP / REFINE / COMBINE WITH [other idea] / DROP
 
 **Model-first ideas are valid.** A `model-first` idea (a model — or a real-world fact to explain — whose headline emerges in development, with no committed result yet) is judged on the *promise of the model* and whether its outcome is genuinely hard to predict — NOT on having a committed result. Do not penalize it for an open headline; an unpredictable-outcome model is a strength, not a gap. **But check the tag is honest:** if a `model-first` idea's "conjecture" reads like a result any theorist would pre-commit to (the sign is obvious, the direction is clear from the setup), it is a result-first idea wearing a model-first label — require a re-label to result-first (so it gets the committed-result prototype check), don't let it dodge scrutiny.
+
+**Select on ceiling, not on safety — top ideas are hard.** Tractability is a *viability floor*, not a quality dimension that trades against importance or surprise. Score it low **only** for a *proven* dead end — degenerate, ill-posed, or shown to yield nothing (the idea-prototyper's `BLOCKED-IMPOSSIBLE`, or a named impossibility you can state). Do **not** lower Tractability — or `Clarity of {{MECHANISM_TERM}}` — for mere *difficulty*: execution risk, high variance, an under-determined or multiple equilibrium, "the sign can't be called without solving", or "this might not yield a clean theorem" are **not** defects. They are the signature of a hard, high-ceiling idea, and they are exactly what the pipeline's retry net absorbs — a developed idea that fails to close re-advances a pre-vetted runner-up (see the escalation table), so a hard idea that misses is recoverable, while a safe idea that ships a forgettable paper is not. **Never rank a tractable low-ceiling idea above a harder high-ceiling one on risk grounds.** When ideas differ in ceiling, the highest best-case importance × surprise wins; proven-deadness is a floor that *eliminates* an idea outright, never a discount applied to its rank, and "feels risky" is neither.
 
 ### Idea 2: [Name]
 ...
@@ -94,7 +96,7 @@ List only ideas that clear the ADVANCE bar below (minimum 1, maximum 3). Do not 
 ## Decision criteria
 
 ### ADVANCE when:
-- At least one idea scores 4+ on novelty, tractability, and importance
+- At least one idea scores 4+ on novelty and importance (best-case), and is not *proven* dead — Tractability is a floor, not a 4+ gate, so a hard, high-ceiling idea advances (see "Select on ceiling" above); never withhold ADVANCE from a high-novelty, high-importance idea because it scores low on Tractability for *difficulty* rather than proven impossibility
 - The {{MECHANISM_TERM}} is specific enough that you could explain it to a colleague in 30 seconds
 - Quick web searches didn't find a close match
 - You've iterated at least once (don't advance round-1 ideas without refinement)
@@ -108,7 +110,7 @@ When advancing, return all qualifying ideas as a ranked top-K list (up to 3). Pa
 
 ### REJECT ALL when:
 - No idea scores above 2 on importance
-- Everything is either known or intractable
+- Everything is either known or *proven* dead (degenerate / ill-posed / shown to yield nothing — **not** merely hard, high-variance, or open-ended)
 - In this case, recommend the orchestrator return to Stage 0 for a different problem
 
 ## Rules
@@ -116,6 +118,7 @@ When advancing, return all qualifying ideas as a ranked top-K list (up to 3). Pa
 - **Be specific in feedback.** "Needs work" is useless. "The {{MECHANISM_TERM}} is unclear because you say X leads to Y but don't explain {{IDEA_FEEDBACK_TAIL}}" is useful.
 - **Use web search sparingly but decisively.** 2-3 searches per idea, focused on whether the {{MECHANISM_TERM}} is known.
 - **Don't kill ideas for being simple.** Simple is good. Kill ideas for being vague, known, or unimportant.
+- **Don't kill ideas for being hard.** Difficulty, execution risk, high variance, and unpredictable outcomes are not defects — they are what top ideas look like, and the pipeline's retry net exists to absorb the misses. Kill ideas for being vague, known, unimportant, or *proven* impossible; never for being a risky bet.
 - **Score honestly.** Most ideas should score 2-3. A score of 5 means "this could be {{IDEA_TOP_PAPER_EXAMPLE}}." That's rare.
 - **Track improvement across rounds.** If an idea improved from round N-1, say so. If it didn't improve despite feedback, that's a signal to drop it.
 - **Combinations are first-class.** A sketch built as prior structural piece + new mechanism is judged as the union: (i) each component must independently clear the novelty / tractability / importance bar, AND (ii) the union must add value over the strongest component alone (more novelty, sharper predictions, or genuinely new content the strongest piece cannot deliver on its own). If one component is weak or the union is no better than the strongest piece, recommend dropping the weaker component rather than developing the combination. Do not screen for "single mechanism, single proof" — that is a proxy filter the explicit criteria already cover, and it punishes papers whose natural shape is multi-piece.
