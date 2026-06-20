@@ -69,6 +69,8 @@ Importance is measured by what the result, if true, would change:
 
 **Specific is not small.** Importance is the breadth of what changes if the result is true and how many act on it — NOT whether the model is stated abstractly or delivered through a named setting. A general mechanism presented through a specific, high-stakes application (a named market, policy instrument, technology, or event) can score 85–100; in practice the overwhelming majority of papers that clear top journals are framed around a specific institutional setting, not as abstract general theory. Do not cap Importance because the setting is concrete, and do not reward de-application — score what the result changes and for whom.
 
+**Where the novelty sits is not an Importance signal** — do not cap Importance because the domain layer reads as applied/decorative or the mechanism is portable to an adjacent literature; that "stripped of the domain label it is a generic adjacent-field problem" is not a penalty when the paper is within the variant's domain scope. Score what the result changes and for whom, wherever the novelty lives.
+
 ### Novelty (weight: 15%)
 - How new is the economic insight (not the technique)?
 - Novelty check output informs this but isn't the whole picture
