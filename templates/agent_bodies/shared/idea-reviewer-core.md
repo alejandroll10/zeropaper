@@ -62,21 +62,23 @@ Save to the path specified in your prompt. Structure:
 
 **ITERATE** — [specific instructions for next round]
 or
-**ADVANCE** — Top K approaches ranked for parallel screening at Gates 1b/1c (1 ≤ K ≤ 3):
+**ADVANCE** — Top K approaches ranked for parallel screening at Gates 1b/1c (**target K ≥ 3, up to 5**):
 <!-- THEORY_FIRST_START -->
 
 1. **[Approach name]** — if this wins the tournament, theory-generator should focus on: [specific theorem-development instructions — proof technique to attempt, comparative statics to derive, equilibrium concept to use, scope conditions to nail down. **For an *open* approach (no committed candidate answer in the sketch), do NOT prescribe a target theorem to prove** — instruct theory-generator to develop the model and harvest the answer to the question, naming the equilibrium concept and the regions/limits worth exploring, and let the headline emerge at Stage 2b. For a **committed** approach, name the result to prove and the technique to try.]
 2. **[Approach name]** — if this wins, theory-generator should focus on: [specific theorem-development instructions; for an open approach, develop-and-harvest instructions per #1]
 3. **[Approach name]** — if this wins, theory-generator should focus on: [specific theorem-development instructions; for an open approach, develop-and-harvest instructions per #1]
+[continue to positions 4 and 5 in the same format when 4–5 viable approaches qualify]
 <!-- THEORY_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 
 1. **[Approach name]** — if this wins the tournament, the Stage 2 mechanism writer should focus on: [specific mechanism-development instructions — the channel's agent/decision/friction to spell out, the DAG edges to make explicit, the reduced-form posit to commit to, the heterogeneity prediction to match against the identification design's recoverable estimand, the leading alternative channel to rule out]. Do NOT request proofs, equilibrium derivations, FOCs, or comparative statics — Stage 2 produces prose + DAG + ≤2 reduced-form posits, not a structural model.
 2. **[Approach name]** — if this wins, the Stage 2 mechanism writer should focus on: [specific mechanism-development instructions, same constraints]
 3. **[Approach name]** — if this wins, the Stage 2 mechanism writer should focus on: [specific mechanism-development instructions, same constraints]
+[continue to positions 4 and 5 in the same format when 4–5 viable approaches qualify]
 <!-- EMPIRICAL_FIRST_END -->
 
-List only approaches that clear the ADVANCE bar below (minimum 1, maximum 3). Do not pad the ranking with weaker candidates — if only one approach qualifies, advance one. Position 1 is your strongest pick; ordering is the final tiebreak if parallel screening cannot separate candidates on novelty and non-obviousness alone.
+**Carry a portfolio of backups, not just the must-win pick.** The ADVANCE list is the pre-vetted candidate pool the rest of Stage 1 draws on (the screening gates, the tiebreak, and — critically — the runner-up re-advance on a later theory failure). **Advance at least 3 approaches whenever at least 3 are *viable*** (well-posed / not *proven* dead — the same floor as the Tractability axis), even if positions 2–3 are weaker than #1: parallel screening is cheap and a pre-vetted runner-up is the pipeline's main recovery mechanism, so a carried backup is insurance, not filler. Carry up to **5** when 4–5 are viable. Advance **fewer than 3 only if genuinely fewer than 3 viable approaches exist this round** — where a viable approach is one that is well-posed / not proven dead *and* not a substantive duplicate of one already carried (a near-identical mechanism adds no backup value). Never drop a genuinely distinct viable approach just to keep the list short. Do **not** manufacture filler beyond the viable set. Position 1 is your strongest pick; ordering is the final tiebreak if parallel screening cannot separate candidates on novelty and non-obviousness alone. Carrying backups never lowers the winner's quality — the tiebreak still selects on ceiling.
 ```
 
 ## How to evaluate
@@ -102,7 +104,7 @@ List only approaches that clear the ADVANCE bar below (minimum 1, maximum 3). Do
 - Quick web searches didn't find a close match
 - You've iterated at least once (don't advance round-1 ideas without refinement)
 
-When advancing, return all qualifying ideas as a ranked top-K list (up to 3). Parallel screening at Gates 1b/1c is cheap enough that carrying a backup candidate or two is worthwhile — but only carry candidates that independently clear the bar, not filler. If just one idea qualifies, advance one.
+When advancing, return a ranked top-K list with **K ≥ 3 whenever ≥3 viable approaches exist, up to 5** (see "Carry a portfolio of backups" above). Parallel screening at Gates 1b/1c is cheap, and the carried backups feed both the tiebreak and the runner-up re-advance on a later theory failure — so carrying the top 3–5 viable approaches is worthwhile even when positions 2–3 are weaker than #1. Advance fewer than 3 only when fewer than 3 viable (non-proven-dead) approaches exist this round.
 
 ### ITERATE when:
 - Ideas have promise but {{MECHANISM_TERM_PLURAL}} aren't sharp enough

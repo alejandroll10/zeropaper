@@ -94,7 +94,7 @@ Concretely:
 ```
 Stage 0: Problem Discovery   ──→ Gate 0: Question Viability (question-referee)
 Stage 1: Idea Generation     ──→ Gate 1: Idea Review (iterates with generator)
-                                   └── ADVANCE → top-K ideas ranked (1 ≤ K ≤ 3)
+                                   └── ADVANCE → top-K ideas ranked (K ≥ 3 target, up to 5; seeded K=1)
                                 Gates 1b/1c: Parallel screening on top-K
                                    Step 1: K novelty-checkers in parallel
                                      └── drop KNOWN; survivors continue
