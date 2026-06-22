@@ -34,7 +34,7 @@ A theory draft saved to the path specified in your prompt. Structure:
 ## Analysis
 
 ### Key result
-[The main proposition — state it precisely, then prove it. **Model-first idea?** (check the `Approach` tag in the selected idea summary.) Then this is your *provisional* headline — the most important finding so far. Develop and prove what the model genuinely yields, but do **not** lock onto defending a pre-chosen result: the headline may be replaced at Stage 2b once exploration shows what the model most surprisingly yields. Write the section honestly as "most important finding so far (provisional)", not as a committed claim.]
+[The main proposition — state it precisely, then prove it. **Open approach?** (the selected idea summary carries no committed candidate answer — its "Committed candidate answer" section is absent or marked "none — answer emerges in development".) Then this is your *provisional* headline — the most important finding so far. Develop and prove what the model genuinely yields, but do **not** lock onto defending a pre-chosen result: the headline may be replaced at Stage 2b once exploration shows what the model most importantly yields. Write the section honestly as "most important finding so far (provisional)", not as a committed claim. (For a **committed** approach the candidate answer is your target result — prove it.)]
 
 ### Proof
 [Every step justified. No hand-waving.]
@@ -60,7 +60,7 @@ A theory draft saved to the path specified in your prompt. Structure:
 {{THEORY_FRESH_BULLETS}}
 
 ### Mutate (improving a previous attempt)
-- **First re-check the `Approach` tag in the selected idea summary.** If the idea is `model-first`, the prior draft's headline is *provisional*, not a commitment — fix the math error or weakness the audit flagged without treating the current headline as fixed (the headline still emerges/re-centers at Stage 2b). The mutate loop must not quietly turn a model-first idea into a defend-this-result loop.
+- **First re-check whether the selected approach is open or committed.** If it is *open* (the selected idea summary carries no committed candidate answer), the prior draft's headline is *provisional*, not a commitment — fix the math error or weakness the audit flagged without treating the current headline as fixed (the headline still emerges/re-centers at Stage 2b). The mutate loop must not quietly turn an open approach into a defend-this-result loop.
 - Read the previous theory and its evaluation feedback.
 - Identify the weakest point ({{THEORY_WEAKEST_POINT_LIST}}).
 - Fix THAT specific weakness. Don't rebuild from scratch.
@@ -73,7 +73,7 @@ A theory draft saved to the path specified in your prompt. Structure:
 
 ## Rules
 
-- **Model-first ideas: develop openly, let the headline emerge.** If the selected idea is `model-first` (a model — or a fact to explain — with only a conjectured result), develop the model and let the headline be the most important/surprising thing it actually yields. Do not force the conjecture if the math says otherwise — the conjecture was a bet, the model is the evidence. (Pairs with the "surprises are discoveries" principle.)
+- **Open approaches: develop openly, let the headline emerge.** If the selected approach carries no committed candidate answer (a model — or a fact to explain — whose answer emerges in development), develop the model and let the headline be the most important thing it actually yields. Do not force a particular result if the math says otherwise — the approach was a bet on a route, the model is the evidence. (Pairs with the "surprises are discoveries" principle.)
 - **Parsimony above all.** The simplest model that generates the results wins — minimize assumptions and frictions, not implications; one friction that yields many implications is ideal, not a violation. If your model has more than {{THEORY_PARSIMONY_THRESHOLD}}, justify every single one.
 - **No hand-waving.** Every claim must be proven or explicitly flagged as a conjecture. Any claim the math auditor lists under `## Unverified claims` becomes a Parsimony liability at the next revision's scorer if not resolved — either prove it, narrow the theorem to what you can prove, or remove it.
 - **No hallucinated math.** If you're not sure a derivation is correct, work through it step by step. Show ALL algebra.

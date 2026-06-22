@@ -92,7 +92,7 @@ Concretely:
 ## Pipeline overview
 
 ```
-Stage 0: Problem Discovery   ──→ Gate 0: Problem Viability
+Stage 0: Problem Discovery   ──→ Gate 0: Question Viability (question-referee)
 Stage 1: Idea Generation     ──→ Gate 1: Idea Review (iterates with generator)
                                    └── ADVANCE → top-K ideas ranked (1 ≤ K ≤ 3)
                                 Gates 1b/1c: Parallel screening on top-K
@@ -107,7 +107,7 @@ Stage 1: Idea Generation     ──→ Gate 1: Idea Review (iterates with genera
                                      a NOVEL idea died on difficulty, force one harder round
                                      (fallback snapshotted; fires once per problem)
                                    Step 3: tiebreak among TRACTABLE survivors (+ fallback)
-                                     (novelty tier > surprise tier > reviewer rank)
+                                     (novelty tier > reviewer importance > reviewer rank)
                                      → winner copied to canonical files
                                    ├── all K eliminated → new Round of Stage 1
                                    └── ≥1 survives → proceed to Stage 2
@@ -184,17 +184,24 @@ Initial state (created by setup.sh):
   "theory_version": 1,
   "referee_round": 0,
   "reject_cosmetic_round": 0,
-  "target_journal_tier": "{{INITIAL_TIER}}",
-  "initial_journal_tier": "{{INITIAL_TIER}}",
+  "downgrade_enrich_round": 0,
   "pivot_round": 0,
   "fix_empirics_round": 0,
   "bib_verify_round": 0,
   "polish_round": 0,
   "regeneration_round": 0,
+  "harder_round_forced": false,
+  "fallback_idea_sketch_name": null,
+  "gate0_revise_cycles": 0,
+  "gate0_questions_rejected": 0,
   "pivot_resolved": null,
   "pivot_history": [],
   "triaged_lit_implications": [],
+  "target_journal_tier": "{{INITIAL_TIER}}",
+  "initial_journal_tier": "{{INITIAL_TIER}}",
   "seeded": false,
+  "faithful": false,
+  "halt_on_core_bypass": false,
   "status": "not_started",
   "scores": {},
   "stage2b_theory_version": null,
@@ -229,7 +236,7 @@ When you start the pipeline, set `"status": "running"` and begin appending to th
 
 {{EMPIRICAL_STATE3A_DOC}}
 {{THEORY_LLM_STATE3B_DOC}}
-**`stage1_candidates`:** Records every sketch screened at Gates 1b/1c during Stage 1. Each entry: `{round, rank, sketch_name, novelty, prototype, surprise, prototype_retry, eliminated, winner}` — `round` is the `idea_round` value when the entry was last written; `rank` is the idea-reviewer ADVANCE position (1..K) **within that round** (rank is unique per-round, NOT unique across the array); verdict fields are `null` until the agent runs. `prototype` takes one of `TRACTABLE` / `BLOCKED-DIFFICULTY` / `BLOCKED-IMPOSSIBLE` (proof difficulty vs proven impossibility — see `docs/stage_1.md` Gate 1c). `prototype_retry` is `0` or `1`: it records whether the one permitted harder-technique re-attempt (NOVEL + `BLOCKED-DIFFICULTY` only) was spent on this candidate. The flags mean:
+**`stage1_candidates`:** Records every sketch screened at Gates 1b/1c during Stage 1. Each entry: `{round, rank, sketch_name, novelty, prototype, reviewer_importance, prototype_retry, eliminated, winner}` — `round` is the `idea_round` value when the entry was last written; `rank` is the idea-reviewer ADVANCE position (1..K) **within that round** (rank is unique per-round, NOT unique across the array); the screening verdict fields (`novelty`, `prototype`) are `null` until the agent runs. `reviewer_importance` is the idea-reviewer's Importance-of-the-answer score (1–5) for the approach, recorded at Stage 1 Step 7 and used as the Step 3 tiebreak ceiling axis (criterion (b)); it is a reviewer judgment, not a screening verdict, so it is not reset on re-screening. (The former idea-stage `surprise` tier was removed — surprise is now a development-stage outcome judged by the scorer against the field's cited prior; see #112.) `prototype` takes one of `TRACTABLE` / `BLOCKED-DIFFICULTY` / `BLOCKED-IMPOSSIBLE` (proof difficulty vs proven impossibility — see `docs/stage_1.md` Gate 1c). `prototype_retry` is `0` or `1`: it records whether the one permitted harder-technique re-attempt (NOVEL + `BLOCKED-DIFFICULTY` only) was spent on this candidate. The flags mean:
 - `eliminated: true` — screened out. Set for KNOWN at 1b, or `BLOCKED-IMPOSSIBLE` / `BLOCKED-DIFFICULTY` at 1c. Never re-nominate. Only `BLOCKED-IMPOSSIBLE` is a *proven* dead end (it propagated a negative result); `BLOCKED-DIFFICULTY` is "hard, unresolved" — eliminated from selection but not a no-go, and the `prototype` field preserves which it was for the audit trail.
 - `winner: true` — the sketch whose theory is currently being developed downstream. If the theory later fails, this sketch has already been tried and should not be re-nominated.
 - `eliminated: false AND winner: false` — a TRACTABLE survivor that lost the tiebreak. **This is a pre-vetted runner-up** and is the preferred re-nomination on re-entry after a failed theory (see `docs/stage_1.md` step 2).
@@ -238,7 +245,9 @@ When you start the pipeline, set `"status": "running"` and begin appending to th
 
 **`fallback_idea_sketch_name`:** Initialized `null`. When the portfolio guard fires it is set to the `sketch_name` of the best current TRACTABLE survivor, which the guard simultaneously snapshots to `output/stage1/fallback_idea.md` (+ `fallback_novelty_check.md`, `fallback_idea_prototype.md`). It points at the idea the next Step 3 tiebreak must include as an extra candidate so the guard never costs a shippable idea (`docs/stage_1.md` Step 2a/Step 3). Cleared back to `null` in exactly three places: (i) the Step 3 tiebreak that consumes it, (ii) the Step 2a "fallback rescue" that ships it when Stage 1 would otherwise abandon to Stage 0, and (iii) **on every Stage 0 (re-)entry** (clear it and ignore any stale `fallback_*.md`, via the same `docs/stage_0.md` reset hook as `harder_round_forced` above). Lifecycle rule (iii) is what lets every Step 3 treat a non-null value as "belongs to the current problem."
 
-Entries accumulate across Rounds — do not clear between Rounds. **Deduplicate by `sketch_name`**: if an entry with the same `sketch_name` already exists when Step 7 of Stage 1 runs, update it in place (new `round`, new `rank`, verdict fields reset to `null` for re-screening) rather than appending a duplicate. Lookups that need "the current winner" must filter by `winner: true` (at most one such entry should exist at any time during a run); lookups that need "pre-vetted runner-ups" filter by `eliminated: false AND winner: false`.
+**`gate0_revise_cycles`** and **`gate0_questions_rejected`:** Both integers, initialized `0`. They make the Gate-0 (Stage 0 Step 0e) routing caps crash-safe rather than relying on in-context memory. `gate0_revise_cycles` counts REVISE cycles spent sharpening the *current gap's* question (cap 3, then the verdict is treated as REJECT); it resets to `0` both on a REJECT (a new gap earns a fresh REVISE budget) and on every Stage 0 (re-)entry. `gate0_questions_rejected` counts questions rejected across gaps within the current Stage-0 pass (cap 5, then the best viability-scored question seen so far is taken and the pipeline proceeds); it resets to `0` only on a Stage 0 (re-)entry. Both resets live in the `docs/stage_0.md` top-of-file reset hook. Not present under `--seed`/`--faithful` routing-wise (Gate 0 is bypassed), but the fields are still initialized for schema uniformity.
+
+Entries accumulate across Rounds — do not clear between Rounds. **Deduplicate by `sketch_name`**: if an entry with the same `sketch_name` already exists when Step 7 of Stage 1 runs, update it in place (new `round`, new `rank`, refreshed `reviewer_importance` from the current review, screening verdict fields `novelty`/`prototype` reset to `null` for re-screening) rather than appending a duplicate. Lookups that need "the current winner" must filter by `winner: true` (at most one such entry should exist at any time during a run); lookups that need "pre-vetted runner-ups" filter by `eliminated: false AND winner: false`.
 
 **Per-round indexed file namespace.** Stage 1 writes indexed candidate files (`selected_idea_{k}.md`, `novelty_check_{k}.md`, `idea_prototype_{k}.md`) under `output/stage1/round_{N}/` where N is the current `idea_round`. This keeps each Round's artifacts self-contained and prevents stale indexed files from a prior Round being mistaken for current state. The canonical winner files (`output/stage1/selected_idea.md`, `novelty_check_idea.md`, `idea_prototype.md`) are written at the top level of `output/stage1/` and are the authoritative inputs for Stage 2.
 
@@ -415,7 +424,7 @@ Before granting another iteration in the current band, the orchestrator classifi
 ```
 output/                   # Pipeline outputs by stage
 ├── seed/                 # (--seed mode only) user idea files + pipeline reports
-├── stage0/               # literature_map_broad.md, gap_selection.md, literature_map.md, problem_statement.md
+├── stage0/               # literature_map_broad.md, gap_selection.md, literature_map.md, problem_statement.md, question_review.md
 ├── stage1/               # idea sketches, reviews, selected_idea.md, novelty + prototype
 <!-- THEORY_FIRST_START -->
 ├── stage2/               # theory drafts, math audits, novelty checks (versioned _v1, _v2…)

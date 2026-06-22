@@ -1,4 +1,34 @@
 {
+  "question-poser": {
+    "name": "question-poser",
+    "description": "Turns the selected literature gap into one sharp research question. The orchestrator launches this agent at Stage 0 step 0d, after gap-scout. Produces a single important, open, non-obvious question — not a framework, not an approach (that is Stage 1's job).",
+    "category": "developing",
+    "tools": "Read, Write",
+    "model": "opus",
+    "effort": "high",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
+  "question-referee": {
+    "name": "question-referee",
+    "description": "Vets the posed research question on importance, openness, and non-obviousness. The orchestrator launches this agent at Stage 0 step 0e, replacing the self-graded Gate 0. Search-grounded; returns a 0-100 viability score and a verdict.",
+    "category": "evaluator",
+    "tools": "Read, Write, WebSearch, WebFetch",
+    "model": "opus",
+    "effort": "high",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
   "idea-generator": {
     "name": "idea-generator",
     "description": "Brainstorms candidate mechanisms and model ideas for a given problem. The orchestrator launches this agent at Stage 1 of the pipeline. Produces developed sketches \u2014 not full theories, but enough to evaluate.",

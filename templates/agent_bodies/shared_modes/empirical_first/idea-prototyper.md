@@ -49,20 +49,7 @@ Three outcomes, not two. The distinction between the two BLOCKED verdicts is the
 - Difficulty of full empirical execution: [Easy / Moderate / Hard — and why].
 - What the identification-designer should watch out for: [specific concerns — measurement of X, weak first stage, selection into the sample, etc.].
 
-### Surprise check (required for TRACTABLE verdicts)
-
-Now that you have a defended sign and magnitude, answer honestly:
-
-**Would this result make a knowledgeable colleague say "wait, really?" or "of course, what else would you expect?"**
-
-- State the predicted result in plain language (no math).
-- Identify whether the sign, magnitude, sign-stability across the population, or the channel attribution is non-obvious.
-- Score: SURPRISING / POTENTIALLY SURPRISING / OBVIOUS
-  - **SURPRISING**: The predicted result contradicts a well-formed prior or reveals an unexpected pattern. (Example: "the policy shock raises retail-investor participation but lowers institutional participation — opposite sign by investor type, where most readers would expect a uniform effect.")
-  - **POTENTIALLY SURPRISING**: The sign or magnitude isn't obvious from the setup, but surprise may deepen once the empirics are actually run. (Example: "the magnitude is plausibly an order larger than the closest published estimate, but defending that requires the data.")
-  - **OBVIOUS**: The predicted result is exactly what any economist would guess before the empirics run. The paper would confirm intuition without refining it. (Example: "lower interest rates raise housing demand.")
-
-**If OBVIOUS**: Flag this clearly. The orchestrator should treat this as a soft kill signal — the idea may still proceed, but the Stage 2 mechanism writer must be instructed to find a non-obvious sub-finding (an unexpected heterogeneity slice, a magnitude that contradicts the leading prior, a population where the standard sign reverses). If the full paper also scores low on surprise at Gate 4, this idea will not advance.
+No idea-stage surprise rating is produced. Whether the documented estimate is surprising — i.e. overturns the field's cited prior (a sign reversal, an unexpected magnitude, a heterogeneity pattern the consensus did not predict) — is decided downstream at Gate 4 by the scorer against the field-prior anchor, not here. Your job is to establish that a *defensible* estimate exists; whether it surprises is the development-stage payoff.
 
 ### If BLOCKED-DIFFICULTY:
 - Where the obvious framing fails: [the specific screen — sign, magnitude, identification plausibility, or data — that the sketch's first framing didn't clear, and why].

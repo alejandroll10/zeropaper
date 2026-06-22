@@ -881,6 +881,8 @@ prune_report_mode_agents() {
 prune_report_mode_agents \
     theory-generator \
     paper-writer \
+    question-poser \
+    question-referee \
     idea-generator \
     idea-reviewer \
     idea-prototyper \
@@ -1273,7 +1275,7 @@ apply_seed_overrides() {
     fi
     # Always include faithful_overrides keys in the union — even when FAITHFUL=0.
     # This ensures placeholders that exist only in the faithful set (e.g., the
-    # new Stage 1 OBVIOUS-forwarding override) get stripped cleanly in regular
+    # Stage 1 INCREMENTAL-forwarding override) get stripped cleanly in regular
     # and soft-seed modes rather than leaking into the deployed docs as raw
     # `{{SEED_OVERRIDE_*}}` text. The body-resolution step below still picks
     # the faithful body only when FAITHFUL=1.
@@ -1421,6 +1423,8 @@ cat > "$P/process_log/pipeline_state.json" <<JSONEOF
   "regeneration_round": 0,
   "harder_round_forced": false,
   "fallback_idea_sketch_name": null,
+  "gate0_revise_cycles": 0,
+  "gate0_questions_rejected": 0,
   "pivot_resolved": null,
   "pivot_history": [],
   "triaged_lit_implications": [],
@@ -1455,6 +1459,8 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "regeneration_round": 0,
   "harder_round_forced": false,
   "fallback_idea_sketch_name": null,
+  "gate0_revise_cycles": 0,
+  "gate0_questions_rejected": 0,
   "pivot_resolved": null,
   "pivot_history": [],
   "triaged_lit_implications": [],

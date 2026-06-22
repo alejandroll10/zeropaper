@@ -29,6 +29,10 @@
   "SURPRISE_READER": "knowledgeable reader",
   "SURPRISE_CALIBRATION": "sign reversal or existence result no one expected = 100, non-obvious comparative static = 60, confirms intuition with precise conditions = 40, formalizes what everyone already believed = 15",
 
+  "QUESTION_POSER_ROLE": "creative finance theorist",
+  "QUESTION_REFEREE_ROLE": "senior finance scholar acting as a top-3 finance journal (JF, JFE, RFS) editor",
+  "QUESTION_IMPORTANCE_BAR": "would a JF/JFE/RFS editor see a first-order decision — asset-pricing model choice, regulatory or market design, contracting — change on the answer, with a broad audience acting on it?",
+
   "RIGOR_100": "full proof, all assumptions explicitly stated, boundary behavior characterized where relevant to the main result.",
   "RIGOR_80": "correct proof with clearly stated assumptions. **Default for theorems that pass both structured and free-form math audits.** Not all edge cases need exhaustive treatment; if the result is clean under its stated assumptions, 80 is the expected score. Score below 80 only if reader-noticeable gaps exist despite audit passage.",
   "RIGOR_60": "argument is clear but has gaps a careful reader would notice. Not hand-waving, but some steps are asserted rather than shown.",

@@ -39,7 +39,7 @@ The session-start data inventory is *not* sufficient for long-running pipelines:
 
 ### Agent launch and monitoring
 
-Subagents can hang indefinitely. Launch web-dependent agents (`literature-scout`, `novelty-checker`) in the background. Check their output file every 5 minutes — if empty or not growing after a few checks, re-launch with the same prompt.
+Subagents can hang indefinitely. Launch web-dependent agents (`literature-scout`, `gap-scout`, `question-referee`, `novelty-checker`) in the background. Check their output file every 5 minutes — if empty or not growing after a few checks, re-launch with the same prompt.
 
 Never background a process with `nohup` (or a detached `&`) — it escapes harness tracking and stall detection. Use a harness-tracked background job instead (the Bash tool's `run_in_background`).
 
