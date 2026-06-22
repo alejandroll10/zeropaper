@@ -194,6 +194,7 @@ Initial state (created by setup.sh):
   "fallback_idea_sketch_name": null,
   "gate0_revise_cycles": 0,
   "gate0_questions_rejected": 0,
+  "gate0_best_question_score": -1,
   "pivot_resolved": null,
   "pivot_history": [],
   "triaged_lit_implications": [],
@@ -246,6 +247,8 @@ When you start the pipeline, set `"status": "running"` and begin appending to th
 **`fallback_idea_sketch_name`:** Initialized `null`. When the portfolio guard fires it is set to the `sketch_name` of the best current TRACTABLE survivor, which the guard simultaneously snapshots to `output/stage1/fallback_idea.md` (+ `fallback_novelty_check.md`, `fallback_idea_prototype.md`). It points at the idea the next Step 3 tiebreak must include as an extra candidate so the guard never costs a shippable idea (`docs/stage_1.md` Step 2a/Step 3). Cleared back to `null` in exactly three places: (i) the Step 3 tiebreak that consumes it, (ii) the Step 2a "fallback rescue" that ships it when Stage 1 would otherwise abandon to Stage 0, and (iii) **on every Stage 0 (re-)entry** (clear it and ignore any stale `fallback_*.md`, via the same `docs/stage_0.md` reset hook as `harder_round_forced` above). Lifecycle rule (iii) is what lets every Step 3 treat a non-null value as "belongs to the current problem."
 
 **`gate0_revise_cycles`** and **`gate0_questions_rejected`:** Both integers, initialized `0`. They make the Gate-0 (Stage 0 Step 0e) routing caps crash-safe rather than relying on in-context memory. `gate0_revise_cycles` counts REVISE cycles spent sharpening the *current gap's* question (cap 3, then the verdict is treated as REJECT); it resets to `0` both on a REJECT (a new gap earns a fresh REVISE budget) and on every Stage 0 (re-)entry. `gate0_questions_rejected` counts questions rejected across gaps within the current Stage-0 pass (cap 5, then the best viability-scored question seen so far is taken and the pipeline proceeds); it resets to `0` only on a Stage 0 (re-)entry. Both resets live in the `docs/stage_0.md` top-of-file reset hook. Not present under `--seed`/`--faithful` routing-wise (Gate 0 is bypassed), but the fields are still initialized for schema uniformity.
+
+**`gate0_best_question_score`:** Integer, initialized `-1` (no question evaluated yet). Tracks the highest viability score any `question-referee` evaluation has produced this Stage-0 pass, so the `gate0_questions_rejected` cap-5 fallback ("take the best question seen so far") is executable rather than aspirational — without it, each gap overwrites `output/stage0/problem_statement.md` and the best-scoring question is unrecoverable. Whenever a Step-0e evaluation scores higher than the stored value, the orchestrator snapshots the current `problem_statement.md`/`question_review.md` to `output/stage0/best_question.md`/`best_question_review.md` and updates this field; on the cap-5 fallback it restores `best_question.md` → `problem_statement.md` before advancing to Stage 1. Resets to `-1` (and the stale snapshot is ignored) on every Stage 0 (re-)entry, alongside the two Gate-0 cycle counters. Initialized but unused under `--seed`/`--faithful` (Gate 0 is bypassed).
 
 Entries accumulate across Rounds — do not clear between Rounds. **Deduplicate by `sketch_name`**: if an entry with the same `sketch_name` already exists when Step 7 of Stage 1 runs, update it in place (new `round`, new `rank`, refreshed `reviewer_importance` from the current review, screening verdict fields `novelty`/`prototype` reset to `null` for re-screening) rather than appending a duplicate. Lookups that need "the current winner" must filter by `winner: true` (at most one such entry should exist at any time during a run); lookups that need "pre-vetted runner-ups" filter by `eliminated: false AND winner: false`.
 
@@ -424,7 +427,7 @@ Before granting another iteration in the current band, the orchestrator classifi
 ```
 output/                   # Pipeline outputs by stage
 ├── seed/                 # (--seed mode only) user idea files + pipeline reports
-├── stage0/               # literature_map_broad.md, gap_selection.md, literature_map.md, problem_statement.md, question_review.md
+├── stage0/               # literature_map_broad.md, gap_selection.md, literature_map.md, problem_statement.md, question_review.md, best_question{,_review}.md (Gate-0 cap-5 fallback snapshot)
 ├── stage1/               # idea sketches, reviews, selected_idea.md, novelty + prototype
 <!-- THEORY_FIRST_START -->
 ├── stage2/               # theory drafts, math audits, novelty checks (versioned _v1, _v2…)
