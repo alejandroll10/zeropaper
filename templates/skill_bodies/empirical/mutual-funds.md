@@ -203,7 +203,7 @@ Use `crsp_obj_cd LIKE 'ED%'` for all domestic equity funds.
 | EIEI | Equity Income |
 
 ## Performance tips
-- **Holdings table is huge** (438M rows). Always filter by crsp_portno and date range.
+- **Holdings table is huge** (438M rows in `crsp_q_mutualfunds.holdings`; the Thomson `s12` fund-holdings panel runs to ~150M+ rows). Always filter by crsp_portno and date range. When reloading a cached holdings parquet, never `pd.read_parquet(<whole file>)` — it will OOM; use `polars.scan_parquet(path).select([...]).filter(...).collect()` (column projection + predicate pushdown) and filter before materializing.
 - **Daily returns** (182M rows): filter by crsp_fundno and date range.
 - **Aggregate to portfolio level** before computing fund-level statistics to avoid share class bias.
 - **Cache large downloads** to `data/mutual_funds/` as parquet.

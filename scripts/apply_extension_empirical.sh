@@ -132,6 +132,6 @@ ENVEOF
 fi
 
 if [ "$LOCAL" = "0" ]; then
-    uv pip install pandas numpy statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing gdown python-dotenv -q 2>/dev/null \
-        || echo "Note: install empirical deps manually: uv pip install pandas numpy statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing gdown python-dotenv"
+    uv pip install pandas numpy polars pyarrow statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing gdown python-dotenv -q 2>/dev/null \
+        || echo "Note: install empirical deps manually: uv pip install pandas numpy polars pyarrow statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing gdown python-dotenv"
 fi

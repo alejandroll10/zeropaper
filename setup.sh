@@ -936,24 +936,18 @@ for agent in literature-scout gap-scout novelty-checker theory-explorer referee 
 done
 echo "  ✓ Variant context injected into agents"
 
-# ── Faithful-mode contract pointer for developing agents (--faithful only) ──
-# Faithful mode adds a short pointer to *developing* agents — those that
-# produce paper content — directing them to read `output/seed/mechanism_contract.md`
-# before producing output. *Evaluators* (scorer, referees, auditors, novelty-checker,
-# self-attacker, idea-{prototyper,reviewer}, branch-manager) stay impartial: quoting
-# the contract into them would corrupt the evaluation signal. The faithful constraint
-# enters at the orchestrator's routing of evaluator verdicts (see faithful.md),
-# not at the evaluators themselves.
-#
-# `inject_faithful_into_agents` is called once after core agent assembly and once
-# inside each extension block (after the extension finishes assembling its own
-# agents) so extension developing agents (empiricist, identification-designer,
-# experiment-designer, etc.) also get the pointer. A no-op when FAITHFUL=0.
-inject_faithful_into_agents() {
-    [ "$FAITHFUL" = "1" ] || return 0
-    local _inject_file="$TEMPLATE_ROOT/templates/shared/faithful_inject.md"
+# ── Agent body inject helpers ──
+# `inject_block_into_agents <inject_file> <agent>...` appends the contents of
+# <inject_file> to the assembled body of each named agent across all three runtimes
+# (claude `.md`, codex `.toml`, gemini `.md`). The codex append uses awk to splice
+# the block in just before the closing `'''` of the TOML prompt body; the claude/
+# gemini appends are plain. File-existence guards make a not-yet-assembled agent a
+# harmless no-op. Single source of the per-runtime append logic for every inject
+# loop below (faithful, bash-background, core-bypass, efficiency).
+inject_block_into_agents() {
+    local _inject_file="$1"; shift
     if [ ! -f "$_inject_file" ]; then
-        echo "Error: faithful inject template not found: $_inject_file" >&2
+        echo "Error: inject template not found: $_inject_file" >&2
         exit 1
     fi
     local _block
@@ -981,41 +975,47 @@ inject_faithful_into_agents() {
     done
 }
 
+# ── Faithful-mode contract pointer for developing agents (--faithful only) ──
+# Faithful mode adds a short pointer to *developing* agents — those that
+# produce paper content — directing them to read `output/seed/mechanism_contract.md`
+# before producing output. *Evaluators* (scorer, referees, auditors, novelty-checker,
+# self-attacker, idea-{prototyper,reviewer}, branch-manager) stay impartial: quoting
+# the contract into them would corrupt the evaluation signal. The faithful constraint
+# enters at the orchestrator's routing of evaluator verdicts (see faithful.md),
+# not at the evaluators themselves.
+#
+# Called once after core agent assembly and once inside each extension block (after
+# the extension finishes assembling its own agents) so extension developing agents
+# (empiricist, identification-designer, experiment-designer, etc.) also get the
+# pointer. A no-op when FAITHFUL=0.
+inject_faithful_into_agents() {
+    [ "$FAITHFUL" = "1" ] || return 0
+    inject_block_into_agents "$TEMPLATE_ROOT/templates/shared/faithful_inject.md" "$@"
+}
+
 # `inject_bash_background_into_agents` appends the no-nohup / use-a-harness-
 # tracked-background-job note to every Bash-capable agent. Unconditional (unlike
 # the faithful injector): subagents never see the runtime doc, so a heavy job
 # launched by e.g. theory-explorer/empiricist/experiment-designer would otherwise
-# go unmonitored. Called after core assembly and inside each extension block;
-# the file-existence guards make it a no-op for not-yet-assembled agents.
+# go unmonitored. Called after core assembly and inside each extension block.
 inject_bash_background_into_agents() {
-    local _inject_file="$TEMPLATE_ROOT/templates/shared/bash_background.md"
-    if [ ! -f "$_inject_file" ]; then
-        echo "Error: bash-background inject template not found: $_inject_file" >&2
-        exit 1
-    fi
-    local _block
-    _block=$(cat "$_inject_file")
-    local _agent
-    for _agent in "$@"; do
-        if [ -f "$AGENTS_OUT/$_agent.md" ]; then
-            printf '\n%s\n' "$_block" >> "$AGENTS_OUT/$_agent.md"
-        fi
-        if [ -f "$CODEX_AGENTS_OUT/$_agent.toml" ]; then
-            awk -v block="$_block" '
-            { lines[NR] = $0 }
-            /^'\'''\'''\''$/ { last = NR }
-            END {
-                for (i = 1; i <= NR; i++) {
-                    if (i == last) print block
-                    print lines[i]
-                }
-            }' "$CODEX_AGENTS_OUT/$_agent.toml" > "$CODEX_AGENTS_OUT/$_agent.toml.tmp" \
-            && mv "$CODEX_AGENTS_OUT/$_agent.toml.tmp" "$CODEX_AGENTS_OUT/$_agent.toml"
-        fi
-        if [ -f "$GEMINI_AGENTS_OUT/$_agent.md" ]; then
-            printf '\n%s\n' "$_block" >> "$GEMINI_AGENTS_OUT/$_agent.md"
-        fi
-    done
+    inject_block_into_agents "$TEMPLATE_ROOT/templates/shared/bash_background.md" "$@"
+}
+
+# `inject_efficiency_into_agents` appends the compute-efficiency mandate (issue
+# #74) — be mindful of memory/runtime/cost, size the data and method before
+# running, stream rather than eager-load, test on a subsample — to the explicit
+# set of data/compute-heavy agents (theory-explorer; the empirical empiricist/
+# auditors/replicator; the theory_llm experiment-designer). Unconditional like the
+# bash-background injector: subagents never see the runtime doc, and an OOM /
+# runaway-cost run is a recurring cross-repo cost (see issue #74's evidence). The
+# heavy set is an explicit list, not metadata-derived — "compute-heavy" is not a
+# metadata category, and an explicit auditable list is clearer than approximating
+# it via --has-tool Bash, which over-injects into read-only agents (scribe,
+# literature-scout, polish-prose, ...). Called after core assembly and inside each
+# extension block; file-existence guards make a not-yet-assembled agent a no-op.
+inject_efficiency_into_agents() {
+    inject_block_into_agents "$TEMPLATE_ROOT/templates/shared/efficiency_inject.md" "$@"
 }
 
 # `inject_core_bypass_into_agents` appends the core-bypass guard pointer (issue
@@ -1036,34 +1036,7 @@ inject_bash_background_into_agents() {
 # degrades gracefully when there is no process_log/ (manual mode). File-existence
 # guards make passing a not-yet-assembled agent a harmless no-op.
 inject_core_bypass_into_agents() {
-    local _inject_file="$TEMPLATE_ROOT/templates/shared/core_bypass_inject.md"
-    if [ ! -f "$_inject_file" ]; then
-        echo "Error: core-bypass inject template not found: $_inject_file" >&2
-        exit 1
-    fi
-    local _block
-    _block=$(cat "$_inject_file")
-    local _agent
-    for _agent in "$@"; do
-        if [ -f "$AGENTS_OUT/$_agent.md" ]; then
-            printf '\n%s\n' "$_block" >> "$AGENTS_OUT/$_agent.md"
-        fi
-        if [ -f "$CODEX_AGENTS_OUT/$_agent.toml" ]; then
-            awk -v block="$_block" '
-            { lines[NR] = $0 }
-            /^'\'''\'''\''$/ { last = NR }
-            END {
-                for (i = 1; i <= NR; i++) {
-                    if (i == last) print block
-                    print lines[i]
-                }
-            }' "$CODEX_AGENTS_OUT/$_agent.toml" > "$CODEX_AGENTS_OUT/$_agent.toml.tmp" \
-            && mv "$CODEX_AGENTS_OUT/$_agent.toml.tmp" "$CODEX_AGENTS_OUT/$_agent.toml"
-        fi
-        if [ -f "$GEMINI_AGENTS_OUT/$_agent.md" ]; then
-            printf '\n%s\n' "$_block" >> "$GEMINI_AGENTS_OUT/$_agent.md"
-        fi
-    done
+    inject_block_into_agents "$TEMPLATE_ROOT/templates/shared/core_bypass_inject.md" "$@"
 }
 
 # Core (shared + variant) agents with a binding runtime dependency they could
@@ -1117,6 +1090,14 @@ if [ "${#_core_bash_agents[@]}" -eq 0 ]; then
 fi
 inject_bash_background_into_agents "${_core_bash_agents[@]}"
 echo "  ✓ Background-job note injected into Bash-capable core agents"
+
+# Efficiency mandate (issue #74): inject into the explicit set of data/compute-
+# heavy core agents. theory-explorer is the only core agent that runs real
+# computation/simulation; the empirical/theory_llm heavy agents get the mandate in
+# their own extension blocks.
+_core_heavy_agents=(theory-explorer)
+inject_efficiency_into_agents "${_core_heavy_agents[@]}"
+echo "  ✓ Efficiency mandate injected into compute-heavy core agents"
 
 # ── Create project directories and initial files ──
 echo "Creating project structure..."
@@ -1764,6 +1745,11 @@ PYEOF
             fi
             inject_bash_background_into_agents "${_tllm_bash_agents[@]}"
 
+            # Efficiency mandate (issue #74): experiment-designer runs the LLM
+            # experiments, where the "cost" dimension of the mandate bites hardest.
+            _tllm_heavy_agents=(experiment-designer)
+            inject_efficiency_into_agents "${_tllm_heavy_agents[@]}"
+
             # Core-bypass guard: the LLM API is a binding source for both the
             # designer (runs experiments) and the reviewer (re-checks them).
             inject_core_bypass_into_agents experiment-designer experiment-reviewer
@@ -2012,6 +1998,13 @@ PYEOF
                 exit 1
             fi
             inject_bash_background_into_agents "${_empirical_bash_agents[@]}"
+
+            # Efficiency mandate (issue #74): the empirical agents that load/run
+            # large tables — the source of every documented OOM. method-checker is
+            # excluded (it reads code, doesn't run analyses); claim-enumerator/
+            # claim-verifier do lightweight regex/file checks, not data analysis.
+            _empirical_heavy_agents=(empiricist empirics-auditor headline-replicator data-integrity-auditor data-selection-auditor)
+            inject_efficiency_into_agents "${_empirical_heavy_agents[@]}"
 
             # Core-bypass guard: empirical agents that read a binding data source
             # (WRDS/EDGAR/FRED) or verify the pipeline's empirics against it. The

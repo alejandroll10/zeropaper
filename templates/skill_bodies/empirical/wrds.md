@@ -241,6 +241,7 @@ df = db.raw_sql("""
 - **Always filter on date.** CRSP daily has ~100M rows. Never `SELECT *` without a WHERE clause.
 - **Use LIMIT when exploring.** Add `LIMIT 1000` to test queries before running the full version.
 - **Download once, cache locally.** For large pulls, save to `data/` as parquet: `df.to_parquet('data/crsp_monthly.parquet')`. Check for cached files before re-querying.
+- **Stream large local parquets — don't eager-load.** When reloading a cached pull (CRSP daily ~100M rows, TAQ, 13F/`s34` holdings), never `pd.read_parquet(<whole file>)`; use `polars.scan_parquet(path).select([...]).filter(...).collect()` (column projection + predicate pushdown) so you filter before materializing and never hold the full table in RAM.
 - **Use SQL aggregation** when possible — faster than downloading raw data and aggregating in pandas.
 
 ## Rules
