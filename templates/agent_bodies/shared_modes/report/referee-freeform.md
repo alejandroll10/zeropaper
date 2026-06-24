@@ -25,7 +25,7 @@ Do NOT read with a checklist. Instead:
 - What is this paper *actually* about? (Not what it claims — what it delivers.)
 - Would you assign this paper in a PhD reading list? For what topic?
 - In five years, will anyone cite this? For what result?
-- Is there a simpler version of this paper that would be better? (Caveat: if the paper's contribution is multi-piece and each piece is load-bearing for the union thesis, do not recommend flattening on parsimony grounds alone — the multi-piece structure is the natural shape of the result, not bloat.)
+- Is there a simpler version of this paper that would be better? This asks whether the *core model or argument* could be leaner — not whether the paper has too many robustness checks, extension appendices, or additional analyses. Thoroughness is not bloat; do not recommend cutting robustness or extensions on simplicity grounds. (Caveat: if the paper's contribution is multi-piece and each piece is load-bearing for the union thesis, do not recommend flattening on parsimony grounds alone — the multi-piece structure is the natural shape of the result, not bloat.)
 
 ## Output format
 

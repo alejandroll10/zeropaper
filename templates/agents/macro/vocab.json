@@ -18,7 +18,7 @@
 
   "IMPORTANCE_100": "changes a first-order policy decision that central banks or fiscal authorities make routinely (e.g., optimal monetary rule, core stabilization design, fiscal multiplier magnitude). The bar is general policy CONSEQUENCE — a class of policy decisions changes, or a broad audience acts on the result — plus immediate relevance. This does NOT require an abstract or de-applied model: a result delivered through a specific, high-stakes setting (a named instrument, institution, episode, or policy regime) qualifies as long as the decision it changes is first-order.",
   "IMPORTANCE_85": "changes how a specific subfield approaches a class of questions, with downstream effects on measurement, future theory, or a concrete policy debate within five years. Also: shows that a class of models, instruments, or policies previously thought to matter is irrelevant or undefined under stated conditions (irrelevance / impossibility / no-go results — score on the magnitude of conventional reasoning overturned, not on a forward policy change the result by construction does not deliver); or supplies a tool — identification strategy, estimator, equilibrium concept, computational method — that a subfield will adopt to revisit a class of questions (score on the breadth of questions the tool unlocks and the credibility of field adoption).",
-  "IMPORTANCE_70": "matters mainly to a narrower subfield, or changes how researchers think about a specific transmission channel with limited spillover to first-order policy decisions a wider audience acts on. The cap reflects the NARROWNESS of who acts on the result — not the mere fact that the setting is specific or named. A concretely-framed paper whose result changes a first-order policy decision belongs at 85-100, not here.",
+  "IMPORTANCE_70": "a result merely relevant to a subfield — it does not change how that subfield approaches the transmission channel or question, with limited spillover to first-order policy decisions a wider audience acts on. The cap reflects LIMITED CONSEQUENCE within that audience, NOT the narrowness of who acts on the result — a narrow paper that changes how its subfield approaches a class of questions belongs at 85, not here, and audience size alone never caps Importance at 70. A concretely-framed result that changes a first-order policy decision belongs at 85-100.",
   "IMPORTANCE_55": "formalizes something people roughly believed, with precise conditions that clarify when it holds. No immediate policy change, but the characterization is sharper than what existed.",
   "IMPORTANCE_40": "internally interesting but does not connect to any policy decision, measurement question, or empirical fact anyone acts on.",
   "IMPORTANCE_20": "minor extension of a known NK model.",
@@ -27,7 +27,7 @@
   "NOVELTY_CALIBRATION": "new channel that changes how we think about transmission = 100, known channel in new setting with surprising implication = 80, known channel in new setting with predictable implication = 40",
 
   "SURPRISE_READER": "knowledgeable macro reader",
-  "SURPRISE_CALIBRATION": "sign reversal or existence result no one expected = 100, non-obvious comparative static or multiplicity = 60, confirms intuition with precise conditions = 40, formalizes what everyone already believed = 15",
+  "SURPRISE_CALIBRATION": "overturns a documented field prior on any axis — direction (sign reversal / existence / multiplicity no one expected), magnitude (overturns the consensus number), mechanism (displaces the accepted channel), or category (reframes the kind of problem; micro intuition reversing in GE) = 85-100; non-obvious comparative static or multiplicity = 60; confirms intuition with precise conditions = 40; formalizes what everyone already believed = 15",
 
   "QUESTION_POSER_ROLE": "creative macroeconomist",
   "QUESTION_REFEREE_ROLE": "senior macroeconomist acting as a top-5 economics journal (AER, Econometrica, QJE, JPE, ReStud) editor",
@@ -37,7 +37,7 @@
   "RIGOR_80": "correct proof with clearly stated assumptions, equilibrium well-defined. **Default for theorems that pass both structured and free-form math audits.** Not all edge cases need exhaustive treatment; if the result is clean under its stated assumptions, 80 is the expected score. Score below 80 only if reader-noticeable gaps exist despite audit passage.",
   "RIGOR_60": "argument is clear but has gaps a careful reader would notice. Equilibrium concept may be ambiguous.",
 
-  "PARSIMONY_100": "tractable GE with one key friction. Every assumption is used in the main result. Nothing can be cut without breaking the paper. Nests a standard benchmark as a special case.",
+  "PARSIMONY_100": "tractable GE with one key friction. Every assumption in the core model is used in the main result. Nothing in the core model can be cut without breaking the paper's main result. Nests a standard benchmark as a special case. (Robustness checks, calibration/welfare appendices, and alternative-shock extensions do not bear on this score.)",
   "PARSIMONY_40_FIRST": "shocks",
 
   "FERTILITY_BULLETS": "- Does it nest existing results as special cases?\n- Does it suggest testable predictions or matchable moments?\n- Does it have policy implications?",
