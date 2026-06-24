@@ -108,6 +108,8 @@ This creates a standalone project folder with assembled CLAUDE.md, AGENTS.md, GE
 3. Launch any runtime: `claude --dangerously-skip-permissions` / `codex --sandbox danger-full-access --ask-for-approval never` / `gemini --yolo`
 4. Say "Run the pipeline."
 
+For long unattended runs, launch each project in its own **interactive** `tmux` window (e.g. `tmux new-window -c <project-name> 'claude --dangerously-skip-permissions'`, then send "Run the pipeline." to it) so it keeps driving the orchestrator turn-after-turn and survives detach — do **not** use headless `claude -p "Run the pipeline."`, which terminates at the ~600s background-task wait ceiling while a subagent is still running. The orchestrator resumes from `process_log/pipeline_state.json` + committed `output/` artifacts, so a fresh interactive session picks up where an interrupted run left off.
+
 ### WRDS server (only with `--ext empirical`)
 
 The empirical extension talks to WRDS through a long-running local socket server (port 23847) so the Duo 2FA push happens once per session, not per query. The pipeline's data-inventory step starts it automatically (`templates/runtime/claude/session.md` runs `code/utils/start_services.sh` before Stage 0), but you can also start it manually:
