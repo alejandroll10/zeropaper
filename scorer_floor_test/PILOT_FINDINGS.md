@@ -1,23 +1,66 @@
 # Scorer floor test — pilot findings
 
-6 reconstructed top-3 finance papers (corpus `f6e0791a`), scored by the real
+12 reconstructed top-3 finance papers (corpus `f6e0791a`), scored by the real
 assembled finance scorer (`opus`), **routed per paper** to the scorer config its
-pipeline route would use, ×2 runs/fixture (means). Re-derive with
-`run_floor_test.py --report-only` on a machine that has run the scorer.
+pipeline route would use, ×2 runs/fixture (means). Balanced 6 theory-first /
+4 empirical-first / 2 descriptive. Re-derive with `run_floor_test.py --report-only`.
 
-## Final routed result
+## Calibration result (12 papers, committed 5-anchor Surprise)
 
-| Paper | route | total | Imp | Nov | Sur | Rig | Par | Fer | verdict |
-|---|---|---|---|---|---|---|---|---|---|
-| betermier  | theory-first    | 82.6 | 85 | 82.5 | 81 | 80 | 80 | 85 | ADVANCE |
-| bhutta     | empirical-first | 82.3 | 85 | 85 | 79 | 80 | 82.5 | 80 | ADVANCE |
-| clayton    | theory-first    | 76.9 | 83.5 | 76.5 | **62.5** | 80 | 83.5 | 75 | ADVANCE (Surprise breach) |
-| donaldson  | theory-first    | 81.0 | 83.5 | 85 | 75 | 80 | 80 | 82.5 | ADVANCE |
-| dugast     | theory-first    | 81.4 | 83.5 | 80 | 80 | 80 | 80 | 83.5 | ADVANCE |
-| greenwood  | descriptive     | 71.8 | 74.5 | 65.5 | 63 | 76.5 | 85 | 70 | OUT-OF-SCOPE |
+| Paper | route | total | Sur | verdict |
+|---|---|---|---|---|
+| betermier | theory-first    | 82.8 | 80   | ADVANCE |
+| bolton    | theory-first    | 81.5 | 82.5 | ADVANCE |
+| donaldson | theory-first    | 82.0 | 78.5 | ADVANCE |
+| dugast    | theory-first    | 81.7 | 79   | ADVANCE |
+| buffa     | theory-first    | 78.8 | 73.5 | ADVANCE (Surprise breach) |
+| clayton   | theory-first    | 77.5 | 70   | ADVANCE (Surprise breach) |
+| bhutta    | empirical-first | 80.7 | 76   | ADVANCE |
+| frame     | empirical-first | 81.3 | 75   | ADVANCE |
+| custodio  | empirical-first | 81.4 | 67.5 | ADVANCE (Surprise breach) |
+| andreani  | empirical-first | 77.1 | 71.5 | ADVANCE (Surprise breach) |
+| cakici    | descriptive     | 76.4 | 81   | OUT-OF-SCOPE |
+| greenwood | descriptive     | 71.3 | 62.5 | OUT-OF-SCOPE |
 
-**In-scope decision-level false-negatives: 0/5.** Every paper the pipeline could
-produce advances (76.9–82.6). Dimension breaches: Surprise 1/5 (clayton only).
+**In-scope decision-level false-negatives: 0/10.** Every paper the pipeline could
+produce advances (77.1–82.8) — the scorer's *aggregate* gate calibration is sound
+across a balanced 10-paper set. Dimension breaches: Surprise 4/10.
+
+**The 4 Surprise breaches split into two kinds, only one of which is a problem:**
+- *Genuinely-surprising theory near the bar* (buffa 73.5, clayton 70) — the residual
+  harshness the `=75` rung narrowed but didn't fully close on the most borderline
+  cases. High run-variance (clayton 60–76 across runs); both still advance.
+- *Confirmatory-direction empirical* (custodio 67.5, andreani 71.5) — **arguably
+  correct.** custodio (a financial-education RCT that improves financial practices)
+  and andreani (CEOs rewarded for luck, extending a known phenomenon) are valuable
+  for identification + importance, not for surprising direction. A low Surprise here
+  is the rubric working, not failing — and they advance on aggregate regardless.
+
+This is the per-dimension-floor's known limitation surfacing cleanly: a published
+top-3 paper can be legitimately moderate on Surprise while clearing the gate. The
+*decision-level* guard (0/10) is the trustworthy signal; per-dimension Surprise is
+a diagnostic, and on 12 papers it points at "a couple of borderline theory papers,"
+not systematic harshness.
+
+## Simplification A/B — 3-tier Surprise rubric, REJECTED
+
+Tested whether the 5-anchor `SURPRISE_CALIBRATION` (+ the two patch-clauses) could
+be replaced by a cleaner 3-band rubric (high / anticipatable / unsurprising), per
+the "prefer removing rules" principle. Matched A/B, 12 papers ×2.
+
+**Verdict: the floor test rejected it.** The 3-tier did not lift its targets
+(buffa 73.5→74.5 still sub-bar; clayton 70→68.5 *worse*), it *regressed* a clean
+paper (betermier 80→74.5, a new breach), in-scope Surprise breaches went 4→5, and
+the confirmatory empirical custodio drifted *up* (67.5→71.5, the leniency
+direction). Most deltas are within run-noise, but the burden was on the
+simplification to prove "at least as good," and it didn't.
+
+**Why — the useful lesson:** collapsing the explicit `=75` anchor into a "75–89
+band" gave the grader less to grip, so it reverted to its sign-reversal instinct and
+drifted *down*. **The explicit 75-anchor is load-bearing, not decorative.** A real
+data point for the #101/"remove rules" debate: here, the over-specified rule earns
+its keep, and the floor test is what let us find that out empirically instead of
+assuming. Kept the committed 5-anchor version.
 
 ## What the test established (in order)
 
