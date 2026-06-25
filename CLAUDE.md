@@ -24,15 +24,19 @@ The pipeline is the current best we have, not necessarily correct. Do not assume
 
 When auditing or editing the pipeline, if a known architectural limit is identified (e.g., a self-referential check, a subjective rule, an enforcement gap, a missing producer for a consumed artifact), do not leave it acknowledged-and-moved-on. Either (a) solve it in the same pass, or (b) document it explicitly — in the relevant agent body, doc file, or a dedicated `LIMITATIONS.md` — with the failure mode it can produce and what would be needed to close it. Acknowledged-but-undocumented limits accumulate silently and produce surprises in future runs.
 
-## Working principle: no complexity budget — do what is best for the pipeline
+## Working principle: no implementation-complexity budget — do what is best for the pipeline
 
-There is no complexity budget, no edit-cost ceiling, no "this change is too big" threshold. The pipeline is designed to be run millions of times; any one-time cost of editing the template — updating three runtime assemblers, reshaping `pipeline_state.json`, rewriting the escalation table, expanding the orchestrator prompt, adding agents, writing new tests — is trivially amortized against that. Do not reject or water down a structural proposal because it is expensive to *implement*; reject it only if it is worse for the pipeline on the merits.
+There is no implementation-complexity budget, no edit-cost ceiling, no "this change is too big" threshold. The pipeline is designed to be run millions of times; any one-time cost of editing the template — updating three runtime assemblers, reshaping `pipeline_state.json`, rewriting the escalation table, expanding the orchestrator prompt, adding agents, writing new tests — is trivially amortized against that. Do not reject or water down a structural proposal because it is expensive to *implement*; reject it only if it is worse for the pipeline on the merits.
 
 Concretely:
 - If a change makes the pipeline produce better papers, do it — even if it touches every runtime, rewrites state, and requires new agents.
 - Do not propose a "narrower variant" to save implementation effort. Propose the narrower variant only if it is genuinely better for the output.
-- Do not invoke "complexity cost," "maintenance burden," or "surface area" as reasons to decline. These are real for a one-shot project; here they are rounding errors against millions of runs.
+- Do not invoke "implementation-complexity cost," "maintenance burden," or "surface area" as reasons to decline. These are real for a one-shot project; here they are rounding errors against millions of runs. (This is about *build* cost — runtime complexity in the prompts is a different axis, governed by the "prefer removing rules" principle below.)
 - The only legitimate reasons to decline a structural proposal are: it makes the output worse, it introduces a correctness/safety regression, or a strictly better alternative exists on the merits.
+
+## Working principle: prefer removing rules over adding them
+
+When possible, avoid adding rules — prefer removing. More rules mean more overfitting and harder debugging; when a new rule and an existing one would do the same work, cut, don't stack.
 
 ## Setting up a new project
 
