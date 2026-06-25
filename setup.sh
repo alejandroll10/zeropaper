@@ -2354,6 +2354,7 @@ rm -rf test_scripts/
 rm -rf scripts/
 rm -rf codex_inspect/
 rm -rf test_output/
+rm -rf scorer_floor_test/   # build-time scorer-calibration harness (#102); never ships
 rm -f setup.sh
 rm -f README.md
 rm -f CLAUDE_REFACTOR_PLAN.md

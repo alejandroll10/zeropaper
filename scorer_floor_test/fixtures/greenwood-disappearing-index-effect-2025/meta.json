@@ -1,0 +1,9 @@
+{
+  "slug": "greenwood-disappearing-index-effect-2025",
+  "journal": "jf",
+  "source_page": "corpus/raw/jf/greenwood-disappearing-index-effect-2025.md",
+  "reconstructed_from": "frozen IAR distilled-lit snapshot",
+  "note": "Rubric-blind reconstruction for the scorer floor test (#102). Frozen \u2014 do not regenerate except on an input-schema change.",
+  "route": "descriptive",
+  "route_note": "Reduced-form measurement paper, no formal model and no causal estimand. Fits neither pipeline route (empirical-first's causal-estimand-fidelity guard hard-fails a descriptive H1/H5). Scored theory-first for reference; excluded from the breach verdict as out of the pipeline's target distribution."
+}
