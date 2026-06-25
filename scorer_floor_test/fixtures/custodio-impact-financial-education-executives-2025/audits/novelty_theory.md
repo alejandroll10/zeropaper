@@ -1,0 +1,1 @@
+NOVEL (Gate 3). The delivered causal chain — randomized executive financial education reducing working capital via faster receivables collection, redeploying freed cash into capex, and raising ROA persistently — is not established in the prior literature.

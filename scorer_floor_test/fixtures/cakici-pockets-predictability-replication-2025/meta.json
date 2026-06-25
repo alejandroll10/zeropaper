@@ -1,0 +1,9 @@
+{
+  "slug": "cakici-pockets-predictability-replication-2025",
+  "journal": "jf",
+  "route": "descriptive",
+  "source_page": "corpus/raw/jf/cakici-pockets-predictability-replication-2025.md",
+  "reconstructed_from": "frozen IAR distilled-lit snapshot",
+  "note": "Rubric-blind reconstruction for the scorer floor test (#102). Frozen — do not regenerate except on an input-schema change.",
+  "route_note": "Descriptive replication/audit: a reduced-form methodological replication with no original structural economic model (no theorem-and-proof) and no causal estimand (the identifying contrast is one-sided vs two-sided kernel code, not a treatment effect). It fits neither the theory-first nor the empirical-first route cleanly, so it is scored theory-first for reference only; the theory_v1.md proof section is the identification/replication argument rather than a derivation."
+}

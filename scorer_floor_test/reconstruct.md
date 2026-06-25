@@ -17,6 +17,23 @@ or framing the page does not contain.
 > content into the pipeline's internal artifact schemas. Tags you assign below are
 > *structural classifications from a fixed rubric*, not praise.
 
+## Route
+
+This fixture's pipeline route is **{{ROUTE}}** (one of `theory-first`,
+`empirical-first`, `descriptive`). It determines which artifact set you produce:
+
+- **theory-first** / **descriptive** — produce the default outputs (1–6 below),
+  including the two math-audit stubs. (A descriptive measurement paper is scored
+  with the theory-first scorer, so it takes the same artifact set.)
+- **empirical-first** — produce the default outputs BUT replace the two math-audit
+  stubs with the **empirical-first audit chain** (see "Empirical-first artifacts"
+  at the end): the scorer for this route has no math audit; its H3 keys on
+  identification + empirics + data audits. Still produce `theory/theory_v1.md`
+  (it serves as the mechanism document + identification argument), implications,
+  self-attack, novelty stubs, pipeline_state, and meta.
+
+Set `"route": "{{ROUTE}}"` in `meta.json` (see output 6).
+
 ## Input
 
 The distilled page (YAML frontmatter + markdown prose) is at **{{PAGE_PATH}}**.
@@ -145,14 +162,17 @@ Write exactly:
 
 The paper was published in a top-3 finance journal, so it is rigorous, novel, and
 well-posed by construction. Write thin PASS/NOVEL stubs (these stand in for audits
-the pipeline ran and passed):
+the pipeline ran and passed). **Always:**
+
+- `audits/novelty_idea.md` — `NOVEL` (Gate 1b). One line referencing the contribution's
+  novelty vs. the `relatesTo` priors.
+- `audits/novelty_theory.md` — `NOVEL` (Gate 3). One line.
+
+**theory-first / descriptive only** (the empirical-first scorer has no math audit):
 
 - `audits/math_audit.md` — `PASS`. One line: the transcribed equations are internally
   consistent as presented. Add a `## Unverified claims` heading with `(none)` under it.
 - `audits/math_audit_freeform.md` — `PASS`. One line.
-- `audits/novelty_idea.md` — `NOVEL` (Gate 1b). One line referencing the contribution's
-  novelty vs. the `relatesTo` priors.
-- `audits/novelty_theory.md` — `NOVEL` (Gate 3). One line.
 
 ### 6. `meta.json`
 
@@ -160,11 +180,45 @@ the pipeline ran and passed):
 {
   "slug": "{{SLUG}}",
   "journal": "{{JOURNAL}}",
+  "route": "{{ROUTE}}",
   "source_page": "corpus/raw/{{JOURNAL}}/{{SLUG}}.md",
   "reconstructed_from": "frozen IAR distilled-lit snapshot",
   "note": "Rubric-blind reconstruction for the scorer floor test (#102). Frozen — do not regenerate except on an input-schema change."
 }
 ```
+
+(For a `descriptive` route, also add a `"route_note"` explaining the paper has no
+formal model and no causal estimand, so it fits neither pipeline route and is
+scored theory-first for reference only.)
+
+## Empirical-first artifacts (only when {{ROUTE}} is `empirical-first`)
+
+The empirical-first scorer evaluates a *delivered causal estimate*, not a theorem.
+Replace the two math-audit stubs (output 5) with this chain, all faithful to the
+paper's actual identification + results from the page:
+
+- `output/stage1/identification_design.md` — the **causal estimand** (what effect,
+  on what outcome, for whom) and the **identification strategy** (the natural
+  experiment / instrument / RD / randomization the page describes), the conditioning
+  set, and the threats the design addresses. State the estimand as the paper frames
+  it; do not overclaim (an upper bound is an upper bound).
+- `output/stage3a/empirical_analysis.md` — the **delivered** results: the headline
+  estimate with magnitude + significance, plus the heterogeneity / falsification /
+  channel tests the paper actually ran, each tagged to its implication. These are
+  delivered, not proposed (the empirical-first Fertility rule rewards delivered work).
+- `output/stage3a/identification_audit.md` — `PASS`. One line: the estimand and
+  design are sound; the conditioning set matches the decision the paper studies.
+- `output/stage3a/empirics_audit.md` — `PASS`. One line: the executed analysis
+  matches the design and the magnitudes reproduce as reported.
+- `output/stage3a/data_integrity_audit.md` — `PASS`. One line: cached field contents
+  match the source schema.
+- `output/stage3a/data_selection_audit.md` — `PASS`. One line: the sample matches the
+  documented inclusion rule.
+
+These stubs stipulate PASS on the same transparent principle as the math-audit stubs
+(the paper was published, so the audit chain is sound by construction). Confine them
+to identification / execution soundness — do **not** inject importance / novelty /
+surprise language (that would teach to the scorer's judgment dimensions).
 
 ## Provenance scrub (critical — the reconstruction must look like a *fresh* draft)
 
