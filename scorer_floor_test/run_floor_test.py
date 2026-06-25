@@ -283,6 +283,10 @@ def main():
                     help="score each fixture N times and aggregate by mean (default 1). The "
                          "scorer is stochastic; N>1 separates a real calibration move from "
                          "run-to-run noise. Use matched N for a before/after A/B.")
+    ap.add_argument("--jobs", type=int, default=1, metavar="N",
+                    help="run N fixtures concurrently (default 1, sequential). Each scorer "
+                         "call is an independent claude subprocess writing only its own "
+                         "fixture, so this parallelizes cleanly. 4-6 is a good range.")
     args = ap.parse_args()
     if args.report_only and args.repeat != 1:
         sys.exit("--repeat is incompatible with --report-only (only one saved decision per fixture).")
@@ -304,47 +308,72 @@ def main():
         if not fixture_dirs:
             sys.exit(f"no fixture named {args.only}")
 
+    jobs = 1 if args.report_only else max(1, args.jobs)
     mode = "Re-parsing saved decisions for" if args.report_only else f"Scoring (model={args.model})"
     rpt = f" ×{args.repeat} runs/fixture (mean)" if args.repeat > 1 else ""
-    print(f"{mode} {len(fixture_dirs)} fixture(s){rpt}; gate={gate} floor={args.floor}\n")
+    par = f", {jobs} parallel" if jobs > 1 else ""
+    print(f"{mode} {len(fixture_dirs)} fixture(s){rpt}{par}; gate={gate} floor={args.floor}\n")
 
-    scorer_cache = {}  # route -> assembled body (avoid re-assembling per fixture)
-
-    rows, breaches, errors = [], [], []
-    for fd in fixture_dirs:
-        try:
+    # Pre-assemble each route's scorer once (avoids races + redundant assembly across threads).
+    scorer_cache = {}
+    if not args.report_only:
+        for fd in fixture_dirs:
             route = fixture_route(fd)
-            scorer_body = None
-            if not args.report_only:
-                scorer_body = scorer_cache.get(route) or scorer_cache.setdefault(
-                    route, assemble_scorer(route))
-            runs = [score_once(fd, scorer_body, args.model, args.report_only, route)
-                    for _ in range(args.repeat)]
-        except Exception as e:
-            errors.append((fd.name, str(e)))
-            print(f"  ERROR  {fd.name}: {e}")
-            continue
-        # A descriptive fixture fits no pipeline route — score it for reference but
-        # exclude it from the breach verdict (its low score is out-of-distribution).
+            scorer_cache.setdefault(route, assemble_scorer(route))
+
+    def score_fixture(fd):
+        """Run a fixture's ×N scoring and return its result tuple, or an error.
+        Independent per fixture (each writes only its own decision file), so safe
+        to run concurrently."""
+        route = fixture_route(fd)
+        scorer_body = None if args.report_only else scorer_cache[route]
+        runs = [score_once(fd, scorer_body, args.model, args.report_only, route)
+                for _ in range(args.repeat)]
         in_scope = route != "descriptive"
-        # Aggregate the N runs by mean; keep min–max spread to show run-to-run noise.
         scores = {d: round(sum(r[d] for r in runs) / len(runs), 1) for d in DIMENSIONS}
         spread = {d: (min(r[d] for r in runs), max(r[d] for r in runs)) for d in DIMENSIONS}
         below = [d for d in gate if scores[d] < args.floor] if in_scope else []
         total = weighted_total(scores)
-        # An aggregate below the tier bar is a decision-level false-negative: the
-        # scorer would REVISE, not ADVANCE, a paper that actually cleared top-3.
         advance = total >= args.floor
+        return (fd.name, scores, below, total, advance, spread, len(runs), route)
+
+    results = {}  # fd -> tuple | Exception, keyed to preserve input order in the report
+    if jobs > 1:
+        from concurrent.futures import ThreadPoolExecutor
+        with ThreadPoolExecutor(max_workers=jobs) as ex:
+            futs = {ex.submit(score_fixture, fd): fd for fd in fixture_dirs}
+            for fut in futs:
+                fd = futs[fut]
+                try:
+                    results[fd] = fut.result()
+                except Exception as e:
+                    results[fd] = e
+    else:
+        for fd in fixture_dirs:
+            try:
+                results[fd] = score_fixture(fd)
+            except Exception as e:
+                results[fd] = e
+
+    rows, breaches, errors = [], [], []
+    for fd in fixture_dirs:  # input order
+        res = results[fd]
+        if isinstance(res, Exception):
+            errors.append((fd.name, str(res)))
+            print(f"  ERROR  {fd.name}: {res}")
+            continue
+        name, scores, below, total, advance, spread, nruns, route = res
+        in_scope = route != "descriptive"
         is_breach = in_scope and (below or not advance)
         flag = "n/a " if not in_scope else ("FAIL" if is_breach else "ok")
-        rows.append((fd.name, scores, below, total, advance, spread, len(runs), route))
+        rows.append(res)
         if is_breach:
-            breaches.append((fd.name, below, {d: scores[d] for d in below}, total, advance))
+            breaches.append((name, below, {d: scores[d] for d in below}, total, advance))
         def sp(d):
             lo, hi = spread[d]
             return f"({lo}-{hi})" if (args.repeat > 1 and lo != hi) else ""
         tag = f"[{route}]" + ("(out-of-scope)" if not in_scope else "")
-        print(f"  {flag:4} {fd.name} {tag}  total={total:5.1f} {'ADV' if advance else 'REV'}  " +
+        print(f"  {flag:4} {name} {tag}  total={total:5.1f} {'ADV' if advance else 'REV'}  " +
               "  ".join(f"{d[:4]}={_fmt(scores[d])}{sp(d)}" for d in DIMENSIONS))
 
     write_report(rows, breaches, errors, gate, args.floor, args.model, args.repeat)
