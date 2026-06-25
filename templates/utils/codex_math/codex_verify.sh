@@ -38,7 +38,7 @@ fi
 
 echo "[codex-math] Sending to Codex (gpt-5.5, effort=$EFFORT)..."
 
-codex exec --sandbox workspace-write --skip-git-repo-check \
+codex exec </dev/null --sandbox workspace-write --skip-git-repo-check \
     -c "model_reasoning_effort=\"$EFFORT\"" \
     -c 'model_reasoning_summary="auto"' \
     -o "$TMP" \
