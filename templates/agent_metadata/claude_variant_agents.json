@@ -16,7 +16,7 @@
   },
   "question-referee": {
     "name": "question-referee",
-    "description": "Vets the posed research question on importance, openness, and non-obviousness. The orchestrator launches this agent at Stage 0 step 0e, replacing the self-graded Gate 0. Search-grounded; returns a 0-100 viability score and a verdict.",
+    "description": "Vets the posed research question on importance, openness, non-obviousness, and answer-symmetry (interesting either way). The orchestrator launches this agent at Stage 0 step 0e, replacing the self-graded Gate 0. Search-grounded; returns a 0-100 viability score and a verdict.",
     "category": "evaluator",
     "tools": "Read, Write, WebSearch, WebFetch",
     "model": "opus",

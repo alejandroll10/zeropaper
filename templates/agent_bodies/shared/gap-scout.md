@@ -47,7 +47,7 @@ Write to the file path specified in your prompt. Build incrementally, ending wit
 **What it doesn't have:** [what's missing that the gap would fill]
 **The differentiating move:** [what a new paper must do to not be "this already exists"]
 
-[Identify the single paper most likely to be cited by a referee as prior art. Fetch and read its abstract. Be specific about the boundary.]
+[Identify the single paper most likely to be cited by a referee as prior art. Fetch and read its abstract. Be specific about the boundary. If the gap opens territory the field has no framework for — so there is no single competitor paper, only an informal or assumed-away treatment — say so explicitly and describe what the field does *instead*; do not force a competitor that isn't there. This is a strong, rare claim — justify it from the search (the field assumes X without ever modeling it), never as a fallback when a competitor is merely hard to find.]
 
 ## Open questions
 
@@ -64,6 +64,10 @@ Write to the file path specified in your prompt. Build incrementally, ending wit
 **Is the gap still open?** [Yes / No / Partially closed]
 
 [After the deep search, honestly assess: has someone already written this paper? Do the adjacent literatures show the question is less open than it looked? If the gap is closed or mostly closed, say so clearly — the orchestrator will pick a different gap. Do not push forward on a closed gap.]
+
+**Does the field have a stake in the answer?** [Yes / Weak / No]
+
+[Openness is not enough — a gap can be untested because no one has a stake in it. Is there a documented standing prior, consensus, or live debate such that an answer would inform the field *whichever way it resolves* — or a consequential absence (the field acts on ad hoc intuition because no framework exists, so an answer would change practice or beliefs, Markowitz-style)? Cite it — for a standing prior or debate, cite the paper(s); for a consequential absence, cite the closest informal/practitioner treatment used instead (textbook heuristic, regulatory rule of thumb, industry norm). Low stake means no one would care about the answer — **not** that no one has tried: a gap left untouched because it is *hard* is still high-stake if a standing prior rides on it (difficulty is never a stake demerit). Flag low-stake only when nothing — no prior, debate, or consequence — rides on the answer either way; the orchestrator routes on this at Step 0c (see stage_0.md). (Field-area stake, not a question's answer-symmetry — do not design a question here; just record whether the field would care about any finding from this gap, not which specific answer a future question gives.)]
 ```
 
 ## Rules
