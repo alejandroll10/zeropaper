@@ -605,11 +605,15 @@ if [ "$MANUAL" = "1" ]; then
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/codex_math_skills.json"
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/bib_verify_skills.json"
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/openalex_skills.json"
+        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json"
+        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json"
     )
     CODEX_SKILL_METADATA_ARGS=(
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/sympy_skills.json"
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/bib_verify_skills.json"
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/openalex_skills.json"
+        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json"
+        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json"
     )
     for ext in "${EXTENSIONS[@]}"; do
         case "$ext" in
@@ -1609,6 +1613,51 @@ mkdir -p "$P/code/utils/openalex"
 cp "$TEMPLATE_ROOT/templates/utils/openalex/"openalex.py "$P/code/utils/openalex/"
 chmod +x "$P/code/utils/openalex/"openalex.py
 
+# NBER conference agenda skill (loaded by literature-scout, gap-scout — the
+# pre-publication research frontier: who is presenting what, right now)
+assemble_claude_skills \
+    "$TEMPLATE_ROOT" \
+    "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json" \
+    "$TEMPLATE_ROOT/templates/skill_bodies/nber_agenda" \
+    "$SKILLS_OUT"
+
+python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
+    --metadata "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json" \
+    --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/nber_agenda" \
+    --output-dir "$CODEX_SKILLS_OUT"
+
+# Copy NBER agenda utility script
+mkdir -p "$P/code/utils/nber_agenda"
+cp "$TEMPLATE_ROOT/templates/utils/nber_agenda/"nber_agenda.py "$P/code/utils/nber_agenda/"
+chmod +x "$P/code/utils/nber_agenda/"nber_agenda.py
+
+# Sequence-space Jacobian (SSJ) skill — solve/analyze heterogeneous-agent GE
+# models (theory-explorer Stage 2b, idea-prototyper tractability pre-check)
+assemble_claude_skills \
+    "$TEMPLATE_ROOT" \
+    "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json" \
+    "$TEMPLATE_ROOT/templates/skill_bodies/ssj" \
+    "$SKILLS_OUT"
+
+python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
+    --metadata "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json" \
+    --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/ssj" \
+    --output-dir "$CODEX_SKILLS_OUT"
+
+# Copy SSJ driver + worked finance example model
+mkdir -p "$P/code/utils/ssj"
+cp "$TEMPLATE_ROOT/templates/utils/ssj/"ssj_solve.py "$TEMPLATE_ROOT/templates/utils/ssj/"example_asset_pricing.py "$P/code/utils/ssj/"
+chmod +x "$P/code/utils/ssj/"ssj_solve.py
+
+# Install sequence-jacobian (non-fatal -- pulls in numba, which can be finicky to
+# build; warn like the codex CLI rather than failing setup). The package declares
+# no deps, so an unpinned install backtracks to a Python-incompatible numba -- pin
+# numpy/scipy/numba>=0.59 explicitly.
+if [ "$LOCAL" = "0" ]; then
+    uv pip install sequence-jacobian numpy scipy "numba>=0.59" -q 2>/dev/null \
+        || echo "  ⚠ sequence-jacobian install failed (likely a numba build issue). The ssj skill will not work until you run: uv pip install sequence-jacobian numpy scipy 'numba>=0.59'"
+fi
+
 echo "  ✓ Core skills assembled"
 
 # ── Apply extensions ──
@@ -2219,6 +2268,8 @@ candidate_dirs = [
     "code/utils/codex_math",
     "code/utils/bib_verify",
     "code/utils/openalex",
+    "code/utils/nber_agenda",
+    "code/utils/ssj",
 ]
 candidate_files = [
     "CLAUDE.md",
@@ -2235,7 +2286,7 @@ candidate_files = [
 
 # Extension-installed files. The empirical extension drops *.py / *.sh
 # directly into code/utils/ (flat, alongside the codex_math/bib_verify/
-# openalex subdirs that core setup creates). The theory_llm extension
+# openalex/nber_agenda subdirs that core setup creates). The theory_llm extension
 # drops llm_client.py at the project root. Both are setup-managed
 # infrastructure that update.sh must refresh.
 extensions = $EXT_JSON

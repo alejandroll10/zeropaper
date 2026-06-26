@@ -2,7 +2,7 @@
 
 AFTER EVERY BIG CHANGE, LAUNCH A SONNET AGENT TO REVIEW YOUR CHANGES FOR ISSUES. IF ANY ISSUES ARE FOUND, ADD A NEW ROUND OF AUDITING AFTER FIXING THE CURRENT ROUND'S ISSUES (EVEN IF THERE ARE ONLY MINOR CHANGES). ITERATE UNTIL DONE.
 
-WHEN ADDING A NEW INFRASTRUCTURE PATH TO `setup.sh` (DIR OR FILE THAT GETS DEPLOYED), ALSO ADD IT TO THE `candidate_dirs` / `candidate_files` LIST IN THE MANIFEST EMISSION BLOCK (`setup.sh:1184`); OTHERWISE `update.sh` WILL SILENTLY SKIP IT WHEN REFRESHING EXISTING DEPLOYMENTS.
+WHEN ADDING A NEW INFRASTRUCTURE PATH TO `setup.sh` (DIR OR FILE THAT GETS DEPLOYED), ALSO ADD IT TO THE `candidate_dirs` / `candidate_files` LIST IN THE MANIFEST EMISSION BLOCK (UNDER `# ── Emit deployment manifest ──`, `candidate_dirs` AT `setup.sh:2261`); OTHERWISE `update.sh` WILL SILENTLY SKIP IT WHEN REFRESHING EXISTING DEPLOYMENTS.
 
 WHEN ADDING A NEW `{{KEY}}` PLACEHOLDER TO ANY AGENT BODY (SHARED, VARIANT, OR EXTENSION), ADD A DEFAULT VALUE FOR THE KEY TO EVERY EXISTING VARIANT vocab.json (`templates/agents/{finance,macro}/vocab.json` AT MINIMUM). THE LOADER (`scripts/agent_body_loader.py`) RAISES `KeyError` ON UNRESOLVED PLACEHOLDERS, SO A MISSING DEFAULT BREAKS ASSEMBLY FOR ANY VARIANT THAT DOESN'T DEFINE THE KEY — FAIL-LOUD IS THE CORRECT BEHAVIOR, BUT IT MEANS A VARIANT-ONLY EDIT WILL BREAK SETUP FOR THE OTHER VARIANTS UNTIL THE KEY IS BACKFILLED. EXTENSION-AGENT PLACEHOLDERS HAVE THE SAME RULE — ANY NEW KEY IN AN EXTENSION BODY MUST APPEAR IN EVERY VARIANT VOCAB THE EXTENSION CAN COMPOSE WITH (CURRENTLY BOTH FINANCE AND MACRO).
 
@@ -229,6 +229,9 @@ Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory
 | Skill | Description |
 |-------|-------------|
 | `codex-math` | OpenAI Codex (gpt-5.5) for proof verification, writing, and exploration. Erratic genius — substantial false-positive rate, always triage. Scripts at `code/utils/codex_math/`. |
+| `nber-agenda` | Fetch any NBER conference/meeting agenda (titles, authors, discussants, paper links) as text or JSON. NBER agenda pages render client-side; the skill resolves the hidden `conference.nber.org/agenda/simple_printable?conf_id=<ID>` endpoint. Loaded by `literature-scout` and `gap-scout` (pre-publication frontier). Script at `code/utils/nber_agenda/`. |
+
+> **Using it from this dev repo:** the script is runnable directly without a deployment — `python3 templates/utils/nber_agenda/nber_agenda.py <conference-slug> [--json] [--papers-only]` (e.g. `si-2026-asset-pricing`). Handy for surveying the research frontier or harvesting new technique candidates for skills while working in the template repo.
 
 ## How setup.sh works
 

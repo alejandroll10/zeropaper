@@ -1,0 +1,10 @@
+{
+  "ssj": {
+    "name": "ssj",
+    "description": "Solve and analyze heterogeneous-agent general-equilibrium models with the sequence-space Jacobian method (the official `sequence-jacobian` package). Use it to answer questions a representative-agent model cannot: how the wealth/MPC distribution shapes prices and dynamics, who-gains-who-loses, distributional general equilibrium, and impulse responses mediated by the cross-section. Finance uses include heterogeneous-agent asset pricing (wealth distribution -> risk premia), household portfolio choice under aggregate risk, and intermediary/term-structure models; macro uses include HANK and inequality-and-business-cycle models. You write the economics (the het block + market clearing in a .py module); the driver `code/utils/ssj/ssj_solve.py` runs steady state -> GE Jacobians -> determinacy -> IRFs -> plots. Deterministic. Installed by setup.sh (pulls in numba).",
+    "claude": {
+      "user-invocable": false,
+      "allowed-tools": "Bash, Read, Write"
+    }
+  }
+}

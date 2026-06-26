@@ -1,0 +1,11 @@
+{
+  "nber-agenda": {
+    "name": "nber-agenda",
+    "description": "Fetch the agenda of any NBER conference or program meeting (Summer Institute, program meetings, working groups, methods conferences) as clean text or structured JSON — titles, authors, affiliations, discussants, and uploaded paper/slide links. NBER agenda pages render client-side, so a plain fetch returns only a 'Loading...' placeholder; this skill resolves the hidden agenda endpoint for you. Use it to survey the research frontier — what top groups are presenting right now, often months before the work is published or has a DOI.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "<slug | url | conf_id> [--json] [--papers-only]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  }
+}

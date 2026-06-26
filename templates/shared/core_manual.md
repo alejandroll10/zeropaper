@@ -33,7 +33,7 @@ code/
 ├── download/             # Data download helpers
 ├── explore/              # Exploration scripts
 ├── tmp/                  # Scratch
-└── utils/                # Pre-built helpers (codex-math, openalex, bib-verify; more with extensions)
+└── utils/                # Pre-built helpers (codex-math, openalex, bib-verify, nber-agenda, ssj; more with extensions)
 paper/
 ├── main.tex
 ├── sections/
