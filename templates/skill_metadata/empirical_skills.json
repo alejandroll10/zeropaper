@@ -71,6 +71,15 @@
       "allowed-tools": "Bash, Read, Write"
     }
   },
+  "ibes": {
+    "name": "ibes",
+    "description": "I/B/E/S analyst EPS estimates, consensus summaries, and reported actuals via WRDS (ibes library) — the gotcha-carrying complement to the generic wrds skill stub. Tables: statsum_epsus (Summary/consensus: meanest, medest, stdev, numest), det_epsus (Detail/individual analyst estimates), act_epsus (Street actuals), recddet (recommendations), id (identifiers); epsus (US) vs epsint (international), and adjusted vs unadjusted (u-suffix) twins, are separate files. Use for earnings surprise (SUE), forecast dispersion, and revision measures. Critical gotchas: Summary is NOT rebuildable from Detail; default split-adjusted+cent-rounded EPS corrupts small-cap/high-split firms (prefer unadjusted + CRSP cfacshr); Street actuals != GAAP/Compustat (use the IBES actual against the IBES forecast); always filter FPI + measure (a firm-month carries many horizons/metrics); use revision/activation dates to avoid look-ahead; pin the vintage (history restated, analyst/broker codes recoded); link to CRSP via the WRDS IBES-CRSP link / iclink, not a naive CUSIP merge. Requires WRDS_USER/WRDS_PASS and the persistent WRDS server (Duo 2FA once per session); reuse the wrds skill's connection.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[summary | detail | actuals | surprise | dispersion]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
   "edgar": {
     "name": "edgar",
     "description": "Access SEC EDGAR filings, financial statements, and full-text search. Use for corporate finance research — 10-K/10-Q analysis, governance, disclosure, insider trading, institutional holdings, and open-end fund registration (Form N-1A: mutual fund / ETF prospectus, strategy, fees, classification — rr:* XBRL not us-gaap, one trust covers many series/classes). For investment-adviser registration (CRD/IARD, not on EDGAR) see form-adv; for N-CEN/NPORT-P/485BPOS fee-table parsing see sec-funds.",
