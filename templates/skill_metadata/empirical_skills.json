@@ -35,6 +35,24 @@
       "allowed-tools": "Bash, Read, Write"
     }
   },
+  "tnic": {
+    "name": "tnic",
+    "description": "Hoberg-Phillips Text-based Network Industry Classifications (TNIC) — pairwise product-market similarity from 10-K product descriptions, no key/registration. Direct download from hobergphillips.tuck.dartmouth.edu: tnic3_data.zip (~151 MB -> tab-delimited year/gvkey1/gvkey2/score, 27M rows, 1988-2023; recommended), plus coarser TNIC-2 and the transitive FIC classification. Use for text-based industry/peer definitions, product-market competition intensity, peer-firm benchmarks, and merger/synergy work. Gotchas: it is a non-transitive network with no industry code (each firm has its own rival set), not a partition like SIC/NAICS; identifier is Compustat gvkey; score is excess-over-threshold not raw cosine; symmetric (both directions stored, dedup gvkey1<gvkey2); self-pairs present; recomputed annually. Cite Hoberg & Phillips RFS 2010 and JPE 2016.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[tnic3 | tnic2 | fic | \"list\"]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
+  "facebook-sci": {
+    "name": "facebook-sci",
+    "description": "Meta (Facebook) Social Connectedness Index (SCI) via the Humanitarian Data Exchange (HDX) — relative probability of a friendship link between two areas, no API key. Direct CSVs: country.csv (country-to-country, 31,684 rows) and us_counties.csv (~245 MB, 10.3M rows, 5-digit FIPS); GADM2/ZCTA files are Google Drive links on the same page. Columns: user_country, friend_country, user_region, friend_region, scaled_sci. Use for social-network exposure measures, social-distance instruments, and connectedness-weighted spillovers. Gotchas: scaled_sci is a per-file rescaled relative measure (max=1e9), NOT a count/probability and NOT comparable across files or vintages; symmetric (both directions stored); diagonal (self-pairs) included and dominates — drop for between-area work; region codes differ by file; snapshot per release, not a panel. Cite Bailey, Cao, Kuchler, Stroebel & Wong, JEP 2018.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[country | us-counties | gadm2 | zcta]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
   "open-bond-pricing": {
     "name": "open-bond-pricing",
     "description": "Open Source Bond Asset Pricing (OSBAP; Dickerson, Nozawa & Robotti) — corporate-bond data with NO WRDS and NO authentication, the fixed-income analog of chen-zimmerman. Public downloads, cached locally: ~341 long-short corporate-bond factor return series (monthly from 2002-08, ~2 MB); the bond-month characteristics panel of 341 ranked predictors (2002-07..2022-12, ~886 MB); ML return predictions + realized returns (~200 MB); and a daily bond panel from cleaned Enhanced/Standard/144A TRACE with returns, credit spreads, duration and accrued interest (~1.8 GB). OSBAP already cleans raw TRACE (error-correction, +100% truncation fix) so you consume the panels rather than re-clean trades. Use for corporate-bond cross-section, credit-spread, bond-factor, and bond-return work. Trade-level intraday TRACE (individual trade reports / dealer flow via a WRDS trace-library, subscription-gated pull) is the separate `trace-bonds` skill, not this one.",
