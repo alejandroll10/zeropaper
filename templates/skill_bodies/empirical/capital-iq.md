@@ -50,12 +50,43 @@ file as the source of truth and **do not attempt to re-pull from WRDS**.
   turns (`transcriptpersonid = 1`) dropped. If you need raw/duplicate/non-earnings
   data, confirm which export variant you have.
 
-- **It is large** (tens of GB — full component text). Never `read_csv` the whole
-  file. Filter to your `gvkey` set and date window, keep only needed columns
-  (`gvkey, transcriptid, componentorder, transcriptpersonid, componenttext,
-  mostimportantdateutc`), and **cache to parquet** under `data/transcripts/`.
-  Aggregate components → call-level text per `transcriptid` before joining to a
-  firm-quarter panel.
+### Loading the export (validated recipe)
+The export is **tens of GB** with a free-text field, so loading has three traps —
+all handled below. Never `pd.read_csv()` the whole file.
+
+```python
+import polars as pl
+
+CSV = "data/transcripts/ConferenceCallsData_all.csv"
+# TRAP 1: componenttext has embedded newlines & commas — a real CSV parser is
+#         mandatory; line tools (wc -l / awk / sed) mis-split rows.
+# TRAP 2: id columns are float-formatted ints ("18749.0"), which break dtype
+#         inference — read every id/text column as Utf8, cast later.
+IDCOLS = ['transcriptcomponentid','transcriptid','componentorder',
+          'transcriptcomponenttypeid','transcriptpersonid','componenttext',
+          'companyid','gvkey','year']
+schema = {c: pl.Utf8 for c in IDCOLS}
+
+# Stream-filter to your firm set without materializing 15.7 GB (~14s for a few gvkeys):
+keep = ['gvkey','year','transcriptid','componentorder','transcriptpersonid',
+        'componenttext','mostimportantdateutc']
+df = (pl.scan_csv(CSV, schema_overrides=schema)
+        .filter(pl.col('gvkey').is_in(my_gvkeys))     # pass your listed-universe gvkeys
+        .select(keep)
+        .collect(engine='streaming'))
+
+# TRAP 3: gvkey is inconsistently formatted in the export — some zero-padded
+#         ('028378'), some not ('63643'), some float-suffixed. Normalize BEFORE
+#         joining to Compustat or the merge silently drops rows.
+df = df.with_columns(
+    pl.col('gvkey').str.replace(r'\.0$','').str.zfill(6).alias('gvkey'))
+
+df.write_parquet("data/transcripts/calls_subset.parquet")   # cache; re-read from here
+```
+
+After caching, **aggregate components → call level** (concatenate `componenttext`
+ordered by `componentorder` per `transcriptid`, dropping `transcriptpersonid = 1`
+operator turns) before joining to a firm-quarter panel.
 
 ## WRDS build recipe (for an entitled account only — provenance)
 This is how a standard transcript export is produced. It requires a WRDS login
@@ -87,9 +118,15 @@ it is account-specific and out of scope for this skill.
 - **Drop operator turns** (`transcriptpersonid = 1`) and decide on
   presentation-vs-Q&A (`transcriptcomponenttypeid`) explicitly for any tone/topic
   measure.
-- **gvkey is the link; confirm coverage and dedup.** State whether you used the
-  deduplicated (earliest) or all-transcripts variant — they give different call
-  counts.
+- **gvkey is the link — normalize it or lose rows silently.** In the export
+  `gvkey` is inconsistently formatted (zero-padded vs not, sometimes `.0`-
+  suffixed floats). Strip `\.0$` and `zfill(6)` before joining to Compustat;
+  otherwise the merge drops the unpadded firms with no error. Also confirm
+  whether you used the deduplicated (earliest) or all-transcripts variant — they
+  give different call counts.
+- **Don't use line tools on the export.** `componenttext` contains embedded
+  newlines, so `wc -l` / `awk` / `sed` mis-count and mis-split rows — always go
+  through a CSV parser with quote handling.
 - **Licensed data.** No provenance badge; cite S&P Capital IQ; never commit the
   data or a download link to the repo (it is gitignored under `data/`).
 
