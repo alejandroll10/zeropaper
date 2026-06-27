@@ -29,7 +29,7 @@ Do NOT name a model, friction, estimator, or theoretical framework — that is t
 [Why can't a knowledgeable {{SURPRISE_READER}} call it in advance? Either: two first-order forces push in opposite directions and the net is genuinely undetermined; or the consensus is X with credible reason to suspect not-X; or an established fact has no accepted explanation. Cite the field's prior; do NOT pre-commit the answer.]
 
 ## Why it is interesting either way
-[Name what the field learns under each plausible answer. The strongest questions pay off whichever way they resolve. Flag — but do not automatically abandon — any answer that would be a non-paper (the effect is simply absent, or a result the field already expected): it is a dead branch only when *no standing prior* is being tested; a definitive null against a standing prior (think Modigliani–Miller) is itself a finding. Prefer questions with no dead branch. (Distinct from non-obviousness: non-obvious = an expert can't call the answer; interesting-either-way = every answer teaches something, whichever is right.)]
+[Name what the field learns under each plausible answer. The strongest questions pay off whichever way they resolve. {{QUESTION_POSER_DEAD_BRANCH}} (Distinct from non-obviousness: non-obvious = an expert can't call the answer; interesting-either-way = every answer teaches something, whichever is right.)]
 
 ## Data referenced
 [Relevant sources if an inventory exists; omit otherwise.]

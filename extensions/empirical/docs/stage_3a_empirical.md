@@ -110,6 +110,14 @@ Stage 3a is not one-shot. When the theory revises after the first 3a pass — Ga
 
 **Procedure.**
 1. If the new content introduces a new causal claim or changes the theoretical object the empirics must identify, re-launch `identification-designer` (step 1 of the first-pass procedure) so the menu reflects the revised theory; otherwise carry forward the existing `identification_menu.md`.
+<!-- EMPIRICAL_FIRST_START -->
+   **Empirical-first re-fire launch.** The empirical-first `identification-designer` body has no hardcoded input/output defaults — it reads and writes the paths the launch instruction names — so a re-fire must supply them explicitly (a bare "step 1 of the first-pass procedure" pointer would leave the agent without file guidance). Launch with:
+
+   > "You are operating under `--mode empirical-first` at a Stage 3a re-fire. Read the revised mechanism document `output/stage2/theory_draft_v{theory_version}.md`, `output/stage3/implications.md`, `output/data_inventory.md`, and the committed Stage 1 design `output/stage1/identification_design.md` (use it as your starting point and revise it to fit the new causal claim — do not design from scratch; write the result to the Stage 3a path below, not back to this file). The object to identify is the revised mechanism's new or changed causal claim. Save the revised committed design to `output/stage3a/identification_menu.md` (the canonical Stage 3a path downstream agents read; this supersedes the carried-forward design)."
+
+   This mirrors the Stage 1 Step 4 launch (`docs/stage_1.md`); the only differences are the inputs (revised mechanism + the Stage 1 design instead of the idea files) and the output path (`identification_menu.md`, the Stage 3a canonical path, instead of `identification_design.md`). The single-design / question-match / no-theory-file framing lives in the body, not this instruction.
+<!-- EMPIRICAL_FIRST_END -->
+
 2. Launch `empiricist` with: the revised theory, the current `implications.md`, the prior `empirical_analysis.md` (so the agent knows what's already been tested), the (possibly refreshed) identification menu, and a focused instruction listing the specific new content to test. The empiricist updates `empirical_plan.md` (or writes a `empirical_plan_vN.md` for major changes).
 3. If a causal claim is in scope, run `identification-auditor` on the revised plan (same PASS/REVISE/FAIL loop as the first pass; same 3-revision cap). PASS gates execution.
 4. Save targeted re-runs to `output/stage3a/empirical_analysis_vN.md` where N is the current `theory_version`. **Do not overwrite the original `empirical_analysis.md`** — combined coverage across files must span the version that will be written into the paper.
