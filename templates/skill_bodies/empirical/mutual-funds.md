@@ -177,6 +177,60 @@ fund_info = wrds_query("""
 # index_fund_flag IS NULL or = '' to exclude index funds
 ```
 
+### Active share (Cremers-Petajisto 2009)
+
+`ActiveShare = ½ · Σ_i |w_fund,i − w_bench,i|` over the union of stocks held by
+the fund or the benchmark — the fraction of the portfolio that differs from the
+index. Two inputs: **fund weights** (CRSP holdings) and **benchmark weights**
+(constructed). Concretely:
+
+1. **Fund equity weights** — from `crsp_q_mutualfunds.holdings`
+   (`crsp_portno, report_dt, permno, percent_tna`). `percent_tna` is share of
+   *total* assets, so it sums to <100% (cash/bonds). **Renormalize to the equity
+   book**: `w_fund,i = percent_tna_i / Σ_j percent_tna_j` over equity `permno`s,
+   so fund weights sum to 1 before differencing against the index.
+2. **Benchmark weights** — market-cap weights of the index constituents on the
+   nearest date to `report_dt`:
+   ```python
+   # S&P 500 constituents as of date D (native permno — cleanest path)
+   members = wrds_query("""
+       SELECT permno FROM crsp.msp500list
+       WHERE start <= DATE '2018-12-31' AND ending >= DATE '2018-12-31'
+   """)
+   # market cap from CRSP monthly: |prc| * shrout  (prc can be negative = bid/ask avg)
+   caps = wrds_query("""
+       SELECT permno, abs(prc) * shrout AS mktcap
+       FROM crsp.msf
+       WHERE date = '2018-12-31' AND permno IN (%s)
+   """ % ",".join(map(str, members['permno'])))
+   caps['w_bench'] = caps['mktcap'] / caps['mktcap'].sum()
+   ```
+3. **Compute** — outer-join fund and benchmark on `permno`, fill missing weights
+   with 0, then `active_share = 0.5 * (w_fund - w_bench).abs().sum()`.
+4. **Assign the benchmark** (Cremers-Petajisto): pick the index that *minimizes*
+   active share. Build the same cap-weights for the S&P MidCap 400 / SmallCap 600
+   / Composite 1500 from `comp.idxcst_his` (filter `gvkeyx` to the index; names in
+   `comp.idx_index`; link gvkey→permno via CCM), compute active share against
+   each, and take the argmin.
+
+**Limitation — Russell unavailable on this entitlement.** The full
+`ftse_russell_us` (Russell 1000/2000/3000 constituents + weights) is
+permission-denied here (only the `ftsesamp_russell_us` *sample* reads). The
+constructible benchmark set is therefore the **S&P family** (500/400/600/1500).
+Russell-benchmarked funds get assigned to their closest S&P proxy, which makes
+their active share noisier than a true Russell-based figure — state this when the
+sample is Russell-heavy (small/mid-cap funds especially). For validation against
+the canonical series, Petajisto's published active-share data (his website) is a
+free external cross-check, though it is not point-in-time current.
+
+**Gotchas:** holdings are quarterly/semiannual and stale-dated — align `report_dt`
+to the nearest index/`msf` date, don't assume month-end. Drop non-equity and
+unmatched `permno`s before renormalizing. Active share alone identifies closet
+indexers (low active share); **tracking error** is additionally needed to split
+the *high*-active-share funds into concentrated stock-pickers (high AS, high TE)
+and diversified factor bettors (high AS, low TE) — report both, not active share
+alone.
+
 ## Common CRSP objective codes
 
 | Code | Description |
