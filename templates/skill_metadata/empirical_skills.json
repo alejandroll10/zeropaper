@@ -205,5 +205,14 @@
       "argument-hint": "[library.table or description]",
       "allowed-tools": "Bash, Read, Write"
     }
+  },
+  "capital-iq": {
+    "name": "capital-iq",
+    "description": "S&P Capital IQ (CIQ) earnings-call TRANSCRIPTS for firm-level textual measures (tone, topic, disclosure timing), linked to Compustat via gvkey. LICENSED and entitlement-gated: the full ciq / ciq_transcripts WRDS schemas are NOT on the default pipeline entitlement (live check returns permission denied; only ciqsamp_* samples read), so by default you cannot pull CIQ here. Working path = an OPERATOR-SUPPLIED pre-built transcript export taken as given in data/transcripts/ (component-level: gvkey, year, transcriptid, componentorder, transcriptpersonid, componenttext, mostimportantdateutc; standard export = earnings calls keydeveventtypeid=48, deduped earliest per gvkey x call-date, operator turns transcriptpersonid=1 dropped). Provenance recipe (entitled accounts only): ciq.wrds_transcript_detail metadata join ciq_transcripts.ciqtranscriptcomponent text. Gotchas: component grain != call grain (aggregate per transcriptid); export is tens of GB (filter to gvkey set + date window, cache to parquet, never read the whole file); gvkey is the link; licensed (no provenance badge, cite S&P Capital IQ, never commit the data or a download link). If the file is absent the transcript leg is unavailable -- report it, do not attempt an unentitled WRDS pull.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[transcript field, gvkey, or measure]",
+      "allowed-tools": "Bash, Read, Write"
+    }
   }
 }
