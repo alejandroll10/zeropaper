@@ -53,8 +53,11 @@ only under `--halt-on-core-bypass`. This is the recording half; the terminal
 completion-block (below) does the enforcing.
 
 **Scope — only *unsanctioned* skips.** A skip a stage doc explicitly sanctions is
-not a bypass and gets no row: e.g. empirical-first permanently skips Gate 2 (math
-audit) and Stage 2b by design (`docs/stage_2.md`). Record only a skip or
+not a bypass and gets no row: e.g. empirical-first permanently skips Stage 2b and the
+*math-audit* form of Gate 2 by design (`docs/stage_2.md`). Note empirical-first does
+**not** skip Gate 2 wholesale — it replaces the math audit with the mechanism-plausibility
+gate (`mechanism-auditor`), which is itself a designated core gate; skipping *that* IS a
+bypass and must be recorded. Record only a skip or
 substitution that the stage's own routing does **not** authorize. When unsure
 whether a skip is sanctioned, record it (`binding? = no` if you judge it
 non-degrading) — a surfaced false positive is cheaper than a silent bypass.

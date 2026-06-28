@@ -109,6 +109,9 @@ Stage 3a is not one-shot. When the theory revises after the first 3a pass — Ga
 - Stage 6 Reject verdict triggers a deepen directive (see `docs/stage_6.md` Reject row): the deepen directive's empirics requirements become the focus of the re-fire.
 
 **Procedure.**
+<!-- EMPIRICAL_FIRST_START -->
+0. **(empirical-first) Re-pass Gate 2 mechanism plausibility first.** A `theory_version` advance here means the mechanism changed. Before any empirical re-fire, confirm the Stage 2 Gate 2 mechanism-plausibility audit has been re-run on the revised mechanism and `pipeline_state.json:stage2_mechanism_version == theory_version` (see `docs/stage_2.md` "Gate 2: Mechanism Plausibility"). If it is stale, run that gate now — a revised channel that no longer delivers the documented sign/magnitude, or that contradicts the (possibly revised) identification design, should be caught before empirical effort is re-spent, exactly as on the first pass. Only then proceed to step 1.
+<!-- EMPIRICAL_FIRST_END -->
 1. If the new content introduces a new causal claim or changes the theoretical object the empirics must identify, re-launch `identification-designer` (step 1 of the first-pass procedure) so the menu reflects the revised theory; otherwise carry forward the existing `identification_menu.md`.
 <!-- EMPIRICAL_FIRST_START -->
    **Empirical-first re-fire launch.** The empirical-first `identification-designer` body has no hardcoded input/output defaults — it reads and writes the paths the launch instruction names — so a re-fire must supply them explicitly (a bare "step 1 of the first-pass procedure" pointer would leave the agent without file guidance). Launch with:

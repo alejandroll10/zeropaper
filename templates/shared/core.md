@@ -121,9 +121,10 @@ Stage 2: Theory Development  ──→ Gate 2: Math Audit (structured then free-
 <!-- EMPIRICAL_FIRST_START -->
 Stage 2: Mechanism Document  ──→ theory-generator runs in mechanism mode
                                    (prose + DAG + ≤2 reduced-form posits)
-                                   Gate 2 (math audit) and Stage 2b (theory
-                                   exploration) are SKIPPED — mechanism mode
-                                   has no derivations or equilibria to audit
+                                   Gate 2: Mechanism Plausibility (mechanism-auditor)
+                                   — the math-audit form of Gate 2 and Stage 2b are
+                                   SKIPPED (no derivations/equilibria); the
+                                   mechanism-plausibility gate replaces the math audit
                                    Gate 3: Novelty Check on the mechanism
 <!-- EMPIRICAL_FIRST_END -->
 Gate 3a-feasibility: Empirical Feasibility   (only if --ext empirical)
@@ -136,10 +137,10 @@ Stage 3b: Experiments         (only if --ext theory_llm, design + review)
 Puzzle Triage                ──→ fires if empirics/experiments contradict, OR Stage 3 PUZZLE-CANDIDATE
                                    ├── NORMAL-PROCEED → Stage 4
                                    ├── FIX-EMPIRICS → re-run empirics
-                                   ├── RECONCILE → add scope condition, Gate 2 (skipped under empirical-first)
+                                   ├── RECONCILE → add scope condition, re-run Gate 2 (math audit in theory-first; mechanism-plausibility under empirical-first)
                                    ├── BACK-TO-IDEA → Stage 1
                                    ├── PIVOT → rebuild theory around contradiction
-                                   │            (re-run Gate 2, Gate 3, Stage 2b, Stage 3, empirics — Gate 2/2b skipped under empirical-first; max 2 pivots)
+                                   │            (re-run Gate 2, Gate 3, Stage 2b, Stage 3, empirics — under empirical-first Gate 2 is the mechanism-plausibility gate, Stage 2b is skipped; max 2 pivots)
                                    └── HONEST-NULL → Stage 5 with limits, or Stage 0
 Stage 4: Self-Attack          ──→ Gate 4: Scorer Decision (content-verdict-based)
                                    ├── ADVANCE (≥ tier threshold — see docs/stage_4.md) → Stage 5
@@ -224,7 +225,7 @@ When you start the pipeline, set `"status": "running"` and begin appending to th
 **`stage2b_theory_version`:** Set to the `theory_version` that Stage 2b last fully explored. Before advancing at Gate 4, the orchestrator must verify this equals the current `theory_version`; if it is stale, re-run Stage 2b on the new content (see `docs/stage_2.md` Stage 2b step 5).
 <!-- THEORY_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
-**`stage2b_theory_version`:** Initialized to `null` and never updated under `--mode empirical-first`. Stage 2b does not run in mechanism mode (the mechanism document has no equilibrium objects to explore), so the Gate 4 staleness rule that consumes this field does not apply here. The analogous binding rule in empirical-first mode is `stage3a_theory_version == theory_version` — see `docs/stage_3a_empirical.md` "Gate 4 enforcement". The field remains in `pipeline_state.json` only because legacy reset paths (e.g., `puzzle-triager` RECONCILE / PIVOT) write to it; those resets are harmless no-ops in mechanism mode.
+**`stage2b_theory_version`:** Initialized to `null` and never updated under `--mode empirical-first`. Stage 2b does not run in mechanism mode (the mechanism document has no equilibrium objects to explore), so the Gate 4 staleness rule that consumes this field does not apply here. The analogous binding rules in empirical-first mode are **two** Gate 4 hard blocks: `stage2_mechanism_version == theory_version` (the mechanism-plausibility gate — `docs/stage_2.md` "Gate 4 enforcement") AND `stage3a_theory_version == theory_version` (the empirics — `docs/stage_3a_empirical.md` "Gate 4 enforcement"). Both must hold before any Gate 4 advance. The `stage2b_theory_version` field remains in `pipeline_state.json` only because legacy reset paths (e.g., `puzzle-triager` RECONCILE / PIVOT) write to it; those resets are harmless no-ops in mechanism mode. (`stage2_mechanism_version`, by contrast, **is** reset by those paths — see `docs/stage_puzzle_triage.md` and `docs/stage_6.md` — because a `theory_version` reset to 1 would otherwise let a stale value false-positive the gate.)
 <!-- EMPIRICAL_FIRST_END -->
 
 **`reject_cosmetic_round`:** Tracks consecutive cosmetic-deepening attempts when responding to a Stage 6 Reject verdict. Increments when branch-manager (gate-5-reject context) returns COSMETIC on a deepen attempt; resets to 0 on a SUBSTANTIVE deepen, on a Regeneration Round entry, or on falling back to standard Major Revision after the deepen path is exhausted. See `docs/stage_6.md` Reject row for the full state machine.
@@ -348,7 +349,7 @@ After the pipeline is complete (`"status": "complete"`), any new or modified pro
 **Never commit unaudited mathematical content to paper sections after pipeline completion.** The pipeline's v1 runs showed 3/3 post-pipeline audits failed — this rule exists to prevent that.
 <!-- THEORY_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
-Empirical-first papers do not contain propositions, lemmas, or corollaries — `paper-writer` is instructed to use estimation tables and a posited reduced-form mechanism, not theorem/proof environments. The theory-mode post-pipeline math audit rule therefore does not apply. (The `math-auditor` agent is still assembled into the deployment — agent assembly is mode-invariant — but Gate 2 is skipped and `paper-writer` does not produce content for it to audit; it should not be invoked in this mode.)
+Empirical-first papers do not contain propositions, lemmas, or corollaries — `paper-writer` is instructed to use estimation tables and a posited reduced-form mechanism, not theorem/proof environments. The theory-mode post-pipeline math audit rule therefore does not apply. (The `math-auditor` agent is still assembled into the deployment — agent assembly is mode-invariant — but the math-audit form of Gate 2 is skipped and `paper-writer` does not produce content for it to audit; it should not be invoked in this mode. The mechanism-plausibility Gate 2 that empirical-first *does* run is a planning-stage gate over the mechanism document, not a post-pipeline LaTeX check, so it is also irrelevant here.)
 
 **Empirical-first analogue.** Any post-pipeline edit that adds or modifies an empirical claim (a new coefficient, a new robustness specification, a new heterogeneity test, or a re-stated identification assumption) must be backed by a re-runnable analysis script and a re-fired `empirics-auditor` PASS before being committed:
 
@@ -359,7 +360,7 @@ Empirical-first papers do not contain propositions, lemmas, or corollaries — `
 5. **If the edit involved any data-layer work** — re-querying a source database, re-filtering or re-merging the universe, changing a cohort definition, adjusting a treatment- or outcome-coding rule, or otherwise touching any code path that writes a cached parquet / CSV — also re-fire `data-integrity-auditor` and `data-selection-auditor` in parallel per `docs/stage_3a_empirical.md` step 7.5. Save verdicts to `output/post_pipeline/data_integrity_audit_post_N.md` and `output/post_pipeline/data_selection_audit_post_N.md`. Both must PASS before committing — the `empirics-auditor`-only path verifies bit-identical reproduction from cache, which is satisfied even when the cache itself is wrong. **If the edit introduced any new named econometric method** — a new test statistic, a new estimator, a new sensitivity-analysis routine — also re-fire `method-checker` per the same step 7.5 to verify the new code uses the canonical package (or carries an (a)–(d) justification). Save the verdict to `output/post_pipeline/method_check_post_N.md`. The operator decides if the edit was data-layer or method-layer; when in doubt, re-fire. Skip only if the edit was a pure stats / specification / visualization change on cached values that uses methods the prior step 7.5 already audited (no new source query, no filter change, no cohort or treatment redefinition, no new estimator or test).
 6. If PASS (all required auditors): commit the number to the paper section / IA file. Commit format: `paper: post-pipeline edit — [description] (empirics + data audited)`.
 
-If the post-pipeline edit introduces a formal proposition or lemma despite the paper being empirical-first (e.g., a referee insists on formalizing a comparative-static claim), the operator should re-run setup with `--no-mode` to convert the deployment to theory-first before producing the formal content — the empirical-first deployment lacks the theorem-mode pipeline infrastructure (Gate 2, theory-generator chain, theorem/proof scaffolding) that formal claims require, and adding them ad-hoc post-pipeline produces unaudited mathematical content that the runtime was not configured to verify. (The `math-auditor` agent is assembled, but the surrounding pipeline stages are not.)
+If the post-pipeline edit introduces a formal proposition or lemma despite the paper being empirical-first (e.g., a referee insists on formalizing a comparative-static claim), the operator should re-run setup with `--no-mode` to convert the deployment to theory-first before producing the formal content — the empirical-first deployment lacks the theorem-mode pipeline infrastructure (the math-audit Gate 2, theory-generator theorem chain, theorem/proof scaffolding) that formal claims require, and adding them ad-hoc post-pipeline produces unaudited mathematical content that the runtime was not configured to verify. (The `math-auditor` agent is assembled, but the surrounding pipeline stages are not.)
 <!-- EMPIRICAL_FIRST_END -->
 
 ---
@@ -382,7 +383,7 @@ When the core result is correct but thin, extend it with mathematically hard, ec
 Re-run Gate 2 + Gate 4 on extensions.
 <!-- THEORY_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
-Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 on extensions. Gate 2 is skipped under empirical-first; Gate 3 (novelty) re-fires only if the extension introduces a structurally new channel. **Reset `data_integrity_round` AND `method_check_round` to 0** before re-entry — a deepening extension is a fresh analysis cycle (typically with new variables, new sample slices, AND potentially new estimators), and stale counters from a prior pass would force-FAIL the first legitimate REVISE from any of the three step-7.5 auditors.
+Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 on extensions. Gate 2 here means the **mechanism-plausibility** gate: re-run it (and re-set `stage2_mechanism_version`) only if the extension changes or extends the channel claim — for a new-predictions-only deepening that leaves the channel prose/DAG unchanged, the mechanism is unchanged and Gate 2 need not re-fire. Gate 3 (novelty) re-fires only if the extension introduces a structurally new channel. **Reset `data_integrity_round` AND `method_check_round` to 0** before re-entry — a deepening extension is a fresh analysis cycle (typically with new variables, new sample slices, AND potentially new estimators), and stale counters from a prior pass would force-FAIL the first legitimate REVISE from any of the three step-7.5 auditors.
 <!-- EMPIRICAL_FIRST_END -->
 
 **When to extend vs. start over:** Score in the REVISE band or above for the current target tier with correct core → extend. Score in the ABANDON band or core wrong → start over. Novelty KNOWN → start over.

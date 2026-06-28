@@ -1,4 +1,19 @@
 {
+  "mechanism-auditor": {
+    "name": "mechanism-auditor",
+    "description": "Plan-time mechanism-plausibility gate for --mode empirical-first only (the empirical-first analogue of theory-first's Gate 2 math-auditor). Launched at Stage 2 after the prose+DAG mechanism document is written and before Stage 3 / any empirical execution. Runs the data-independent dimensions of the referee-mechanism checklist against output/stage2/theory_draft_vN.md + output/stage1/identification_design.md: does the channel deliver the documented sign and approximate magnitude, does the DAG match the prose and the identification design, are the leading alternative channels named with a discriminating test, are the posits disciplined (not surreptitiously structural), do the auxiliary empirical predictions follow from the channel. Returns PLAUSIBLE (proceed) / REVISE (re-fire theory-generator in mutate mode). Does not check documented heterogeneity (no data at plan time — that post-data check stays at Stage 6 referee-mechanism). Pruned in every mode except empirical-first.",
+    "category": "evaluator",
+    "tools": "Bash, Read, Write, Glob, Grep, WebSearch, WebFetch",
+    "skills": ["openalex"],
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.5",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
   "empirics-auditor": {
     "name": "empirics-auditor",
     "description": "Adversarial empirical verification agent. The orchestrator launches this agent after the empiricist completes Stage 3a and after headline-replicator emits empirics_verify_result.json. Reviews empirical analysis and code for correctness — data construction, methodology, interpretation. Reads the replicator's verify result as one of its inputs; does NOT itself re-derive headline numbers (the replicator owns that). Must pass before advancing.",

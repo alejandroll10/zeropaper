@@ -878,6 +878,21 @@ prune_report_mode_agents() {
     done
 }
 
+# Mode-conditional ADDITION (inverse of prune_report_mode_agents): an agent that
+# is assembled for all --ext empirical deploys (it lives in the empirical
+# extension metadata) but is meaningful ONLY under --mode empirical-first — the
+# prose+DAG mechanism it audits exists only in that mode. We assemble it
+# unconditionally with the rest of the empirical agents, then delete its output
+# files in every other mode. This keeps the agent off the theory-first /
+# macro / report build surface without adding a mode-conditional metadata path.
+prune_non_empirical_first_agents() {
+    [ "$MODE" = "empirical-first" ] && return 0
+    local _name
+    for _name in "$@"; do
+        rm -f "$AGENTS_OUT/${_name}.md" "$CODEX_AGENTS_OUT/${_name}.toml" "$GEMINI_AGENTS_OUT/${_name}.md"
+    done
+}
+
 # Core agents not deployed in report mode (rationale documented in
 # templates/runtime/{claude,codex,gemini}/session_report.md's "What this mode
 # does not do" block). Extension generative agents are pruned in the extension
@@ -1927,12 +1942,22 @@ if os.path.exists(state_path):
             if k == "stage2b_theory_version":
                 new["stage3a_theory_version"] = None
         data = new
-    if "identification_plan_revision_round" not in data:
-        # Insert immediately after stage3a_theory_version. Initial value 0 (counter, not version).
+    if "stage2_mechanism_version" not in data:
+        # Insert immediately after stage3a_theory_version. Version flag for the
+        # empirical-first Stage 2 Gate 2 mechanism-plausibility audit; null/no-op
+        # in theory-first --ext empirical runs (mechanism-auditor is pruned there).
         new = {}
         for k, v in data.items():
             new[k] = v
             if k == "stage3a_theory_version":
+                new["stage2_mechanism_version"] = None
+        data = new
+    if "identification_plan_revision_round" not in data:
+        # Insert immediately after stage2_mechanism_version. Initial value 0 (counter, not version).
+        new = {}
+        for k, v in data.items():
+            new[k] = v
+            if k == "stage2_mechanism_version":
                 new["identification_plan_revision_round"] = 0
         data = new
     if "headline_replication_round" not in data:
@@ -2077,8 +2102,16 @@ PYEOF
                 empiricist identification-designer \
                 empirics-auditor identification-auditor \
                 data-integrity-auditor data-selection-auditor method-checker \
+                mechanism-auditor \
                 headline-replicator \
                 claim-enumerator claim-grounder claim-verifier
+            # mechanism-auditor is meaningful only under --mode empirical-first
+            # (it audits the prose+DAG mechanism that only that mode produces).
+            # Assembled with the empirical agents above; removed in every other
+            # mode (theory-first, macro, report — report is already covered by
+            # the report prune list above, but the non-empirical-first prune is
+            # the canonical guard).
+            prune_non_empirical_first_agents mechanism-auditor
             # Empirical extension also creates output/stage3a/ unconditionally
             # and copies stage_3a_empirical.md into docs/. Both are pipeline-
             # workflow artifacts irrelevant to report mode — remove them.
