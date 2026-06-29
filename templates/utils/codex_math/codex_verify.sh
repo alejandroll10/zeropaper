@@ -27,6 +27,7 @@ mkdir -p "$OUTDIR"
 SAFE_NAME=$(echo "$PATTERN" | tr ' /:{}\\' '_' | tr -cd '[:alnum:]_-')
 OUTFILE="${OUTDIR}/${SAFE_NAME}.md"
 TMP="/tmp/codex_verify_${SAFE_NAME}_$$.txt"
+LOG="${OUTDIR}/${SAFE_NAME}.log"
 
 echo "[codex-math] Extracting: '$PATTERN' from $FILE"
 CONTENT=$("$SCRIPT_DIR/extract_block.sh" "$FILE" "$PATTERN")
@@ -37,10 +38,11 @@ if [ -z "$CONTENT" ]; then
 fi
 
 echo "[codex-math] Sending to Codex (gpt-5.5, effort=$EFFORT)..."
+echo "[codex-math] Live progress: tail -f $LOG"
 
 codex exec </dev/null --sandbox workspace-write --skip-git-repo-check \
     -c "model_reasoning_effort=\"$EFFORT\"" \
-    -c 'model_reasoning_summary="auto"' \
+    -c 'model_reasoning_summary="detailed"' \
     -o "$TMP" \
     "You are a mathematical proof auditor at a top academic journal. Verify the following proof with extreme rigor.
 
@@ -69,7 +71,7 @@ Report format:
 ## Errors found (if any)
 [specific errors with exact equation/line references]
 ## Concerns (non-blocking issues)
-[things that are technically correct but could be improved]" 2>&1
+[things that are technically correct but could be improved]" 2>&1 | tee "$LOG"
 
 # Save result
 if [ -f "$TMP" ]; then

@@ -45,6 +45,7 @@ mkdir -p "$OUTDIR"
 SAFE_NAME=$(echo "$QUESTION" | tr ' /:{}\\?.' '_' | cut -c1-60 | tr -cd '[:alnum:]_-')
 OUTFILE="${OUTDIR}/${SAFE_NAME}.md"
 TMP="/tmp/codex_explore_${SAFE_NAME}_$$.txt"
+LOG="${OUTDIR}/${SAFE_NAME}.log"
 
 # Load context if provided
 CONTEXT=""
@@ -53,6 +54,7 @@ if [ -n "$CONTEXT_FILE" ] && [ -f "$CONTEXT_FILE" ]; then
 fi
 
 echo "[codex-math] Exploring: '$QUESTION' (effort=$EFFORT)"
+echo "[codex-math] Live progress: tail -f $LOG"
 
 PROMPT="You are a mathematician investigating a conjecture for a top economics journal. Be extremely rigorous.
 
@@ -90,9 +92,9 @@ Report format:
 
 codex exec </dev/null --sandbox workspace-write --skip-git-repo-check \
     -c "model_reasoning_effort=\"$EFFORT\"" \
-    -c 'model_reasoning_summary="auto"' \
+    -c 'model_reasoning_summary="detailed"' \
     -o "$TMP" \
-    "$PROMPT" 2>&1
+    "$PROMPT" 2>&1 | tee "$LOG"
 
 if [ -f "$TMP" ]; then
     {

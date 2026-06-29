@@ -60,12 +60,14 @@ fi
 
 OUTFILE="${OUTDIR}/${SAFE_NAME}.md"
 TMP="/tmp/codex_write_${SAFE_NAME}_$$.txt"
+LOG="${OUTDIR}/${SAFE_NAME}.log"
 
 echo "[codex-math] Writing proof (gpt-5.5, effort=$EFFORT)..."
+echo "[codex-math] Live progress: tail -f $LOG"
 
 codex exec </dev/null --sandbox workspace-write --skip-git-repo-check \
     -c "model_reasoning_effort=\"$EFFORT\"" \
-    -c 'model_reasoning_summary="auto"' \
+    -c 'model_reasoning_summary="detailed"' \
     -o "$TMP" \
     "You are a mathematician writing a proof for a top economics journal. Write a complete, publication-ready proof.
 
@@ -85,7 +87,7 @@ THEOREM / TASK:
 $CONTENT
 ---
 
-Write the complete LaTeX proof. If the statement needs correction, note that before the proof." 2>&1
+Write the complete LaTeX proof. If the statement needs correction, note that before the proof." 2>&1 | tee "$LOG"
 
 if [ -f "$TMP" ]; then
     {
