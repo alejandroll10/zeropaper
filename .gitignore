@@ -42,6 +42,11 @@ Thumbs.db
 # Meta paper (separate repo)
 meta_paper/
 
+# Dev-only notes / postmortems / one-off audits. Repo working notes that must never be
+# committed — setup.sh deploys via `git clone`, so any tracked root file not on its
+# removal denylist rides into every deployed paper repo (e.g. the old victor1_postmortem.md leak).
+dev_notes/
+
 # API keys
 .env
 

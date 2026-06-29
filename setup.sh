@@ -2444,6 +2444,7 @@ rm -f README.md
 rm -f CLAUDE_REFACTOR_PLAN.md
 rm -f requirements.system
 rm -f texput.log
+rm -f LIMITATIONS.md   # meta-project architectural-limits doc; dev-facing, never ships
 if [ "$MANUAL" = "1" ] || [ "$MODE" = "report" ]; then
     rm -f dashboard.html
 fi
