@@ -98,6 +98,8 @@ Save to the path specified in your prompt.
 - **MECHANISM-MISATTRIBUTED** — the result is correct but the driver is not what the paper claims. A different economic force (or a structural condition) is doing the work. The paper should be rewritten around the actual driver.
 - **MECHANISM-DECORATIVE** — the economic story is window dressing on a structural identity or a standard result in a new guise. The paper does not have a mechanism; it has a rearrangement.
 
+- **Multi-margin policy papers.** When the contribution is a policy-equilibrium map (several margins of one policy instrument, welfare question, equilibrium environment, or risk decomposition), MECHANISM-VALID does not require a single force behind every result: it is VALID when the paper accurately names each margin's proximate mechanism and does not claim one force delivers all of them. Reach for PARTIAL/MISATTRIBUTED only when a *named* mechanism does not match the math, or the paper overstates unification (claims a single force it does not deliver) — not merely because the results have different proximate drivers. (MECHANISM-DECORATIVE still applies if a margin's stated mechanism is itself window dressing on a structural identity — the exemption is from the single-unifier requirement, not from the per-margin mechanism-substance requirement.)
+
 ## Key comments for revision
 
 [Numbered list. Each comment tagged `[FIX]` (load-bearing; mechanism claim must be corrected or defended), `[LIMITS]` (acknowledge scope in limitations), `[RESPONSE]` (discuss in response letter, no paper change required), or `[NOTE]` (minor).]
