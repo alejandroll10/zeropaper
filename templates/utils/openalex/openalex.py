@@ -22,17 +22,19 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import random
 import ssl
 import sys
 import textwrap
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from pathlib import Path
 
 API = "https://api.openalex.org"
 TIMEOUT = 12
-RETRIES = 2
+RETRIES = 10
 
 # Use a CA bundle Python can actually find. A missing local issuer cert makes
 # urllib raise CERTIFICATE_VERIFY_FAILED even when the host is up (curl, which
@@ -45,7 +47,14 @@ try:
     _SSL_CTX = ssl.create_default_context(cafile=certifi.where())
 except Exception:
     _SSL_CTX = ssl.create_default_context()
+
+# Base seconds for exponential backoff. OpenAlex limits (10 req/s, 100k/day) are
+# per-IP, so several pipelines sharing one host collectively trip 429 even when
+# none is individually abusive — and the cool-off can outlast a couple of short
+# retries. We back off exponentially with random jitter so concurrent callers
+# don't retry in lockstep and re-collide; on 429 we honor Retry-After when sent.
 BACKOFF = 1.5
+BACKOFF_CAP = 30.0  # don't sleep longer than this per attempt
 
 # Aliases for top finance/economics venues. The OpenAlex source IDs below were
 # resolved from the search API and verified against the journal page. Update as
@@ -102,6 +111,30 @@ def load_env_email() -> str:
     return ""
 
 
+def _retry_after_seconds(exc: urllib.error.HTTPError) -> float | None:
+    """Parse a Retry-After header (delta-seconds form) off a 429/503, if present."""
+    raw = exc.headers.get("Retry-After") if exc.headers else None
+    if not raw:
+        return None
+    try:
+        secs = float(raw.strip())
+    except ValueError:
+        return None  # HTTP-date form — fall back to our own backoff
+    return secs if secs >= 0 else None  # never feed a negative to time.sleep()
+
+
+def _backoff_sleep(attempt: int, retry_after: float | None) -> None:
+    """Sleep before the next attempt: honor Retry-After, else exponential + jitter.
+
+    Jitter (full-jitter: random in [0, window]) is what keeps several pipelines
+    sharing one IP from retrying in lockstep and re-tripping the rate limit
+    together.
+    """
+    window = min(BACKOFF * (2 ** attempt), BACKOFF_CAP)
+    delay = retry_after if retry_after is not None else random.uniform(0, window)
+    time.sleep(delay)
+
+
 def http_get(path: str, params: dict, mailto: str) -> dict:
     if mailto:
         params = {**params, "mailto": mailto}
@@ -111,10 +144,18 @@ def http_get(path: str, params: dict, mailto: str) -> dict:
         try:
             with urllib.request.urlopen(url, timeout=TIMEOUT, context=_SSL_CTX) as resp:
                 return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            last_err = exc
+            # 429 = rate-limited, 5xx = transient server error → worth retrying.
+            # 4xx other than 429 (e.g. 400/404) are deterministic; don't retry.
+            if exc.code != 429 and exc.code < 500:
+                break
+            if attempt < RETRIES:
+                _backoff_sleep(attempt, _retry_after_seconds(exc))
         except Exception as exc:
             last_err = exc
             if attempt < RETRIES:
-                time.sleep(BACKOFF * (attempt + 1))
+                _backoff_sleep(attempt, None)
     raise RuntimeError(f"OpenAlex GET {url} failed: {last_err}")
 
 

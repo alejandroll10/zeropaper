@@ -29,8 +29,10 @@ Dependency-free (stdlib only).
 import argparse
 import html
 import json
+import random
 import re
 import sys
+import time
 import urllib.error
 import urllib.request
 
@@ -38,16 +40,59 @@ CONF_PAGE = "https://www.nber.org/conferences/{slug}"
 AGENDA = "https://conference.nber.org/agenda/simple_printable?conf_id={cid}"
 UA = {"User-Agent": "Mozilla/5.0 (nber_agenda.py; research pipeline)"}
 
+# Retry transient failures (429 rate-limit, 5xx server errors) so a single blip
+# doesn't hard-exit the agent. Jittered exponential backoff keeps concurrent
+# callers from retrying in lockstep; Retry-After is honored when the server sends
+# it. Deterministic 4xx (400/404) are not retried — they won't get better.
+TIMEOUT = 30
+RETRIES = 10
+BACKOFF = 1.5
+BACKOFF_CAP = 30.0  # don't sleep longer than this per attempt
+
+
+def _retry_after_seconds(exc):
+    """Parse a Retry-After header (delta-seconds form) off a 429/503, if present."""
+    raw = exc.headers.get("Retry-After") if exc.headers else None
+    if not raw:
+        return None
+    try:
+        secs = float(raw.strip())
+    except ValueError:
+        return None  # HTTP-date form — fall back to our own backoff
+    return secs if secs >= 0 else None  # never feed a negative to time.sleep()
+
+
+def _backoff_sleep(attempt, retry_after):
+    """Sleep before the next attempt: honor Retry-After, else exponential + jitter."""
+    window = min(BACKOFF * (2 ** attempt), BACKOFF_CAP)
+    delay = retry_after if retry_after is not None else random.uniform(0, window)
+    time.sleep(delay)
+
 
 def _get(url):
     req = urllib.request.Request(url, headers=UA)
-    try:
-        with urllib.request.urlopen(req, timeout=30) as r:
-            return r.read().decode("utf-8", "replace")
-    except urllib.error.HTTPError as e:
-        sys.exit(f"HTTP {e.code} fetching {url}")
-    except urllib.error.URLError as e:
-        sys.exit(f"network error fetching {url}: {e.reason}")
+    last_err = None
+    for attempt in range(RETRIES + 1):
+        try:
+            with urllib.request.urlopen(req, timeout=TIMEOUT) as r:
+                return r.read().decode("utf-8", "replace")
+        except urllib.error.HTTPError as e:
+            last_err = f"HTTP {e.code} fetching {url}"
+            # 429 = rate-limited, 5xx = transient server error → worth retrying.
+            # 4xx other than 429 (e.g. 400/404) are deterministic; don't retry.
+            if e.code != 429 and e.code < 500:
+                sys.exit(last_err)
+            if attempt < RETRIES:
+                _backoff_sleep(attempt, _retry_after_seconds(e))
+        except urllib.error.URLError as e:
+            last_err = f"network error fetching {url}: {e.reason}"
+            if attempt < RETRIES:
+                _backoff_sleep(attempt, None)
+        except Exception as e:  # catch-all for non-URLError transients (parity w/ openalex client)
+            last_err = f"error fetching {url}: {e}"
+            if attempt < RETRIES:
+                _backoff_sleep(attempt, None)
+    sys.exit(f"{last_err} (after {RETRIES} retries)")
 
 
 def resolve_conf_id(arg):

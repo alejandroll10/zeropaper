@@ -18,9 +18,11 @@ from __future__ import annotations
 import argparse
 import json
 import os
+import random
 import re
 import sys
 import time
+import urllib.error
 import urllib.parse
 import urllib.request
 from difflib import SequenceMatcher
@@ -29,8 +31,31 @@ from pathlib import Path
 OPENALEX = "https://api.openalex.org/works"
 CROSSREF = "https://api.crossref.org/works/"
 TIMEOUT = 12
-RETRIES = 2
+# OpenAlex/Crossref limits are per-IP, so several pipelines on one host trip 429
+# collectively. Retry with jittered exponential backoff (so concurrent callers
+# don't retry in lockstep and re-collide) and honor Retry-After when sent.
+RETRIES = 10
 BACKOFF = 1.5
+BACKOFF_CAP = 30.0  # don't sleep longer than this per attempt
+
+
+def _retry_after_seconds(exc: urllib.error.HTTPError) -> float | None:
+    """Parse a Retry-After header (delta-seconds form) off a 429/503, if present."""
+    raw = exc.headers.get("Retry-After") if exc.headers else None
+    if not raw:
+        return None
+    try:
+        secs = float(raw.strip())
+    except ValueError:
+        return None  # HTTP-date form — fall back to our own backoff
+    return secs if secs >= 0 else None  # never feed a negative to time.sleep()
+
+
+def _backoff_sleep(attempt: int, retry_after: float | None) -> None:
+    """Sleep before the next attempt: honor Retry-After, else exponential + jitter."""
+    window = min(BACKOFF * (2 ** attempt), BACKOFF_CAP)
+    delay = retry_after if retry_after is not None else random.uniform(0, window)
+    time.sleep(delay)
 
 # Surname-token noise to strip. Replaces the old `len >= 3` filter, which
 # silently discarded short *real* surnames (Li, Wu, Bo, Ma, He, An, Xi) and so
@@ -108,10 +133,18 @@ def query_openalex(title: str, mailto: str) -> list[dict]:
             with urllib.request.urlopen(url, timeout=TIMEOUT) as resp:
                 payload = json.loads(resp.read().decode("utf-8"))
                 return payload.get("results", []) or []
+        except urllib.error.HTTPError as exc:
+            last_err = exc
+            # Retry only rate-limit (429) and server (5xx) errors; other 4xx
+            # (e.g. 400/404) are deterministic, so don't waste retries on them.
+            if exc.code != 429 and exc.code < 500:
+                break
+            if attempt < RETRIES:
+                _backoff_sleep(attempt, _retry_after_seconds(exc))
         except Exception as exc:
             last_err = exc
             if attempt < RETRIES:
-                time.sleep(BACKOFF * (attempt + 1))
+                _backoff_sleep(attempt, None)
     raise RuntimeError(f"OpenAlex query failed: {last_err}")
 
 
@@ -158,10 +191,18 @@ def fetch_crossref(doi: str, mailto: str) -> dict | None:
         try:
             with urllib.request.urlopen(req, timeout=TIMEOUT) as resp:
                 return json.loads(resp.read().decode("utf-8")).get("message")
+        except urllib.error.HTTPError as exc:
+            last_err = exc
+            # A 404 here is a real "DOI not in Crossref" answer, not a transient
+            # fault — don't retry deterministic 4xx; only 429/5xx are worth it.
+            if exc.code != 429 and exc.code < 500:
+                break
+            if attempt < RETRIES:
+                _backoff_sleep(attempt, _retry_after_seconds(exc))
         except Exception as exc:
             last_err = exc
             if attempt < RETRIES:
-                time.sleep(BACKOFF * (attempt + 1))
+                _backoff_sleep(attempt, None)
     return {"_error": f"crossref-fetch-failed: {last_err}"}
 
 
