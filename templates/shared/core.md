@@ -396,10 +396,10 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 |-----------|-----------------|--------|
 | Idea review iterates | 5 rounds | Pick the best idea and advance to Gate 1b |
 | Idea review rejects all | 1 rejection | Return to Stage 0 for a different problem (ship a pending portfolio-guard fallback first if `fallback_idea_sketch_name` is non-null — see `docs/stage_1.md` Gate 1 REJECT ALL row) |
-| Gates 1b/1c parallel screening eliminates all candidates | All top-K KNOWN at 1b OR BLOCKED (-DIFFICULTY/-IMPOSSIBLE) at 1c | New Round of Stage 1 (counts toward 5-round limit). NOVEL+BLOCKED-DIFFICULTY ideas get one harder-technique retry first; if only INCREMENTAL survives while a NOVEL idea died on difficulty, the Step-2a portfolio guard forces a harder round (once per problem) |
-| Gate 3 novelty INCREMENTAL | 3 rework attempts at Stage 2 | Abandon this idea, return to Stage 1 for a new one |
+| Gates 1b/1c parallel screening eliminates all candidates | All top-K KNOWN at 1b OR BLOCKED (-DIFFICULTY/-IMPOSSIBLE) at 1c | New Round of Stage 1 (counts toward 5-round limit). NOVEL+BLOCKED-DIFFICULTY ideas get one harder-technique retry first; if only INCREMENTAL survives while a NOVEL idea died on difficulty, the Step-2a portfolio guard forces a harder round (once per problem). **Seeded/faithful:** this row does not apply — a BLOCKED seed never starts a new Round; it advances to Stage 2 carrying the blockage (Gate 1c seeded override in `docs/stage_1.md`). |
+| Gate 3 novelty INCREMENTAL | 3 rework attempts at Stage 2 | Abandon this idea, return to Stage 1 for a new one. **Seeded/faithful:** does not abandon the seed — Gate 3 seeded override in `docs/stage_2.md` supersedes this row. |
 <!-- THEORY_FIRST_START -->
-| Math audit fails | 3 attempts | Abandon this theory version |
+| Math audit fails | 3 attempts | Abandon this theory version. **Seeded/faithful:** does not abandon — after 3 failures the Gate 2 seeded override (`docs/stage_2.md`) applies the ship-honest check (narrow the failed auxiliary claim and continue; halt only if the seed's central result itself is unestablishable). |
 <!-- THEORY_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 | Identification audit fails | 3 plan-revision rounds (cap from `stage_3a_empirical.md`) | Treat as FAIL — empiricist selects a different design from the menu, or escalate per `stage_3a_empirical.md` step 3 routing |
