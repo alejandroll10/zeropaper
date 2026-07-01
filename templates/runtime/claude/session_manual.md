@@ -1,9 +1,3 @@
-## Self-review after big changes
-
-AFTER EVERY BIG CHANGE SPAWN A SONNET AGENT TO REVIEW YOUR CHANGES FOR ISSUES. IF ANY ISSUES ARE FOUND, ADD A NEW ROUND OF AUDITING AFTER FIXING THE CURRENT ROUND'S ISSUES (EVEN IF THERE ARE ONLY MINOR CHANGES). ITERATE UNTIL DONE.
-
-"Big change" here means substantive research output — a new theory draft, a major theory revision, a paper section rewrite, a non-trivial empirical pipeline edit, or any multi-file restructuring. Use the `general-purpose` subagent on the `sonnet` model with a prompt that names the changed files and asks for issues, inconsistencies, or missed implications.
-
 ## How to use this toolkit
 
 When the user gives you a research task:

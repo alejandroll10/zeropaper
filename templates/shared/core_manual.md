@@ -2,6 +2,10 @@
 
 {{RUNTIME_DISCIPLINE}}
 
+## Self-review after big changes
+
+AFTER EVERY BIG CHANGE, LAUNCH A SONNET AGENT TO REVIEW YOUR CHANGES FOR ISSUES. IF ANY ISSUES ARE FOUND, ADD A NEW ROUND OF AUDITING AFTER FIXING THE CURRENT ROUND'S ISSUES (EVEN IF THERE ARE ONLY MINOR CHANGES). ITERATE UNTIL DONE.
+
 ## Purpose
 
 This project provides research subagents and skills for {{DOMAIN_AREAS}}. The catalog below lists what is available. When the user asks for a research task, pick the agent or skill that fits and invoke it. When the user is unsure where to start, check `paper/`, `output/`, and `references/` to see the current state of the work and propose the next concrete step from the catalog.
