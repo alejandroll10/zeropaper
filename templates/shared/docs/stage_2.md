@@ -88,7 +88,7 @@ So empirical-first replaces the skipped math audit with a **lightweight plan-tim
 1. Launch novelty-checker on `output/stage2/theory_draft_vN.md`
 2. Save result to `output/stage2/novelty_check_vN.md`
 3. If KNOWN: abandon this theory, return to Stage 2 with new approach (increment `theory_attempt`, reset `theory_version` to 1)
-4. If INCREMENTAL: return to Stage 2 with novelty feedback (increment `theory_version`). Theory must deliver a result the literature doesn't already contain — scorer will hard-fail H4 on INCREMENTAL. After Gate 2 + Gate 3 pass on the reworked theory, **re-run Stage 2b (exploration) AND Stage 3 (implications) before proceeding** — the theory changed, so `implications.md` and `exploration.md` are stale.
+4. If INCREMENTAL: return to Stage 2 with novelty feedback (increment `theory_version`). Theory must deliver a result the literature doesn't already contain. Note the scorer does **not** blanket-fail INCREMENTAL: at H4 it cross-checks the Gate 3 report and passes an INCREMENTAL theory that carries a distinguishing result (a new comparative static, sign reversal, extra assumption that changes the conclusion, or new empirical implication), failing only INCREMENTAL with no distinguishing result. After Gate 2 + Gate 3 pass on the reworked theory, **re-run Stage 2b (exploration) AND Stage 3 (implications) before proceeding** — the theory changed, so `implications.md` and `exploration.md` are stale.
 {{EMPIRICAL_STAGE2_RERUN_ADDENDUM}}
 {{THEORY_LLM_STAGE2_RERUN_ADDENDUM}}
 
