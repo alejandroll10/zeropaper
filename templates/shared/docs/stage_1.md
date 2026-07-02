@@ -2,11 +2,24 @@
 
 **Agents:** `idea-generator` + `idea-reviewer` (iterating)
 
-**Regeneration round.** A regeneration round fires when the prior theory attempt succeeded but ceilinged in the REVISE band for the current target tier (see `docs/stage_4.md` tier table — e.g., 60-79 for `top-5`, 55-74 for `top-3-fin`, 45-64 for `field`), branch-manager §E recommends Regenerate, and `regeneration_round == 0` for this problem (see `core.md` escalation table). The orchestrator increments `regeneration_round` to N *before* entering Stage 1, so when this section is read, `regeneration_round` already equals the new N — and `learnings_r{N}.md` and `paper_archive/r{N}/` use the same N (the post-increment value). On a regeneration entry:
-- Pass `output/stage1/learnings_r{regeneration_round}.md` (produced by branch-manager) to **both** idea-generator and idea-reviewer alongside the lit map.
-- **At step 2 below, take the explicit Regeneration short-circuit** (added at the top of step 2) — do not consult the runner-up or unused-sketch priorities; the existing portfolio is by assumption exhausted.
+**Regeneration round.** A regeneration round fires when the prior theory attempt succeeded but ceilinged in the REVISE band for the current target tier (see `docs/stage_4.md` tier table — e.g., 60-79 for `top-5`, 55-74 for `top-3-fin`, 45-64 for `field`), branch-manager §E recommends Regenerate, and `regeneration_round == 0` for this problem (see `core.md` escalation table). It can be reached from two call sites: the Gate-4 plateau path (`docs/stage_4.md` step 7 §E Regenerate) and the Gate-5 Reject double-cosmetic path (`docs/stage_6.md` Reject row). Both route through the single **Regeneration entry procedure** below, which is the canonical definition of the state transition — the call sites reference it and must not carry their own divergent reset lists.
+
+**Regeneration entry procedure (canonical).** The caller (branch-manager) has already written `output/stage1/learnings_r{N}.md`, where `N` = current `regeneration_round` + 1. The orchestrator then, in one commit, performs this exact transition (`learnings_r{N}.md` and `paper_archive/r{N}/` share the same post-increment `N`):
+
+1. Set `regeneration_round = N` (single increment, matching the learnings file name).
+2. **If a paper draft exists (i.e., post-Stage-5):** archive the current paper to `paper_archive/r{N}/` before generation begins, and record its best Gate-4 score as `archived_best_score_r{N}` in pipeline state (defined as `max(scores.values())` from `pipeline_state.json` at archive time — an approximate baseline, since Stage 6 referee revisions can improve the paper without producing a new numeric score). If the new attempt's eventual Gate 4 score does not strictly beat `archived_best_score_r{N}`, restore the archived paper and ship it.
+3. **Reset the counter web** so no state bleeds from the abandoned theory into the regenerated one:
+   - `theory_attempt → 1`, `theory_version → 1`
+   - `referee_round → 0` — the regenerated paper gets its own 10-round Stage 6 budget
+   - `reject_cosmetic_round → 0`, `fix_empirics_round → 0`
+   - `stage2b_theory_version → null`
+   - `stage2_mechanism_version → null` (under `--mode empirical-first` — else `theory_version` resetting to 1 leaves a stale `stage2_mechanism_version = 1` that false-positives the Gate 4 mechanism-plausibility block and silently skips `mechanism-auditor` on the regenerated mechanism; nulling forces it to re-fire)
+   - `headline_replication_round → 0` (under `--ext empirical` — the regenerated paper goes through fresh Stage 3a execution; the replicator counter from the abandoned paper must not bleed across)
+   - `triaged_lit_implications → []`
+4. Re-enter Stage 1: pass `learnings_r{N}.md` to **both** idea-generator and idea-reviewer alongside the lit map, and take the explicit **Regeneration short-circuit** at step 2 below — do not consult the runner-up or unused-sketch priorities; the existing portfolio is by assumption exhausted.
+
+Additional constraints on a regeneration entry:
 - Sketches must not repeat any mechanism in `stage1_candidates.sketch_name` or the learnings file's "exhausted mechanisms" list.
-- **If post-Stage-5:** archive the current paper to `paper_archive/r{regeneration_round}/` before generation begins; record its best Gate 4 score as `archived_best_score_r{N}` in pipeline state (if not already written by stage_4.md). If the new attempt's eventual Gate 4 score does not strictly beat that archived value, restore the archived paper and ship it.
 - **Banned in seeded mode** — the seed is the contract. Branch-manager must not recommend Regenerate on seeded runs; the escalation row in core.md guards this with "not seeded."
 
 **How many ideas to generate:** More candidates when the pool is weaker — more failures mean more draws needed.
