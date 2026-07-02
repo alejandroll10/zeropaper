@@ -123,6 +123,7 @@ Per-gate faithful-mode overrides are injected into each stage doc at the verdict
 - `docs/stage_0.md` — gap-scout "closed" (no dedicated faithful override file; falls back to the `seed_overrides/` text, which is already strict enough — the seed is the gap by construction).
 - `docs/stage_1.md` — Gate 1 REJECT ALL, Gate 1b, Gate 1c, INCREMENTAL-forwarding.
 - `docs/stage_2.md` — Gate 2 FAIL, Gate 3 KNOWN/INCREMENTAL.
+- `docs/stage_3_implications.md` — barren-model (all-SUPPORTED) (no dedicated faithful override file; falls back to the `seed_overrides/` text — within-model depth-search additions are encouraged under the contract, so the seeded three-strike-then-ship route already fits faithful mode).
 - `docs/stage_3a_empirical.md` — Gate 3a-feasibility FALSIFIED (`--ext empirical`).
 - `docs/stage_4.md` — Gate 4 verdicts (including plateau-ship rule).
 - `docs/stage_6.md` — Gate 5 Major Revision / Reject / MISATTRIBUTED / DECORATIVE.
