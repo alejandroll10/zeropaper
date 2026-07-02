@@ -290,8 +290,9 @@
   "puzzle-triager": {
     "name": "puzzle-triager",
     "description": "Triages contradictions between theory predictions and empirical/experimental results. Launched only when results contradict an implication. Produces a verdict (PIVOT / FIX-EMPIRICS / RECONCILE / BACK-TO-IDEA / HONEST-NULL) that routes the pipeline. A PIVOT verdict promotes the contradiction to the central question and instructs theory-generator to revise around the puzzle.",
+    "category": "evaluator",
     "tools": "Read, Write",
-    "model": "opus",
+    "model": "fable",
     "effort": "high",
     "codex": {
       "model": "gpt-5.5",

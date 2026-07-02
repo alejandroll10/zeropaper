@@ -21,6 +21,7 @@ TOOL_MAP = {
 
 # Claude model → Gemini model
 MODEL_MAP = {
+    "fable": "gemini-3-preview",
     "opus": "gemini-3-preview",
     "sonnet": "gemini-3-flash-preview",
     "haiku": "gemini-3-flash-preview",

@@ -4,7 +4,7 @@
     "description": "Turns the selected literature gap into one sharp research question. The orchestrator launches this agent at Stage 0 step 0d, after gap-scout. Produces a single important, open, non-obvious question — not a framework, not an approach (that is Stage 1's job).",
     "category": "developing",
     "tools": "Read, Write",
-    "model": "opus",
+    "model": "fable",
     "effort": "high",
     "codex": {
       "model": "gpt-5.5",
@@ -34,14 +34,14 @@
     "description": "Brainstorms candidate mechanisms and model ideas for a given problem. The orchestrator launches this agent at Stage 1 of the pipeline. Produces developed sketches \u2014 not full theories, but enough to evaluate.",
     "category": "developing",
     "tools": "Read, Write",
-    "model": "sonnet",
+    "model": "fable",
     "effort": "high",
     "codex": {
       "model": "gpt-5.5",
       "model_reasoning_effort": "high"
     },
     "gemini": {
-      "model": "gemini-3-flash-preview"
+      "model": "gemini-3-preview"
     }
   },
   "idea-reviewer": {
@@ -121,11 +121,11 @@
       "sympy",
       "codex-math"
     ],
-    "model": "opus",
-    "effort": "xhigh",
+    "model": "fable",
+    "effort": "high",
     "codex": {
       "model": "gpt-5.5",
-      "model_reasoning_effort": "xhigh"
+      "model_reasoning_effort": "high"
     },
     "gemini": {
       "model": "gemini-3-preview"
