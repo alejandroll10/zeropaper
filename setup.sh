@@ -1250,7 +1250,7 @@ else
     STAGE2B_DIRS=()
     [ "$MODE" != "empirical-first" ] && STAGE2B_DIRS=("$P/output/stage2b/figures")
     mkdir -p "$P/output/stage0" "$P/output/stage1" "$P/output/stage2" "${STAGE2B_DIRS[@]}" "$P/output/stage3" "$P/output/stage4" "$P/output/puzzle_triage" "$P/output/post_pipeline"
-    mkdir -p "$P/process_log/sessions" "$P/process_log/decisions" "$P/process_log/discussions" "$P/process_log/patterns"
+    mkdir -p "$P/process_log/sessions" "$P/process_log/decisions"
 fi
 
 # Copy per-stage documentation (referenced from CLAUDE.md/AGENTS.md/GEMINI.md pointer blocks).
