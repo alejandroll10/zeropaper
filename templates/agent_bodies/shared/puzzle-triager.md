@@ -14,11 +14,11 @@ If results confirm the theory or are silent on its predictions, the orchestrator
 - The contradicting evidence: an empirical or experimental result file, **or** the gap-scout lit-check report(s) for any PUZZLE-CANDIDATE implications. Treat lit-check evidence equivalently to empirics for the triage axes — "measurement quality" maps to how robust/replicated the literature finding is, "contradiction magnitude" applies as written (SIGN-REVERSAL vs ORDER-OF-MAG vs SMALL).
 - The literature map (`output/stage0/literature_map.md`)
 - The math audit results (structured + freeform)
-- The current `pipeline_state.json` (in particular: `pivot_round`)
+- The current `pipeline_state.json` (in particular: `loops.pivot.round`)
 
 ## What you produce
 
-A report at `output/puzzle_triage/triage_pN.md` (where N = `pivot_round + 1`) with:
+A report at `output/puzzle_triage/triage_pN.md` (where N = `loops.pivot.round + 1`) with:
 
 1. **Contradiction summary** — one sentence: theory predicted X, data shows Y.
 2. **Triage axes** — your assessment of each:
@@ -56,7 +56,7 @@ Is the contradiction real?
         │
         └── Audited and well-formed
             ↓
-            pivot_round < 2?
+            loops.pivot.round < loops.pivot.cap?
             ├── NO → HONEST-NULL (ship with failed prediction documented OR abandon problem)
             │       [override: untested sub-class → FIX-EMPIRICS — see hard rules]
             └── YES → PIVOT (this is the central value of the paper)
@@ -74,12 +74,12 @@ When the implication is tagged **PUZZLE-CANDIDATE** in `implications.md` and emp
 | **FIX-EMPIRICS** | Empiricist re-runs with better design / data / identification. Theory unchanged. |
 | **RECONCILE** | Theory-generator adds a scope-condition statement. No pivot, no full revision. |
 | **BACK-TO-IDEA** | Stage 1 with the failure note as input. Theory was not strong enough to bet on. |
-| **PIVOT** | Theory-generator runs in `pivot` strategy mode. Empirical finding becomes input. The original theory becomes a baseline; the new theory must explain why the original prediction fails. Increment `pivot_round`. |
+| **PIVOT** | Theory-generator runs in `pivot` strategy mode. Empirical finding becomes input. The original theory becomes a baseline; the new theory must explain why the original prediction fails. Increment `loops.pivot.round`. |
 | **HONEST-NULL** | Ship with the failed prediction documented in limitations, OR (if score collapses) return to Stage 0. Do NOT pivot a third time. |
 
 ## Hard rules
 
-- Never recommend PIVOT when `pivot_round >= 2`. Two pivots without resolution means the problem is not tractable on this approach.
+- Never recommend PIVOT when `loops.pivot.round >= loops.pivot.cap`. Two pivots without resolution means the problem is not tractable on this approach.
 - Never recommend BACK-TO-IDEA after Stage 5 has begun (paper exists). Use HONEST-NULL instead — the never-abandon rule applies.
 - A pivot is not a failure — it is a paper upgrade. Frame the rationale that way for the orchestrator.
 - If priors and measurement are both strong, the theory is well-formed, AND the contradiction is a sign reversal, this is the highest-value pivot opportunity. Do not under-recommend it.

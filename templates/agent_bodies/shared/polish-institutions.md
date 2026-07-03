@@ -32,7 +32,7 @@ You verify the paper's claims about the real world: institutional facts, regulat
 
 ## Output
 
-Write `output/polish_institutions_r{N}.md` where `{N}` is the current `polish_round` (passed in your prompt by the orchestrator; default to `N=1` if invoked manually):
+Write `output/polish_institutions_r{N}.md` where `{N}` is the current `loops.polish.round` (passed in your prompt by the orchestrator; default to `N=1` if invoked manually):
 
 ```
 # Polish: Institutional Realism

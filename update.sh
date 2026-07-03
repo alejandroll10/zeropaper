@@ -338,6 +338,72 @@ while IFS= read -r env_file; do
     fi
 done < <(jq -r '.infrastructure.files_env_merge[]?' "$NEW_MANIFEST")
 
+# ── Migrate pipeline_state.json to the loops:{} shape (issue #166) ──
+# The refreshed runtime docs reference loops.<id>.round; an in-flight deployment's
+# pipeline_state.json (never in the manifest, so preserved verbatim) may still carry
+# the legacy named counters. Fold them into a single `loops` object, preserving the
+# in-progress round values, so a resumed run's state matches the new docs. Idempotent:
+# if `loops` already exists this is a no-op.
+STATE_FILE="$PROJECT/process_log/pipeline_state.json"
+if [ "$DRY_RUN" = "0" ] && [ -f "$STATE_FILE" ]; then
+    python3 - "$STATE_FILE" <<'PYEOF'
+import json, sys
+p = sys.argv[1]
+with open(p) as f: data = json.load(f)
+if "loops" not in data:
+    # legacy field -> (loop id, default cap)
+    base = {
+        "gate0_revise_cycles":               ("gate0_revise", 3),
+        "gate0_questions_rejected":          ("gate0_reject", 5),
+        "idea_round":                        ("idea", 5),
+        "reject_cosmetic_round":             ("reject_cosmetic", 2),
+        "downgrade_enrich_round":            ("downgrade_enrich", 2),
+        "pivot_round":                       ("pivot", 2),
+        "fix_empirics_round":                ("fix_empirics", 2),
+        "referee_round":                     ("referee", 10),
+        "bib_verify_round":                  ("bib_verify", 2),
+        "polish_round":                      ("polish", 2),
+    }
+    emp = {
+        "identification_plan_revision_round": ("identification_plan_revision", 3),
+        "headline_replication_round":        ("headline_replication", 3),
+        "data_integrity_round":              ("data_integrity", 3),
+        "method_check_round":                ("method_check", 3),
+        "claim_grounding_round":             ("claim_grounding", 3),
+        "paper_writer_pse_round":            ("paper_writer_pse", 3),
+        "claim_format_reexport_round":       ("claim_format_reexport", 2),
+    }
+    loops = {}
+    # Always seed the full base set (round from legacy value if present, else 0).
+    for legacy, (lid, cap) in base.items():
+        loops[lid] = {"round": int(data.pop(legacy, 0) or 0), "cap": cap}
+    # Seed empirical loops only if this deployment had them (any legacy empirical
+    # counter present, or the empirical version pointer exists).
+    had_emp = any(k in data for k in emp) or "stage3a_theory_version" in data
+    for legacy, (lid, cap) in emp.items():
+        v = data.pop(legacy, None)
+        if had_emp:
+            loops[lid] = {"round": int(v or 0), "cap": cap}
+    if had_emp:
+        loops["replicator_self_refire"] = {"round": 0, "cap": 3}
+    # The Jaccard companion field is deleted outright.
+    data.pop("paper_writer_pse_claim_ids", None)
+    # Insert `loops` after gate0_best_question_score if present, else at a stable spot.
+    new = {}
+    inserted = False
+    for k, v in data.items():
+        new[k] = v
+        if k == "gate0_best_question_score":
+            new["loops"] = loops
+            inserted = True
+    if not inserted:
+        new["loops"] = loops
+    with open(p, "w") as f:
+        json.dump(new, f, indent=2); f.write("\n")
+    print("  ✓ pipeline_state.json migrated to loops:{} (issue #166)")
+PYEOF
+fi
+
 # ── Refresh manifest in target (preserve original deploy_date + fingerprint) ──
 if [ "$DRY_RUN" = "0" ]; then
     if [ -f "$MANIFEST" ]; then

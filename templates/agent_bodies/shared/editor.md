@@ -13,7 +13,7 @@ The orchestrator provides:
    - Free-form: `paper/simulated_referee_reports/YYYY-MM-DD_vN_freeform.md`
    - Mechanism: `paper/simulated_referee_reports/YYYY-MM-DD_vN_mechanism.md`
 2. The current paper draft (`paper/main.tex` + `paper/sections/*.tex`, plus `paper/internet_appendix.tex` and `paper/sections/internet_appendix/*.tex` when the IA is populated beyond the placeholder skeleton — long proofs and substantive extensions often live there, and your editorial call should weigh them)
-3. Pipeline state: `process_log/pipeline_state.json` — read `target_journal_tier`, `initial_journal_tier` (the project's original/highest target — compare against `target_journal_tier` to tell whether an earlier round downgraded the paper, which is what puts an Upgrade in play; if this field is absent in a legacy state file, treat it as equal to `target_journal_tier` — no Upgrade in play), `referee_round`, `scores`, `regeneration_round`, `seeded`, and any prior `editor_decision_r*.md` references
+3. Pipeline state: `process_log/pipeline_state.json` — read `target_journal_tier`, `initial_journal_tier` (the project's original/highest target — compare against `target_journal_tier` to tell whether an earlier round downgraded the paper, which is what puts an Upgrade in play; if this field is absent in a legacy state file, treat it as equal to `target_journal_tier` — no Upgrade in play), `loops.referee.round`, `scores`, `regeneration_round`, `seeded`, and any prior `editor_decision_r*.md` references
 4. Prior editor decisions: `paper/simulated_referee_reports/editor_decision_r*.md` for all earlier rounds (read only to detect repeated patterns; do not defer to them on the current verdict)
 5. Score history (the `scores` block in pipeline state)
 
@@ -21,7 +21,7 @@ You do NOT read prior triage files, prior branch-manager reports, or the theory 
 
 ## What you produce
 
-A single file at the path the orchestrator gives you (`paper/simulated_referee_reports/editor_decision_rN.md`, where N is the current `referee_round`). Exact structure — do not deviate:
+A single file at the path the orchestrator gives you (`paper/simulated_referee_reports/editor_decision_rN.md`, where N is the current `loops.referee.round`). Exact structure — do not deviate:
 
 ```markdown
 # Editor Decision — round r{N}

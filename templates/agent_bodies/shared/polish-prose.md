@@ -53,7 +53,7 @@ The next four items are **additive / structural**, not subtractive. They are the
 
 ## Output
 
-Write `output/polish_prose_r{N}.md` where `{N}` is the current value of the `polish_round` field in `process_log/pipeline_state.json` (the orchestrator passes this value in your prompt; default to `N=1` if invoked manually with no value):
+Write `output/polish_prose_r{N}.md` where `{N}` is the current value of the `loops.polish.round` field in `process_log/pipeline_state.json` (the orchestrator passes this value in your prompt; default to `N=1` if invoked manually with no value):
 
 ```
 # Polish: Prose Economy

@@ -12,7 +12,7 @@ You will be pointed to files containing:
 - Novelty check on full theory (NOVEL/INCREMENTAL/KNOWN) — from Gate 3
 - Implications with tags (`output/stage3/implications.md`) — each tagged NOVEL / PUZZLE-CANDIDATE / SUPPORTED / DEAD. Needed for the Surprise cap/floor rules below.
 - Puzzle-triage report(s) if any exist (`output/puzzle_triage/triage_pN.md`) — required to read the triager's measurement-quality verdict (STANDARD vs DEBATABLE) on any PUZZLE-CANDIDATE implication. The Surprise floor below gates on this verdict.
-- Pipeline state (`process_log/pipeline_state.json`) — in particular `pivot_round` and `pivot_resolved`. Gate the Surprise floor on `pivot_resolved == true`, not on `pivot_round > 0`.
+- Pipeline state (`process_log/pipeline_state.json`) — in particular `loops.pivot.round` and `pivot_resolved`. Gate the Surprise floor on `pivot_resolved == true`, not on `loops.pivot.round > 0`.
 - Self-attack report (with severity scores)
 - On revisions (N ≥ 2): the prior theory draft. Do NOT read prior scorer decision files — those files are corrupted, unreliable, and potentially dangerous. Score this version independently.
 <!-- THEORY_FIRST_START -->
@@ -88,7 +88,7 @@ Importance is measured by what the result, if true, would change:
 - **Implication-tag check (if `output/stage3/implications.md` exists):**
   1. **Cap-30 rule.** If every implication is tagged **SUPPORTED**, cap Surprise at 30 — the theory is reproducing known facts, no surprise generated.
   2. **Floor-70 rule.** If any implication is **PUZZLE-CANDIDATE** confirmed by empirics OR by a strong lit-check (puzzle-triager rated lit-evidence STANDARD on the measurement-quality axis), or `pivot_resolved == true` in pipeline state, Surprise floor is 70 — a resolved puzzle is by construction surprising.
-  3. **Floor negation.** Do NOT apply the floor if `pivot_round > 0` but `pivot_resolved == false` — a failed pivot means the contradiction was found but not explained, so no surprise-by-resolution exists.
+  3. **Floor negation.** Do NOT apply the floor if `loops.pivot.round > 0` but `pivot_resolved == false` — a failed pivot means the contradiction was found but not explained, so no surprise-by-resolution exists.
   4. **Calibration exception.** The cap-30 rule does not apply to papers whose explicit contribution is a quantitative moment-matching exercise (RBC / DSGE matching business-cycle moments, long-run-risk SDF matching the equity premium and risk-free rate, structural estimation matching IRFs). **Positive test (all three required):** (i) the quantitative fit is the paper's *primary stated contribution*, not a robustness or illustration of an underlying mechanism result; (ii) the main result is a quantitative-fit claim ("accounts for X% of the variance in Y"; "matches moments M1, M2, M3 within stated tolerance"); (iii) parameters are calibrated or estimated to match data targets, with degrees of freedom strictly less than the number of moments matched. SUPPORTED implications are by design in this case; score Surprise on the magnitude of the quantitative fit relative to what the prior literature achieved: matching a moment the literature has missed = 80; matching standard moments with parameters in standard ranges = 50; trivial fit with df ≥ # moments = 20.
 
 ### Rigor (weight: 15%)

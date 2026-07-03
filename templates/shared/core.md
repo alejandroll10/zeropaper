@@ -180,22 +180,24 @@ Initial state (created by setup.sh):
 {
   "current_stage": "stage_0",
   "problem_attempt": 1,
-  "idea_round": 0,
   "theory_attempt": 1,
   "theory_version": 1,
-  "referee_round": 0,
-  "reject_cosmetic_round": 0,
-  "downgrade_enrich_round": 0,
-  "pivot_round": 0,
-  "fix_empirics_round": 0,
-  "bib_verify_round": 0,
-  "polish_round": 0,
   "regeneration_round": 0,
   "harder_round_forced": false,
   "fallback_idea_sketch_name": null,
-  "gate0_revise_cycles": 0,
-  "gate0_questions_rejected": 0,
   "gate0_best_question_score": -1,
+  "loops": {
+    "gate0_revise":      {"round": 0, "cap": 3},
+    "gate0_reject":      {"round": 0, "cap": 5},
+    "idea":              {"round": 0, "cap": 5},
+    "reject_cosmetic":   {"round": 0, "cap": 2},
+    "downgrade_enrich":  {"round": 0, "cap": 2},
+    "pivot":             {"round": 0, "cap": 2},
+    "fix_empirics":      {"round": 0, "cap": 2},
+    "referee":           {"round": 0, "cap": 10},
+    "bib_verify":        {"round": 0, "cap": 2},
+    "polish":            {"round": 0, "cap": 2}{{EMPIRICAL_LOOP_FIELDS}}
+  },
   "pivot_resolved": null,
   "pivot_history": [],
   "triaged_lit_implications": [],
@@ -221,14 +223,48 @@ When you start the pipeline, set `"status": "running"` and begin appending to th
 
 **History array:** Append a `{ "timestamp": "ISO-8601", "event": "description" }` entry for every pipeline event. This feeds the dashboard. Use `date -u +%Y-%m-%dT%H:%M:%SZ` to get the timestamp. Never truncate or clear the history array.
 
+### Audit-loop scoping (generic rule)
+
+Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` object — a `{round, cap}` counter scoped to the version of the artifact it audits (its **reset scope**, listed in the Loop Registry below). There are no bespoke per-loop counter fields, similarity metrics, or hand-threaded reset lists; every loop obeys this one rule:
+
+- **Increment** `loops.<id>.round` each time the loop's audit returns REVISE/FAIL on the **same** artifact version.
+- **Reset to 0** whenever the audited artifact is regenerated, the step is re-entered on revised upstream content, or the loop's verdict class changes — a fresh artifact version always starts the count at 0. You do not need per-verdict "reset X to 0" instructions: the reset is implied by the artifact changing. (This is why, e.g., a Regeneration Round or a Pivot — both of which regenerate the theory — automatically zero every theory-scoped loop; and why a new problem zeros `loops.idea`.)
+- **At cap** (`loops.<id>.round >= loops.<id>.cap`): stop looping. Treat the loop as FAILED and route per that loop's **FAIL route** (Loop Registry). The FAIL route is loop-specific and is *not* centralized — only the counting and capping are.
+- A loop id **absent** from `loops` defaults to `{round: 0, cap: 3}` on first reference, so a newly added gate is loop-capped for free without a schema edit.
+
+**Two documented exceptions to auto-reset** (the only cases where a changed artifact does *not* zero a counter; each is flagged inline where it occurs):
+1. **Escalation non-reset** — a loop that FAILs *substantively* (escalating rather than retrying) is left as-is even when a sibling artifact regenerates. Stage 3a step 7.5 is the reference case: a substantive data FAIL resets `loops.method_check` but deliberately leaves `loops.data_integrity` untouched (it is escalating, not being retried), and the method-checker FAIL mirror does the reverse.
+2. **Positive non-reset** — a verdict row that explicitly asserts a counter is untouched. The puzzle-triage PROBE-NULL row is the reference case: it positively holds `loops.pivot`, `loops.fix_empirics`, `loops.data_integrity`, and `loops.headline_replication` at their current values.
+
+**Loop Registry.** The complete set of capped loops. `cap` is the value seeded into `loops.<id>.cap`; the orchestrator reads the cap from state, never hard-codes it. Empirical-extension loops (marked †) exist only under `--ext empirical`.
+
+| loop id | cap | reset scope (audited artifact) | FAIL route |
+|---|---|---|---|
+| `gate0_revise` | 3 | current gap's question | treat REVISE as REJECT — `docs/stage_0.md` Step 0e |
+| `gate0_reject` | 5 | current Stage-0 pass | take best-scored question so far, advance to Stage 1 — `docs/stage_0.md` |
+| `idea` | 5 | current problem (zeros on a new problem) | pick best idea, advance to Gate 1b — `docs/stage_1.md` |
+| `reject_cosmetic` | 2 | current Stage-6 Reject episode | Regeneration Round (if eligible) else standard Major Revision — `docs/stage_6.md` |
+| `downgrade_enrich` | 2 | current downgrade episode | certify target-tier ceiling (2b) — `docs/stage_6.md` |
+| `pivot` | 2 | current problem | forbid further PIVOT, default HONEST-NULL — `docs/stage_puzzle_triage.md` |
+| `fix_empirics` | 2 | current contradiction | escalate to RECONCILE / HONEST-NULL — `docs/stage_puzzle_triage.md` |
+| `referee` | 10 | current paper (fresh budget per Regeneration) | Stage 6 hard cap — `docs/stage_6.md` |
+| `bib_verify` | 2 | current bibliography | drop unresolvable cites — `docs/stage_8.md` |
+| `polish` | 2 | current paper polish pass | ship (terminal) — `docs/stage_9.md` |
+| `identification_plan_revision` † | 3 | current `theory_version`'s identification design | step-3 FAIL branch — `docs/stage_3a_empirical.md` |
+| `headline_replication` † | 3 | current `code/empirical.py` headline | return to Stage 2 — `docs/stage_3a_empirical.md` |
+| `replicator_self_refire` † | 3 | current `trivially_equivalent_path` attempt | halt `status=halted_replicator_self_failure` — `docs/stage_3a_empirical.md` |
+| `data_integrity` † | 3 | current data-construction code | step-7.5 FAIL branch — `docs/stage_3a_empirical.md` |
+| `method_check` † | 3 | current method code | method-checker FAIL branch — `docs/stage_3a_empirical.md` |
+| `claim_grounding` † | 3 | current claim set | halt for operator routing — `docs/stage_5.md` / `claim-verifier` |
+| `paper_writer_pse` † | 3 | current claim set | halt for operator routing — `docs/stage_5.md` / `claim-verifier` |
+| `claim_format_reexport` † | 2 | current claim set | halt for operator routing — `docs/stage_5.md` / `claim-verifier` |
+
 <!-- THEORY_FIRST_START -->
 **`stage2b_theory_version`:** Set to the `theory_version` that Stage 2b last fully explored. Before advancing at Gate 4, the orchestrator must verify this equals the current `theory_version`; if it is stale, re-run Stage 2b on the new content (see `docs/stage_2.md` Stage 2b step 5).
 <!-- THEORY_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 **`stage2b_theory_version`:** Initialized to `null` and never updated under `--mode empirical-first`. Stage 2b does not run in mechanism mode (the mechanism document has no equilibrium objects to explore), so the Gate 4 staleness rule that consumes this field does not apply here. The analogous binding rules in empirical-first mode are **two** Gate 4 hard blocks: `stage2_mechanism_version == theory_version` (the mechanism-plausibility gate — `docs/stage_2.md` "Gate 4 enforcement") AND `stage3a_theory_version == theory_version` (the empirics — `docs/stage_3a_empirical.md` "Gate 4 enforcement"). Both must hold before any Gate 4 advance. The `stage2b_theory_version` field remains in `pipeline_state.json` only because legacy reset paths (e.g., `puzzle-triager` RECONCILE / PIVOT) write to it; those resets are harmless no-ops in mechanism mode. (`stage2_mechanism_version`, by contrast, **is** reset by those paths — see `docs/stage_puzzle_triage.md` and `docs/stage_6.md` — because a `theory_version` reset to 1 would otherwise let a stale value false-positive the gate.)
 <!-- EMPIRICAL_FIRST_END -->
-
-**`reject_cosmetic_round`:** Tracks consecutive cosmetic-deepening attempts when responding to a Stage 6 Reject verdict. Increments when branch-manager (gate-5-reject context) returns COSMETIC on a deepen attempt; resets to 0 on a SUBSTANTIVE deepen, on a Regeneration Round entry, or on falling back to standard Major Revision after the deepen path is exhausted. See `docs/stage_6.md` Reject row for the full state machine.
 
 **`target_journal_tier`:** The active journal tier for Gate 4 advance threshold and Stage 6 referee variant context. Initialized to `{{INITIAL_TIER}}` for this variant. The Stage 6 `editor` agent may recommend a tier change (Downgrade or Upgrade) only when its Rule 5 quote gate is cleared (two verbatim same-direction structural-ceiling spans from two different referees). **On Downgrade the field does not move immediately** — it routes to the deepen-toward-target procedure in `docs/stage_6.md`, and drops one rung only when `branch-manager` certifies a target-tier ceiling. **On Upgrade** the orchestrator updates this field one rung up the variant ladder and recomputes the Gate 4 advance threshold per `docs/stage_4.md`; Upgrade is the mechanism that restores a paper toward its initial (highest) target after an earlier over-eager downgrade, and is a normal outcome — not rare — up to the project's initial tier.
 
@@ -238,7 +274,7 @@ When you start the pipeline, set `"status": "running"` and begin appending to th
 
 {{EMPIRICAL_STATE3A_DOC}}
 {{THEORY_LLM_STATE3B_DOC}}
-**`stage1_candidates`:** Records every sketch screened at Gates 1b/1c during Stage 1. Each entry: `{round, rank, sketch_name, novelty, prototype, reviewer_importance, prototype_retry, eliminated, winner}` — `round` is the `idea_round` value when the entry was last written; `rank` is the idea-reviewer ADVANCE position (1..K) **within that round** (rank is unique per-round, NOT unique across the array); the screening verdict fields (`novelty`, `prototype`) are `null` until the agent runs. `reviewer_importance` is the idea-reviewer's Importance-of-the-answer score (1–5) for the approach, recorded at Stage 1 Step 7 and used as the Step 3 tiebreak ceiling axis (criterion (b)); it is a reviewer judgment, not a screening verdict, so it is not reset on re-screening. (The former idea-stage `surprise` tier was removed — surprise is now a development-stage outcome judged by the scorer against the field's cited prior; see #112.) `prototype` takes one of `TRACTABLE` / `BLOCKED-DIFFICULTY` / `BLOCKED-IMPOSSIBLE` (proof difficulty vs proven impossibility — see `docs/stage_1.md` Gate 1c). `prototype_retry` is `0` or `1`: it records whether the one permitted harder-technique re-attempt (NOVEL + `BLOCKED-DIFFICULTY` only) was spent on this candidate. The flags mean:
+**`stage1_candidates`:** Records every sketch screened at Gates 1b/1c during Stage 1. Each entry: `{round, rank, sketch_name, novelty, prototype, reviewer_importance, prototype_retry, eliminated, winner}` — `round` is the `loops.idea.round` value when the entry was last written; `rank` is the idea-reviewer ADVANCE position (1..K) **within that round** (rank is unique per-round, NOT unique across the array); the screening verdict fields (`novelty`, `prototype`) are `null` until the agent runs. `reviewer_importance` is the idea-reviewer's Importance-of-the-answer score (1–5) for the approach, recorded at Stage 1 Step 7 and used as the Step 3 tiebreak ceiling axis (criterion (b)); it is a reviewer judgment, not a screening verdict, so it is not reset on re-screening. (The former idea-stage `surprise` tier was removed — surprise is now a development-stage outcome judged by the scorer against the field's cited prior; see #112.) `prototype` takes one of `TRACTABLE` / `BLOCKED-DIFFICULTY` / `BLOCKED-IMPOSSIBLE` (proof difficulty vs proven impossibility — see `docs/stage_1.md` Gate 1c). `prototype_retry` is `0` or `1`: it records whether the one permitted harder-technique re-attempt (NOVEL + `BLOCKED-DIFFICULTY` only) was spent on this candidate. The flags mean:
 - `eliminated: true` — screened out. Set for KNOWN at 1b, or `BLOCKED-IMPOSSIBLE` / `BLOCKED-DIFFICULTY` at 1c. Never re-nominate. Only `BLOCKED-IMPOSSIBLE` is a *proven* dead end (it propagated a negative result); `BLOCKED-DIFFICULTY` is "hard, unresolved" — eliminated from selection but not a no-go, and the `prototype` field preserves which it was for the audit trail.
 - `winner: true` — the sketch whose theory is currently being developed downstream. If the theory later fails, this sketch has already been tried and should not be re-nominated.
 - `eliminated: false AND winner: false` — a TRACTABLE survivor that lost the tiebreak. **This is a pre-vetted runner-up** and is the preferred re-nomination on re-entry after a failed theory (see `docs/stage_1.md` step 2).
@@ -247,13 +283,13 @@ When you start the pipeline, set `"status": "running"` and begin appending to th
 
 **`fallback_idea_sketch_name`:** Initialized `null`. When the portfolio guard fires it is set to the `sketch_name` of the best current TRACTABLE survivor, which the guard simultaneously snapshots to `output/stage1/fallback_idea.md` (+ `fallback_novelty_check.md`, `fallback_idea_prototype.md`). It points at the idea the next Step 3 tiebreak must include as an extra candidate so the guard never costs a shippable idea (`docs/stage_1.md` Step 2a/Step 3). Cleared back to `null` in exactly three places: (i) the Step 3 tiebreak that consumes it, (ii) the Step 2a "fallback rescue" that ships it when Stage 1 would otherwise abandon to Stage 0, and (iii) **on every Stage 0 (re-)entry** (clear it and ignore any stale `fallback_*.md`, via the same `docs/stage_0.md` reset hook as `harder_round_forced` above). Lifecycle rule (iii) is what lets every Step 3 treat a non-null value as "belongs to the current problem."
 
-**`gate0_revise_cycles`** and **`gate0_questions_rejected`:** Both integers, initialized `0`. They make the Gate-0 (Stage 0 Step 0e) routing caps crash-safe rather than relying on in-context memory. `gate0_revise_cycles` counts REVISE cycles spent sharpening the *current gap's* question (cap 3, then the verdict is treated as REJECT); it resets to `0` both on a REJECT (a new gap earns a fresh REVISE budget) and on every Stage 0 (re-)entry. `gate0_questions_rejected` counts questions rejected across gaps within the current Stage-0 pass (cap 5, then the best viability-scored question seen so far is taken and the pipeline proceeds); it resets to `0` only on a Stage 0 (re-)entry. Both resets live in the `docs/stage_0.md` top-of-file reset hook. Not present under `--seed`/`--faithful` routing-wise (Gate 0 is bypassed), but the fields are still initialized for schema uniformity.
+**Gate-0 loops (`loops.gate0_revise`, `loops.gate0_reject`):** These make the Gate-0 (Stage 0 Step 0e) routing caps crash-safe rather than relying on in-context memory. `loops.gate0_revise` counts REVISE cycles spent sharpening the *current gap's* question (cap 3, then the verdict is treated as REJECT); per the generic rule its reset scope is the current gap, so it zeros on a REJECT (a new gap is a fresh artifact) and on every Stage 0 (re-)entry. `loops.gate0_reject` counts questions rejected across gaps within the current Stage-0 pass (cap 5, then the best viability-scored question seen so far is taken and the pipeline proceeds); its reset scope is the Stage-0 pass, so it zeros only on a Stage 0 (re-)entry. Not routing-relevant under `--seed`/`--faithful` (Gate 0 is bypassed), but the loops are still seeded for schema uniformity.
 
-**`gate0_best_question_score`:** Integer, initialized `-1` (no question evaluated yet). Tracks the highest viability score any `question-referee` evaluation has produced this Stage-0 pass, so the `gate0_questions_rejected` cap-5 fallback ("take the best question seen so far") is executable rather than aspirational — without it, each gap overwrites `output/stage0/problem_statement.md` and the best-scoring question is unrecoverable. Whenever a Step-0e evaluation scores higher than the stored value, the orchestrator snapshots the current `problem_statement.md`/`question_review.md` to `output/stage0/best_question.md`/`best_question_review.md` and updates this field; on the cap-5 fallback it restores `best_question.md` → `problem_statement.md` before advancing to Stage 1. Resets to `-1` (and the stale snapshot is ignored) on every Stage 0 (re-)entry, alongside the two Gate-0 cycle counters. Initialized but unused under `--seed`/`--faithful` (Gate 0 is bypassed).
+**`gate0_best_question_score`:** Integer, initialized `-1` (no question evaluated yet). Tracks the highest viability score any `question-referee` evaluation has produced this Stage-0 pass, so the `loops.gate0_reject` cap-5 fallback ("take the best question seen so far") is executable rather than aspirational — without it, each gap overwrites `output/stage0/problem_statement.md` and the best-scoring question is unrecoverable. Whenever a Step-0e evaluation scores higher than the stored value, the orchestrator snapshots the current `problem_statement.md`/`question_review.md` to `output/stage0/best_question.md`/`best_question_review.md` and updates this field; on the cap-5 fallback it restores `best_question.md` → `problem_statement.md` before advancing to Stage 1. Resets to `-1` (and the stale snapshot is ignored) on every Stage 0 (re-)entry, alongside the two Gate-0 cycle counters. Initialized but unused under `--seed`/`--faithful` (Gate 0 is bypassed).
 
 Entries accumulate across Rounds — do not clear between Rounds. **Deduplicate by `sketch_name`**: if an entry with the same `sketch_name` already exists when Step 7 of Stage 1 runs, update it in place (new `round`, new `rank`, refreshed `reviewer_importance` from the current review, screening verdict fields `novelty`/`prototype` reset to `null` for re-screening) rather than appending a duplicate. Lookups that need "the current winner" must filter by `winner: true` (at most one such entry should exist at any time during a run); lookups that need "pre-vetted runner-ups" filter by `eliminated: false AND winner: false`.
 
-**Per-round indexed file namespace.** Stage 1 writes indexed candidate files (`selected_idea_{k}.md`, `novelty_check_{k}.md`, `idea_prototype_{k}.md`) under `output/stage1/round_{N}/` where N is the current `idea_round`. This keeps each Round's artifacts self-contained and prevents stale indexed files from a prior Round being mistaken for current state. The canonical winner files (`output/stage1/selected_idea.md`, `novelty_check_idea.md`, `idea_prototype.md`) are written at the top level of `output/stage1/` and are the authoritative inputs for Stage 2.
+**Per-round indexed file namespace.** Stage 1 writes indexed candidate files (`selected_idea_{k}.md`, `novelty_check_{k}.md`, `idea_prototype_{k}.md`) under `output/stage1/round_{N}/` where N is the current `loops.idea.round`. This keeps each Round's artifacts self-contained and prevents stale indexed files from a prior Round being mistaken for current state. The canonical winner files (`output/stage1/selected_idea.md`, `novelty_check_idea.md`, `idea_prototype.md`) are written at the top level of `output/stage1/` and are the authoritative inputs for Stage 2.
 
 {{SEED_OVERRIDE}}
 
@@ -383,7 +419,7 @@ When the core result is correct but thin, extend it with mathematically hard, ec
 Re-run Gate 2 + Gate 4 on extensions.
 <!-- THEORY_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
-Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 on extensions. Gate 2 here means the **mechanism-plausibility** gate: re-run it (and re-set `stage2_mechanism_version`) only if the extension changes or extends the channel claim — for a new-predictions-only deepening that leaves the channel prose/DAG unchanged, the mechanism is unchanged and Gate 2 need not re-fire. Gate 3 (novelty) re-fires only if the extension introduces a structurally new channel. **Reset `data_integrity_round` AND `method_check_round` to 0** before re-entry — a deepening extension is a fresh analysis cycle (typically with new variables, new sample slices, AND potentially new estimators), and stale counters from a prior pass would force-FAIL the first legitimate REVISE from any of the three step-7.5 auditors.
+Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 on extensions. Gate 2 here means the **mechanism-plausibility** gate: re-run it (and re-set `stage2_mechanism_version`) only if the extension changes or extends the channel claim — for a new-predictions-only deepening that leaves the channel prose/DAG unchanged, the mechanism is unchanged and Gate 2 need not re-fire. Gate 3 (novelty) re-fires only if the extension introduces a structurally new channel. A deepening extension is a fresh analysis cycle (typically with new variables, new sample slices, AND potentially new estimators), so `loops.data_integrity` and `loops.method_check` start at 0 on re-entry per the generic Audit-loop scoping rule — a stale counter would otherwise force-FAIL the first legitimate REVISE from any of the three step-7.5 auditors.
 <!-- EMPIRICAL_FIRST_END -->
 
 **When to extend vs. start over:** Score in the REVISE band or above for the current target tier with correct core → extend. Score in the ABANDON band or core wrong → start over. Novelty KNOWN → start over.
@@ -413,8 +449,8 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 | Theory scored ABANDON | 5 theories on same problem | Change the problem (Stage 0) |
 | Problem viability fails | 5 problems | Pick the best scoring problem and proceed anyway |
 | Editor: Major Revision (aggregated verdict) | Structural concerns (fragile, narrow, shallow) | Use deepening playbook. Triage editor's canonical comment list; revise; re-run Stage 6. Be patient — keep going as long as each round surfaces any new issue. Max 10 rounds. |
-| Mechanism referee: MISATTRIBUTED unresolved | Still MISATTRIBUTED at `referee_round >= 10` | Adopt the mechanism referee's identified driver as the paper's mechanism; rewrite introduction/mechanism sections and ship. **Force-adoption at round-10 resolves all outstanding locked mechanism `[FIX]` items as satisfied — no further revision cycle is required.** In seeded mode, prefer the narrow-framing path from the seed override (present what the math delivers under the seed's topic, acknowledge the mechanism-claim divergence in limitations) rather than adopting an unrelated driver. Never return to Stage 0 (never-abandon). |
-| Mechanism referee: DECORATIVE unresolved | Still DECORATIVE at `referee_round >= 10` | Ship the narrow-path version: after 10 rounds the restructure path has failed to surface real economic content, so narrow is the principled default. Present what the math delivers as a structural characterization, strip mechanism framing, add a limitations paragraph. **Round-10 narrow-adoption resolves all outstanding locked mechanism `[FIX]` items as satisfied.** Never return to Stage 0 (never-abandon, scientist-first). |
+| Mechanism referee: MISATTRIBUTED unresolved | Still MISATTRIBUTED at `loops.referee.round >= 10` | Adopt the mechanism referee's identified driver as the paper's mechanism; rewrite introduction/mechanism sections and ship. **Force-adoption at round-10 resolves all outstanding locked mechanism `[FIX]` items as satisfied — no further revision cycle is required.** In seeded mode, prefer the narrow-framing path from the seed override (present what the math delivers under the seed's topic, acknowledge the mechanism-claim divergence in limitations) rather than adopting an unrelated driver. Never return to Stage 0 (never-abandon). |
+| Mechanism referee: DECORATIVE unresolved | Still DECORATIVE at `loops.referee.round >= 10` | Ship the narrow-path version: after 10 rounds the restructure path has failed to surface real economic content, so narrow is the principled default. Present what the math delivers as a structural characterization, strip mechanism framing, add a limitations paragraph. **Round-10 narrow-adoption resolves all outstanding locked mechanism `[FIX]` items as satisfied.** Never return to Stage 0 (never-abandon, scientist-first). |
 | Editor: Reject (aggregated verdict) | — | Stage 6 fires only post-Stage-5, so a paper draft always exists; never-abandon. Reject routes through triage → deepen directive → deepen mandate (see `docs/stage_6.md` Reject row for full procedure). The pre-Stage-5 "Stage 0 / Stage 2" branches do not exist at this point. On two consecutive cosmetic deepen attempts, the orchestrator routes through the Regeneration Round protocol if eligible (`regeneration_round == 0`, not seeded), otherwise falls back to standard Major Revision (never-abandon). |
 | Editor: Downgrade tier recommendation | — | Route to the deepen-toward-target procedure in `docs/stage_6.md` "Journal-fit handling". Do **not** lower `target_journal_tier` here — the tier moves only when `branch-manager` certifies a target-tier ceiling (`gate-5-downgrade`, step 2b). |
 | Editor: Upgrade tier recommendation | — | Update `target_journal_tier` to one rung **up** the variant ladder (`{{TIER_LADDER_PROSE}}`), recompute Gate 4 advance threshold per the new tier. This is the mechanism that undoes an earlier over-eager downgrade: restoring a paper toward its initial (highest) target is a normal outcome, not a rare one. Continue the loop targeting the higher tier; the next round's referees inherit the updated tier in their variant context. Upgrading *above* the project's initial target is the rare case (needs the editor's Rule 5 quote gate cleared in that direction — two verbatim same-direction structural-ceiling spans from two different referees). See `docs/stage_6.md` "Journal-fit handling". |
