@@ -34,7 +34,7 @@ This is distinct from `math-auditor-freeform`. That agent reads the *theory file
 
 ## Output
 
-Write `output/polish_equilibria_r{N}.md` where `{N}` is the current `polish_round` (passed in your prompt by the orchestrator; default to `N=1` if invoked manually):
+Write `output/polish_equilibria_r{N}.md` where `{N}` is the current `loops.polish.round` (passed in your prompt by the orchestrator; default to `N=1` if invoked manually):
 
 ```
 # Polish: Equilibria & Subtle Economics

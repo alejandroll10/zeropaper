@@ -34,7 +34,7 @@ For every numbered equation, lemma, proposition, corollary in the rendered paper
 
 ## Output
 
-Write `output/polish_formula_r{N}.md` where `{N}` is the current `polish_round` (passed in your prompt by the orchestrator; default to `N=1` if invoked manually):
+Write `output/polish_formula_r{N}.md` where `{N}` is the current `loops.polish.round` (passed in your prompt by the orchestrator; default to `N=1` if invoked manually):
 
 ```
 # Polish: Formula Correctness

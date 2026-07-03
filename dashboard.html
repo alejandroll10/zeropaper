@@ -365,14 +365,14 @@ function renderPipeline(state) {
     if (stage.id === 'stage_0' && state.problem_attempt > 1) {
       nameEl.innerHTML += `<span class="loop-indicator"><span class="arrow">&#x21bb;</span> attempt ${state.problem_attempt}</span>`;
     }
-    if (stage.id === 'stage_1' && state.idea_round > 0) {
-      nameEl.innerHTML += `<span class="loop-indicator"><span class="arrow">&#x21bb;</span> round ${state.idea_round}</span>`;
+    if (stage.id === 'stage_1' && state.loops?.idea?.round > 0) {
+      nameEl.innerHTML += `<span class="loop-indicator"><span class="arrow">&#x21bb;</span> round ${state.loops.idea.round}</span>`;
     }
     if (stage.id === 'stage_2' && state.theory_attempt > 1) {
       nameEl.innerHTML += `<span class="loop-indicator"><span class="arrow">&#x21bb;</span> theory v${state.theory_attempt}</span>`;
     }
-    if (stage.id === 'stage_2' && state.revision_round > 0) {
-      nameEl.innerHTML += `<span class="loop-indicator"><span class="arrow">&#x21bb;</span> revision ${state.revision_round}</span>`;
+    if (stage.id === 'stage_2' && state.theory_version > 1) {
+      nameEl.innerHTML += `<span class="loop-indicator"><span class="arrow">&#x21bb;</span> revision ${state.theory_version}</span>`;
     }
 
     const descEl = document.createElement('div');
@@ -544,10 +544,10 @@ function renderStatus(state) {
   }
 
   document.getElementById('c-problem').textContent = state.problem_attempt || 0;
-  document.getElementById('c-idea').textContent = state.idea_round || 0;
+  document.getElementById('c-idea').textContent = state.loops?.idea?.round || 0;
   document.getElementById('c-theory').textContent = state.theory_attempt || 0;
-  document.getElementById('c-revision').textContent = state.revision_round || 0;
-  document.getElementById('c-referee').textContent = state.referee_round || 0;
+  document.getElementById('c-revision').textContent = state.theory_version || 0;
+  document.getElementById('c-referee').textContent = state.loops?.referee?.round || 0;
 }
 
 async function loadState() {

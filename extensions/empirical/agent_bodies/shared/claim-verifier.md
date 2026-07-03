@@ -114,7 +114,7 @@ Save to `output/stage5/claim_verification.md`:
 
 **ENUMERATOR-DRIFT: YES / NO** — independent re-count = K tokens vs `paper_claims.json:total_claims` = M (drift = (K - M) / M = D%).
 
-(If `ENUMERATOR-DRIFT: YES`, the orchestrator MUST re-fire `claim-enumerator` before processing the per-claim failures below. The per-claim sections below are still emitted as a snapshot of what the verifier saw, but they are not actionable until the enumeration is refreshed. `claim_grounding_round` is NOT incremented on the ENUMERATOR-DRIFT path; it resets to 0 on enumerator re-fire.)
+(If `ENUMERATOR-DRIFT: YES`, the orchestrator MUST re-fire `claim-enumerator` before processing the per-claim failures below. The per-claim sections below are still emitted as a snapshot of what the verifier saw, but they are not actionable until the enumeration is refreshed. `loops.claim_grounding.round` is NOT incremented on the ENUMERATOR-DRIFT path; it resets to 0 on enumerator re-fire.)
 
 ## Summary
 | Gate | Pass | Fail | Failure breakdown |
@@ -135,9 +135,9 @@ Save to `output/stage5/claim_verification.md`:
 
 ## Routing
 - **If ENUMERATOR-DRIFT: YES** — re-fire `claim-enumerator` first. Skip the bullets below until the verifier re-runs on a fresh enumeration.
-- **GROUNDER-ERROR ({E_g} failures)**: re-fire `claim-grounder` with the failure list below. `claim_grounding_round` increments to {N+1}.
-- **PAPER-SIDE-ERROR ({E_p} failures)**: re-fire `paper-writer` with the failure list below; paper-writer follows Stage 5 step 5 marker-scan procedure (drop the claim, or re-fire `empiricist` per Stage 3a re-fire). On re-write, step 5a restarts from `claim-enumerator`; `claim_grounding_round` and `claim_format_reexport_round` both reset to 0 (the claim set has changed).
-- **VERIFIER-LIMITATION ({E_v} failures)**: re-fire `empiricist` to re-export the cited value(s) as JSON (Stage 3a re-fire), then re-run `claim-grounder` and the verifier. Do **NOT** route these to paper-writer and do **NOT** drop the claims — the numbers exist, only in a format the verifier cannot parse. The orchestrator bounds this loop with `claim_format_reexport_round` (see Stage 5 step 5a).
+- **GROUNDER-ERROR ({E_g} failures)**: re-fire `claim-grounder` with the failure list below. `loops.claim_grounding.round` increments to {N+1}.
+- **PAPER-SIDE-ERROR ({E_p} failures)**: re-fire `paper-writer` with the failure list below; paper-writer follows Stage 5 step 5 marker-scan procedure (drop the claim, or re-fire `empiricist` per Stage 3a re-fire). On re-write, step 5a restarts from `claim-enumerator`; `loops.claim_grounding.round` and `loops.claim_format_reexport.round` both reset to 0 (the claim set has changed).
+- **VERIFIER-LIMITATION ({E_v} failures)**: re-fire `empiricist` to re-export the cited value(s) as JSON (Stage 3a re-fire), then re-run `claim-grounder` and the verifier. Do **NOT** route these to paper-writer and do **NOT** drop the claims — the numbers exist, only in a format the verifier cannot parse. The orchestrator bounds this loop with `loops.claim_format_reexport.round` (see Stage 5 step 5a).
 
 (If both GROUNDER-ERROR and PAPER-SIDE-ERROR are present and ENUMERATOR-DRIFT is NO, the orchestrator handles GROUNDER-ERROR first per Stage 5 step 5a; the verifier re-runs on grounder PASS, and any remaining PAPER-SIDE-ERROR routes to paper-writer.)
 
@@ -226,7 +226,7 @@ Also save to `output/stage5/claim_verification_summary.json`:
 
 Schema notes:
 
-- `pse_claim_ids` is the canonical list the orchestrator reads to compute the Jaccard overlap against `pipeline_state.json:paper_writer_pse_claim_ids` (the PSE-cycle cap check in Stage 5 step 5a). Order is not semantically significant; uniqueness across the list is required.
+- `pse_claim_ids` is the list of PAPER-SIDE-ERROR claim ids for this report — human-readable review plus the disjointness bookkeeping that keeps `format-unsupported` failures out of `paper_side_error_count`. It is **not** consumed by any cap computation: `loops.paper_writer_pse` is a plain consecutive-cycle counter (issue #166 removed the former Jaccard-overlap machinery). Order is not semantically significant; uniqueness across the list is required.
 - `grounder_error_claim_ids`, `pse_claim_ids`, and `verifier_limitation_claim_ids` are mutually disjoint (a claim_id appears in at most one). `needs_empiricist_claim_ids` is a subset of `pse_claim_ids` (NEEDS_EMPIRICIST entries are tagged as PSE). `verifier_limitation_claim_ids` is NOT a subset of `pse_claim_ids` — format-unsupported failures are their own class and must never be counted into `paper_side_error_count` or `pse_claim_ids`, because the orchestrator routes PSE to paper-writer (which drops claims) while VERIFIER-LIMITATION routes to the empiricist (which re-exports them). Conflating the two is the exact bug this class was added to fix.
 - `failure_index` covers every failing claim_id with enough detail for the orchestrator to route without re-reading the markdown report. Every claim_id in `grounder_error_claim_ids`, `pse_claim_ids`, or `verifier_limitation_claim_ids` MUST appear in `failure_index` with every field below populated (`null` is acceptable only where the field genuinely does not apply):
   - `class`: `"GROUNDER-ERROR"`, `"PAPER-SIDE-ERROR"`, or `"VERIFIER-LIMITATION"`
@@ -243,9 +243,9 @@ Schema notes:
 
 ## Verdict rules
 
-- **PASS** — Gate 1 passes (coverage exact, enumerator-drift <2%), and Gates 2/3/4 produce zero failures, and zero `NEEDS_EMPIRICIST` entries remain, and zero `VERIFIER-LIMITATION / format-unsupported` entries remain (every claim-bearing value must resolve in a parseable source before the draft ships). Reset `pipeline_state.json:claim_grounding_round` to 0, reset `paper_writer_pse_round` to 0, reset `paper_writer_pse_claim_ids` to `[]`, reset `claim_format_reexport_round` to 0, and unblock Stage 5 step 6 (early bib-verify).
+- **PASS** — Gate 1 passes (coverage exact, enumerator-drift <2%), and Gates 2/3/4 produce zero failures, and zero `NEEDS_EMPIRICIST` entries remain, and zero `VERIFIER-LIMITATION / format-unsupported` entries remain (every claim-bearing value must resolve in a parseable source before the draft ships). Reset the claim-set loops (`loops.claim_grounding`, `loops.paper_writer_pse`, `loops.claim_format_reexport`) to 0 and unblock Stage 5 step 6 (early bib-verify).
 - **REVISE** — any failures in Gates 1–4, any `NEEDS_EMPIRICIST` entries, or any `VERIFIER-LIMITATION / format-unsupported` entries. The verifier always emits REVISE in this case — there is no "minor" failure threshold here, because a single fabricated number in a paper draft is an unrecoverable referee event if it ships. The routing distinguishes GROUNDER-ERROR (cheap to fix, re-fire grounder), PAPER-SIDE-ERROR (paper-writer must intervene), and VERIFIER-LIMITATION (empiricist re-export — the number is real, just unparseable), but all three flavors halt the gate.
-- **No FAIL verdict.** Unlike data auditors, the verifier has no "hard escalation" path; the failures it identifies are always fixable in one of the re-fire loops. The `claim_grounding_round` cap (3) handles the case where the grounder cannot converge, and the `claim_format_reexport_round` cap handles a re-export loop that does not converge — at either cap, the orchestrator halts for operator routing per the Stage 5 step 5a documentation.
+- **No FAIL verdict.** Unlike data auditors, the verifier has no "hard escalation" path; the failures it identifies are always fixable in one of the re-fire loops. The `loops.claim_grounding` cap handles the case where the grounder cannot converge, and the `loops.claim_format_reexport` cap handles a re-export loop that does not converge — at either cap (`loops.<id>.round >= loops.<id>.cap`), the orchestrator halts for operator routing per the Stage 5 step 5a documentation.
 
 ## Operating constraints
 
@@ -266,4 +266,4 @@ When the orchestrator re-fires you (after `claim-grounder` REVISE on prior GROUN
 3. Increment the implicit verifier round counter in the report header.
 4. Save the new report; previous reports remain on disk for audit history.
 
-The `claim_grounding_round` counter in `pipeline_state.json` tracks GROUNDER-ERROR re-fires specifically; the orchestrator manages it per the Stage 5 step 5a routing rules.
+The `loops.claim_grounding.round` counter in `pipeline_state.json` tracks GROUNDER-ERROR re-fires specifically; the orchestrator manages it per the Stage 5 step 5a routing rules.

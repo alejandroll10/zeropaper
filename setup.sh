@@ -1441,22 +1441,24 @@ cat > "$P/process_log/pipeline_state.json" <<JSONEOF
 {
   "current_stage": "seed_triage",
   "problem_attempt": 1,
-  "idea_round": 0,
   "theory_attempt": 1,
   "theory_version": 1,
-  "referee_round": 0,
-  "reject_cosmetic_round": 0,
-  "downgrade_enrich_round": 0,
-  "pivot_round": 0,
-  "fix_empirics_round": 0,
-  "bib_verify_round": 0,
-  "polish_round": 0,
   "regeneration_round": 0,
   "harder_round_forced": false,
   "fallback_idea_sketch_name": null,
-  "gate0_revise_cycles": 0,
-  "gate0_questions_rejected": 0,
   "gate0_best_question_score": -1,
+  "loops": {
+    "gate0_revise":     {"round": 0, "cap": 3},
+    "gate0_reject":     {"round": 0, "cap": 5},
+    "idea":             {"round": 0, "cap": 5},
+    "reject_cosmetic":  {"round": 0, "cap": 2},
+    "downgrade_enrich": {"round": 0, "cap": 2},
+    "pivot":            {"round": 0, "cap": 2},
+    "fix_empirics":     {"round": 0, "cap": 2},
+    "referee":          {"round": 0, "cap": 10},
+    "bib_verify":       {"round": 0, "cap": 2},
+    "polish":           {"round": 0, "cap": 2}
+  },
   "pivot_resolved": null,
   "pivot_history": [],
   "triaged_lit_implications": [],
@@ -1478,22 +1480,24 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
 {
   "current_stage": "stage_0",
   "problem_attempt": 1,
-  "idea_round": 0,
   "theory_attempt": 1,
   "theory_version": 1,
-  "referee_round": 0,
-  "reject_cosmetic_round": 0,
-  "downgrade_enrich_round": 0,
-  "pivot_round": 0,
-  "fix_empirics_round": 0,
-  "bib_verify_round": 0,
-  "polish_round": 0,
   "regeneration_round": 0,
   "harder_round_forced": false,
   "fallback_idea_sketch_name": null,
-  "gate0_revise_cycles": 0,
-  "gate0_questions_rejected": 0,
   "gate0_best_question_score": -1,
+  "loops": {
+    "gate0_revise":     {"round": 0, "cap": 3},
+    "gate0_reject":     {"round": 0, "cap": 5},
+    "idea":             {"round": 0, "cap": 5},
+    "reject_cosmetic":  {"round": 0, "cap": 2},
+    "downgrade_enrich": {"round": 0, "cap": 2},
+    "pivot":            {"round": 0, "cap": 2},
+    "fix_empirics":     {"round": 0, "cap": 2},
+    "referee":          {"round": 0, "cap": 10},
+    "bib_verify":       {"round": 0, "cap": 2},
+    "polish":           {"round": 0, "cap": 2}
+  },
   "pivot_resolved": null,
   "pivot_history": [],
   "triaged_lit_implications": [],
@@ -1912,7 +1916,8 @@ open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{
                 "$TEMPLATE_ROOT/extensions/empirical/scorer_fertility_inject.md" \
                 "$P/docs/stage_2.md" \
                 "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
-                "$AGENTS_OUT/scorer.md" "$CODEX_AGENTS_OUT/scorer.toml" "$GEMINI_AGENTS_OUT/scorer.md" <<'PYEOF'
+                "$AGENTS_OUT/scorer.md" "$CODEX_AGENTS_OUT/scorer.toml" "$GEMINI_AGENTS_OUT/scorer.md" \
+                "$TEMPLATE_ROOT/extensions/empirical/state_loop_fields_inject.md" <<'PYEOF'
 import json, os, sys
 # Inject files are read raw — each file is responsible for its own leading/trailing
 # whitespace. The final newline left by the editor IS content (it determines whether
@@ -1926,6 +1931,7 @@ fertility = open(sys.argv[6]).read()
 stage2_md = sys.argv[7]
 runtime_docs = sys.argv[8:11]
 scorer_files = sys.argv[11:14]
+state_loop = open(sys.argv[14]).read()
 
 def patch(path, pairs):
     if not os.path.exists(path):
@@ -1949,6 +1955,7 @@ patch(stage2_md, [
 for d in runtime_docs:
     patch(d, [
         ("{{EMPIRICAL_STATE_FIELDS}}", state),
+        ("{{EMPIRICAL_LOOP_FIELDS}}", state_loop),
         ("{{EMPIRICAL_STATE3A_DOC}}", state3a_doc),
         ("{{EMPIRICAL_PLAYBOOK_ADDENDUM}}", playbook),
     ])
@@ -1965,8 +1972,9 @@ state_path = os.path.join(os.path.dirname(stage2_md), "..", "process_log", "pipe
 state_path = os.path.normpath(state_path)
 if os.path.exists(state_path):
     with open(state_path) as f: data = json.load(f)
+    # Two empirical version-pointer fields, inserted after stage2b_theory_version to
+    # preserve key order. Null/no-op in theory-first --ext empirical runs.
     if "stage3a_theory_version" not in data:
-        # Insert immediately after stage2b_theory_version to preserve key order in the file.
         new = {}
         for k, v in data.items():
             new[k] = v
@@ -1974,108 +1982,30 @@ if os.path.exists(state_path):
                 new["stage3a_theory_version"] = None
         data = new
     if "stage2_mechanism_version" not in data:
-        # Insert immediately after stage3a_theory_version. Version flag for the
-        # empirical-first Stage 2 Gate 2 mechanism-plausibility audit; null/no-op
-        # in theory-first --ext empirical runs (mechanism-auditor is pruned there).
         new = {}
         for k, v in data.items():
             new[k] = v
             if k == "stage3a_theory_version":
                 new["stage2_mechanism_version"] = None
         data = new
-    if "identification_plan_revision_round" not in data:
-        # Insert immediately after stage2_mechanism_version. Initial value 0 (counter, not version).
-        new = {}
-        for k, v in data.items():
-            new[k] = v
-            if k == "stage2_mechanism_version":
-                new["identification_plan_revision_round"] = 0
-        data = new
-    if "headline_replication_round" not in data:
-        # Insert immediately after identification_plan_revision_round. Counter for the
-        # Stage 3a step 6.5 headline-replicator substantive-disagreement re-fire loop
-        # (hard cap 3). Resets to 0 on PASS, on no_headline_tags / source_unreachable /
-        # trivially_equivalent_path routings, on step-7.5 substantive data FAIL re-execution,
-        # on any step-7 empirics-auditor re-fire that materially changes code/empirical.py
-        # or headline content, on Stage 3a re-fire entry per "Re-fire on theory revision",
-        # and on puzzle-triage FIX-EMPIRICS re-entry. Anchored on identification_plan_revision_round
-        # (Stage 3a step 3) so the key order reflects pipeline-execution order:
-        # identification_plan_revision_round -> headline_replication_round -> data_integrity_round
-        # -> method_check_round.
-        new = {}
-        for k, v in data.items():
-            new[k] = v
-            if k == "identification_plan_revision_round":
-                new["headline_replication_round"] = 0
-        data = new
-    if "data_integrity_round" not in data:
-        # Insert immediately after headline_replication_round. Counter for the
-        # Stage 3a step 7.5 data-integrity + data-selection auditor REVISE loop (hard cap 3).
-        # Anchor on headline_replication_round (added immediately above) so the documented
-        # key order is preserved on fresh deploys where both keys are added in this pass.
-        new = {}
-        for k, v in data.items():
-            new[k] = v
-            if k == "headline_replication_round":
-                new["data_integrity_round"] = 0
-        data = new
-    if "method_check_round" not in data:
-        # Insert immediately after data_integrity_round. Counter for the Stage 3a step 7.5
-        # method-checker REVISE loop (hard cap 3) — tracked separately from data audits because
-        # the method REVISE fix loop edits code/imports rather than re-running the cache.
-        new = {}
-        for k, v in data.items():
-            new[k] = v
-            if k == "data_integrity_round":
-                new["method_check_round"] = 0
-        data = new
-    if "claim_grounding_round" not in data:
-        # Insert immediately after method_check_round. Counter for the Stage 5 step 5a
-        # claim-grounding pipeline (enumerator -> grounder -> verifier) GROUNDER-ERROR
-        # re-fire loop (hard cap 3). PAPER-SIDE-ERROR re-fires reset this to 0.
-        # Anchor on method_check_round (not data_integrity_round) so the documented
-        # key order data_integrity_round -> method_check_round -> claim_grounding_round
-        # is preserved on fresh deploys where all three keys are added in this pass.
-        new = {}
-        for k, v in data.items():
-            new[k] = v
-            if k == "method_check_round":
-                new["claim_grounding_round"] = 0
-        data = new
-    if "paper_writer_pse_round" not in data:
-        # Insert immediately after claim_grounding_round. Counter for consecutive
-        # PAPER-SIDE-ERROR re-fires of paper-writer at Stage 5 step 5a; resets to 0
-        # on claim-verifier PASS or on a PAPER-SIDE-ERROR cycle whose failure-claim-ID
-        # set overlaps <50% with the prior cycle (substantively different failures).
-        new = {}
-        for k, v in data.items():
-            new[k] = v
-            if k == "claim_grounding_round":
-                new["paper_writer_pse_round"] = 0
-        data = new
-    if "paper_writer_pse_claim_ids" not in data:
-        # Insert immediately after paper_writer_pse_round. Stores the claim_id set from
-        # the most recent PAPER-SIDE-ERROR claim_verification.md so the orchestrator can
-        # compute >50% overlap against the next PSE cycle without re-reading prior reports.
-        new = {}
-        for k, v in data.items():
-            new[k] = v
-            if k == "paper_writer_pse_round":
-                new["paper_writer_pse_claim_ids"] = []
-        data = new
-    if "claim_format_reexport_round" not in data:
-        # Insert immediately after paper_writer_pse_claim_ids. Counter for consecutive
-        # VERIFIER-LIMITATION (format-unsupported) re-fires at Stage 5 step 5a: a claim
-        # whose value exists only in a non-parseable file (CSV/parquet/pickle) routes to
-        # the empiricist for a JSON re-export, NOT to paper-writer to drop. Hard cap 2;
-        # independent of claim_grounding_round and the PSE counters. Resets to 0 on
-        # claim-verifier PASS.
-        new = {}
-        for k, v in data.items():
-            new[k] = v
-            if k == "paper_writer_pse_claim_ids":
-                new["claim_format_reexport_round"] = 0
-        data = new
+    # Empirical audit loops: merge into the generic `loops` object (see CLAUDE.md
+    # "Audit-loop scoping" rule + Loop Registry). setdefault is idempotent across
+    # re-runs / update refreshes and needs no hand-anchored key order — the whole point
+    # of the loops:{} restructure (issue #166): a new empirical gate is added here in one
+    # line and is loop-capped everywhere for free.
+    emp_loops = {
+        "identification_plan_revision": {"round": 0, "cap": 3},
+        "headline_replication":         {"round": 0, "cap": 3},
+        "replicator_self_refire":       {"round": 0, "cap": 3},
+        "data_integrity":               {"round": 0, "cap": 3},
+        "method_check":                 {"round": 0, "cap": 3},
+        "claim_grounding":              {"round": 0, "cap": 3},
+        "paper_writer_pse":             {"round": 0, "cap": 3},
+        "claim_format_reexport":        {"round": 0, "cap": 2},
+    }
+    data.setdefault("loops", {})
+    for _lid, _cfg in emp_loops.items():
+        data["loops"].setdefault(_lid, dict(_cfg))
     with open(state_path, "w") as f:
         json.dump(data, f, indent=2)
         f.write("\n")
@@ -2191,6 +2121,10 @@ for p in sys.argv[1:]:
     with open(p) as f: t = f.read()
     new = LINE_PAT.sub("", t)
     new = MARKER_PAT.sub("", new)
+    # {{EMPIRICAL_LOOP_FIELDS}} is inline (appended to the last base loops entry inside
+    # the loops object), so LINE_PAT does not catch it. Strip it inline when empirical is
+    # off; when empirical is on the injector already replaced it, so this is a no-op.
+    new = new.replace("{{EMPIRICAL_LOOP_FIELDS}}", "")
     if new != t:
         with open(p, "w") as f: f.write(new)
 PYEOF
