@@ -1,0 +1,2 @@
+- **How to verify.** Use the `openalex` skill (`/openalex search "<title or author year topic>"`, or `author <name>`, etc.) to retrieve an OpenAlex Work ID (`W…`) or a DOI. Use `WebSearch` / `WebFetch` as a fallback for grey literature, working papers, and very recent uploads not yet indexed.
+- **Inline format.** Append `[openalex:Wxxxxxxxx]` or `[doi:10.xxxx/yyyy]` to every author-year mention. Examples: `Diamond and Dybvig (1983) [doi:10.1086/261155]`, `Brunnermeier and Pedersen (2009) [openalex:W2031234567]`.

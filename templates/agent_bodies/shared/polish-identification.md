@@ -43,7 +43,7 @@ The Stage 1 design (or Stage 3a menu) committed to specific diagnostics. The ren
 - **IV without Olea-Pflueger F**: Stock-Yogo F > 10 is insufficient under heteroskedasticity / clustering. Olea-Pflueger effective F (≈23 threshold for one IV) is the 2026 standard.
 - **IV without Lee-McCrary-Moreira-Porter tF correction**: for a single IV, the tF correction or Anderson-Rubin CIs are required.
 - **Shift-share IV without BHJ shock-balance OR GPSS Rotemberg-weight table**: the 2026 alternatives. Verbal-only exclusion is the auditor's `bhj-no-shock-balance` immediate-flag.
-- **RD without Cattaneo-Jansson-Ma manipulation test**: McCrary alone is stale; CJM `rddensity` is the 2026 standard. RD without it invites `rd-no-manipulation-test`.
+- **RD without Cattaneo-Jansson-Ma manipulation test**: McCrary alone is stale; CJM `rddensity` is the 2026 standard. RD without it invites `no-rd-manipulation-test`.
 - **RD without Calonico-Cattaneo-Titiunik bandwidth + bias correction**: `rdrobust` with MSE-optimal bandwidth and robust bias-corrected confidence intervals is the standard reference.
 - **Asset-pricing factor without Feng-Giglio-Xiu LASSO zoo test**: any paper proposing a new factor must demonstrate it survives the zoo, not just the literature's existing factors.
 - **Long-horizon predictability without Stambaugh / Boudoukh-et-al bias adjustment**: a referee `long-horizon-no-bias-adjustment` immediate-flag.
