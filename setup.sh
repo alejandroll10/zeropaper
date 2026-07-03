@@ -870,12 +870,20 @@ echo "  ✓ Agents assembled (shared + ${AGENT_DIR})"
 # bib-verifier, novelty-checker, self-attacker, debugger, report-synthesizer
 # stay; extension generative agents (empiricist, identification-designer,
 # experiment-designer) are pruned per-extension below by the same function.
-prune_report_mode_agents() {
-    [ "$MODE" = "report" ] || return 0
+# Delete assembled agent output files across all three runtimes. The
+# mode/flag-conditional prune passes below decide *when* to call this; this
+# helper just does the removal, so a new runtime output dir is wired in one
+# place, not once per prune pass.
+prune_agents() {
     local _name
     for _name in "$@"; do
         rm -f "$AGENTS_OUT/${_name}.md" "$CODEX_AGENTS_OUT/${_name}.toml" "$GEMINI_AGENTS_OUT/${_name}.md"
     done
+}
+
+prune_report_mode_agents() {
+    [ "$MODE" = "report" ] || return 0
+    prune_agents "$@"
 }
 
 # Mode-conditional ADDITION (inverse of prune_report_mode_agents): an agent that
@@ -887,10 +895,27 @@ prune_report_mode_agents() {
 # macro / report build surface without adding a mode-conditional metadata path.
 prune_non_empirical_first_agents() {
     [ "$MODE" = "empirical-first" ] && return 0
-    local _name
-    for _name in "$@"; do
-        rm -f "$AGENTS_OUT/${_name}.md" "$CODEX_AGENTS_OUT/${_name}.toml" "$GEMINI_AGENTS_OUT/${_name}.md"
-    done
+    prune_agents "$@"
+}
+
+# Inverse of prune_report_mode_agents (#164): report-synthesizer is invoked ONLY
+# under --mode report (it aggregates audits/*.md into report/referee_report.md).
+# It lives in shared agent metadata, so it assembles into every build; delete it
+# in every non-report build so it never sits in the orchestrator's
+# available-agents list where it can never fire (and can't be improvised into,
+# e.g., a Stage-6 aggregation the `editor` agent owns).
+prune_non_report_mode_agents() {
+    [ "$MODE" = "report" ] && return 0
+    prune_agents "$@"
+}
+
+# faithful-drift-auditor is launched ONLY on --faithful runs. It too assembles
+# from shared metadata into every build; delete it in every non-faithful build.
+# (This subsumes the report-mode case — report ⊥ faithful — so it need not be
+# listed in prune_report_mode_agents.) (#164)
+prune_non_faithful_agents() {
+    [ "$FAITHFUL" = "1" ] && return 0
+    prune_agents "$@"
 }
 
 # Core agents not deployed in report mode (rationale documented in
@@ -916,12 +941,18 @@ prune_report_mode_agents \
     scorer-freeform \
     literature-scout \
     gap-scout \
-    style \
-    faithful-drift-auditor
+    style
 
 if [ "$MODE" = "report" ]; then
     echo "  ✓ Pruned generative / management agents for --mode report"
 fi
+
+# ── Prune agents meaningful only in a mode/flag this build didn't select (#164) ──
+# Symmetric to prune_report_mode_agents: these ship from shared metadata but can
+# only ever fire in one mode/flag. Removing them keeps the deployed
+# .claude/agents/ catalog to agents this build can actually invoke.
+prune_non_report_mode_agents report-synthesizer
+prune_non_faithful_agents faithful-drift-auditor
 
 # ── Inject variant context into agents ──
 VARIANT_BLOCK="
