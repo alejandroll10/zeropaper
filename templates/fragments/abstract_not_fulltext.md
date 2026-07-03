@@ -1,0 +1,1 @@
+**An OpenAlex/journal abstract is not full text, and SSRN pages are not fetchable — neither qualifies.**

@@ -1,0 +1,1 @@
+`output/` (including `output/seed/`, `output/prewriting/`, any `pivot_note.md`/`pivot_log.md`, any `output/stage*/`), `process_log/`, `results.json`, `code/`

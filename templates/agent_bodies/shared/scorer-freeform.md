@@ -17,7 +17,7 @@ You will be pointed to files containing:
 
 ## How to read
 
-**Substance-over-form leeway.** Per the core principle, when the paper is a non-modal archetype (irrelevance / impossibility / calibration / existence / pure characterization / tools-or-methodology / kernel-primitive asset-pricing / mechanism-design corner-as-optimal / welfare-benchmark redefinition), assess the contribution on its own archetype's terms — do not deduct for the absence of features the archetype does not include (decision change, interior optimum, conventional mechanism, surplus benchmark). Use sparingly; never invoke leeway on a paper with weak content that simply lacks the modal shape.
+**Substance-over-form leeway.** Per the core principle, when the paper is a non-modal archetype ({{> archetype_list }}), assess the contribution on its own archetype's terms — do not deduct for the absence of features the archetype does not include (decision change, interior optimum, conventional mechanism, surplus benchmark). Use sparingly; never invoke leeway on a paper with weak content that simply lacks the modal shape.
 
 Do NOT score dimension by dimension. Instead:
 

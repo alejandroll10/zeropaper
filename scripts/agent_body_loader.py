@@ -15,6 +15,22 @@ from pathlib import Path
 
 VOCAB_KEY_PATTERN = re.compile(r"\{\{([A-Z][A-Z0-9_]*)\}\}")
 
+# Fragment-include directive: `{{> fragment_id }}` (lowercase id, optional
+# surrounding whitespace). Disjoint from VOCAB_KEY_PATTERN, which requires an
+# uppercase leading letter and forbids `>`, so the two never collide. Includes
+# are resolved *before* vocab substitution, so a fragment may itself carry
+# `{{VOCAB_KEY}}` placeholders that resolve against the calling agent's vocab.
+INCLUDE_PATTERN = re.compile(r"\{\{>\s*([a-z0-9][a-z0-9_-]*)\s*\}\}")
+
+# Single-source rule fragments live here, resolved relative to this loader so
+# every assembler (base + extensions, all three runtimes) picks up the same
+# directory with no per-call-site wiring. Build-time only — fragments are
+# inlined at assembly, never copied into deployed projects.
+DEFAULT_FRAGMENTS_DIR = Path(__file__).resolve().parent.parent / "templates" / "fragments"
+
+# Depth backstop for nested/cyclic includes (a fragment including a fragment).
+_MAX_INCLUDE_DEPTH = 16
+
 
 def load_vocab(vocab_paths):
     """Load and merge one or more vocab files.
@@ -47,7 +63,48 @@ def load_vocab(vocab_paths):
     return merged
 
 
-def load_body(agent_id, bodies_dirs, shared_bodies_dirs=None, vocab=None):
+def _resolve_includes(body, fragments_dir, source, _stack=None):
+    """Inline every `{{> fragment_id }}` from `fragments_dir/{id}.md`.
+
+    Resolves recursively so a fragment may include another fragment. A
+    per-branch `_stack` catches include cycles; `_MAX_INCLUDE_DEPTH` is a hard
+    backstop. A missing fragment file raises FileNotFoundError with a pointer to
+    the body/fragment that referenced it, matching the fail-loud contract of the
+    rest of this module. Leading/trailing blank lines are trimmed from each
+    fragment so an include on its own line slots in without adding blank lines.
+    """
+    if _stack is None:
+        _stack = ()
+    if len(_stack) > _MAX_INCLUDE_DEPTH:
+        raise RecursionError(
+            f"Fragment include depth exceeded {_MAX_INCLUDE_DEPTH} at {source}. "
+            f"Include chain: {' -> '.join(_stack)}. Likely a cycle."
+        )
+
+    frag_dir = Path(fragments_dir)
+
+    def replace(match):
+        frag_id = match.group(1)
+        if frag_id in _stack:
+            raise RecursionError(
+                f"Fragment include cycle in {source}: "
+                + " -> ".join((*_stack, frag_id))
+            )
+        frag_path = frag_dir / f"{frag_id}.md"
+        if not frag_path.exists():
+            raise FileNotFoundError(
+                f"Fragment '{frag_id}' referenced by {source} not found at "
+                f"{frag_path}. Create the fragment or fix the {{{{> {frag_id} }}}} directive."
+            )
+        text = frag_path.read_text().strip("\n")
+        # Recurse so nested includes inside the fragment resolve too.
+        return _resolve_includes(text, fragments_dir, frag_path, (*_stack, frag_id))
+
+    return INCLUDE_PATTERN.sub(replace, body)
+
+
+def load_body(agent_id, bodies_dirs, shared_bodies_dirs=None, vocab=None,
+              fragments_dir=None):
     """Return the body text for `agent_id` with optional vocab substitution.
 
     Both `bodies_dirs` and `shared_bodies_dirs` may be a single path string
@@ -67,6 +124,13 @@ def load_body(agent_id, bodies_dirs, shared_bodies_dirs=None, vocab=None):
         live under `bodies_dirs` as `{id}.md`.
     Both kinds can coexist in the same mode-overlay dir without colliding —
     the suffix discriminates them.
+
+    Before vocab substitution, every `{{> fragment_id }}` directive is inlined
+    from `fragments_dir/{fragment_id}.md` (default: `templates/fragments/`,
+    resolved relative to this loader so every assembler shares it with no
+    per-call wiring). This single-sources rule blocks that would otherwise be
+    hand-copied across many agent bodies. Includes resolve recursively and run
+    *before* vocab, so a fragment may itself carry `{{VOCAB_KEY}}` placeholders.
 
     If `vocab` is provided, every `{{KEY}}` in the loaded body is replaced by
     `vocab[KEY]`. An unresolved key raises KeyError with a pointer to the
@@ -101,6 +165,11 @@ def load_body(agent_id, bodies_dirs, shared_bodies_dirs=None, vocab=None):
             + ", ".join(searched)
         )
     body = source.read_text()
+    # Inline shared fragments first so any `{{VOCAB_KEY}}` a fragment carries is
+    # resolved by the single vocab pass below against the calling agent's vocab.
+    if fragments_dir is None:
+        fragments_dir = DEFAULT_FRAGMENTS_DIR
+    body = _resolve_includes(body, fragments_dir, source)
     if vocab is not None:
         body = _apply_vocab(body, vocab, source)
     return body

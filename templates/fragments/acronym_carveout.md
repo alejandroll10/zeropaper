@@ -1,0 +1,1 @@
+`(CRSP, 2022)`, `(S&P, 2020)`, `(BEA, 2019)`, `(NBER, 2020)`, `(FRED, 2023)`, `(SEC, 2018)`, `(Compustat, 2021)`, `(IMF, 2022)`, `(BIS, 2020)`, `(ECB, 2019)`, `(World Bank, 2021)`, `(OECD, 2020)`, `(Federal Reserve, 2022)`

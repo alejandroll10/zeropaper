@@ -46,7 +46,7 @@ A theory draft saved to the path specified in your prompt. Structure:
 ## Comparative statics
 {{THEORY_COMP_STATICS_SECTION}}
 
-*For non-modal archetypes that lack directional comparative statics (irrelevance / impossibility / calibration / existence / pure characterization / tools-or-methodology / kernel-primitive asset-pricing / mechanism-design corner-as-optimal / welfare-benchmark redefinition): replace this section with the archetype-appropriate substitute — boundary conditions, parameter regions where the result holds, identifying assumptions, kernel restrictions, optimal-design corner characterization, or benchmark-selection argument. Do not fabricate comparative statics the archetype does not produce.*
+*For non-modal archetypes that lack directional comparative statics ({{> archetype_list }}): replace this section with the archetype-appropriate substitute — boundary conditions, parameter regions where the result holds, identifying assumptions, kernel restrictions, optimal-design corner characterization, or benchmark-selection argument. Do not fabricate comparative statics the archetype does not produce.*
 
 ## Connection to literature
 [What existing results does this nest? What does it overturn? What's the marginal contribution?]

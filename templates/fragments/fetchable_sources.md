@@ -1,0 +1,1 @@
+an NBER or arXiv PDF, the author's or a university page, RePEc/EconStor, posted slides, a recorded talk, or a substantive blog post

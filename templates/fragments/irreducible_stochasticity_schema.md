@@ -1,0 +1,1 @@
+{"method": "<name>", "reason": "<why a fixed seed cannot make it deterministic>", "max_abs_delta": <number>, "max_rel_delta": <number>}
