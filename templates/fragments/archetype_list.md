@@ -1,1 +1,1 @@
-irrelevance / impossibility / calibration / existence / pure characterization / tools-or-methodology / kernel-primitive asset-pricing / mechanism-design corner-as-optimal / welfare-benchmark redefinition
+irrelevance / impossibility / calibration / existence / pure characterization / tools-or-methodology / other non-modal

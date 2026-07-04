@@ -16,9 +16,9 @@ For every numbered equation, lemma, proposition, corollary in the rendered paper
 
 1. **Re-derive from the surrounding text.** Take the local definitions (one section back) and re-derive the right-hand side. If you can't reproduce it, that's a finding. For derivations beyond ~5 steps, shell out to `code/utils/codex_math/codex_verify.sh` (under the codex runtime, skip this — the script is the same backend already running this audit; re-derive yourself or with sympy); you'll triage its output.
 2. **Compare to the latest theory draft (`output/stage2/theory_draft_vN.md`, highest N present).** If the paper's equation differs from the theory file's equation, flag it. Diverges in subscripts, signs, scaling factors, or domain restrictions are the failure modes — paper-writer often "cleans up" notation in a way that breaks the math. **Skip this step under `--mode empirical-first`** — the theory draft in that mode is a mechanism document (prose+DAG+posit) with no formal equations to compare against.
-3. **Sanity-check structural properties.** Indicator coefficients should sum to 1 over the domain (e.g., `½·1{θ_i ≥ θ_j}` in symmetric games destroys λ/2 of mass when ties are zero-measure — should be `1·1{θ_i > θ_j} + ½·1{θ_i = θ_j}`). Probability mass functions should integrate to 1. Accounting identities (sources = uses, capital balance) should balance — if "LP capital = 1" and "loan face value = 1" but the GP also puts in δ alongside, the aggregate payout is L(1+δ) and the face value must scale to (1+δ).
-4. **Watch for spurious absolute values.** A formula `(α+δ)(1−D) / [α|1+D−2L| + δ(L−D)]` is wrong if the correct numerator is `α(2L−1−D) + δ(L−D)`. Absolute values that "look symmetric" almost always hide a sign error that's only valid on half the domain.
-5. **Watch for missing endogenous derivatives in FOCs.** A first-order condition `∂Π/∂x = α − ψx − E[Fee]` treats `E[Fee]` as a constant. If `E[Fee]` depends on `x` through the model's mechanism (higher x → higher cutoff → smaller continuation AUM → smaller fees), the FOC is missing the `dE[Fee]/dx` term and understates marginal cost.
+3. **Sanity-check structural properties.** Indicator coefficients should sum to 1 over the domain (e.g., a `½·1{·≥·}` in a symmetric game destroys mass when ties are zero-measure). Probability mass functions should integrate to 1. Accounting identities (sources = uses, capital/balance-sheet identities) should balance — when one party contributes an extra stake alongside a normalized total, the aggregate payout and the face value must scale consistently.
+4. **Watch for spurious absolute values.** An absolute value that "looks symmetric" almost always hides a sign error valid only on half the domain — e.g., a denominator written `α|1+D−2L| + …` when the correct term is `α(2L−1−D) + …`, which agree only for `L ≥ (1+D)/2`. Flag every `|·|` and verify it holds across the whole parameter domain.
+5. **Watch for missing endogenous derivatives in FOCs.** A first-order condition that treats an expectation as a constant (`∂Π/∂x = … − E[C]`) is wrong when that expectation depends on `x` through the model's own mechanism — the FOC is missing the `dE[C]/dx` term and mis-states marginal cost/benefit. Check whether every object held fixed in an FOC is genuinely exogenous to the choice variable.
 
 ## Tools
 
@@ -34,7 +34,7 @@ For every numbered equation, lemma, proposition, corollary in the rendered paper
 
 ## Output
 
-Write `output/polish_formula_r{N}.md` where `{N}` is the current `loops.polish.round` (passed in your prompt by the orchestrator; default to `N=1` if invoked manually):
+Write `output/polish_formula_r{N}.md` where `{N}` is the current `loops.polish.round` (passed in your prompt by the orchestrator; default to `N=1` if invoked manually). *(The worked finding below is an illustrative example of the report format — a spurious-absolute-value sign error — not a template to match against your paper.)*
 
 ```
 # Polish: Formula Correctness

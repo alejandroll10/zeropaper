@@ -12,13 +12,13 @@ This is distinct from `polish-formula`. That agent checks whether equations are 
 
 ## What you check
 
-1. **Recompute every numerical claim from stated parameters.** If the paper says "at industry-standard parameters (α=2%, δ=3%, D=20%), the welfare loss is 1.6% of face value," substitute those values into the paper's own formula and confirm 1.6%. Disagreement at the third decimal is a finding.
-2. **Stock vs. flow.** Watch for "$X billion annually" applied to a per-loan, per-lifetime, or per-vintage rate without an annualization factor. The classic failure: 1.6% lifetime loss × $1.7T market stock = $27B *embedded lifetime loss*, not $27B annually. To state an annual figure, the rate must apply to annual origination volume, or the embedded loss must be divided by average loan life.
-3. **Normalized vs. real-world units.** If the model normalizes the maximum payoff to 1, the maximum fund return is 1.0, and any comparison to a real-world hurdle of 6–8% (h ≈ 1.06–1.08) is structurally impossible to clear — even with zero defaults. Flag every comparison between a normalized model quantity and an unnormalized real-world number.
-4. **Ex-ante individual rationality at the baseline calibration.** If the baseline assumes uniform borrower quality on [0, 1] with default recovery D = 0.2, the expected gross return before fees is 0.684 — implying a structural 31.6% loss. Under such conditions, LPs with their stated outside option would not allocate capital, so the model's "baseline" is in a region where the participation constraint fails. Conclusions drawn from a continuously-distressed baseline are artifacts of the calibration, not robust features of the model. Compute and report the IR slack at every calibration the paper presents.
-5. **Comparative-static arithmetic.** Section claims "setting δ=5α reduces the evergreening zone by one-third." Compute: under δ=2α the zone is 1/3 of [0,1]; under δ=5α the zone is 5/12. Reduction = (1/3 − 5/12)/(1/3) = ... actually 5/12 > 1/3, so the zone *grows*. Or, if the comparison is to the baseline q^e = 1/2, the new q^e = 5/12 is one-sixth smaller, not one-third. Verify every "by half / by a third / by X%" claim by computing both endpoints.
-6. **Annual / cumulative / per-loan / per-fund unit checks.** When the paper multiplies a per-something rate by a market-size aggregate, walk through the units and confirm both sides have the same denominator.
-7. **Sanity-check headline figures against alternative back-of-envelopes.** If the paper claims a $27B aggregate, also compute it from a different decomposition (e.g., # of funds × average AUM × loss rate). If the two routes disagree by more than ~30%, flag.
+1. **Recompute every numerical claim from stated parameters.** Substitute the paper's own stated parameter values into the paper's own formula and confirm the reported number. Disagreement past the reported precision is a finding.
+2. **Stock vs. flow.** Watch for a per-period flow figure ("$X billion annually") obtained by multiplying a per-unit, per-lifetime, or per-vintage rate by a *stock* aggregate without an annualization factor — the product is an embedded lifetime total, not an annual flow. To state an annual figure the rate must apply to annual origination/issuance volume, or the embedded total must be divided by the average unit life.
+3. **Normalized vs. real-world units.** If the model normalizes a maximum payoff (or price, or return) to 1, any comparison between that normalized model quantity and an unnormalized real-world number — a percentage hurdle, a basis-point spread, a dollar threshold — is a units error, sometimes structurally impossible regardless of parameters. Flag every such comparison.
+4. **Ex-ante participation at the baseline calibration.** Compute each modeled agent's expected payoff at the paper's baseline parameters and check its stated participation / individual-rationality constraint holds there. If the baseline sits in a region where a modeled agent's participation constraint fails, conclusions drawn from it are artifacts of the calibration, not robust features of the model. Compute and report the IR slack at every calibration the paper presents.
+5. **Comparative-static arithmetic.** For every "by half / by a third / by X%" claim, compute *both* endpoints exactly and verify the stated change — including its sign; a claimed reduction can turn out to be an increase. Use exact fractions where decimals would lose information.
+6. **Unit consistency in aggregates.** When the paper multiplies a per-something rate by an aggregate, walk through the units and confirm both sides share the same denominator (annual / cumulative / per-unit / per-entity).
+7. **Cross-check headline figures via an independent decomposition.** Recompute each headline aggregate from a different decomposition (e.g., count × average size × rate). If the two routes disagree by more than ~30%, flag.
 
 ## Tools
 
@@ -34,7 +34,7 @@ This is distinct from `polish-formula`. That agent checks whether equations are 
 
 ## Output
 
-Write `output/polish_numerics_r{N}.md` where `{N}` is the current `loops.polish.round` (passed in your prompt by the orchestrator; default to `N=1` if invoked manually):
+Write `output/polish_numerics_r{N}.md` where `{N}` is the current `loops.polish.round` (passed in your prompt by the orchestrator; default to `N=1` if invoked manually). *(The worked finding below is an illustrative example of the report format — a stock-vs-flow error in a private-credit paper — not a template to match against your paper.)*
 
 ```
 # Polish: Numerics
@@ -67,7 +67,7 @@ Write `output/polish_numerics_r{N}.md` where `{N}` is the current `loops.polish.
 ```
 
 Severity rubric:
-- **critical** — a headline number is wrong by more than ~10%, or a unit error changes the order of magnitude, or the baseline calibration violates ex-ante IR (the entire paper's quantitative claims rest on a regime LPs would not enter).
+- **critical** — a headline number is wrong by more than ~10%, or a unit error changes the order of magnitude, or the baseline calibration violates ex-ante IR (the entire paper's quantitative claims rest on a regime a modeled agent would not enter).
 - **major** — a non-headline number is wrong but the qualitative point survives; a "by one-third" claim should be "by one-sixth"; a comparative-static figure is computed incorrectly.
 - **minor** — third-decimal arithmetic disagreement, rounding inconsistency between table and prose.
 

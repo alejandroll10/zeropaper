@@ -112,6 +112,11 @@ db.describe_table('crsp', 'msf')       # columns, types, row count
 - `exchcd IN (1, 2, 3)` — NYSE, AMEX, NASDAQ
 - Always filter on date to avoid pulling the entire table
 
+**Documented universe sizes (order-of-magnitude sanity checks).** After applying the canonical screens above, expect roughly:
+- CRSP monthly common-stock panel (`shrcd 10/11`, `exchcd 1/2/3`, full 1925/1963–present): **~3–5M firm-months**.
+- Compustat annual fundamentals (`indfmt='INDL'`, `datafmt='STD'`, `popsrc='D'`, `consol='C'`, US firms): **~0.4–0.6M firm-years**.
+An N that is off by an order of magnitude from these (e.g. 500K or 50M firm-months) signals an over-restrictive filter, a failed merge, or a duplicated join — investigate before trusting downstream results. These figures are approximate and drift with the sample window; use them as a smell test, not an exact target.
+
 ### Compustat (comp) — Accounting fundamentals
 | Table | Description | Key columns |
 |-------|-------------|-------------|

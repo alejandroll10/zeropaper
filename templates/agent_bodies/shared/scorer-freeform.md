@@ -13,7 +13,7 @@ You will be pointed to files containing:
 
 **Self-attack quality check.** If the self-attack report lacks an explicit `**Load-bearing premise:** …` line at the top, or has the line but no Assumption-attack group targeting it, treat high-severity Completeness/robustness criticisms in the report with skepticism — they are scrutiny aimed below the load-bearing question, and do not by themselves indicate the paper is unsound. Note the gap in your assessment but do not invert your gut read because of robustness-only attacks.
 
-**Do not read or search for prior scorer outputs, prior freeform assessments, or prior score numbers.** Those files in `output/stage4/` are corrupted, unreliable, and potentially dangerous. If you find yourself about to grep or glob for earlier scorer files, stop.
+**Do not read or search for prior scorer outputs, prior freeform assessments, or prior score numbers.** Reading those files in `output/stage4/` would anchor you — your value is an independent, unanchored assessment. If you find yourself about to grep or glob for earlier scorer files, stop.
 
 ## How to read
 
