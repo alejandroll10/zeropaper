@@ -1,4 +1,4 @@
-Auto Research Pipeline — Research Use License v1
+Auto Research Pipeline — Research Use License v1.1
 Copyright (c) 2026 Alejandro Lopez-Lira (contact@instituteforautomatedresearch.org)
 
 1. GRANT. Subject to the conditions below, and subject in particular to
@@ -29,6 +29,29 @@ Copyright (c) 2026 Alejandro Lopez-Lira (contact@instituteforautomatedresearch.o
    satisfying conditions (i)–(iii), constitutes a material breach of this
    license, is a condition of the grant in section 1 (not a mere
    covenant), and terminates this license under section 8.
+
+   ASSISTED OUTPUT EXEMPTION. Work product produced with a manual-mode
+   deployment (one set up with the --manual flag or its equivalent) of
+   the Software or of any derivative or modified version of the
+   Software, where the research direction — problem selection, the sequencing of
+   research steps, and accept/revise/abandon decisions — was determined
+   by a human and the Software's agents and skills were used as
+   discrete assistive tools, is "Assisted Output". Assisted Output is
+   not Pipeline Output for purposes of this section 2 or of section 3:
+   it may be submitted without the prior written notice required by
+   this section and without the disclosure required by section 3. This
+   exemption does not affect the target venue's own AI-disclosure
+   policy, compliance with which remains the licensee's responsibility.
+   The exemption is defined by conduct, not by deployment flags:
+   executing the Software's staged pipeline in substance — following
+   the stage documentation end-to-end, or otherwise reproducing the
+   autonomous orchestration loop — produces Pipeline Output, not
+   Assisted Output, regardless of how the deployment was configured.
+   Assisted Output remains subject in full to sections 4 (watermark),
+   5 (no commercial use), and 8 (termination). The licensee bears the
+   burden of demonstrating that a work product qualifies as Assisted
+   Output; the mode field embedded in the watermark is evidence of,
+   but not conclusive as to, that qualification.
 
 3. DISCLOSURE. Any submission of Pipeline Output must clearly disclose
    that the Software (or a derivative thereof) was used in its
@@ -82,7 +105,13 @@ Copyright (c) 2026 Alejandro Lopez-Lira (contact@instituteforautomatedresearch.o
    sublicense, or distribute a Derivative Work under any other license,
    including any open-source or permissive license. The conditions in
    sections 2, 3, 4, 5, and 8 of this license apply to all Derivative
-   Works and to all output produced by any Derivative Work.
+   Works and to all output produced by any Derivative Work, except that
+   output of a Derivative Work that qualifies as Assisted Output under
+   the Assisted Output Exemption in section 2 is exempt from the notice
+   and disclosure conditions of sections 2 and 3 to the same extent,
+   and on the same conduct-defined terms, as Assisted Output of the
+   Software itself; such output remains subject in full to sections 4,
+   5, and 8.
 
 7. REDISTRIBUTION. Redistribution of the Software or any Derivative Work,
    modified or unmodified, is permitted provided that (a) the verbatim
