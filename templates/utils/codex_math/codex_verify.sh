@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Verify a mathematical proof using OpenAI Codex (gpt-5.5).
+# Verify a mathematical proof using OpenAI Codex (gpt-5.6-sol).
 # Extracts the block, pipes it to Codex, saves the result.
 #
 # Usage:
@@ -15,10 +15,23 @@
 
 set -euo pipefail
 
+# Pin the tier explicitly. The bare `gpt-5.6` alias routes to Sol today, but
+# aliases are not a contract; Sol is the tier we actually want here (FrontierMath
+# Tier 4: Sol 83% vs Terra 68.3%), and this is a sparingly-called co-processor,
+# so its price is not load-bearing.
+MODEL="gpt-5.6-sol"
+
 FILE="${1:?Usage: codex_verify.sh <file> <pattern> [reasoning_effort] [output_dir]}"
 PATTERN="${2:?Usage: codex_verify.sh <file> <pattern> [reasoning_effort] [output_dir]}"
 EFFORT="${3:-medium}"
 OUTDIR="${4:-./output/codex_audits}"
+
+# gpt-5.6 also accepts `xhigh` and `max`, which this pipeline deliberately does
+# not use — see the "Reasoning effort" section of the codex-math skill.
+case "$EFFORT" in
+    low|medium|high) ;;
+    *) echo "ERROR: reasoning_effort must be low|medium|high (got '$EFFORT')" >&2; exit 1 ;;
+esac
 
 SCRIPT_DIR="$(cd "$(dirname "$0")" && pwd)"
 mkdir -p "$OUTDIR"
@@ -37,10 +50,11 @@ if [ -z "$CONTENT" ]; then
     exit 1
 fi
 
-echo "[codex-math] Sending to Codex (gpt-5.5, effort=$EFFORT)..."
+echo "[codex-math] Sending to Codex ($MODEL, effort=$EFFORT)..."
 echo "[codex-math] Live progress: tail -f $LOG"
 
 codex exec </dev/null --sandbox workspace-write --skip-git-repo-check \
+    -c "model=\"$MODEL\"" \
     -c "model_reasoning_effort=\"$EFFORT\"" \
     -c 'model_reasoning_summary="detailed"' \
     -o "$TMP" \
@@ -78,6 +92,7 @@ if [ -f "$TMP" ]; then
     {
         echo "# Codex Verify: $PATTERN"
         echo "**File:** $FILE"
+        echo "**Model:** $MODEL"
         echo "**Effort:** $EFFORT"
         echo "**Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)"
         echo ""

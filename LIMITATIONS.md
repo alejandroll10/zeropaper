@@ -6,6 +6,24 @@ Per `CLAUDE.md` ("no unsolved or undocumented architectural limits"), additions 
 
 ---
 
+## Codex subagent dispatch depends on a CLI wrapper, not the native spawn tool
+
+**Scope:** the codex runtime's agent dispatch — `code/utils/agent_launcher/launch_agent.sh`, the launch rules in `templates/runtime/codex/session.md` and `session_manual.md`, and the per-agent `model` / `model_reasoning_effort` in `.codex/agents/*.toml`.
+
+**Why.** codex's built-in `spawn_agent` tool (verified against codex-cli 0.144.1 by capturing the on-wire tool schema) exposes only `{fork_turns, message, task_name}`. It has **no** `agent_type`, `model`, or `reasoning_effort` parameter, so it cannot select a role from `.codex/agents/` and cannot honor the per-agent model/effort we pin there — and it defaults `fork_turns="all"`, handing a subagent the orchestrator's entire conversation, which silently defeats evaluator independence. Codex *does* discover and parse the role TOMLs (a malformed one warns at startup, and `<project>/.codex/config.toml` is confirmed a live config layer) — the format is simply unreachable from the shipped spawn tool. This looks like a codex regression, not an intentional removal: the `unknown agent_type '…'` error and the whole `agent_roles.rs` loader are still compiled into the binary.
+
+**Mitigation (in place).** The codex orchestrator launches agents via `launch_agent.sh`, which reads the agent's `.toml` and runs a fresh `codex exec` worker with the pinned model + effort, `project_doc_max_bytes=0` (suppresses the orchestrator AGENTS.md so the worker runs on its own instructions), and its own `-s` sandbox. A `codex exec` process starts a clean session by construction, so evaluator independence is restored. Verified end-to-end: a launched `bib-verifier` ran on `gpt-5.6-luna` at `effort=low` (session default was `gpt-5.6-terra`) per the codex threads DB.
+
+**Residual failure modes (two, both documented not closed):**
+
+1. **CLI-version fragility.** The launcher depends on `codex exec` flags (`-m`, `-s`, `-c model_reasoning_effort`, `--add-dir`, `-o`, `project_doc_max_bytes`). A future codex release could rename or drop one, and — unlike the Claude subagent models, which `setup.sh` probes and remaps — nothing checks this at setup time. Fails loud (nonzero exit, visible error) rather than silently, but it is unguarded. **What would close it:** a setup-time probe that runs `codex exec --help` and checks for the required flags, plus a re-check if `spawn_agent` ever gains an `agent_type`/`model` parameter (at which point the native tool could replace the wrapper).
+
+2. **codex sandbox granularity is coarser than the Claude `tools` list (by design, permissive).** The launcher defaults every worker to `workspace-write` so agents can write and run as their definitions intend (their Claude `tools` include Write, and most include Bash — verdict files, drafts, sympy/latex/python). codex's sandbox is *filesystem-scoped* (`read-only` / `workspace-write` / `danger-full-access`), not *per-tool* like Claude's `tools` list, so a worker may have shell access even when its Claude def omits Bash. This is a deliberate choice, not an open gap: we do **not** lock evaluators to `read-only` — the intent is that agents write and run. (A caller can still pass `--sandbox read-only` for a one-off pure-read task, or an agent can pin `sandbox_mode` in its TOML.) The only thing intentionally denied to every worker is launching *other* agents — enforced by the no-spawn catalog patch plus the leaf-worker directive (see the launcher), independent of the write/run sandbox.
+
+**Tracking:** no issue filed yet; consider one against the codex CLI for the unreachable `.codex/agents` role format.
+
+---
+
 ## Headline-replicator re-fire is gated on an unverifiable "material change" judgment
 
 **Scope:** Stage 3a step 7 (the `empirics-auditor` FAIL re-fire path) under `--ext empirical`.

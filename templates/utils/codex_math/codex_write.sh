@@ -1,5 +1,5 @@
 #!/usr/bin/env bash
-# Ask Codex (gpt-5.5) to write a mathematical proof or derivation.
+# Ask Codex (gpt-5.6-sol) to write a mathematical proof or derivation.
 # Accepts either a theorem statement from a file or inline text.
 #
 # Usage:
@@ -20,9 +20,22 @@
 
 set -euo pipefail
 
+# Pin the tier explicitly. The bare `gpt-5.6` alias routes to Sol today, but
+# aliases are not a contract; Sol is the tier we actually want here (FrontierMath
+# Tier 4: Sol 83% vs Terra 68.3%), and this is a sparingly-called co-processor,
+# so its price is not load-bearing.
+MODEL="gpt-5.6-sol"
+
 INPUT="${1:?Usage: codex_write.sh <input> [reasoning_effort] [output_dir]}"
 EFFORT="${2:-medium}"
 OUTDIR="${3:-./output/codex_proofs}"
+
+# gpt-5.6 also accepts `xhigh` and `max`, which this pipeline deliberately does
+# not use — see the "Reasoning effort" section of the codex-math skill.
+case "$EFFORT" in
+    low|medium|high) ;;
+    *) echo "ERROR: reasoning_effort must be low|medium|high (got '$EFFORT')" >&2; exit 1 ;;
+esac
 
 mkdir -p "$OUTDIR"
 
@@ -62,10 +75,11 @@ OUTFILE="${OUTDIR}/${SAFE_NAME}.md"
 TMP="/tmp/codex_write_${SAFE_NAME}_$$.txt"
 LOG="${OUTDIR}/${SAFE_NAME}.log"
 
-echo "[codex-math] Writing proof (gpt-5.5, effort=$EFFORT)..."
+echo "[codex-math] Writing proof ($MODEL, effort=$EFFORT)..."
 echo "[codex-math] Live progress: tail -f $LOG"
 
 codex exec </dev/null --sandbox workspace-write --skip-git-repo-check \
+    -c "model=\"$MODEL\"" \
     -c "model_reasoning_effort=\"$EFFORT\"" \
     -c 'model_reasoning_summary="detailed"' \
     -o "$TMP" \
@@ -92,6 +106,7 @@ Write the complete LaTeX proof. If the statement needs correction, note that bef
 if [ -f "$TMP" ]; then
     {
         echo "# Codex Proof: $SAFE_NAME"
+        echo "**Model:** $MODEL"
         echo "**Effort:** $EFFORT"
         echo "**Date:** $(date -u +%Y-%m-%dT%H:%M:%SZ)"
         echo ""

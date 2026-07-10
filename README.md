@@ -278,7 +278,7 @@ Each gate is adversarial. Failed theories get revised, reworked, or abandoned. T
 
 | Skill | Runtime | Purpose |
 |-------|---------|---------|
-| `codex-math` | Claude + Codex | OpenAI Codex (gpt-5.4) for proof verification, proof writing, derivation checking, and conjecture exploration |
+| `codex-math` | Claude + Codex | OpenAI Codex (gpt-5.6-sol) for proof verification, proof writing, derivation checking, and conjecture exploration |
 
 ## Data skills (with `--ext empirical`)
 

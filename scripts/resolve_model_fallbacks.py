@@ -14,8 +14,8 @@ with no available fallback, produce no stdout line (the latter logs a WARNING).
 Probing is by output content, not exit code: the suspended-model message
 ("... is currently unavailable") returns rc=0, so we match markers in the output.
 
-Scope: Claude models only. Codex (gpt-5.5) and Gemini (gemini-3-preview) subagent
-models are a different provider/CLI and are not probed here.
+Scope: Claude models only. Codex (gpt-5.6-{sol,terra,luna}) and Gemini (gemini-3-preview)
+subagent models are a different provider/CLI and are not probed here.
 """
 import argparse
 import json

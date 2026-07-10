@@ -811,7 +811,8 @@ fi
 # extension agent is covered. Self-healing: when a suspended model is restored
 # the probe passes and no remap is applied. `--no-model-probe` skips the live
 # probe and relies on the known-unavailable safety list. Claude models only —
-# Codex (gpt-5.5) / Gemini (gemini-3-preview) subagents use a different provider.
+# Codex (gpt-5.6-{sol,terra,luna}) / Gemini (gemini-3-preview) subagents use a
+# different provider.
 _model_meta_args=()
 for _mf in "$TEMPLATE_ROOT/templates/agent_metadata/claude_shared_agents.json" \
            "$TEMPLATE_ROOT/templates/agent_metadata/claude_variant_agents.json" \
@@ -1632,6 +1633,16 @@ mkdir -p "$P/code/utils/codex_math"
 cp "$TEMPLATE_ROOT/templates/utils/codex_math/"*.sh "$P/code/utils/codex_math/"
 chmod +x "$P/code/utils/codex_math/"*.sh
 
+# Copy the codex subagent launcher. codex's built-in spawn_agent (v0.144.1)
+# cannot select a role from .codex/agents/*.toml nor set per-agent model/effort,
+# and defaults to inheriting the caller's full context — so the codex
+# orchestrator launches agents via this wrapper instead (see
+# templates/runtime/codex/session.md and CLAUDE.md's "codex tier" note). Harmless
+# on the claude/gemini runtimes, which use native subagents.
+mkdir -p "$P/code/utils/agent_launcher"
+cp "$TEMPLATE_ROOT/templates/utils/agent_launcher/launch_agent.sh" "$P/code/utils/agent_launcher/"
+chmod +x "$P/code/utils/agent_launcher/launch_agent.sh"
+
 # Create codex output directories
 mkdir -p "$P/output/codex_audits" "$P/output/codex_proofs" "$P/output/codex_explorations"
 
@@ -2277,6 +2288,7 @@ candidate_dirs = [
     ".gemini/agents",
     "docs",
     "code/utils/codex_math",
+    "code/utils/agent_launcher",
     "code/utils/bib_verify",
     "code/utils/openalex",
     "code/utils/nber_agenda",

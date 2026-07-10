@@ -7,7 +7,7 @@
     "model": "fable",
     "effort": "high",
     "codex": {
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-sol",
       "model_reasoning_effort": "high"
     },
     "gemini": {
@@ -22,7 +22,7 @@
     "model": "opus",
     "effort": "high",
     "codex": {
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-terra",
       "model_reasoning_effort": "high"
     },
     "gemini": {
@@ -37,7 +37,7 @@
     "model": "fable",
     "effort": "high",
     "codex": {
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-sol",
       "model_reasoning_effort": "high"
     },
     "gemini": {
@@ -52,7 +52,7 @@
     "model": "opus",
     "effort": "high",
     "codex": {
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-terra",
       "model_reasoning_effort": "high"
     },
     "gemini": {
@@ -71,7 +71,7 @@
     "model": "opus",
     "effort": "high",
     "codex": {
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-terra",
       "model_reasoning_effort": "high"
     },
     "gemini": {
@@ -86,7 +86,7 @@
     "model": "opus",
     "effort": "high",
     "codex": {
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-terra",
       "model_reasoning_effort": "high"
     },
     "gemini": {
@@ -105,7 +105,7 @@
     "model": "opus",
     "effort": "high",
     "codex": {
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-terra",
       "model_reasoning_effort": "high"
     },
     "gemini": {
@@ -124,7 +124,7 @@
     "model": "fable",
     "effort": "high",
     "codex": {
-      "model": "gpt-5.5",
+      "model": "gpt-5.6-sol",
       "model_reasoning_effort": "high"
     },
     "gemini": {

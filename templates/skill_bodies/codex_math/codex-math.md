@@ -1,6 +1,6 @@
 ## What this is
 
-OpenAI Codex (gpt-5.5) as a mathematical co-processor. Codex runs non-interactively via `codex exec` and returns structured results. Use it for hard proof problems that resist direct attempts.
+OpenAI Codex (gpt-5.6-sol) as a mathematical co-processor. Codex runs non-interactively via `codex exec` and returns structured results. Use it for hard proof problems that resist direct attempts.
 
 Scripts are at `code/utils/codex_math/`. Three modes: verify, write, explore.
 
@@ -28,7 +28,7 @@ Codex is an excellent mathematician but produces a substantial fraction of false
 
 ## Reasoning effort
 
-Codex supports three reasoning effort levels. **Do not limit effort on hard problems.** The cost of running high effort is small; the cost of missing a proof or counterexample is large.
+The scripts expose three effort levels. **Do not limit effort on hard problems.** The cost of running high effort is small; the cost of missing a proof or counterexample is large.
 
 | Task | Effort | When to use |
 |------|--------|-------------|
@@ -37,6 +37,16 @@ Codex supports three reasoning effort levels. **Do not limit effort on hard prob
 | Hard proof, conjecture, or exploration | `high` | **Always use high for:** unproved load-bearing claims, counterexample search, writing proofs for results that resisted direct attempts, anything the math auditor flagged as Critical |
 
 When in doubt, use `high`. There is no reason to economize on reasoning effort for important results.
+
+`high` is the ceiling, and the scripts reject anything above it. The model itself also
+accepts `xhigh` and `max` (and `ultra`, a parallel-agent mode), but on Agents' Last
+Exam — the long-horizon agentic benchmark whose shape most resembles this pipeline —
+GPT-5.6 Sol's score *peaks below its top effort setting*: the most expensive point on
+the curve scores lower than the one before it. Effort past `high` buys latency and
+tokens here, not correctness. (This is workload-specific, not a general claim about
+`max`: on ARC-AGI-3, `max` is the only setting that scores at all. If you find yourself
+wanting more effort, the lever that actually works for math is a better prompt — see
+below — not a bigger reasoning budget.)
 
 ## How to prompt Codex well
 

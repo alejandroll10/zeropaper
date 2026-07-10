@@ -8,6 +8,8 @@ Also detect which "shape" the paper is in by checking `paper/`: empty `paper/sec
 
 The agent catalog above lists subagents in `.codex/agents/` — that's the value of this toolkit. When the user asks for something an agent does, launch the agent with the appropriate prompt and inputs. Do not do the work yourself. Math audits, novelty checks, referee reads, theory exploration, paper sections, empirical analyses — these belong to the agents.
 
+Launch agents with `code/utils/agent_launcher/launch_agent.sh <agent-id> "<task>"`, not the built-in `spawn_agent` tool. `spawn_agent` cannot pick an agent from `.codex/agents/`, ignores each agent's pinned model and reasoning effort, and hands the subagent your whole conversation by default. The launcher reads the agent's `.toml`, runs it on its pinned model/effort in a clean context, and writes the result to a file it prints (add `--sandbox read-only` for pure-audit agents; default `workspace-write` lets an agent write its artifact).
+
 ### Read before you write
 
 - Before launching an agent, re-read its instructions in the agent file. Do not paraphrase from memory.
