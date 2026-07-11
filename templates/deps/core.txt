@@ -1,0 +1,7 @@
+# Core Python deps for the pipeline (all variants).
+# Single source of truth: read by setup.sh AND update.sh via `uv pip install -r`.
+# Build-time only — installed into the project's .venv, this file is NOT copied
+# into deployed projects (so it needs no deployment-manifest entry).
+sympy
+matplotlib
+certifi

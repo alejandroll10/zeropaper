@@ -111,7 +111,8 @@ command -v python3 >/dev/null 2>&1 || { echo "update.sh requires python3"; exit 
 if [ -f "$MANIFEST" ]; then
     VARIANT=$(jq -r .variant "$MANIFEST")
     MODE=$(jq -r '.mode // ""' "$MANIFEST")
-    mapfile -t EXTENSIONS < <(jq -r '.extensions[]?' "$MANIFEST")
+    EXTENSIONS=()
+    while IFS= read -r _ext; do EXTENSIONS+=("$_ext"); done < <(jq -r '.extensions[]?' "$MANIFEST")
     SEEDED=$(jq -r .flags.seeded "$MANIFEST")
     MANUAL=$(jq -r .flags.manual "$MANIFEST")
     LIGHT=$(jq -r .flags.light "$MANIFEST")
@@ -402,6 +403,48 @@ if "loops" not in data:
         json.dump(new, f, indent=2); f.write("\n")
     print("  ✓ pipeline_state.json migrated to loops:{} (issue #166)")
 PYEOF
+fi
+
+# ── Bootstrap the project venv if missing ──
+# Deploys made before the .venv change (or whose .venv was deleted) have no venv,
+# but the refreshed runtime docs now tell the user/agents to
+# `source .venv/bin/activate` and expect a bare `python3` to resolve there. Create
+# it from the SAME single-sourced deps files setup.sh uses (templates/deps/*.txt +
+# each extension's deps.txt), so a refreshed legacy project matches its new docs.
+# A project that already has a .venv is left untouched — we never clobber an
+# existing environment (its interpreter paths and user-installed packages).
+VENV="$PROJECT/.venv"
+if [ ! -d "$VENV" ]; then
+    if [ "$DRY_RUN" = "1" ]; then
+        echo
+        echo "=== venv bootstrap ==="
+        echo "  would create $VENV and install core + ssj + extension deps [${EXTENSIONS[*]}]"
+    elif ! command -v uv >/dev/null 2>&1; then
+        echo
+        echo "  ⚠ .venv missing and uv not found — install uv, then re-run update.sh (or create it manually)"
+    else
+        echo
+        echo "=== Bootstrapping missing .venv ==="
+        uv venv --python 3.12 "$VENV" 2>/dev/null \
+            || uv venv --python 3.12 --clear "$VENV" 2>/dev/null \
+            || uv venv --clear "$VENV" 2>/dev/null \
+            || echo "  ⚠ could not create $VENV (create manually: rm -rf $VENV && uv venv $VENV)"
+        if [ -d "$VENV" ]; then
+            uv pip install --python "$VENV" -r "$TEMPLATE_ROOT/templates/deps/core.txt" -q 2>/dev/null \
+                && echo "  ✓ core deps installed" \
+                || echo "  ⚠ core deps failed (source $VENV/bin/activate && uv pip install sympy matplotlib certifi)"
+            uv pip install --python "$VENV" -r "$TEMPLATE_ROOT/templates/deps/ssj.txt" -q 2>/dev/null \
+                && echo "  ✓ ssj deps installed" \
+                || echo "  ⚠ ssj deps skipped (numba build issue; non-fatal — ssj skill only)"
+            for ext in "${EXTENSIONS[@]}"; do
+                _extdeps="$TEMPLATE_ROOT/extensions/$ext/deps.txt"
+                [ -f "$_extdeps" ] || continue
+                uv pip install --python "$VENV" -r "$_extdeps" -q 2>/dev/null \
+                    && echo "  ✓ $ext deps installed" \
+                    || echo "  ⚠ $ext deps failed (source $VENV/bin/activate && uv pip install -r extensions/$ext/deps.txt)"
+            done
+        fi
+    fi
 fi
 
 # ── Refresh manifest in target (preserve original deploy_date + fingerprint) ──

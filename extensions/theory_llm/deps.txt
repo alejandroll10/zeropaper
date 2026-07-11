@@ -1,0 +1,6 @@
+# Theory-LLM extension Python deps.
+# Single source of truth: read by scripts/apply_extension_theory_llm.sh (during
+# setup) AND by update.sh's venv bootstrap, via `uv pip install -r`.
+# Build-time only — installed into the project's .venv, not copied into deploys.
+openai
+python-dotenv

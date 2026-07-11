@@ -541,7 +541,10 @@ else
     fi
 
     echo "Cloning template into $PROJECT_NAME..."
-    git clone https://github.com/alejandroll10/zeropaper.git "$PROJECT_NAME"
+    # Clone source is overridable via ZEROPAPER_REPO (a local path or alternate
+    # URL) for offline/local testing of un-pushed template changes; defaults to
+    # the public repo. A local-path clone only sees committed state.
+    git clone "${ZEROPAPER_REPO:-https://github.com/alejandroll10/zeropaper.git}" "$PROJECT_NAME"
     cd "$PROJECT_NAME"
     git remote remove origin
     rm -rf .git
@@ -969,13 +972,16 @@ for agent in literature-scout gap-scout novelty-checker theory-explorer referee 
     fi
     if [ -f "$CODEX_AGENTS_OUT/$agent.toml" ]; then
         # Insert before the closing ''' in the TOML multiline string
-        # Use awk to find the LAST ''' and insert the block before it
-        awk -v block="$VARIANT_BLOCK" '
+        # Use awk to find the LAST ''' and insert the block before it.
+        # Pass the (multi-line) block via the environment, not `-v`: BSD awk
+        # (stock macOS) rejects literal newlines in a `-v` value; ENVIRON is
+        # portable across BSD and GNU awk.
+        VARIANT_BLOCK="$VARIANT_BLOCK" awk '
         { lines[NR] = $0 }
         /^'\'''\'''\''$/ { last = NR }
         END {
             for (i = 1; i <= NR; i++) {
-                if (i == last) print block
+                if (i == last) print ENVIRON["VARIANT_BLOCK"]
                 print lines[i]
             }
         }' "$CODEX_AGENTS_OUT/$agent.toml" > "$CODEX_AGENTS_OUT/$agent.toml.tmp" \
@@ -1009,12 +1015,13 @@ inject_block_into_agents() {
             printf '\n%s\n' "$_block" >> "$AGENTS_OUT/$_agent.md"
         fi
         if [ -f "$CODEX_AGENTS_OUT/$_agent.toml" ]; then
-            awk -v block="$_block" '
+            # Multi-line block via environment, not `-v` (BSD-awk-safe; see note above).
+            _block="$_block" awk '
             { lines[NR] = $0 }
             /^'\'''\'''\''$/ { last = NR }
             END {
                 for (i = 1; i <= NR; i++) {
-                    if (i == last) print block
+                    if (i == last) print ENVIRON["_block"]
                     print lines[i]
                 }
             }' "$CODEX_AGENTS_OUT/$_agent.toml" > "$CODEX_AGENTS_OUT/$_agent.toml.tmp" \
@@ -1112,11 +1119,12 @@ echo "  ✓ Core-bypass guard pointer injected into binding-source agents"
 
 # Core developing agents — list comes from metadata `category: "developing"`,
 # the single source of truth (see scripts/list_agents_by_category.py).
-mapfile -t _core_developing_agents < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
+_core_developing_agents=()
+while IFS= read -r _line; do _core_developing_agents+=("$_line"); done < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
     --category developing \
     --metadata "$TEMPLATE_ROOT/templates/agent_metadata/claude_shared_agents.json" \
     --metadata "$TEMPLATE_ROOT/templates/agent_metadata/claude_variant_agents.json")
-# Fail loud: empty here means the lister errored (mapfile masks it under set -e),
+# Fail loud: empty here means the lister errored (the read loop masks it under set -e),
 # never a real result — there are always developing agents. Harmless when
 # FAITHFUL=0 (injector is a no-op) but prevents a silent skip under --faithful.
 if [ "${#_core_developing_agents[@]}" -eq 0 ]; then
@@ -1129,11 +1137,12 @@ if [ "$FAITHFUL" = "1" ]; then
 fi
 
 # Bash-capable core agents — list comes from metadata `tools` containing Bash.
-mapfile -t _core_bash_agents < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
+_core_bash_agents=()
+while IFS= read -r _line; do _core_bash_agents+=("$_line"); done < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
     --has-tool Bash \
     --metadata "$TEMPLATE_ROOT/templates/agent_metadata/claude_shared_agents.json" \
     --metadata "$TEMPLATE_ROOT/templates/agent_metadata/claude_variant_agents.json")
-# Fail loud: mapfile masks python failure under set -e, so an empty list here
+# Fail loud: the read loop masks python failure under set -e, so an empty list here
 # means the lister errored or metadata is missing — never a real empty result.
 if [ "${#_core_bash_agents[@]}" -eq 0 ]; then
     echo "Error: Bash-capable core agent list is empty (lister failed or metadata missing)" >&2
@@ -1591,10 +1600,35 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
     echo "  ✓ .env copied from template repo"
 fi
 
-# ── Install core Python deps ──
+# ── Create the project virtualenv ──
+# The deployed pipeline (and agent-generated code) call a bare `python3`. Rather
+# than depend on the launch machine's ambient interpreter (Apple ships an EOL
+# 3.9 as /usr/bin/python3; Linux varies), every project gets its own `.venv`
+# that the runtimes activate at launch (see the launch instructions printed at
+# the end + the "Python environment" note in the runtime doc). `.venv/` is
+# gitignored (templates/gitignore_project) so it is never committed/published.
+# A pinned 3.12 keeps the interpreter reproducible across macOS and Linux; fall
+# back to uv's ambient pick, then to a bare venv, so a machine that can't fetch a
+# managed CPython still gets *a* venv. All dep installs below target it via
+# `uv pip install --python "$P/.venv"`.
 if [ "$LOCAL" = "0" ]; then
-    uv pip install sympy matplotlib certifi -q 2>/dev/null \
-        || echo "Note: install core deps manually: uv pip install sympy matplotlib certifi"
+    # `--clear` on the retries makes them idempotent: if a first attempt dies
+    # after creating the dir (interrupted download, disk full), a bare `uv venv`
+    # would otherwise error "already exists". Safe here — this is a fresh clone
+    # with no pre-existing venv to preserve.
+    uv venv --python 3.12 "$P/.venv" 2>/dev/null \
+        || uv venv --python 3.12 --clear "$P/.venv" 2>/dev/null \
+        || uv venv --clear "$P/.venv" 2>/dev/null \
+        || echo "  ⚠ could not create $P/.venv — create it manually (rm -rf $P/.venv && uv venv $P/.venv) before launching"
+fi
+
+# ── Install core Python deps ──
+# Dep list is single-sourced in templates/deps/core.txt (also read by update.sh).
+# Guard on venv existence so a failed venv creation above yields a single warning
+# (the "could not create" one) rather than also a doomed install attempt.
+if [ "$LOCAL" = "0" ] && [ -d "$P/.venv" ]; then
+    uv pip install --python "$P/.venv" -r "$TEMPLATE_ROOT/templates/deps/core.txt" -q 2>/dev/null \
+        || echo "Note: core deps failed; install manually: source $P/.venv/bin/activate && uv pip install sympy matplotlib certifi"
 fi
 
 # ── Assemble core skills ──
@@ -1727,9 +1761,9 @@ chmod +x "$P/code/utils/ssj/"ssj_solve.py
 # build; warn like the codex CLI rather than failing setup). The package declares
 # no deps, so an unpinned install backtracks to a Python-incompatible numba -- pin
 # numpy/scipy/numba>=0.59 explicitly.
-if [ "$LOCAL" = "0" ]; then
-    uv pip install sequence-jacobian numpy scipy "numba>=0.59" -q 2>/dev/null \
-        || echo "  ⚠ sequence-jacobian install failed (likely a numba build issue). The ssj skill will not work until you run: uv pip install sequence-jacobian numpy scipy 'numba>=0.59'"
+if [ "$LOCAL" = "0" ] && [ -d "$P/.venv" ]; then
+    uv pip install --python "$P/.venv" -r "$TEMPLATE_ROOT/templates/deps/ssj.txt" -q 2>/dev/null \
+        || echo "  ⚠ sequence-jacobian install failed (likely a numba build issue). The ssj skill will not work until you run: source $P/.venv/bin/activate && uv pip install sequence-jacobian numpy scipy 'numba>=0.59'"
 fi
 
 echo "  ✓ Core skills assembled"
@@ -1850,7 +1884,8 @@ if os.path.exists(state_path):
 PYEOF
 
             # Theory_LLM extension developing agents — from metadata.
-            mapfile -t _tllm_developing_agents < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
+            _tllm_developing_agents=()
+            while IFS= read -r _line; do _tllm_developing_agents+=("$_line"); done < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
                 --category developing \
                 --metadata "$TEMPLATE_ROOT/extensions/theory_llm/agent_metadata/agents.json")
             if [ "${#_tllm_developing_agents[@]}" -eq 0 ]; then
@@ -1859,7 +1894,8 @@ PYEOF
             fi
             inject_faithful_into_agents "${_tllm_developing_agents[@]}"
 
-            mapfile -t _tllm_bash_agents < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
+            _tllm_bash_agents=()
+            while IFS= read -r _line; do _tllm_bash_agents+=("$_line"); done < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
                 --has-tool Bash \
                 --metadata "$TEMPLATE_ROOT/extensions/theory_llm/agent_metadata/agents.json")
             if [ "${#_tllm_bash_agents[@]}" -eq 0 ]; then
@@ -2038,7 +2074,8 @@ PYEOF
             # Empirical extension developing agents — from metadata.
             # Variant-aware via $AGENT_DIR (finance metadata adds identification-designer;
             # macro currently has empiricist only). The metadata is the source of truth.
-            mapfile -t _empirical_developing_agents < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
+            _empirical_developing_agents=()
+            while IFS= read -r _line; do _empirical_developing_agents+=("$_line"); done < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
                 --category developing \
                 --metadata "$TEMPLATE_ROOT/extensions/empirical/agent_metadata/shared_agents.json" \
                 --metadata "$TEMPLATE_ROOT/extensions/empirical/agent_metadata/${AGENT_DIR}_agents.json")
@@ -2048,7 +2085,8 @@ PYEOF
             fi
             inject_faithful_into_agents "${_empirical_developing_agents[@]}"
 
-            mapfile -t _empirical_bash_agents < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
+            _empirical_bash_agents=()
+            while IFS= read -r _line; do _empirical_bash_agents+=("$_line"); done < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
                 --has-tool Bash \
                 --metadata "$TEMPLATE_ROOT/extensions/empirical/agent_metadata/shared_agents.json" \
                 --metadata "$TEMPLATE_ROOT/extensions/empirical/agent_metadata/${AGENT_DIR}_agents.json")
@@ -2293,6 +2331,12 @@ candidate_dirs = [
     "code/utils/openalex",
     "code/utils/nber_agenda",
     "code/utils/ssj",
+    # NOTE: the project .venv is intentionally NOT listed here. It is generated
+    # per-host by uv (not a copied template artifact), and manifest paths get
+    # nuke-and-copied by update.sh -- which would wipe user-installed packages
+    # and break the venv's baked-in absolute interpreter paths. update.sh instead
+    # bootstraps a missing venv from the single-sourced deps files (see its
+    # venv-bootstrap block), so refreshing an older deploy still gets a venv.
 ]
 candidate_files = [
     "CLAUDE.md",
@@ -2525,14 +2569,17 @@ echo "============================================"
 echo ""
 echo "  cd $PROJECT_NAME"
 echo ""
+echo "  # Activate the project venv first so the pipeline's python3 finds its deps:"
+echo "  source .venv/bin/activate"
+echo ""
 echo "Claude:"
-echo "  claude --dangerously-skip-permissions"
+echo "  source .venv/bin/activate && claude --dangerously-skip-permissions"
 echo ""
 echo "Codex:"
-echo "  codex --sandbox danger-full-access --ask-for-approval never"
+echo "  source .venv/bin/activate && codex --sandbox danger-full-access --ask-for-approval never"
 echo ""
 echo "Gemini:"
-echo "  gemini --yolo"
+echo "  source .venv/bin/activate && gemini --yolo"
 echo ""
 if [ "$MANUAL" = "1" ]; then
     echo "Manual mode — read the runtime doc for the agent and skill catalog, then drive."

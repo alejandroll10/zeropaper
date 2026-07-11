@@ -1,0 +1,17 @@
+# Empirical extension Python deps.
+# Single source of truth: read by scripts/apply_extension_empirical.sh (during
+# setup) AND by update.sh's venv bootstrap, via `uv pip install -r`.
+# Build-time only — installed into the project's .venv, not copied into deploys.
+pandas
+numpy
+polars
+pyarrow
+statsmodels
+scipy
+fredapi
+pandas-datareader
+wrds
+edgartools
+openassetpricing
+gdown
+python-dotenv

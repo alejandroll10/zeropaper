@@ -89,6 +89,12 @@ Concretely:
 
 ---
 
+## Python environment
+
+This project ships a self-contained virtualenv at `.venv/` holding every Python dependency the pipeline and skills need (sympy, matplotlib, pandas, numpy, scipy, statsmodels, wrds, …). The launch command activates it, so a bare `python3` already resolves to `.venv/bin/python3`. If you ever hit a `ModuleNotFoundError` for a package that should be present (pandas, sympy, etc.), the venv was not activated — run `source .venv/bin/activate` in that shell, or invoke `.venv/bin/python3` directly, instead of assuming the dependency is missing. To add a dependency, install it into the venv: `uv pip install --python .venv <package>`.
+
+---
+
 ## Pipeline overview
 
 ```

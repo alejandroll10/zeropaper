@@ -131,7 +131,11 @@ SEC_EDGAR_EMAIL=your@email.edu
 ENVEOF
 fi
 
-if [ "$LOCAL" = "0" ]; then
-    uv pip install pandas numpy polars pyarrow statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing gdown python-dotenv -q 2>/dev/null \
-        || echo "Note: install empirical deps manually: uv pip install pandas numpy polars pyarrow statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing gdown python-dotenv"
+if [ "$LOCAL" = "0" ] && [ -d "$PROJECT_ROOT/.venv" ]; then
+    # Target the project venv created by setup.sh (deployed pipeline uses bare
+    # python3). Dep list single-sourced in extensions/empirical/deps.txt (also
+    # read by update.sh's venv bootstrap). Guarded on venv existence so a failed
+    # venv creation in setup.sh doesn't add a second doomed install here.
+    uv pip install --python "$PROJECT_ROOT/.venv" -r "$TEMPLATE_ROOT/extensions/empirical/deps.txt" -q 2>/dev/null \
+        || echo "Note: empirical deps failed; install manually: source $PROJECT_ROOT/.venv/bin/activate && uv pip install pandas numpy polars pyarrow statsmodels scipy fredapi pandas-datareader wrds edgartools openassetpricing gdown python-dotenv"
 fi

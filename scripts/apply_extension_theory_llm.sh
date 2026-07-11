@@ -62,7 +62,11 @@ DEEPINFRA_TOKEN=your-key-here
 ENVEOF
 fi
 
-if [ "$LOCAL" = "0" ]; then
-    uv pip install openai python-dotenv -q 2>/dev/null \
-        || echo "Note: install deps manually: uv pip install openai python-dotenv"
+if [ "$LOCAL" = "0" ] && [ -d "$PROJECT_ROOT/.venv" ]; then
+    # Target the project venv created by setup.sh (deployed pipeline uses bare
+    # python3). Dep list single-sourced in extensions/theory_llm/deps.txt (also
+    # read by update.sh's venv bootstrap). Guarded on venv existence so a failed
+    # venv creation in setup.sh doesn't add a second doomed install here.
+    uv pip install --python "$PROJECT_ROOT/.venv" -r "$TEMPLATE_ROOT/extensions/theory_llm/deps.txt" -q 2>/dev/null \
+        || echo "Note: theory_llm deps failed; install manually: source $PROJECT_ROOT/.venv/bin/activate && uv pip install openai python-dotenv"
 fi

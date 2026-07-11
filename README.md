@@ -139,25 +139,27 @@ nano .env
 
 ### Step 4: Launch
 
+Activate the project venv first (created by `setup.sh`; holds all Python deps) so the pipeline's `python3` resolves to it — every agent subshell inherits the activated environment.
+
 Claude Code:
 
 ```bash
 cd my-paper
-claude --dangerously-skip-permissions
+source .venv/bin/activate && claude --dangerously-skip-permissions
 ```
 
 Codex:
 
 ```bash
 cd my-paper
-codex --sandbox danger-full-access --ask-for-approval never
+source .venv/bin/activate && codex --sandbox danger-full-access --ask-for-approval never
 ```
 
 Gemini CLI:
 
 ```bash
 cd my-paper
-gemini --yolo
+source .venv/bin/activate && gemini --yolo
 ```
 
 Then say: **"Run the pipeline."**
@@ -330,6 +332,7 @@ my-paper/
 
 ## Runtime notes
 
+- Activate the project venv before any runtime: `source .venv/bin/activate && …`
 - Claude Code: `claude --dangerously-skip-permissions`
 - Codex: `codex --sandbox danger-full-access --ask-for-approval never`
 - Gemini CLI: `gemini --yolo`

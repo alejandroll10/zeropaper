@@ -111,10 +111,10 @@ This creates a standalone project folder with assembled CLAUDE.md, AGENTS.md, GE
 
 1. `cd <project-name>`
 2. Edit `.env` with any required API keys (FRED, WRDS, etc.)
-3. Launch any runtime: `claude --dangerously-skip-permissions` / `codex --sandbox danger-full-access --ask-for-approval never` / `gemini --yolo`
+3. Activate the project venv, then launch any runtime: `source .venv/bin/activate && claude --dangerously-skip-permissions` / `… && codex --sandbox danger-full-access --ask-for-approval never` / `… && gemini --yolo`. The venv (`.venv/`, created by `setup.sh`, gitignored) holds all Python deps; activating before launch makes the pipeline's bare `python3` resolve to it, and every agent Bash subshell inherits the activated environment.
 4. Say "Run the pipeline."
 
-For long unattended runs, launch each project in its own **interactive** `tmux` window (e.g. `tmux new-window -c <project-name> 'claude --dangerously-skip-permissions'`, then send "Run the pipeline." to it) so it keeps driving the orchestrator turn-after-turn and survives detach — do **not** use headless `claude -p "Run the pipeline."`, which terminates at the ~600s background-task wait ceiling while a subagent is still running. The orchestrator resumes from `process_log/pipeline_state.json` + committed `output/` artifacts, so a fresh interactive session picks up where an interrupted run left off.
+For long unattended runs, launch each project in its own **interactive** `tmux` window (e.g. `tmux new-window -c <project-name> 'source .venv/bin/activate && claude --dangerously-skip-permissions'`, then send "Run the pipeline." to it) so it keeps driving the orchestrator turn-after-turn and survives detach — do **not** use headless `claude -p "Run the pipeline."`, which terminates at the ~600s background-task wait ceiling while a subagent is still running. The orchestrator resumes from `process_log/pipeline_state.json` + committed `output/` artifacts, so a fresh interactive session picks up where an interrupted run left off.
 
 ### WRDS server (only with `--ext empirical`)
 
