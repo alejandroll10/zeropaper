@@ -428,7 +428,7 @@ if [ ! -d "$VENV" ]; then
         uv venv --python 3.12 "$VENV" 2>/dev/null \
             || uv venv --python 3.12 --clear "$VENV" 2>/dev/null \
             || uv venv --clear "$VENV" 2>/dev/null \
-            || echo "  ⚠ could not create $VENV (create manually: rm -rf $VENV && uv venv $VENV)"
+            || { rm -rf "$VENV"; echo "  ⚠ could not create $VENV (create manually: uv venv $VENV)"; }
         if [ -d "$VENV" ]; then
             uv pip install --python "$VENV" -r "$TEMPLATE_ROOT/templates/deps/core.txt" -q 2>/dev/null \
                 && echo "  ✓ core deps installed" \

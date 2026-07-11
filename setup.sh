@@ -1619,7 +1619,7 @@ if [ "$LOCAL" = "0" ]; then
     uv venv --python 3.12 "$P/.venv" 2>/dev/null \
         || uv venv --python 3.12 --clear "$P/.venv" 2>/dev/null \
         || uv venv --clear "$P/.venv" 2>/dev/null \
-        || echo "  ⚠ could not create $P/.venv — create it manually (rm -rf $P/.venv && uv venv $P/.venv) before launching"
+        || { rm -rf "$P/.venv"; echo "  ⚠ could not create $P/.venv — create it manually (uv venv $P/.venv) before launching"; }
 fi
 
 # ── Install core Python deps ──

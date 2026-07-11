@@ -135,4 +135,8 @@ docs/                     # Reference docs on the pipeline's audit conventions
 
 There is no `paper/`, no `output/stage*/`, no `pipeline_state.json`, no `dashboard.html` — this mode does not produce a paper, has no stages, has no state machine, and has no live progress to track beyond the audit log. (`output/codex_audits/`, `output/codex_proofs/`, `output/codex_explorations/` may exist as working dirs for the `codex-math` skill that polish-formula and math-auditor invoke; that is the only `output/` content in report mode.)
 
+## Python environment
+
+This project ships a self-contained virtualenv at `.venv/` holding every Python dependency the audit agents and skills need. The launch command activates it, so a bare `python3` resolves to `.venv/bin/python3`. If you hit a `ModuleNotFoundError` for a package that should be present, the venv was not activated — run `source .venv/bin/activate`, or call `.venv/bin/python3` directly. To add a dependency: `uv pip install --python .venv <package>`.
+
 {{RUNTIME_SESSION_GUIDANCE}}
