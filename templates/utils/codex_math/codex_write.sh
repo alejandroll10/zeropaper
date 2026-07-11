@@ -78,10 +78,18 @@ LOG="${OUTDIR}/${SAFE_NAME}.log"
 echo "[codex-math] Writing proof ($MODEL, effort=$EFFORT)..."
 echo "[codex-math] Live progress: tail -f $LOG"
 
+# Leaf-worker guard: keep this codex exec a leaf that cannot spawn sub-agents.
+_cm_dir="$(cd "$(dirname "$0")" && pwd)"
+. "$_cm_dir/codex_common.sh"
+_codex_scratch=$(mktemp -d "${TMPDIR:-/tmp}/codex_math.XXXXXX")
+trap 'rm -rf "$_codex_scratch"' EXIT
+codex_build_no_spawn_args "$_codex_scratch"
+
 codex exec </dev/null --sandbox workspace-write --skip-git-repo-check \
     -c "model=\"$MODEL\"" \
     -c "model_reasoning_effort=\"$EFFORT\"" \
     -c 'model_reasoning_summary="detailed"' \
+    "${CODEX_NO_SPAWN_ARGS[@]}" \
     -o "$TMP" \
     "You are a mathematician writing a proof for a top economics journal. Write a complete, publication-ready proof.
 
