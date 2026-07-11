@@ -130,7 +130,7 @@ The server is per-host, not per-project — once it's running, every project tha
 To check if it's already running on this machine:
 
 ```bash
-ss -tlnp | grep 23847                                                  # is anything listening?
+lsof -iTCP:23847 -sTCP:LISTEN                                           # is anything listening? (Linux: ss -tlnp | grep 23847)
 PYTHONPATH=code python3 -c "from utils.wrds_client import wrds_ping; print(wrds_ping())"
 ```
 
