@@ -24,6 +24,26 @@ Per `CLAUDE.md` ("no unsolved or undocumented architectural limits"), additions 
 
 ---
 
+## Grok runtime: single model tier, no model probe, and partial mode/extension coverage
+
+**Scope:** the Grok Build runtime — `scripts/assemble_grok_agents.py`, the `.grok/agents/*.md` it emits, the labeled-dispatch fork in `templates/runtime/codex/session.md`, and the grok wiring in `setup.sh`.
+
+**Design note (not a limitation).** Grok reads project instructions from the root `AGENTS.md` — the *same* file codex reads, and its filename cannot be changed or redirected (verified: grok ignores `GROK.md`/`.grok/AGENTS.md` when a root `AGENTS.md` is present). So codex and grok deliberately **share** one `AGENTS.md`, whose dispatch section is runtime-labeled ("If you are Codex … / If you are Grok …"); each CLI follows its own branch. Verified end-to-end: grok reads the shared doc, self-selects the grok branch (native `task` tool + `subagent_type`, agents in `.grok/agents/`), and spawns an assembled pipeline agent successfully.
+
+**Limitations (four, documented not closed):**
+
+1. **Single model tier collapses generator↔judge decorrelation.** xAI exposes one general-purpose model in v1 (`grok-4.5`; the only other listed model is `grok-composer-2.5-fast`), so `assemble_grok_agents.py`'s `MODEL_MAP` maps every Claude tier (`fable`/`opus`/`sonnet`) to `grok-4.5`. The other three runtimes deliberately run the generative spine and its evaluators on *different* tiers (e.g. fable generator vs opus judge) as a decorrelation safeguard; on grok, generator and judge run the same model. Per-agent `reasoning_effort` (`low`/`medium`/`high`) still varies and is honored, but that is a weaker lever than a tier split. **What would close it:** an xAI capability-tier lineup — at which point `MODEL_MAP` is the one place to split.
+
+2. **Grok subagent models are not probed/remapped.** Like the codex/gemini runtimes (see the model-availability section in `CLAUDE.md`), only *Claude* models are probed at setup and remapped on unavailability. If `grok-4.5` is withdrawn or the account loses access, grok agents hard-fail at launch with no fallback. The `model_fallbacks.json` schema and resolver/apply split are provider-agnostic; what's missing is a `grok models`-based probe and applying the remap over `.grok/agents/*.md`.
+
+3. **Manual and report modes still carry codex-only dispatch guidance grok would misread.** The labeled-dispatch fork was added to `templates/runtime/codex/session.md` (the autonomous-mode discipline). The `session_manual.md` and `session_report.md` variants — which grok also reads via the shared `AGENTS.md` under `--manual` / `--mode report` — still describe codex's `launch_agent.sh` without a grok branch. A grok orchestrator in those modes would read codex dispatch instructions. **What would close it:** apply the same runtime-labeled fork to `session_manual.md` and `session_report.md`.
+
+4. **Skills and extension agents are not wired for grok.** `assemble_grok_agents.py` does not emit a `skills:` frontmatter list, and grok project-skill discovery is unverified (grok reads Claude-format skills at the user level; project-level discovery of `.claude/skills`/`.agents/skills` was not confirmed). The extension appliers (`apply_extension_empirical.sh`, `apply_extension_theory_llm.sh`) take the claude/codex/gemini agent dirs as positionals but not `.grok/agents`, so `--ext empirical` / `--ext theory_llm` deploy no grok extension agents while the extension's stage instructions are still baked into the shared `AGENTS.md` (a Grok orchestrator would be told to launch agents absent from `.grok/agents/`). Base theory-only agents are unaffected. **What would close it:** thread `$GROK_AGENTS_OUT` through both extension appliers (agents), and add a `skills:` emitter + confirm grok's project-skill path (skills).
+
+**Tracking:** [#182](https://github.com/alejandroll10/zeropaper/issues/182) (extension agents), [#183](https://github.com/alejandroll10/zeropaper/issues/183) (manual/report dispatch fork — item 3), [#184](https://github.com/alejandroll10/zeropaper/issues/184) (skills — item 4), [#185](https://github.com/alejandroll10/zeropaper/issues/185) (model probe + single-tier — items 1 & 2).
+
+---
+
 ## Headline-replicator re-fire is gated on an unverifiable "material change" judgment
 
 **Scope:** Stage 3a step 7 (the `empirics-auditor` FAIL re-fire path) under `--ext empirical`.

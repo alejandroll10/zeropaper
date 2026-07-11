@@ -270,6 +270,11 @@ CODEX_SKILLS_REL="$CODEX_DIR_REL/skills"
 GEMINI_DIR_REL=".gemini"
 GEMINI_AGENTS_REL="$GEMINI_DIR_REL/agents"
 GEMINI_SETTINGS_REL="$GEMINI_DIR_REL/settings.json"
+# Grok Build (xAI `grok` CLI). Reads project instructions from the shared root
+# AGENTS.md (same file as Codex — see the labeled-dispatch block in
+# templates/runtime/codex/session.md), and its subagents from .grok/agents/*.md.
+GROK_DIR_REL=".grok"
+GROK_AGENTS_REL="$GROK_DIR_REL/agents"
 
 
 MODEL_OVERRIDE_ARGS=()
@@ -447,6 +452,47 @@ assemble_gemini_variant_agents() {
         "${MODEL_OVERRIDE_ARGS[@]}"
 }
 
+assemble_grok_shared_agents() {
+    local template_root="$1"
+    local dest_dir="$2"
+    # Mirrors assemble_gemini_shared_agents — see assemble_claude_shared_agents
+    # for the MODE_BODIES_OVERLAY / MODE_VOCAB_OVERLAY threading rationale.
+    local bodies_args=()
+    [ -n "$MODE_BODIES_OVERLAY" ] && bodies_args+=(--bodies-dir "$MODE_BODIES_OVERLAY")
+    bodies_args+=(--bodies-dir "$template_root/templates/agent_bodies/shared")
+    local vocab_args=()
+    vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
+
+    python3 "$template_root/scripts/assemble_grok_agents.py" \
+        --metadata "$template_root/templates/agent_metadata/claude_shared_agents.json" \
+        "${bodies_args[@]}" \
+        "${vocab_args[@]}" \
+        --output-dir "$dest_dir" \
+        "${MODEL_OVERRIDE_ARGS[@]}"
+}
+
+assemble_grok_variant_agents() {
+    local template_root="$1"
+    local variant="$2"
+    local dest_dir="$3"
+    local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
+    local vocab_args=()
+    [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
+    [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
+    local shared_args=()
+    [ -n "$MODE_BODIES_OVERLAY" ] && shared_args+=(--shared-bodies-dir "$MODE_BODIES_OVERLAY")
+    shared_args+=(--shared-bodies-dir "$template_root/templates/agent_bodies/shared")
+
+    python3 "$template_root/scripts/assemble_grok_agents.py" \
+        --metadata "$template_root/templates/agent_metadata/claude_variant_agents.json" \
+        --bodies-dir "$template_root/templates/agents/${variant}" \
+        "${shared_args[@]}" \
+        "${vocab_args[@]}" \
+        --output-dir "$dest_dir" \
+        "${MODEL_OVERRIDE_ARGS[@]}"
+}
+
 assemble_claude_skills() {
     local template_root="$1"
     local metadata_file="$2"
@@ -489,6 +535,7 @@ if [ "$LOCAL" = "1" ]; then
     mkdir -p "$OUT_DIR/$CLAUDE_AGENTS_REL"
     mkdir -p "$OUT_DIR/$CODEX_AGENTS_REL"
     mkdir -p "$OUT_DIR/$GEMINI_AGENTS_REL"
+    mkdir -p "$OUT_DIR/$GROK_AGENTS_REL"
     # Copy shared project files
     mkdir -p "$OUT_DIR/$CLAUDE_DIR_REL"
     cp "$SCRIPT_DIR/$CLAUDE_SETTINGS_REL" "$OUT_DIR/$CLAUDE_DIR_REL/"
@@ -794,13 +841,16 @@ if [ "$LOCAL" = "1" ]; then
     AGENTS_OUT="$OUT_DIR/$CLAUDE_AGENTS_REL"
     CODEX_AGENTS_OUT="$OUT_DIR/$CODEX_AGENTS_REL"
     GEMINI_AGENTS_OUT="$OUT_DIR/$GEMINI_AGENTS_REL"
+    GROK_AGENTS_OUT="$OUT_DIR/$GROK_AGENTS_REL"
 else
     AGENTS_OUT="$CLAUDE_AGENTS_REL"
     CODEX_AGENTS_OUT="$CODEX_AGENTS_REL"
     GEMINI_AGENTS_OUT="$GEMINI_AGENTS_REL"
+    GROK_AGENTS_OUT="$GROK_AGENTS_REL"
     mkdir -p "$AGENTS_OUT"
     mkdir -p "$CODEX_AGENTS_OUT"
     mkdir -p "$GEMINI_AGENTS_OUT"
+    mkdir -p "$GROK_AGENTS_OUT"
 fi
 
 # ── Resolve unavailable Claude subagent models → fallbacks ──
@@ -857,11 +907,13 @@ fi
 assemble_claude_shared_agents "$TEMPLATE_ROOT" "$AGENTS_OUT"
 assemble_codex_shared_agents "$TEMPLATE_ROOT" "$CODEX_AGENTS_OUT"
 assemble_gemini_shared_agents "$TEMPLATE_ROOT" "$GEMINI_AGENTS_OUT"
+assemble_grok_shared_agents "$TEMPLATE_ROOT" "$GROK_AGENTS_OUT"
 
 if [ -f "$TEMPLATE_ROOT/templates/agent_metadata/claude_variant_agents.json" ]; then
     assemble_claude_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$AGENTS_OUT"
     assemble_codex_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$CODEX_AGENTS_OUT"
     assemble_gemini_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$GEMINI_AGENTS_OUT"
+    assemble_grok_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$GROK_AGENTS_OUT"
 fi
 
 echo "  ✓ Agents assembled (shared + ${AGENT_DIR})"
@@ -881,7 +933,7 @@ echo "  ✓ Agents assembled (shared + ${AGENT_DIR})"
 prune_agents() {
     local _name
     for _name in "$@"; do
-        rm -f "$AGENTS_OUT/${_name}.md" "$CODEX_AGENTS_OUT/${_name}.toml" "$GEMINI_AGENTS_OUT/${_name}.md"
+        rm -f "$AGENTS_OUT/${_name}.md" "$CODEX_AGENTS_OUT/${_name}.toml" "$GEMINI_AGENTS_OUT/${_name}.md" "$GROK_AGENTS_OUT/${_name}.md"
     done
 }
 
@@ -990,6 +1042,9 @@ for agent in literature-scout gap-scout novelty-checker theory-explorer referee 
     if [ -f "$GEMINI_AGENTS_OUT/$agent.md" ]; then
         echo "$VARIANT_BLOCK" >> "$GEMINI_AGENTS_OUT/$agent.md"
     fi
+    if [ -f "$GROK_AGENTS_OUT/$agent.md" ]; then
+        echo "$VARIANT_BLOCK" >> "$GROK_AGENTS_OUT/$agent.md"
+    fi
 done
 echo "  ✓ Variant context injected into agents"
 
@@ -1029,6 +1084,9 @@ inject_block_into_agents() {
         fi
         if [ -f "$GEMINI_AGENTS_OUT/$_agent.md" ]; then
             printf '\n%s\n' "$_block" >> "$GEMINI_AGENTS_OUT/$_agent.md"
+        fi
+        if [ -f "$GROK_AGENTS_OUT/$_agent.md" ]; then
+            printf '\n%s\n' "$_block" >> "$GROK_AGENTS_OUT/$_agent.md"
         fi
     done
 }
@@ -1976,7 +2034,7 @@ open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{
                 "$TEMPLATE_ROOT/extensions/empirical/scorer_fertility_inject.md" \
                 "$P/docs/stage_2.md" \
                 "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
-                "$AGENTS_OUT/scorer.md" "$CODEX_AGENTS_OUT/scorer.toml" "$GEMINI_AGENTS_OUT/scorer.md" \
+                "$AGENTS_OUT/scorer.md" "$CODEX_AGENTS_OUT/scorer.toml" "$GEMINI_AGENTS_OUT/scorer.md" "$GROK_AGENTS_OUT/scorer.md" \
                 "$TEMPLATE_ROOT/extensions/empirical/state_loop_fields_inject.md" <<'PYEOF'
 import json, os, sys
 # Inject files are read raw — each file is responsible for its own leading/trailing
@@ -2170,7 +2228,7 @@ done
 python3 - \
     "$P/docs/stage_2.md" \
     "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
-    "$AGENTS_OUT/scorer.md" "$CODEX_AGENTS_OUT/scorer.toml" "$GEMINI_AGENTS_OUT/scorer.md" <<'PYEOF'
+    "$AGENTS_OUT/scorer.md" "$CODEX_AGENTS_OUT/scorer.toml" "$GEMINI_AGENTS_OUT/scorer.md" "$GROK_AGENTS_OUT/scorer.md" <<'PYEOF'
 import os, re, sys
 # Match a whole line that is just {{EMPIRICAL_*}} or {{THEORY_LLM_*}} (with optional
 # surrounding whitespace), including its trailing newline. Inline (mid-line)
@@ -2198,7 +2256,7 @@ EMPIRICAL_ENABLED=0
 for ext in "${EXTENSIONS[@]}"; do
     [ "$ext" = "empirical" ] && EMPIRICAL_ENABLED=1
 done
-python3 - "$EMPIRICAL_ENABLED" "$AGENTS_OUT/branch-manager.md" "$CODEX_AGENTS_OUT/branch-manager.toml" "$GEMINI_AGENTS_OUT/branch-manager.md" <<'PYEOF'
+python3 - "$EMPIRICAL_ENABLED" "$AGENTS_OUT/branch-manager.md" "$CODEX_AGENTS_OUT/branch-manager.toml" "$GEMINI_AGENTS_OUT/branch-manager.md" "$GROK_AGENTS_OUT/branch-manager.md" <<'PYEOF'
 import re, sys
 emp = sys.argv[1] == "1"
 if emp:
@@ -2249,7 +2307,7 @@ EXT_EMPIRICAL_ON=0
 # assembly time (before this resolver fires), so {{KEY}} placeholders are
 # already resolved when the resolver sees the agent files.
 python3 - "$EMPIRICAL_FIRST_ON" "$EXT_EMPIRICAL_ON" "$P/docs/"*.md "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
-    "$AGENTS_OUT"/*.md "$CODEX_AGENTS_OUT"/*.toml "$GEMINI_AGENTS_OUT"/*.md <<'PYEOF'
+    "$AGENTS_OUT"/*.md "$CODEX_AGENTS_OUT"/*.toml "$GEMINI_AGENTS_OUT"/*.md "$GROK_AGENTS_OUT"/*.md <<'PYEOF'
 import os, re, sys
 ef = sys.argv[1] == "1"
 xe = sys.argv[2] == "1"
@@ -2324,6 +2382,7 @@ candidate_dirs = [
     ".codex/agents",
     ".agents/skills",
     ".gemini/agents",
+    ".grok/agents",
     "docs",
     "code/utils/codex_math",
     "code/utils/agent_launcher",
@@ -2433,6 +2492,9 @@ if [ "$LOCAL" = "1" ]; then
     echo ""
     echo "=== Gemini Agents ($GEMINI_AGENTS_REL/) ==="
     ls -1 "$GEMINI_AGENTS_OUT/"
+    echo ""
+    echo "=== Grok Agents ($GROK_AGENTS_REL/) ==="
+    ls -1 "$GROK_AGENTS_OUT/"
     if [ -d "$OUT_DIR/$CLAUDE_SKILLS_REL" ]; then
         echo ""
         echo "=== Skills ($CLAUDE_SKILLS_REL/) ==="
@@ -2580,6 +2642,9 @@ echo "  source .venv/bin/activate && codex --sandbox danger-full-access --ask-fo
 echo ""
 echo "Gemini:"
 echo "  source .venv/bin/activate && gemini --yolo"
+echo ""
+echo "Grok (reads the shared AGENTS.md; agents in .grok/agents/):"
+echo "  grok --always-approve"
 echo ""
 if [ "$MANUAL" = "1" ]; then
     echo "Manual mode — read the runtime doc for the agent and skill catalog, then drive."
