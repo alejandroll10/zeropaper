@@ -36,3 +36,14 @@ codex_build_no_spawn_args() {
     fi
     CODEX_NO_SPAWN_ARGS+=(-c "developer_instructions=$CODEX_LEAF_DIRECTIVE")
 }
+
+# codex_leaf_setup
+# One-call setup for a leaf `codex exec`: makes a scratch dir, registers an EXIT
+# trap to remove it, and builds the no-spawn args. Sets globals _codex_scratch
+# and CODEX_NO_SPAWN_ARGS. Call once right before `codex exec`, then pass
+# "${CODEX_NO_SPAWN_ARGS[@]}" into it.
+codex_leaf_setup() {
+    _codex_scratch=$(mktemp -d "${TMPDIR:-/tmp}/codex_math.XXXXXX")
+    trap 'rm -rf "$_codex_scratch"' EXIT
+    codex_build_no_spawn_args "$_codex_scratch"
+}

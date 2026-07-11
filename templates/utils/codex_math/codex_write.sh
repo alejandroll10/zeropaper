@@ -80,10 +80,9 @@ echo "[codex-math] Live progress: tail -f $LOG"
 
 # Leaf-worker guard: keep this codex exec a leaf that cannot spawn sub-agents.
 _cm_dir="$(cd "$(dirname "$0")" && pwd)"
+[ -f "$_cm_dir/codex_common.sh" ] || { echo "[codex-math] ERROR: missing codex_common.sh — run update.sh to refresh code/utils/codex_math" >&2; exit 1; }
 . "$_cm_dir/codex_common.sh"
-_codex_scratch=$(mktemp -d "${TMPDIR:-/tmp}/codex_math.XXXXXX")
-trap 'rm -rf "$_codex_scratch"' EXIT
-codex_build_no_spawn_args "$_codex_scratch"
+codex_leaf_setup
 
 codex exec </dev/null --sandbox workspace-write --skip-git-repo-check \
     -c "model=\"$MODEL\"" \
