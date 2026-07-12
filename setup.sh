@@ -987,6 +987,7 @@ prune_report_mode_agents \
     idea-reviewer \
     idea-prototyper \
     theory-explorer \
+    implications-deriver \
     last-resort \
     scribe \
     triager \
@@ -1018,7 +1019,7 @@ VARIANT_BLOCK="
 - **Domain:** ${DOMAIN_AREAS}
 "
 
-for agent in literature-scout gap-scout novelty-checker theory-explorer referee referee-freeform scorer scorer-freeform editor branch-manager last-resort paper-writer style report-synthesizer; do
+for agent in literature-scout gap-scout novelty-checker theory-explorer implications-deriver referee referee-freeform scorer scorer-freeform editor branch-manager last-resort paper-writer style report-synthesizer; do
     if [ -f "$AGENTS_OUT/$agent.md" ]; then
         echo "$VARIANT_BLOCK" >> "$AGENTS_OUT/$agent.md"
     fi

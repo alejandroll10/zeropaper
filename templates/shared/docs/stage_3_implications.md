@@ -1,30 +1,15 @@
 # Stage 3: Implications
 
-**Orchestrator task + `gap-scout` per implication**
+**`implications-deriver` + `gap-scout` per implication**
 
 ## Step 1: Derive implications from the theory
 
-Read the theory draft. Work out:
+Launch `implications-deriver` on the current theory draft. Pass it the paths to the latest `output/stage2/theory_draft_vN.md`, `output/stage2b/exploration.md` (plus any `exploration_vN.md` re-runs), `output/stage1/selected_idea.md`, and `output/data_inventory.md` (if present). Its body carries the derivation guidance (what counts as an implication, distinctness, sign/sharpness, fragility annotations); it derives 3–6 distinct testable implications and writes `output/stage3/implications_derived.md` — **untagged and with no literature claims**. The agent is web-blind by design: the lit-check is Step 2, per implication, via `gap-scout`; the tagging (Step 3) and routing (Step 5) stay with the orchestrator.
 
-- Testable predictions (signed comparative statics, magnitude predictions, qualitative patterns)
-- Comparative statics (how results move with parameters)
-<!-- THEORY_FIRST_START -->
-- Special cases that recover known results (nested baselines)
-<!-- THEORY_FIRST_END -->
-- Economic intuition for each result (in words, not algebra)
-
-Aim for 3–6 distinct implications. Quality over quantity — each should be a sentence a reader could test.
+If the deriver returns fewer than 3 implications, or any implication is untestable as stated (no observable variables, no direction), re-launch it once with that feedback before proceeding — a thin implications list caps every downstream stage.
 <!-- EMPIRICAL_FIRST_START -->
 
-**Empirical-first mode.** "The theory draft" here is the Stage 2 mechanism document (`output/stage2/theory_draft_vN.md`) — prose + DAG + ≤2 reduced-form posits, not a structural model. The **headline causal estimate** is already committed: Stage 1's `identification_design.md` pins the estimand and the Stage 2 posits commit to the predicted sign and magnitude. Do not re-derive the headline prediction in Step 1.
-
-Stage 3 under empirical-first has a distinct job: derive **auxiliary** predictions that the mechanism implies and the empiricist will need at Stage 3a beyond the headline coefficient. Focus on:
-
-- **Heterogeneity predictions** — where the channel implies the effect should be stronger / weaker / reverse (e.g., by firm size, by leverage, by exposure intensity, by sub-period). These become the heterogeneity panels at Stage 3a.
-- **Falsification predictions** — sub-populations or settings where the channel predicts *no* effect. These become the placebo tests at Stage 3a.
-- **Alternative-channel discriminators** — patterns the claimed channel predicts that the leading alternative channel does *not* predict (or predicts in the opposite direction). These pin the channel attribution at Stage 3a.
-
-Do not derive "nested baselines / special cases" — the mechanism mode has no model parameters to take limits of. Skip that bullet.
+**Empirical-first mode.** The deriver's inputs change: pass the Stage 2 mechanism document (`output/stage2/theory_draft_vN.md` — prose + DAG + ≤2 reduced-form posits, not a structural model) and Stage 1's `output/stage1/identification_design.md`; there is no `exploration.md` (Stage 2b is skipped in mechanism mode). The **headline causal estimate** is already committed — Stage 1's design pins the estimand and the Stage 2 posits commit to the predicted sign and magnitude — and the deriver's empirical-first body derives **auxiliary** predictions only (heterogeneity panels, falsification/placebo predictions, alternative-channel discriminators; no nested baselines), without re-deriving the headline. If its output flags predictions "Untestable within design", carry them into the paper's limitations section rather than dropping them.
 
 The output schema (Step 4) is unchanged — auxiliary predictions get the same SUPPORTED / NOVEL / PUZZLE-CANDIDATE / DEAD tagging. The empiricist at Stage 3a reads the tagged list and tests the NOVEL ones; the contradiction check fires on any NOVEL prediction the data does not support.
 <!-- EMPIRICAL_FIRST_END -->
@@ -50,7 +35,7 @@ Drop DEAD implications from the final list. Keep SUPPORTED, NOVEL, and PUZZLE-CA
 
 ## Step 4: Write `output/stage3/implications.md`
 
-Use this canonical schema so downstream agents (empiricist, paper-writer, scorer) can parse the tags:
+Assemble from `output/stage3/implications_derived.md` + the Step 2 lit-checks: carry over each surviving implication's statement, **Mechanism**, and **Test design hint** verbatim (plus **Fragility**/**Family** lines where present), and add the **Tag** and **Lit status**. Use this canonical schema so downstream agents (empiricist, paper-writer, scorer) can parse the tags:
 
 ```markdown
 # Implications

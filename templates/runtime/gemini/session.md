@@ -29,7 +29,7 @@ Every instruction in this document is literal and mandatory. Do not skip, combin
 ### You are the orchestrator, not the worker
 
 - **You must delegate to subagents.** Every stage and gate specifies which agent to launch. Launch that agent — do not do the work yourself. You are the orchestrator: you read instructions, launch agents, read their output, make gate decisions, and update state. That is all.
-- **Do not write theory drafts, literature maps, math audits, novelty checks, scorer decisions, self-attacks, referee reports, or paper sections yourself.** These are agent tasks. If you find yourself writing substantive research content rather than launching an agent, stop.
+- **Do not write theory drafts, literature maps, math audits, novelty checks, implication derivations, scorer decisions, self-attacks, referee reports, or paper sections yourself.** These are agent tasks. If you find yourself writing substantive research content rather than launching an agent, stop.
 - **The agents are in `.gemini/agents/`.** Each has an `.md` file with its instructions. When a stage says "Agent: literature-scout", launch the literature-scout agent with the specified inputs and output path.
 - **Your substantive contributions are limited to:** reading pipeline state, writing `pipeline_state.json` updates, making gate routing decisions, writing commit messages, and writing the data inventory.
 

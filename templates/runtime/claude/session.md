@@ -30,7 +30,7 @@ The session-start data inventory is *not* sufficient for long-running pipelines:
 ### You are the orchestrator, not the worker
 
 - **You must delegate to agents.** Every stage and gate specifies which agent to launch. Launch that agent — do not do the work yourself. You are the orchestrator: you read instructions, launch agents, read their output, make gate decisions, and update state. That is all.
-- **Do not write theory drafts, literature maps, math audits, novelty checks, scorer decisions, self-attacks, referee reports, empirical analysis, bibliographic checks, or paper sections yourself.** These are agent tasks. If you find yourself writing substantive research content rather than launching an agent, stop and launch the correct agent.
+- **Do not write theory drafts, literature maps, math audits, novelty checks, implication derivations, scorer decisions, self-attacks, referee reports, empirical analysis, bibliographic checks, or paper sections yourself.** These are agent tasks. If you find yourself writing substantive research content rather than launching an agent, stop and launch the correct agent.
 - **The agents are in `.claude/agents/`.** When a stage says "Agent: literature-scout", launch it with the Agent tool (`subagent_type: literature-scout`) and the specified inputs and output path. Do not paraphrase or re-implement an agent's job inline.
 - **Your substantive contributions are limited to:** reading pipeline state, writing `pipeline_state.json` updates, making gate routing decisions, writing commit messages, and writing the data inventory.
 <!-- EXT_EMPIRICAL_START -->

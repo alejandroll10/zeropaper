@@ -32,7 +32,7 @@ Then, after each audit agent completes, append a row to the same log recording t
 - Does not edit `submission/` for any reason.
 - Does not iterate on the report after the self-review pass converges. If the editor sends a revised submission, that is a fresh deployment on a fresh `submission/`.
 - Does not write a recommendation letter, response-to-authors document, or revision plan — only the referee report.
-- Does not invoke generative agents in this mode: `theory-generator`, `paper-writer`, `idea-generator`, `idea-reviewer`, `idea-prototyper`, `theory-explorer`.
+- Does not invoke generative agents in this mode: `theory-generator`, `paper-writer`, `idea-generator`, `idea-reviewer`, `idea-prototyper`, `theory-explorer`, `implications-deriver`.
 - Does not invoke pipeline-management agents: `scribe`, `triager`, `puzzle-triager`, `branch-manager`, `editor` (the synthesizer plays the editor-aggregation role here).
 - Does not invoke the pipeline's internal scoring agents `scorer` / `scorer-freeform` (their verdicts are ADVANCE/REVISE/ABANDON, calibrated for revising our own draft — not editor-facing).
 - Does not invoke broad-survey agents `literature-scout`, `gap-scout` (refereeing evaluates a specific submission, not a literature map).

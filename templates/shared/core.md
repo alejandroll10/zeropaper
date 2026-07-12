@@ -136,7 +136,7 @@ Stage 2: Mechanism Document  ──→ theory-generator runs in mechanism mode
 Gate 3a-feasibility: Empirical Feasibility   (only if --ext empirical)
                                    ├── FALSIFIED → back to Stage 1
                                    └── OK → proceed
-Stage 3: Implications        ──→ derive predictions + gap-scout each → tag
+Stage 3: Implications        ──→ implications-deriver + gap-scout each → tag
                                    NOVEL / PUZZLE-CANDIDATE / SUPPORTED / DEAD
 Stage 3a: Empirical Analysis     (only if --ext empirical, full test + audit)
 Stage 3b: Experiments         (only if --ext theory_llm, design + review)
@@ -480,7 +480,7 @@ output/                   # Pipeline outputs by stage
 ├── stage2/               # mechanism documents, novelty checks (versioned _v1, _v2…). No math audit files in this mode.
                           # (stage2b/ is not created — theory exploration is skipped)
 <!-- EMPIRICAL_FIRST_END -->
-├── stage3/               # implications.md
+├── stage3/               # implications_derived.md (deriver output) + implications.md (tagged)
 ├── stage3a/              # empirical feasibility + full analysis (if --ext empirical)
 ├── stage3b/  # LLM experiments (if --ext theory_llm)
 ├── stage4/               # self-attack + scorer decision (versioned)

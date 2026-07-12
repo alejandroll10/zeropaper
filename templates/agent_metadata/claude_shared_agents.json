@@ -172,6 +172,21 @@
       "model": "gemini-3-flash-preview"
     }
   },
+  "implications-deriver": {
+    "name": "implications-deriver",
+    "description": "Derives the theory's testable implications at Stage 3 Step 1. Launched once per Stage 3 (re-)run on the current theory draft (re-fires whenever the theory revises \u2014 Stage 2 rework, Stage 2b re-centering, PIVOT/RECONCILE). Reasons purely from the committed theory \u2014 web-blind by design; the orchestrator lit-checks each returned implication via gap-scout (Step 2) and does the tagging and routing. Writes the untagged implication list to output/stage3/implications_derived.md, which seeds output/stage3/implications.md.",
+    "category": "developing",
+    "tools": "Read, Write",
+    "model": "fable",
+    "effort": "high",
+    "codex": {
+      "model": "gpt-5.6-sol",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
   "scorer-freeform": {
     "name": "scorer-freeform",
     "description": "Free-form quality assessment at Gate 4. Reads the theory holistically \u2014 framing, structure, publishability \u2014 without following the scoring rubric. Runs in parallel with the structured scorer; neither sees the other's output.",
