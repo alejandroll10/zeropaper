@@ -71,3 +71,7 @@ code/utils/.wrds_server.pid
 # Process log runtime output (e.g. wrds_server.log from start_services.sh);
 # committed process-log artifacts under process_log/ are added explicitly by scribe.
 process_log/*.log
+
+# Grok Build's per-project leader socket (grok --leader-socket "$(pwd)/.grok/leader.sock").
+# A live unix socket, created lazily by the running leader; never a tracked artifact.
+.grok/leader.sock

@@ -277,7 +277,10 @@ GROK_DIR_REL=".grok"
 GROK_AGENTS_REL="$GROK_DIR_REL/agents"
 # Grok's OS-kernel sandbox profile (Seatbelt on macOS / Landlock on Linux),
 # generated per-deploy below with the deploying user's $HOME baked in (grok's
-# sandbox.toml does not expand ~/$HOME). Launched via `grok --sandbox pipeline`.
+# sandbox.toml does not expand ~/$HOME). Launched via
+# `grok --sandbox pipeline --always-approve --leader-socket "$(pwd)/.grok/leader.sock"`
+# (the per-project leader socket keeps concurrent grok projects from cancelling
+# each other's turns — see the launch-line comment below).
 GROK_SANDBOX_REL="$GROK_DIR_REL/sandbox.toml"
 
 
@@ -927,8 +930,10 @@ fi
 # on the property that matters: destructive writes/deletes OUTSIDE this project are
 # blocked, while the pipeline's real work keeps working — write+run scripts, temp
 # writes, the uv/matplotlib/codex caches, WRDS loopback, and open network egress.
-# Launch is `grok --sandbox pipeline --always-approve` (wired into the launch line
-# below). `extends = "workspace"` already gives read-everywhere / write-{CWD,
+# Launch is `grok --sandbox pipeline --always-approve --leader-socket
+# "$(pwd)/.grok/leader.sock"` (wired into the launch line below; the per-project
+# leader socket is a separate concern from the sandbox — see that comment).
+# `extends = "workspace"` already gives read-everywhere / write-{CWD,
 # ~/.grok,temp} / network-on; we add the pipeline's out-of-project cache+state dirs
 # as read_write and kernel-deny the credential dirs. Grok's `deny` blocks READS as
 # well as writes, so this also closes the secret-read gap the codex runtime had to
@@ -948,7 +953,9 @@ GROK_DIR_OUT="$(dirname "$GROK_AGENTS_OUT")"
 mkdir -p "$GROK_DIR_OUT"
 cat > "$GROK_DIR_OUT/sandbox.toml" <<GROKSB
 # Grok Build sandbox profile for the deployed pipeline (issue #186).
-# Launch: grok --sandbox pipeline --always-approve
+# Launch: grok --sandbox pipeline --always-approve --leader-socket "\$(pwd)/.grok/leader.sock"
+# (the per-project leader socket keeps concurrent grok projects from cancelling
+#  each other's in-flight turns; it is orthogonal to this filesystem profile.)
 # Kernel-enforced (Seatbelt/Landlock). Absolute paths are baked at deploy time
 # because grok does not expand ~ or \$HOME; update.sh regenerates on refresh.
 [profiles.pipeline]
@@ -2699,7 +2706,11 @@ echo "Gemini:"
 echo "  source .venv/bin/activate && gemini --yolo"
 echo ""
 echo "Grok (reads the shared AGENTS.md; agents in .grok/agents/):"
-echo "  grok --sandbox pipeline --always-approve"
+echo "  grok --sandbox pipeline --always-approve --leader-socket \"\$(pwd)/.grok/leader.sock\""
+echo "  # run from the project root: the per-project --leader-socket is required when you run"
+echo "  # more than one grok project on this host (e.g. one tmux window each). All grok clients"
+echo "  # share ~/.grok/leader.sock by default, and a second client on that socket TEARS DOWN the"
+echo "  # first session's in-flight turn — isolating the socket per project keeps them independent."
 echo ""
 if [ "$MANUAL" = "1" ]; then
     echo "Manual mode — read the runtime doc for the agent and skill catalog, then drive."
