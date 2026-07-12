@@ -1,0 +1,1 @@
+- **Fetching papers.** SSRN and the major journal publisher sites (Wiley, ScienceDirect, Oxford Academic) are behind Cloudflare and cannot be fetched with WebFetch — get abstracts from WebSearch snippets or OpenAlex instead. WebFetch works on open hosts: NBER, arXiv, and author pages. For full text, search the paper title + "pdf" to find an accessible copy on one of those.

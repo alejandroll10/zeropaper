@@ -35,7 +35,8 @@ For every `\cite{...}` / `\citet{...}` / `\citep{...}` in the paper sections:
 ## Tools
 
 - **OpenAlex** (skill `openalex`) — primary tool. Search by title or DOI; read the `abstract` and `concepts` fields.
-- **WebSearch** — fallback when OpenAlex doesn't cover the paper (SSRN-only working papers): abstracts appear in search snippets. SSRN pages cannot be fetched with WebFetch (Cloudflare); NBER/arXiv/journal pages can.
+- **WebSearch** — fallback when OpenAlex doesn't cover the paper (SSRN-only working papers): abstracts appear in search snippets. SSRN and the major journal publisher sites (Wiley, ScienceDirect, Oxford Academic) cannot be fetched with WebFetch (Cloudflare); NBER/arXiv/author pages can.
+- **IAR wiki** — `https://instituteforautomatedresearch.org/llms.txt` lists distilled papers (recent volumes of top finance/econ journals) with raw-Markdown pages of core results and source locators; often enough to verify a prose-level claim about a cited paper when the journal site is unfetchable. Partial coverage: a miss means "not distilled," not "nonexistent."
 
 ## What you do NOT do
 
