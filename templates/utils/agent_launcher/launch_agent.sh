@@ -351,9 +351,26 @@ chmod +x "$_scratch/run_worker.sh"
 
 # Detach. From here the wrapper owns the sentinel; the launcher only waits and
 # reports, so hand cleanup ownership over (early-exit paths above still had the
-# full trap).
-python3 -c 'import subprocess, sys; subprocess.Popen([sys.argv[1]], start_new_session=True)' \
-    "$_scratch/run_worker.sh"
+# full trap). The wrapper's pid + start time are appended to the sentinel so a
+# supervisor (launch.sh's wait_for_workers) can distinguish "worker still
+# running" from "worker AND wrapper externally killed, sentinel orphaned, no
+# output ever coming" — without this, an orphaned sentinel parks the driver
+# until its wait cap. The [ -f ] guard: a wrapper that finishes instantly has
+# already removed the sentinel; appending would resurrect it as a permanent
+# orphan (microscopic TOCTOU window between test and append — accepted).
+# DEVNULL stdio is load-bearing: without it the wrapper inherits python's
+# stdout — which is THIS command substitution's pipe — and $() reads to EOF,
+# i.e. blocks until the wrapper exits: the pid append would never fire (the
+# wrapper has already cleaned the sentinel), the LAUNCH_WAIT_MAX cap would be
+# void (the block precedes the loop), and the EXIT trap would stay armed for
+# the worker's whole life. The wrapper redirects everything per-command
+# anyway, so DEVNULL loses nothing.
+_wrapper_pid="$(python3 -c 'import subprocess, sys; print(subprocess.Popen([sys.argv[1]], start_new_session=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).pid)' \
+    "$_scratch/run_worker.sh")"
+_wrapper_lstart="$(ps -o lstart= -p "$_wrapper_pid" 2>/dev/null || true)"
+if [ -f "$_sentinel" ]; then
+    printf 'wrapper_pid=%s wrapper_lstart=%s\n' "$_wrapper_pid" "$_wrapper_lstart" >> "$_sentinel"
+fi
 trap - EXIT
 
 # Wait for the wrapper's rc. Capped (LAUNCH_WAIT_MAX, default 6h — agents can

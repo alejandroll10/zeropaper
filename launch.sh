@@ -51,7 +51,10 @@ done
 # Re-wrap into tmux first, so everything below runs inside the window.
 if [ "$TMUX_WRAP" = "1" ]; then
     _win="pipeline-$RUNTIME-$(basename "$ROOT")"
-    _cmd="cd $(printf '%q' "$ROOT") && ./launch.sh $(printf '%q' "$RUNTIME")$( [ "$ONCE" = "1" ] && printf ' --once' )"
+    # `|| true`: the && chain returns 1 when ONCE=0, and an assignment's exit
+    # status is its command substitution's — without the guard, set -e kills
+    # the script right here, silently, on every plain `--tmux` launch.
+    _cmd="cd $(printf '%q' "$ROOT") && ./launch.sh $(printf '%q' "$RUNTIME")$( [ "$ONCE" = "1" ] && printf ' --once' || true )"
     if [ -n "${TMUX:-}" ]; then
         tmux new-window -n "$_win" "$_cmd"
     else
@@ -209,9 +212,39 @@ wait_for_workers() {
         pending=0
         for s in "$ROOT"/process_log/agent_runs/.*.running; do
             [ -e "$s" ] || continue
-            out="$(sed -n 's/.*output=//p' "$s" | head -1)"
+            # || true on every read of "$s": the wrapper can rm the sentinel
+            # between our [ -e ] test and the read; a failed assignment under
+            # set -e would kill the whole driver on that poll race.
+            out="$(sed -n 's/.*output=//p' "$s" 2>/dev/null | head -1 || true)"
             if [ -n "$out" ] && { [ -s "$out" ] || [ -s "$ROOT/$out" ]; }; then
                 continue  # output already written: worker is done, sentinel stale
+            fi
+            # Liveness check via the wrapper pid the launcher recorded: a
+            # dead wrapper with no output means worker AND wrapper were
+            # externally killed — the sentinel is an orphan that would
+            # otherwise park us until the wait cap. Clear it and move on; the
+            # resumed orchestrator sees the missing output and relaunches.
+            # kill -0 is the primary probe (signal-based — works even though
+            # macOS ps/pgrep need sysmond and return NOTHING from inside
+            # sandboxes, which is also why the recorded lstart may be empty:
+            # the launcher runs inside the orchestrator's sandbox). lstart is
+            # only a secondary pid-reuse guard when both sides captured it.
+            # Old-format sentinels without wrapper_pid keep plain waiting.
+            w_pid="$(sed -n 's/.*wrapper_pid=\([0-9][0-9]*\).*/\1/p' "$s" 2>/dev/null | head -1 || true)"
+            w_lstart="$(sed -n 's/.*wrapper_lstart=\(.*\)$/\1/p' "$s" 2>/dev/null | head -1 || true)"
+            if [ -n "$w_pid" ]; then
+                w_dead=""
+                if ! kill -0 "$w_pid" 2>/dev/null; then
+                    w_dead=1
+                elif [ -n "$w_lstart" ]; then
+                    w_now="$(ps -o lstart= -p "$w_pid" 2>/dev/null || true)"
+                    [ -n "$w_now" ] && [ "$w_now" != "$w_lstart" ] && w_dead=1  # pid reused
+                fi
+                if [ -n "$w_dead" ]; then
+                    echo "[driver] sentinel $(basename "$s") references a dead worker with no output — clearing the orphan" | tee -a "$LOG"
+                    rm -f "$s"
+                    continue
+                fi
             fi
             pending=1
         done
