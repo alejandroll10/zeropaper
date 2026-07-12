@@ -67,3 +67,7 @@ paper/*-SAVE-ERROR
 # rule still protects projects deployed on older code, and the brief window
 # during an update.sh refresh, from a stray tracked pid file.
 code/utils/.wrds_server.pid
+
+# Process log runtime output (e.g. wrds_server.log from start_services.sh);
+# committed process-log artifacts under process_log/ are added explicitly by scribe.
+process_log/*.log

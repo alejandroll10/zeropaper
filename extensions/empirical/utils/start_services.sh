@@ -26,15 +26,36 @@ if [ -n "$WRDS_USER" ] && [ "$WRDS_USER" != "your-username" ] && [ -n "$WRDS_PAS
     else
         echo "Starting WRDS server (approve Duo when prompted)..."
         # wrds.Connection silently ignores the wrds_password kwarg — feed libpq via PGPASSWORD instead.
-        PGPASSWORD="$WRDS_PASS" PYTHONPATH=code python3 code/utils/wrds_server.py &
+        # Redirect the daemon's stdout/stderr to a log file (not the inherited fds) and disown it.
+        # Otherwise the backgrounded server holds this script's stdout open; when start_services.sh is
+        # invoked through a pipe (e.g. `... | tail`), the reader never sees EOF and the caller hangs
+        # indefinitely even though the script itself has finished.
+        mkdir -p process_log
+        # nohup/& here is deliberate: this is fixed infrastructure starting a persistent,
+        # host-shared daemon meant to outlive the calling session — not an agent-improvised
+        # job the harness should track (cf. templates/shared/bash_background.md).
+        PGPASSWORD="$WRDS_PASS" PYTHONPATH=code nohup python3 code/utils/wrds_server.py \
+            >> process_log/wrds_server.log 2>&1 &
+        # || true: if the daemon crashes before disown runs, no-job is not fatal under set -e;
+        # the readiness loop below reports the real failure.
+        disown 2>/dev/null || true
         # Wait for server to be ready
+        ready=0
         for i in $(seq 1 120); do
             sleep 1
             if PYTHONPATH=code python3 -c "from utils.wrds_client import wrds_ping; exit(0 if wrds_ping() else 1)" 2>/dev/null; then
                 echo "WRDS server ready"
+                ready=1
                 break
             fi
         done
+        # Fail loudly on timeout instead of falling through to "Services ready." with exit 0 —
+        # a silent false-success would let the pipeline start Stage 0 against a dead server.
+        if [ "$ready" -ne 1 ]; then
+            echo "ERROR: WRDS server did not become ready within 120s." >&2
+            echo "       Check process_log/wrds_server.log (Duo not approved? bad credentials? network?)." >&2
+            exit 1
+        fi
     fi
 else
     echo "WRDS: credentials not configured (set WRDS_USER and WRDS_PASS in .env), skipping"
