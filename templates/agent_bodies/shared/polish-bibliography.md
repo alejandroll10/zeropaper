@@ -29,13 +29,13 @@ For every `\cite{...}` / `\citet{...}` / `\citep{...}` in the paper sections:
 
 - You verify *prose-level* claims about cited papers; you do not verify whether the cite key resolves (that's `bib-verifier`).
 - For cites already marked `FABRICATED` in the `## Triage` section of `output/bib_verification.md`, skip them — they'll be removed by paper-writer separately.
-- For cites marked `RESOLVED-VIA-WEBSEARCH` (SSRN/working papers without OpenAlex coverage) in that same Triage section, you can usually still verify the prose claim by fetching the abstract from the URL bib-verifier captured. If not, mark `UNVERIFIABLE` and move on.
+- For cites marked `RESOLVED-VIA-WEBSEARCH` (SSRN/working papers without OpenAlex coverage) in that same Triage section, you can usually still verify the prose claim from the WebSearch snippet (search the exact title in quotes — the abstract appears in the snippet) or by fetching a non-SSRN copy (NBER, arXiv, author page); SSRN pages are behind Cloudflare and cannot be fetched with WebFetch. If not, mark `UNVERIFIABLE` and move on.
 - **Hard cap: 50 OpenAlex lookups per run.** Track the count yourself; stop after the 50th successful lookup regardless of how many citations remain unaudited and note the shortfall in your report. For papers with more than 50 cites, prioritize in this order: (a) cites immediately preceded by "shows," "proves," "documents," "finds," "establishes"; (b) cites contrasted with the paper's own claim ("unlike X," "departing from X," "in contrast to X"); (c) all cites in the introduction; (d) cites in propositions/discussion sections. Skip pure literature-list cites in related-work paragraphs (clusters of 3+ cites in one parenthetical). Record skipped cites with a one-line reason in a `## Unaudited (cap reached)` section of your report so the orchestrator knows what was not checked.
 
 ## Tools
 
 - **OpenAlex** (skill `openalex`) — primary tool. Search by title or DOI; read the `abstract` and `concepts` fields.
-- **WebFetch** — fallback for SSRN abstracts when OpenAlex doesn't cover the paper.
+- **WebSearch** — fallback when OpenAlex doesn't cover the paper (SSRN-only working papers): abstracts appear in search snippets. SSRN pages cannot be fetched with WebFetch (Cloudflare); NBER/arXiv/journal pages can.
 
 ## What you do NOT do
 
