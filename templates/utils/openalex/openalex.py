@@ -56,6 +56,18 @@ except Exception:
 BACKOFF = 1.5
 BACKOFF_CAP = 30.0  # don't sleep longer than this per attempt
 
+
+class OpenAlexRateLimited(RuntimeError):
+    """A 429 whose Retry-After is too long to wait out (OpenAlex's daily-budget
+    limiter sends seconds-until-midnight-UTC — hours). Distinct from a generic
+    RuntimeError so the CLI can tell the caller *why* it bailed and that the
+    right response is to fall back to WebSearch, not to retry or treat the
+    openalex skill as broken. Carries retry_after for anyone who wants it."""
+
+    def __init__(self, message: str, retry_after: float | None = None):
+        super().__init__(message)
+        self.retry_after = retry_after
+
 # Aliases for top finance/economics venues. The OpenAlex source IDs below were
 # resolved from the search API and verified against the journal page. Update as
 # OpenAlex revises its source registry.
@@ -129,10 +141,15 @@ def _backoff_sleep(attempt: int, retry_after: float | None) -> None:
     Jitter (full-jitter: random in [0, window]) is what keeps several pipelines
     sharing one IP from retrying in lockstep and re-tripping the rate limit
     together.
+
+    Every sleep is capped at BACKOFF_CAP. A server-sent Retry-After can be huge
+    — OpenAlex's daily-budget 429 sends seconds-until-midnight-UTC (hours) — and
+    blocking a whole agent on that is pointless; http_get bails on a long
+    Retry-After before ever reaching here with one.
     """
     window = min(BACKOFF * (2 ** attempt), BACKOFF_CAP)
     delay = retry_after if retry_after is not None else random.uniform(0, window)
-    time.sleep(delay)
+    time.sleep(min(delay, BACKOFF_CAP))
 
 
 def http_get(path: str, params: dict, mailto: str) -> dict:
@@ -150,8 +167,24 @@ def http_get(path: str, params: dict, mailto: str) -> dict:
             # 4xx other than 429 (e.g. 400/404) are deterministic; don't retry.
             if exc.code != 429 and exc.code < 500:
                 break
+            retry_after = _retry_after_seconds(exc)
+            # Fail FAST on a long Retry-After. OpenAlex's daily-budget 429 sends
+            # Retry-After = seconds-until-midnight-UTC (can be hours); the budget
+            # will not clear within our retry window, so blocking on it is
+            # pointless — bail immediately with an actionable message so the
+            # caller falls back to WebSearch instead of retrying or giving up.
+            # Scoped to 429: a 5xx with a long Retry-After is a transient outage,
+            # not budget exhaustion, so it takes the normal capped-backoff path
+            # below (BACKOFF_CAP already bounds each sleep to 30s — no hang).
+            if exc.code == 429 and retry_after is not None and retry_after > BACKOFF_CAP:
+                raise OpenAlexRateLimited(
+                    f"OpenAlex rate-limited (HTTP 429), Retry-After={retry_after:.0f}s "
+                    f"(~{retry_after / 3600:.1f}h) — daily request budget likely exhausted "
+                    f"(resets 00:00 UTC). Not waiting; fall back to WebSearch.",
+                    retry_after=retry_after,
+                ) from exc
             if attempt < RETRIES:
-                _backoff_sleep(attempt, _retry_after_seconds(exc))
+                _backoff_sleep(attempt, retry_after)
         except Exception as exc:
             last_err = exc
             if attempt < RETRIES:
@@ -495,6 +528,11 @@ def main() -> int:
     mailto = load_env_email()
     try:
         return args.func(args, mailto)
+    except OpenAlexRateLimited as exc:
+        # Distinct prefix + exit code so a caller can branch: fall back to
+        # WebSearch immediately rather than treating this as a hard failure.
+        print(f"RATE-LIMITED: {exc}", file=sys.stderr)
+        return 7
     except RuntimeError as exc:
         print(f"ERROR: {exc}", file=sys.stderr)
         return 5
