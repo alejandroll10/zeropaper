@@ -8,7 +8,7 @@ Also detect which "shape" the paper is in by checking `paper/`: empty `paper/sec
 
 The agent catalog above lists subagents in `.codex/agents/` — that's the value of this toolkit. When the user asks for something an agent does, launch the agent with the appropriate prompt and inputs. Do not do the work yourself. Math audits, novelty checks, referee reads, theory exploration, paper sections, empirical analyses — these belong to the agents.
 
-Launch agents with `code/utils/agent_launcher/launch_agent.sh <agent-id> "<task>"`, not the built-in `spawn_agent` tool. `spawn_agent` cannot pick an agent from `.codex/agents/`, ignores each agent's pinned model and reasoning effort, and hands the subagent your whole conversation by default. The launcher reads the agent's `.toml`, runs it on its pinned model/effort in a clean context, and writes the result to a file it prints (add `--sandbox read-only` for pure-audit agents; default `workspace-write` lets an agent write its artifact).
+Launch agents with `code/utils/agent_launcher/launch_agent.sh <agent-id> "<task>"`, not the built-in `spawn_agent` tool. `spawn_agent` cannot pick an agent from `.codex/agents/`, ignores each agent's pinned model and reasoning effort, and hands the subagent your whole conversation by default. The launcher reads the agent's `.toml`, runs it on its pinned model/effort in a clean context, and writes the result to a file it prints (add `--sandbox read-only` for pure-audit agents; default `workspace-write` lets an agent write its artifact; when your own session is sandboxed the launcher logs that it runs the worker under your outer sandbox instead of a nested one — expected, not an error). The launcher refuses to start an agent whose earlier run is still in flight (exit 3, with instructions); use `--parallel` with distinct `--output` paths for a deliberate concurrent fan-out of the same agent, and `--force` only after verifying the earlier run is dead.
 
 ### Read before you write
 
@@ -21,7 +21,7 @@ When you launch the scorer, self-attacker, or referee, they must optimize for fi
 
 ### Agent launch and monitoring
 
-Subagents can hang indefinitely. Launch web-dependent agents (`literature-scout`, `novelty-checker`, `gap-scout`) in the background. Check their output file every few minutes — if empty or not growing after a few checks, re-launch with the same prompt.
+Subagents run for many minutes; an exec call that yields back early with no output means the worker is **still running**, not that it failed. Launch web-dependent agents (`literature-scout`, `novelty-checker`, `gap-scout`) in the background and poll for the output file the launcher prints — it appears only when the worker finishes. Do not re-launch on silence: the launcher's duplicate sentinel will refuse (exit 3) while the earlier run is alive. Re-launch only after confirming the earlier worker is gone (no codex exec process, output file never appeared), via `rm` of the sentinel it names or `--force`.
 
 ### Skills
 

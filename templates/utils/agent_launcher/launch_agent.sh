@@ -22,20 +22,54 @@
 # Usage:
 #   launch_agent.sh <agent-id> <task-or-taskfile> [--sandbox MODE]
 #                    [--output FILE] [--add-dir DIR]... [--model MODEL]
+#                    [--parallel] [--force]
 #
 #   <agent-id>          basename of a file in .codex/agents/ (e.g. "scorer")
 #   <task-or-taskfile>  the task prompt; if it names an existing file, that
 #                       file's contents are used as the task text
 #   --sandbox MODE      read-only | workspace-write (default) | danger-full-access
-#                       (an agent TOML `sandbox_mode`, if present, is the default)
+#                       (an agent TOML `sandbox_mode`, if present, is the default;
+#                       forced to danger-full-access when nested — see below)
 #   --output FILE       where to write the worker's final message
 #                       (default: process_log/agent_runs/<agent-id>-<UTC>.md)
 #   --add-dir DIR       grant the worker write access to an extra dir (repeatable)
 #   --model MODEL       override the TOML's pinned model (rarely needed)
+#   --parallel          deliberate same-agent fan-out (e.g. the gate steps that
+#                       run K novelty-checkers / idea-prototypers concurrently):
+#                       skips the duplicate-launch refusal and uses a
+#                       per-invocation sentinel so instances don't collide.
+#                       Give each instance its own --output.
+#   --force             launch even though an earlier run of this agent appears
+#                       to still be in flight (duplicate-launch sentinel) — only
+#                       after verifying that run is dead. Unlike --parallel this
+#                       REPLACES the stale sentinel. (Narrow race, accepted: if
+#                       the earlier worker was in fact alive, its exit removes
+#                       the shared sentinel out from under the forced run.)
+#                       Under --parallel, --force is a no-op — parallel mode has
+#                       no refusal path to override.
 #
 # Exit status is the worker's: nonzero means the model was unavailable (codex
 # does NOT downgrade — see the model-fallback note in CLAUDE.md; only the Claude
 # runtime is probed/remapped at setup) or the task itself failed. Read the error.
+# Exit 3 (launcher's own): duplicate-launch sentinel refused the launch.
+#
+# NESTED-SANDBOX BEHAVIOR: when this launcher is itself invoked from inside a
+# codex sandbox (the normal case — the pipeline orchestrator's exec tool runs it
+# under codex's deny-by-default Seatbelt profile, and sets CODEX_SANDBOX in the
+# child env), the worker CANNOT apply an inner sandbox of its own: macOS refuses
+# the second sandbox_apply, so every apply_patch call (both the native patch tool
+# and the `apply_patch` shell helper) fails with `sandbox_apply: Operation not
+# permitted` / "Failed to write file", while plain exec commands still run (codex
+# skips re-sandboxing exec when it detects it is already sandboxed). Observed in
+# production and reproduced 2026-07-12 on codex-cli 0.144.1. The launcher
+# therefore detects nesting via $CODEX_SANDBOX and runs the worker with
+# `--sandbox danger-full-access`: the ORCHESTRATOR'S outer sandbox still confines
+# the whole worker process tree (verified — a $HOME write from such a worker is
+# still denied), so the security boundary is unchanged; the worker just stops
+# trying to stack a second, broken sandbox inside it. Consequence: per-worker
+# sandbox tiering (`--sandbox read-only`, TOML `sandbox_mode`) is unavailable
+# when nested — it was already unenforceable (nested exec runs under the outer
+# sandbox only); the override just makes that visible and fixes apply_patch.
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
@@ -50,13 +84,17 @@ shift 2
 SANDBOX=""            # empty => use TOML sandbox_mode, else workspace-write
 OUTPUT=""
 MODEL_OVERRIDE=""
+FORCE=""
+PARALLEL=""
 ADDDIR_ARGS=()
 while [ $# -gt 0 ]; do
     case "$1" in
-        --sandbox) SANDBOX="${2:?--sandbox needs a value}"; shift 2 ;;
-        --output)  OUTPUT="${2:?--output needs a value}"; shift 2 ;;
-        --model)   MODEL_OVERRIDE="${2:?--model needs a value}"; shift 2 ;;
-        --add-dir) ADDDIR_ARGS+=(--add-dir "${2:?--add-dir needs a value}"); shift 2 ;;
+        --sandbox)  SANDBOX="${2:?--sandbox needs a value}"; shift 2 ;;
+        --output)   OUTPUT="${2:?--output needs a value}"; shift 2 ;;
+        --model)    MODEL_OVERRIDE="${2:?--model needs a value}"; shift 2 ;;
+        --add-dir)  ADDDIR_ARGS+=(--add-dir "${2:?--add-dir needs a value}"); shift 2 ;;
+        --parallel) PARALLEL=1; shift ;;
+        --force)    FORCE=1; shift ;;
         *) echo "ERROR: unknown option '$1'" >&2; exit 2 ;;
     esac
 done
@@ -132,6 +170,19 @@ fi
 # Claude def omits Bash — that is more permissive, not less, and is intended.)
 [ -z "$SANDBOX" ] && SANDBOX="${TOML_SANDBOX:-workspace-write}"
 
+# Nested-sandbox guard (see header). codex sets CODEX_SANDBOX in every process
+# it sandboxes, so its presence means we are running inside the orchestrator's
+# sandbox and a second, inner sandbox cannot be applied (apply_patch would fail
+# with `sandbox_apply: Operation not permitted`). Run the worker sandbox-less
+# and let the orchestrator's outer sandbox confine it — same boundary, working
+# tools. Logged so a requested read-only tier that gets overridden is visible.
+if [ -n "${CODEX_SANDBOX:-}" ] && [ "$SANDBOX" != "danger-full-access" ]; then
+    echo "[launch_agent] nested inside a codex sandbox (CODEX_SANDBOX=$CODEX_SANDBOX):" \
+         "overriding worker sandbox '$SANDBOX' -> danger-full-access." \
+         "The caller's outer sandbox still confines this worker; inner sandboxes cannot be applied here."
+    SANDBOX="danger-full-access"
+fi
+
 # Under workspace-write, mirror the Claude deploy's filesystem/network posture
 # (.claude/settings.json allowWrite + open egress): workspace-write defaults to
 # writable [workdir, /tmp, $TMPDIR] with network OFF, but pipeline workers write
@@ -149,9 +200,23 @@ fi
 # identical; the network half is not. Do NOT unify these two without reading why
 # they differ (see that file's comment) — matching them would re-grant egress to
 # the one call site that has no use for it.
+# $PROJECT_ROOT/.git is included for the same reason the orchestrator's launch
+# command carries it: codex hard-codes each root's top-level .git read-only, so
+# a worker that commits (scribe) would die on index.lock without it. Only
+# *enforced* when the launcher runs un-nested (nested workers run
+# danger-full-access under the caller's outer sandbox — see the guard above);
+# it makes the un-nested path behave the same. codex_common.sh's counterpart
+# array deliberately omits it — codex-math workers never touch git.
+# KNOWN EDGE (accepted): $PROJECT_ROOT is interpolated into a TOML array
+# literal, so a project path containing a double quote or backslash would break
+# this -c value's TOML parse — and unlike developer_instructions (where the
+# raw-literal fallback is a string, the expected type) an array key has no
+# graceful fallback. The same interpolation ships in the documented launch
+# command (README/CLAUDE.md/setup.sh). Deploy paths are machine-generated and
+# never carry those characters; do not name a project with `"` or `\`.
 SANDBOX_WS_ARGS=(
     -c 'sandbox_workspace_write.network_access=true'
-    -c 'sandbox_workspace_write.writable_roots=["~/.codex","~/.cache","~/Library/Caches","~/.matplotlib"]'
+    -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$PROJECT_ROOT/.git\"]"
 )
 
 if [ -z "$OUTPUT" ]; then
@@ -159,6 +224,38 @@ if [ -z "$OUTPUT" ]; then
     OUTPUT="$PROJECT_ROOT/process_log/agent_runs/${AGENT_ID}-${_stamp}.md"
 fi
 mkdir -p "$(dirname "$OUTPUT")"
+
+# Duplicate-launch sentinel. A worker runs for MINUTES; an orchestrator whose
+# exec call yields early (empty output) must NOT conclude the launch failed and
+# relaunch — that burned 4x tokens on identical literature scouts in production.
+# The sentinel makes the accidental second launch fail loudly instead of
+# silently doubling. Deliberate same-agent fan-out (the gate steps that run K
+# novelty-checkers / idea-prototypers concurrently) is expressed with
+# --parallel, which uses a per-invocation (pid-suffixed) sentinel and skips the
+# refusal — "duplicate" vs "fan-out" is intent, so the caller states it.
+# Sentinels are removed on normal exit; a hard-killed launcher (SIGKILL) leaves
+# one behind, so the refusal message tells the caller how to verify + override.
+_sentinel_dir="$PROJECT_ROOT/process_log/agent_runs"
+mkdir -p "$_sentinel_dir"
+if [ -n "$PARALLEL" ]; then
+    _sentinel="$_sentinel_dir/.${AGENT_ID}.$$.running"
+else
+    _sentinel="$_sentinel_dir/.${AGENT_ID}.running"
+    if [ -e "$_sentinel" ] && [ -z "$FORCE" ]; then
+        echo "ERROR: an earlier launch of '$AGENT_ID' appears to still be running:" >&2
+        sed 's/^/       /' "$_sentinel" >&2 || true
+        echo "       A launched worker keeps running in the background even when your exec call" >&2
+        echo "       returned early with no output — it has NOT failed. Wait and poll for the" >&2
+        echo "       output file recorded above instead of relaunching." >&2
+        echo "       If that output file now exists, the earlier run finished (stale sentinel)." >&2
+        echo "       For a deliberate concurrent fan-out of this agent, re-run with --parallel." >&2
+        echo "       Only if you have confirmed the earlier worker is gone (output file never" >&2
+        echo "       appeared and no codex exec process remains): rm '$_sentinel' or re-run with --force." >&2
+        exit 3
+    fi
+fi
+printf 'started=%s pid=%s output=%s\n' "$(date -u +%Y-%m-%dT%H:%M:%SZ)" "$$" "$OUTPUT" > "$_sentinel"
+trap 'rm -rf "$_scratch"; rm -f "$_sentinel"' EXIT
 
 # Build a no-spawn model catalog so the worker physically cannot fan out. codex
 # ties the native multi-agent tool surface (spawn_agent + the "you're in a team"

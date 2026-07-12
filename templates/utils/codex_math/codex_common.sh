@@ -45,6 +45,28 @@ CODEX_SANDBOX_WS_ARGS=(
     -c 'sandbox_workspace_write.writable_roots=["~/.codex","~/.cache","~/Library/Caches","~/.matplotlib"]'
 )
 
+# Sandbox MODE for codex-math leaf workers: workspace-write normally. When these
+# scripts are invoked from inside a codex sandbox (CODEX_SANDBOX is set in the
+# env — the normal case when the pipeline orchestrator's exec tool runs them
+# under codex's deny-by-default Seatbelt profile), a second, inner sandbox
+# cannot be applied: macOS refuses the nested sandbox_apply, so apply_patch
+# fails with `sandbox_apply: Operation not permitted` while plain exec commands
+# silently run under the OUTER sandbox only (codex skips re-sandboxing when it
+# detects it is already sandboxed). Reproduced 2026-07-12 on codex-cli 0.144.1;
+# same defect and fix as code/utils/agent_launcher/launch_agent.sh. When nested
+# we therefore run the worker sandbox-less and let the caller's outer sandbox
+# confine it — the same boundary that was actually in force anyway. Caveat: the
+# network_access=false posture above is only *enforced* un-nested; nested,
+# egress is whatever the outer sandbox grants. That is not a regression — it
+# was already true before this guard; the guard just fixes apply_patch and
+# makes the situation explicit. Pass as: --sandbox "$CODEX_SANDBOX_MODE".
+if [ -n "${CODEX_SANDBOX:-}" ]; then
+    CODEX_SANDBOX_MODE="danger-full-access"
+    echo "[codex-math] nested inside a codex sandbox (CODEX_SANDBOX=$CODEX_SANDBOX): worker runs danger-full-access; the caller's outer sandbox still confines it" >&2
+else
+    CODEX_SANDBOX_MODE="workspace-write"
+fi
+
 # codex_build_no_spawn_args <scratch_dir>
 # Populates the global array CODEX_NO_SPAWN_ARGS with `codex exec -c ...` flags
 # that make the worker leaf-only. Best-effort on the catalog: if `codex debug

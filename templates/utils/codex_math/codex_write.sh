@@ -84,7 +84,7 @@ _cm_dir="$(cd "$(dirname "$0")" && pwd)"
 . "$_cm_dir/codex_common.sh"
 codex_leaf_setup
 
-codex exec </dev/null --sandbox workspace-write --skip-git-repo-check \
+codex exec </dev/null --sandbox "$CODEX_SANDBOX_MODE" --skip-git-repo-check \
     -c "model=\"$MODEL\"" \
     -c "model_reasoning_effort=\"$EFFORT\"" \
     -c 'model_reasoning_summary="detailed"' \

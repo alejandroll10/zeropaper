@@ -154,8 +154,14 @@ Codex:
 cd my-paper
 source .venv/bin/activate && codex --sandbox workspace-write --ask-for-approval never \
   -c 'sandbox_workspace_write.network_access=true' \
-  -c 'sandbox_workspace_write.writable_roots=["~/.codex","~/.cache","~/Library/Caches","~/.matplotlib"]'
+  -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$(pwd)/.git\"]"
 ```
+
+The `$(pwd)/.git` writable root is load-bearing (run the command from the project
+root): codex's workspace-write sandbox hard-codes each writable root's top-level
+`.git` as read-only, so without it every pipeline `git commit` fails with
+`Unable to create .git/index.lock: Operation not permitted`. Listing `.git` as
+its *own* root sidesteps the carve-out (verified on codex-cli 0.144.1).
 
 Gemini CLI:
 
@@ -336,7 +342,7 @@ my-paper/
 
 - Activate the project venv before any runtime: `source .venv/bin/activate && …`
 - Claude Code: `claude --dangerously-skip-permissions`
-- Codex: `codex --sandbox workspace-write --ask-for-approval never -c 'sandbox_workspace_write.network_access=true' -c 'sandbox_workspace_write.writable_roots=["~/.codex","~/.cache","~/Library/Caches","~/.matplotlib"]'` (write-confined to the project; see Safety)
+- Codex: `codex --sandbox workspace-write --ask-for-approval never -c 'sandbox_workspace_write.network_access=true' -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$(pwd)/.git\"]"` (write-confined to the project; run from the project root — the `$(pwd)/.git` root is required for pipeline commits; see Safety)
 - Gemini CLI: `gemini --yolo`
 - All runtimes read the same pipeline state and produce identical artifacts — you can switch runtimes mid-pipeline.
 
