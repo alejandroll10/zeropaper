@@ -152,16 +152,24 @@ Codex:
 
 ```bash
 cd my-paper
+./launch.sh codex        # headless driver loop — the autonomous way to run codex
+./launch.sh codex --once # plain interactive TUI, if you want a single session
+```
+
+`./launch.sh codex` is a **driver loop**, not a TUI: codex has no autowake, so an
+interactive codex session stalls whenever the model ends its turn between stages.
+The driver re-prompts the same session (`codex exec resume`) until
+`pipeline_state.json` reports `complete` or `halted_*`, with a stuck-model cost
+guard. It applies the full sandbox posture automatically, including the
+`$(pwd)/.git` writable root that pipeline `git commit`s require (codex hard-codes
+each root's top-level `.git` as read-only; listing `.git` as its own root
+sidesteps the carve-out — verified on codex-cli 0.144.1). Manual equivalent:
+
+```bash
 source .venv/bin/activate && codex --sandbox workspace-write --ask-for-approval never \
   -c 'sandbox_workspace_write.network_access=true' \
   -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$(pwd)/.git\"]"
 ```
-
-The `$(pwd)/.git` writable root is load-bearing (run the command from the project
-root): codex's workspace-write sandbox hard-codes each writable root's top-level
-`.git` as read-only, so without it every pipeline `git commit` fails with
-`Unable to create .git/index.lock: Operation not permitted`. Listing `.git` as
-its *own* root sidesteps the carve-out (verified on codex-cli 0.144.1).
 
 Gemini CLI:
 
@@ -340,9 +348,9 @@ my-paper/
 
 ## Runtime notes
 
-- Activate the project venv before any runtime: `source .venv/bin/activate && …`
+- Preferred: `./launch.sh <claude|codex|gemini|grok>` — activates the venv and applies each runtime's correct flags (`--tmux` wraps in a detached tmux window)
 - Claude Code: `claude --dangerously-skip-permissions`
-- Codex: `codex --sandbox workspace-write --ask-for-approval never -c 'sandbox_workspace_write.network_access=true' -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$(pwd)/.git\"]"` (write-confined to the project; run from the project root — the `$(pwd)/.git` root is required for pipeline commits; see Safety)
+- Codex: `./launch.sh codex` runs the headless driver loop (codex has no autowake; an interactive TUI stalls at every turn-end). Manual posture: `codex --sandbox workspace-write --ask-for-approval never -c 'sandbox_workspace_write.network_access=true' -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$(pwd)/.git\"]"` (write-confined to the project; run from the project root — the `$(pwd)/.git` root is required for pipeline commits; see Safety)
 - Gemini CLI: `gemini --yolo`
 - All runtimes read the same pipeline state and produce identical artifacts — you can switch runtimes mid-pipeline.
 

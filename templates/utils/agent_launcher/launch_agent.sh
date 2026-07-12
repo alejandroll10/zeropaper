@@ -52,6 +52,15 @@
 # does NOT downgrade — see the model-fallback note in CLAUDE.md; only the Claude
 # runtime is probed/remapped at setup) or the task itself failed. Read the error.
 # Exit 3 (launcher's own): duplicate-launch sentinel refused the launch.
+# Exit 4 (launcher's own): the detached worker produced no result within
+# LAUNCH_WAIT_MAX (default 6h) — see the stderr diagnostics it prints.
+#
+# The launch is synchronous from the caller's view, but the worker itself is
+# DETACHED into its own process session: if the caller (an orchestrator whose
+# turn ends) is killed mid-launch, the worker keeps running, still writes its
+# output file, and still cleans up its sentinel — a resumed session reconnects
+# via the sentinel's recorded output path. See the detachment comment above the
+# worker invocation.
 #
 # NESTED-SANDBOX BEHAVIOR: when this launcher is itself invoked from inside a
 # codex sandbox (the normal case — the pipeline orchestrator's exec tool runs it
@@ -299,22 +308,72 @@ echo "[launch_agent] final message -> $OUTPUT"
 # `project_doc_max_bytes=0` suppresses the orchestrator's AGENTS.md so the worker
 # runs on its own instructions, not the pipeline driver's. `-C` roots it at the
 # project so it can read/write output/ under the chosen sandbox.
-set +e
-codex exec </dev/null \
-    --skip-git-repo-check \
-    -C "$PROJECT_ROOT" \
-    -m "$MODEL" \
-    -s "$SANDBOX" \
-    -c "model_reasoning_effort=\"$EFFORT\"" \
-    -c 'project_doc_max_bytes=0' \
-    "${SANDBOX_WS_ARGS[@]}" \
-    -c "developer_instructions=$INSTRUCTIONS" \
-    ${_catalog_args[@]+"${_catalog_args[@]}"} \
-    ${ADDDIR_ARGS[@]+"${ADDDIR_ARGS[@]}"} \
-    -o "$OUTPUT" \
+#
+# DETACHMENT: the worker runs in its OWN process session (python
+# start_new_session=True — macOS ships no setsid binary), via a wrapper script
+# that owns the sentinel lifecycle. Why: when this launcher is run by a codex
+# orchestrator and that orchestrator's turn ends, codex SIGKILLs the exec
+# process group — verified 2026-07-12: a plain nohup'd child died with the
+# parent, a start_new_session child survived and finished. With detachment, a
+# turn-end mid-launch kills the launcher but NOT the worker: the worker still
+# writes its output file and the wrapper still removes the sentinel, so a
+# resumed orchestrator turn (or the launch.sh driver's next `codex exec
+# resume`) reconnects by polling the output path recorded in the sentinel.
+# In the normal case the launcher just waits for the wrapper's rc file and the
+# behavior is identical to a foreground run. If the launcher is killed
+# mid-wait — or gives up at LAUNCH_WAIT_MAX (exit 4) — the scratch dir leaks
+# until the wrapper's own cleanup: accepted, and on the timeout path required
+# (the possibly-still-running wrapper is writing worker.log/rc in there;
+# $TMPDIR is OS-cleaned; the sentinel and output file are what matter).
+_worker_cmd=(
+    codex exec
+    --skip-git-repo-check
+    -C "$PROJECT_ROOT"
+    -m "$MODEL"
+    -s "$SANDBOX"
+    -c "model_reasoning_effort=\"$EFFORT\""
+    -c 'project_doc_max_bytes=0'
+    "${SANDBOX_WS_ARGS[@]}"
+    -c "developer_instructions=$INSTRUCTIONS"
+    ${_catalog_args[@]+"${_catalog_args[@]}"}
+    ${ADDDIR_ARGS[@]+"${ADDDIR_ARGS[@]}"}
+    -o "$OUTPUT"
     -- "$TASK"
-_rc=$?
-set -e
+)
+{
+    printf '#!/bin/bash\n'
+    printf '%q ' "${_worker_cmd[@]}"
+    printf ' </dev/null > %q 2>&1\n' "$_scratch/worker.log"
+    printf 'echo $? > %q\n' "$_scratch/rc"
+    printf 'rm -f %q\n' "$_sentinel"
+} > "$_scratch/run_worker.sh"
+chmod +x "$_scratch/run_worker.sh"
+
+# Detach. From here the wrapper owns the sentinel; the launcher only waits and
+# reports, so hand cleanup ownership over (early-exit paths above still had the
+# full trap).
+python3 -c 'import subprocess, sys; subprocess.Popen([sys.argv[1]], start_new_session=True)' \
+    "$_scratch/run_worker.sh"
+trap - EXIT
+
+# Wait for the wrapper's rc. Capped (LAUNCH_WAIT_MAX, default 6h — agents can
+# legitimately run for hours) so a wrapper that died without writing rc
+# (SIGKILL/OOM — the one case detachment can't cover) hangs the caller with a
+# diagnostic instead of forever.
+_waited=0
+until [ -e "$_scratch/rc" ]; do
+    if [ "$_waited" -ge "${LAUNCH_WAIT_MAX:-21600}" ]; then
+        echo "[launch_agent] no result after ${_waited}s — the detached wrapper may have been killed." >&2
+        echo "               Check the sentinel ($_sentinel) and poll the output file ($OUTPUT);" >&2
+        echo "               if neither resolves, the worker is gone: rm the sentinel and relaunch." >&2
+        exit 4
+    fi
+    sleep 2
+    _waited=$((_waited + 2))
+done
+cat "$_scratch/worker.log"
+_rc="$(cat "$_scratch/rc")"
+rm -rf "$_scratch"
 
 if [ "$_rc" -ne 0 ]; then
     echo "[launch_agent] worker exited $_rc — model unavailable or task failed; see output above." >&2

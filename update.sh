@@ -339,6 +339,38 @@ while IFS= read -r env_file; do
     fi
 done < <(jq -r '.infrastructure.files_env_merge[]?' "$NEW_MANIFEST")
 
+# ── Refresh the stdin-safe dotenv guard in the venv ──
+# Counterpart of setup.sh's install step (see templates/utils/
+# pipeline_dotenv_guard.py — installed as module + .pth, not sitecustomize.py,
+# which Homebrew's stdlib copy shadows). The guard lives inside the gitignored
+# .venv, so it can't ride the manifest's dirs/files lists — refreshed here as a
+# dedicated step, like the .env merge. Skipped silently when the target has no
+# venv (pre-venv deploys) or the template copy is missing (updating from an old
+# template checkout).
+_guard_src="$TEMPLATE_ROOT/templates/utils/pipeline_dotenv_guard.py"
+if [ -f "$_guard_src" ] && [ -x "$PROJECT/.venv/bin/python3" ]; then
+    _venv_sp="$("$PROJECT/.venv/bin/python3" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])' 2>/dev/null)"
+    if [ -n "$_venv_sp" ] && [ -d "$_venv_sp" ]; then
+        if [ "$DRY_RUN" = "1" ]; then
+            echo "  venv: would refresh _pipeline_dotenv_guard (dotenv stdin guard)"
+        else
+            cp "$_guard_src" "$_venv_sp/_pipeline_dotenv_guard.py"
+            printf 'import _pipeline_dotenv_guard\n' > "$_venv_sp/_pipeline_dotenv_guard.pth"
+            # Remove the shadowed first-attempt install — but only if it is
+            # OURS (the old file carries the _find_dotenv_stdin_safe wrapper).
+            # A user-created sitecustomize.py (e.g. coverage.py's documented
+            # subprocess-coverage hook) must survive the refresh.
+            if [ -f "$_venv_sp/sitecustomize.py" ] \
+               && grep -q '_find_dotenv_stdin_safe' "$_venv_sp/sitecustomize.py" 2>/dev/null; then
+                rm -f "$_venv_sp/sitecustomize.py"
+            fi
+            echo "  venv ✓ _pipeline_dotenv_guard (dotenv stdin guard)"
+        fi
+    else
+        echo "  ⚠ venv present but site-packages could not be located — dotenv stdin guard not refreshed"
+    fi
+fi
+
 # ── Migrate pipeline_state.json to the loops:{} shape (issue #166) ──
 # The refreshed runtime docs reference loops.<id>.round; an in-flight deployment's
 # pipeline_state.json (never in the manifest, so preserved verbatim) may still carry

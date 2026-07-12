@@ -561,6 +561,12 @@ if [ "$LOCAL" = "1" ]; then
     if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
         cp "$SCRIPT_DIR/dashboard.html" "$OUT_DIR/"
     fi
+    # launch.sh must be present in the fresh --local deploy so update.sh's
+    # manifest copy can propagate it into existing deployments (production
+    # deploys get it via the clone). All modes: the non-driver runtimes and
+    # `codex --once` apply everywhere; the codex driver self-refuses cleanly
+    # when there is no pipeline_state.json (manual/report).
+    cp "$SCRIPT_DIR/launch.sh" "$OUT_DIR/"
 
     echo "Local test mode: $VARIANT → $OUT_DIR"
 else
@@ -1748,6 +1754,25 @@ if [ "$LOCAL" = "0" ] && [ -d "$P/.venv" ]; then
         || echo "Note: core deps failed; install manually: source $P/.venv/bin/activate && uv pip install sympy matplotlib certifi"
 fi
 
+# ── Install the stdin-safe dotenv guard into the venv ──
+# Bare load_dotenv() asserts inside python-dotenv's find_dotenv() when python
+# runs from stdin (`python - <<'PY'` heredocs — the natural shape of
+# agent-written ad-hoc checks); the guard wraps it to fall back to a cwd
+# search. Installed as module + .pth (activated by site at every interpreter
+# start) rather than sitecustomize.py, which Homebrew's stdlib copy shadows —
+# see templates/utils/pipeline_dotenv_guard.py for the mechanism. Lives inside
+# the gitignored .venv, so it is intentionally NOT in the deployment manifest —
+# update.sh refreshes it as a dedicated step (like the .env merge).
+if [ "$LOCAL" = "0" ] && [ -d "$P/.venv" ]; then
+    _venv_sp="$("$P/.venv/bin/python3" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])' 2>/dev/null)"
+    if [ -n "$_venv_sp" ] && [ -d "$_venv_sp" ]; then
+        cp "$TEMPLATE_ROOT/templates/utils/pipeline_dotenv_guard.py" "$_venv_sp/_pipeline_dotenv_guard.py"
+        printf 'import _pipeline_dotenv_guard\n' > "$_venv_sp/_pipeline_dotenv_guard.pth"
+    else
+        echo "  ⚠ could not locate venv site-packages — dotenv stdin guard not installed"
+    fi
+fi
+
 # ── Assemble core skills ──
 echo "Assembling core skills..."
 
@@ -2460,6 +2485,7 @@ candidate_files = [
     "CLAUDE.md",
     "AGENTS.md",
     "GEMINI.md",
+    "launch.sh",
     "docs/start_session_claude.md",
     "docs/start_session_codex.md",
     "docs/start_session_gemini.md",
@@ -2694,19 +2720,19 @@ echo ""
 echo "  # Activate the project venv first so the pipeline's python3 finds its deps:"
 echo "  source .venv/bin/activate"
 echo ""
+echo "Preferred: ./launch.sh <claude|codex|gemini|grok>   (activates the venv and applies each runtime's flags)"
+echo ""
 echo "Claude:"
 echo "  source .venv/bin/activate && claude --dangerously-skip-permissions"
 echo ""
-echo "Codex:"
-echo "  source .venv/bin/activate && codex --sandbox workspace-write --ask-for-approval never -c 'sandbox_workspace_write.network_access=true' -c \"sandbox_workspace_write.writable_roots=[\\\"~/.codex\\\",\\\"~/.cache\\\",\\\"~/Library/Caches\\\",\\\"~/.matplotlib\\\",\\\"\$(pwd)/.git\\\"]\""
-echo "  # run from the project root: the \$(pwd)/.git writable root is required for pipeline git commits"
-echo "  # (codex marks each root's top-level .git read-only; listing .git as its own root sidesteps that)"
+echo "Codex (headless driver loop — codex has no autowake, so this is the autonomous form):"
+echo "  ./launch.sh codex          # add --tmux for a detached window; --once for a plain TUI"
 echo ""
 echo "Gemini:"
 echo "  source .venv/bin/activate && gemini --yolo"
 echo ""
 echo "Grok (reads the shared AGENTS.md; agents in .grok/agents/):"
-echo "  grok --sandbox pipeline --always-approve --leader-socket \"\$(pwd)/.grok/leader.sock\""
+echo "  source .venv/bin/activate && grok --sandbox pipeline --always-approve --leader-socket \"\$(pwd)/.grok/leader.sock\""
 echo "  # run from the project root: the per-project --leader-socket is required when you run"
 echo "  # more than one grok project on this host (e.g. one tmux window each). All grok clients"
 echo "  # share ~/.grok/leader.sock by default, and a second client on that socket TEARS DOWN the"

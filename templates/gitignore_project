@@ -68,9 +68,15 @@ paper/*-SAVE-ERROR
 # during an update.sh refresh, from a stray tracked pid file.
 code/utils/.wrds_server.pid
 
-# Process log runtime output (e.g. wrds_server.log from start_services.sh);
-# committed process-log artifacts under process_log/ are added explicitly by scribe.
+# Process log runtime output (e.g. wrds_server.log from start_services.sh,
+# driver.log + rotations from launch.sh's codex driver loop); committed
+# process-log artifacts under process_log/ are added explicitly by scribe.
 process_log/*.log
+process_log/driver.log.*
+
+# launch.sh codex-driver session cache (host-local codex session id — resuming
+# on another host would be meaningless; never a tracked artifact)
+process_log/.codex_session_id
 
 # Grok Build's per-project leader socket (grok --leader-socket "$(pwd)/.grok/leader.sock").
 # A live unix socket, created lazily by the running leader; never a tracked artifact.
