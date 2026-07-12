@@ -1,11 +1,12 @@
 {
   "sandbox": {
     "enabled": true,
+    "failIfUnavailable": true,
     "mode": "auto-allow",
     "allowUnsandboxedCommands": false,
     "filesystem": {
       "allowWrite": ["./"],
-      "denyWrite": ["~/.ssh", "~/.aws", "~/.claude", "//etc", "//root"],
+      "denyWrite": ["~/.ssh", "~/.aws", "~/.claude", "/etc", "/root"],
       "denyRead": ["~/.ssh", "~/.aws"]
     }
   }
