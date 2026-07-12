@@ -152,7 +152,9 @@ Codex:
 
 ```bash
 cd my-paper
-source .venv/bin/activate && codex --sandbox danger-full-access --ask-for-approval never
+source .venv/bin/activate && codex --sandbox workspace-write --ask-for-approval never \
+  -c 'sandbox_workspace_write.network_access=true' \
+  -c 'sandbox_workspace_write.writable_roots=["~/.codex","~/.cache","~/Library/Caches","~/.matplotlib"]'
 ```
 
 Gemini CLI:
@@ -334,17 +336,21 @@ my-paper/
 
 - Activate the project venv before any runtime: `source .venv/bin/activate && …`
 - Claude Code: `claude --dangerously-skip-permissions`
-- Codex: `codex --sandbox danger-full-access --ask-for-approval never`
+- Codex: `codex --sandbox workspace-write --ask-for-approval never -c 'sandbox_workspace_write.network_access=true' -c 'sandbox_workspace_write.writable_roots=["~/.codex","~/.cache","~/Library/Caches","~/.matplotlib"]'` (write-confined to the project; see Safety)
 - Gemini CLI: `gemini --yolo`
 - All runtimes read the same pipeline state and produce identical artifacts — you can switch runtimes mid-pipeline.
 
 ## Safety
 
-Sandbox is pre-configured in `.claude/settings.json`:
-- Bash restricted to project folder only
+**Claude** — sandbox pre-configured in `.claude/settings.json`:
+- Bash restricted to the project folder (writes/deletes outside the project blocked)
 - Cannot read SSH keys or AWS credentials
 - WebSearch and WebFetch work freely (for literature search)
-- `bubblewrap` enforces restrictions at OS level
+- `bubblewrap` (Linux) / Seatbelt (macOS) enforces restrictions at the OS level
+
+**Codex** — launched under `--sandbox workspace-write` (see Runtime notes): the orchestrator and every sub-agent worker are **write-confined** to the project plus a few cache roots (`~/.codex`, `~/.cache`, `~/Library/Caches`, `~/.matplotlib`), with network egress on. Writes/deletes outside the project are blocked. Unlike Claude, codex's native sandbox confines only *writes* — it does **not** block *reads* of `~/.ssh`/`~/.aws` (documented gap, `LIMITATIONS.md` / #186). Codex-math workers run the same posture with network off.
+
+**Gemini / Grok** — currently launch unconfined (`--yolo` / `--always-approve`); filesystem-confinement parity is tracked in #186.
 
 ## License
 
