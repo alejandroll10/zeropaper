@@ -350,7 +350,9 @@ my-paper/
 
 **Codex** — launched under `--sandbox workspace-write` (see Runtime notes): the orchestrator and every sub-agent worker are **write-confined** to the project plus a few cache roots (`~/.codex`, `~/.cache`, `~/Library/Caches`, `~/.matplotlib`), with network egress on. Writes/deletes outside the project are blocked. Unlike Claude, codex's native sandbox confines only *writes* — it does **not** block *reads* of `~/.ssh`/`~/.aws` (documented gap, `LIMITATIONS.md` / #186). Codex-math workers run the same posture with network off.
 
-**Gemini / Grok** — currently launch unconfined (`--yolo` / `--always-approve`); filesystem-confinement parity is tracked in #186.
+**Grok** — launched under `grok --sandbox pipeline` (a per-project `.grok/sandbox.toml` profile extending grok's built-in `workspace`): writes/deletes outside the project are blocked, network egress and WRDS loopback stay on, and the caches (`~/.codex`, `~/.cache`, `~/Library/Caches`, `~/.matplotlib`) remain writable. Grok's kernel `deny` list blocks reads *and* writes, so it goes one better than codex — `~/.ssh`/`~/.aws` are also unreadable. Enforced by Seatbelt (macOS) / Landlock (Linux) at the OS level.
+
+**Gemini** — currently launches unconfined (`--yolo`); filesystem-confinement parity is tracked in #186.
 
 ## License
 

@@ -275,6 +275,10 @@ GEMINI_SETTINGS_REL="$GEMINI_DIR_REL/settings.json"
 # templates/runtime/codex/session.md), and its subagents from .grok/agents/*.md.
 GROK_DIR_REL=".grok"
 GROK_AGENTS_REL="$GROK_DIR_REL/agents"
+# Grok's OS-kernel sandbox profile (Seatbelt on macOS / Landlock on Linux),
+# generated per-deploy below with the deploying user's $HOME baked in (grok's
+# sandbox.toml does not expand ~/$HOME). Launched via `grok --sandbox pipeline`.
+GROK_SANDBOX_REL="$GROK_DIR_REL/sandbox.toml"
 
 
 MODEL_OVERRIDE_ARGS=()
@@ -915,6 +919,53 @@ if [ -f "$TEMPLATE_ROOT/templates/agent_metadata/claude_variant_agents.json" ]; 
     assemble_gemini_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$GEMINI_AGENTS_OUT"
     assemble_grok_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$GROK_AGENTS_OUT"
 fi
+
+# ── Grok filesystem/network sandbox profile ──
+# Grok Build enforces an OS-kernel sandbox (Seatbelt on macOS, Landlock on Linux)
+# over the whole grok process + its child commands via `grok --sandbox <profile>`.
+# Ship a per-project custom profile `pipeline` that mirrors .claude/settings.json
+# on the property that matters: destructive writes/deletes OUTSIDE this project are
+# blocked, while the pipeline's real work keeps working — write+run scripts, temp
+# writes, the uv/matplotlib/codex caches, WRDS loopback, and open network egress.
+# Launch is `grok --sandbox pipeline --always-approve` (wired into the launch line
+# below). `extends = "workspace"` already gives read-everywhere / write-{CWD,
+# ~/.grok,temp} / network-on; we add the pipeline's out-of-project cache+state dirs
+# as read_write and kernel-deny the credential dirs. Grok's `deny` blocks READS as
+# well as writes, so this also closes the secret-read gap the codex runtime had to
+# defer (codex workspace-write is write-confinement only). Writes to ~/.claude,
+# /etc, /root need no explicit denyWrite: the workspace base already blocks every
+# write outside {CWD, ~/.grok, temp}, and they stay readable (unlike a `deny`).
+#
+# Grok's sandbox.toml does NOT expand ~ or $HOME (verified on grok 0.2.93 — a ~/…
+# read_write silently grants nothing and a ~/… deny matches an in-workspace
+# literal), so the absolute paths are baked in here from the deploying user's
+# $HOME. This is host-local, like the per-host .venv; because .grok/sandbox.toml
+# is in the deployment manifest's files_replace, update.sh regenerates it from a
+# fresh same-host setup run (same $HOME → correct paths). Non-glob paths that do
+# not exist are tolerated (no refuse-to-start), so the cross-platform-absent dirs
+# (~/Library/Caches, ~/.matplotlib on Linux) are safe to list unconditionally.
+GROK_DIR_OUT="$(dirname "$GROK_AGENTS_OUT")"
+mkdir -p "$GROK_DIR_OUT"
+cat > "$GROK_DIR_OUT/sandbox.toml" <<GROKSB
+# Grok Build sandbox profile for the deployed pipeline (issue #186).
+# Launch: grok --sandbox pipeline --always-approve
+# Kernel-enforced (Seatbelt/Landlock). Absolute paths are baked at deploy time
+# because grok does not expand ~ or \$HOME; update.sh regenerates on refresh.
+[profiles.pipeline]
+extends = "workspace"
+# Out-of-project caches/state the pipeline legitimately writes.
+read_write = [
+  "$HOME/.codex",
+  "$HOME/.cache",
+  "$HOME/Library/Caches",
+  "$HOME/.matplotlib",
+]
+# Credential dirs: kernel read+write deny (blocks cat/grep/subagents, not just writes).
+deny = [
+  "$HOME/.ssh",
+  "$HOME/.aws",
+]
+GROKSB
 
 echo "  ✓ Agents assembled (shared + ${AGENT_DIR})"
 
@@ -2407,6 +2458,7 @@ candidate_files = [
     "docs/start_session_gemini.md",
     ".claude/settings.json",
     ".gemini/settings.json",
+    ".grok/sandbox.toml",
     ".gitignore",
     "dashboard.html",
 ]
@@ -2645,7 +2697,7 @@ echo "Gemini:"
 echo "  source .venv/bin/activate && gemini --yolo"
 echo ""
 echo "Grok (reads the shared AGENTS.md; agents in .grok/agents/):"
-echo "  grok --always-approve"
+echo "  grok --sandbox pipeline --always-approve"
 echo ""
 if [ "$MANUAL" = "1" ]; then
     echo "Manual mode — read the runtime doc for the agent and skill catalog, then drive."
@@ -2671,5 +2723,5 @@ elif [ "$SEEDED" = "1" ]; then
     echo "Seeded: drop your idea files in output/seed/ before launching"
     echo "Pipeline will triage seed maturity and enter at the appropriate stage"
 fi
-echo "Sandbox is pre-configured in $CLAUDE_SETTINGS_REL"
-echo "(Bash restricted to project folder, web access works freely)"
+echo "Sandbox is pre-configured for Claude ($CLAUDE_SETTINGS_REL) and Grok ($GROK_SANDBOX_REL)"
+echo "(writes/deletes restricted to the project folder + caches, web access works freely)"
