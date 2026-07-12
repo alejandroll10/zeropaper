@@ -64,6 +64,7 @@ codex exec </dev/null --sandbox workspace-write --skip-git-repo-check \
     -c "model_reasoning_effort=\"$EFFORT\"" \
     -c 'model_reasoning_summary="detailed"' \
     "${CODEX_NO_SPAWN_ARGS[@]}" \
+    "${CODEX_SANDBOX_WS_ARGS[@]}" \
     -o "$TMP" \
     "You are a mathematical proof auditor at a top academic journal. Verify the following proof with extreme rigor.
 

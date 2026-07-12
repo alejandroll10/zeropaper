@@ -18,6 +18,33 @@
 
 CODEX_LEAF_DIRECTIVE="You are a single leaf worker running one codex-math task. Do NOT spawn, delegate to, launch, or hand off to other agents or sub-agents (no spawn_agent, no launch_agent.sh, no nested codex exec). Complete the task yourself and return the result."
 
+# Sandbox posture for codex-math leaf workers. The writable-roots half mirrors
+# code/utils/agent_launcher/launch_agent.sh (and the deployed Claude
+# .claude/settings.json allowWrite set): workspace-write defaults writable to
+# [workdir, /tmp, $TMPDIR], and codex-math shells out to python/sympy/matplotlib
+# (font/uv caches under ~/.cache, ~/.matplotlib, ~/Library/Caches) and writes its
+# own session state under ~/.codex, so those roots must be writable. codex
+# expands ~ inside writable_roots (verified). Writes outside this set (e.g. rm in
+# $HOME) stay blocked — the anti-destruction property.
+#
+# DELIBERATE DIVERGENCE from launch_agent.sh: network stays OFF here. That
+# launcher enables egress because general pipeline agents call WRDS
+# (127.0.0.1:23847) / OpenAlex / web; codex-math workers are self-contained
+# proof-verify / proof-write / numeric-explore tasks with ZERO egress need. Per
+# least-privilege we do not grant the sandboxed shell tool a network capability
+# it has no task-relevant use for (a hallucinated "let me check online" shell-out
+# then fails closed rather than reaching out). Setting it explicitly to false
+# (not just relying on the default) also overrides any network_access=true a
+# user's global ~/.codex/config.toml might carry. Note this does NOT affect
+# codex's own model-API traffic — the sandbox gates model-generated shell
+# commands, not the codex harness's outbound API call, so the worker still runs.
+# These keys are no-ops unless the active sandbox is workspace-write.
+# Pass "${CODEX_SANDBOX_WS_ARGS[@]}" into each `codex exec`.
+CODEX_SANDBOX_WS_ARGS=(
+    -c 'sandbox_workspace_write.network_access=false'
+    -c 'sandbox_workspace_write.writable_roots=["~/.codex","~/.cache","~/Library/Caches","~/.matplotlib"]'
+)
+
 # codex_build_no_spawn_args <scratch_dir>
 # Populates the global array CODEX_NO_SPAWN_ARGS with `codex exec -c ...` flags
 # that make the worker leaf-only. Best-effort on the catalog: if `codex debug

@@ -132,6 +132,28 @@ fi
 # Claude def omits Bash — that is more permissive, not less, and is intended.)
 [ -z "$SANDBOX" ] && SANDBOX="${TOML_SANDBOX:-workspace-write}"
 
+# Under workspace-write, mirror the Claude deploy's filesystem/network posture
+# (.claude/settings.json allowWrite + open egress): workspace-write defaults to
+# writable [workdir, /tmp, $TMPDIR] with network OFF, but pipeline workers write
+# codex-math session state to ~/.codex and uv/matplotlib caches, and need egress
+# (WRDS 127.0.0.1:23847, OpenAlex, web). Without these a worker silently cannot
+# reach WRDS/OpenAlex or write its caches. codex expands ~ inside writable_roots
+# (verified). These keys are no-ops unless the active sandbox is workspace-write,
+# so they are harmless under --sandbox read-only / danger-full-access. Writes
+# outside this set (e.g. rm in $HOME) stay blocked — the anti-destruction point.
+#
+# INTENTIONAL DIVERGENCE: templates/utils/codex_math/codex_common.sh has a
+# counterpart array (CODEX_SANDBOX_WS_ARGS) that deliberately sets
+# network_access=FALSE — codex-math workers are self-contained proof/numerics
+# tasks with zero egress need (least-privilege). The writable_roots half is
+# identical; the network half is not. Do NOT unify these two without reading why
+# they differ (see that file's comment) — matching them would re-grant egress to
+# the one call site that has no use for it.
+SANDBOX_WS_ARGS=(
+    -c 'sandbox_workspace_write.network_access=true'
+    -c 'sandbox_workspace_write.writable_roots=["~/.codex","~/.cache","~/Library/Caches","~/.matplotlib"]'
+)
+
 if [ -z "$OUTPUT" ]; then
     _stamp="$(date -u +%Y%m%dT%H%M%SZ)"
     OUTPUT="$PROJECT_ROOT/process_log/agent_runs/${AGENT_ID}-${_stamp}.md"
@@ -188,6 +210,7 @@ codex exec </dev/null \
     -s "$SANDBOX" \
     -c "model_reasoning_effort=\"$EFFORT\"" \
     -c 'project_doc_max_bytes=0' \
+    "${SANDBOX_WS_ARGS[@]}" \
     -c "developer_instructions=$INSTRUCTIONS" \
     ${_catalog_args[@]+"${_catalog_args[@]}"} \
     ${ADDDIR_ARGS[@]+"${ADDDIR_ARGS[@]}"} \
