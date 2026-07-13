@@ -9,6 +9,15 @@
 set -e
 cd "$(dirname "$0")/../.."
 
+# Pin the project venv interpreter (same PATH-demotion hazard as
+# launch_agent.sh — issue #191): a macOS login shell runs path_helper, which
+# puts /usr/bin ahead of any inherited venv PATH entry, and the system python
+# has no pandas/dotenv — so the ping probe below fails silently even when a
+# healthy server is up, and the restart path dies on imports after a
+# misleading 120s timeout. Bare python3 only as a last resort (no venv).
+WRDS_PY="$(pwd)/.venv/bin/python3"
+[ -x "$WRDS_PY" ] || WRDS_PY="python3"
+
 # Load .env (handles values with spaces; strips trailing CR for CRLF-edited files)
 if [ -f .env ]; then
     while IFS='=' read -r key value; do
@@ -21,7 +30,7 @@ fi
 # Start WRDS server if credentials are configured
 if [ -n "$WRDS_USER" ] && [ "$WRDS_USER" != "your-username" ] && [ -n "$WRDS_PASS" ] && [ "$WRDS_PASS" != "your-password" ]; then
     # Check if ANY wrds server is already responding on the port (could be from another project)
-    if PYTHONPATH=code python3 -c "from utils.wrds_client import wrds_ping; exit(0 if wrds_ping() else 1)" 2>/dev/null; then
+    if PYTHONPATH=code "$WRDS_PY" -c "from utils.wrds_client import wrds_ping; exit(0 if wrds_ping() else 1)" 2>/dev/null; then
         echo "WRDS server already running (reusing existing connection)"
     else
         echo "Starting WRDS server (approve Duo when prompted)..."
@@ -34,7 +43,7 @@ if [ -n "$WRDS_USER" ] && [ "$WRDS_USER" != "your-username" ] && [ -n "$WRDS_PAS
         # nohup/& here is deliberate: this is fixed infrastructure starting a persistent,
         # host-shared daemon meant to outlive the calling session — not an agent-improvised
         # job the harness should track (cf. templates/shared/bash_background.md).
-        PGPASSWORD="$WRDS_PASS" PYTHONPATH=code nohup python3 code/utils/wrds_server.py \
+        PGPASSWORD="$WRDS_PASS" PYTHONPATH=code nohup "$WRDS_PY" code/utils/wrds_server.py \
             >> process_log/wrds_server.log 2>&1 &
         # || true: if the daemon crashes before disown runs, no-job is not fatal under set -e;
         # the readiness loop below reports the real failure.
@@ -43,7 +52,7 @@ if [ -n "$WRDS_USER" ] && [ "$WRDS_USER" != "your-username" ] && [ -n "$WRDS_PAS
         ready=0
         for i in $(seq 1 120); do
             sleep 1
-            if PYTHONPATH=code python3 -c "from utils.wrds_client import wrds_ping; exit(0 if wrds_ping() else 1)" 2>/dev/null; then
+            if PYTHONPATH=code "$WRDS_PY" -c "from utils.wrds_client import wrds_ping; exit(0 if wrds_ping() else 1)" 2>/dev/null; then
                 echo "WRDS server ready"
                 ready=1
                 break

@@ -91,6 +91,34 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 AGENTS_DIR="$PROJECT_ROOT/.codex/agents"
 
+# Resolve ONE explicit interpreter for every python call in this script. Bare
+# `python3` is PATH-order-dependent, and a macOS LOGIN shell (`zsh -lc` — the
+# form the codex orchestrator uses for exec commands) runs path_helper, which
+# rebuilds PATH with /usr/bin ahead of any inherited venv entry — so bare
+# `python3` resolves to the system 3.9, which has no tomllib (needs >= 3.11)
+# and the TOML parse below dies before launch. Observed 2026-07-13 (issue
+# #191, codex-5.6-test theory-v4 launch; debugger report
+# output/debug/debug_agent_launcher_tomllib.md in that project). Prefer the
+# project venv setup.sh creates; fall back to the PATH python3 only if it is
+# >= 3.11; otherwise fail loudly HERE, at the launch boundary, instead of
+# opaquely inside the eval. The venv branch is version-checked too: setup.sh's
+# venv creation falls back to uv's ambient interpreter pick when it can't
+# fetch a managed 3.12, so ".venv exists" does not guarantee ">= 3.11".
+LAUNCHER_PY="$PROJECT_ROOT/.venv/bin/python3"
+if ! { [ -x "$LAUNCHER_PY" ] \
+       && "$LAUNCHER_PY" -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; }; then
+    if command -v python3 >/dev/null 2>&1 \
+       && python3 -c 'import sys; sys.exit(0 if sys.version_info >= (3, 11) else 1)' 2>/dev/null; then
+        LAUNCHER_PY="$(command -v python3)"
+    else
+        echo "ERROR: no usable python interpreter for the launcher." >&2
+        echo "       The project venv python ($LAUNCHER_PY, setup.sh creates .venv/) is missing or < 3.11," >&2
+        echo "       and the PATH python3 ($(command -v python3 || echo 'not found')) is missing or < 3.11" >&2
+        echo "       (the agent-TOML parse needs tomllib, stdlib since 3.11)." >&2
+        exit 1
+    fi
+fi
+
 AGENT_ID="${1:?Usage: launch_agent.sh <agent-id> <task-or-taskfile> [options]}"
 TASK_ARG="${2:?Usage: launch_agent.sh <agent-id> <task-or-taskfile> [options]}"
 shift 2
@@ -143,7 +171,7 @@ trap 'rm -rf "$_scratch"' EXIT
 # and multiline (and bash cannot hold NUL bytes), so write it to a temp file and
 # return the scalars as shell-quoted assignments to `eval`.
 _instr_file="$_scratch/instr"
-eval "$(python3 - "$TOML" "$_instr_file" <<'PY'
+eval "$("$LAUNCHER_PY" - "$TOML" "$_instr_file" <<'PY'
 import sys, tomllib, shlex
 d = tomllib.load(open(sys.argv[1], "rb"))
 open(sys.argv[2], "w").write(d.get("developer_instructions", ""))
@@ -282,7 +310,7 @@ trap 'rm -rf "$_scratch"; rm -f "$_sentinel"' EXIT
 # above plus codex's own "don't spawn unless instructed" default.
 _catalog_args=()
 if codex debug models 2>/dev/null \
-     | python3 -c 'import json,sys; d=json.load(sys.stdin); [m.__setitem__("multi_agent_version","none") for m in d.get("models",[])]; json.dump(d, open(sys.argv[1],"w"))' \
+     | "$LAUNCHER_PY" -c 'import json,sys; d=json.load(sys.stdin); [m.__setitem__("multi_agent_version","none") for m in d.get("models",[])]; json.dump(d, open(sys.argv[1],"w"))' \
        "$_scratch/catalog.json" 2>/dev/null \
    && [ -s "$_scratch/catalog.json" ]; then
     _catalog_args=(-c "model_catalog_json=\"$_scratch/catalog.json\"")
@@ -401,7 +429,7 @@ chmod +x "$_scratch/run_worker.sh"
 # append would never fire (the wrapper has already cleaned the sentinel), and
 # the EXIT trap would stay armed the whole time. The wrapper redirects
 # everything per-command anyway, so DEVNULL loses nothing.
-_wrapper_pid="$(python3 -c 'import subprocess, sys; print(subprocess.Popen([sys.argv[1]], start_new_session=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).pid)' \
+_wrapper_pid="$("$LAUNCHER_PY" -c 'import subprocess, sys; print(subprocess.Popen([sys.argv[1]], start_new_session=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).pid)' \
     "$_scratch/run_worker.sh")"
 _wrapper_lstart="$(ps -o lstart= -p "$_wrapper_pid" 2>/dev/null || true)"
 if [ -f "$_sentinel" ]; then
