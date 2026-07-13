@@ -1881,6 +1881,12 @@ mkdir -p "$P/code/utils/nber_agenda"
 cp "$TEMPLATE_ROOT/templates/utils/nber_agenda/"nber_agenda.py "$P/code/utils/nber_agenda/"
 chmod +x "$P/code/utils/nber_agenda/"nber_agenda.py
 
+# Copy the sandbox-safe git-push credential setup (repo-scoped PAT store; the
+# grok sandbox cannot reach the macOS keychain — issue #190). Opt-in: the user
+# runs it once per project if they want `git push` to work under grok.
+cp "$TEMPLATE_ROOT/templates/utils/setup_push_token.sh" "$P/code/utils/"
+chmod +x "$P/code/utils/setup_push_token.sh"
+
 # Sequence-space Jacobian (SSJ) skill — solve/analyze heterogeneous-agent GE
 # models (theory-explorer Stage 2b, idea-prototyper tractability pre-check)
 assemble_claude_skills \
@@ -2494,6 +2500,7 @@ candidate_files = [
     ".grok/sandbox.toml",
     ".gitignore",
     "dashboard.html",
+    "code/utils/setup_push_token.sh",
 ]
 
 # Extension-installed files. The empirical extension drops *.py / *.sh
@@ -2527,8 +2534,11 @@ manifest = {
         "halt_on_core_bypass": $HALT_ON_CORE_BYPASS_BOOL,
     },
     "infrastructure": {
-        "dirs_replace": [d for d in candidate_dirs if (project / d).is_dir()],
-        "files_replace": [f for f in candidate_files if (project / f).is_file()],
+        # dict.fromkeys: order-preserving dedupe — a file can be registered both
+        # statically and by an extension's code/utils glob (e.g. setup_push_token.sh
+        # under --ext empirical); update.sh should see each entry once.
+        "dirs_replace": [d for d in dict.fromkeys(candidate_dirs) if (project / d).is_dir()],
+        "files_replace": [f for f in dict.fromkeys(candidate_files) if (project / f).is_file()],
         "files_env_merge": [".env"] if (project / ".env").is_file() else [],
     },
 }
@@ -2732,11 +2742,16 @@ echo "Gemini:"
 echo "  source .venv/bin/activate && gemini --yolo"
 echo ""
 echo "Grok (reads the shared AGENTS.md; agents in .grok/agents/):"
+echo "  ./launch.sh grok           # per-project leader socket + venv python shims applied automatically"
+echo "  # Manual equivalent (run from the project root — the per-project --leader-socket is required"
+echo "  # when you run more than one grok project on this host: all grok clients share"
+echo "  # ~/.grok/leader.sock by default, and a second client on that socket TEARS DOWN the"
+echo "  # first session's in-flight turn):"
 echo "  source .venv/bin/activate && grok --sandbox pipeline --always-approve --leader-socket \"\$(pwd)/.grok/leader.sock\""
-echo "  # run from the project root: the per-project --leader-socket is required when you run"
-echo "  # more than one grok project on this host (e.g. one tmux window each). All grok clients"
-echo "  # share ~/.grok/leader.sock by default, and a second client on that socket TEARS DOWN the"
-echo "  # first session's in-flight turn — isolating the socket per project keeps them independent."
+echo "  # grok demotes the venv in its bash PATH (bare python3 = system python) — ./launch.sh grok"
+echo "  # installs transparent VIRTUAL_ENV shims in ~/.local/bin to fix this; manual launches need them too."
+echo "  # git push under grok's sandbox cannot use the macOS keychain; to enable pushes:"
+echo "  #   bash code/utils/setup_push_token.sh   (repo-scoped fine-grained PAT; otherwise commits stay local)"
 echo ""
 if [ "$MANUAL" = "1" ]; then
     echo "Manual mode — read the runtime doc for the agent and skill catalog, then drive."

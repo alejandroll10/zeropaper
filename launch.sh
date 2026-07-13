@@ -75,6 +75,68 @@ else
     echo "WARNING: no .venv in this project — python deps may be missing (create with: uv venv .venv)" >&2
 fi
 
+# ── grok helpers ─────────────────────────────────────────────────────────────
+# grok's bash tool rebuilds PATH with its own dirs (~/.grok/bin, ~/.local/bin)
+# and the macOS defaults ahead of every inherited entry, demoting the activated
+# venv below /usr/bin — so bare python3 resolves to the system interpreter with
+# none of the pipeline's deps (verified on grok 0.2.93; grok has no config knob
+# to reorder its bash PATH — issue #190). Fix: VIRTUAL_ENV-keyed shims in
+# ~/.local/bin, which grok's rebuild keeps ahead of /usr/bin. Transparent
+# everywhere else: with no active venv the shim execs the next real binary on
+# PATH, so host behavior outside grok is unchanged. Never overwrites a
+# pre-existing file that isn't ours.
+install_grok_venv_shims() {
+    local dir="$HOME/.local/bin" marker="zeropaper-grok-venv-shim" name shim
+    mkdir -p "$dir"
+    for name in python3 python pip3 pip; do
+        shim="$dir/$name"
+        if [ -e "$shim" ] && ! grep -q "$marker" "$shim" 2>/dev/null; then
+            echo "WARNING: $shim exists and is not the pipeline's venv shim — leaving it alone; grok's bare $name may bypass the project venv" >&2
+            continue
+        fi
+        cat > "$shim" <<EOF
+#!/usr/bin/env bash
+# $marker v1 — routes bare $name to the active venv. grok's bash tool rebuilds
+# PATH with this dir ahead of /usr/bin but the inherited venv behind it; this
+# shim restores venv-first resolution. Inert without a venv: falls through to
+# the next $name on PATH. Safe to delete; ./launch.sh grok reinstalls it.
+if [ -n "\${VIRTUAL_ENV:-}" ] && [ -x "\$VIRTUAL_ENV/bin/$name" ]; then
+    exec "\$VIRTUAL_ENV/bin/$name" "\$@"
+fi
+self_dir="\$(cd "\$(dirname "\${BASH_SOURCE[0]}")" && pwd -P)"
+# newline-delimited read, not word-splitting: a PATH dir with a space must not
+# shear a candidate path in two (a sheared path would kill the shim via exec).
+while IFS= read -r cand; do
+    [ -n "\$cand" ] || continue
+    [ "\$(cd "\$(dirname "\$cand")" && pwd -P)" = "\$self_dir" ] && continue
+    exec "\$cand" "\$@"
+done < <(type -aP $name)
+echo "$name: no real binary found on PATH ($marker fallback)" >&2
+exit 127
+EOF
+        chmod +x "$shim"
+    done
+}
+
+# grok's Seatbelt sandbox cannot reach the macOS keychain (the osxkeychain
+# helper needs mach-lookup com.apple.SecurityServer, which grok's sandbox
+# schema — filesystem+network only — cannot grant; issue #190). With an HTTPS
+# remote that still uses the keychain, every pipeline `git push` fails on auth
+# (commits stay local). Warn once at launch; the fix is the repo-scoped token
+# store set up by code/utils/setup_push_token.sh.
+warn_grok_keychain_push() {
+    local url
+    url="$(git -C "$ROOT" remote get-url origin 2>/dev/null || true)"
+    case "$url" in
+        https://*)
+            if [ ! -f "$ROOT/.git/push-credentials" ]; then
+                echo "NOTE: HTTPS remote + no .git/push-credentials — 'git push' will fail inside grok's sandbox (keychain unreachable)." >&2
+                echo "      Commits stay local. To enable pushes: bash code/utils/setup_push_token.sh (fine-grained PAT for this repo)." >&2
+            fi
+            ;;
+    esac
+}
+
 case "$RUNTIME" in
     claude)
         exec claude --dangerously-skip-permissions
@@ -83,7 +145,13 @@ case "$RUNTIME" in
         exec gemini --yolo
         ;;
     grok)
-        exec grok --sandbox pipeline --always-approve
+        install_grok_venv_shims
+        warn_grok_keychain_push
+        # Per-project leader socket: all grok clients share ~/.grok/leader.sock
+        # by default, and a second client on that socket TEARS DOWN the first
+        # session's in-flight turn — concurrent projects would cancel each
+        # other (issue #186/#190; see README).
+        exec grok --sandbox pipeline --always-approve --leader-socket "$ROOT/.grok/leader.sock"
         ;;
     codex) ;;  # falls through to the driver below
     *)
