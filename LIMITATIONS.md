@@ -131,3 +131,27 @@ In all three, the residual is a *missed catch* (a genuinely illegible table can 
 **Tracking:** [issue #51](https://github.com/alejandroll10/zeropaper/issues/51) (kept open for these two optimizations).
 
 **Interim behavior:** the terminal completion-block in `templates/runtime/claude/session.md` guarantees no degraded run reports clean success in any autonomous pipeline mode (i.e. not `--mode report` or `--manual`, which have no `status` machine and so get the record-and-surface half only); earlier gate-time detection (gap 1) and default-mode recording of conditions 2-3 (gap 2) are deferred as latency/coverage improvements, and conditions 2-3 are fully halted under `--halt-on-core-bypass`.
+
+---
+
+## Codex fire-and-forget: `--once` interactive mode has no result-collection driver
+
+**Scope:** the codex launch protocol — `code/utils/agent_launcher/launch_agent.sh` (fire-and-forget), `launch.sh`'s `--once` branch, and `templates/runtime/codex/{session,session_manual,session_report}.md`.
+
+**Why.** `launch_agent.sh` returns as soon as the worker is detached (it must — a blocking launcher trips codex's ~10s silent-exec cap and is reaped as `UnknownProcessId`). In the headless driver (`./launch.sh codex`) this is invisible: `wait_for_workers` blocks between turns until every sentinel clears, and the driver re-prompts the orchestrator to collect. But `./launch.sh codex --once` (plain interactive TUI) has **no driver and no autowake** — after a launch returns immediately, the human must manually type "continue" (or poll) to get the orchestrator to collect the detached worker's result. Under the old blocking launcher the `--once` user got collection for free (the call just blocked).
+
+**Failure mode:** a `--once` operator launches an agent, sees the launcher return instantly, and either (a) waits at a stalled prompt expecting inline output that never comes, or (b) writes a `sleep`-loop poll in one command and reproduces the `UnknownProcessId` cap. Neither corrupts state (the worker still finishes and writes `$OUTPUT`), but it is an operator-experience regression.
+
+**What would close it:** a lightweight `--once` collect helper (or a TUI hint after each launch: "worker detached — type 'continue' when you want to collect"). Low priority: `--once` is a debug path; production is the headless driver, which handles collection automatically.
+
+---
+
+## Codex fire-and-forget: worker success/failure is a text banner in `$OUTPUT`, not an exit code
+
+**Scope:** `code/utils/agent_launcher/launch_agent.sh` and any future programmatic reader of `process_log/agent_runs/*.md`.
+
+**Why.** The old blocking launcher conveyed worker success/failure via its own synchronous exit code. Fire-and-forget returns 0 on successful *detach*, before the worker's outcome is known; the worker's actual rc is surfaced only as a `WORKER FAILED (rc=N)` text banner written into `$OUTPUT` on failure (plus a `tail -40` of the worker log). This is fine for the LLM orchestrator, which reads the file and is told (in `session.md`) to treat the banner as failure. But it means a **failed** agent produces a *non-empty* output file whose first line is the banner.
+
+**Failure mode:** no current script parses `agent_runs/*.md` programmatically (verified repo-wide), so today's blast radius is nil. But a *future* programmatic consumer (a hypothetical claim-verifier, scribe, or synthesis step that reads another agent's raw `agent_runs` output directly rather than a committed stage deliverable) that treats file-non-empty as success would ingest a failure banner as if it were a real result.
+
+**What would close it:** any such future consumer must check for the `WORKER FAILED (rc=` prefix before trusting the content; alternatively, add a machine-readable rc sidecar (e.g. `$OUTPUT.rc`) if a programmatic consumer is ever introduced. Documented here so the constraint is explicit rather than a surprise.

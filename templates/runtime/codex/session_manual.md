@@ -21,7 +21,7 @@ When you launch the scorer, self-attacker, or referee, they must optimize for fi
 
 ### Agent launch and monitoring
 
-Subagents run for many minutes; an exec call that yields back early with no output means the worker is **still running**, not that it failed. Launch web-dependent agents (`literature-scout`, `novelty-checker`, `gap-scout`) in the background and poll for the output file the launcher prints — it appears only when the worker finishes. Do not re-launch on silence: the launcher's duplicate sentinel will refuse (exit 3) while the earlier run is alive. Re-launch only after confirming the earlier worker is gone (no codex exec process, output file never appeared), via `rm` of the sentinel it names or `--force`.
+Every launch is fire-and-forget: `launch_agent.sh` detaches the worker and returns in ~1s while the agent runs for minutes, so an early return is normal operation, not failure. Poll the output file the launcher prints by checking it ONCE and moving on — never a blocking `sleep`-loop in a single command (it hits codex's ~10s silent-exec cap). The file appears only when the worker finishes; if it appears with a `WORKER FAILED (rc=N)` banner, the agent failed (read the tail, relaunch deliberately) — it is not a real result. Do not re-launch on silence: the launcher's duplicate sentinel will refuse (exit 3) while the earlier run is alive. Re-launch only after confirming the earlier worker is gone (no codex exec process, output file never appeared), via `rm` of the sentinel it names or `--force`.
 
 ### Skills
 

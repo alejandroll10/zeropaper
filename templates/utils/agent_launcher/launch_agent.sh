@@ -328,9 +328,9 @@ echo "[launch_agent] final message -> $OUTPUT"
 # immediately rather than blocking for the result, because the headless codex
 # driver caps a silent long-running exec after ~10s and would reap a blocking
 # launcher as `UnknownProcessId` (fuller note at the return below). The scratch
-# dir therefore always outlives the launcher and leaks until OS cleanup (the
-# still-running wrapper is writing worker.log/rc in there; $TMPDIR is
-# OS-cleaned; the sentinel and output file are what matter).
+# dir therefore outlives the launcher; the still-running wrapper writes
+# worker.log/rc there and reaps the whole dir as its own last act (the launcher
+# is already gone and can't). The sentinel and output file are what matter.
 _worker_cmd=(
     codex exec
     --skip-git-repo-check
@@ -346,20 +346,19 @@ _worker_cmd=(
     -o "$OUTPUT"
     -- "$TASK"
 )
-# Clear any stale content at $OUTPUT from a PRIOR run at this same path before
-# the worker starts. The pipeline deliberately reuses version-numbered output
-# paths across attempts (see the stage docs: "attempts overwrite prior files").
-# Fire-and-forget uses "$OUTPUT non-empty" as the sole success signal, and the
-# wrapper only writes a WORKER FAILED notice when $OUTPUT is empty — so without
-# this clear, a fresh attempt that fails before writing anything would leave the
-# previous attempt's result sitting there and be mistaken for this attempt's
-# success, with no failure signal anywhere. Runs AFTER the duplicate-launch
-# sentinel check above, so a refused duplicate never clears an in-flight run's
-# output; the default (timestamped) path never pre-exists, so this is a no-op
-# there and only matters for an explicit reused --output.
-rm -f "$OUTPUT"
 {
     printf '#!/bin/bash\n'
+    # FIRST, from inside the wrapper, clear any stale content at $OUTPUT from a
+    # PRIOR run at this same path — the pipeline reuses version-numbered output
+    # paths across attempts ("attempts overwrite prior files"). Doing it here,
+    # not in the launcher, is deliberate: $OUTPUT is cleared only once the worker
+    # is genuinely running detached, so if the launch itself fails (wrapper
+    # write / chmod / Popen) the launcher's EXIT trap fires and a prior valid
+    # result at $OUTPUT is left untouched instead of destroyed with no
+    # replacement. (The window between detach and this rm is sub-millisecond and
+    # unreachable by the driver: it cannot poll between turns until the launcher
+    # has returned and the orchestrator has ended its turn, far later.)
+    printf 'rm -f %q\n' "$OUTPUT"
     printf '%q ' "${_worker_cmd[@]}"
     printf ' </dev/null > %q 2>&1\n' "$_scratch/worker.log"
     printf '_rc=$?\n'
@@ -372,9 +371,17 @@ rm -f "$OUTPUT"
     # did produce output before a nonzero exit (don't clobber a real result).
     printf 'if [ "$_rc" -ne 0 ] && [ ! -s %q ]; then { echo "[launch_agent] WORKER FAILED (rc=$_rc) — task did not complete; log tail:"; tail -n 40 %q; } > %q; fi\n' \
         "$OUTPUT" "$_scratch/worker.log" "$OUTPUT"
-    # Sentinel removal is LAST — after $OUTPUT is settled — so a supervisor that
-    # keys on "sentinel gone" never observes it before the result is in place.
+    # Sentinel removal is the LAST signalling step — after $OUTPUT is settled —
+    # so a supervisor keying on "sentinel gone" never observes it before the
+    # result is in place.
     printf 'rm -f %q\n' "$_sentinel"
+    # Finally the wrapper reaps its OWN scratch dir. The launcher returned long
+    # ago (fire-and-forget) and cannot; nothing external does either, so without
+    # this every launch leaks one mktemp -d (worker.log, rc, the instructions
+    # payload). Safe self-delete: bash has already read this short script, cwd is
+    # the project root (not scratch), and any failure detail we needed is already
+    # copied into $OUTPUT above.
+    printf 'rm -rf %q\n' "$_scratch"
 } > "$_scratch/run_worker.sh"
 chmod +x "$_scratch/run_worker.sh"
 

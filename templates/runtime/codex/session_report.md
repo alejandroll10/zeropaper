@@ -9,8 +9,8 @@ The review is on the *report*, not on the submission — we never edit the submi
 When the user says "start" or "run", check `submission/`. If empty, point them at `submission/README.md` and stop. Otherwise:
 
 1. Run Step 1 (Triage) inline — read `submission/`, write `process_log/triage.md`.
-2. Launch the Step 2 audit fan-out in parallel. Background-launch the web-dependent ones (`novelty-checker`, `polish-bibliography`, `polish-institutions`, `bib-verifier`); foreground the rest.
-3. Poll background agents' output files every few minutes. If a file is empty or not growing after a few checks, re-launch with the same prompt.
+2. Launch the Step 2 audit fan-out in parallel. Every `launch_agent.sh` call is fire-and-forget — it detaches the worker and returns in ~1s (there is no "foreground" launch on codex); fan them all out, then end your turn.
+3. On a later turn, poll each audit's output file by checking ONCE (`ls`/`cat`) and moving on — never a blocking `sleep`-loop in one command (it would hit codex's ~10s silent-exec cap). The file appears only when that worker finishes; a file containing a `WORKER FAILED (rc=N)` banner means that audit failed (read the log tail, relaunch it deliberately). Do NOT relaunch an agent whose `.<agent>.running` sentinel is still present — that is a live worker, not a stalled one.
 4. Once all audits have written to `audits/`, launch `report-synthesizer`.
 5. Run the self-review pass above.
 
