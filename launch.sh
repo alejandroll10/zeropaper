@@ -24,9 +24,11 @@
 # their own process sessions, so a turn ending mid-launch does not kill them;
 # the resumed turn reconnects via the sentinel + output-file protocol.
 #
-# Cost guard: five consecutive sub-60s turns aborts the driver (a healthy
-# pipeline turn does real work; rapid-fire short turns mean the model is stuck
-# or refusing, and re-prompting would only burn tokens).
+# Cost guard (two ceilings; details at the guard itself): the driver aborts on
+# 5 consecutive sub-60s turns that also commit NOTHING (a stuck/refusing model),
+# or on a much longer run of sub-60s turns even with commits (a coarse token-burn
+# backstop against a churn-committing retry loop). Both reset on any turn that
+# does real work; a committing progress turn never trips the first.
 set -euo pipefail
 
 # pwd -P (physical): codex records its cwd via getcwd(), which resolves
@@ -262,7 +264,8 @@ wait_for_workers() {
 }
 
 turn=0
-fast=0
+fast_nocommit=0
+fast_any=0
 SID="$(find_sid || true)"
 if [ -n "$SID" ]; then
     echo "[driver] resuming existing session $SID" | tee -a "$LOG"
@@ -298,6 +301,11 @@ while :; do
         echo "[driver] MAX_TURNS=$MAX_TURNS reached (status=$st) — stopping; re-run ./launch.sh codex to continue" | tee -a "$LOG"; exit 1
     fi
     echo "[driver] === turn $turn ($(date '+%F %T'), status=$st) ===" | tee -a "$LOG"
+    # Progress anchor for the fast-turn guard: HEAD before the turn. A turn that
+    # advances HEAD did durable work no matter how short it was (collecting a
+    # finished worker and committing its artifact is a legitimately quick turn);
+    # only short turns that ALSO commit nothing look like a stuck/refusing model.
+    head_before="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)"
     t0=$SECONDS
     set +e
     if [ -z "$SID" ]; then
@@ -310,9 +318,40 @@ while :; do
     fi
     set -e
     dt=$((SECONDS - t0))
-    if [ "$dt" -lt 60 ]; then fast=$((fast + 1)); else fast=0; fi
-    if [ "$fast" -ge 5 ]; then
-        echo "[driver] 5 consecutive sub-60s turns — model appears stuck or refusing; stopping to avoid burning tokens. Inspect $LOG." | tee -a "$LOG"
+    head_after="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)"
+    # Two ceilings on short turns, because with fire-and-forget launches a
+    # healthy turn is often <60s (it commits its stage artifact and hands off to
+    # a detached worker), so raw sub-60s count alone false-positives:
+    #   fast_nocommit — short AND HEAD unchanged. A model producing/committing
+    #     NOTHING is wedged or refusing; trip quickly (5). A real launch turn
+    #     advances HEAD, so it never feeds this counter.
+    #   fast_any — short regardless of commits. Backstop against a fail-retry
+    #     loop that commits churn every turn (e.g. a WORKER FAILED notice or a
+    #     retry-count bump), which advances HEAD and would otherwise slip past
+    #     fast_nocommit all the way to MAX_TURNS. This is a COARSE token-burn
+    #     ceiling, NOT a progress detector: with fire-and-forget the real work
+    #     happens in the detached worker and its runtime is absorbed between
+    #     turns by wait_for_workers, so HEALTHY loop-routing turns (collect a
+    #     small gate output → commit → launch next) are routinely sub-60s. A
+    #     live gate0_revise loop was observed doing 5 such short turns in a row,
+    #     and stacked loops (referee cap=10, gate0 reject×revise, Stage 3a) can
+    #     run several dozen. The default therefore sits well above realistic
+    #     loop depth; only a much longer unbroken run of sub-60s turns (any
+    #     ≥60s turn — e.g. one that reads a full draft/referee report — resets
+    #     it) is abnormal. MAX_TURNS remains the hard cap; tune via
+    #     FAST_TURN_CEILING against real driver.log turn durations if needed.
+    if [ "$dt" -lt 60 ]; then
+        fast_any=$((fast_any + 1))
+        if [ "$head_after" = "$head_before" ]; then fast_nocommit=$((fast_nocommit + 1)); else fast_nocommit=0; fi
+    else
+        fast_any=0; fast_nocommit=0
+    fi
+    if [ "$fast_nocommit" -ge 5 ]; then
+        echo "[driver] 5 consecutive sub-60s turns with no new commit — model appears stuck or refusing; stopping to avoid burning tokens. Inspect $LOG." | tee -a "$LOG"
+        exit 1
+    fi
+    if [ "$fast_any" -ge "${FAST_TURN_CEILING:-60}" ]; then
+        echo "[driver] ${FAST_TURN_CEILING:-60} consecutive sub-60s turns (even with commits) — abnormal churn; stopping to bound token burn. Inspect $LOG." | tee -a "$LOG"
         exit 1
     fi
     sleep 3

@@ -48,19 +48,24 @@
 #                       Under --parallel, --force is a no-op — parallel mode has
 #                       no refusal path to override.
 #
-# Exit status is the worker's: nonzero means the model was unavailable (codex
-# does NOT downgrade — see the model-fallback note in CLAUDE.md; only the Claude
-# runtime is probed/remapped at setup) or the task itself failed. Read the error.
-# Exit 3 (launcher's own): duplicate-launch sentinel refused the launch.
-# Exit 4 (launcher's own): the detached worker produced no result within
-# LAUNCH_WAIT_MAX (default 6h) — see the stderr diagnostics it prints.
+# The launcher is FIRE-AND-FORGET: it exits 0 as soon as the worker is detached,
+# BEFORE the worker finishes. The worker's own success/failure is therefore NOT
+# the launcher's exit code — it is surfaced in the OUTPUT file: on success the
+# worker writes its result there; on failure the wrapper writes a "WORKER FAILED
+# (rc=N)" notice + log tail there (so a caller polling OUTPUT sees the failure
+# instead of waiting forever). The caller must poll OUTPUT, never read an exit
+# code, for the result. (Nonzero worker rc still usually means the model was
+# unavailable — codex does NOT downgrade; see the model-fallback note in
+# CLAUDE.md, only the Claude runtime is probed/remapped at setup — or the task
+# failed.) Exit 3 (launcher's own, before detach): duplicate-launch sentinel
+# refused the launch.
 #
-# The launch is synchronous from the caller's view, but the worker itself is
-# DETACHED into its own process session: if the caller (an orchestrator whose
-# turn ends) is killed mid-launch, the worker keeps running, still writes its
-# output file, and still cleans up its sentinel — a resumed session reconnects
-# via the sentinel's recorded output path. See the detachment comment above the
-# worker invocation.
+# The worker is DETACHED into its own process session, which is what makes the
+# fire-and-forget safe: if the caller (an orchestrator whose turn ends) is killed
+# after the launcher returns, the worker keeps running, still writes its output
+# file, and still cleans up its sentinel — a resumed session reconnects via the
+# sentinel's recorded output path. See the detachment comment above the worker
+# invocation.
 #
 # NESTED-SANDBOX BEHAVIOR: when this launcher is itself invoked from inside a
 # codex sandbox (the normal case — the pipeline orchestrator's exec tool runs it
@@ -319,12 +324,13 @@ echo "[launch_agent] final message -> $OUTPUT"
 # writes its output file and the wrapper still removes the sentinel, so a
 # resumed orchestrator turn (or the launch.sh driver's next `codex exec
 # resume`) reconnects by polling the output path recorded in the sentinel.
-# In the normal case the launcher just waits for the wrapper's rc file and the
-# behavior is identical to a foreground run. If the launcher is killed
-# mid-wait — or gives up at LAUNCH_WAIT_MAX (exit 4) — the scratch dir leaks
-# until the wrapper's own cleanup: accepted, and on the timeout path required
-# (the possibly-still-running wrapper is writing worker.log/rc in there;
-# $TMPDIR is OS-cleaned; the sentinel and output file are what matter).
+# The launcher is FIRE-AND-FORGET: once the worker is detached it returns
+# immediately rather than blocking for the result, because the headless codex
+# driver caps a silent long-running exec after ~10s and would reap a blocking
+# launcher as `UnknownProcessId` (fuller note at the return below). The scratch
+# dir therefore always outlives the launcher and leaks until OS cleanup (the
+# still-running wrapper is writing worker.log/rc in there; $TMPDIR is
+# OS-cleaned; the sentinel and output file are what matter).
 _worker_cmd=(
     codex exec
     --skip-git-repo-check
@@ -340,18 +346,41 @@ _worker_cmd=(
     -o "$OUTPUT"
     -- "$TASK"
 )
+# Clear any stale content at $OUTPUT from a PRIOR run at this same path before
+# the worker starts. The pipeline deliberately reuses version-numbered output
+# paths across attempts (see the stage docs: "attempts overwrite prior files").
+# Fire-and-forget uses "$OUTPUT non-empty" as the sole success signal, and the
+# wrapper only writes a WORKER FAILED notice when $OUTPUT is empty — so without
+# this clear, a fresh attempt that fails before writing anything would leave the
+# previous attempt's result sitting there and be mistaken for this attempt's
+# success, with no failure signal anywhere. Runs AFTER the duplicate-launch
+# sentinel check above, so a refused duplicate never clears an in-flight run's
+# output; the default (timestamped) path never pre-exists, so this is a no-op
+# there and only matters for an explicit reused --output.
+rm -f "$OUTPUT"
 {
     printf '#!/bin/bash\n'
     printf '%q ' "${_worker_cmd[@]}"
     printf ' </dev/null > %q 2>&1\n' "$_scratch/worker.log"
-    printf 'echo $? > %q\n' "$_scratch/rc"
+    printf '_rc=$?\n'
+    printf 'echo "$_rc" > %q\n' "$_scratch/rc"
+    # Fire-and-forget means the caller learns the outcome only by polling
+    # $OUTPUT. So if the worker failed and wrote no result of its own, surface
+    # the reason INTO $OUTPUT (rc + log tail). Without this a failed worker is
+    # indistinguishable from a slow one — the file simply never appears, the
+    # orchestrator waits, then relaunches blind. `[ ! -s ]` guards a worker that
+    # did produce output before a nonzero exit (don't clobber a real result).
+    printf 'if [ "$_rc" -ne 0 ] && [ ! -s %q ]; then { echo "[launch_agent] WORKER FAILED (rc=$_rc) — task did not complete; log tail:"; tail -n 40 %q; } > %q; fi\n' \
+        "$OUTPUT" "$_scratch/worker.log" "$OUTPUT"
+    # Sentinel removal is LAST — after $OUTPUT is settled — so a supervisor that
+    # keys on "sentinel gone" never observes it before the result is in place.
     printf 'rm -f %q\n' "$_sentinel"
 } > "$_scratch/run_worker.sh"
 chmod +x "$_scratch/run_worker.sh"
 
-# Detach. From here the wrapper owns the sentinel; the launcher only waits and
-# reports, so hand cleanup ownership over (early-exit paths above still had the
-# full trap). The wrapper's pid + start time are appended to the sentinel so a
+# Detach. From here the wrapper owns the sentinel; the launcher returns right
+# after (fire-and-forget), so hand cleanup ownership over (early-exit paths
+# above still had the full trap). The wrapper's pid + start time are appended to the sentinel so a
 # supervisor (launch.sh's wait_for_workers) can distinguish "worker still
 # running" from "worker AND wrapper externally killed, sentinel orphaned, no
 # output ever coming" — without this, an orphaned sentinel parks the driver
@@ -360,11 +389,11 @@ chmod +x "$_scratch/run_worker.sh"
 # orphan (microscopic TOCTOU window between test and append — accepted).
 # DEVNULL stdio is load-bearing: without it the wrapper inherits python's
 # stdout — which is THIS command substitution's pipe — and $() reads to EOF,
-# i.e. blocks until the wrapper exits: the pid append would never fire (the
-# wrapper has already cleaned the sentinel), the LAUNCH_WAIT_MAX cap would be
-# void (the block precedes the loop), and the EXIT trap would stay armed for
-# the worker's whole life. The wrapper redirects everything per-command
-# anyway, so DEVNULL loses nothing.
+# i.e. blocks until the wrapper exits. That would defeat fire-and-forget
+# entirely: the launcher would hang here for the worker's whole life, the pid
+# append would never fire (the wrapper has already cleaned the sentinel), and
+# the EXIT trap would stay armed the whole time. The wrapper redirects
+# everything per-command anyway, so DEVNULL loses nothing.
 _wrapper_pid="$(python3 -c 'import subprocess, sys; print(subprocess.Popen([sys.argv[1]], start_new_session=True, stdin=subprocess.DEVNULL, stdout=subprocess.DEVNULL, stderr=subprocess.DEVNULL).pid)' \
     "$_scratch/run_worker.sh")"
 _wrapper_lstart="$(ps -o lstart= -p "$_wrapper_pid" 2>/dev/null || true)"
@@ -373,27 +402,26 @@ if [ -f "$_sentinel" ]; then
 fi
 trap - EXIT
 
-# Wait for the wrapper's rc. Capped (LAUNCH_WAIT_MAX, default 6h — agents can
-# legitimately run for hours) so a wrapper that died without writing rc
-# (SIGKILL/OOM — the one case detachment can't cover) hangs the caller with a
-# diagnostic instead of forever.
-_waited=0
-until [ -e "$_scratch/rc" ]; do
-    if [ "$_waited" -ge "${LAUNCH_WAIT_MAX:-21600}" ]; then
-        echo "[launch_agent] no result after ${_waited}s — the detached wrapper may have been killed." >&2
-        echo "               Check the sentinel ($_sentinel) and poll the output file ($OUTPUT);" >&2
-        echo "               if neither resolves, the worker is gone: rm the sentinel and relaunch." >&2
-        exit 4
-    fi
-    sleep 2
-    _waited=$((_waited + 2))
-done
-cat "$_scratch/worker.log"
-_rc="$(cat "$_scratch/rc")"
-rm -rf "$_scratch"
-
-if [ "$_rc" -ne 0 ]; then
-    echo "[launch_agent] worker exited $_rc — model unavailable or task failed; see output above." >&2
-    exit "$_rc"
-fi
-echo "[launch_agent] done. Read the agent's result at: $OUTPUT"
+# FIRE-AND-FORGET. The worker now runs detached in its own session; it writes
+# $OUTPUT (or, on failure, a failure notice there) and removes the sentinel when
+# it finishes. We deliberately do NOT block waiting for it.
+#
+# Why: under the headless codex driver (`codex exec resume`), the exec tool caps
+# a silent, long-running command after ~10s and reaps the launcher — surfacing
+# as `UnknownProcessId`. A blocking wait can therefore never win, and worse, the
+# reap races the detached worker: sometimes codex returns benignly (the model
+# sees an early empty yield and polls, which is correct), sometimes as a hard
+# error the model reads as "the launch failed" — stalling the pipeline and
+# tripping the driver's stuck-model guard on a launch that actually succeeded.
+# (Observed 2026-07-12: a Gate 0 run halted this way while its worker went on to
+# finish one minute later.) Returning now — well under the cap — makes every
+# launch take the clean early-yield path the rest of the system already assumes:
+# this launcher's own duplicate-launch sentinel and launch.sh's wait_for_workers
+# were both built for "exec yields early; the worker keeps running; poll the
+# output file." The caller polls $OUTPUT; the driver blocks between turns in
+# wait_for_workers until the sentinel clears.
+echo "[launch_agent] $AGENT_ID launched detached (wrapper pid $_wrapper_pid) — NOT done yet."
+echo "[launch_agent] Its result is written only when the worker finishes; poll for it at:"
+echo "               $OUTPUT"
+echo "[launch_agent] Do not relaunch while the sentinel is present ($_sentinel)."
+exit 0
