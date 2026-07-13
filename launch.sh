@@ -25,10 +25,13 @@
 # the resumed turn reconnects via the sentinel + output-file protocol.
 #
 # Cost guard (two ceilings; details at the guard itself): the driver aborts on
-# 5 consecutive sub-60s turns that also commit NOTHING (a stuck/refusing model),
-# or on a much longer run of sub-60s turns even with commits (a coarse token-burn
-# backstop against a churn-committing retry loop). Both reset on any turn that
-# does real work; a committing progress turn never trips the first.
+# 5 consecutive sub-60s CYCLES that also commit NOTHING (a stuck/refusing model),
+# or on a much longer run of sub-60s cycles even with commits (a coarse token-burn
+# backstop against a churn-committing retry loop). A cycle is the turn PLUS the
+# post-turn wait for any detached worker it launched — so a quick turn that hands
+# off real work is judged by its worker's runtime, not its own. Both ceilings
+# reset on any cycle that does real work; a committing progress turn never trips
+# the first.
 set -euo pipefail
 
 # pwd -P (physical): codex records its cwd via getcwd(), which resolves
@@ -276,8 +279,15 @@ run_turn() {
 # (wrapper died before cleanup — rare). WORKER_WAIT_MAX caps the wait so a
 # truly wedged worker can't park the driver forever; on cap the orchestrator
 # is resumed anyway and its prompt tells it how to handle a live sentinel.
+# Outcome globals for the fast-cycle guard: WAITED = seconds this call
+# blocked; WAIT_CAPPED = 1 when it gave up at WORKER_WAIT_MAX with a sentinel
+# still live. A wait that ENDED because the worker finished is evidence of
+# real work and counts toward the cycle's duration; a wait that ended because
+# we gave up on a wedged worker is not — crediting a cap-timeout as work
+# would let a hung worker reset the stuck-guard forever.
 wait_for_workers() {
-    local waited=0 cap="${WORKER_WAIT_MAX:-14400}" s out pending
+    local waited=0 cap="${WORKER_WAIT_MAX:-14400}" s out pending wait_start=$SECONDS
+    WAITED=0; WAIT_CAPPED=0
     while :; do
         pending=0
         for s in "$ROOT"/process_log/agent_runs/.*.running; do
@@ -318,9 +328,14 @@ wait_for_workers() {
             fi
             pending=1
         done
-        [ "$pending" = "0" ] && return 0
+        # WAITED is wall-clock (not the nominal tick counter `waited`): the
+        # loop body itself costs time per tick, and over the 4h default cap
+        # that drift reaches tens of seconds — enough to leak into dt and
+        # falsely reset the fast-cycle guard if WAITED undercounted.
+        [ "$pending" = "0" ] && { WAITED=$((SECONDS - wait_start)); return 0; }
         if [ "$waited" -ge "$cap" ]; then
             echo "[driver] worker-wait cap (${cap}s) reached with a sentinel still live — resuming anyway" | tee -a "$LOG"
+            WAITED=$((SECONDS - wait_start)); WAIT_CAPPED=1
             return 0
         fi
         if [ "$waited" = "0" ]; then
@@ -352,9 +367,14 @@ rotate_log() {
     fi
 }
 
+# Startup wait: a previous driver may have died while a detached worker was
+# still in flight (its sentinel survives). Wait it out once before the first
+# turn; from then on the post-turn wait inside the loop is the only wait, so
+# each cycle's worker time is counted exactly once by the fast-cycle guard.
+wait_for_workers
+
 while :; do
     rotate_log
-    wait_for_workers
     st="$(status)"
     case "$st" in
         complete)
@@ -385,29 +405,49 @@ while :; do
         run_turn codex exec resume "$SID" "${CODEX_ARGS[@]}" -- "$CONT_PROMPT"
     fi
     set -e
-    dt=$((SECONDS - t0))
+    # Absorb the post-turn worker wait into the turn's duration signal BEFORE
+    # judging the turn: a sub-60s no-commit turn that handed off a detached
+    # worker which then ran for minutes did real work — the wait is part of
+    # that turn's cycle. Without this, strike 5 can land on a legitimate
+    # launch turn (observed live: a Gate 3 recovery re-check launch was the
+    # 5th "fast" turn; the driver exited while its worker ran on). A spin loop
+    # is unaffected: it launches nothing (or instant-failing workers), so its
+    # wait is ~0 and dt stays sub-60. A wait that hit WORKER_WAIT_MAX with the
+    # sentinel still live is NOT credited (WAIT_CAPPED): a wedged worker that
+    # never finishes must feed the guard, not reset it — otherwise a hung
+    # worker turns the ~5-strike bound into MAX_TURNS-many multi-hour waits.
+    wait_for_workers
+    if [ "$WAIT_CAPPED" = "1" ]; then
+        dt=$((SECONDS - t0 - WAITED))
+    else
+        dt=$((SECONDS - t0))   # measured after the wait, so a worker's runtime counts as this turn's work
+    fi
     head_after="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)"
-    # Two ceilings on short turns, because with fire-and-forget launches a
-    # healthy turn is often <60s (it commits its stage artifact and hands off to
-    # a detached worker), so raw sub-60s count alone false-positives:
-    #   fast_nocommit — short AND HEAD unchanged. A model producing/committing
-    #     NOTHING is wedged or refusing; trip quickly (5). A real launch turn
-    #     advances HEAD, so it never feeds this counter.
-    #   fast_any — short regardless of commits. Backstop against a fail-retry
-    #     loop that commits churn every turn (e.g. a WORKER FAILED notice or a
-    #     retry-count bump), which advances HEAD and would otherwise slip past
-    #     fast_nocommit all the way to MAX_TURNS. This is a COARSE token-burn
-    #     ceiling, NOT a progress detector: with fire-and-forget the real work
-    #     happens in the detached worker and its runtime is absorbed between
-    #     turns by wait_for_workers, so HEALTHY loop-routing turns (collect a
-    #     small gate output → commit → launch next) are routinely sub-60s. A
-    #     live gate0_revise loop was observed doing 5 such short turns in a row,
-    #     and stacked loops (referee cap=10, gate0 reject×revise, Stage 3a) can
-    #     run several dozen. The default therefore sits well above realistic
-    #     loop depth; only a much longer unbroken run of sub-60s turns (any
-    #     ≥60s turn — e.g. one that reads a full draft/referee report — resets
-    #     it) is abnormal. MAX_TURNS remains the hard cap; tune via
-    #     FAST_TURN_CEILING against real driver.log turn durations if needed.
+    # Two ceilings on short CYCLES (dt = the turn plus the post-turn wait for
+    # any detached worker it launched — see the wait_for_workers call above),
+    # because a healthy turn is often itself <60s (it commits its stage
+    # artifact and hands off to a detached worker), so raw turn time alone
+    # false-positives:
+    #   fast_nocommit — short cycle AND HEAD unchanged. A model producing and
+    #     committing NOTHING whose workers (if any) also end instantly is
+    #     wedged, refusing, or poll-spinning on a blocked external source;
+    #     trip quickly (5). A launch turn whose worker actually runs resets
+    #     via dt; a collect-and-commit turn resets via HEAD.
+    #   fast_any — short cycle regardless of commits. Backstop against a
+    #     fail-retry loop that commits churn every turn (e.g. a WORKER FAILED
+    #     notice or a retry-count bump), which advances HEAD and would
+    #     otherwise slip past fast_nocommit all the way to MAX_TURNS. This is
+    #     a COARSE token-burn ceiling, NOT a progress detector: HEALTHY
+    #     loop-routing cycles whose worker finishes fast (collect a small gate
+    #     output → commit → launch next) can still be sub-60s. A live
+    #     gate0_revise loop was observed doing 5 such short turns in a row,
+    #     and stacked loops (referee cap=10, gate0 reject×revise, Stage 3a)
+    #     can run several dozen. The default therefore sits well above
+    #     realistic loop depth; only a much longer unbroken run of sub-60s
+    #     cycles (any ≥60s cycle — a long worker, or a turn that reads a full
+    #     draft/referee report — resets it) is abnormal. MAX_TURNS remains the
+    #     hard cap; tune via FAST_TURN_CEILING against real driver.log turn
+    #     durations if needed.
     if [ "$dt" -lt 60 ]; then
         fast_any=$((fast_any + 1))
         if [ "$head_after" = "$head_before" ]; then fast_nocommit=$((fast_nocommit + 1)); else fast_nocommit=0; fi
@@ -415,11 +455,11 @@ while :; do
         fast_any=0; fast_nocommit=0
     fi
     if [ "$fast_nocommit" -ge 5 ]; then
-        echo "[driver] 5 consecutive sub-60s turns with no new commit — model appears stuck or refusing; stopping to avoid burning tokens. Inspect $LOG." | tee -a "$LOG"
+        echo "[driver] 5 consecutive sub-60s cycles (turn + worker wait) with no new commit — model appears stuck, refusing, or poll-spinning; stopping to avoid burning tokens. Inspect $LOG." | tee -a "$LOG"
         exit 1
     fi
     if [ "$fast_any" -ge "${FAST_TURN_CEILING:-60}" ]; then
-        echo "[driver] ${FAST_TURN_CEILING:-60} consecutive sub-60s turns (even with commits) — abnormal churn; stopping to bound token burn. Inspect $LOG." | tee -a "$LOG"
+        echo "[driver] ${FAST_TURN_CEILING:-60} consecutive sub-60s cycles (even with commits) — abnormal churn; stopping to bound token burn. Inspect $LOG." | tee -a "$LOG"
         exit 1
     fi
     sleep 3

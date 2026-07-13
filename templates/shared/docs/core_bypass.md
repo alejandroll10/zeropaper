@@ -62,6 +62,41 @@ substitution that the stage's own routing does **not** authorize. When unsure
 whether a skip is sanctioned, record it (`binding? = no` if you judge it
 non-degrading) — a surfaced false positive is cheaper than a silent bypass.
 
+## Routing on a non-binding verdict — the pipeline does not stall
+
+A non-binding verdict cannot *satisfy* a gate, but it does not park the pipeline
+either: in default mode the run continues (that is the point of
+record-and-surface), and the unresolved `binding? = yes` row already guarantees
+the run cannot report success without the binding re-check (see the
+completion block below). At a gate whose deciding verdict is non-binding:
+
+- **Conservative verdict** (FAIL / REVISE / INCREMENTAL / KNOWN — anything that
+  sends work back): route on it normally. Acting on a conservative fallback
+  signal costs at most extra revision, never a falsely-passed gate — and the
+  revised artifact faces a binding check once the source recovers.
+- **Permissive verdict** (PASS / NOVEL — anything that would clear the gate):
+  advance **provisionally**. The gate is not satisfied; the unresolved row
+  stands, and the run cannot report `complete` until the verification is
+  re-run as binding (the terminal backstop blocks it — it does not itself
+  trigger the re-run). Weigh blast radius: the earlier the gate, the more
+  downstream work rides on the provisional verdict (a provisional NOVEL at
+  Gate 3 puts every later stage at risk of rework; a provisional pass at a
+  late polish gate risks little). Where genuinely independent work exists —
+  a parallel task that stays valuable under either outcome of the binding
+  re-check — prefer it first. And while any unresolved binding row is open,
+  re-probe the downed source at **every** subsequent gate/stage boundary and
+  re-run the binding verification at the first recovery, so the worst case is
+  caught at the next boundary, not at completion.
+- **Never poll-wait.** Do not hold the gate in a probe-the-source-again loop.
+  With a stated reset horizon of hours, per-turn probes burn tokens and trip
+  the runtime's stuck guards (observed live: a codex driver run was halted by
+  the fast-turn guard after five sub-60s no-commit poll turns at a blocked
+  Gate 3). Re-probe a downed source at natural boundaries — the next gate or
+  stage transition, or after a stated `Retry-After` has actually elapsed — not
+  every turn. When a re-probe shows the source recovered, re-run the binding
+  verification then; note the re-run in the row's `why`/`fallback` text, but
+  leave `action` to the operator (below).
+
 ## Record by default; halt is opt-in
 
 Default is **record-and-surface** (steps 2–4): the run continues so an unattended
