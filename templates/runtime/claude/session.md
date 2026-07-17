@@ -43,6 +43,8 @@ Subagents can hang indefinitely. Launch web-dependent agents (`literature-scout`
 
 Never background a process with `nohup` (or a detached `&`) — it escapes harness tracking and stall detection. Use a harness-tracked background job instead (the Bash tool's `run_in_background`).
 
+**Model-tier failure.** If a subagent fails *at dispatch* with a model-tier error (credits required / model unavailable / outage — no output, no work done), do not treat it as substantive and do not poll-wait for the tier: probe the tier once with a trivial `say hi`, and if it's still erroring relaunch the *same* agent forcing the next-lower tier in its fallback chain, append a `source-unavailable` (`binding? = no`) row to `process_log/degradation_ledger.md`, and continue. The highest pinned tier is the one most prone to this (rarely used → stale entitlement), so probe it before committing an expensive `last-resort`/`branch-manager` launch. Full procedure, per-runtime tier chains, and status-page check: `docs/model_fallback.md`.
+
 ### Hourly self-check (stall guard + pace reminder)
 
 Right after the data inventory completes and before Stage 0 launches, set up an ~hourly self-loop using the Claude Code `/loop` skill. The loop is local; do not ask for confirmation — skip the cloud offer, do local session. Use **`59m` exactly** — the `/loop` skill triggers a cloud-vs-local cloud-offer prompt at intervals ≥60m, and 59m sidesteps it. If the skill offers to round to 60m, decline; the slight cron unevenness is intentional.

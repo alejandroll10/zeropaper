@@ -32,6 +32,7 @@ from pathlib import Path
 UNAVAILABLE_MARKERS = [
     "is currently unavailable",   # the Fable/Mythos suspension message (rc=0)
     "fable-mythos-access",        # URL in that message
+    "usage credits are required", # credits/entitlement gate (seen on Fable, incl. rc=0 outages)
     "model not found",
     "unknown model",
     "invalid model",
