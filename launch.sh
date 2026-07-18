@@ -140,8 +140,28 @@ warn_grok_keychain_push() {
     esac
 }
 
+# Launch-time model heal (Claude only — it rewrites .claude/agents/*.md). Re-decide
+# each subagent's tier against live availability: restore its ideal model when that
+# recovers, fall back again when it is down. Strictly best-effort — a missing
+# script/config, an absent `claude` CLI, or any probe error leaves every pin
+# untouched and the launch proceeds. Never blocks or fails a launch (hence the
+# guard; the healer also exits 0 on every internal skip). See docs/model_fallback.md.
+heal_claude_models() {
+    local dir="$ROOT/.claude/agents"
+    local script="$ROOT/code/utils/model_heal/heal_agent_models.py"
+    local cfg="$ROOT/code/utils/model_heal/config.json"
+    [ -d "$dir" ] && [ -f "$script" ] && [ -f "$cfg" ] || return 0
+    # A snappier per-probe timeout than the build-time 120s: this is on the
+    # interactive launch path, and an inconclusive (slow) probe is now safe — it
+    # leaves the pin untouched and the next launch retries. Worst case is bounded
+    # to (distinct ideal tiers) * timeout, and only on a genuinely dead network.
+    echo "Checking subagent model availability (best-effort; Ctrl-C to skip)…" >&2
+    python3 "$script" --agents-dir "$dir" --config "$cfg" --timeout 30 || true
+}
+
 case "$RUNTIME" in
     claude)
+        heal_claude_models
         exec claude --dangerously-skip-permissions
         ;;
     gemini)

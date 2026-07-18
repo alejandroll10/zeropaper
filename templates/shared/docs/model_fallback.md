@@ -10,12 +10,24 @@ failure, not a substantive one — but the tier will not fix itself on your
 schedule, so the doctrine is **probe once, fall back, log, and keep moving**, never
 sit and wait for the tier to recover.
 
-This is the runtime safety net. The first line of defence is build-time: `setup.sh`
-probes every pinned model and remaps unavailable tiers down their fallback chain
-before assembly (see the "Subagent model availability & fallback" design). That
-protects *new* deployments. A project assembled while a tier was healthy still
-carries the original pin, so a tier that goes down *mid-life* is exactly the gap
-this doc covers.
+This is the runtime safety net. Two automated layers sit in front of it:
+
+1. **Build-time** — `setup.sh` probes every pinned model and remaps unavailable
+   tiers down their fallback chain before assembly (see the "Subagent model
+   availability & fallback" design). Protects *new* deployments.
+2. **Launch-time (Claude only)** — `./launch.sh claude` re-decides each agent's
+   tier at every launch via `code/utils/model_heal/heal_agent_models.py`, in both
+   directions: it *restores* an agent's ideal model once that recovers and *falls
+   back* again while it is down. This closes the "assembled while the tier was
+   healthy, tier drops later" gap *between runs* — an already-deployed project heals
+   its own frontmatter before any agent is dispatched. (It re-probes each launch, so
+   it is also how a fallback gets undone once the ideal returns. It is best-effort:
+   an inconclusive probe leaves pins untouched, never blocking a launch.)
+
+So the remaining gap this doctrine covers is a tier that drops **during** a run
+(after launch-time heal already ran), and **codex/gemini/grok**, which have no
+launch-time heal (Claude-only — see Runtime scope below). There, probe-once /
+fall-back / log / keep-moving is the whole remedy.
 
 ## Fallback chains
 

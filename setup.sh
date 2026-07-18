@@ -1887,6 +1887,43 @@ chmod +x "$P/code/utils/nber_agenda/"nber_agenda.py
 cp "$TEMPLATE_ROOT/templates/utils/setup_push_token.sh" "$P/code/utils/"
 chmod +x "$P/code/utils/setup_push_token.sh"
 
+# ── Launch-time model heal ──
+# The build-time model remap (resolve_model_fallbacks.py + apply_model_remap.py)
+# runs ONCE and cannot reach an already-deployed project. Deploy a runtime twin so
+# `./launch.sh claude` re-decides each agent's tier at every launch, in both
+# directions: restore the ideal when it recovers, fall back again when it is down.
+# config.json records each agent's IDEAL model (the deployed *.md only carries the
+# current, possibly-remapped pin, so the ideal must be captured here from the same
+# metadata). Emitted with --light-model when --light collapsed subagents to sonnet,
+# so the healer restores to the model the assembler actually wrote.
+mkdir -p "$P/code/utils/model_heal"
+cp "$TEMPLATE_ROOT/templates/utils/model_heal/heal_agent_models.py" "$P/code/utils/model_heal/"
+chmod +x "$P/code/utils/model_heal/heal_agent_models.py"
+_heal_light_arg=()
+[ "$LIGHT" = "1" ] && _heal_light_arg=(--light-model sonnet)
+# Metadata scoped to what is ACTUALLY deployed — by both variant and selected
+# extension — NOT the deliberately-broad _model_meta_args the probe uses. The config
+# is keyed by agent name, so two kinds of over-inclusion must be avoided: the OTHER
+# variant's extension metadata (a same-named agent's ideal from the undeployed
+# variant could silently win) and an UNSELECTED extension's metadata (entries for
+# agents with no deployed .md). So: core shared + the selected variant's core, then
+# for each SELECTED extension its shared + this-variant + variant-agnostic (agents.json,
+# e.g. theory_llm) files, whichever exist. Base core is already variant-scoped
+# (claude_variant_agents.json is the copied selected variant).
+_heal_meta_args=(--metadata "$TEMPLATE_ROOT/templates/agent_metadata/claude_shared_agents.json")
+[ -f "$TEMPLATE_ROOT/templates/agent_metadata/claude_variant_agents.json" ] && \
+    _heal_meta_args+=(--metadata "$TEMPLATE_ROOT/templates/agent_metadata/claude_variant_agents.json")
+for _ext in "${EXTENSIONS[@]}"; do
+    for _cand in shared_agents.json "${VARIANT}_agents.json" agents.json; do
+        _mf="$TEMPLATE_ROOT/extensions/$_ext/agent_metadata/$_cand"
+        [ -f "$_mf" ] && _heal_meta_args+=(--metadata "$_mf")
+    done
+done
+python3 "$TEMPLATE_ROOT/scripts/emit_model_heal_config.py" \
+    --fallbacks "$TEMPLATE_ROOT/templates/model_fallbacks.json" \
+    "${_heal_light_arg[@]}" "${_heal_meta_args[@]}" \
+    --out "$P/code/utils/model_heal/config.json"
+
 # Sequence-space Jacobian (SSJ) skill — solve/analyze heterogeneous-agent GE
 # models (theory-explorer Stage 2b, idea-prototyper tractability pre-check)
 assemble_claude_skills \
@@ -2479,6 +2516,7 @@ candidate_dirs = [
     "code/utils/bib_verify",
     "code/utils/openalex",
     "code/utils/nber_agenda",
+    "code/utils/model_heal",
     "code/utils/ssj",
     # NOTE: the project .venv is intentionally NOT listed here. It is generated
     # per-host by uv (not a copied template artifact), and manifest paths get
