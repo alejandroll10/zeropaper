@@ -24,7 +24,7 @@ If the candidate theory is fundamentally about *heterogeneity interacting with p
 ## When to use
 
 - **`theory-explorer` (Stage 2b)** — the natural home. Once a theory with a heterogeneous-agent GE structure has passed the math audit, use SSJ to compute its GE Jacobians, trace impulse responses, check determinacy, and probe robustness across calibrations.
-- **`idea-prototyper` (tractability pre-check)** — if a candidate idea hinges on an HA-GE mechanism, a quick SSJ steady-state + Jacobian confirms the model actually solves and the headline comparative dynamic has the claimed sign *before* committing to full theory development. If the steady state won't solve or the IRF has the wrong sign, kill the idea cheaply.
+- **`idea-prototyper` (tractability pre-check)** — if a candidate idea hinges on an HA-GE mechanism, a quick SSJ steady-state + Jacobian confirms the model actually solves and the headline comparative dynamic has the claimed sign *before* committing to full theory development. If the steady state won't solve or the IRF has the wrong sign, that is a concrete BLOCKED finding — BLOCKED-DIFFICULTY unless the barrier is provably fundamental (BLOCKED-IMPOSSIBLE), per the prototyper's verdict rules.
 
 ## The model module contract
 

@@ -4,7 +4,7 @@
 
 1. Read `output/stage1/selected_idea.md`, `output/stage1/idea_prototype.md`, `output/stage0/problem_statement.md`, and `output/stage0/literature_map.md`
 2. Choose strategy:
-   - Attempt 1: develop the selected idea into a full theory, building on the prototype's derivation
+   - Attempt 1: develop the selected idea into a full theory, building on the prototype's derivation. (If the selected idea's `prototype` verdict is `BLOCKED-DIFFICULTY`, the prototype has no completed derivation — build instead on its "Most promising alternative technique" note (titled "Most promising alternative angle" under `--mode empirical-first`); if that note names no specific alternative, treat this as a fresh attempt informed by where the first attempt stalled.)
    - Attempt 2+: mutate (if previous attempt had good elements) or fresh with different approach
 3. Launch theory-generator with the selected idea, problem statement, literature map, **`output/stage1/negative_results.md` if it exists** (BLOCKED-IMPOSSIBLE prototypes from prior Stage-1 rounds — only proven impossibilities propagate here, not mere difficulty stalls — orchestrator must pass this in explicitly so a regenerated or re-attempted theory cannot silently re-propose a known-impossible sketch), and strategy.
 <!-- THEORY_FIRST_START -->

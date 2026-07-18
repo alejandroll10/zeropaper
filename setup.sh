@@ -1590,8 +1590,6 @@ cat > "$P/process_log/pipeline_state.json" <<JSONEOF
   "theory_attempt": 1,
   "theory_version": 1,
   "regeneration_round": 0,
-  "harder_round_forced": false,
-  "fallback_idea_sketch_name": null,
   "gate0_best_question_score": -1,
   "loops": {
     "gate0_revise":     {"round": 0, "cap": 3},
@@ -1629,8 +1627,6 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "theory_attempt": 1,
   "theory_version": 1,
   "regeneration_round": 0,
-  "harder_round_forced": false,
-  "fallback_idea_sketch_name": null,
   "gate0_best_question_score": -1,
   "loops": {
     "gate0_revise":     {"round": 0, "cap": 3},

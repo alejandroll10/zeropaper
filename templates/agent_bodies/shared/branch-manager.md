@@ -169,7 +169,7 @@ Do not produce Sections A-E. Do not write a learnings file. Save **only** the re
 
 ## Available alternatives
 
-**Re-enter Stage 1 with a different idea.** [Read `pipeline_state.json:stage1_candidates`. Are any TRACTABLE runner-up sketches available — entries with `eliminated: false AND winner: false`? If yes, list them by name with one sentence each on whether the sketch's predicted relationship is plausibly *more identifiable* on the available data than the current winner. If the designer's verdict was `OUT-OF-SCOPE` (macro toolkit required), no finance-side idea on this problem will help — say so and do not advance this branch.]
+**Re-enter Stage 1 with a different idea.** [Read `pipeline_state.json:stage1_candidates`. Are any TRACTABLE runner-up sketches available — entries with `eliminated: false AND winner: false AND prototype == TRACTABLE`? If yes, list them by name with one sentence each on whether the sketch's predicted relationship is plausibly *more identifiable* on the available data than the current winner. If the designer's verdict was `OUT-OF-SCOPE` (macro toolkit required), no finance-side idea on this problem will help — say so and do not advance this branch.]
 
 **Re-enter Stage 0 with a different problem.** [Is the data inventory the binding constraint? Read `data_inventory.md` — if the available variation is wrong for any plausible design on this problem class (no panel, no policy event, no instrument, no discontinuity, no announcement window), the data is the issue and a different problem with different data demands is the right move. Cite specific data gaps. If the data inventory is rich and a different idea on the same problem could plausibly be identifiable, do not advance this branch.]
 

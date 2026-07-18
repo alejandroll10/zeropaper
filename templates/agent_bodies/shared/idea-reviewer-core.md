@@ -109,7 +109,7 @@ When advancing, return a ranked top-K list with **K ≥ 3 whenever ≥3 viable a
 ### ITERATE when:
 - Ideas have promise but {{MECHANISM_TERM_PLURAL}} aren't sharp enough
 - You want to see combinations or refinements
-- Iterate only while refinement is productive — **2–3 cycles is usually enough**; if the feedback is no longer sharpening the approaches, ADVANCE the best rather than dithering. This is soft guidance, not a hard stop: the **single authoritative hard cap is the orchestrator's 5-round Stage-1 budget** (`docs/stage_1.md` — after 5 rounds without an ADVANCE that clears the gates it force-advances the best top-K, and that budget also counts gate-failure recovery rounds like runner-up re-advances and forced harder rounds). Do **not** impose a stricter hard cap of your own — let the orchestrator own escalation and abandonment.
+- Iterate only while refinement is productive — **2–3 cycles is usually enough**; if the feedback is no longer sharpening the approaches, ADVANCE the best rather than dithering. This is soft guidance, not a hard stop: the **single authoritative hard cap is the orchestrator's 5-round Stage-1 budget** (`docs/stage_1.md` — after 5 rounds without an ADVANCE that clears the gates it force-advances the best top-K, and that budget also counts gate-failure recovery rounds like runner-up re-advances). Do **not** impose a stricter hard cap of your own — let the orchestrator own escalation and abandonment.
 
 ### REJECT ALL when:
 - No idea scores above 2 on importance
