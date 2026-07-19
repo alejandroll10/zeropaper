@@ -15,7 +15,13 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.6.0] — 2026-07 (current)
+## [2.6.1] — 2026-07-19 (current)
+Meta-repo dev tooling: CLAUDE.md slimmed by moving deployment docs into a skill.
+- `deploy-project` skill (`.claude/skills/deploy-project/`) — all `setup.sh` flags, compositions, mutual exclusions, post-setup launch guidance, WRDS server startup. Loaded on demand instead of sitting in every session's context; CLAUDE.md 369 → 284 lines
+- `.claude/skills/` is now tracked in the meta-repo; `setup.sh` snapshots the cloned dev skills after clone and strips them in the cleanup block, so they never ship into deployed projects (build-time only — no deployment-manifest entry)
+- Strip is checksum-guarded: if a future `skill_id` ever collides with a dev-skill directory name, the assembled project skill is kept and a rename warning is emitted, rather than being silently deleted
+
+## [2.6.0] — 2026-07
 Production-hardened, four-runtime era. Introduces formal semantic versioning (`VERSION` file
 + `setup.sh` version stamp + this changelog).
 - **Grok** runtime added — fourth runtime alongside Claude, Codex, Gemini (`cf0f112`)

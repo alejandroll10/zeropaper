@@ -7,7 +7,9 @@ process_log/
 references/
 .claude/agents/
 .claude/agent-memory/
-.claude/skills/
+# .claude/skills/ is deliberately NOT ignored: the meta-repo's own dev skills
+# (currently deploy-project) are tracked here. setup.sh strips them from deployed
+# projects — see the DEV_SKILLS snapshot/cleanup pair in setup.sh.
 
 # Local test artifacts from ./setup.sh <name> --local
 demo_*/

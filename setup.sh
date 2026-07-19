@@ -48,6 +48,8 @@ PROJECT_NAME=""
 VARIANT="finance"
 MODE=""
 LOCAL=0
+DEV_SKILLS=()       # meta-repo dev skills carried in by the clone; stripped before deploy
+DEV_SKILL_SUMS=()   # parallel array: SKILL.md checksum at snapshot time (collision guard)
 NEXT_IS_VARIANT=0
 NEXT_IS_EXT=0
 NEXT_IS_MODE=0
@@ -609,6 +611,28 @@ else
     git remote remove origin
     rm -rf .git
     git init -q -b main
+
+    # Snapshot the meta-repo's own dev-facing skills (currently deploy-project).
+    # Anything under .claude/skills/ at this point arrived with the clone and is
+    # template-development tooling; the deployed project's real skills are assembled
+    # later from templates/skill_bodies/. Removed in the cleanup block below, so no
+    # deployment-manifest entry (build-time only, same as VERSION/CHANGELOG.md).
+    # Snapshot-based rather than a name list: adding a dev skill needs no setup.sh edit.
+    #
+    # The checksum is a collision guard. assemble_claude_skills.py does mkdir(exist_ok)
+    # + write_text, so a future skill_id matching a dev-skill directory name would
+    # overwrite it in place — and a name-only cleanup would then delete a legitimate
+    # assembled project skill. Recording the checksum lets cleanup tell the two apart
+    # and fail safe (keep the project skill) rather than fail destructive.
+    for d in .claude/skills/*/; do
+        [ -d "$d" ] || continue
+        DEV_SKILLS+=("$d")
+        if [ -f "$d/SKILL.md" ]; then
+            DEV_SKILL_SUMS+=("$(cksum < "$d/SKILL.md")")
+        else
+            DEV_SKILL_SUMS+=("")
+        fi
+    done
 
     TEMPLATE_ROOT="."
     OUT_DIR="."
@@ -2702,6 +2726,33 @@ rm -f requirements.system
 rm -f texput.log
 rm -f LIMITATIONS.md   # meta-project architectural-limits doc; dev-facing, never ships
 rm -f VERSION CHANGELOG.md   # build-time version stamp + template changelog; read at setup, never ships
+# Meta-repo dev skills snapshotted right after the clone (see the DEV_SKILLS block there).
+# Dev-facing template tooling — a research project has no use for instructions on how to
+# deploy or edit the template. The project's own skills were assembled separately and are
+# not in this list, so they survive.
+if [ ${#DEV_SKILLS[@]} -gt 0 ]; then
+    dev_skill_i=0
+    dev_skill_removed=0
+    for d in "${DEV_SKILLS[@]}"; do
+        dev_skill_want="${DEV_SKILL_SUMS[$dev_skill_i]}"
+        dev_skill_i=$((dev_skill_i + 1))
+        dev_skill_now=""
+        [ -f "$d/SKILL.md" ] && dev_skill_now="$(cksum < "$d/SKILL.md")"
+        if [ "$dev_skill_now" = "$dev_skill_want" ]; then
+            rm -rf "$d"
+            dev_skill_removed=$((dev_skill_removed + 1))
+        else
+            # Contents changed since the snapshot: an assembled project skill now owns
+            # this directory. Keep it — deleting it would drop a real skill from the
+            # deployed project. The dev content is already gone (overwritten), so
+            # nothing leaks; only the name needs fixing upstream.
+            echo "  ⚠ $d was overwritten by an assembled project skill — keeping it."
+            echo "    A skill_id in templates/skill_metadata/ collides with a meta-repo"
+            echo "    dev-skill directory name. Rename one so they cannot share a path."
+        fi
+    done
+    echo "  ✓ Meta-repo dev skills removed ($dev_skill_removed/${#DEV_SKILLS[@]})"
+fi
 if [ "$MANUAL" = "1" ] || [ "$MODE" = "report" ]; then
     rm -f dashboard.html
 fi
