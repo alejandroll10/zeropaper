@@ -2701,6 +2701,7 @@ rm -f CLAUDE_REFACTOR_PLAN.md
 rm -f requirements.system
 rm -f texput.log
 rm -f LIMITATIONS.md   # meta-project architectural-limits doc; dev-facing, never ships
+rm -f VERSION CHANGELOG.md   # build-time version stamp + template changelog; read at setup, never ships
 if [ "$MANUAL" = "1" ] || [ "$MODE" = "report" ]; then
     rm -f dashboard.html
 fi

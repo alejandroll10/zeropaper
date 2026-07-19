@@ -225,7 +225,12 @@ elif [ -d "$PROJECT/paper/referee_reports" ] && [ -d "$PROJECT/paper/simulated_r
     echo "  ⚠ Both paper/referee_reports/ and paper/simulated_referee_reports/ exist — skipping auto-rename. Inspect manually and merge if needed."
 fi
 
-NEW_VERSION=$(cd "$TEMPLATE_ROOT" && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+# Compose the version stamp identically to setup.sh (VERSION semver + git hash,
+# e.g. "2.6.0+4be4d75"), so an update→deploy round-trip preserves the semver
+# component instead of overwriting the manifest with a bare hash.
+NEW_HASH=$(cd "$TEMPLATE_ROOT" && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+NEW_SEMVER=$(tr -d '[:space:]' < "$TEMPLATE_ROOT/VERSION" 2>/dev/null || true)
+NEW_VERSION="${NEW_SEMVER:+${NEW_SEMVER}+}${NEW_HASH}"
 
 # ── Build setup.sh flag list ──
 # When adding a new setup.sh flag, update both this block AND the manifest-
