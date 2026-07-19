@@ -1525,8 +1525,11 @@ constraints, identification strategy, and stated contribution. That contract is
 then quoted into every developing agent's launch prompt as a non-negotiable.
 
 What the pipeline will do:
-- Implement your seed faithfully — its named mechanism, headline result, and
-  identification strategy stay intact.
+- Implement your seed faithfully — its named mechanism, object of study, and
+  identification strategy stay intact. Predicted results (signs, thresholds,
+  existence claims, comparative statics) are hypotheses the pipeline tests, not
+  frozen conclusions: specify the setup, not the result. A falsified prediction
+  gets corrected and documented, not defended.
 - Add to / refine / extend the implementation where it can — extra theorems,
   comparative statics, robustness checks.
 - Document any genuine impossibility (proof unrepairable, identification
