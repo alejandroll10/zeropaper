@@ -1339,7 +1339,18 @@ fi
 # ---------------------------------------------------------------------
 ARP_UUID=$(python3 -c 'import uuid; print(uuid.uuid4())' 2>/dev/null)
 ARP_DATE=$(date -u +%Y-%m-%d)
-ARP_VERSION=$(cd "$TEMPLATE_ROOT" && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+# Version stamp = human-readable semver (from the VERSION file, the single
+# source of truth) + exact build provenance (git short hash), e.g.
+# "2.6.0+73b6911". VERSION is build-time only (read here, never deployed), so
+# it needs no deployment-manifest entry. If VERSION is missing or empty we fall
+# back to the bare hash — identical to the pre-versioning behavior, fail-safe.
+ARP_HASH=$(cd "$TEMPLATE_ROOT" && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+ARP_SEMVER=$(tr -d '[:space:]' < "$TEMPLATE_ROOT/VERSION" 2>/dev/null || true)
+if [ -n "$ARP_SEMVER" ]; then
+    ARP_VERSION="${ARP_SEMVER}+${ARP_HASH}"
+else
+    ARP_VERSION="$ARP_HASH"
+fi
 # Watermark mode field (LICENSE §2): "manual" marks a research-toolkit
 # deployment whose output is human-directed Assisted Output; anything else
 # is "autonomous". The pdfsubject provenance phrase softens accordingly so
