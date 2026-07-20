@@ -15,7 +15,18 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.6.2] — 2026-07-20 (current)
+## [2.6.3] — 2026-07-20 (current)
+Resumed Claude sessions were starting unguarded. The hourly `/loop` stall guard and
+`start_services.sh` were both tied to the fresh-start path, so a session relaunched with
+"continue" (`status: "running"`) got neither — no stall detection for the rest of the run,
+and dead data connections whose liveness `data_inventory.md` still asserted.
+- **Session preflight** (`templates/runtime/claude/session.md`) — start services, establish the hourly loop, write-or-re-verify the data inventory. Runs on every session, fresh or resumed
+- Invoked from the `not_started` and `running` branches **only**: a `complete` or `halted_*` session reports and stops, and on `halted_wrds_unreachable` restarting the service is the operator-driven repair that branch forbids
+- The loop is documented as session-lifetime, not Stage 0 — it lives in the Claude Code session and dies with it, so every relaunch re-establishes it; when in doubt, set it up (a duplicate stall check is harmless, a missing one is not)
+- Re-verify passes correct stale ✓ rows and commit only if a row changed, rather than rewriting the inventory's research-design implications
+- Claude-only: `/loop` is a Claude Code skill and the other runtimes have no session-start block
+
+## [2.6.2] — 2026-07-20
 CLAUDE.md slimmed to the always-on layer; repo-editing reference moved to a skill. Nine audit
 rounds found the moved content was substantively stale, so this is a correctness pass as much
 as a docs move.
