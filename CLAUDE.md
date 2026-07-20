@@ -2,13 +2,13 @@
 
 AFTER EVERY BIG CHANGE, LAUNCH A SONNET AGENT TO REVIEW YOUR CHANGES FOR ISSUES. IF ANY ISSUES ARE FOUND, ADD A NEW ROUND OF AUDITING AFTER FIXING THE CURRENT ROUND'S ISSUES (EVEN IF THERE ARE ONLY MINOR CHANGES). ITERATE UNTIL DONE.
 
-WHEN ADDING A NEW INFRASTRUCTURE PATH TO `setup.sh` (DIR OR FILE THAT GETS DEPLOYED), ALSO ADD IT TO THE `candidate_dirs` / `candidate_files` LIST IN THE MANIFEST EMISSION BLOCK (UNDER `# ── Emit deployment manifest ──`, `candidate_dirs` AT `setup.sh:2261`); OTHERWISE `update.sh` WILL SILENTLY SKIP IT WHEN REFRESHING EXISTING DEPLOYMENTS.
+WHEN ADDING A NEW INFRASTRUCTURE PATH TO `setup.sh` (DIR OR FILE THAT GETS DEPLOYED), ALSO ADD IT TO THE `candidate_dirs` / `candidate_files` LIST IN THE MANIFEST EMISSION BLOCK (GREP `# ── Emit deployment manifest ──`); OTHERWISE `update.sh` WILL SILENTLY SKIP IT WHEN REFRESHING EXISTING DEPLOYMENTS. BUILD-TIME-ONLY PATHS (NEVER PRESENT IN A DEPLOYED PROJECT) GET **NO** ENTRY.
 
 VERSIONING (`VERSION` = SINGLE SOURCE OF TRUTH; `setup.sh`/`update.sh` STAMP `<version>+<git-hash>` INTO DEPLOYMENTS): WHEN YOU SHIP SOMETHING NOTABLE, BUMP `VERSION` (**PATCH** = FIXES, **MINOR** = NEW MODE/CAPABILITY, **MAJOR** = IDENTITY SHIFT), ADD A `CHANGELOG.md` LINE, COMMIT, THEN `git tag -a vX.Y.Z -m "…"` AND PUSH WITH `--follow-tags`. `VERSION`/`CHANGELOG.md` ARE BUILD-TIME ONLY (READ AT SETUP, STRIPPED IN THE CLEANUP BLOCK, NEVER DEPLOYED) — SO **NO** MANIFEST ENTRY.
 
-SHARED RULE FRAGMENTS (`templates/fragments/*.md`, ISSUE #167): A LOAD-BEARING BLOCK OF RULE TEXT THAT MUST READ **BYTE-IDENTICALLY** ACROSS MANY AGENT BODIES (E.G. THE SUBSTANCE-OVER-FORM ARCHETYPE LIST, THE POLICY-MAP AXES ENUMERATION, THE INSTITUTIONAL-ACRONYM CITATION CARVE-OUT, THE `irreducible_stochasticity` JSON SCHEMA) IS SINGLE-SOURCED AS A FRAGMENT AND REFERENCED WITH A `{{> fragment_id }}` INCLUDE DIRECTIVE. `scripts/agent_body_loader.py` INLINES THE FRAGMENT AT ASSEMBLY TIME (**BEFORE** VOCAB SUBSTITUTION, SO A FRAGMENT MAY ITSELF CARRY `{{VOCAB_KEY}}` PLACEHOLDERS). THE DIRECTORY IS AUTO-DISCOVERED RELATIVE TO THE LOADER, SO EVERY ASSEMBLER (BASE + EXTENSIONS, ALL THREE RUNTIMES) SHARES IT WITH **NO** PER-CALL WIRING, AND IT IS **BUILD-TIME ONLY** — INLINED INTO DEPLOYED AGENTS, NEVER COPIED OUT, SO IT NEEDS **NO** DEPLOYMENT-MANIFEST ENTRY. FRAGMENT IDS ARE LOWERCASE (`[a-z0-9][a-z0-9_-]*`); AN UPPERCASE ID IN A `{{> … }}` DIRECTIVE WILL NOT MATCH AND SHIPS LITERALLY. USE A FRAGMENT ONLY FOR GENUINELY BYTE-IDENTICAL ATOMS — DO **NOT** FRAGMENT ROLE-ADAPTED PROSE THAT MERELY LOOKS SIMILAR (THE COPIES ACROSS scorer/referee/self-attacker/triager ARE INTENTIONALLY VERB- AND VERDICT-SPECIFIC; FLATTENING THEM CHANGES BEHAVIOR). TO VERIFY A FRAGMENT MIGRATION IS ZERO-BEHAVIOR-CHANGE, ASSEMBLE BEFORE AND AFTER (`git stash` THE EDITS) AND `diff -rq` THE `.claude`/`.codex`/`.gemini` AGENT DIRS — THEY MUST BE IDENTICAL.
+RULE TEXT THAT MUST READ BYTE-IDENTICALLY ACROSS MANY AGENT BODIES BELONGS IN `templates/fragments/*.md`, INCLUDED VIA `{{> fragment_id }}` (LOWERCASE IDS ONLY — AN UPPERCASE ID SILENTLY SHIPS LITERALLY). DO **NOT** FRAGMENT ROLE-ADAPTED PROSE THAT MERELY LOOKS SIMILAR: THE scorer/referee/self-attacker/triager COPIES ARE INTENTIONALLY VERB- AND VERDICT-SPECIFIC, AND FLATTENING THEM CHANGES BEHAVIOR. MECHANISM + THE ZERO-BEHAVIOR-CHANGE VERIFICATION PROCEDURE: `edit-pipeline` SKILL.
 
-WHEN ADDING A NEW `{{KEY}}` PLACEHOLDER TO ANY AGENT BODY (SHARED, VARIANT, OR EXTENSION), ADD A DEFAULT VALUE FOR THE KEY TO EVERY EXISTING VARIANT vocab.json (`templates/agents/{finance,macro}/vocab.json` AT MINIMUM). THE LOADER (`scripts/agent_body_loader.py`) RAISES `KeyError` ON UNRESOLVED PLACEHOLDERS, SO A MISSING DEFAULT BREAKS ASSEMBLY FOR ANY VARIANT THAT DOESN'T DEFINE THE KEY — FAIL-LOUD IS THE CORRECT BEHAVIOR, BUT IT MEANS A VARIANT-ONLY EDIT WILL BREAK SETUP FOR THE OTHER VARIANTS UNTIL THE KEY IS BACKFILLED. EXTENSION-AGENT PLACEHOLDERS HAVE THE SAME RULE — ANY NEW KEY IN AN EXTENSION BODY MUST APPEAR IN EVERY VARIANT VOCAB THE EXTENSION CAN COMPOSE WITH (CURRENTLY BOTH FINANCE AND MACRO).
+WHEN ADDING A NEW `{{KEY}}` PLACEHOLDER TO AN AGENT BODY, ADD A DEFAULT FOR IT TO THE MATCHING vocab.json: A **VARIANT** BODY (`{id}-core.md`) NEEDS THE KEY IN **EVERY** VARIANT VOCAB (`templates/agents/{finance,macro}/vocab.json`); A **SHARED** BODY (`{id}.md`) NEEDS IT IN `templates/agent_bodies/shared/vocab.json`. THE LOADER RAISES `KeyError` ON UNRESOLVED PLACEHOLDERS, SO A VARIANT-ONLY EDIT BREAKS SETUP FOR THE OTHER VARIANTS UNTIL THE KEY IS BACKFILLED.
 
 ## What this is
 
@@ -18,7 +18,7 @@ This file is tracked in git but **overwritten by `setup.sh`** in cloned projects
 
 ## Sibling repo: the IAR website + wiki
 
-The pipeline's empirical dataset skills (`templates/skill_bodies/empirical/<dataset>.md`, mirrored into `extensions/empirical/skills/<dataset>/SKILL.md`) and the IAR wiki dataset pages (`src/content/docs/datasets/*` in `github.com/institute-for-automated-research/website`) are two mirrors of the same dataset knowledge, kept in sync both ways. When a change here affects a wiki page or a published paper PDF/landing page (dataset access or gotchas, citation format, provenance disclosure), file the issue **in the website repo** (`gh issue create --repo institute-for-automated-research/website`), not here. The website repo's CLAUDE.md carries the reciprocal rule for changes that originate there.
+The pipeline's empirical dataset skills (`templates/skill_bodies/empirical/<dataset>.md` + `templates/skill_metadata/empirical_skills.json`, assembled into a deployed project's `.claude/skills/<dataset>/SKILL.md`) and the IAR wiki dataset pages (`src/content/docs/datasets/*` in `github.com/institute-for-automated-research/website`) are two mirrors of the same dataset knowledge, kept in sync both ways. When a change here affects a wiki page or a published paper PDF/landing page (dataset access or gotchas, citation format, provenance disclosure), file the issue **in the website repo** (`gh issue create --repo institute-for-automated-research/website`), not here. The website repo's CLAUDE.md carries the reciprocal rule for changes that originate there.
 
 ## Working principle: the pipeline is not ground truth
 
@@ -53,72 +53,13 @@ One thing worth knowing without loading it, because it also applies to template-
 
 - **`--local` is a debug flag, never a real run.** It skips the clone, dumps to `test_output/{variant}/`, and exits before dependency install / origin detach / initial commit.
 
-## Repository structure
+## Editing this repo
 
-```
-templates/
-├── shared/
-│   ├── core.md              # Runtime-agnostic pipeline orchestrator template
-│   ├── core_manual.md       # Slim manual-mode runtime doc (no pipeline, just catalogs)
-│   ├── seed.md              # Seeded-idea override block (injected when --seed is used)
-│   ├── faithful.md          # Stricter seeded-mode block (injected when --faithful is used)
-│   ├── faithful_inject.md   # Short pointer appended to developing-agent bodies under --faithful
-│   ├── seed_overrides/      # Per-stage overrides for --seed (gate doc placeholders)
-│   └── faithful_overrides/  # Per-stage overrides for --faithful (supersedes seed_overrides)
-├── runtime/
-│   ├── claude/
-│   │   ├── session.md           # Claude-specific session guidance (autonomous mode)
-│   │   └── session_manual.md    # Claude-specific session guidance (manual mode)
-│   ├── codex/
-│   │   ├── session.md           # Codex orchestration discipline (autonomous mode)
-│   │   └── session_manual.md    # Codex toolkit guidance (manual mode)
-│   └── gemini/
-│       ├── session.md           # Gemini orchestration discipline (autonomous mode)
-│       └── session_manual.md    # Gemini toolkit guidance (manual mode)
-├── agent_metadata/          # JSON metadata for agent assembly (tools, model, description)
-│   ├── claude_shared_agents.json
-│   ├── claude_finance_agents.json
-│   └── claude_macro_agents.json
-├── agent_bodies/            # Shared/extension agent prompt bodies (plain markdown)
-│   └── shared/              # Domain-agnostic shared agent prompts
-├── skill_metadata/          # JSON metadata for skill assembly
-│   ├── codex_math_skills.json
-│   ├── empirical_skills.json
-│   └── theory_llm_skills.json
-├── skill_bodies/            # Skill prompt bodies (plain markdown)
-│   ├── codex_math/
-│   ├── empirical/
-│   └── theory_llm/
-├── utils/                   # Utility scripts copied into deployed projects
-│   └── codex_math/          # Codex proof verification/writing/exploration scripts
-├── agents/                  # Variant agent prompt bodies (source of truth; no frontmatter)
-│   ├── shared/
-│   ├── finance/
-│   └── macro/
-└── gitignore_project        # .gitignore template for deployed projects
-
-scripts/
-├── assemble_claude_agents.py   # Combines agent metadata + bodies → .claude/agents/*.md
-├── assemble_claude_skills.py   # Combines skill metadata + skill bodies → .claude/skills/*/SKILL.md
-├── assemble_codex_skills.py    # Combines skill metadata + skill bodies → .agents/skills/*/SKILL.md
-├── assemble_codex_subagents.py # Combines agent metadata + bodies → .codex/agents/*.toml
-├── assemble_gemini_agents.py   # Combines agent metadata + bodies → .gemini/agents/*.md
-└── generate_catalog.py         # Manual mode: emits agent/skill catalog markdown from metadata
-
-extensions/                  # Optional extensions (empirical, theory_llm)
-├── empirical/
-│   ├── agent_metadata/      # shared_agents.json, finance_agents.json, macro_agents.json
-│   ├── agent_bodies/        # shared/, finance/, macro/
-│   └── utils/               # Python/shell utilities copied into project
-└── theory_llm/
-    ├── agent_metadata/      # agents.json
-    ├── agent_bodies/        # Agent prompt bodies
-    └── llm_client.py        # LLM client copied into project
-
-setup.sh                     # Clones repo, assembles CLAUDE.md + AGENTS.md + GEMINI.md + agents + skills
-dashboard.html               # Live progress dashboard
-test_scripts/                # Skill verification scripts (removed on deploy)
-```
+**Load the `edit-pipeline` skill.** It carries the repository layout, how `setup.sh`
+assembles a deployment, the runtime-agnostic-core vs runtime-specific-packaging split,
+the full agent roster and classification, subagent model pinning / fallback / launch-heal,
+the core-skill catalog, and the step-by-step procedures for adding a variant, a mode, an
+agent, a skill, or a vocab placeholder.
 
 ## Supported variants
 
@@ -143,142 +84,4 @@ Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory
 | `empirical-first` | `--mode empirical-first` | Working (v1) | `finance` | Identification-first instead of theory-first. Auto-implies `--ext empirical`. |
 | `report` | `--mode report` | Working (v1) | `finance`, `macro` | Referee an external submission instead of generating one. One-shot, no stages. |
 
-Full semantics for both modes (what each stage/gate becomes, which agents are pruned, composition rules) are in the `deploy-project` skill.
-
-## Core skills (all variants)
-
-| Skill | Description |
-|-------|-------------|
-| `codex-math` | OpenAI Codex (gpt-5.6-sol, pinned explicitly rather than via the `gpt-5.6` alias) for proof verification, writing, and exploration. Erratic genius — substantial false-positive rate, always triage. Scripts at `code/utils/codex_math/`. |
-| `nber-agenda` | Fetch any NBER conference/meeting agenda (titles, authors, discussants, paper links) as text or JSON. NBER agenda pages render client-side; the skill resolves the hidden `conference.nber.org/agenda/simple_printable?conf_id=<ID>` endpoint. Loaded by `literature-scout` and `gap-scout` (pre-publication frontier). Script at `code/utils/nber_agenda/`. |
-
-> **Using it from this dev repo:** the script is runnable directly without a deployment — `python3 templates/utils/nber_agenda/nber_agenda.py <conference-slug> [--json] [--papers-only]` (e.g. `si-2026-asset-pricing`). Handy for surveying the research frontier or harvesting new technique candidates for skills while working in the template repo.
-
-## How setup.sh works
-
-1. Clones this repo into a new project folder
-2. Reads `--variant` flag (default: `finance`)
-3. Assembles runtime docs (CLAUDE.md, AGENTS.md, GEMINI.md):
-   - Reads `templates/shared/core.md` (runtime-agnostic orchestrator)
-   - Injects runtime-specific session guidance from `templates/runtime/{runtime}/session.md`
-   - Substitutes per-variant scorer calibrations from `templates/agents/{variant}/vocab.json` into the scorer agent body
-   - If `--seed`: injects `templates/shared/seed.md` as `{{SEED_OVERRIDE}}`
-   - If `--faithful`: injects `templates/shared/faithful.md` instead (supersedes seed.md at the same placeholder)
-   - Replaces `{{PAPER_TYPE}}`, `{{TARGET_JOURNALS}}`, `{{DOMAIN_AREAS}}`, `{{RUNTIME_DOC_NAME}}`, `{{AGENT_DIR}}`, `{{SKILL_DIR}}`
-4. Assembles agents from metadata + prompt bodies:
-   - Shared: `agent_metadata/claude_shared_agents.json` + `agent_bodies/shared/*.md`
-   - Variant: `agent_metadata/claude_{variant}_agents.json` + `agents/{variant}/*.md`
-   - Claude agents → `.claude/agents/*.md`, Codex → `.codex/agents/*.toml`, Gemini → `.gemini/agents/*.md`
-5. Injects variant context (paper type, journal list, domain) into key agents
-   - If `--faithful`: also appends `templates/shared/faithful_inject.md` (a short "read `output/seed/mechanism_contract.md` first" pointer) to *developing* agent bodies only — theory-generator, idea-generator, implications-deriver, paper-writer, polish-* (all 8: prose, consistency, equilibria, formula, numerics, institutions, bibliography, identification), bib-verifier, last-resort (categorized `developing` precisely so a fix it proposes for a stuck artifact respects the contract), plus extension developers (empiricist, identification-designer under `--ext empirical`; experiment-designer under `--ext theory_llm`). Evaluators (scorer, scorer-freeform, math-auditor, math-auditor-freeform, novelty-checker, referee, referee-freeform, referee-mechanism, self-attacker, idea-prototyper, idea-reviewer, branch-manager, plus extension evaluators empirics-auditor, identification-auditor, mechanism-auditor (empirical-first only), experiment-reviewer) explicitly do **not** receive the pointer — corrupting the evaluation signal corrupts the paper.
-6. Creates project structure (output/, paper/, code/, etc.) and initial pipeline state
-   - If `--seed`: creates `output/seed/` with a README, sets `pipeline_state.json` to start at `seed_triage` with `"seeded": true, "faithful": false`
-   - If `--faithful`: creates `output/seed/` with a faithful-mode README, sets `pipeline_state.json` to start at `seed_triage` with `"seeded": true, "faithful": true`, and seeds `process_log/pivot_log.md` with a header + table skeleton for auditing routing decisions
-7. Installs core Python deps (sympy, matplotlib) via `uv pip install`
-8. Assembles core skills:
-   - Claude skills into `.claude/skills/`
-   - Codex/Gemini skills into `.agents/skills/` (shared)
-   - Copies utility scripts to `code/utils/`
-9. Applies extensions (`--ext empirical`, `--ext theory_llm`):
-   - Assembles extension agents for all three runtimes
-   - Assembles extension skills from shared skill metadata + bodies
-   - Copies utilities, creates dirs, appends API keys to `.env`
-10. Removes template infrastructure, detaches from origin, commits initial state
-
-## Subagent model availability & fallback
-
-Agent metadata pins an **ideal** model per agent. Seven agents currently pin `fable`: the rare strategic-routing agents `branch-manager`, `last-resort`, `puzzle-triager`, and the web-blind generative spine `idea-generator` (mechanism sketches) → `question-poser` (ceiling-setting research question) → `theory-generator` (the mechanism/theory itself) → `implications-deriver` (its testable implications). These four are web-blind by **cost discipline, not capability**: fable tokens are far more expensive, so it is reserved for high-leverage, low-token reasoning, and token-heavy work — web search above all — is delegated to cheaper `opus` agents (`literature-scout`, `gap-scout`, `novelty-checker`). Fable *can* search; we just don't spend its tokens on the fetched-content volume, so a fable agent that needs the literature pairs with an opus searcher rather than searching itself. The selection rule that follows: **high-leverage + low-token reasoning → fable; token-heavy or search-bound work → opus.** All other agents pin `opus`/`sonnet` — notably the routine evaluators (`scorer`, `referee`, `self-attacker`, `math-auditor`) stay off `fable` on purpose: they run per-gate (cost), their rubrics in `vocab.json` are calibrated to `opus` behavior (a model swap would drift the thresholds), and keeping the generator and its judge on different tiers is a deliberate decorrelation. If that model is unavailable on the account at setup time (a provider suspension — as happened when Claude Fable 5 / Mythos 5 were suspended by US export-control directive on 2026-06-12 — or simply no access), a pinned subagent would **hard-fail at launch with no fallback** (the Task tool returns "<model> is currently unavailable"; it does **not** silently downgrade to another model). To prevent that, `setup.sh` resolves models at assembly time:
-
-- **Probe** (`scripts/resolve_model_fallbacks.py`): for each distinct model pinned across the Claude agent metadata, run the *same* `claude` CLI that will run the agents (`claude -p --model <id>`) and classify by output content (the unavailable message returns rc=0, so detection is by marker string `"is currently unavailable"` / the fable-mythos-access URL, not exit code). Runtime-accurate by construction — an API-key probe can disagree with the CLI's account access.
-- **Fallback chains** (`templates/model_fallbacks.json`): each model maps to an ordered chain (`fable → opus → sonnet`, etc.). An unavailable model is remapped to the first chain entry that is not itself unavailable.
-- **Apply** (`scripts/apply_model_remap.py`): a single post-assembly pass rewrites the `model:` frontmatter in every assembled `.claude/agents/*.md` (base + variant + every extension), so one pass covers all agents without threading remap args through each assembler call site.
-- **Self-healing:** because metadata declares the *ideal* model, when a suspended model is restored the probe passes and no remap is applied — new deployments use the ideal again with no template edit.
-- **Launch-time re-heal (Claude only):** the build-time remap runs *once* and cannot reach an already-deployed project whose tier goes down (or recovers) *after* setup. `./launch.sh claude` therefore re-decides each agent's tier at every launch via the **deployed** `code/utils/model_heal/heal_agent_models.py` + `config.json` — restoring the ideal when it recovers and falling back when it's down, in both directions. `config.json` records each agent's *ideal* model (emitted at build time by `scripts/emit_model_heal_config.py`, keyed by `.md` stem, variant-scoped) because the deployed `.md` only carries the current, possibly-remapped pin. Best-effort: an inconclusive probe leaves pins untouched and never blocks a launch (`set -euo pipefail`-safe guard in `launch.sh`). Codex/Gemini/Grok have no launch-heal — see `docs/model_fallback.md`.
-- **Flags / safety net:** `--no-model-probe` skips the live probe (CI / offline) and relies on a static known-unavailable list (`fable,mythos,...`), which also catches the known suspension when the probe is inconclusive (e.g. `claude` not on PATH). The list is the `--known-unavailable` arg in `setup.sh`; update it if a new model is suspended and you can't probe.
-
-**Codex tier mirrors the Claude tier.** Each agent's `codex.model` is the same capability tier as its Claude `model`, one-for-one: `fable → gpt-5.6-sol`, `opus → gpt-5.6-terra`, `sonnet → gpt-5.6-luna`. (OpenAI describes Sol/Terra/Luna as *durable capability tiers* that advance on their own cadence, so the mapping survives the next generation bump — only the `5.6` changes.) When you add an agent, pin both, and pin them to matching tiers; a `fable` agent whose codex twin is Terra is a silent cross-runtime capability mismatch, not a build error.
-
-**The codex model/effort only take effect through the launcher.** codex's built-in `spawn_agent` tool (codex-cli 0.144.1) exposes no `model`/`reasoning_effort`/`agent_type` parameter and cannot select a role from `.codex/agents/` at all, so the `codex.model` we pin is inert if the orchestrator uses `spawn_agent`. The codex runtime therefore dispatches every agent through `code/utils/agent_launcher/launch_agent.sh`, which reads the agent TOML and runs an isolated `codex exec` worker: the agent body goes in the developer channel (the worker *is* the agent), on the pinned model/effort, with the orchestrator's AGENTS.md suppressed (restoring evaluator independence, which `spawn_agent`'s default `fork_turns="all"` otherwise breaks) and the native multi-agent tool removed so a worker is a leaf that cannot spawn its own sub-agents (via a patched no-spawn model catalog — codex ties the tool to the catalog's `multi_agent_version`, not a feature flag). This is a codex-CLI-version dependency with no setup-time probe — see the codex-dispatch entry in `LIMITATIONS.md`. (Claude and Gemini use native subagents and are unaffected.)
-
-**Reasoning effort is capped at `high`.** gpt-5.6 also accepts `xhigh` and `max` (plus `ultra`, a four-agent parallel mode), and nothing in the pipeline uses them. On Agents' Last Exam — the long-horizon agentic benchmark whose shape most resembles this pipeline — GPT-5.6 Sol's score *peaks below its top effort setting*: the most expensive point on the cost curve scores below the one preceding it. Effort past `high` buys latency and tokens, not correctness. This is a claim about *our workload*, not about `max` in general (on ARC-AGI-3, `max` is the only setting that scores at all), so do not generalize it to a future benchmark without rechecking. The `codex_math` scripts reject `xhigh`/`max`/`ultra` at the CLI boundary.
-
-**Known limitation (documented, not solved): `--light` does not reach the codex runtime.** `setup.sh` passes `--model-override sonnet` to `assemble_claude_agents.py` and `assemble_gemini_agents.py`; `assemble_codex_subagents.py` has no `--model-override` argument, so codex subagents keep their pinned tier under `--light`. This was invisible when every codex agent was a flat `gpt-5.5`; now a `--light` deployment still runs seven agents on Sol. Closing it means adding `--model-override` to the codex assembler (mapping the Claude alias through the same tier table, and dropping `model_reasoning_effort` the way the Claude assembler drops `effort`) and threading `MODEL_OVERRIDE_ARGS` into its four call sites.
-
-**Known limitation (documented, not solved):** only **Claude** subagent models are probed/remapped. Codex (`gpt-5.6-{sol,terra,luna}`) and Gemini (`gemini-3-preview`) subagents use a different provider/CLI; their availability is not checked. If an OpenAI/Google model used by the codex/gemini runtimes is withdrawn, those agents would hard-fail the same way — closing that would require per-provider probes (an `openai`/`gemini` CLI check) and provider-specific fallback chains. The `model_fallbacks.json` schema and the resolver/apply split are already provider-agnostic; what's missing is the per-runtime probe command and wiring the apply pass over `.codex/agents` / `.gemini/agents`.
-
-These four paths (`templates/model_fallbacks.json`, `scripts/resolve_model_fallbacks.py`, `scripts/apply_model_remap.py`, `scripts/emit_model_heal_config.py`) are **build-time only** — used during `setup.sh`, never copied into deployed projects — so they are intentionally absent from the deployment manifest. The launch-time heal is the exception that proves the rule: its script (`templates/utils/model_heal/heal_agent_models.py`) and generated `config.json` **are** deployed (to `code/utils/model_heal/`) and **are** manifested (in `candidate_dirs`), precisely because they must run at every launch, not just at setup.
-
-## Adding a new variant
-
-1. Create agent metadata: `templates/agent_metadata/claude_{variant}_agents.json`
-2. Create agent bodies: `templates/agents/{variant}/` with markdown prompts
-3. Create `templates/agents/{variant}/vocab.json` with the per-variant vocabulary keys (scorer calibrations, importance/novelty/surprise rubrics, mechanism term, referee role, etc.) — see `templates/agents/finance/vocab.json` for the full set.
-4. Add variant config to `setup.sh` (paper type, target journals, journal list, domain areas)
-5. Test: `./setup.sh --variant {variant} --local`
-
-## Adding a new mode
-
-A *mode* re-frames the pipeline's orchestration (theory-first → identification-first, or another orientation) without forking a variant. It is layered on top of `--variant {finance|macro|...}` via two overlay mechanisms: a vocab overlay (mode-specific overrides to variant vocab keys) and a body overlay (mode-specific shared-agent bodies that replace the base shared body for that mode). The `empirical-first` mode is the reference implementation.
-
-1. **Choose the slug.** Mode flag is `--mode {slug}`; setup.sh lowercases `-` → `_` for directory lookups (`setup.sh:218`). So `--mode foo-bar` looks under `foo_bar/`.
-2. **Vocab overlay:** create `templates/agents/{variant}_modes/{mode_slug}/vocab.json` with only the keys whose meaning changes under this mode. Loaded by `setup.sh:220` and layered on top of the base variant vocab — later wins on duplicate keys. Reference: `templates/agents/finance_modes/empirical_first/vocab.json`.
-3. **Body overlay (optional):** create `templates/agent_bodies/shared_modes/{mode_slug}/` with per-agent body overrides. Files are named `{agent_id}-core.md` (variant agent overrides) or `{agent_id}.md` (shared agent overrides) — the loader's suffix discrimination at `scripts/agent_body_loader.py:50-95` handles both. Reference: `templates/agent_bodies/shared_modes/empirical_first/{theory-generator-core.md, idea-generator-core.md, idea-prototyper.md, referee-mechanism.md}`.
-4. **Stage-doc guards (optional):** add `<!-- {MODE}_FIRST_START -->` / `<!-- {MODE}_FIRST_END -->` markers in `templates/shared/docs/*.md` for content that should activate under this mode. The marker resolver at `setup.sh:1513-1569` strips the markers under the matching mode and removes the whole block otherwise. A complementary `<!-- THEORY_FIRST_START -->` marker exists for content that should *only* render under the no-mode (theory-first) default. Currently only `EMPIRICAL_FIRST` markers are wired into the resolver; adding a new mode's markers means adding a parallel `else if` branch.
-5. **Mode-conditional descriptors in setup.sh:** add a `case "$VARIANT"` branch in the `if [ "$MODE" = "{mode}" ]; then` block (around `setup.sh:175-186`) that overrides `PAPER_TYPE`, `DOMAIN_AREAS`, `DOC_SUBTITLE`, and any other variant descriptors the mode reframes.
-6. **Validation block in setup.sh:** add the mode to the `case` in the mode-flag validator (~line 117) that decides which `--variant` combinations the mode supports. If the mode implies an extension (as `empirical-first` implies `--ext empirical`), auto-add it with an Info message.
-7. **Tests:** `./setup.sh /tmp/test_{mode} --variant {variant} --mode {mode} --local` should resolve cleanly with `✓ All placeholders resolved` and no `{{KEY}}` leakage. Inspect the deployed CLAUDE.md and `.claude/agents/*.md` for marker leakage (`grep -c '{MODE}_FIRST_START'` should be 0).
-8. **Document:** add a one-line row to the "Supported modes" table above, then write the mode's full semantics (stage/gate changes, pruned agents, cross-variant compatibility nuances, auto-implied extensions, mutual exclusions with other flags) as a `### --mode {slug}` section in `.claude/skills/deploy-project/SKILL.md`, parallel to the `--mode empirical-first` section there. Add an invocation example to that skill's command block too.
-
-## Architecture: runtime-agnostic core + runtime-specific packaging
-
-The pipeline is split into two layers:
-
-- **Runtime-agnostic**: `templates/shared/core.md` (orchestrator logic, pipeline stages), `templates/agent_bodies/shared/` and `templates/agents/{variant}/` (agent prompts and per-variant vocab including scorer calibrations) — these are the same regardless of runtime.
-- **Runtime-specific**: `templates/runtime/{claude,codex,gemini}/session.md` (session guidance per runtime), `templates/agent_metadata/claude_*.json` (shared metadata with per-runtime overrides via `codex` and `gemini` keys), `scripts/assemble_{claude_agents,codex_subagents,gemini_agents}.py`.
-
-Three runtimes share the same core + agent bodies, with runtime-specific packaging.
-
-## Agent classification
-
-Agents are either **shared** (identical across variants) or **variant-specific** (different prompts per domain). Each agent is defined as:
-- **Metadata** (`agent_metadata/claude_*.json`): Claude frontmatter plus Codex and Gemini overrides
-- **Body** (`agent_bodies/shared/*.md`, `agents/{variant}/*.md`): runtime-agnostic prompt content
-
-**Shared** (domain-agnostic, receive variant context via injection):
-- `literature-scout` — broad literature survey (variant context provides target journals)
-- `gap-scout` — deep search on a pre-selected gap (adjacent literatures, closest competitor, gap validation)
-- `implications-deriver` — derives the theory's testable implications at Stage 3 Step 1 (web-blind; the orchestrator lit-checks each via gap-scout and tags). Pinned to `fable` (high-leverage, low-token reasoning; setup-time fallback to `opus`); has an empirical-first body override (auxiliary predictions only)
-- `idea-prototyper` — quick math feasibility + surprise check
-- `theory-explorer` — computational verification, calibration, parameter exploration, plots
-- `math-auditor` — checks derivations step-by-step
-- `math-auditor-freeform` — reads as skeptical reader
-- `scorer-freeform` — free-form quality assessment at Gate 4 (holistic read, no rubric)
-- `referee-freeform` — free-form referee report at Stage 6 (editorial assessment)
-- `novelty-checker` — searches web for prior work
-- `paper-writer` — writes LaTeX from inputs
-- `style` — checks writing style
-- `branch-manager` — strategic advisor at Gate 4 + Stage 2 audit loop (every 3rd theory version); diagnoses ceiling/alternatives. Pinned to `fable` (rare, low-token, high-leverage strategic reasoning), with automatic setup-time fallback to `opus` when fable is unavailable — see "Subagent model availability & fallback"
-- `last-resort` — general-purpose escalation agent for stubborn problems; launched at orchestrator discretion (no auto-trigger) when normal escalation is exhausted and the alternative is abandonment. Pinned to the stronger `fable` model (with automatic setup-time fallback to `opus` when fable is unavailable) with broad tool access; receives the full failure history; returns `FIX-PROPOSED` (re-verified by the existing gate — never self-certifies) or `GENUINELY-STUCK`. Visible in the manual-mode catalog; pruned in `--mode report`
-- `scribe` — documents the process
-
-**Variant-specific** (different prompts per domain):
-- `idea-generator` — needs domain-specific brainstorming patterns
-- `idea-reviewer` — needs domain-specific evaluation criteria
-- `theory-generator` — needs domain-specific model structure guidance
-- `scorer` — needs domain-specific calibrations
-- `self-attacker` — needs domain-specific attack vectors
-- `referee` — needs domain-specific journal standards
-
-**Extension agents** (added by `--ext` flags):
-- `empiricist` — empirical analysis (variant-specific, `--ext empirical`)
-- `empirics-auditor` — verifies empirical code/results (shared, `--ext empirical`)
-- `mechanism-auditor` — plan-time mechanism-plausibility gate at empirical-first Gate 2 (Stage 2, before any empirical execution); runs the data-independent dimensions of the `referee-mechanism` checklist against the prose+DAG mechanism + Stage 1 identification design; returns PLAUSIBLE / REVISE (shared body, `--ext empirical`; **assembled then pruned in every mode except `--mode empirical-first`** via `prune_non_empirical_first_agents`)
-- `data-integrity-auditor` — verifies cached field-content against source (shared, `--ext empirical`)
-- `data-selection-auditor` — verifies cached sample against documented inclusion rule (shared, `--ext empirical`)
-- `identification-designer` — designs the identification strategy at Stage 1 step 4 (variant-specific, finance only in v1, `--ext empirical`)
-- `identification-auditor` — adversarial audit of identification strategy at Stage 3a step 3 (variant-specific, finance only in v1, `--ext empirical`)
-- `claim-enumerator` — deterministic regex enumeration of numerical claims in the paper draft → `paper_claims.json` (shared, `--ext empirical`, Stage 5 step 5a)
-- `claim-grounder` — LLM-judgment match of every enumerated claim to its empiricist-output source → `paper_source_map.json` (shared, `--ext empirical`, Stage 5 step 5a)
-- `claim-verifier` — programmatic file/field/value verification of grounder citations with coverage check → REVISE feeds back to grounder or paper-writer (shared, `--ext empirical`, Stage 5 step 5a)
-- `experiment-designer` — LLM experiments (shared, `--ext theory_llm`)
-- `experiment-reviewer` — validates experiment methodology (shared, `--ext theory_llm`)
+Full semantics for both modes are in the `deploy-project` skill.
