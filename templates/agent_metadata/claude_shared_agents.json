@@ -2,6 +2,11 @@
   "bib-verifier": {
     "name": "bib-verifier",
     "description": "Verifies the paper's bibliography against OpenAlex (and a WebSearch fallback for SSRN/recent papers). Launched at (a) Stage 5 immediately after the initial paper draft (early-verify pass), (b) Stage 8 after every referee round that changes citations, and (c) Stage 9 as a final one-shot post-polish pass before Stage 10 marks the pipeline complete. Reports VERIFIED / RESOLVED / FABRICATED counts and a fix list; does not edit the bibliography itself.",
+    "modes": {
+      "report": {
+        "description": "Verifies the external submission's bibliography (submission/refs.bib) against OpenAlex, with a WebSearch fallback for SSRN/recent papers: cite-key existence, title/year correctness. Writes audits/bib_verify.md. On PDF-only submissions, verifies entries parsed from the References section (degraded check)."
+      }
+    },
     "category": "developing",
     "tools": "Bash, Read, Write, WebSearch, WebFetch",
     "skills": [
@@ -56,6 +61,11 @@
   "math-auditor-freeform": {
     "name": "math-auditor-freeform",
     "description": "Free-form math verification agent. The orchestrator launches this agent at Gate 2 after the structured math audit passes. Reads the theory as a skeptical reader and flags anything that feels wrong, without following a step-by-step re-derivation protocol.",
+    "modes": {
+      "report": {
+        "description": "Skeptical-reader pass on the external submission's math \u2014 flags anything that feels wrong, without a step-by-step re-derivation protocol. Reads submission/ (read-only); writes audits/math_freeform.md."
+      }
+    },
     "category": "evaluator",
     "tools": "Read, Write, Bash",
     "skills": [
@@ -75,6 +85,11 @@
   "math-auditor": {
     "name": "math-auditor",
     "description": "Adversarial math verification agent. The orchestrator launches this agent at Gate 2 after theory development. Verifies all derivations step-by-step. Must pass before theory advances.",
+    "modes": {
+      "report": {
+        "description": "Step-by-step derivation check on the external submission in submission/ (read-only). Verifies every load-bearing derivation; writes audits/math.md. On PDF-only submissions, works from parsed PDF text with a degraded-check note."
+      }
+    },
     "category": "evaluator",
     "tools": "Read, Write, Bash",
     "skills": [
@@ -94,6 +109,11 @@
   "novelty-checker": {
     "name": "novelty-checker",
     "description": "Adversarial novelty verification. The orchestrator launches this agent twice \u2014 at Gate 1b (on the selected idea, before theory development) and at Gate 3 (on the full theory, after math audit). Checks whether the content is genuinely new or a known result repackaged.",
+    "modes": {
+      "report": {
+        "description": "Adversarial novelty check on the external submission: has its main result already been published? Searches the web and OpenAlex; writes audits/novelty.md."
+      }
+    },
     "category": "evaluator",
     "tools": "WebSearch, WebFetch, Bash, Read, Write",
     "skills": [
@@ -205,6 +225,11 @@
   "referee-freeform": {
     "name": "referee-freeform",
     "description": "Free-form referee report at Stage 6. Reads the paper as an editor \u2014 does it deserve space in this journal? Runs in parallel with the structured referee; neither sees the other's output.",
+    "modes": {
+      "report": {
+        "description": "Free-form editorial read of the external submission in submission/: does this paper deserve space in the target journal? Reads cold; writes audits/referee_freeform.md. Runs in parallel with the structured and mechanism referees; sees none of their output."
+      }
+    },
     "category": "evaluator",
     "tools": "Read, Write, Glob, Bash, WebSearch, WebFetch",
     "skills": [
@@ -223,6 +248,11 @@
   "referee-mechanism": {
     "name": "referee-mechanism",
     "description": "Mechanism-focused referee at Stage 6. Evaluates whether the paper's economic mechanism delivers the claimed result for the claimed reason \u2014 not whether the math is correct (math-auditor handles that) or whether the paper fits the journal (referee-freeform handles that). Returns a verdict on mechanism validity: VALID / PARTIAL / MISATTRIBUTED / DECORATIVE. Runs in parallel with the other two referees; sees neither their output nor prior reports.",
+    "modes": {
+      "report": {
+        "description": "Mechanism-focused referee on the external submission in submission/: does the claimed economic mechanism deliver the claimed result for the claimed reason? Verdict MECHANISM-VALID / PARTIAL / MISATTRIBUTED / DECORATIVE to audits/referee_mechanism.md. Reads cold, in parallel with the other referees."
+      }
+    },
     "category": "evaluator",
     "tools": "Read, Write, Bash, Glob, WebSearch, WebFetch",
     "skills": [
@@ -368,6 +398,11 @@
   "polish-consistency": {
     "name": "polish-consistency",
     "description": "Reads the rendered paper end-to-end and flags places it contradicts itself: prose claims that don't match propositions, headings that contradict their text, intro framings that get qualified away later, label-vs-object mismatches (e.g., 'LP welfare' that computes gross fund return), corner-solution propositions whose comparative statics are then invoked downstream. Stage 9 polish agent; runs in parallel with the other seven. Writes output/polish_consistency_r{N}.md where N is the current loops.polish.round.",
+    "modes": {
+      "report": {
+        "description": "Reads the external submission end-to-end and flags places it contradicts itself: prose claims vs. propositions, intro framings qualified away later, label-vs-object mismatches. Reads submission/ (read-only); writes audits/consistency.md."
+      }
+    },
     "category": "developing",
     "tools": "Read, Write, Bash, Glob, Grep",
     "skills": [
@@ -386,6 +421,11 @@
   "polish-formula": {
     "name": "polish-formula",
     "description": "Re-derives every numbered equation, lemma, proposition, and corollary in the rendered paper from the surrounding text. Catches errors paper-writer introduced when typesetting (sign flips, wrong subscripts, spurious absolute values, FOCs missing endogenous derivatives). Distinct from math-auditor, which audited the theory file before the paper existed. Stage 9 polish agent. Uses codex-math + sympy. Writes output/polish_formula_r{N}.md where N is the current loops.polish.round.",
+    "modes": {
+      "report": {
+        "description": "Re-derives every numbered equation, lemma, proposition, and corollary in the external submission from the surrounding text \u2014 sign flips, wrong subscripts, spurious absolute values, FOCs missing endogenous derivatives. Reads submission/ (read-only); writes audits/formula.md. Degraded (no codex-math shell-out) on PDF-only submissions."
+      }
+    },
     "category": "developing",
     "tools": "Read, Write, Bash, Glob, Grep",
     "skills": [
@@ -405,6 +445,11 @@
   "polish-numerics": {
     "name": "polish-numerics",
     "description": "Re-does every numerical example, calibration, and back-of-envelope claim in the rendered paper. Catches stock-vs-flow errors, normalized-vs-unnormalized comparisons, ex-ante IR failures at the baseline, comparative-static arithmetic typos. Uses Python via Bash to recompute from stated parameters. Stage 9 polish agent. Writes output/polish_numerics_r{N}.md where N is the current loops.polish.round.",
+    "modes": {
+      "report": {
+        "description": "Re-does every numerical example, calibration, and back-of-envelope claim in the external submission from its stated parameters, via Python. Reads submission/ (read-only); writes audits/numerics.md."
+      }
+    },
     "category": "developing",
     "tools": "Read, Write, Bash, Glob, Grep",
     "skills": [
@@ -423,6 +468,11 @@
   "polish-institutions": {
     "name": "polish-institutions",
     "description": "Verifies the paper's claims about the real world: regulatory mechanisms, fee conventions, market sizes, contract terms, faithful characterization of cited papers' frameworks. Catches the kind of institutional errors a practitioner-referee rejects in the first ten minutes (e.g., citing confidential filings as transparency tools, claiming carry on gross when industry standard is net). Stage 9 polish agent. Uses OpenAlex + WebSearch. Writes output/polish_institutions_r{N}.md where N is the current loops.polish.round.",
+    "modes": {
+      "report": {
+        "description": "Verifies the external submission's claims about the real world \u2014 regulatory mechanisms, fee conventions, market sizes, contract terms, faithful characterization of cited frameworks \u2014 via OpenAlex + WebSearch. Reads submission/ (read-only); writes audits/institutions.md."
+      }
+    },
     "category": "developing",
     "tools": "Read, Write, WebSearch, WebFetch, Bash, Glob, Grep",
     "skills": [
@@ -441,6 +491,11 @@
   "polish-equilibria": {
     "name": "polish-equilibria",
     "description": "Hunts subtle economic content the upstream pipeline missed: unstated multiple equilibria in fixed-point regions, missing LLN/continuum assumptions in nonlinear cost functions of expectations, reduced-form sections decoupled from the structural model, welfare benchmarks that aren't the right benchmark for the principal. Distinct from math-auditor-freeform (which read the theory file). Stage 9 polish agent. Writes output/polish_equilibria_r{N}.md where N is the current loops.polish.round.",
+    "modes": {
+      "report": {
+        "description": "Hunts subtle structural-model gaps in the external submission: unstated multiple equilibria, missing LLN/continuum assumptions, welfare benchmarks that aren't the right benchmark. Reads submission/ (read-only); writes audits/equilibria.md."
+      }
+    },
     "category": "developing",
     "tools": "Read, Write, Bash, Glob, Grep",
     "skills": [
@@ -459,6 +514,11 @@
   "polish-identification": {
     "name": "polish-identification",
     "description": "Hunts identification-coherence failures in the rendered paper: estimand-vs-claim mismatches (paper says ATE but design recovers LATE on compliers), diagnostics-vs-design coverage (design promised Goodman-Bacon decomposition but paper omits it), cluster level vs. design level (state-year design clustered at firm), identification.tex faithfulness to the Stage 1 design, heterogeneity-vs-treated-population coherence, and out-of-scope structural claims on a reduced-form coefficient. Symmetric counterpart to polish-equilibria for empirical papers. Carries 2026-standard diagnostic knowledge (Goodman-Bacon, Olea-Pflueger, BHJ shift-share, Roth/Rambachan-Roth HonestDiD, Cattaneo-Jansson-Ma, Calonico-Cattaneo-Titiunik, Feng-Giglio-Xiu, Stambaugh/Boudoukh) inherited from identification-designer / identification-auditor. Distinct from identification-auditor (which audited the empiricist's plan at Stage 3a step 3). Stage 9 polish agent. Writes output/polish_identification_r{N}.md where N is the current loops.polish.round. Produces an N/A report on theory-only papers without an empirical identification design.",
+    "modes": {
+      "report": {
+        "description": "Audits the external submission's identification claims against its own stated design: estimand-vs-claim alignment (says ATE, design recovers LATE on compliers), 2026-standard diagnostic coverage, cluster level vs. variation level, heterogeneity-population coherence, structural claims on reduced-form coefficients. Scope is decided by the submission's content, never by this deployment's flags; N/A only for a pure theory submission with no empirical section. Reads submission/ (read-only); writes audits/identification_polish.md."
+      }
+    },
     "category": "developing",
     "tools": "Read, Write, Glob, Grep",
     "model": "opus",
@@ -474,6 +534,11 @@
   "polish-bibliography": {
     "name": "polish-bibliography",
     "description": "Audits the paper's *use* of its bibliography. For every in-text citation, looks up the cited paper on OpenAlex and verifies the prose claim about it. Scores each citation use FAITHFUL / APPROXIMATE / MISCHARACTERIZED / DECORATIVE. Complements bib-verifier (which checks cite-key validity) and polish-institutions (which catches the egregious cases as part of a broader pass). Stage 9 polish agent. Writes output/polish_bibliography_r{N}.md where N is the current loops.polish.round.",
+    "modes": {
+      "report": {
+        "description": "For every in-text citation in the external submission, looks up the cited paper on OpenAlex and verifies the prose claim about it: FAITHFUL / APPROXIMATE / MISCHARACTERIZED / DECORATIVE. Reads submission/ (read-only); writes audits/bibliography.md. On PDF-only submissions, works from in-text author-year mentions (degraded check)."
+      }
+    },
     "category": "developing",
     "tools": "Read, Write, WebSearch, WebFetch, Bash, Glob, Grep",
     "skills": [
@@ -492,6 +557,11 @@
   "polish-prose": {
     "name": "polish-prose",
     "description": "Audits the paper's prose economy: caveats restated more times than necessary, hedge stacking that hides a confident claim, abstract bloat (>100 words, referee-response numerics, methodological qualifiers), undefined acronyms, defensive framing of the contribution, buried thesis sentences, section openers that re-summarize what just ended. Catches the 'over-armored' failure mode where a correct paper reads as defensive and the contribution gets buried. Distinct from style (mechanical rules) and polish-consistency (contradictions). Stage 9 polish agent; runs in parallel with the other seven. Writes output/polish_prose_r{N}.md where N is the current loops.polish.round.",
+    "modes": {
+      "report": {
+        "description": "Audits the external submission's prose economy: hedge stacking, restated caveats, defensive armor that buries the contribution. Reads submission/ (read-only); writes audits/prose.md."
+      }
+    },
     "category": "developing",
     "tools": "Read, Write, Bash, Glob, Grep",
     "model": "opus",

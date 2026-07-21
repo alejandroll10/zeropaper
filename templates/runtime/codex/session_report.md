@@ -18,14 +18,14 @@ Each subagent invocation must include a self-contained prompt — the agent does
 
 ## Update the audit log
 
-At launch, compute one `submission/` directory hash and record it in `process_log/audit_log.md` under a `submission_hash:` header. Use whichever of these works on this host (Linux usually has `sha256sum`; macOS usually has `shasum -a 256`):
+At launch, record two things at the top of `process_log/audit_log.md`: the `planned_audits:` block from Step 1 triage (one agent name + output filename per line — this is the synthesizer's definition of expected coverage), and one `submission/` directory hash under a `submission_hash:` header. Use whichever of these works on this host (Linux usually has `sha256sum`; macOS usually has `shasum -a 256`):
 
 ```
 find submission/ -type f | sort | xargs sha256sum   | sha256sum
 find submission/ -type f | sort | xargs shasum -a 256 | shasum -a 256
 ```
 
-Then, after each audit agent completes, append a row to the same log recording the agent name, the timestamp, and the output path. All audits in one run share the launch-time hash. The synthesizer reads this log to confirm coverage before producing the report. If you re-launched a hung background agent, log both invocations (the first as "abandoned").
+Then, after each audit agent completes, append a row to the same log recording the agent name, the timestamp, and the output path. All audits in one run share the launch-time hash. The synthesizer reads this log and halts unless every `planned_audits:` entry has produced its output file. If you re-launched a hung background agent, log both invocations (the first as "abandoned").
 
 ### Use the subagents
 

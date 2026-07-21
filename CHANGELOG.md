@@ -15,7 +15,39 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.6.3] — 2026-07-20 (current)
+## [2.6.4] — 2026-07-21 (current)
+Report-mode audit: the fan-out reused pipeline-native agent definitions that referenced
+artifacts which do not exist in a report deployment. Four fixes, one new assembly layer.
+- **`polish-identification` was dead-on-arrival in report mode** — its body auto-N/As when
+  the pipeline design artifacts are absent, which they always are in report mode, so every
+  report run silently skipped identification auditing. New report-native body overlay
+  (`shared_modes/report/polish-identification.md`) audits the submission's *own stated
+  design*: estimand-vs-claim, 2026-standard diagnostics, cluster-vs-variation level,
+  internal coherence of the identification narrative. Scope decided by the submission's
+  content, never by deployment flags
+- **Report-mode context inject** (`templates/shared/report_mode_inject.md`) appended to the
+  12 pipeline-native audit agents in the fan-out: prompt-passed `submission/` + `audits/`
+  paths win over the bodies' pipeline paths, missing pipeline artifacts are skipped not
+  fished for, PDF-only submissions get an explicit degraded-check note exactly where the
+  missing source weakens the audit's tooling (and no note where it doesn't), helper
+  scripts with hardcoded `output/` paths are scratch to be copied into `audits/`,
+  `submission/` is read-only
+- **Mode metadata overrides** — new `"modes": {"<slug>": {...}}` key in agent metadata,
+  merged by all four assemblers (new `--mode` arg, `apply_mode_overrides` in the loader)
+  so a mode can re-aim an agent's orchestrator-facing `description`; 16 report-mode
+  descriptions added. Zero-behavior-change verified: default and empirical-first builds
+  byte-identical to a HEAD baseline
+- **Synthesizer coverage halt now has a defined expected set** — Step-1 triage writes a
+  `planned_audits:` block into `process_log/audit_log.md`; the synthesizer halts against
+  that list (it cannot see the orchestrator's fan-out table, notably under codex where
+  workers deliberately do not read AGENTS.md)
+- PDF-only degradation list extended from 2 to 6 audits (`math-auditor`,
+  `math-auditor-freeform`, `bib-verifier`, `polish-bibliography` join `polish-formula`,
+  `polish-numerics`), with the 10 full-strength audits named as explicitly un-noted;
+  synthesizer no longer told to expect extension audit files that v1's install-only
+  composition never produces
+
+## [2.6.3] — 2026-07-20
 Resumed Claude sessions were starting unguarded. The hourly `/loop` stall guard and
 `start_services.sh` were both tied to the fresh-start path, so a session relaunched with
 "continue" (`status: "running"`) got neither — no stall detection for the rest of the run,

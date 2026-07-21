@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from agent_body_loader import apply_vocab_to_metadata, load_body, load_vocab
+from agent_body_loader import apply_mode_overrides, apply_vocab_to_metadata, load_body, load_vocab
 
 FIELD_ORDER = ["name", "description", "tools", "skills", "model", "effort", "background", "memory"]
 IGNORED_FIELDS = {"codex", "gemini", "pipeline_only", "category"}
@@ -50,6 +50,10 @@ def main():
     parser.add_argument("--vocab", action="append", default=[],
                         help="Variant vocab JSON; substitutes {{KEY}} in bodies. "
                              "Repeatable; later overlays override earlier on duplicate keys.")
+    parser.add_argument("--mode", default=None,
+                        help="Active --mode slug (underscored, e.g. report). Merges each "
+                             "agent's metadata['modes'][slug] field overrides over its base "
+                             "fields; the 'modes' key itself is always stripped from output.")
     parser.add_argument("--model-override", default=None,
                         help="Force all agents to this model (e.g. sonnet)")
     args = parser.parse_args()
@@ -60,6 +64,7 @@ def main():
     vocab = load_vocab(args.vocab)
 
     for agent_id, agent_metadata in metadata.items():
+        agent_metadata = apply_mode_overrides(agent_metadata, args.mode)
         agent_metadata = apply_vocab_to_metadata(
             agent_metadata, vocab, f"{args.metadata}:{agent_id}"
         )

@@ -52,9 +52,10 @@ Step 3: Synthesis      ──→ report-synthesizer reads audits/*.md,
 
 Read `submission/` and decide:
 
-- **What's there?** PDF only, `.tex` source only, or both. PDF-only runs the full fan-out, but two audits degrade: `polish-formula` cannot call `codex-math` for symbolic verification (its shell-out wants a `.tex` path and a pattern) — it falls back to manual + sympy re-derivation from the parsed PDF text, which catches typesetting-style errors but is weaker on long algebraic chains. `polish-numerics` can still re-run arithmetic from stated parameter values but cannot rerun simulations or calibration solves whose code lives in source. Each affected agent prepends a "source not available — degraded check" note to its output so the synthesizer can weigh its findings accordingly.
+- **What's there?** PDF only, `.tex` source only, or both. PDF-only runs the full fan-out, but the audits whose tooling needs source degrade: `polish-formula`, `math-auditor`, and `math-auditor-freeform` cannot call `codex-math` for symbolic verification (its shell-out wants a `.tex` path and a pattern) — they fall back to manual + sympy re-derivation from the parsed PDF text, which catches typesetting-style errors but is weaker on long algebraic chains. `polish-numerics` can still re-run arithmetic from stated parameter values but cannot rerun simulations or calibration solves whose code lives in source. `bib-verifier` has no `.bib` file for its script — it verifies entries parsed from the PDF's References section against OpenAlex directly instead. `polish-bibliography` has no `\cite` keys to enumerate — it works from in-text author-year mentions in the PDF text, on the same FAITHFUL/APPROXIMATE/MISCHARACTERIZED/DECORATIVE rubric. Each *degraded* agent prepends a "source not available — degraded check" note to its output so the synthesizer can weigh its findings accordingly; audits that read prose, claims, and typeset math the same either way (consistency, prose, institutions, equilibria, identification, weaknesses, novelty, the referees) run at full strength on a PDF and carry no note.
 - **What format is the submission in?** Supported: PDF, `.tex` source bundle (with `sections/`, `refs.bib`), or both. Not supported in v1: `.docx`, `.epub`, scans without OCR, and `.md`-only drafts. If `submission/` contains only an unsupported format, halt and tell the user to convert to PDF or LaTeX source first — the audit agents are calibrated for PDF/LaTeX structure (numbered equations, `\cite` keys, section hierarchy) and would silently produce empty or hallucinated outputs on other formats.
 - **What's the paper about?** Extract title, abstract, claimed contribution. Write a one-paragraph triage note to `process_log/triage.md` — the synthesizer reads it for context.
+- **Commit the audit plan.** The default plan is **every row** of the Step 2 table. If triage skips an audit (it should be rare — e.g., an unsupported input makes one audit meaningless), record the skip and its reason. Either way, write the final list as a `planned_audits:` block at the top of `process_log/audit_log.md` — one agent name + output filename per line. This list is the synthesizer's definition of "expected coverage": it halts if any planned audit is missing from the log, and it cannot see this table, so the plan must live in the log.
 - **Is replication code shipped?** If `submission/` includes a `code/` directory, replication scripts, or a Dockerfile, note it in the triage so the base referees know to weigh reproducibility in their assessment. (In v1 the empirical-extension audit agents that would re-run such code are **not** wired into the fan-out — see the install-only block below; deep code-level adversarial auditing of external empirical submissions is a v2 feature. The base referees still evaluate empirical methodology at the editorial level.)
 - **Is the submission domain in scope?** If the paper is wildly outside {{DOMAIN_AREAS}} (e.g., a pure-math paper sent to a finance pipeline), note it in `process_log/triage.md` and proceed anyway — the referee agents are calibrated for the variant but the audits are general.
 
@@ -70,7 +71,7 @@ Launch in parallel against the submission. The orchestrator passes each agent th
 | `polish-numerics` | Re-do calibrations, examples, back-of-envelopes | `audits/numerics.md` | no |
 | `polish-consistency` | Intra-paper contradictions | `audits/consistency.md` | no |
 | `polish-equilibria` | Unstated multiple equilibria, missing assumptions | `audits/equilibria.md` | no |
-| `polish-identification` | Identification claims aligned with what the design delivers | `audits/identification_polish.md` | no |
+| `polish-identification` | Estimand-vs-claim alignment against the submission's own stated design | `audits/identification_polish.md` | no |
 | `polish-prose` | Over-armored / defensive prose that buries the contribution | `audits/prose.md` | no |
 | `polish-bibliography` | For every citation, verify the in-text claim about it | `audits/bibliography.md` | yes (OpenAlex + WebSearch) |
 | `polish-institutions` | Real-world claims (regulations, conventions, market facts) | `audits/institutions.md` | yes (WebSearch) |
@@ -87,7 +88,7 @@ Background-launched agents (web-dependent) can hang — poll their output file e
 
 ### Step 3: Synthesis
 
-After all audits complete (or after a maximum wait with explicit notes on any that timed out), launch `report-synthesizer`. It reads every file in `audits/`, the triage note, and the submission itself, and writes `report/referee_report.md` with this structure:
+After all planned audits complete (or after a maximum wait with explicit notes in `process_log/audit_log.md` on any that timed out), launch `report-synthesizer`. It reads every file in `audits/`, the triage note, and the submission itself, and writes `report/referee_report.md` with this structure:
 
 ```
 # Referee report: <submission title>
@@ -133,7 +134,7 @@ process_log/
 docs/                     # Reference docs on the pipeline's audit conventions
 ```
 
-There is no `paper/`, no `output/stage*/`, no `pipeline_state.json`, no `dashboard.html` — this mode does not produce a paper, has no stages, has no state machine, and has no live progress to track beyond the audit log. (`output/codex_audits/`, `output/codex_proofs/`, `output/codex_explorations/` may exist as working dirs for the `codex-math` skill that polish-formula and math-auditor invoke; that is the only `output/` content in report mode.)
+There is no `paper/`, no `output/stage*/`, no `pipeline_state.json`, no `dashboard.html` — this mode does not produce a paper, has no stages, has no state machine, and has no live progress to track beyond the audit log. (An `output/` directory may still accumulate *scratch* from helper tooling: `output/codex_audits/` / `output/codex_proofs/` / `output/codex_explorations/` from the `codex-math` skill, `output/bib_verification.md`/`.jsonl` from bib-verifier's `verify_bib.sh` script, and `output/debug/` if the `debugger` agent fires on a tool failure. All of it is working material — the deliverables the synthesizer reads live in `audits/` and `report/` only, and an audit whose findings exist only under `output/` counts as missing coverage.)
 
 ## Python environment
 

@@ -5,7 +5,7 @@ import sys
 from pathlib import Path
 
 sys.path.insert(0, str(Path(__file__).parent))
-from agent_body_loader import apply_vocab_to_metadata, load_body, load_vocab
+from agent_body_loader import apply_mode_overrides, apply_vocab_to_metadata, load_body, load_vocab
 
 
 def toml_string(value):
@@ -49,6 +49,10 @@ def main():
                              "Repeatable; checked in order, first match wins.")
     parser.add_argument("--vocab", action="append", default=[],
                         help="Variant vocab JSON. Repeatable; later overlays override earlier.")
+    parser.add_argument("--mode", default=None,
+                        help="Active --mode slug (underscored, e.g. report). Merges each "
+                             "agent's metadata['modes'][slug] field overrides over its base "
+                             "fields; the 'modes' key itself is always stripped from output.")
     args = parser.parse_args()
 
     metadata = json.loads(Path(args.metadata).read_text())
@@ -57,6 +61,7 @@ def main():
     vocab = load_vocab(args.vocab)
 
     for agent_id, agent_metadata in metadata.items():
+        agent_metadata = apply_mode_overrides(agent_metadata, args.mode)
         agent_metadata = apply_vocab_to_metadata(
             agent_metadata, vocab, f"{args.metadata}:{agent_id}"
         )

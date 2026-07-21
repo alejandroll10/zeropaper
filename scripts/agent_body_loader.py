@@ -175,6 +175,27 @@ def load_body(agent_id, bodies_dirs, shared_bodies_dirs=None, vocab=None,
     return body
 
 
+def apply_mode_overrides(metadata, mode):
+    """Merge an agent's per-mode metadata overrides over its base fields.
+
+    Agent metadata may carry a `"modes"` key mapping a mode slug (underscored,
+    e.g. "report", "empirical_first") to a dict of field overrides — the
+    metadata twin of the `shared_modes/{mode}/` body overlays, used when a mode
+    re-frames what an agent does (so its orchestrator-facing `description`
+    matches the overlaid body, not the pipeline-native one). Returns a new dict
+    with the matching mode's fields merged over the base and the `"modes"` key
+    stripped, so it never renders into an assembled agent file. Call before
+    apply_vocab_to_metadata so overridden strings get vocab substitution too.
+    """
+    if "modes" not in metadata:
+        return metadata
+    overrides = metadata.get("modes") or {}
+    merged = {k: v for k, v in metadata.items() if k != "modes"}
+    if mode:
+        merged.update(overrides.get(mode, {}))
+    return merged
+
+
 def apply_vocab_to_metadata(metadata, vocab, source):
     """Substitute `{{KEY}}` in each string value of the metadata dict.
 

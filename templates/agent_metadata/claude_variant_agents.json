@@ -62,6 +62,11 @@
   "referee": {
     "name": "referee",
     "description": "Simulated top-journal referee. The orchestrator launches this agent at Stage 6 of the pipeline. Always runs fresh with no knowledge of previous reports or changes.",
+    "modes": {
+      "report": {
+        "description": "Structured, rubric-driven referee report on the external submission in submission/, calibrated to the target journal class. Reads cold \u2014 not a pipeline draft, no prior rounds; writes audits/referee_structured.md. Runs in parallel with the freeform and mechanism referees; sees neither's output."
+      }
+    },
     "category": "evaluator",
     "tools": "Read, Glob, Grep, Write, Bash, WebSearch, WebFetch",
     "skills": [
@@ -96,6 +101,11 @@
   "self-attacker": {
     "name": "self-attacker",
     "description": "Adversarial weakness finder. The orchestrator launches this agent at Stage 4 after novelty check passes. Finds every possible weakness before the referee does.",
+    "modes": {
+      "report": {
+        "description": "Adversarial weakness finder on the external submission in submission/: every attack a hostile referee would raise, ranked by severity. Writes audits/weaknesses.md."
+      }
+    },
     "category": "evaluator",
     "tools": "Read, Write, Bash",
     "skills": [

@@ -301,6 +301,10 @@ fi
 # overrides without further setup.sh wiring.
 MODE_BODIES_OVERLAY=""
 MODE_VOCAB_OVERLAY=""
+# Metadata twin of the body/vocab overlays: passed to every agent assembler so
+# an agent's metadata["modes"][mode_slug] field overrides (e.g. a report-mode
+# `description` matching the overlaid body) merge over its base fields.
+MODE_METADATA_ARGS=()
 if [ -n "$MODE" ]; then
     mode_slug="${MODE//-/_}"  # 'empirical-first' → 'empirical_first'
     candidate_bodies="$SCRIPT_DIR/templates/agent_bodies/shared_modes/${mode_slug}"
@@ -311,6 +315,7 @@ if [ -n "$MODE" ]; then
     if [ -f "$candidate_vocab" ]; then
         MODE_VOCAB_OVERLAY="$candidate_vocab"
     fi
+    MODE_METADATA_ARGS=(--mode "$mode_slug")
     # Either layer may be empty if the mode has no overrides at that layer
     # (e.g., a pure-vocab mode with no body overrides). But shipping a mode
     # name with neither layer present is a configuration error.
@@ -354,6 +359,7 @@ assemble_claude_shared_agents() {
         --metadata "$template_root/templates/agent_metadata/claude_shared_agents.json" \
         "${bodies_args[@]}" \
         "${vocab_args[@]}" \
+        "${MODE_METADATA_ARGS[@]}" \
         --output-dir "$dest_dir" \
         "${MODEL_OVERRIDE_ARGS[@]}"
 }
@@ -377,6 +383,7 @@ assemble_claude_variant_agents() {
         --bodies-dir "$template_root/templates/agents/${variant}" \
         "${shared_args[@]}" \
         "${vocab_args[@]}" \
+        "${MODE_METADATA_ARGS[@]}" \
         --output-dir "$dest_dir" \
         "${MODEL_OVERRIDE_ARGS[@]}"
 }
@@ -397,6 +404,7 @@ assemble_codex_shared_agents() {
         --metadata "$template_root/templates/agent_metadata/claude_shared_agents.json" \
         "${bodies_args[@]}" \
         "${vocab_args[@]}" \
+        "${MODE_METADATA_ARGS[@]}" \
         --output-dir "$dest_dir"
 }
 
@@ -417,6 +425,7 @@ assemble_codex_variant_agents() {
         --bodies-dir "$template_root/templates/agents/${variant}" \
         "${shared_args[@]}" \
         "${vocab_args[@]}" \
+        "${MODE_METADATA_ARGS[@]}" \
         --output-dir "$dest_dir"
 }
 
@@ -436,6 +445,7 @@ assemble_gemini_shared_agents() {
         --metadata "$template_root/templates/agent_metadata/claude_shared_agents.json" \
         "${bodies_args[@]}" \
         "${vocab_args[@]}" \
+        "${MODE_METADATA_ARGS[@]}" \
         --output-dir "$dest_dir" \
         "${MODEL_OVERRIDE_ARGS[@]}"
 }
@@ -457,6 +467,7 @@ assemble_gemini_variant_agents() {
         --bodies-dir "$template_root/templates/agents/${variant}" \
         "${shared_args[@]}" \
         "${vocab_args[@]}" \
+        "${MODE_METADATA_ARGS[@]}" \
         --output-dir "$dest_dir" \
         "${MODEL_OVERRIDE_ARGS[@]}"
 }
@@ -477,6 +488,7 @@ assemble_grok_shared_agents() {
         --metadata "$template_root/templates/agent_metadata/claude_shared_agents.json" \
         "${bodies_args[@]}" \
         "${vocab_args[@]}" \
+        "${MODE_METADATA_ARGS[@]}" \
         --output-dir "$dest_dir" \
         "${MODEL_OVERRIDE_ARGS[@]}"
 }
@@ -498,6 +510,7 @@ assemble_grok_variant_agents() {
         --bodies-dir "$template_root/templates/agents/${variant}" \
         "${shared_args[@]}" \
         "${vocab_args[@]}" \
+        "${MODE_METADATA_ARGS[@]}" \
         --output-dir "$dest_dir" \
         "${MODEL_OVERRIDE_ARGS[@]}"
 }
@@ -1305,6 +1318,43 @@ echo "  ✓ Background-job note injected into Bash-capable core agents"
 _core_heavy_agents=(theory-explorer)
 inject_efficiency_into_agents "${_core_heavy_agents[@]}"
 echo "  ✓ Efficiency mandate injected into compute-heavy core agents"
+
+# ── Report-mode context for pipeline-native audit agents (--mode report only) ──
+# The report-mode fan-out reuses audit agents whose bodies were written for this
+# pipeline's own drafts: they hardcode reads of pipeline artifacts
+# (output/stage*/ theory drafts, negative_results, prior audit rounds) and writes
+# to pipeline paths (output/polish_*_r{N}.md). In report mode neither exists —
+# inputs live in submission/ and outputs go to the prompt-passed audits/<name>.md
+# path. This block re-anchors those bodies: prompt paths win, pipeline artifacts
+# don't exist, PDF-only submissions degrade with an explicit note, and
+# submission/ is read-only. Excluded on purpose: the referee trio and
+# polish-identification (report-native body overlays in
+# templates/agent_bodies/shared_modes/report/), report-synthesizer (report-native
+# shared body), and debugger (reactive tool-failure diagnosis, not a
+# submission-facing audit). Keep this list in sync with the Step 2 fan-out table
+# in templates/shared/core_report.md.
+inject_report_mode_into_agents() {
+    [ "$MODE" = "report" ] || return 0
+    inject_block_into_agents "$TEMPLATE_ROOT/templates/shared/report_mode_inject.md" "$@"
+}
+_report_pipeline_native_audit_agents=(
+    math-auditor
+    math-auditor-freeform
+    self-attacker
+    novelty-checker
+    bib-verifier
+    polish-formula
+    polish-numerics
+    polish-consistency
+    polish-equilibria
+    polish-prose
+    polish-bibliography
+    polish-institutions
+)
+inject_report_mode_into_agents "${_report_pipeline_native_audit_agents[@]}"
+if [ "$MODE" = "report" ]; then
+    echo "  ✓ Report-mode context injected into pipeline-native audit agents"
+fi
 
 # ── Create project directories and initial files ──
 echo "Creating project structure..."

@@ -85,7 +85,24 @@ def run():
             L.DEFAULT_FRAGMENTS_DIR
         passed += 1
 
-    print(f"OK — {passed}/8 tests passed")
+        # 9. apply_mode_overrides: matching mode merges fields, "modes" stripped
+        meta = {"name": "x", "description": "base", "model": "opus",
+                "modes": {"report": {"description": "report-facing"}}}
+        out = L.apply_mode_overrides(meta, "report")
+        assert out["description"] == "report-facing" and out["model"] == "opus"
+        assert "modes" not in out
+        passed += 1
+
+        # 10. apply_mode_overrides: non-matching / no mode strips "modes", keeps base
+        out = L.apply_mode_overrides(meta, "empirical_first")
+        assert out["description"] == "base" and "modes" not in out
+        out = L.apply_mode_overrides(meta, None)
+        assert out["description"] == "base" and "modes" not in out
+        no_modes = {"name": "y", "description": "plain"}
+        assert L.apply_mode_overrides(no_modes, "report") is no_modes
+        passed += 1
+
+    print(f"OK — {passed}/10 tests passed")
 
 
 if __name__ == "__main__":
