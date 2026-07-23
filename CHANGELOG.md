@@ -15,7 +15,32 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.6.4] — 2026-07-21 (current)
+## [2.6.5] — 2026-07-23 (current)
+Split dev settings from deployed settings, and fixed a silent corruption of the deployed
+runtime docs in every `--ext empirical` build.
+- **Runtime settings now ship from `templates/`, not from this repo's root.** `.claude/settings.json`
+  and `.gemini/settings.json` at the repo root were dual-role: they configured the
+  template-development session *and* were the artifact deployed into every research project
+  (via the clone in production, via an explicit `cp` under `--local`). The two roles want
+  opposite postures — the template repo deploys into arbitrary paths and needs write access
+  there, a research project wants the sandbox on. Deployed settings moved to
+  `templates/runtime/{claude,gemini}/settings.json`, installed by a new
+  `install_runtime_settings` block that serves both branches and overwrites what the clone
+  carried in. The repo root keeps its own `.claude/settings.json` for dev work only. Deployed
+  paths and their manifest entries are unchanged, so `update.sh` still refreshes them.
+- **Fixed: the grok `scorer` agent body was being spliced into deployed CLAUDE.md / AGENTS.md /
+  GEMINI.md.** The empirical extension's placeholder-fill step hand-indexes its argv; when
+  `.grok/agents/scorer.md` was added as the fourth scorer call site, the slice end and the
+  following index were not re-counted. `scorer_files` silently dropped grok (so grok's scorer
+  never got the fertility addendum) and `state_loop` read the grok scorer file instead of
+  `state_loop_fields_inject.md` — splicing ~300 lines of agent prompt into the `loops` object
+  of the pipeline-state spec in all three runtime docs, and dropping the empirical audit-loop
+  counters entirely. Affected every `--ext empirical` deployment, theory-first included.
+- **Fixed: `--mode report --ext empirical` aborted setup.** Same off-by-one: report mode prunes
+  `scorer`, so the misread `open(sys.argv[14])` hit a nonexistent path and killed the run at the
+  extension step. The correctly-indexed inject file always exists, so the composition now builds.
+
+## [2.6.4] — 2026-07-21
 Report-mode audit: the fan-out reused pipeline-native agent definitions that referenced
 artifacts which do not exist in a report deployment. Four fixes, one new assembly layer.
 - **`polish-identification` was dead-on-arrival in report mode** — its body auto-N/As when

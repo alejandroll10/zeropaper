@@ -39,6 +39,23 @@ When adding a new `{{KEY}}` placeholder to any agent body (shared, variant, or e
 
 The mechanism is snapshot-based, not a name list: **adding a new dev skill requires no `setup.sh` edit.** The strip is checksum-guarded, so if a future `skill_id` in `templates/skill_metadata/` ever collides with a dev-skill directory name, the assembled project skill is kept and a rename warning is printed rather than the skill being silently deleted.
 
+### Dev settings vs deployed settings
+
+This repo's `.claude/settings.json` configures the **template-development** session and ships
+nowhere. The settings a deployed project runs under — including the sandbox profile — live in
+`templates/runtime/{claude,gemini}/settings.json` and are installed by the
+`install_runtime_settings` block in `setup.sh` (grep that string), which runs for both `--local`
+and production and overwrites whatever the clone carried in.
+
+Keep the two apart. They want opposite things: the template repo needs a permissive posture
+(it deploys projects into arbitrary paths), a research project wants the sandbox on. A single
+dual-role file at the repo root cannot be both, which is exactly what it used to be.
+
+Sandbox config is per-runtime and lives in three different shapes: Claude's `.claude/settings.json`
+(copied from templates), Gemini's `.gemini/settings.json` (copied), and Grok's `.grok/sandbox.toml`
+(**generated** per-deploy, because grok's TOML does not expand `~`/`$HOME` and needs the deploying
+user's absolute paths baked in). Codex takes its sandbox posture from `launch.sh` flags, not a file.
+
 ## Repository structure
 
 > This tree is a **snapshot** and has drifted before. `scripts/` and the top level of
@@ -67,9 +84,11 @@ templates/
 │   │                        #   session.md         (autonomous mode)
 │   │                        #   session_manual.md  (--manual)
 │   │                        #   session_report.md  (--mode report)
-│   ├── claude/              # (no grok/ — Grok reads the shared AGENTS.md)
+│   ├── claude/              # + settings.json → deployed .claude/settings.json (sandbox profile)
+│   │                        # (no grok/ — Grok reads the shared AGENTS.md; its
+│   │                        #  .grok/sandbox.toml is generated per-deploy in setup.sh)
 │   ├── codex/
-│   └── gemini/
+│   └── gemini/              # + settings.json → deployed .gemini/settings.json
 ├── agent_metadata/          # JSON metadata for agent assembly (tools, model, description, category)
 │   ├── claude_shared_agents.json     # domain-agnostic agents
 │   └── claude_variant_agents.json    # ONE file for all variants (not per-variant)

@@ -265,6 +265,14 @@ CLAUDE_DIR_REL=".claude"
 CLAUDE_AGENTS_REL="$CLAUDE_DIR_REL/agents"
 CLAUDE_SKILLS_REL="$CLAUDE_DIR_REL/skills"
 CLAUDE_SETTINGS_REL="$CLAUDE_DIR_REL/settings.json"
+# Source of the DEPLOYED Claude settings (the sandbox profile a research project
+# runs under). Deliberately NOT this repo's own .claude/settings.json: that file
+# configures the template-development session, and a single file cannot be both
+# — the template repo wants a permissive dev posture while a deployed project
+# wants the sandbox on. Build-time only (lives under templates/, removed in the
+# cleanup block), so no deployment-manifest entry; the *destination*
+# .claude/settings.json is manifested, so update.sh refreshes it.
+CLAUDE_SETTINGS_SRC_REL="templates/runtime/claude/settings.json"
 CODEX_DIR_REL=".agents"
 CODEX_SUBAGENT_DIR_REL=".codex"
 CODEX_AGENTS_REL="$CODEX_SUBAGENT_DIR_REL/agents"
@@ -272,6 +280,9 @@ CODEX_SKILLS_REL="$CODEX_DIR_REL/skills"
 GEMINI_DIR_REL=".gemini"
 GEMINI_AGENTS_REL="$GEMINI_DIR_REL/agents"
 GEMINI_SETTINGS_REL="$GEMINI_DIR_REL/settings.json"
+# Same split as CLAUDE_SETTINGS_SRC_REL above: deployed Gemini settings ship from
+# templates/, not from a dual-role file at this repo's root.
+GEMINI_SETTINGS_SRC_REL="templates/runtime/gemini/settings.json"
 # Grok Build (xAI `grok` CLI). Reads project instructions from the shared root
 # AGENTS.md (same file as Codex — see the labeled-dispatch block in
 # templates/runtime/codex/session.md), and its subagents from .grok/agents/*.md.
@@ -558,11 +569,11 @@ if [ "$LOCAL" = "1" ]; then
     mkdir -p "$OUT_DIR/$CODEX_AGENTS_REL"
     mkdir -p "$OUT_DIR/$GEMINI_AGENTS_REL"
     mkdir -p "$OUT_DIR/$GROK_AGENTS_REL"
-    # Copy shared project files
+    # Copy shared project files. (The runtime settings files themselves are
+    # installed by the shared install_runtime_settings block below, which serves
+    # both --local and production.)
     mkdir -p "$OUT_DIR/$CLAUDE_DIR_REL"
-    cp "$SCRIPT_DIR/$CLAUDE_SETTINGS_REL" "$OUT_DIR/$CLAUDE_DIR_REL/"
     mkdir -p "$OUT_DIR/$GEMINI_DIR_REL"
-    cp "$SCRIPT_DIR/$GEMINI_SETTINGS_REL" "$OUT_DIR/$GEMINI_DIR_REL/"
     # Project-specific gitignore (tracks paper/, output/, code/; ignores data
     # blobs + build artifacts). Production mode copies this at the cleanup step
     # (line ~1878), but --local exits before reaching it, so copy it here too.
@@ -650,6 +661,26 @@ else
     TEMPLATE_ROOT="."
     OUT_DIR="."
 fi
+
+# ── Install per-runtime settings files (install_runtime_settings) ──
+# Runs for BOTH --local and production, and is the only writer of these two
+# paths. In production the clone carries this repo's own .claude/settings.json /
+# .gemini/settings.json into the project folder; those are the template repo's
+# DEV settings and must not survive, so the copies below overwrite them
+# unconditionally rather than merging. Fail loud on a missing source: shipping a
+# project with the dev sandbox posture (or none) is worse than not shipping.
+# .grok/sandbox.toml needs no entry here — it is generated per-deploy further
+# down, with the deploying user's $HOME baked in.
+mkdir -p "$OUT_DIR/$CLAUDE_DIR_REL" "$OUT_DIR/$GEMINI_DIR_REL"
+for _rt_pair in "$CLAUDE_SETTINGS_SRC_REL:$CLAUDE_SETTINGS_REL" "$GEMINI_SETTINGS_SRC_REL:$GEMINI_SETTINGS_REL"; do
+    _rt_src="$TEMPLATE_ROOT/${_rt_pair%%:*}"
+    _rt_dst="$OUT_DIR/${_rt_pair##*:}"
+    if [ ! -f "$_rt_src" ]; then
+        echo "Error: runtime settings template not found: $_rt_src" >&2
+        exit 1
+    fi
+    cp "$_rt_src" "$_rt_dst"
+done
 
 # ── Assemble runtime docs ──
 echo "Assembling runtime docs for variant: $VARIANT..."
@@ -2259,8 +2290,13 @@ playbook = open(sys.argv[5]).read()
 fertility = open(sys.argv[6]).read()
 stage2_md = sys.argv[7]
 runtime_docs = sys.argv[8:11]
-scorer_files = sys.argv[11:14]
-state_loop = open(sys.argv[14]).read()
+# Four scorer files, not three — Grok is the fourth runtime (.grok/agents/scorer.md).
+# These slices are hand-indexed against the argv list above; when you add a call
+# site, re-count BOTH the slice end and every index after it. Getting this wrong is
+# silent: an off-by-one previously made `state_loop` read the grok scorer body and
+# splice that whole agent prompt into the deployed runtime docs.
+scorer_files = sys.argv[11:15]
+state_loop = open(sys.argv[15]).read()
 
 def patch(path, pairs):
     if not os.path.exists(path):
