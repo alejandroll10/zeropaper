@@ -42,6 +42,10 @@ Concretely:
 
 When possible, avoid adding rules — prefer removing. More rules mean more overfitting and harder debugging; when a new rule and an existing one would do the same work, cut, don't stack.
 
+## Working principle: prefer no structured classes
+
+Prefer prose over fixed categories when agents report findings — a label set looks like coverage while checking nothing. Verdicts the pipeline routes on, and counts, are fine.
+
 ## Setting up a new project
 
 **Load the `deploy-project` skill.** It carries every `setup.sh` flag and composition
