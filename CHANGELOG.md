@@ -15,7 +15,87 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.6.5] — 2026-07-23 (current)
+## [2.6.6] — 2026-07-25 (current)
+Gate 2's revision loop now measures progress by **error classes retired**, not by the error
+count falling (issue #193).
+- **The count metric was the bug.** `docs/stage_2.md` told the orchestrator to keep iterating
+  while the error count decreased and to escalate only on a plateau. A run can patch one
+  instance of the same defect per version, watch the total tick down, and never register that
+  it is hitting an identical class repeatedly. Observed in `ai-trading-breadth` (`--faithful`):
+  ~10 theory versions burned on one recurring class — a universally-quantified claim inferred
+  from a computation whose quantifier range was strictly narrower — while the mathematical core
+  sat frozen and certified across seven consecutive diffs. Every defect was in the
+  attribution/presentation layer.
+- **New rule, same length: retire the class.** A class still flagged after a fix aimed at it
+  means patching is not working. The response is to prove the general version or cut the claims
+  it attaches to back to what was actually verified — **across every claim of that shape, not
+  just the flagged instance**. Instance-scoped narrowing is precisely why the class recurred:
+  one version narrowed the `T` axis and left the `h` axis universal, and it blew up four
+  versions later on the paper's own census grid. Attempt-increment / `theory_version` reset is
+  now the *last resort*, reached only if the class survives being retired.
+- **No new mechanism, by design.** The run's own conclusion was that "a fourth ledger would fail
+  the same way" — new verification machinery is new claim surface carrying the same defect. So
+  this ships as a metric swap against machinery that already exists: `math-auditor` is already
+  instructed to skim prior `math_audit_v*.md` for recurring error classes, `core.md`'s
+  "frame honestly — never inflate" principle already licenses narrowing when the substance holds
+  and only the label was inaccurate, and the seeded ship-honest check already knew how to cut an
+  overclaim. Nothing was added to `pipeline_state.json` and no agent was created.
+- **Empirical-first transplant made explicit rather than assumed.** `mechanism-auditor` returns
+  seven fixed dimension labels, not a multiplicity of same-shaped claims, so a dimension label is
+  only a coarse proxy for an error class. The empirical-first text now names both failure
+  directions: the same dimension failing twice for unrelated reasons is not recurrence, and a
+  defect resurfacing under a *different* dimension label after a cosmetic dodge is.
+- **Seeded/faithful convergence.** `SEED_OVERRIDE_STAGE_2_GATE_2.md` superseded the base
+  escalation wholesale, which under `--faithful` (where the seed pins the contribution, so
+  neither attempt-increment nor sketch-swap is available) left "add another ledger" as the only
+  move the docs did not forbid. It now supersedes only the base path's *last resort*; the
+  retire-the-class first move is shared, and the ship-honest check gained the same
+  every-claim-of-that-shape scoping. No `--faithful` branch was needed.
+- **New judgment-free floors, because neither metric was self-bounding.** Class-recurrence is a
+  judgment, so it is layered on top of mechanical bounds rather than replacing them — but auditing
+  the change surfaced that the *old* metric had no real floor either: an error-count plateau never
+  fires against a run that patches one instance per version, which is exactly how the field
+  incident reached ~10 versions. Gate 2 therefore gains hard caps it never had: **3 consecutive
+  math-audit failures** (theory-first) and **3 consecutive REVISEs** (empirical-first mechanism).
+  At the cap, patching the current artifact again is not an option — escalate by incrementing
+  `theory_attempt` or by swapping sketches. The pre-Stage-5 sketch-swap bullet is amended so
+  "continue restructuring the current sketch" means continuing it under a *fresh attempt*, closing
+  the loophole where a mandatory-evaluation step could be satisfied while patching forever.
+- **The class trigger only ever fires *earlier*; it never defers a floor.** The seeded ship-honest
+  counter is explicitly re-stated as keyed to consecutive Gate-2 *verdicts*, not to class
+  judgments, so it cannot be deferred by calling every recurrence a new class. Retirement is
+  verified reactively — if the next audit re-finds the class, it was not retired.
+- **Seeded/faithful routing at the cap.** Both escapes the base path offers at the hard cap
+  (increment `theory_attempt`, swap sketches) are forbidden under `--seed`/`--faithful`, so the
+  override now states explicitly that the cap still *binds* there and routes into the ship-honest
+  check — which fires at the identical 3-consecutive-failure threshold. Without this, a seeded run
+  at the cap was told to take an action the override forbids, with no stated alternative.
+- **Seeded/faithful safety restriction.** Retire-the-class may only cut claims that are
+  `auxiliary` under the override's existing core/auxiliary referent test. A recurring class that
+  attaches to a seed-pinned *core* claim must be proved, never cut — without this, the base-path
+  retire instruction could have narrowed a pinned core claim before the referent check was ever
+  reached. The restriction is explicitly barred from firing the ship-honest check *early*: a
+  core-attached class is decided at the 3-failure cap like any other, so it cannot short-circuit a
+  seeded run into `abandon_report.md` on a second recurrence.
+- **Same fix applied to the Stage 3a empirics-auditor loop** (`--ext empirical`), which carried the
+  identical count-based anti-pattern; its hard cap of 5 is retained as the mechanical floor.
+- `core.md`'s escalation table gains a **Gate 2 mechanism REVISE** row (the empirical-first gate
+  had none at all) and its **Empirics audit fails** row now states the earlier class trigger
+  alongside the 5-attempt cap, matching how the math-audit row reads.
+- `core.md`'s "Math audit fails" escalation row now reads "3 consecutive audit failures on the
+  same theory (hard cap) — or earlier, as soon as an error class survives being retired." This
+  closes #157 on both axes: the two docs previously stated different *thresholds* for the same
+  event (2 vs 3), and `core.md`'s action ("Abandon this theory version") was stronger than what
+  `stage_2.md` actually required (a mandatory *evaluation*, which permitted continuing). The
+  Gate-2 hard cap makes the stronger action mandatory, so the row and the SOP now agree.
+- **Documented, not silently accepted:** the auditors emit no class-shaped field, so recurrence is
+  a prose judgment and "retire across every claim of that shape" has no demonstrated-sweep
+  requirement. Both are recorded in `LIMITATIONS.md` with the reason they were not closed by
+  adding a ledger (the mechanism #193 documents failing three times) and what would close them (a
+  structured `class` field on audit findings — a change to what the auditor *emits*, not a new
+  verification pass).
+
+## [2.6.5] — 2026-07-23
 Split dev settings from deployed settings, and fixed a silent corruption of the deployed
 runtime docs in every `--ext empirical` build.
 - **Runtime settings now ship from `templates/`, not from this repo's root.** `.claude/settings.json`
