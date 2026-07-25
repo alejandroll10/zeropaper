@@ -15,7 +15,35 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.6.6] — 2026-07-25 (current)
+## [2.6.7] — 2026-07-25 (current)
+Cut 2.6.6 down to the two clauses that were doing the work.
+
+- **2.6.6 was a rule stack, not a metric swap.** `stage_2.md`'s Gate-2 loop went from 2 clauses to
+  7, the seed override gained 3 more, and a `LIMITATIONS.md` entry existed only to record that one
+  of the new rules was unenforceable. That accretion pattern is the thing issue #193 is *about* —
+  each audit round found a hole and it got patched with more prose.
+- **The class-recurrence metric is gone.** It was a judgment with no artifact behind it (no auditor
+  emits a class label), it needed the hard cap as a backstop anyway, and the hard cap alone would
+  have stopped the incident that motivated it — that run went ~10 versions; a cap of 3 stops it at
+  3. Its only marginal benefit was firing one version earlier, which is not worth a rule.
+- **What survives is what was load-bearing.** Two clauses per gate: (1) a judgment-free hard cap —
+  3 consecutive math-audit failures (theory-first), 3 consecutive REVISEs (empirical-first
+  mechanism), 5 audit-fix attempts (Stage 3a) — at which patching the current artifact again is not
+  an option; (2) when a fix *narrows* a claim, narrow every claim of the same shape, not just the
+  flagged instance. Clause (2) is the actual lesson from the field incident (one version narrowed
+  the `T` axis, left `h` universal, blew up four versions later) and it needs no recurrence
+  detection — it applies to any narrowing, first time or fifth.
+- **Removed as scaffolding for the deleted metric:** reactive-retirement verification, the
+  fires-earlier/never-defers reconciliation, the seeded core/auxiliary cut restriction and its
+  never-fire-early guard (the base path no longer carries a narrowing instruction that needs
+  gating; the ship-honest check's own referent test was always the right home), the verdict-keyed
+  counter clause, the "or earlier, as soon as a class survives" qualifiers on three `core.md`
+  escalation rows, and the `LIMITATIONS.md` entry.
+- Net vs. 2.6.5: the count metric is **deleted** and replaced by a hard cap — fewer moving parts
+  than before 2.6.6, not more. The `core.md` row alignment that closed #157, the new Gate-2
+  mechanism REVISE row, and the Stage 3a fix all stand.
+
+## [2.6.6] — 2026-07-25
 Gate 2's revision loop now measures progress by **error classes retired**, not by the error
 count falling (issue #193).
 - **The count metric was the bug.** `docs/stage_2.md` told the orchestrator to keep iterating
