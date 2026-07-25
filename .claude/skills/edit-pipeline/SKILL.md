@@ -29,9 +29,13 @@ A load-bearing block of rule text that must read **byte-identically** across man
 
 ### Vocab placeholders
 
-When adding a new `{{KEY}}` placeholder to any agent body (shared, variant, or extension), add a default for that key to **every** existing variant `vocab.json` (`templates/agents/{finance,macro}/vocab.json` at minimum).
+When adding a new `{{KEY}}` placeholder to any agent body (shared, variant, or extension), add a default for that key to **every** existing variant `vocab.json` (`templates/agents/{finance,macro,llm_cognition}/vocab.json` at minimum).
 
-`scripts/agent_body_loader.py` raises `KeyError` on unresolved placeholders. Fail-loud is correct, but it means a variant-only edit breaks setup for the *other* variants until the key is backfilled. Extension-agent placeholders have the same rule — any new key in an extension body must appear in every variant vocab the extension can compose with (currently both finance and macro).
+`scripts/agent_body_loader.py` raises `KeyError` on unresolved placeholders. Fail-loud is correct, but it means a variant-only edit breaks setup for the *other* variants until the key is backfilled. Extension-agent placeholders have the same rule — any new key in an extension body must appear in every variant vocab the extension can compose with (empirical: finance and macro; theory_llm: all three variants including llm_cognition).
+
+Two vocab layers are generated at setup time rather than authored: the **tier vocab** (`TIER_VOCAB_FILE` in `setup.sh` — `TIER_LIST_INLINE` / `TIER_LADDER_PROSE` from the variant case, passed to every base assembler so bodies like `editor.md` can name the variant's tier ladder), and the mode overlays. A body key must come from exactly one authored home (shared vocab, variant vocabs, or the tier vocab) — do not duplicate a key across homes.
+
+The variant vocabs also carry a `_comment_domain_phrases` block: domain wording extracted from previously hardcoded economics prose in the `-core` bodies (scorer tier bands, `FORCE_TERM`, referee exemplars, self-attacker archetype examples). When editing a `-core` body, prefer extending these keys over re-hardcoding domain language; finance/macro values must stay byte-identical to the pre-extraction text unless a behavior change is intended.
 
 ### Meta-repo dev skills
 
@@ -118,7 +122,8 @@ templates/
 │   ├── finance/vocab.json
 │   ├── finance_modes/       # Mode vocab overlays: empirical_first/, report/
 │   ├── macro/vocab.json
-│   └── macro_modes/
+│   ├── macro_modes/
+│   └── llm_cognition/vocab.json   # no _modes yet: report mode is gated off (LIMITATIONS.md)
 └── gitignore_project        # .gitignore template for deployed projects
 
 scripts/
@@ -325,9 +330,10 @@ Adding a variant is mostly **writing one `vocab.json`** — the agent bodies are
 1. Create `templates/agents/{variant}/vocab.json` with the per-variant vocabulary keys (scorer calibrations, importance/novelty/surprise rubrics, mechanism term, referee role, etc.) — see `templates/agents/finance/vocab.json` for the full set. Every key referenced by any `{id}-core.md` body must be present, or `agent_body_loader.py` raises `KeyError`.
 2. Only if the new domain needs genuinely different *structure* (not just different words) from an existing variant agent: add a body override. Variant agent bodies are `templates/agent_bodies/shared/{id}-core.md`, shared across all variants — so edit with care, and prefer a mode overlay (`templates/agent_bodies/shared_modes/`) over forking a body.
 3. Register the variant in `templates/agent_metadata/claude_variant_agents.json` only if it needs an agent the other variants don't have — the existing eight (`question-poser`, `question-referee`, `idea-generator`, `idea-reviewer`, `referee`, `scorer`, `self-attacker`, `theory-generator`) are variant-agnostic in metadata and specialize purely through vocab.
-4. Add variant config to `setup.sh` (paper type, target journals, journal list, domain areas)
-5. Test: `./setup.sh /tmp/test_{variant} --variant {variant} --local`
-6. Document: add a row to the "Supported variants" table in CLAUDE.md.
+4. Add variant config to `setup.sh` (paper type, target journals, journal list, domain areas, `INITIAL_TIER` + the three `TIER_*` descriptor vars) **and** a tier table at `templates/shared/tier_tables/{variant}.md` (the `TIER_TABLE_FILE` lookup is by variant name). Update the two "Available variants" error strings and the usage comment.
+5. Decide extension/mode compatibility explicitly: `--ext empirical` requires an `extensions/empirical/agent_metadata/{variant}_agents.json`; `--mode report` requires a `templates/agents/{variant}_modes/report/vocab.json` overlay *and* domain-appropriate shared audit bodies (see the llm_cognition entry in LIMITATIONS.md for why that variant gates both off in `setup.sh` instead).
+6. Test: `./setup.sh /tmp/test_{variant} --variant {variant} --local` — plus a rebuild of the *existing* variants diffed against a pre-change baseline (`--local` output) to prove the new vocab keys changed nothing for them.
+7. Document: add a row to the "Supported variants" table in CLAUDE.md and an invocation example + variant note in the `deploy-project` skill.
 
 ## Adding a new mode
 

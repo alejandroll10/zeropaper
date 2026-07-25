@@ -40,7 +40,7 @@
   "RIGOR_60": "argument is clear but has gaps a careful reader would notice. Equilibrium concept may be ambiguous.",
 
   "PARSIMONY_100": "tractable GE with one key friction. Every assumption in the core model is used in the main result. Nothing in the core model can be cut without breaking the paper's main result. Nests a standard benchmark as a special case. (Robustness checks, calibration/welfare appendices, and alternative-shock extensions do not bear on this score.)",
-  "PARSIMONY_40_FIRST": "shocks",
+  "PARSIMONY_40_FIRST": "shocks or welfare treatments",
 
   "FERTILITY_BULLETS": "- Does it nest existing results as special cases?\n- Does it suggest testable predictions or matchable moments?\n- Does it have policy implications?",
   "FERTILITY_CALIBRATION": "reframes a literature or changes policy thinking = 100, dead-end result = 20",
@@ -100,5 +100,27 @@
   "THEORY_WEAKEST_POINT_LIST": "math error, lack of novelty, unclear channel, equilibrium issues",
   "THEORY_PARSIMONY_THRESHOLD": "3 key assumptions beyond standard GE",
   "THEORY_SANITY_EXAMPLE_BAD": "a multiplier of 0.001",
-  "THEORY_EXTRA_RULES": "\n- **Equilibrium must be well-defined.** State the equilibrium concept, verify market clearing, address existence and (ideally) uniqueness.\n- **Ground in benchmarks.** Show what parameter restriction recovers the RBC/NK/representative-agent result. The reader needs to know what's new vs. what's standard."
+  "THEORY_EXTRA_RULES": "\n- **Equilibrium must be well-defined.** State the equilibrium concept, verify market clearing, address existence and (ideally) uniqueness.\n- **Ground in benchmarks.** Show what parameter restriction recovers the RBC/NK/representative-agent result. The reader needs to know what's new vs. what's standard.",
+
+  "_comment_domain_phrases": "Cross-body domain phrases extracted from previously hardcoded economics wording in the -core bodies and editor.md (scorer tier bands, force terminology, referee exemplars). Values here are byte-identical to the pre-extraction body text; the llm_cognition variant supplies ML-native values.",
+  "FORCE_TERM": "economic force",
+  "NOVELTY_INSIGHT_QUESTION": "How new is the economic insight (not the technique)?",
+  "SCORER_DEFAULT_TIER_INTRO": "For reference, the `top-5` defaults (anchored to the absolute scoring scale: 80 = top-5 econ quality) are:",
+  "SCORER_TIER_SHIFT_SENTENCE": "Lower tiers shift the bands down: `top-3-fin` (finance variant only) advances at 75+; `field` advances at 65+; `letters` advances at 55+. Always apply the row corresponding to the *current* `target_journal_tier`, not the `top-5` default.",
+  "SCORER_RARITY_ANCHOR": "A 75+ is uncommon (and is the `top-3-fin` advance bar in finance); an 80+ is rare and earned (the `top-5` econ bar in either variant).",
+  "SCORER_CALIBRATION_ANCHOR": "A score of 80 means \"this would clear the top-5 econ bar (AER, Econometrica, QJE, JPE, ReStud) regardless of variant.\"",
+  "THEORY_GEN_TARGET_PHENOMENON": "an economic phenomenon",
+  "THEORY_CONTENT_REQUIRED_BULLET": "**Economic content required.** \"The FOC gives us equation (3)\" is not insight. WHY does the FOC look this way? What economic force is at work?",
+  "IDEA_GEN_FORCE_SENTENCE": "Vague hand-waving (\"frictions matter\") is not an approach. A specific economic force with a clear equilibrium consequence is an approach.",
+  "REFEREE_ADJACENT_LIT_EXAMPLE": "e.g. information economics, decision theory, IO",
+  "REFEREE_CROSS_LIT_PRECEDENT": "e.g., in finance, disclosure theory is itself information economics",
+  "REFEREE_DISCIPLINE_PHRASE": "theory/economics or empirics",
+  "SELF_ATTACK_ARCHETYPE_EXAMPLES": "An irrelevance / impossibility paper has no decision change to point to; a calibration paper's contribution is fitting moments, not a sign-reversal comparative static; an existence / pure-characterization paper delivers the conditions under which an object exists or is identified, not a directional prediction; a tools-or-methodology paper has no economic mechanism in the conventional sense; a mechanism-design paper whose result is full pooling / full revelation / take-it-or-leave-it has the corner as the result, not as a missing comparative static; a welfare-benchmark redefinition paper *is* the wrong-benchmark observation; a kernel-primitive asset-pricing paper has no upstream preference-derived structural model.",
+  "MECHANISM_QUALIFIER_CAP": "Economic",
+  "IDEA_GEN_LOGIC_HEADING": "Equilibrium logic",
+  "IDEA_GEN_LOGIC_TERM": "equilibrium logic",
+  "IDEA_GEN_SAMENESS_TERM": "friction",
+  "IDEA_REVIEWER_CONCEPT_TERM": "equilibrium concept",
+  "H1_MULTIPIECE_EXAMPLE": "\"an algebraic identity that yields both a within-asset characterization and a methodological observation\"",
+  "H1_UNIFIER_EXAMPLES": "a single policy instrument, welfare question, equilibrium environment, or risk decomposition (\"policy P propagates through margins A–D, and the paper characterizes each margin and how they interact or dominate\")"
 }

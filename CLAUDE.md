@@ -8,7 +8,7 @@ VERSIONING (`VERSION` = SINGLE SOURCE OF TRUTH; `setup.sh`/`update.sh` STAMP `<v
 
 RULE TEXT THAT MUST READ BYTE-IDENTICALLY ACROSS MANY AGENT BODIES BELONGS IN `templates/fragments/*.md`, INCLUDED VIA `{{> fragment_id }}` (LOWERCASE IDS ONLY — AN UPPERCASE ID SILENTLY SHIPS LITERALLY). DO **NOT** FRAGMENT ROLE-ADAPTED PROSE THAT MERELY LOOKS SIMILAR: THE scorer/referee/self-attacker/triager COPIES ARE INTENTIONALLY VERB- AND VERDICT-SPECIFIC, AND FLATTENING THEM CHANGES BEHAVIOR. MECHANISM + THE ZERO-BEHAVIOR-CHANGE VERIFICATION PROCEDURE: `edit-pipeline` SKILL.
 
-WHEN ADDING A NEW `{{KEY}}` PLACEHOLDER TO AN AGENT BODY, ADD A DEFAULT FOR IT TO THE MATCHING vocab.json: A **VARIANT** BODY (`{id}-core.md`) NEEDS THE KEY IN **EVERY** VARIANT VOCAB (`templates/agents/{finance,macro}/vocab.json`); A **SHARED** BODY (`{id}.md`) NEEDS IT IN `templates/agent_bodies/shared/vocab.json`. THE LOADER RAISES `KeyError` ON UNRESOLVED PLACEHOLDERS, SO A VARIANT-ONLY EDIT BREAKS SETUP FOR THE OTHER VARIANTS UNTIL THE KEY IS BACKFILLED.
+WHEN ADDING A NEW `{{KEY}}` PLACEHOLDER TO AN AGENT BODY, ADD A DEFAULT FOR IT TO THE MATCHING vocab.json: A **VARIANT** BODY (`{id}-core.md`) NEEDS THE KEY IN **EVERY** VARIANT VOCAB (`templates/agents/{finance,macro,llm_cognition}/vocab.json`); A **SHARED** BODY (`{id}.md`) NEEDS IT IN `templates/agent_bodies/shared/vocab.json`. THE LOADER RAISES `KeyError` ON UNRESOLVED PLACEHOLDERS, SO A VARIANT-ONLY EDIT BREAKS SETUP FOR THE OTHER VARIANTS UNTIL THE KEY IS BACKFILLED.
 
 ## What this is
 
@@ -71,6 +71,7 @@ agent, a skill, or a vocab placeholder.
 |---------|------|--------|-----------------|
 | `finance` | `--variant finance` (default) | Working (v2) | JF, JFE, RFS |
 | `macro` | `--variant macro` | In development | AER, Econometrica, QJE, JPE, ReStud, JME |
+| `llm_cognition` | `--variant llm_cognition` | Working (v1) | NeurIPS, ICML, ICLR (TMLR as field tier) — the science of LLM cognition & evaluation. Pairs with `--ext theory_llm` for experiments; `--ext empirical` and `--mode report` are gated off (see LIMITATIONS.md). |
 
 ## Supported extensions
 

@@ -1,6 +1,6 @@
 #!/bin/bash
 # Auto AI Research Template — Setup & Launch
-# Usage: ./setup.sh [project-name] [--variant finance|macro] [--mode empirical-first|report]
+# Usage: ./setup.sh [project-name] [--variant finance|macro|llm_cognition] [--mode empirical-first|report]
 #                  [--ext empirical|theory_llm] [--seed|--faithful|--manual] [--light]
 #                  [--no-model-probe] [--local]
 #
@@ -94,7 +94,7 @@ for arg in "$@"; do
 done
 
 if [ "$NEXT_IS_VARIANT" = "1" ]; then
-    echo "Error: --variant requires a value (finance, macro)"
+    echo "Error: --variant requires a value (finance, macro, llm_cognition)"
     exit 1
 fi
 if [ "$NEXT_IS_EXT" = "1" ]; then
@@ -142,7 +142,7 @@ if [ "$VARIANT" = "finance_llm" ]; then
 fi
 
 # ── Mode validation and dependency expansion ──
-# Pipeline-architecture modes are orthogonal to variants (finance/macro) and to
+# Pipeline-architecture modes are orthogonal to variants (finance/macro/llm_cognition) and to
 # extensions (empirical/theory_llm). A mode may auto-add an extension it depends
 # on rather than erroring when the extension is missing — flipping to
 # empirical-first without the empirical agents would be incoherent, so the
@@ -170,6 +170,9 @@ if [ -n "$MODE" ]; then
                 finance|macro) : ;;
                 *)
                     echo "Error: --mode report supports --variant finance or macro."
+                    echo "  llm_cognition report mode is not yet shipped: the report fan-out's"
+                    echo "  audit agents (polish-equilibria, polish-institutions, …) are"
+                    echo "  economics-calibrated shared bodies — see LIMITATIONS.md."
                     exit 1
                     ;;
             esac
@@ -224,12 +227,59 @@ case "$VARIANT" in
         TIER_LIST_INLINE='`top-5`, `field`, `letters`'
         TIER_DOWNGRADE_EXAMPLES='for `top-5`: AER, Econometrica, QJE, JPE, ReStud, AER Insights; for `field`: JME, JEDC, AEJ:Macro, RED; for `letters`: Economics Letters'
         ;;
+    llm_cognition)
+        # Article-safe: PAPER_TYPE starts with a consonant sound ("language-…")
+        # so the "a {{PAPER_TYPE}}" template in core.md reads correctly
+        # ("a language-model cognition paper"); "LLM …" would need "an".
+        PAPER_TYPE="language-model cognition paper"
+        TARGET_JOURNALS="top ML venue (NeurIPS, ICML, ICLR)"
+        DOMAIN_AREAS="the science of language-model cognition and evaluation — effective working memory and context use, abstraction and compression, in-context learning, reasoning limits, interference and binding, benchmark and measurement design, and scaling behavior of capabilities. Scope is broad, and the following are SUFFICIENT (not necessary) conditions: a paper that defines a construct of LLM capability or behavior, formalizes it, and measures it in real models is in scope, as are formal-only analyses of transformer computation and evaluation-methodology papers. These are sufficient, not necessary — a paper can be in scope without any of them."
+        JOURNAL_LIST="Top ML venues: NeurIPS, ICML, ICLR. Nature-family (landmark results with broad scientific resonance): Nature, Science, Nature Machine Intelligence, Nature Human Behaviour, PNAS. Field: TMLR (rolling submission, correctness-over-significance bar — the default downgrade target from top-ml), JMLR, ACL, EMNLP, CogSci, Computational Linguistics. Workshop tier: NeurIPS/ICML/ICLR workshop tracks."
+        AGENT_DIR="llm_cognition"
+        INITIAL_TIER="top-ml"
+        TIER_LADDER_PROSE='nature → top-ml → field → workshop'
+        TIER_LIST_INLINE='`nature`, `top-ml`, `field`, `workshop`'
+        TIER_DOWNGRADE_EXAMPLES='for `top-ml`: NeurIPS, ICML, ICLR; for `field`: TMLR, ACL, EMNLP, CogSci; for `workshop`: NeurIPS/ICML/ICLR workshop tracks'
+        ;;
     *)
         echo "Unknown variant: $VARIANT"
-        echo "Available variants: finance, macro"
+        echo "Available variants: finance, macro, llm_cognition"
         exit 1
         ;;
 esac
+
+# ── Variant/extension compatibility ──
+# The empirical extension loads per-variant agent metadata
+# (extensions/empirical/agent_metadata/${AGENT_DIR}_agents.json), which exists
+# only for finance and macro — its agents (identification-designer, empiricist)
+# are calibrated to observational economic data. llm_cognition papers get their
+# empirics from --ext theory_llm (LLM experiments) instead.
+if [ "$VARIANT" = "llm_cognition" ] && [[ " ${EXTENSIONS[*]} " =~ " empirical " ]]; then
+    echo "Error: --ext empirical is not supported with --variant llm_cognition."
+    echo "  The empirical extension's per-variant agents exist only for finance/macro."
+    echo "  For LLM-cognition experiments use --ext theory_llm."
+    exit 1
+fi
+
+# ── Tier vocab for agent bodies ──
+# The tier ladder is a setup.sh-level shell variable (set in the variant case
+# above) that the runtime-doc assembler consumes directly, but agent BODIES go
+# through the vocab-substitution path. Bodies that must name the variant's tier
+# slugs (editor.md's ladder/allowed-values lines) reference {{TIER_LIST_INLINE}}
+# / {{TIER_LADDER_PROSE}}, resolved from this generated overlay so the ladder
+# has exactly one source of truth per deploy. Passed to every base assembler
+# (shared + variant, all four runtimes). Build-time only (mktemp, never
+# deployed): no manifest entry. Best-effort cleanup — a leaked file holds only
+# the public tier strings.
+TIER_VOCAB_FILE="$(mktemp "${TMPDIR:-/tmp}/tier_vocab.XXXXXX.json")"
+TIER_LIST_INLINE="$TIER_LIST_INLINE" TIER_LADDER_PROSE="$TIER_LADDER_PROSE" python3 - "$TIER_VOCAB_FILE" <<'PYEOF'
+import json, os, sys
+with open(sys.argv[1], "w") as f:
+    json.dump({
+        "TIER_LIST_INLINE": os.environ["TIER_LIST_INLINE"],
+        "TIER_LADDER_PROSE": os.environ["TIER_LADDER_PROSE"],
+    }, f)
+PYEOF
 
 # ── Mode-conditional overrides for variant descriptors ──
 # Mode flags can re-frame what kind of paper the deploy produces. PAPER_TYPE
@@ -364,6 +414,7 @@ assemble_claude_shared_agents() {
     # values for keys referenced by shared-agent metadata or bodies in the
     # no-mode case (e.g., IDEA_PROTOTYPER_DESCRIPTION).
     vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
 
     python3 "$template_root/scripts/assemble_claude_agents.py" \
@@ -382,6 +433,7 @@ assemble_claude_variant_agents() {
     local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
     local vocab_args=()
     [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
+    vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
     local shared_args=()
     # Mode dir first so a per-agent override (e.g. theory-generator-core.md)
@@ -409,6 +461,7 @@ assemble_codex_shared_agents() {
     bodies_args+=(--bodies-dir "$template_root/templates/agent_bodies/shared")
     local vocab_args=()
     vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
 
     python3 "$template_root/scripts/assemble_codex_subagents.py" \
@@ -426,6 +479,7 @@ assemble_codex_variant_agents() {
     local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
     local vocab_args=()
     [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
+    vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
     local shared_args=()
     [ -n "$MODE_BODIES_OVERLAY" ] && shared_args+=(--shared-bodies-dir "$MODE_BODIES_OVERLAY")
@@ -450,6 +504,7 @@ assemble_gemini_shared_agents() {
     bodies_args+=(--bodies-dir "$template_root/templates/agent_bodies/shared")
     local vocab_args=()
     vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
 
     python3 "$template_root/scripts/assemble_gemini_agents.py" \
@@ -468,6 +523,7 @@ assemble_gemini_variant_agents() {
     local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
     local vocab_args=()
     [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
+    vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
     local shared_args=()
     [ -n "$MODE_BODIES_OVERLAY" ] && shared_args+=(--shared-bodies-dir "$MODE_BODIES_OVERLAY")
@@ -493,6 +549,7 @@ assemble_grok_shared_agents() {
     bodies_args+=(--bodies-dir "$template_root/templates/agent_bodies/shared")
     local vocab_args=()
     vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
 
     python3 "$template_root/scripts/assemble_grok_agents.py" \
@@ -511,6 +568,7 @@ assemble_grok_variant_agents() {
     local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
     local vocab_args=()
     [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
+    vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
     local shared_args=()
     [ -n "$MODE_BODIES_OVERLAY" ] && shared_args+=(--shared-bodies-dir "$MODE_BODIES_OVERLAY")
@@ -1151,7 +1209,7 @@ VARIANT_BLOCK="
 - **Domain:** ${DOMAIN_AREAS}
 "
 
-for agent in literature-scout gap-scout novelty-checker theory-explorer implications-deriver referee referee-freeform scorer scorer-freeform editor branch-manager last-resort paper-writer style report-synthesizer; do
+for agent in literature-scout gap-scout novelty-checker theory-explorer implications-deriver referee referee-freeform referee-mechanism scorer scorer-freeform editor branch-manager last-resort paper-writer style report-synthesizer; do
     if [ -f "$AGENTS_OUT/$agent.md" ]; then
         echo "$VARIANT_BLOCK" >> "$AGENTS_OUT/$agent.md"
     fi
@@ -2788,6 +2846,7 @@ if [ "$LOCAL" = "1" ]; then
     fi
     echo ""
     echo "Output at: $OUT_DIR/"
+    rm -f "$TIER_VOCAB_FILE"
     exit 0
 fi
 
@@ -2965,3 +3024,4 @@ elif [ "$SEEDED" = "1" ]; then
 fi
 echo "Sandbox is pre-configured for Claude ($CLAUDE_SETTINGS_REL) and Grok ($GROK_SANDBOX_REL)"
 echo "(writes/deletes restricted to the project folder + caches, web access works freely)"
+rm -f "$TIER_VOCAB_FILE"

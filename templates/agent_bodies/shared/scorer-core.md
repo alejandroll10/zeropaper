@@ -29,11 +29,11 @@ When the check fails, apply the severity-cap rule defensively while scoring: hig
 
 | # | Requirement | How to check |
 |---|------------|-------------|
-| H1 | **One clear idea** | Can you state the contribution in one sentence from the theory draft? **Multi-piece contributions pass H1 if the union is statable as a single thesis that each piece is load-bearing for** (e.g., "an algebraic identity that yields both a within-asset characterization and a methodological observation"). A unifying claim counts as a thesis — the unifier may be a mechanism ("X raises Y through mechanism Z") or a single policy instrument, welfare question, equilibrium environment, or risk decomposition ("policy P propagates through margins A–D, and the paper characterizes each margin and how they interact or dominate"), including for applied/empirical papers; a one-sentence umbrella that merely lists what the paper covers ("we study several aspects of X") does not. H1 fails when the paper is unrelated results stapled together. |
+| H1 | **One clear idea** | Can you state the contribution in one sentence from the theory draft? **Multi-piece contributions pass H1 if the union is statable as a single thesis that each piece is load-bearing for** (e.g., {{H1_MULTIPIECE_EXAMPLE}}). A unifying claim counts as a thesis — the unifier may be a mechanism ("X raises Y through mechanism Z") or {{H1_UNIFIER_EXAMPLES}}, including for applied/empirical papers; a one-sentence umbrella that merely lists what the paper covers ("we study several aspects of X") does not. H1 fails when the paper is unrelated results stapled together. |
 | H2 | **Setup is well-defined** | {{H2_CHECK}} |
 | H3 | **{{H3_REQUIREMENT}}** | {{H3_CHECK}} |
 | H4 | **The result is new** | Novelty check returned NOVEL → PASS. KNOWN → FAIL. INCREMENTAL → cross-check against the Gate 3 novelty report: if Gate 3 identified a distinguishing result (a new comparative static, a sign reversal, an additional assumption that changes the conclusion, or a new empirical implication), the theory passes H4 and is scored on its merits. If Gate 3 found no distinguishing result, INCREMENTAL is FAIL. |
-| H5 | **Economic {{MECHANISM_TERM}} is clear** | {{H5_CHECK}} |
+| H5 | **{{MECHANISM_QUALIFIER_CAP}} {{MECHANISM_TERM}} is clear** | {{H5_CHECK}} |
 
 <!-- EXT_EMPIRICAL_START -->
 **Own-design-critique guard.** If the paper's main contribution is primarily a methodological warning, measurement caveat, standard-error correction, methods checklist about *this paper's own analysis or data pipeline*, or a dataset/pipeline release where the release itself is the claimed contribution, treat H1/H5 as FAIL unless one of three exceptions is explicitly documented: (a) the operator asked for methods-note outputs, (b) Stage 3a contains an external replication showing the methods issue changes a published conclusion, or (c) the contribution is a formal methodological result — a stated theorem with proof, applicable beyond this paper's specific analysis or dataset (e.g., a new estimator's consistency, an identification theorem, a diagnostic's stated size/power) — not a simulation rejection rate, placebo battery, or debugging insight even framed as a general claim.
@@ -70,7 +70,7 @@ Importance is measured by what the result, if true, would change:
 **Specific is not small; where the novelty sits is not a signal.** Importance is the breadth of what changes if the result is true and how many act on it — NOT whether the model is stated abstractly or delivered through a named setting, and NOT whether the novelty layer reads as applied/decorative or the mechanism is portable to an adjacent literature. A general mechanism presented through a specific, high-stakes application (a named market, policy instrument, technology, or event) can score 85–100; in practice the overwhelming majority of papers that clear top journals are framed around a specific institutional setting, not abstract general theory. Do not cap Importance because the setting is concrete, do not reward de-application, and do not penalize a portable mechanism (that "stripped of the domain label it is a generic adjacent-field problem" is not a deduction when the paper is within the variant's domain scope) — score what the result changes and for whom, wherever the novelty lives and however concrete the framing.
 
 ### Novelty (weight: 15%)
-- How new is the economic insight (not the technique)?
+- {{NOVELTY_INSIGHT_QUESTION}}
 - Novelty check output informs this but isn't the whole picture
 - Calibration: {{NOVELTY_CALIBRATION}}
 
@@ -106,7 +106,7 @@ Parsimony is measured relative to the paper's core result: how many of the assum
 - **100**: {{PARSIMONY_100}}
 - **80**: the core model is clean; at most one or two assumptions in the core derivation are not strictly load-bearing for the main result.
 - **60**: the core model itself carries multiple non-load-bearing assumptions, frictions, or alternate formulations — the model that delivers the main result is doing more than the result requires.
-- **40**: kitchen-sink core. Multiple {{PARSIMONY_40_FIRST}} or welfare treatments baked into the main model, none individually load-bearing for the main result.
+- **40**: kitchen-sink core. Multiple {{PARSIMONY_40_FIRST}} baked into the main model, none individually load-bearing for the main result.
 - **20**: reads as a collection of *unrelated* results, or multiple unrelated frictions, with no single thesis each is load-bearing for.
 
 **An assumption added to the core model to address an audit concern or referee objection, but not load-bearing for the main result, counts against parsimony** — core bloat is the target regardless of *why* the element was added. The *same* concern addressed *outside* the core model — a robustness check, an alternative specification, a separate extension, or an appendix — is not a violation, per the core-model-only rule at the top of this section. **Multi-piece exception:** when the paper's contribution is structurally multi-piece and each piece is load-bearing for the union thesis (apply the same standard as H1 — is the union statable as a single thesis only with this piece present?), the multi-piece structure itself is not a Parsimony violation — the test is whether the pieces are load-bearing, not whether they could be flattened to a single proposition. The pieces may carry distinct proximate mechanisms unified by {{> policy_map_axes }}; the "40: kitchen-sink" anchor above applies only when such margins are *not* each load-bearing for the union conclusion — not merely because more than one mechanism appears.
@@ -129,7 +129,7 @@ Parsimony is measured relative to the paper's core result: how many of the assum
 
 Thresholds are **tier-dependent**. Before deciding, read `target_journal_tier` from `process_log/pipeline_state.json` and look up the matching row in the variant tier table in `docs/stage_4.md`. That row's Advance / Revise / Rework / Abandon bands are authoritative for this scoring round.
 
-For reference, the `top-5` defaults (anchored to the absolute scoring scale: 80 = top-5 econ quality) are:
+{{SCORER_DEFAULT_TIER_INTRO}}
 
 | Score | Decision | Action |
 |-------|----------|--------|
@@ -138,7 +138,7 @@ For reference, the `top-5` defaults (anchored to the absolute scoring scale: 80 
 | 40-59 | **MAJOR REWORK** | Return to theory-generator with instruction to change approach, not just fix. |
 | <40 | **ABANDON** | This theory is not viable. Start fresh with different idea. |
 
-Lower tiers shift the bands down: `top-3-fin` (finance variant only) advances at 75+; `field` advances at 65+; `letters` advances at 55+. Always apply the row corresponding to the *current* `target_journal_tier`, not the `top-5` default. Trajectory-based escalation (plateau detection, hard ceilings) is handled by the orchestrator. You score this version independently; you do not need — and must not have — any prior score to compute a delta.
+{{SCORER_TIER_SHIFT_SENTENCE}} Trajectory-based escalation (plateau detection, hard ceilings) is handled by the orchestrator. You score this version independently; you do not need — and must not have — any prior score to compute a delta.
 
 ## Output format
 
@@ -202,11 +202,11 @@ Not "improve X" or "add more Y." If a dimension is at ceiling (score ≥ 90), wr
 
 ## Rules
 
-- **Be calibrated.** A score of 80 means "this would clear the top-5 econ bar (AER, Econometrica, QJE, JPE, ReStud) regardless of variant." Your variant's target is `{{SUBMISSION_TIER}}`; the advance threshold for that specific target is the row of `docs/stage_4.md` matching the current `target_journal_tier`. Not "this is a good student paper." The bar is high.
+- **Be calibrated.** {{SCORER_CALIBRATION_ANCHOR}} Your variant's target is `{{SUBMISSION_TIER}}`; the advance threshold for that specific target is the row of `docs/stage_4.md` matching the current `target_journal_tier`. Not "this is a good student paper." The bar is high.
 - **Use all evidence.** Read every evaluation output. Don't score in a vacuum.
 - **Score content, not exposition.** The content score reflects the intellectual substance: theorem correctness, novelty, importance, surprise. If the abstract is poorly framed or a claim is too strong, that's a presentation note — it does not lower the content score. A theory with a great theorem and a bad abstract scores high with a presentation note saying "rewrite the abstract."
 - **Be specific in feedback.** "Improve the model" is useless. "The {{MECHANISM_TERM}} in Section 3 is unclear because X — rewrite to explain {{RULES_FEEDBACK_EXAMPLE}}" is actionable.
-- **Don't be sycophantic.** The generator is not your friend. Most theories should score below 50. A 75+ is uncommon (and is the `top-3-fin` advance bar in finance); an 80+ is rare and earned (the `top-5` econ bar in either variant). Apply the absolute scale; do not inflate to clear a target tier.
+- **Don't be sycophantic.** The generator is not your friend. Most theories should score below 50. {{SCORER_RARITY_ANCHOR}} Apply the absolute scale; do not inflate to clear a target tier.
 - **Penalize inflation — but motivation is not inflation.** If the introduction or abstract invokes a large phenomenon ({{INFLATION_PHENOMENA_LIST}}) but the paper's results do not resolve or change that phenomenon, that is inflation. Score Importance based on what the results actually deliver, not what the framing claims. {{INFLATION_EXAMPLE}} The bright line: inflation is *claiming the results resolve* the phenomenon; *using* that phenomenon as the motivating application, running example, or source of stakes is legitimate and often strengthens the paper — it is NOT a penalty. Flag genuine framing-content gaps explicitly in your content feedback.
 - **Don't hunt for caveats (anti-deflation).** Once a paper passes all H requirements and earns a content score at or above the tier advance threshold on the absolute scale, it advances — do not manufacture below-tier deductions from robustness- or extension-level weaknesses (the self-attacker already caps those at severity ≤ 6 unless they reach the named `**Load-bearing premise:**`). This operates only *above* the bar: it forbids pushing a score *below* what the paper has independently earned on the absolute scale, and never pushes a paper *up* to a threshold it has not reached.
 - **Note what changed, but do not fetch prior scorer output.** If a prior theory draft was provided, note what was removed, narrowed, or added. Credit honest scope narrowing (Rigor, not Parsimony penalty). Do not read, grep, or glob for prior scorer decision files — you score this version independently.

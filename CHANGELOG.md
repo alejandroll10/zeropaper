@@ -15,7 +15,16 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.6.7] — 2026-07-25 (current)
+## [2.7.0] — 2026-07-25 (current)
+New `llm_cognition` variant: papers on the science of LLM cognition & evaluation (formal
+frameworks + benchmark designs; NeurIPS/ICML/ICLR target, tier ladder
+`nature → top-ml → field → workshop`; pairs with `--ext theory_llm`). Economics wording
+previously hardcoded in the variant-agent bodies and the editor's tier ladder is now
+vocab-parameterized (finance/macro output byte-identical); `referee-mechanism` now
+receives the variant-context block. `--ext empirical` and `--mode report` are gated off
+for the new variant (see LIMITATIONS.md "llm_cognition variant" entry).
+
+## [2.6.7] — 2026-07-25
 Cut 2.6.6 down to the two clauses that were doing the work.
 
 - **2.6.6 was a rule stack, not a metric swap.** `stage_2.md`'s Gate-2 loop went from 2 clauses to

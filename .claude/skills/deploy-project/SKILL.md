@@ -28,6 +28,14 @@ vocab placeholder — load the `edit-pipeline` skill instead.
 # Macro theory
 ./setup.sh <project-name> --variant macro
 
+# LLM-cognition science (formal frameworks + benchmarks for language-model
+# cognition/evaluation; targets NeurIPS/ICML/ICLR, tier ladder
+# nature → top-ml → field → workshop). Add --ext theory_llm so the framework's
+# predictions are tested with real LLM experiments — the recommended pairing.
+# --ext empirical and --mode report are gated off for this variant (setup.sh
+# errors with pointers; see the llm_cognition entry in LIMITATIONS.md).
+./setup.sh <project-name> --variant llm_cognition --ext theory_llm
+
 # Finance theory + LLM experiments
 ./setup.sh <project-name> --variant finance --ext theory_llm
 

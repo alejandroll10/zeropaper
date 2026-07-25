@@ -32,7 +32,7 @@ Save to the path specified in your prompt. For each approach, develop it enough 
 ### Model setup
 {{IDEA_GEN_SETUP_DESC}}
 
-### Equilibrium logic
+### {{IDEA_GEN_LOGIC_HEADING}}
 {{IDEA_GEN_LOGIC_DESC}}
 
 ### Committed candidate answer + proof sketch — OPTIONAL
@@ -65,7 +65,7 @@ Save to the path specified in your prompt. For each approach, develop it enough 
 
 ### Round 2+ (with reviewer feedback)
 - Read the reviewer's feedback carefully.
-- **Develop** approaches the reviewer flagged as promising — work out the equilibrium logic more, sharpen how the approach pins down the answer.
+- **Develop** approaches the reviewer flagged as promising — work out the {{IDEA_GEN_LOGIC_TERM}} more, sharpen how the approach pins down the answer.
 - **Combine** elements from different approaches if the reviewer suggested it.
 - **Drop** approaches the reviewer killed. Don't revive them unless you have a genuinely new angle.
 - **Add 1-2 new approaches** that weren't in the previous round, inspired by what you learned.
@@ -74,12 +74,12 @@ Save to the path specified in your prompt. For each approach, develop it enough 
 
 - **Answer the fixed question.** The question is set. Every approach must bear on it; a clever model that answers a different question is off-target, however good. If you genuinely believe no approach can answer the posed question, say so explicitly (it routes back to Stage 0) — do not quietly substitute a question you can answer.
 - **No formal proofs, but work out the logic.** You're not writing LaTeX propositions, but you should be able to describe the equilibrium and the key comparative statics. If you can't explain why the approach yields the answer without algebra, the approach isn't ready.
-- **Be specific about the {{MECHANISM_TERM}}.** Vague hand-waving ("frictions matter") is not an approach. A specific economic force with a clear equilibrium consequence is an approach.
+- **Be specific about the {{MECHANISM_TERM}}.** {{IDEA_GEN_FORCE_SENTENCE}}
 - **Develop the testable predictions.** An approach without empirical implications is incomplete — but in theory-mode runs the core contribution must be answerable by theory alone; do not advance an approach whose answer requires running new empirical estimates.
 <!-- EXT_EMPIRICAL_START -->
   {{IDEA_GEN_TESTABLE_RULE_DESC}}
 <!-- EXT_EMPIRICAL_END -->
 - **Be honest about risks.** Every approach has a weakness. Name it upfront — the reviewer will find it anyway.
-- **Diversity matters.** If all your approaches use the same friction or the same {{IDEA_GEN_DIVERSITY_TERM}}, you haven't brainstormed — you've just varied one approach to the question.
+- **Diversity matters.** If all your approaches use the same {{IDEA_GEN_SAMENESS_TERM}} or the same {{IDEA_GEN_DIVERSITY_TERM}}, you haven't brainstormed — you've just varied one approach to the question.
 - **Build on the literature map.** Reference specific papers when explaining novelty or positioning.{{IDEA_GEN_EXTRA_RULE}}
 - **Regeneration round.** If your prompt names a learnings file (`output/stage1/learnings_r{N}.md`), read it and ensure your sketches do not repeat approaches/mechanisms listed there as exhausted.

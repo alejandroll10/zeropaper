@@ -30,7 +30,7 @@ Save to the path specified in your prompt. Structure:
 | Novelty of approach | X | [Is *this route to the answer* likely new? Quick web search if unsure. Novelty-of-question is not your concern — it was vetted at Gate 0.] |
 | Tractability | X | [Is it viable — well-posed, not *proven* impossible? (difficulty is not a low score; see "Select on ceiling") {{IDEA_TRACTABILITY_HINT}}] |
 | Importance of the answer | X | [Assume the approach works perfectly — is the answer it would deliver a "so what" or a "wow"? The question carries baseline importance, but a partial or watered-down answer can still be a shrug.] |
-| Clarity of {{MECHANISM_TERM}} | X | [Is the economic force specific and well-identified?] |
+| Clarity of {{MECHANISM_TERM}} | X | [Is the {{FORCE_TERM}} specific and well-identified?] |
 | Risk of being known | X | [How likely is it that this approach/result already exists?] |
 
 **Strengths:** [What's good about this approach?]
@@ -65,7 +65,7 @@ or
 **ADVANCE** — Top K approaches ranked for parallel screening at Gates 1b/1c (**target K ≥ 3, up to 5**):
 <!-- THEORY_FIRST_START -->
 
-1. **[Approach name]** — if this wins the tournament, theory-generator should focus on: [specific theorem-development instructions — proof technique to attempt, comparative statics to derive, equilibrium concept to use, scope conditions to nail down. **For an *open* approach (no committed candidate answer in the sketch), do NOT prescribe a target theorem to prove** — instruct theory-generator to develop the model and harvest the answer to the question, naming the equilibrium concept and the regions/limits worth exploring, and let the headline emerge at Stage 2b. For a **committed** approach, name the result to prove and the technique to try.]
+1. **[Approach name]** — if this wins the tournament, theory-generator should focus on: [specific theorem-development instructions — proof technique to attempt, comparative statics to derive, {{IDEA_REVIEWER_CONCEPT_TERM}} to use, scope conditions to nail down. **For an *open* approach (no committed candidate answer in the sketch), do NOT prescribe a target theorem to prove** — instruct theory-generator to develop the model and harvest the answer to the question, naming the {{IDEA_REVIEWER_CONCEPT_TERM}} and the regions/limits worth exploring, and let the headline emerge at Stage 2b. For a **committed** approach, name the result to prove and the technique to try.]
 2. **[Approach name]** — if this wins, theory-generator should focus on: [specific theorem-development instructions; for an open approach, develop-and-harvest instructions per #1]
 3. **[Approach name]** — if this wins, theory-generator should focus on: [specific theorem-development instructions; for an open approach, develop-and-harvest instructions per #1]
 [continue to positions 4 and 5 in the same format when 4–5 viable approaches qualify]
