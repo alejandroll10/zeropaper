@@ -247,10 +247,10 @@
   },
   "referee-mechanism": {
     "name": "referee-mechanism",
-    "description": "Mechanism-focused referee at Stage 6. Evaluates whether the paper's economic mechanism delivers the claimed result for the claimed reason \u2014 not whether the math is correct (math-auditor handles that) or whether the paper fits the journal (referee-freeform handles that). Returns a verdict on mechanism validity: VALID / PARTIAL / MISATTRIBUTED / DECORATIVE. Runs in parallel with the other two referees; sees neither their output nor prior reports.",
+    "description": "Mechanism-focused referee at Stage 6. Evaluates whether the paper's {{MECHANISM_QUALIFIER}} mechanism delivers the claimed result for the claimed reason \u2014 not whether the math is correct (math-auditor handles that) or whether the paper fits the journal (referee-freeform handles that). Returns a verdict on mechanism validity: VALID / PARTIAL / MISATTRIBUTED / DECORATIVE. Runs in parallel with the other two referees; sees neither their output nor prior reports.",
     "modes": {
       "report": {
-        "description": "Mechanism-focused referee on the external submission in submission/: does the claimed economic mechanism deliver the claimed result for the claimed reason? Verdict MECHANISM-VALID / PARTIAL / MISATTRIBUTED / DECORATIVE to audits/referee_mechanism.md. Reads cold, in parallel with the other referees."
+        "description": "Mechanism-focused referee on the external submission in submission/: does the claimed {{MECHANISM_QUALIFIER}} mechanism deliver the claimed result for the claimed reason? Verdict MECHANISM-VALID / PARTIAL / MISATTRIBUTED / DECORATIVE to audits/referee_mechanism.md. Reads cold, in parallel with the other referees."
       }
     },
     "category": "evaluator",

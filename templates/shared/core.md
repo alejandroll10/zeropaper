@@ -33,7 +33,7 @@ There is no deadline, no time budget, and no version-count limit. Keep iterating
 When results go against well-formed priors — a comparative static flips sign, a necessary condition fails at calibration, or the model generates an unexpected pattern — that is often the most valuable finding. Lean into it.
 
 Concretely:
-- If the theory-explorer finds the result reverses in a plausible parameter region, ask: what economic force drives the reversal? That force may be the real contribution.
+- If the theory-explorer finds the result reverses in a plausible parameter region, ask: what {{MECHANISM_QUALIFIER}} force drives the reversal? That force may be the real contribution.
 - If the empiricist finds the data contradicts the main prediction but confirms an auxiliary one, the auxiliary prediction might be the paper.
 - Never suppress a surprising result to preserve a prior narrative. A clean surprise is more publishable than a confirmation of the expected.
 
@@ -399,16 +399,16 @@ If the post-pipeline edit introduces a formal proposition or lemma despite the p
 
 **Once a paper draft exists (Stage 5+), the pipeline must produce a finished paper.** Do not loop back to Stage 0 after investing in paper writing. Instead, use the deepening playbook below to strengthen the paper. A regeneration round per the escalation table is permitted post-Stage-5; it re-enters at Stage 1, not Stage 0.
 
-If the scorer plateaus in the REVISE band for the current target tier (see `docs/stage_4.md` — e.g., 60-79 for `top-5`, 55-74 for `top-3-fin`, 45-64 for `field`) or the referee gives Major Revision with structural concerns (result is fragile, too narrow, or shallow):
+If the scorer plateaus in the REVISE band for the current target tier (see the `docs/stage_4.md` tier table — the Revise column for the current tier) or the referee gives Major Revision with structural concerns (result is fragile, too narrow, or shallow):
 
 ### Deepening playbook
 
-When the core result is correct but thin, extend it with mathematically hard, economically interesting analyses that uncover new content the simple model hid. The goal is characterization, not robustness.
+When the core result is correct but thin, extend it with mathematically hard, {{MECHANISM_QUALIFIER_ADV}} interesting analyses that uncover new content the simple model hid. The goal is characterization, not robustness.
 
-**Extension types:** continuous time (HJB/SDEs), incomplete markets/heterogeneity (Bewley/HANK), learning/incomplete information, general preferences (CRRA/EZ/habits), higher dimensions (N assets, continuum of agents), perturbation/approximation (formal error bounds), dynamic/stochastic, moral hazard/agency, adverse selection, mechanism design, network/contagion.
+**Extension types:** {{DEEPENING_EXTENSION_TYPES}}.
 {{EMPIRICAL_PLAYBOOK_ADDENDUM}}
 
-**How to apply:** Identify the specific economic weakness from scorer/self-attack feedback. Pick 1-2 extensions that test whether the channel survives under realistic features. Prove the result or prove it breaks (a counterexample is as valuable as a positive result).
+**How to apply:** Identify the specific {{MECHANISM_QUALIFIER}} weakness from scorer/self-attack feedback. Pick 1-2 extensions that test whether the channel survives under realistic features. Prove the result or prove it breaks (a counterexample is as valuable as a positive result).
 <!-- THEORY_FIRST_START -->
 Re-run Gate 2 + Gate 4 on extensions.
 <!-- THEORY_FIRST_END -->
@@ -445,7 +445,7 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 | Problem viability fails | 5 problems | Pick the best scoring problem and proceed anyway |
 | Editor: Major Revision (aggregated verdict) | Structural concerns (fragile, narrow, shallow) | Use deepening playbook. Triage editor's canonical comment list; revise; re-run Stage 6. Be patient — keep going as long as each round surfaces any new issue. Max 10 rounds. |
 | Mechanism referee: MISATTRIBUTED unresolved | Still MISATTRIBUTED at `loops.referee.round >= 10` | Adopt the mechanism referee's identified driver as the paper's mechanism; rewrite introduction/mechanism sections and ship. **Force-adoption at round-10 resolves all outstanding locked mechanism `[FIX]` items as satisfied — no further revision cycle is required.** In seeded mode, prefer the narrow-framing path from the seed override (present what the math delivers under the seed's topic, acknowledge the mechanism-claim divergence in limitations) rather than adopting an unrelated driver. Never return to Stage 0 (never-abandon). |
-| Mechanism referee: DECORATIVE unresolved | Still DECORATIVE at `loops.referee.round >= 10` | Ship the narrow-path version: after 10 rounds the restructure path has failed to surface real economic content, so narrow is the principled default. Present what the math delivers as a structural characterization, strip mechanism framing, add a limitations paragraph. **Round-10 narrow-adoption resolves all outstanding locked mechanism `[FIX]` items as satisfied.** Never return to Stage 0 (never-abandon, scientist-first). |
+| Mechanism referee: DECORATIVE unresolved | Still DECORATIVE at `loops.referee.round >= 10` | Ship the narrow-path version: after 10 rounds the restructure path has failed to surface real {{MECHANISM_QUALIFIER}} content, so narrow is the principled default. Present what the math delivers as a structural characterization, strip mechanism framing, add a limitations paragraph. **Round-10 narrow-adoption resolves all outstanding locked mechanism `[FIX]` items as satisfied.** Never return to Stage 0 (never-abandon, scientist-first). |
 | Editor: Reject (aggregated verdict) | — | Stage 6 fires only post-Stage-5, so a paper draft always exists; never-abandon. Reject routes through triage → deepen directive → deepen mandate (see `docs/stage_6.md` Reject row for full procedure). The pre-Stage-5 "Stage 0 / Stage 2" branches do not exist at this point. On two consecutive cosmetic deepen attempts, the orchestrator routes through the Regeneration Round protocol if eligible (`regeneration_round == 0`, not seeded), otherwise falls back to standard Major Revision (never-abandon). |
 | Editor: Downgrade tier recommendation | — | Route to the deepen-toward-target procedure in `docs/stage_6.md` "Journal-fit handling". Do **not** lower `target_journal_tier` here — the tier moves only when `branch-manager` certifies a target-tier ceiling (`gate-5-downgrade`, step 2b). |
 | Editor: Upgrade tier recommendation | — | Update `target_journal_tier` to one rung **up** the variant ladder (`{{TIER_LADDER_PROSE}}`), recompute Gate 4 advance threshold per the new tier. This is the mechanism that undoes an earlier over-eager downgrade: restoring a paper toward its initial (highest) target is a normal outcome, not a rare one. Continue the loop targeting the higher tier; the next round's referees inherit the updated tier in their variant context. Upgrading *above* the project's initial target is the rare case (needs the editor's Rule 5 quote gate cleared in that direction — two verbatim same-direction structural-ceiling spans from two different referees). See `docs/stage_6.md` "Journal-fit handling". |

@@ -170,9 +170,10 @@ if [ -n "$MODE" ]; then
                 finance|macro) : ;;
                 *)
                     echo "Error: --mode report supports --variant finance or macro."
-                    echo "  llm_cognition report mode is not yet shipped: the report fan-out's"
-                    echo "  audit agents (polish-equilibria, polish-institutions, …) are"
-                    echo "  economics-calibrated shared bodies — see LIMITATIONS.md."
+                    echo "  llm_cognition report mode is not yet shipped: the report-mode"
+                    echo "  overlay bodies (templates/agent_bodies/shared_modes/report/*) are"
+                    echo "  economics-calibrated and there is no llm_cognition_modes/report"
+                    echo "  vocab overlay — see LIMITATIONS.md."
                     exit 1
                     ;;
             esac
@@ -211,6 +212,11 @@ case "$VARIANT" in
         DOMAIN_AREAS="finance — asset pricing, corporate finance, information economics, market design, financial intermediation, banking, household finance, and behavioral finance. Scope is broad, and the following are SUFFICIENT (not necessary) conditions: a model involving an asset market, a firm or manager optimizing value, risk (borne, shared, or priced), banks/credit/lending, or households allocating across assets is in finance scope even when the topic looks like IO, information economics, or regulation. These are sufficient, not necessary — a paper can be finance without any of them."
         JOURNAL_LIST="Top-3 finance: JF, JFE, RFS, JF Insights & Perspectives (JFIP — top-3-fin tier on quality bar, JF-equivalent standard; CV credit lags; ≤7k words, single-insight, no R&R). Also: Review of Finance, Management Science, JFQA. Top accounting: JAR, JAE, TAR, RAS. Top-5 econ: AER, Econometrica, QJE, JPE, ReStud."
         AGENT_DIR="finance"
+        MECHANISM_QUALIFIER="economic"
+        MECHANISM_QUALIFIER_AN="an economic"
+        MECHANISM_QUALIFIER_ADV="economically"
+        MECHANISM_DISCIPLINE="economics"
+        DEEPENING_EXTENSION_TYPES="continuous time (HJB/SDEs), incomplete markets/heterogeneity (Bewley/HANK), learning/incomplete information, general preferences (CRRA/EZ/habits), higher dimensions (N assets, continuum of agents), perturbation/approximation (formal error bounds), dynamic/stochastic, moral hazard/agency, adverse selection, mechanism design, network/contagion"
         INITIAL_TIER="top-3-fin"
         TIER_LADDER_PROSE='top-5 → top-3-fin → field → letters'
         TIER_LIST_INLINE='`top-5`, `top-3-fin`, `field`, `letters`'
@@ -222,6 +228,11 @@ case "$VARIANT" in
         DOMAIN_AREAS="macroeconomics"
         JOURNAL_LIST="Top-5 econ: AER, Econometrica, QJE, JPE, ReStud, AER Insights (top-5 tier on quality bar, AER-equivalent 'same standards'; CV credit lags; ≤6k words, single-mechanism). Top-3 finance: JF, JFE, RFS. Macro field: JME, JEDC, AEJ:Macro, AEJ:Micro, JIE, JET, RED."
         AGENT_DIR="macro"
+        MECHANISM_QUALIFIER="economic"
+        MECHANISM_QUALIFIER_AN="an economic"
+        MECHANISM_QUALIFIER_ADV="economically"
+        MECHANISM_DISCIPLINE="economics"
+        DEEPENING_EXTENSION_TYPES="continuous time (HJB/SDEs), incomplete markets/heterogeneity (Bewley/HANK), learning/incomplete information, general preferences (CRRA/EZ/habits), higher dimensions (N assets, continuum of agents), perturbation/approximation (formal error bounds), dynamic/stochastic, moral hazard/agency, adverse selection, mechanism design, network/contagion"
         INITIAL_TIER="top-5"
         TIER_LADDER_PROSE='top-5 → field → letters'
         TIER_LIST_INLINE='`top-5`, `field`, `letters`'
@@ -234,12 +245,17 @@ case "$VARIANT" in
         PAPER_TYPE="language-model cognition paper"
         TARGET_JOURNALS="top ML venue (NeurIPS, ICML, ICLR)"
         DOMAIN_AREAS="the science of language-model cognition and evaluation — effective working memory and context use, abstraction and compression, in-context learning, reasoning limits, interference and binding, benchmark and measurement design, and scaling behavior of capabilities. Scope is broad, and the following are SUFFICIENT (not necessary) conditions: a paper that defines a construct of LLM capability or behavior, formalizes it, and measures it in real models is in scope, as are formal-only analyses of transformer computation and evaluation-methodology papers. These are sufficient, not necessary — a paper can be in scope without any of them."
-        JOURNAL_LIST="Top ML venues: NeurIPS, ICML, ICLR. Nature-family (landmark results with broad scientific resonance): Nature, Science, Nature Machine Intelligence, Nature Human Behaviour, PNAS. Field: TMLR (rolling submission, correctness-over-significance bar — the default downgrade target from top-ml), JMLR, ACL, EMNLP, CogSci, Computational Linguistics. Workshop tier: NeurIPS/ICML/ICLR workshop tracks."
+        JOURNAL_LIST="Top ML venues: NeurIPS, ICML, ICLR. Nature-family (landmark results with broad scientific resonance): Nature, Science, Nature Machine Intelligence. Field: TMLR (rolling submission, correctness-over-significance bar — the default downgrade target from top-ml), JMLR, ACL, EMNLP, CogSci, Computational Linguistics. Workshop tier: NeurIPS/ICML/ICLR workshop tracks."
         AGENT_DIR="llm_cognition"
+        MECHANISM_QUALIFIER="computational"
+        MECHANISM_QUALIFIER_AN="a computational"
+        MECHANISM_QUALIFIER_ADV="computationally"
+        MECHANISM_DISCIPLINE="computational account"
+        DEEPENING_EXTENSION_TYPES="alternative task families instantiating the same construct, tighter or more general formal results (capacity bounds, error characterizations, formal error bounds), cross-model-family and cross-scale replication, discriminating experiments against the nearest alternative account, mechanistic/interpretability probes of the claimed process, connections to the human-cognition or information-theory literature, boundary/degenerate-corner characterization"
         INITIAL_TIER="top-ml"
         TIER_LADDER_PROSE='nature → top-ml → field → workshop'
         TIER_LIST_INLINE='`nature`, `top-ml`, `field`, `workshop`'
-        TIER_DOWNGRADE_EXAMPLES='for `top-ml`: NeurIPS, ICML, ICLR; for `field`: TMLR, ACL, EMNLP, CogSci; for `workshop`: NeurIPS/ICML/ICLR workshop tracks'
+        TIER_DOWNGRADE_EXAMPLES='for `top-ml`: NeurIPS, ICML, ICLR; for `field`: TMLR (default), JMLR, ACL, EMNLP, CogSci; for `workshop`: NeurIPS/ICML/ICLR workshop tracks'
         ;;
     *)
         echo "Unknown variant: $VARIANT"
@@ -409,12 +425,15 @@ assemble_claude_shared_agents() {
     # bodies (theory-generator-core.md etc.) live in the same overlay dir
     # under -core.md and are picked up by the variant assembler, not here.
     #
-    # Vocab boundary: shared-agent bodies must not reference base variant
-    # vocab keys ({{DOMAIN}}, {{SUBMISSION_TIER}}, etc.) — the variant vocab
-    # is intentionally not passed here. If a future shared body needs vocab
-    # composition, the substitution must come from MODE_VOCAB_OVERLAY only,
-    # which means it can only differ across modes, not across variants.
-    # KeyError fires loudly on unresolved {{KEY}}, so the boundary is enforced.
+    # Vocab layering (shared bodies): shared defaults first, then the variant
+    # vocab (when present), then the tier vocab, then the mode overlay — later
+    # layers win on duplicate keys. This is what lets domain-sensitive wording
+    # in shared bodies (referee-mechanism's evaluative frame, the literature
+    # agents' venue directives, fragment content) vary per variant. Contract:
+    # every {{KEY}} a shared body references must have a default in
+    # agent_bodies/shared/vocab.json OR appear in every variant vocab —
+    # a key defined only in some variants breaks setup for the others.
+    # KeyError fires loudly on unresolved {{KEY}}, so the contract is enforced.
     local bodies_args=()
     [ -n "$MODE_BODIES_OVERLAY" ] && bodies_args+=(--bodies-dir "$MODE_BODIES_OVERLAY")
     bodies_args+=(--bodies-dir "$template_root/templates/agent_bodies/shared")
@@ -424,6 +443,8 @@ assemble_claude_shared_agents() {
     # values for keys referenced by shared-agent metadata or bodies in the
     # no-mode case (e.g., IDEA_PROTOTYPER_DESCRIPTION).
     vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    local variant_vocab="$template_root/templates/agents/${AGENT_DIR}/vocab.json"
+    [ -f "$variant_vocab" ] && vocab_args+=(--vocab "$variant_vocab")
     vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
 
@@ -442,7 +463,11 @@ assemble_claude_variant_agents() {
     local dest_dir="$3"
     local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
     local vocab_args=()
-    [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
+    # Shared defaults first so variant keys win on duplicates; this also lets
+    # -core bodies (and fragments they include) use shared-default keys that
+    # no variant is required to define.
+    vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    [ -f "$vocab_file" ] && vocab_args+=(--vocab "$vocab_file")
     vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
     local shared_args=()
@@ -471,6 +496,8 @@ assemble_codex_shared_agents() {
     bodies_args+=(--bodies-dir "$template_root/templates/agent_bodies/shared")
     local vocab_args=()
     vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    local variant_vocab="$template_root/templates/agents/${AGENT_DIR}/vocab.json"
+    [ -f "$variant_vocab" ] && vocab_args+=(--vocab "$variant_vocab")
     vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
 
@@ -488,7 +515,11 @@ assemble_codex_variant_agents() {
     local dest_dir="$3"
     local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
     local vocab_args=()
-    [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
+    # Shared defaults first so variant keys win on duplicates; this also lets
+    # -core bodies (and fragments they include) use shared-default keys that
+    # no variant is required to define.
+    vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    [ -f "$vocab_file" ] && vocab_args+=(--vocab "$vocab_file")
     vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
     local shared_args=()
@@ -514,6 +545,8 @@ assemble_gemini_shared_agents() {
     bodies_args+=(--bodies-dir "$template_root/templates/agent_bodies/shared")
     local vocab_args=()
     vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    local variant_vocab="$template_root/templates/agents/${AGENT_DIR}/vocab.json"
+    [ -f "$variant_vocab" ] && vocab_args+=(--vocab "$variant_vocab")
     vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
 
@@ -532,7 +565,11 @@ assemble_gemini_variant_agents() {
     local dest_dir="$3"
     local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
     local vocab_args=()
-    [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
+    # Shared defaults first so variant keys win on duplicates; this also lets
+    # -core bodies (and fragments they include) use shared-default keys that
+    # no variant is required to define.
+    vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    [ -f "$vocab_file" ] && vocab_args+=(--vocab "$vocab_file")
     vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
     local shared_args=()
@@ -559,6 +596,8 @@ assemble_grok_shared_agents() {
     bodies_args+=(--bodies-dir "$template_root/templates/agent_bodies/shared")
     local vocab_args=()
     vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    local variant_vocab="$template_root/templates/agents/${AGENT_DIR}/vocab.json"
+    [ -f "$variant_vocab" ] && vocab_args+=(--vocab "$variant_vocab")
     vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
 
@@ -577,7 +616,11 @@ assemble_grok_variant_agents() {
     local dest_dir="$3"
     local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
     local vocab_args=()
-    [ -f "$vocab_file" ] && vocab_args=(--vocab "$vocab_file")
+    # Shared defaults first so variant keys win on duplicates; this also lets
+    # -core bodies (and fragments they include) use shared-default keys that
+    # no variant is required to define.
+    vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    [ -f "$vocab_file" ] && vocab_args+=(--vocab "$vocab_file")
     vocab_args+=(--vocab "$TIER_VOCAB_FILE")
     [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
     local shared_args=()
@@ -916,6 +959,9 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --initial-tier "$INITIAL_TIER" \
     --tier-ladder-prose "$TIER_LADDER_PROSE" \
     --tier-list-inline "$TIER_LIST_INLINE" \
+    --mechanism-qualifier "$MECHANISM_QUALIFIER" \
+    --mechanism-qualifier-adv "$MECHANISM_QUALIFIER_ADV" \
+    --deepening-extension-types "$DEEPENING_EXTENSION_TYPES" \
     --doc-name "CLAUDE.md" \
     --doc-subtitle "$DOC_SUBTITLE" \
     --agent-dir "$CLAUDE_AGENTS_REL" \
@@ -944,6 +990,9 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --initial-tier "$INITIAL_TIER" \
     --tier-ladder-prose "$TIER_LADDER_PROSE" \
     --tier-list-inline "$TIER_LIST_INLINE" \
+    --mechanism-qualifier "$MECHANISM_QUALIFIER" \
+    --mechanism-qualifier-adv "$MECHANISM_QUALIFIER_ADV" \
+    --deepening-extension-types "$DEEPENING_EXTENSION_TYPES" \
     --doc-name "AGENTS.md" \
     --doc-subtitle "$DOC_SUBTITLE" \
     --agent-dir "$CODEX_AGENTS_REL" \
@@ -970,6 +1019,9 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --initial-tier "$INITIAL_TIER" \
     --tier-ladder-prose "$TIER_LADDER_PROSE" \
     --tier-list-inline "$TIER_LIST_INLINE" \
+    --mechanism-qualifier "$MECHANISM_QUALIFIER" \
+    --mechanism-qualifier-adv "$MECHANISM_QUALIFIER_ADV" \
+    --deepening-extension-types "$DEEPENING_EXTENSION_TYPES" \
     --doc-name "GEMINI.md" \
     --doc-subtitle "$DOC_SUBTITLE" \
     --agent-dir "$GEMINI_AGENTS_REL" \
@@ -1592,7 +1644,7 @@ if [ "$MODE" != "report" ]; then
     cp "$TEMPLATE_ROOT/templates/shared/docs/"*.md "$P/docs/"
     # Substitute variant placeholders (same ones assemble_runtime_doc.py handles for core.md)
     for _docfile in "$P/docs/"*.md; do
-        sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g; s|{{INITIAL_TIER}}|$INITIAL_TIER|g; s|{{TIER_LADDER_PROSE}}|$TIER_LADDER_PROSE|g; s|{{TIER_LIST_INLINE}}|$TIER_LIST_INLINE|g; s|{{TIER_DOWNGRADE_EXAMPLES}}|$TIER_DOWNGRADE_EXAMPLES|g" "$_docfile" && rm "${_docfile}.bak"
+        sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g; s|{{INITIAL_TIER}}|$INITIAL_TIER|g; s|{{TIER_LADDER_PROSE}}|$TIER_LADDER_PROSE|g; s|{{TIER_LIST_INLINE}}|$TIER_LIST_INLINE|g; s|{{TIER_DOWNGRADE_EXAMPLES}}|$TIER_DOWNGRADE_EXAMPLES|g; s|{{MECHANISM_QUALIFIER_AN}}|$MECHANISM_QUALIFIER_AN|g; s|{{MECHANISM_QUALIFIER}}|$MECHANISM_QUALIFIER|g; s|{{MECHANISM_DISCIPLINE}}|$MECHANISM_DISCIPLINE|g" "$_docfile" && rm "${_docfile}.bak"
     done
 
     # Inject the variant-specific tier table into stage_4.md (multi-line content via sed -r)
@@ -2168,7 +2220,8 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$GEMINI_AGENTS_OUT" \
                 "$SKILLS_OUT" \
                 "$LOCAL" \
-                "$LIGHT_MODEL"
+                "$LIGHT_MODEL" \
+                "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json"
 
             python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
                 --metadata "$TEMPLATE_ROOT/templates/skill_metadata/theory_llm_skills.json" \

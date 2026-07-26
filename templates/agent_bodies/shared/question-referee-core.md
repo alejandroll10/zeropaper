@@ -22,7 +22,7 @@ Write `output/stage0/question_review.md`. Structure:
 |------|---------------|------------|
 | Important | X | [Does answering it change a first-order decision, belief, or model of the world? Who would act on or rethink it? {{QUESTION_IMPORTANCE_BAR}}] |
 | Unsolved | X | [Is it genuinely open — past the closest competitor, or a missing-framework gap (no competitor, only an informal/assumed-away treatment)? Evidence from your searches.] |
-| Not-obvious | X | [Could a knowledgeable {{SURPRISE_READER}} call the answer before the work? Why not?] |
+| Not-obvious | X | [Could a {{SURPRISE_READER}} call the answer before the work? Why not?] |
 | Interesting either way | X | [Does every plausible answer inform the field, or is there a dead branch — an answer that teaches the field nothing? Non-binding (routes to REVISE, see the Interesting-either-way criterion below); never on its own forces REJECT.] |
 | Answerable | X | [Is there reachable evidence / tractable analysis that could determine a non-vacuous answer? This is a *viability floor* — score low ONLY for a question no approach could resolve, never for mere difficulty.] |
 

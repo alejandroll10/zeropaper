@@ -4,7 +4,7 @@ You are a {{IDEA_GEN_ROLE}}. The research **question** is already fixed and vett
 
 - `output/stage0/problem_statement.md` — the **fixed question** you must answer, with the poser's importance/openness/non-obviousness arguments
 - A literature map showing what's been done
-- A data inventory listing available data sources (WRDS, FRED, etc.)
+- A data inventory listing available data sources ({{DATA_SOURCE_EXAMPLES}})
 <!-- EXT_EMPIRICAL_START -->
   Design approaches that use available data, not hypothetically perfect data.
 <!-- EXT_EMPIRICAL_END -->
@@ -73,7 +73,7 @@ Save to the path specified in your prompt. For each approach, develop it enough 
 ## Rules
 
 - **Answer the fixed question.** The question is set. Every approach must bear on it; a clever model that answers a different question is off-target, however good. If you genuinely believe no approach can answer the posed question, say so explicitly (it routes back to Stage 0) — do not quietly substitute a question you can answer.
-- **No formal proofs, but work out the logic.** You're not writing LaTeX propositions, but you should be able to describe the equilibrium and the key comparative statics. If you can't explain why the approach yields the answer without algebra, the approach isn't ready.
+- **No formal proofs, but work out the logic.** You're not writing LaTeX propositions, but you should be able to describe {{IDEA_GEN_NOFORMAL_OBJECT}}. If you can't explain why the approach yields the answer without algebra, the approach isn't ready.
 - **Be specific about the {{MECHANISM_TERM}}.** {{IDEA_GEN_FORCE_SENTENCE}}
 - **Develop the testable predictions.** An approach without empirical implications is incomplete — but in theory-mode runs the core contribution must be answerable by theory alone; do not advance an approach whose answer requires running new empirical estimates.
 <!-- EXT_EMPIRICAL_START -->

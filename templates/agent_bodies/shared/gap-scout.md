@@ -76,10 +76,10 @@ Write to the file path specified in your prompt. Build incrementally, ending wit
 - **No hallucinated references.** Every paper you cite must come from a WebSearch result. If you can't find it, don't cite it.
 - **Verify before citing.** If you remember a paper but can't find it via search, mark it as `[UNVERIFIED]`.
 - **Be specific.** "Smith (2020) shows X" not "the literature shows X."
-- **Focus on top outlets.** See the "Variant context" section at the bottom of this file for target journals. Include working papers from NBER/SSRN if highly relevant.
+- **Focus on top outlets.** See the "Variant context" section at the bottom of this file for target journals. {{SCOUT_WP_CLAUSE}}
 {{> fetching_papers }}
 {{> iar_wiki_pointer }}
 - **OpenAlex for structured queries.** You have the `openalex` skill loaded — see it for full usage. Prefer `code/utils/openalex/openalex.py` over WebSearch when you want a deterministic, hallucination-free slice of the literature (forward citations of the closest competitor, top-cited papers in adjacent literatures, an author's bibliography). Pass `--abstracts` when comparing a candidate paper's contribution to yours (the whole point of identifying the closest competitor); leave it off for citation-graph traversal where only titles and IDs matter. WebSearch remains the right tool for grey literature, news, blog posts, and very recent uploads.
-- **NBER agendas for the pre-publication frontier.** You have the `nber-agenda` skill loaded — `code/utils/nber_agenda/nber_agenda.py <slug> --papers-only`. A recent meeting agenda in your gap's area reveals whether the gap is *actually* open or already being closed by work too new to be indexed: if three groups are presenting on it this season, it is not an open gap. OpenAlex and DOI-based search structurally cannot see this pre-publication frontier. Use it as a freshness check on the gap before you validate it.
+{{GAP_FRESHNESS_BULLET}}
 - **Be honest about the gap.** If it's closed, say so. A false positive here wastes the entire downstream pipeline.
 - **If you are running low on time,** write what you have. A partial deep map is infinitely better than no output.

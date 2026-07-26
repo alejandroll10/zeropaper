@@ -1,1 +1,1 @@
-one policy instrument, welfare question, equilibrium environment, or risk decomposition
+{{POLICY_MAP_AXES}}

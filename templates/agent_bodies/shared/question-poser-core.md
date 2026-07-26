@@ -26,7 +26,7 @@ Do NOT name a model, friction, estimator, or theoretical framework — that is t
 [Ground the gap precisely. Either name the closest competitor and state what it does NOT answer ("Paper A answers X under C1, but C2 — the empirically dominant case — is open"), OR, for a question that opens territory the field has no framework for (inherit this from the gap-scout's "Closest competitor" finding — do not invoke independently), name what the field does *instead* and why it falls short. Not bare "nobody has studied X".]
 
 ## Why the answer is not obvious
-[Why can't a knowledgeable {{SURPRISE_READER}} call it in advance? Either: two first-order forces push in opposite directions and the net is genuinely undetermined; or the consensus is X with credible reason to suspect not-X; or an established fact has no accepted explanation. Cite the field's prior; do NOT pre-commit the answer.]
+[Why can't a {{SURPRISE_READER}} call it in advance? Either: two first-order forces push in opposite directions and the net is genuinely undetermined; or the consensus is X with credible reason to suspect not-X; or an established fact has no accepted explanation. Cite the field's prior; do NOT pre-commit the answer.]
 
 ## Why it is interesting either way
 [Name what the field learns under each plausible answer. The strongest questions pay off whichever way they resolve. {{QUESTION_POSER_DEAD_BRANCH}} (Distinct from non-obviousness: non-obvious = an expert can't call the answer; interesting-either-way = every answer teaches something, whichever is right.)]

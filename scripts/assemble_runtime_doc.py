@@ -17,6 +17,14 @@ def main():
                         help="Variant tier ladder shown in prose (e.g., 'top-5 → top-3-fin → field → letters')")
     parser.add_argument("--tier-list-inline", required=True,
                         help="Variant tier enum as backtick-wrapped comma list (e.g., '`top-5`, `top-3-fin`, `field`, `letters`')")
+    parser.add_argument("--mechanism-qualifier", default=None,
+                        help="Variant adjective for the paper's mechanism/content "
+                             "('economic' for finance/macro, 'computational' for llm_cognition)")
+    parser.add_argument("--mechanism-qualifier-adv", default=None,
+                        help="Adverb form of --mechanism-qualifier "
+                             "('economically' / 'computationally')")
+    parser.add_argument("--deepening-extension-types", default=None,
+                        help="Variant menu for the deepening playbook's Extension types line")
     parser.add_argument("--doc-name", required=True)
     parser.add_argument("--doc-subtitle", required=True,
                         help="H1 subtitle after the runtime doc name (e.g., "
@@ -71,6 +79,12 @@ def main():
     content = content.replace("{{INITIAL_TIER}}", args.initial_tier)
     content = content.replace("{{TIER_LADDER_PROSE}}", args.tier_ladder_prose)
     content = content.replace("{{TIER_LIST_INLINE}}", args.tier_list_inline)
+    if args.mechanism_qualifier is not None:
+        content = content.replace("{{MECHANISM_QUALIFIER}}", args.mechanism_qualifier)
+    if args.mechanism_qualifier_adv is not None:
+        content = content.replace("{{MECHANISM_QUALIFIER_ADV}}", args.mechanism_qualifier_adv)
+    if args.deepening_extension_types is not None:
+        content = content.replace("{{DEEPENING_EXTENSION_TYPES}}", args.deepening_extension_types)
     content = content.replace("{{AGENT_DIR}}", args.agent_dir)
     content = content.replace("{{SKILL_DIR}}", args.skill_dir)
     content = content.replace("{{SEED_OVERRIDE}}", seed_block)

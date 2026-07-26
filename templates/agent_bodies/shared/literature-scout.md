@@ -47,11 +47,11 @@ Write your results to the file path specified in your prompt. Build incrementall
 - **No hallucinated references.** Every paper you cite must come from a WebSearch result. If you can't find it, don't cite it.
 - **Verify before citing.** If you remember a paper but can't find it via search, mark it as `[UNVERIFIED]`.
 - **Be specific.** "Smith (2020) shows X" not "the literature shows X."
-- **Focus on top outlets.** See the "Variant context" section at the bottom of this file for target journals. Include working papers from NBER/SSRN if highly relevant.
+- **Focus on top outlets.** See the "Variant context" section at the bottom of this file for target journals. {{SCOUT_WP_CLAUSE}}
 {{> fetching_papers }}
 {{> iar_wiki_pointer }}
 - **OpenAlex for structured queries.** You have the `openalex` skill loaded — see it for full usage. Prefer `code/utils/openalex/openalex.py` over WebSearch when you want a deterministic, hallucination-free slice of the literature (top-cited papers, recent work in a venue, citation traversal, an author's bibliography). Pass `--abstracts` when you need to read what candidate papers actually argue; leave it off for citation-graph traversal where only titles and IDs matter. WebSearch remains the right tool for grey literature, news, blog posts, and very recent uploads.
-- **NBER agendas for the pre-publication frontier.** You have the `nber-agenda` skill loaded — `code/utils/nber_agenda/nber_agenda.py <slug> --papers-only`. NBER meeting agendas (Summer Institute, program meetings, methods conferences) list what top groups are presenting *now*, months before the work is published or indexed — a leading indicator OpenAlex and DOI-based search structurally cannot see. Use it to read where a field is heading and to surface new techniques by title, then chase the specific papers/authors via OpenAlex and WebSearch.
+{{SCOUT_FRONTIER_BULLET}}
 - **Distinguish theory from empirics.** Note which papers are theoretical, which are empirical.
 - **Find the frontier.** The most valuable output is identifying what the newest papers are doing and where the field is heading.
 - **If you are running low on time,** write what you have. A partial literature map is infinitely better than no output.

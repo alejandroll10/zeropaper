@@ -15,7 +15,25 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.8.1] — 2026-07-26 (current)
+## [2.9.0] — 2026-07-26 (current)
+Variant vocab now layers into shared-body assembly (shared → variant → tier → mode, later
+wins; extension appliers included), making shared evaluator/search/polish bodies
+variant-aware. Closes the llm_cognition routing-level economics leaks: referee-mechanism's
+evaluative frame and verdict definitions, the `policy_map_axes`/`acronym_carveout`/
+`iar_wiki_pointer` fragments, novelty/gap/literature search-venue directives
+(SSRN/NBER → arXiv/OpenReview for llm_cognition), the deepening-playbook extension menu
+and DECORATIVE remedy text (`MECHANISM_QUALIFIER*` substitution in core.md + stage docs),
+polish-equilibria's N/A escape (now unconditional), the theory_llm experiment-designer's
+stale finance_llm test list (+ explicit model-family scope rule), and the ssj/nber-agenda
+advice bullets. llm_cognition vocab quality pass: H2/THEORY_AGENTS formal-only escape
+branch, H3 measurement-first wording, landmark-anchor recalibration (Nature Human
+Behaviour and PNAS dropped, JMLR reconciled), exemplar diversification, WRDS/FRED
+inventory fix. All-variant fix:
+"knowledgeable knowledgeable" doubling; stale finance tier-band examples removed from
+core.md/stage_1.md. Finance/macro assembled output verified byte-identical except those
+intended fixes. New LIMITATIONS entries: econ paper skeleton, econ-only skills install.
+
+## [2.8.1] — 2026-07-26
 `setup.sh`'s tier-vocab temp file no longer bricks every future deploy on a host.
 
 - **BSD/macOS `mktemp` randomizes only a *trailing* run of `X`s.** `tier_vocab.XXXXXX.json`

@@ -28,8 +28,11 @@ EXT_MODE_BODIES_OVERLAY="${10}"
 EXT_MODE_VOCAB_OVERLAY="${11}"
 EXT_BASE_VOCAB="${12}"
 
-# Build vocab args: base variant vocab first, then mode overlay (last-write-wins).
+# Build vocab args: shared defaults first, then base variant vocab, then mode
+# overlay (last-write-wins) — same layering as the base assemblers in setup.sh.
 EXT_VOCAB_ARGS=()
+EXT_SHARED_VOCAB="$TEMPLATE_ROOT/templates/agent_bodies/shared/vocab.json"
+[ -f "$EXT_SHARED_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_SHARED_VOCAB")
 [ -n "$EXT_BASE_VOCAB" ] && [ -f "$EXT_BASE_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_BASE_VOCAB")
 [ -n "$EXT_MODE_VOCAB_OVERLAY" ] && [ -f "$EXT_MODE_VOCAB_OVERLAY" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_MODE_VOCAB_OVERLAY")
 

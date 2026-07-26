@@ -1,6 +1,56 @@
 {
-  "_comment_purpose": "Defaults for vocab keys referenced by shared-agent metadata and shared-agent bodies. Always passed first to shared-agent assemblers; MODE_VOCAB_OVERLAY (when set) is layered on top and wins on duplicate keys.\n\nVocab boundary (per setup.sh:assemble_claude_shared_agents): shared-agent vocab keys may differ across MODES but must not depend on VARIANT. Keys here must therefore have a sensible default that applies to every variant — typically the theory-first / no-mode default.",
+  "_comment_purpose": "Defaults for vocab keys referenced by shared-agent metadata, shared-agent bodies, and fragments. Layering (see setup.sh:assemble_claude_shared_agents): this file first, then the variant vocab (templates/agents/{variant}/vocab.json), then the setup-generated tier vocab, then MODE_VOCAB_OVERLAY — later layers win on duplicate keys. Every {{KEY}} referenced by a shared body must have a default here OR appear in every variant vocab; defaults here are the finance/macro (economics) wording, and variants override only the keys whose domain wording differs (llm_cognition overrides most of the *_comment_domain_defaults block).",
 
   "_comment_idea_prototyper_description": "Default description for the shared idea-prototyper agent. Empirical-first mode overrides this via templates/agents/{variant}_modes/empirical_first/vocab.json so the agent describes itself as an empirical-feasibility check rather than a mathematical prototype.",
-  "IDEA_PROTOTYPER_DESCRIPTION": "Quick mathematical prototype of a selected idea. Launched between idea selection and full theory development to verify tractability. Attempts the key derivation — if the main result is proven impossible it kills the idea; a mere difficulty stall survives to Stage 2, where the full attempt is made."
+  "IDEA_PROTOTYPER_DESCRIPTION": "Quick mathematical prototype of a selected idea. Launched between idea selection and full theory development to verify tractability. Attempts the key derivation — if the main result is proven impossible it kills the idea; a mere difficulty stall survives to Stage 2, where the full attempt is made.",
+
+  "_comment_domain_defaults": "Domain-sensitive wording in shared bodies and fragments, extracted from previously hardcoded economics prose (v2.9.0). Defaults below must stay byte-identical to the pre-extraction text unless a behavior change is intended; llm_cognition overrides them with ML-native values. Grouped by consuming body.",
+
+  "_comment_mechanism_referee": "referee-mechanism.md — the evaluative frame. These are load-bearing: the DECORATIVE/MISATTRIBUTED verdicts are locked routers at Gate 5.",
+  "MECHANISM_QUALIFIER": "economic",
+  "MECHANISM_QUALIFIER_AN": "an economic",
+  "MECH_REFEREE_IDENTITY": "a senior economist refereeing a paper for a top journal",
+  "MECH_EVAL_FRAME": "**You evaluate whether the paper's economic mechanism works as economics** — not whether the math is correct (another referee handles that), not whether the paper fits the journal (the editorial referee handles that). Your question is: does the economic force the paper invokes actually deliver the result the paper claims, through the channel the paper claims, for reasons a seminar audience would find convincing?",
+  "MECH_SETUP_QUESTION": "what are the agents, what do they maximize, what are the frictions or primitives?",
+  "MECH_SKEPTIC_ROLE": "a skeptical economist",
+  "MECH_FORCE_REAL_HEADING": "Is the economic force real, or an accounting identity?",
+  "MECH_STRUCTURE_BULLET": "- Would the result hold mechanically in any model with this structure, regardless of the specific economic story the paper tells? If so, the \"mechanism\" is decorative — the result lives in the structure, not in the economics.",
+  "MECH_DECORATIVE_EXAMPLE": "the paper invokes \"information asymmetry\" but the result would follow equally from any deviation from perfect information, making the specific asymmetry story unnecessary.",
+  "MECH_PRIMITIVES_LIST": "Preferences, information structure, technology, market structure",
+  "MECH_UNUSUAL_SPEC": "an unusual preference specification (e.g., non-standard utility, unusual risk attitudes, non-standard beliefs)",
+  "MECH_SPEC_ATTRIBUTION": "attributed to economics rather than to the specification",
+  "MECH_BEHAVIOR_HEADING": "Would agents actually behave this way?",
+  "MECH_BEHAVIOR_BULLETS": "- If the mechanism requires agents to coordinate, forecast infinite horizons perfectly, condition on information they couldn't plausibly have, or respond to first-order-small incentives with first-order-large changes, flag it.\n- If the mechanism requires frictions or constraints that don't resemble anything real-world agents face, flag it.\n- \"A rational agent would\" is not a defense when the rationality requirement is unrealistic. \"A behavioral agent would\" is not a defense when the behavioral assumption is tuned to the result.",
+  "MECH_BEHAVIOR_OUTPUT_HEADING": "Realism of agent behavior",
+  "MECH_INSIGHT_OR_IDENTITY": "Is this an economic insight or a structural identity?",
+  "MECH_DECORATIVE_SUBSTRATE": "a structural identity or a standard result in a new guise",
+  "MECH_RULE_EVAL": "- **You are evaluating the economics, not the math.** If a proof is wrong, that's the math referee's job; note it only if a proof error changes what the mechanism actually is. Your job is to assess whether the economic claim the paper makes is the economic claim the math actually supports.",
+  "MECH_VENEER_PHRASE": "the economics is genuinely a veneer",
+
+  "_comment_fragments": "Shared fragments (templates/fragments/) — resolved before vocab, so these keys reach every body that includes the fragment.",
+  "POLICY_MAP_AXES": "one policy instrument, welfare question, equilibrium environment, or risk decomposition",
+  "POLICY_MAP_LOAD_TEST": "welfare/risk/policy conclusion",
+  "ACRONYM_CARVEOUT_EXAMPLES": "`(CRSP, 2022)`, `(S&P, 2020)`, `(BEA, 2019)`, `(NBER, 2020)`, `(FRED, 2023)`, `(SEC, 2018)`, `(Compustat, 2021)`, `(IMF, 2022)`, `(BIS, 2020)`, `(ECB, 2019)`, `(World Bank, 2021)`, `(OECD, 2020)`, `(Federal Reserve, 2022)`",
+  "IAR_WIKI_BULLET": "- **IAR wiki for distilled paper content.** Fetch `https://instituteforautomatedresearch.org/llms.txt` — it lists every distilled paper (recent volumes of top finance/econ journals) with title, authors, and a one-paragraph core result, each linking a raw-Markdown page (core results with source locators, datasets used, theory tested). Grep the list for your title/topic, then fetch the matching `.md`. Cloudflare-free, so it works where the journal sites 403 — often richer than an abstract snippet. Coverage is partial (specific journal-years): a miss means only \"not distilled,\" never \"no such paper.\"",
+
+  "_comment_literature_agents": "novelty-checker / gap-scout / literature-scout — search-venue directives. Load-bearing: the NOVEL/KNOWN and gap-open verdicts depend on searching where the domain's prior art actually lives.",
+  "CROSS_SUBFIELD_SCOPE": "finance and economics",
+  "ABSTRACT_MECHANISM_EXAMPLES": "(e.g., \"competitive entry dissipates observable performance differences\" or \"information asymmetry creates adverse selection in trade\")",
+  "NOVELTY_WP_SENTENCE": "Search SSRN and NBER for working papers on the same topic. Someone may be doing this right now.",
+  "SCOUT_WP_CLAUSE": "Include working papers from NBER/SSRN if highly relevant.",
+  "SCOUT_FRONTIER_BULLET": "- **NBER agendas for the pre-publication frontier.** You have the `nber-agenda` skill loaded — `code/utils/nber_agenda/nber_agenda.py <slug> --papers-only`. NBER meeting agendas (Summer Institute, program meetings, methods conferences) list what top groups are presenting *now*, months before the work is published or indexed — a leading indicator OpenAlex and DOI-based search structurally cannot see. Use it to read where a field is heading and to surface new techniques by title, then chase the specific papers/authors via OpenAlex and WebSearch.",
+  "GAP_FRESHNESS_BULLET": "- **NBER agendas for the pre-publication frontier.** You have the `nber-agenda` skill loaded — `code/utils/nber_agenda/nber_agenda.py <slug> --papers-only`. A recent meeting agenda in your gap's area reveals whether the gap is *actually* open or already being closed by work too new to be indexed: if three groups are presenting on it this season, it is not an open gap. OpenAlex and DOI-based search structurally cannot see this pre-publication frontier. Use it as a freshness check on the gap before you validate it.",
+
+  "_comment_tooling_bullets": "idea-prototyper / theory-explorer — domain-toolkit advice (ssj is a macro GE toolkit; llm_cognition replaces these with simulation-prototype guidance).",
+  "SSJ_PROTOTYPE_BULLET": "- **Heterogeneous-agent GE approaches: prototype with the `ssj` skill.** If the approach hinges on a heterogeneous-agent general-equilibrium mechanism (a wealth/MPC distribution feeding back into equilibrium prices — HA asset pricing, HANK, portfolio choice under aggregate risk), the tractability check is not pen-and-paper algebra: it is whether the model has a steady state and the headline comparative dynamic has the claimed sign. Write the het block + market clearing as a `.py` module and run `code/utils/ssj/ssj_solve.py` (see `code/utils/ssj/example_asset_pricing.py`). If the steady state won't solve or the IRF sign is wrong, that is a concrete `BLOCKED` finding; if it solves and the sign is right, that is strong evidence for `TRACTABLE`.",
+  "SSJ_EXPLORE_BULLET": "- **Heterogeneous-agent GE models: use the `ssj` skill.** If the theory has a heterogeneous-agent general-equilibrium structure (a cross-section of agents whose distribution feeds back into equilibrium prices — HA asset pricing, household portfolio choice under aggregate risk, HANK), sympy cannot solve it. Use the `ssj` (sequence-space Jacobian) skill: write the het block + market clearing as a `.py` module and run `code/utils/ssj/ssj_solve.py` to get the steady state, GE Jacobians, determinacy verdict, and impulse responses. See `code/utils/ssj/example_asset_pricing.py` for a worked finance example.",
+
+  "_comment_writing": "idea-generator-core / paper-writer — domain wording in inputs and style guidance.",
+  "DATA_SOURCE_EXAMPLES": "WRDS, FRED, etc.",
+  "IDEA_GEN_NOFORMAL_OBJECT": "the equilibrium and the key comparative statics",
+  "PW_WRONG_OPENER_EXAMPLE": "\"Financial economists have long debated whether bank leverage affects lending.\"",
+  "PW_FORCE_SUBSTANCE": "at minimum the operative friction (or departure from the frictionless benchmark) and the agents through whom it operates",
+  "PW_FORCE_TRIPLE": "{agent, friction, channel}",
+  "PW_FORCE_EXAMPLES": "\"Collateral revaluation forces banks to deleverage when asset prices fall\" satisfies this; \"a financial friction is at work\" does not.",
+  "PW_TITLE_ACRONYM_EXAMPLE": "CAPM"
 }

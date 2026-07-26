@@ -21,6 +21,13 @@ MODEL_OVERRIDE_ARG=()
 if [ -n "$8" ]; then
     MODEL_OVERRIDE_ARG=(--model-override "$8")
 fi
+# $9 = base variant vocab path (templates/agents/{variant}/vocab.json).
+# Layering mirrors the base assemblers: shared defaults first, then variant.
+EXT_BASE_VOCAB="${9}"
+EXT_VOCAB_ARGS=()
+EXT_SHARED_VOCAB="$TEMPLATE_ROOT/templates/agent_bodies/shared/vocab.json"
+[ -f "$EXT_SHARED_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_SHARED_VOCAB")
+[ -n "$EXT_BASE_VOCAB" ] && [ -f "$EXT_BASE_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_BASE_VOCAB")
 
 EXT_ROOT="$TEMPLATE_ROOT/extensions/theory_llm"
 
@@ -29,17 +36,20 @@ cp "$EXT_ROOT/llm_client.py" "$PROJECT_ROOT/"
 python3 "$TEMPLATE_ROOT/scripts/assemble_claude_agents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \
     --bodies-dir "$EXT_ROOT/agent_bodies" \
+    "${EXT_VOCAB_ARGS[@]}" \
     --output-dir "$AGENTS_OUT" \
     "${MODEL_OVERRIDE_ARG[@]}"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_codex_subagents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \
     --bodies-dir "$EXT_ROOT/agent_bodies" \
+    "${EXT_VOCAB_ARGS[@]}" \
     --output-dir "$CODEX_AGENTS_OUT"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_gemini_agents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \
     --bodies-dir "$EXT_ROOT/agent_bodies" \
+    "${EXT_VOCAB_ARGS[@]}" \
     --output-dir "$GEMINI_AGENTS_OUT" \
     "${MODEL_OVERRIDE_ARG[@]}"
 
