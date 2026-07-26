@@ -2278,6 +2278,13 @@ PYEOF
             prune_report_mode_agents experiment-designer experiment-reviewer
             if [ "$MODE" = "report" ]; then
                 rm -f "$P/docs/stage_3b_experiments.md"
+                # Mirror the stage3a cleanup below: the applier creates
+                # output/stage3b/figures/ unconditionally, and a report
+                # deployment has no stages, so both must go (child first —
+                # rmdir only removes empty dirs). core_report.md promises
+                # "no output/stage*/"; without this the promise is false.
+                rmdir "$P/output/stage3b/figures" 2>/dev/null || true
+                rmdir "$P/output/stage3b" 2>/dev/null || true
             fi
             echo "  ✓ LLM experiment extension applied"
             ;;
@@ -2502,6 +2509,13 @@ PYEOF
             # and copies stage_3a_empirical.md into docs/. Both are pipeline-
             # workflow artifacts irrelevant to report mode — remove them.
             if [ "$MODE" = "report" ]; then
+                # Remove the figures/ child before the parent: the extension
+                # applier creates output/stage3a/figures/, so a bare rmdir on
+                # the parent fails (non-empty) and silently leaves the whole
+                # tree behind, contradicting core_report.md's "no output/stage*/"
+                # invariant. Both stay rmdir (not rm -rf) on purpose — they must
+                # only vanish when empty, which at setup time they always are.
+                rmdir "$P/output/stage3a/figures" 2>/dev/null || true
                 rmdir "$P/output/stage3a" 2>/dev/null || true
                 rm -f "$P/docs/stage_3a_empirical.md"
             fi

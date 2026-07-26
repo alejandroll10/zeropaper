@@ -105,7 +105,7 @@ cp "$EXT_ROOT/utils/"*.sh "$PROJECT_ROOT/code/utils/" 2>/dev/null || true
 chmod +x "$PROJECT_ROOT/code/utils/"*.sh 2>/dev/null || true
 touch "$PROJECT_ROOT/code/utils/__init__.py"
 
-mkdir -p "$PROJECT_ROOT/output/stage3a"
+mkdir -p "$PROJECT_ROOT/output/stage3a/figures"
 
 ENV_FILE="$PROJECT_ROOT/.env"
 if ! grep -q 'FRED_API_KEY' "$ENV_FILE" 2>/dev/null; then

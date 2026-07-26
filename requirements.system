@@ -5,5 +5,16 @@ python3>=3.12
 python3-pip
 git
 bubblewrap  # Linux only; macOS uses Apple Seatbelt (sandbox-exec) — built in
+# poppler-utils: pdftotext + pdftoppm. NOT optional — these paths depend on it:
+#   (1) Stage 5 build-verify check 5 greps the rendered PDF for residual PLACEHOLDER
+#       tokens; with pdftotext absent the pipe feeds grep empty input and the gate
+#       silently returns 0 (false PASS on a paper whose title page says TITLE PLACEHOLDER).
+#   (2) arpipeline.sty's Layer-4 fingerprint readback (pdftotext paper.pdf | grep ARPIPELINE-FP-V1).
+#   (3) --mode report on a PDF-only submission: every audit agent reads submission/paper.pdf.
+#       pdftotext extracts its prose; pdftoppm rasterizes pages for agents reading it
+#       visually. Without them the fan-out halts rather than "auditing" an unread file.
+#   (4) Figure producers (empiricist, theory-explorer, experiment-designer) rasterize
+#       PDF-only figures to .png via pdftoppm so paper-writer (no Bash) can see them.
+poppler-utils  # macOS Homebrew: brew install poppler
 # Python package manager: curl -LsSf https://astral.sh/uv/install.sh | sh
 uv

@@ -15,7 +15,36 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.7.0] — 2026-07-25 (current)
+## [2.8.0] — 2026-07-26 (current)
+Figures are readable by the agent that has to caption them, and poppler is a declared dependency.
+
+- **The trigger.** `paper-writer` has no Bash (deliberately — the claim-grounding stack requires
+  every number in the paper to trace to a *producing agent's* output, and a shell would let the
+  writer compute its own). In a field run it could not open either of two figure `.pdf`s because
+  `pdftoppm` was absent. Granting Bash was the wrong lever twice over: it weakens the grounding
+  invariant, and with no poppler on the host it would not have fixed anything.
+- **Figures now ship as a `.pdf`+`.png` pair.** New `templates/fragments/figure_dual_format.md`,
+  included by all four producers (`empiricist` finance/macro, `theory-explorer`,
+  `experiment-designer`). The vector `.pdf` is what the paper `\includegraphics`es; the raster
+  `.png` is what `paper-writer` reads to pick the headline figure and caption what is actually
+  plotted. Producers that emit PDF-only (pgfplots/TikZ, R/Stata) rasterize with `pdftoppm`.
+- **A build gate that could silently invert is now fail-closed.** Stage 5 build-verify check 5
+  ran `pdftotext main.pdf - | grep -c PLACEHOLDER` and required `0`. With `pdftotext` missing the
+  pipe is empty and `grep -c` prints exactly that `0` — so a paper whose title page read
+  `TITLE PLACEHOLDER` passed. It now probes for the binary first and treats absence as a failure.
+- **`poppler-utils` is declared** in `requirements.system` with its four consumers, and `update.sh`
+  warns when it is absent — `requirements.system` is build-time-only, so a refreshed deployment
+  otherwise had no signal that the host needed it.
+- **Report mode halts instead of fabricating.** `--mode report` on a PDF-only submission now
+  verifies poppler before fanning out; an agent handed an unreadable file does not reliably report
+  that it read nothing, it produces a plausible audit of a paper it never saw.
+- Also: `output/stage{3a,3b}/figures/` are created at deploy (with matching report-mode cleanup —
+  a bare `rmdir` on a now-non-empty parent was leaving stray `output/stage*/` trees in report
+  deployments, contradicting `core_report.md`); `polish-consistency` counts a `.pdf`/`.png` pair as
+  one figure; `stage_5.md` carves the figure-rasterization marker out of the versioned claim-refire
+  procedure it would otherwise be misrouted through.
+
+## [2.7.0] — 2026-07-25
 New `llm_cognition` variant: papers on the science of LLM cognition & evaluation (formal
 frameworks + benchmark designs; NeurIPS/ICML/ICLR target, tier ladder
 `nature → top-ml → field → workshop`; pairs with `--ext theory_llm`). Economics wording

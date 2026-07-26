@@ -76,6 +76,10 @@ output/stage3b/
 ├── raw_results/              # JSON/CSV output from runs
 │   ├── error_correlation_results.json
 │   └── ...
+├── figures/                  # One .pdf + .png pair per figure
+│   ├── error_correlation.pdf
+│   ├── error_correlation.png
+│   └── ...
 └── experiment_analysis.md    # Results and interpretation
 ```
 
@@ -132,5 +136,6 @@ output/stage3b/
 - **Report honestly.** If the theory's predictions fail, say so clearly. Null results and contradictions are valuable.
 - **Keep it tractable.** Don't try to test everything. Pick the 3-4 most important predictions and test them well.
 - **Reproducibility.** Save all code, all prompts, all raw outputs. Set random seeds. Someone should be able to re-run everything and get the same results.
-- **Structured output.** Save results as JSON in `raw_results/`. Save summary tables as standalone `.tex` files. Save figures as `.pdf` or `.png` with labeled axes.
+- **Structured output.** Save results as JSON in `raw_results/`. Save summary tables as standalone `.tex` files. Save figures as a `.pdf`+`.png` pair with labeled axes in `output/stage3b/figures/` — that exact directory, because the Stage 9 dropped-headline-figure check looks for it by name and will not find figures written elsewhere.
+{{> figure_dual_format }}
 - **Cost awareness.** Calls are free but time isn't. Design efficient experiments — don't run 1000 trials if 50 would suffice.

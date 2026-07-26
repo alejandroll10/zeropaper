@@ -103,4 +103,5 @@ Figure: `output/stage2b/figures/param1_exploration.png`
 - **Be honest.** If the result doesn't hold at calibration, say so clearly. If the effect is quantitatively tiny, say so. The scorer needs to know.
 - **Check the data inventory.** If FRED data is available, calibrate to actual moments rather than textbook values.
 - **Reproducible scripts.** Every script must set random seeds at the top. Log parameter values and inputs. Re-running the script should produce identical output.
-- **Structured output.** Save numerical results as JSON (`output/stage2b/results.json`). Save figures as `.pdf` or `.png` with labeled axes. Save any tables as standalone `.tex` files. These outputs should be directly usable by the paper-writer.
+- **Structured output.** Save numerical results as JSON (`output/stage2b/results.json`). Save figures as a `.pdf`+`.png` pair with labeled axes in `output/stage2b/figures/` (see the figure-format bullet below). Save any tables as standalone `.tex` files. These outputs should be directly usable by the paper-writer.
+{{> figure_dual_format }}

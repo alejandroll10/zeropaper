@@ -103,6 +103,19 @@ MANIFEST="$PROJECT/.deploy_manifest.json"
 command -v jq >/dev/null 2>&1 || { echo "update.sh requires jq (sudo apt-get install jq)"; exit 1; }
 command -v python3 >/dev/null 2>&1 || { echo "update.sh requires python3"; exit 1; }
 
+# poppler-utils is a *runtime* dependency of the refreshed pipeline, not of this
+# script — so warn, never block. requirements.system is build-time-only and is
+# never copied into a deployment, which means an operator refreshing an existing
+# project has no other signal that the host now needs it. Without poppler the
+# Stage 5 placeholder gate silently false-passes (empty pipe → grep -c prints 0),
+# report mode cannot read a PDF-only submission, and paper-writer cannot see a
+# figure that shipped as .pdf-only from a run predating the dual-format contract.
+if ! command -v pdftotext >/dev/null 2>&1 || ! command -v pdftoppm >/dev/null 2>&1; then
+    echo "  ⚠ poppler-utils (pdftotext/pdftoppm) not found on this host."
+    echo "    Install it: brew install poppler  |  sudo apt-get install poppler-utils"
+    echo "    Without it the Stage 5 placeholder gate silently passes and PDF reads fail."
+fi
+
 # ── Resolve original deployment parameters ──
 # Every setup.sh flag that affects what gets deployed must be read here AND
 # re-passed in the SETUP_FLAGS block below — drift between the two breaks the

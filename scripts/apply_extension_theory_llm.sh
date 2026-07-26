@@ -48,7 +48,7 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_claude_skills.py" \
     --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/theory_llm" \
     --output-dir "$SKILLS_OUT"
 
-mkdir -p "$PROJECT_ROOT/output/stage3b"
+mkdir -p "$PROJECT_ROOT/output/stage3b/figures"
 
 ENV_FILE="$PROJECT_ROOT/.env"
 if ! grep -q 'UF_API_KEY' "$ENV_FILE" 2>/dev/null; then
