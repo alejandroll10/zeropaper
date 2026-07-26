@@ -25,9 +25,9 @@ This way, even if you time out mid-search, the orchestrator has partial results 
 
 ### Extract search targets
 From the theory, identify:
-- The main economic channel
+- The main {{MECHANISM_QUALIFIER}} channel
 - The key mathematical result
-- The setup (agents, frictions, equilibrium concept)
+- The setup ({{NOVELTY_SETUP_ELEMENTS}})
 - Keywords and jargon specific to this area
 
 ### Search strategy

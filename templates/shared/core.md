@@ -42,10 +42,10 @@ Concretely:
 For important results, characterize exactly when they hold and when they don't. "X holds if and only if condition C" is far more valuable than "X holds under assumptions A1-A5."
 
 Concretely:
-- If a result holds under CARA but not CRRA, find the exact condition on preferences that makes it work.
+- {{CHARACTERIZE_EXAMPLE_BULLET}}
 - If the theory-explorer finds the result breaks in some parameter region, characterize the boundary — the "if and only if" condition is often the real theorem.
 - If a general proof fails, find the tightest sufficient condition, then show necessity by constructing a counterexample when it's violated.
-- Don't settle for numerical verification of what should be a theorem.
+- {{NUMERICAL_VERIFICATION_BULLET}}
 - **No unproved mathematical claims.** Every proposition, lemma, and corollary must be proved. If a proof attempt fails, try a different strategy, find a sufficient condition under which it holds, or restructure the paper around what you can prove. Demoting a claim to a conjecture to dodge an audit is not acceptable; narrowing scope when the math or computation shows the broader version fails is the correct move. This rule applies to formal mathematical statements, not to assumptions or prose.
 
 ## Core principle: frame honestly — never inflate

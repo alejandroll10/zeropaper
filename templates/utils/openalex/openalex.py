@@ -68,9 +68,9 @@ class OpenAlexRateLimited(RuntimeError):
         super().__init__(message)
         self.retry_after = retry_after
 
-# Aliases for top finance/economics venues. The OpenAlex source IDs below were
-# resolved from the search API and verified against the journal page. Update as
-# OpenAlex revises its source registry.
+# Aliases for top venues across the pipeline's variants. The OpenAlex source
+# IDs below were resolved from the search API and verified against the journal
+# page. Update as OpenAlex revises its source registry.
 VENUE_ALIASES = {
     # Top-3 finance
     "jf":   "S5353659",      # The Journal of Finance
@@ -89,6 +89,23 @@ VENUE_ALIASES = {
     "restud": "S88935262",   # The Review of Economic Studies
     # Macro
     "jme":  "S6711363",      # Journal of Monetary Economics
+    # Machine learning & NLP (llm_cognition variant). OpenAlex's coverage of ML
+    # *conference* proceedings is partial and fragmented: the neurips/icml/iclr
+    # sources index only a fraction of each conference's papers, ACL and EMNLP
+    # are split into per-year proceedings sources (no stable alias possible),
+    # and TMLR's source exists but is nearly empty (deliberately not aliased —
+    # an alias that always returns nothing reads as "no such literature").
+    # Treat a conference-alias miss as "not indexed here," never "no such
+    # paper" — cross-check arXiv/OpenReview via WebSearch. The journal aliases
+    # (jmlr, tacl, cl, cogsci, nmi) have solid coverage.
+    "neurips": "S4306420609",  # Neural Information Processing Systems (partial coverage)
+    "icml": "S4306419644",     # International Conference on Machine Learning (partial coverage)
+    "iclr": "S4306419637",     # International Conference on Learning Representations (partial coverage)
+    "jmlr": "S118988714",      # Journal of Machine Learning Research
+    "tacl": "S2729999759",     # Transactions of the Association for Computational Linguistics
+    "cl":   "S155526855",      # Computational Linguistics
+    "cogsci": "S78735424",     # Cognitive Science (journal)
+    "nmi":  "S2912241403",     # Nature Machine Intelligence
 }
 
 # Default field set we extract from works. Keep small to limit response payload.

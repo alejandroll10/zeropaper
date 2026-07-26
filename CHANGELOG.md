@@ -15,7 +15,41 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.9.0] — 2026-07-26 (current)
+## [2.10.0] — 2026-07-26 (current)
+llm_cognition hardening pass (second extraction wave + calibration + experiment rigor).
+**Vocab:** ~45 new keys close every load-bearing econ leak the v2.9.0 pass missed —
+math-auditor-freeform's full heuristic set (a binding Gate 2 gate), polish-prose items 8–10,
+idea-prototyper primitives, implications-deriver, novelty-checker search targets,
+literature-scout/theory-explorer/scorer-freeform role lines, scorer cap-30 archetypes,
+editor domain guard, paper-writer exemplars, referee/branch-manager load-test predicate
+(now the existing `POLICY_MAP_LOAD_TEST`), core.md CARA/CRRA + numerical-verification
+bullets, stage_4 "economic content", stage_6's hardcoded `top-3-fin` (also fixes a macro
+tier-name bug), stage_puzzle_triage "falls out of economics". Econ defaults byte-identical
+(verified by full 8-config baseline diff). **Calibration:** llm_cognition tier table rebuilt
+(JMLR/ACL/EMNLP/NMI moved to a lateral `top-ml` row, nature = Nature/Science only,
+`top-ml` 75+ re-anchored to confident-accept caliber, TMLR rigor-weighting note); OpenReview
+visibility claims corrected (ICLR-only public submissions); baseline-comparison referee
+bullet; RIGOR_80 measurement-first anchor; conference verdict-semantics note in the referee.
+**theory_llm rigor:** contamination-resistant procedural ground truth + memorization probe,
+50+/condition headline floor with stimulus×run error bars, temperature>0 for headline
+variance, model-snapshot/decoding/access-date provenance (llm_client already returns it),
+the previously-dangling `[ROLE: LOAD-BEARING|STRENGTHENING-PROBE]` schema (unblocks
+puzzle-triager's PROBE-NULL path), experiment-designer's canonical output renamed to
+`experiment_results.md` (the name every consumer already reads). **New agent:**
+`polish-experiments` (theory_llm, Stage 9) re-verifies the rendered paper's experimental
+evidence — raw-results agreement, contamination status, pinning, statistical integrity,
+artifact reproducibility; wired into stage_9 via a guarded doc amendment, core-bypass
+inject, and report-mode prune. **Structural:** `--variant llm_cognition` auto-implies
+`--ext theory_llm`; openalex script + skill gain ML venue aliases (verified against live
+OpenAlex) with an honest conference-coverage caveat; bib-verify adds openreview.net;
+update.sh learns to sniff/name llm_cognition; empirical-first rejection message is
+variant-aware; extension-doc sed extended to the full placeholder set (D10); dashboard
+subtitle variant-corrected; README variant table updated; regression test
+`test_scripts/test_llm_cognition_assembly.sh` (gates, auto-imply, 12 leak tripwires).
+**LIMITATIONS:** new entries for the theory-first ordering inversion (no measurement-first
+mode yet), the ML paper section-list gap, and the pre-existing Grok extension-agent gap.
+
+## [2.9.0] — 2026-07-26
 Variant vocab now layers into shared-body assembly (shared → variant → tier → mode, later
 wins; extension appliers included), making shared evaluator/search/polish bodies
 variant-aware. Closes the llm_cognition routing-level economics leaks: referee-mechanism's

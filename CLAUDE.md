@@ -71,7 +71,7 @@ agent, a skill, or a vocab placeholder.
 |---------|------|--------|-----------------|
 | `finance` | `--variant finance` (default) | Working (v2) | JF, JFE, RFS |
 | `macro` | `--variant macro` | In development | AER, Econometrica, QJE, JPE, ReStud, JME |
-| `llm_cognition` | `--variant llm_cognition` | Working (v1) | NeurIPS, ICML, ICLR (TMLR as field tier) — the science of LLM cognition & evaluation. Pairs with `--ext theory_llm` for experiments; `--ext empirical` and `--mode report` are gated off (see LIMITATIONS.md). |
+| `llm_cognition` | `--variant llm_cognition` | Working (v2) | NeurIPS, ICML, ICLR (TMLR as field tier) — the science of LLM cognition & evaluation. Auto-implies `--ext theory_llm` (since v2.10.0 — the experiments are the evidence); `--ext empirical` and `--mode report` are gated off (see LIMITATIONS.md). |
 
 ## Supported extensions
 

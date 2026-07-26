@@ -164,7 +164,27 @@ In all three, the residual is a *missed catch* (a genuinely illegible table can 
 
 ---
 
-## llm_cognition variant: residual economics wording in shared bodies (load-bearing surfaces closed in v2.9.0)
+## Extension agents never reach the Grok runtime
+
+**Scope:** every deployment with `--ext empirical` or `--ext theory_llm`. Both extension appliers (`scripts/apply_extension_empirical.sh`, `scripts/apply_extension_theory_llm.sh`) call the claude/codex/gemini assemblers only — neither contains a `assemble_grok_agents.py` call (verified `grep -c grok` = 0 in both). Base agents assemble for all four runtimes, so a Grok-runtime deployment has the full core roster but **no** extension agents (`empiricist`, `experiment-designer`, `polish-experiments`, the claim chain, …) in `.grok/agents/`.
+
+**Failure mode:** a Grok orchestrator on an extension deployment reaches Stage 3a/3b, is instructed by the runtime doc to launch an agent that has no `.grok/agents/*.md` definition, and either errors or improvises the role inline without the agent's calibrated body.
+
+**What would close it:** add the `assemble_grok_agents.py` call (fourth call site, mirroring the base assembly in `setup.sh`) to both appliers and verify against a `--local` build that `.grok/agents/` matches the claude roster. Not done in v2.10.0 because Grok extension support was never wired and needs its own test pass; documented so the next Grok-runtime run doesn't discover it at Stage 3a.
+
+---
+
+## llm_cognition variant: theory-first ordering — experiments are downstream validation, with no measurement-first path
+
+**Scope:** every llm_cognition deployment. The variant has exactly one pipeline shape: Stage 2 formal framework → Gate 2 math audits (both binding) → Stage 3 implications → Stage 3b experiments as *validation* of the pre-existing framework. The vocab genuinely broadens what "theory" means (measurement frameworks and formal-only analyses are in scope; H3 passes on correctness, not theorem depth), but the *ordering* is fixed: experiments chase the theory, and evidence leads only through the capped puzzle-triage PIVOT path. The modal top-ML cognition paper (measurement, evals, probing, interpretability) is evidence-first — for it this ordering is inverted, and the pipeline offers no legal alternative: `--mode empirical-first` is finance-only and `--ext empirical` is gated off.
+
+**Failure mode:** the pipeline systematically produces framework-first papers and cannot produce the field's most common paper shape; a strong evidence-first idea must be laundered through a formal framework to enter the pipeline at all, which costs a Gate 2 cycle on formal content whose only role is admission.
+
+**What would close it:** a `--mode measurement-first` for this variant, built on the `empirical-first` reference implementation's overlay machinery (construct definition + task-family/benchmark design → design-plausibility gate replacing the full math audit → experiments → formal characterization of what was measured, with the math audit scoped to whatever formal content exists). The mode-overlay mechanisms (vocab overlay, body overlay, stage-doc markers, metadata overrides) all exist; what's missing is the llm_cognition overlay content itself.
+
+---
+
+## llm_cognition variant: residual economics wording in shared bodies (load-bearing surfaces closed in v2.9.0–v2.10.0)
 
 **Scope:** the `--variant llm_cognition` deployment. As of v2.9.0 the **variant vocab is layered into shared-body assembly** (see the vocab-layering comment in `assemble_claude_shared_agents`), and the surfaces where economics wording was **load-bearing** — i.e., could change a verdict or a routing decision, not just tone — have been parameterized with finance/macro defaults byte-identical to the prior text and ML-native overrides in `templates/agents/llm_cognition/vocab.json` (`_comment_shared_body_overrides` block):
 
@@ -176,7 +196,9 @@ In all three, the residual is a *missed catch* (a genuinely illegible table can 
 - `extensions/theory_llm/agent_bodies/experiment-designer.md` (previously hardcoded the legacy finance_llm test list; now derives tests from the project's theory draft, and carries an explicit single-model-family scope rule reconciling the gpt-oss client with the cross-family robustness bar — with a DeepInfra cross-family replication when a token is configured);
 - `paper-writer.md`'s style exemplars and force-naming guidance; `idea-generator-core.md`'s WRDS/FRED data inventory; the `ssj`/`nber-agenda` skill-advice bullets in `idea-prototyper`/`theory-explorer`/`literature-scout`/`gap-scout`.
 
-**What remains (quality-dampener only):** *illustrative* economics mentions in ~26 of 39 assembled bodies (`grep -il 'econom\|equilibrium' <build>/.claude/agents/*.md` — enumerate against a fresh `--local` build; note this grep also has blind spots: it misses strings like "WRDS", "SSRN", or "NBER" phrased without those stems, so it is a floor, not a census). Known members: the economist role lines in `scorer-freeform.md`/`referee-freeform.md` (verdicts aggregate through the editor, which is tier-parameterized, and both carry the injected Variant-context block), the archetype positive-test econ items in `referee-mechanism.md`, `math-auditor-freeform.md`'s "does the result make economic sense" phrasing, econ examples in `debugger`/`last-resort`/`style`/`triager`/the polish family, and labeled cross-variant examples in the seed/faithful stage overrides. These are tonal: no verdict vocabulary or gate semantics depend on them.
+**Closed in v2.10.0 (second extraction pass):** the agents the v2.9.0 pass had skipped wholly — `math-auditor-freeform`'s entire heuristic set ("economic sense," equilibrium-concept and functional-form questions, fragile-equilibria and CARA/CRRA exemplars — this was a binding Gate 2 gate), `polish-prose` items 8–10 (the "missing economic force" major-severity flag), `idea-prototyper`'s SDF/optimization primitives skeleton, `implications-deriver`'s "Economic intuition" category, `novelty-checker`'s search-target extraction, the role lines in `literature-scout`/`theory-explorer`/`scorer-freeform`, `scorer-core`'s cap-30 calibration archetypes, `editor.md`'s finance-only domain-guard enumeration, `paper-writer`'s remaining exemplars and model.tex spec, the `referee-core`/`branch-manager` "welfare/risk/policy" load-test predicate, `core.md`'s CARA/CRRA and numerical-verification core-principle bullets, `stage_4.md`'s "economic content" substantive-progress definition, `stage_6.md`'s hardcoded `top-3-fin`, and `stage_puzzle_triage.md`'s "falls out of economics." `polish-institutions` and `polish-consistency` gained applicability escapes (unconditional, all variants — the `polish-equilibria` pattern). The `openalex` skill and script gained ML venue aliases with an honest conference-coverage caveat; `polish-bibliography`'s IAR-wiki pointer is vocab-keyed.
+
+**What remains (quality-dampener only):** *illustrative* economics mentions in worked examples and secondary agents (`grep -il 'econom\|equilibrium' <build>/.claude/agents/*.md` against a fresh `--local` build is a floor, not a census — it misses "WRDS"/"SSRN"/"NBER"-style strings). Known members: the archetype positive-test econ items in `referee-mechanism.md`, econ worked examples in `debugger`/`last-resort`/`style`/`triager` and the polish-family report templates (each explicitly labeled illustrative), labeled cross-variant examples in the seed/faithful stage overrides, and econ-flavored examples in the `codex-math`/`sympy` skill docs. These are tonal: no verdict vocabulary or gate semantics depend on them.
 
 **Consequence still enforced:** `--mode report` remains gated off for llm_cognition in `setup.sh`. The remaining blocker is no longer the base shared bodies (now parameterized) but the **report-mode overlay bodies** (`templates/agent_bodies/shared_modes/report/*`, including a full report-native `referee-mechanism.md`) and the report vocab overlay, which have no llm_cognition values. Lifting the gate means writing `templates/agents/llm_cognition_modes/report/vocab.json` and parameterizing the report overlay bodies on the same byte-identical-default pattern.
 
@@ -192,7 +214,9 @@ In all three, the residual is a *missed catch* (a genuinely illegible table can 
 
 **Mitigation:** an arXiv-preprint format is a defensible default for an autonomous pipeline (ML papers are arXiv-first, and the preprint is the artifact most readers see). The mismatch is about final venue submission, not about the science.
 
-**What would close it:** a per-variant skeleton — `templates/paper_skeleton/{variant}/` or a variant-conditional preamble block in `setup.sh` — with a NeurIPS-style single-column, numeric-citation preamble for llm_cognition, plus a page-budget note in `paper-writer`'s variant context. Until then, treat venue reformatting as a manual post-pipeline step.
+**Also in scope — the section list, which affects content, not just format:** `docs/stage_5.md` fixes the paper to `introduction / model / results / discussion / conclusion / appendix`. ML venues expect a numbered **Related Work** section (econ folds it into the intro) and an **Experiments** section; under the current list, related work stays intro-embedded and Stage 3b experiments are smuggled into `results.tex`. A reviewer reads both as structural non-conformance before reaching the science.
+
+**What would close it:** a per-variant skeleton — `templates/paper_skeleton/{variant}/` or a variant-conditional preamble block in `setup.sh` — with a NeurIPS-style single-column, numeric-citation preamble for llm_cognition, plus a variant-conditional section list in `docs/stage_5.md` (adding `related_work.tex` and `experiments.tex`) and a page-budget note in `paper-writer`'s variant context. Until then, treat venue reformatting as a manual post-pipeline step.
 
 ---
 

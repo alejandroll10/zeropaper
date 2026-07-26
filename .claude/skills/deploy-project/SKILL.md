@@ -30,11 +30,12 @@ vocab placeholder — load the `edit-pipeline` skill instead.
 
 # LLM-cognition science (formal frameworks + benchmarks for language-model
 # cognition/evaluation; targets NeurIPS/ICML/ICLR, tier ladder
-# nature → top-ml → field → workshop). Add --ext theory_llm so the framework's
-# predictions are tested with real LLM experiments — the recommended pairing.
+# nature → top-ml → field → workshop). --ext theory_llm is AUTO-IMPLIED
+# (since v2.10.0): the variant's evidence base is LLM experiments, so setup.sh
+# adds the extension with an Info message even if the flag is omitted.
 # --ext empirical and --mode report are gated off for this variant (setup.sh
 # errors with pointers; see the llm_cognition entry in LIMITATIONS.md).
-./setup.sh <project-name> --variant llm_cognition --ext theory_llm
+./setup.sh <project-name> --variant llm_cognition
 
 # Finance theory + LLM experiments
 ./setup.sh <project-name> --variant finance --ext theory_llm

@@ -10,8 +10,8 @@ from llm_client import call, list_models
 
 # Auto-detect backend (uses whichever key is in .env)
 r = call(
-    system="You are a financial analyst.",
-    user="Estimate the fair value of a company with $10M revenue growing 20% annually.",
+    system="You are a careful reasoner. Answer with a single number.",
+    user="A list contains the numbers 3, 41, 17, 8, 29. What is the median?",
     max_tokens=500,
 )
 print(r.content)       # response text
@@ -67,11 +67,11 @@ Set one or both. The client auto-detects which is available.
 ## Experiment design tips
 - **Reasoning vs non-reasoning:** Compare the same task across reasoning (QwQ, DeepSeek-R1) and non-reasoning (Llama-70B) models to test whether chain-of-thought changes the result.
 - **Model size:** Compare 8B vs 70B vs 405B to test scaling predictions.
-- **Ground truth:** Use tasks with known answers to measure error rates.
-- **Sample size:** Run 20-30 trials per condition minimum.
-- **Reproducibility:** Set `temperature=0` for deterministic outputs when possible.
+- **Ground truth:** Use tasks with known answers to measure error rates — procedurally generated (random instances of a solvable problem class), not textbook or public-benchmark items the models trained on.
+- **Sample size:** Run 50+ stimuli per condition for headline contrasts (20-30 only for secondary probes).
+- **Determinism vs variance:** Reserve `temperature=0` for determinism checks and exact reproduction; sample headline conditions at `temperature > 0` with multiple runs per stimulus so error bars capture run-to-run variance.
 
 ## Rules
 - **Save all raw outputs.** Write responses to `output/stage3b/raw_results/` as JSON.
-- **Log every call.** Record model, prompt, response, tokens, time.
-- **Set seeds where possible.** Use `temperature=0` for reproducible experiments.
+- **Log every call.** Record model, prompt, response, tokens, time — and the exact snapshot identifier the API returns (`r.model`), the decoding parameters, and the access date. A paper whose evidence is model calls must pin which snapshot the claims are about.
+- **Set seeds where possible.** `temperature=0` is for determinism checks — headline error bars come from sampled runs.

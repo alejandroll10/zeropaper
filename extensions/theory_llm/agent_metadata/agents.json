@@ -1,7 +1,21 @@
 {
   "experiment-designer": {
     "name": "experiment-designer",
-    "description": "Designs and runs empirical experiments to test theoretical predictions. The orchestrator launches this agent at Stage 4 (Experiment Design & Execution) after implications are derived. Uses gpt-oss-120b and gpt-oss-20b via llm_client.py.",
+    "description": "Designs and runs empirical experiments to test theoretical predictions. The orchestrator launches this agent at Stage 3b (Experiment Design & Execution) after implications are derived. Uses gpt-oss-120b and gpt-oss-20b via llm_client.py.",
+    "category": "developing",
+    "tools": "Read, Write, Bash, Glob, Grep",
+    "model": "opus",
+    "codex": {
+      "model": "gpt-5.6-terra",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
+  "polish-experiments": {
+    "name": "polish-experiments",
+    "description": "Stage 9 polish agent for theory_llm runs: re-verifies the rendered paper's experimental evidence against output/stage3b/ \u2014 recomputes reported numbers from raw_results/, checks stimulus-contamination status, model snapshot pinning and decoding-parameter disclosure, error-bar integrity across stimuli and sampled runs, scope honesty of capability claims, and that experiment_code/ + seeds actually reproduce. Launched with the other polish agents; writes output/polish_experiments_r{N}.md where N is the current loops.polish.round.",
     "category": "developing",
     "tools": "Read, Write, Bash, Glob, Grep",
     "model": "opus",

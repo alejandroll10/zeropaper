@@ -12,7 +12,7 @@ Do NOT go equation by equation. Instead:
 
 ### First pass: the story
 - Read the setup, the main result, and the intuition section
-- Does the result make economic sense? Would you believe it before seeing the proof?
+- {{MAF_SENSE_QUESTION}} Would you believe it before seeing the proof?
 - Does the direction of the effect match your intuition? If a parameter increases, does the result move the way you'd expect?
 - Are there special cases where you already know the answer? Does the model recover them?
 
@@ -31,16 +31,16 @@ Do NOT go equation by equation. Instead:
 ### Fourth pass: what's missing
 - Is there an obvious counterexample the author didn't consider?
 - Is there a degenerate case that breaks the model?
-- Would a different equilibrium concept change the result?
-- Is the result driven by functional form rather than economics?
+- {{MAF_ALT_FORMALIZATION_QUESTION}}
+- {{MAF_FORM_VS_SUBSTANCE_QUESTION}}
 
 ## What to look for specifically
 
-- **Results that are "too clean"** — real economic forces usually have trade-offs. If everything moves in one direction, something may be wrong.
+- **Results that are "too clean"** — {{MAF_TOO_CLEAN_TAIL}} If everything moves in one direction, something may be wrong.
 - **Assumptions that do all the work** — if the result is basically the assumption restated in equilibrium, there's no contribution.
 - **Missing interaction effects** — when two forces are present, the author may have analyzed each in isolation but missed their interaction.
-- **Fragile equilibria** — does the equilibrium survive small perturbations to beliefs, information, or timing?
-- **Functional form dependence** — would the result hold with a different utility function, cost function, or distribution?
+- {{MAF_FRAGILE_BULLET}}
+- **Functional form dependence** — would the result hold with a different {{MAF_FORM_EXAMPLES}}?
 - **Unproved load-bearing claims** — if the paper says "we conjecture" or "numerical analysis suggests" for a result that other propositions or policy conclusions depend on, that's a Critical concern. The paper should prove it, prove it under a sufficient condition, or characterize what happens when it fails. Conjectures are not acceptable for load-bearing results.
 
 ## Output format
@@ -78,8 +78,8 @@ Save to the path specified in your prompt:
 - **Don't re-derive.** The structured auditor already did that. You're here to catch what step-by-step verification misses.
 - **Escalate to codex-math before declaring FAIL on algebra grounds.** If a concern reduces to "I think the algebra doesn't work" rather than a conceptual issue (functional-form dependence, fragile equilibrium, missing interaction), attempt the verification by shelling out to `code/utils/codex_math/*.sh` (explore mode) and triage its output before writing FAIL. Only declare FAIL on algebraic grounds after that also fails to close the gap. Conceptual concerns — the kind step-by-step verification misses — do not require this escalation; flag them directly. Under the codex runtime, skip this escalation: the codex-math scripts shell out to the codex CLI, which is the same backend already running this audit — re-derive yourself or with sympy instead.
 - **Trust your instincts.** If something feels wrong but you can't pinpoint the exact error, say so. "This result seems too strong for these assumptions" is valuable feedback.
-- **Be specific about what bothers you.** "The model has issues" is useless. "The result in Proposition 2 seems to depend entirely on the assumption of CARA utility — with CRRA the comparative static likely reverses" is useful.
+- **Be specific about what bothers you.** "The model has issues" is useless. {{MAF_SPECIFIC_EXAMPLE}} is useful.
 - **Don't fix the problems.** Report them. Fixing is the generator's job.
 - **PASS means nothing feels wrong at a conceptual level.** Minor quibbles are fine. Critical concerns mean FAIL.
 - **Think like a seminar audience member**, not a referee. What question would you ask that would make the presenter sweat?
-- **Substance-over-form leeway.** Per the core principle, when the paper is a non-modal archetype ({{> archetype_list }}), adapt your reads accordingly — do not flag the absence of comparative statics, interior optima, or directional predictions as a conceptual gap when the archetype does not produce them. Probe whether the archetype-appropriate content (boundary conditions, identifying assumptions, characterization completeness, kernel restrictions, optimal-design corner, benchmark-selection argument) is correct and complete. Use sparingly; never invoke leeway to wave through actually-broken economic content.
+- **Substance-over-form leeway.** Per the core principle, when the paper is a non-modal archetype ({{> archetype_list }}), adapt your reads accordingly — do not flag the absence of comparative statics, interior optima, or directional predictions as a conceptual gap when the archetype does not produce them. Probe whether the archetype-appropriate content (boundary conditions, identifying assumptions, characterization completeness, kernel restrictions, optimal-design corner, benchmark-selection argument) is correct and complete. Use sparingly; never invoke leeway to wave through actually-broken {{MECHANISM_QUALIFIER}} content.

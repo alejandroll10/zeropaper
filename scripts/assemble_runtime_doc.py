@@ -25,6 +25,14 @@ def main():
                              "('economically' / 'computationally')")
     parser.add_argument("--deepening-extension-types", default=None,
                         help="Variant menu for the deepening playbook's Extension types line")
+    parser.add_argument("--characterize-example-bullet", default=None,
+                        help="Domain-specific example bullet for the characterize-don't-just-prove "
+                             "core principle (CARA/CRRA for finance/macro, stimulus-distribution "
+                             "for llm_cognition)")
+    parser.add_argument("--numerical-verification-bullet", default=None,
+                        help="Domain-specific phrasing of the numerical-verification-vs-theorem "
+                             "core-principle bullet (llm_cognition adds the measurement-as-"
+                             "first-class-evidence converse)")
     parser.add_argument("--doc-name", required=True)
     parser.add_argument("--doc-subtitle", required=True,
                         help="H1 subtitle after the runtime doc name (e.g., "
@@ -85,6 +93,10 @@ def main():
         content = content.replace("{{MECHANISM_QUALIFIER_ADV}}", args.mechanism_qualifier_adv)
     if args.deepening_extension_types is not None:
         content = content.replace("{{DEEPENING_EXTENSION_TYPES}}", args.deepening_extension_types)
+    if args.characterize_example_bullet is not None:
+        content = content.replace("{{CHARACTERIZE_EXAMPLE_BULLET}}", args.characterize_example_bullet)
+    if args.numerical_verification_bullet is not None:
+        content = content.replace("{{NUMERICAL_VERIFICATION_BULLET}}", args.numerical_verification_bullet)
     content = content.replace("{{AGENT_DIR}}", args.agent_dir)
     content = content.replace("{{SKILL_DIR}}", args.skill_dir)
     content = content.replace("{{SEED_OVERRIDE}}", seed_block)

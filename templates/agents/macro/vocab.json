@@ -104,6 +104,11 @@
 
   "_comment_domain_phrases": "Cross-body domain phrases extracted from previously hardcoded economics wording in the -core bodies and editor.md (scorer tier bands, force terminology, referee exemplars). Values here are byte-identical to the pre-extraction body text; the llm_cognition variant supplies ML-native values.",
   "FORCE_TERM": "economic force",
+  "_comment_editor_domain": "Macro-native editor domain-guard examples (v2.10.0): without these the shared default renders finance examples ('for finance, e.g., an asset market...') in a macro build's editor.md.",
+  "EDITOR_WRONG_FIELD_EXAMPLE": "\"this isn't really macro — it's IO / labor / public finance / a finance paper — send it to a specialist or field journal\"",
+  "EDITOR_DOMAIN_SUFFICIENT_EXAMPLES": "for macro, e.g., aggregate dynamics, business-cycle fluctuations, monetary or fiscal policy, growth, or economy-wide general-equilibrium interactions",
+  "EDITOR_ADJACENT_EXAMPLE": "e.g., in macro, information frictions in business cycles are themselves information economics",
+  "EDITOR_DOMAIN_FLAVOR_TAIL": "regardless of how IO/labor/public-finance-flavored the topic looks",
   "NOVELTY_INSIGHT_QUESTION": "How new is the economic insight (not the technique)?",
   "SCORER_DEFAULT_TIER_INTRO": "For reference, the `top-5` defaults (anchored to the absolute scoring scale: 80 = top-5 econ quality) are:",
   "SCORER_TIER_SHIFT_SENTENCE": "Lower tiers shift the bands down: `top-3-fin` (finance variant only) advances at 75+; `field` advances at 65+; `letters` advances at 55+. Always apply the row corresponding to the *current* `target_journal_tier`, not the `top-5` default.",

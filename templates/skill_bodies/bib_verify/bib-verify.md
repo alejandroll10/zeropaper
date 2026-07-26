@@ -48,6 +48,7 @@ For each MISS:
    - `"Exact Title" site:ssrn.com`
    - `"Exact Title" site:nber.org`
    - `"Exact Title" site:arxiv.org`
+   - `"Exact Title" site:openreview.net`
 2. If a real result appears (matching title + plausible authors + year), the cite is real but unindexed by OpenAlex. Mark it RESOLVED-VIA-WEBSEARCH and capture the URL.
 3. If WebSearch also returns nothing matching, mark it FABRICATED.
 

@@ -7,7 +7,7 @@ Use this whenever you want a structured slice of the literature: top-cited paper
 ## When to use OpenAlex (not WebSearch)
 
 - Finding the most-cited papers on a topic in top journals
-- Surveying recent (last 5–10y) published work in JF/JFE/RFS/AER/QJE/JPE/etc.
+- Surveying recent (last 5–10y) published work in a specific venue (JF/JFE/RFS/AER/QJE/JPE for the econ variants; JMLR/TACL/CogSci and best-effort NeurIPS/ICML/ICLR for llm_cognition)
 - Forward citations of a seminal paper ("what built on this?")
 - Backward references of a paper ("what did this build on?")
 - Pulling all of an author's top papers in top venues
@@ -46,9 +46,12 @@ Add `--abstracts` to pull and reconstruct each work's abstract from OpenAlex's i
 Finance:    jf, jfe, rfs, jfqa, raps, rcfs, ms
 Economics:  aer, qje, jpe, ecma, restud
 Macro:      jme
+ML/NLP:     neurips, icml, iclr, jmlr, tacl, cl, cogsci, nmi
 ```
 
 Run `openalex.py venues` to see resolved source IDs and works counts. You can also pass an explicit OpenAlex source ID (`S123...`) or a literal journal name.
+
+**ML conference coverage caveat.** OpenAlex indexes only a fraction of NeurIPS/ICML/ICLR papers (the `neurips`/`icml`/`iclr` aliases are best-effort recall, not authority), ACL/EMNLP have no stable alias at all (per-year proceedings sources), and TMLR is indexed but nearly empty. A venue-filtered miss on ML conference work means "not indexed here," never "no such paper" — for the ML pre-publication and conference frontier, search arXiv and OpenReview via WebSearch and use OpenAlex for the journal-side (`jmlr`, `tacl`, `cl`, `cogsci`, `nmi`), for citation traversal, and for topic queries without a venue filter.
 
 ## Common patterns
 

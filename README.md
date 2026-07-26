@@ -201,6 +201,7 @@ You can also watch files appear in real time in your editor, or run `git log --o
 |---------|------|-----------------|-------------|
 | **finance** | `--variant finance` (default) | JF, JFE, RFS | Pure finance theory paper |
 | **macro** | `--variant macro` | AER, Econometrica, QJE, JPE, ReStud, JME | Macro theory paper |
+| **llm_cognition** | `--variant llm_cognition` | NeurIPS, ICML, ICLR (TMLR as field tier) | The science of LLM cognition & evaluation. Auto-implies `--ext theory_llm` (the experiments are the evidence); `--ext empirical` and `--mode report` are gated off (see LIMITATIONS.md) |
 
 ## Extensions
 

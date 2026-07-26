@@ -82,7 +82,7 @@ done
 # is an explicit case match (not a *) fallthrough), so NEXT_IS_MODE never
 # gets consumed and OVERRIDE_MODE_SET stays 0.
 if [ "$NEXT_IS_VARIANT" = "1" ]; then
-    echo "Error: --variant requires a value (finance, macro)"; exit 1
+    echo "Error: --variant requires a value (finance, macro, llm_cognition)"; exit 1
 fi
 if [ "$NEXT_IS_MODE" = "1" ]; then
     echo "Error: --mode requires a value (empirical-first), or use --no-mode to clear"; exit 1
@@ -138,6 +138,8 @@ else
     # Sniff variant from CLAUDE.md
     if grep -q "macroeconomics theory paper" "$PROJECT/CLAUDE.md" 2>/dev/null; then
         VARIANT="macro"
+    elif grep -q "language-model cognition paper" "$PROJECT/CLAUDE.md" 2>/dev/null; then
+        VARIANT="llm_cognition"
     elif grep -q "finance theory paper" "$PROJECT/CLAUDE.md" 2>/dev/null; then
         VARIANT="finance"
     else
@@ -161,7 +163,7 @@ else
     OLD_VERSION="(pre-manifest)"
 
     if [ -z "$VARIANT" ] && [ -z "$OVERRIDE_VARIANT" ]; then
-        echo "Could not infer variant. Pass --variant finance|macro."
+        echo "Could not infer variant. Pass --variant finance|macro|llm_cognition."
         exit 1
     fi
     echo "Inferred: variant=$VARIANT, extensions=[${EXTENSIONS[*]}], seeded=$SEEDED, manual=$MANUAL"

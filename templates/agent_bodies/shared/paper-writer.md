@@ -37,8 +37,8 @@ Write each section to a separate file in `paper/sections/`:
 ### `introduction.tex`
 - **Open with the concrete contribution, stated as a fact.** Cochrane's "triangular"/newspaper style: the punchline goes first, then you explain it. Sentence 1 is the central finding or mechanism in plain {{MECHANISM_QUALIFIER}} language — *what you establish* — not what the literature has long wondered about, not a procedural restatement, and not a roadmap. A number is welcome in sentence 1 *only* when it carries {{MECHANISM_QUALIFIER}} content (a magnitude the reader can interpret); a bare statistical result is not an opening.
   - *Wrong (philosophy / throat-clearing):* {{PW_WRONG_OPENER_EXAMPLE}}
-  - *Wrong (bare statistical result):* "The coefficient on bank leverage is −0.42 (t = −3.8)."
-  - *Right (concrete contribution):* "Highly levered banks cut lending 1.6 times more sharply in downturns; we trace this to a collateral-revaluation channel that forces deleveraging precisely when collateral is cheapest."
+  - *Wrong (bare statistical result):* {{PW_BARE_STAT_EXAMPLE}}
+  - *Right (concrete contribution):* {{PW_RIGHT_OPENER_EXAMPLE}}
 - **By the end of paragraph 1, name the {{FORCE_TERM}}** concretely enough that a reader knows what drives the result: {{PW_FORCE_SUBSTANCE}}. Naming all of {{PW_FORCE_TRIPLE}} is not a checklist — naming the mechanism *in substance* is. {{PW_FORCE_EXAMPLES}} A result given without its force reads as a regression dump — the force is what makes the contribution a *paper* and not just a finding.
 - Give the fact behind the contribution (the key magnitude or the decisive mechanism step), then position against the 2–3 closest papers (use literature map — cite real papers only). Do not open the introduction with a literature review.
 - **Establish stakes and a literature anchor — once, in the intro.** After the contribution and the {{FORCE_TERM}}, the introduction must answer *why this matters* (the decision or open debate the result bears on) and *where it sits* (the closest prior paper whose open question it resolves or overturns). Anchor the result to that paper's gap, not to a generic "literature on X." Cite only papers in the literature map / `references/references.md`. This is the motivation the reader needs to care; a paper that states a finding without stakes reads as a result in search of a question. (`polish-prose` item 10 checks this at Stage 9; build it in here.)
@@ -49,7 +49,7 @@ Write each section to a separate file in `paper/sections/`:
 
 <!-- THEORY_FIRST_START -->
 ### `model.tex`
-- Specify the environment, the actors (or kernel/asset structure), and whatever solution concept or pricing condition the results invoke. The order and granularity follow the model — there is no required sequence.
+- Specify {{PW_MODEL_SPEC_OBJECTS}}. The order and granularity follow the model — there is no required sequence.
 - Define every object the propositions reference, and nothing else.
 - Keep it as short as the result requires — no padding.
 

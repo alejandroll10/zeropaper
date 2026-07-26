@@ -141,6 +141,17 @@ if [ "$VARIANT" = "finance_llm" ]; then
     [[ " ${EXTENSIONS[*]} " =~ " theory_llm " ]] || EXTENSIONS+=("theory_llm")
 fi
 
+# ── llm_cognition implies theory_llm ──
+# The variant's empirics ARE LLM experiments: its evaluators (referee, self-attacker,
+# scorer) demand experimental evidence, and --ext empirical is gated off for it, so
+# theory_llm is the only producer of that evidence. A bare llm_cognition deployment
+# would be an armchair pipeline that never calls a language model — a defaulting
+# error, not a configuration choice.
+if [ "$VARIANT" = "llm_cognition" ] && [[ ! " ${EXTENSIONS[*]} " =~ " theory_llm " ]]; then
+    EXTENSIONS+=("theory_llm")
+    echo "Info: --variant llm_cognition implies --ext theory_llm (auto-added)."
+fi
+
 # ── Mode validation and dependency expansion ──
 # Pipeline-architecture modes are orthogonal to variants (finance/macro/llm_cognition) and to
 # extensions (empirical/theory_llm). A mode may auto-add an extension it depends
@@ -152,7 +163,16 @@ if [ -n "$MODE" ]; then
         empirical-first)
             if [ "$VARIANT" != "finance" ]; then
                 echo "Error: --mode empirical-first is finance-only in v1."
-                echo "  Macro support requires identification tooling for macro (issue #18) before this mode can ship."
+                case "$VARIANT" in
+                    macro)
+                        echo "  Macro support requires identification tooling for macro (issue #18) before this mode can ship."
+                        ;;
+                    llm_cognition)
+                        echo "  llm_cognition has no identification-designer/auditor, and --ext empirical"
+                        echo "  (which this mode implies) is gated off for it. Its evidence-first analogue"
+                        echo "  (measurement-first) is future work — see LIMITATIONS.md."
+                        ;;
+                esac
                 exit 1
             fi
             # Auto-imply --ext empirical (idempotent).
@@ -245,7 +265,7 @@ case "$VARIANT" in
         PAPER_TYPE="language-model cognition paper"
         TARGET_JOURNALS="top ML venue (NeurIPS, ICML, ICLR)"
         DOMAIN_AREAS="the science of language-model cognition and evaluation — effective working memory and context use, abstraction and compression, in-context learning, reasoning limits, interference and binding, benchmark and measurement design, and scaling behavior of capabilities. Scope is broad, and the following are SUFFICIENT (not necessary) conditions: a paper that defines a construct of LLM capability or behavior, formalizes it, and measures it in real models is in scope, as are formal-only analyses of transformer computation and evaluation-methodology papers. These are sufficient, not necessary — a paper can be in scope without any of them."
-        JOURNAL_LIST="Top ML venues: NeurIPS, ICML, ICLR. Nature-family (landmark results with broad scientific resonance): Nature, Science, Nature Machine Intelligence. Field: TMLR (rolling submission, correctness-over-significance bar — the default downgrade target from top-ml), JMLR, ACL, EMNLP, CogSci, Computational Linguistics. Workshop tier: NeurIPS/ICML/ICLR workshop tracks."
+        JOURNAL_LIST="Top ML venues: NeurIPS, ICML, ICLR; at parity — JMLR (selective archival journal), ACL/EMNLP (natural home for NLP-native work; lateral, not a downgrade), Nature Machine Intelligence (journal-format outlet). Nature-family (landmark results with broad scientific resonance): Nature, Science. Field: TMLR (rolling submission, correctness-over-significance bar — the default downgrade target from top-ml), CogSci, Computational Linguistics, TACL. Workshop tier: NeurIPS/ICML/ICLR workshop tracks."
         AGENT_DIR="llm_cognition"
         MECHANISM_QUALIFIER="computational"
         MECHANISM_QUALIFIER_AN="a computational"
@@ -255,7 +275,10 @@ case "$VARIANT" in
         INITIAL_TIER="top-ml"
         TIER_LADDER_PROSE='nature → top-ml → field → workshop'
         TIER_LIST_INLINE='`nature`, `top-ml`, `field`, `workshop`'
-        TIER_DOWNGRADE_EXAMPLES='for `top-ml`: NeurIPS, ICML, ICLR; for `field`: TMLR (default), JMLR, ACL, EMNLP, CogSci; for `workshop`: NeurIPS/ICML/ICLR workshop tracks'
+        TIER_DOWNGRADE_EXAMPLES='for `top-ml`: NeurIPS, ICML, ICLR, JMLR, ACL, EMNLP; for `field`: TMLR (default), CogSci, Computational Linguistics, TACL; for `workshop`: NeurIPS/ICML/ICLR workshop tracks'
+        PRINCIPLED_MECHANISM_PHRASE="falls out of the computational account"
+        CHARACTERIZE_EXAMPLE_BULLET="If a result holds under one stimulus distribution but not another, find the exact condition on the distribution that makes it work."
+        NUMERICAL_VERIFICATION_BULLET="Don't settle for numerical verification of what should be a theorem — and don't force a theorem where the claim is inherently empirical: systematic measurement across models, seeds, and stimuli is first-class evidence in this domain. The rule governs claims presented as formal results."
         ;;
     *)
         echo "Unknown variant: $VARIANT"
@@ -263,6 +286,18 @@ case "$VARIANT" in
         exit 1
         ;;
 esac
+
+# Domain-example defaults for variants that didn't override them in the case above
+# (finance/macro keep the pre-extraction economics text, byte-identical).
+if [ -z "${PRINCIPLED_MECHANISM_PHRASE:-}" ]; then
+    PRINCIPLED_MECHANISM_PHRASE="falls out of economics"
+fi
+if [ -z "${CHARACTERIZE_EXAMPLE_BULLET:-}" ]; then
+    CHARACTERIZE_EXAMPLE_BULLET="If a result holds under CARA but not CRRA, find the exact condition on preferences that makes it work."
+fi
+if [ -z "${NUMERICAL_VERIFICATION_BULLET:-}" ]; then
+    NUMERICAL_VERIFICATION_BULLET="Don't settle for numerical verification of what should be a theorem."
+fi
 
 # ── Variant/extension compatibility ──
 # The empirical extension loads per-variant agent metadata
@@ -697,6 +732,10 @@ if [ "$LOCAL" = "1" ]; then
     # fan-out) doesn't produce one, so the dashboard would be empty/misleading.
     if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
         cp "$SCRIPT_DIR/dashboard.html" "$OUT_DIR/"
+        # Variant-correct subtitle (title-cased PAPER_TYPE; renders the historical
+        # "Autonomous Finance Theory Paper Generator" byte-identically for finance).
+        DASHBOARD_SUBTITLE="Autonomous $(python3 -c "import sys; print(sys.argv[1].title())" "$PAPER_TYPE") Generator"
+        sed -i.bak "s|Autonomous Finance Theory Paper Generator|$DASHBOARD_SUBTITLE|" "$OUT_DIR/dashboard.html" && rm "$OUT_DIR/dashboard.html.bak"
     fi
     # launch.sh must be present in the fresh --local deploy so update.sh's
     # manifest copy can propagate it into existing deployments (production
@@ -962,6 +1001,8 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --mechanism-qualifier "$MECHANISM_QUALIFIER" \
     --mechanism-qualifier-adv "$MECHANISM_QUALIFIER_ADV" \
     --deepening-extension-types "$DEEPENING_EXTENSION_TYPES" \
+    --characterize-example-bullet "$CHARACTERIZE_EXAMPLE_BULLET" \
+    --numerical-verification-bullet "$NUMERICAL_VERIFICATION_BULLET" \
     --doc-name "CLAUDE.md" \
     --doc-subtitle "$DOC_SUBTITLE" \
     --agent-dir "$CLAUDE_AGENTS_REL" \
@@ -993,6 +1034,8 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --mechanism-qualifier "$MECHANISM_QUALIFIER" \
     --mechanism-qualifier-adv "$MECHANISM_QUALIFIER_ADV" \
     --deepening-extension-types "$DEEPENING_EXTENSION_TYPES" \
+    --characterize-example-bullet "$CHARACTERIZE_EXAMPLE_BULLET" \
+    --numerical-verification-bullet "$NUMERICAL_VERIFICATION_BULLET" \
     --doc-name "AGENTS.md" \
     --doc-subtitle "$DOC_SUBTITLE" \
     --agent-dir "$CODEX_AGENTS_REL" \
@@ -1022,6 +1065,8 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_runtime_doc.py" \
     --mechanism-qualifier "$MECHANISM_QUALIFIER" \
     --mechanism-qualifier-adv "$MECHANISM_QUALIFIER_ADV" \
     --deepening-extension-types "$DEEPENING_EXTENSION_TYPES" \
+    --characterize-example-bullet "$CHARACTERIZE_EXAMPLE_BULLET" \
+    --numerical-verification-bullet "$NUMERICAL_VERIFICATION_BULLET" \
     --doc-name "GEMINI.md" \
     --doc-subtitle "$DOC_SUBTITLE" \
     --agent-dir "$GEMINI_AGENTS_REL" \
@@ -1644,7 +1689,7 @@ if [ "$MODE" != "report" ]; then
     cp "$TEMPLATE_ROOT/templates/shared/docs/"*.md "$P/docs/"
     # Substitute variant placeholders (same ones assemble_runtime_doc.py handles for core.md)
     for _docfile in "$P/docs/"*.md; do
-        sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g; s|{{INITIAL_TIER}}|$INITIAL_TIER|g; s|{{TIER_LADDER_PROSE}}|$TIER_LADDER_PROSE|g; s|{{TIER_LIST_INLINE}}|$TIER_LIST_INLINE|g; s|{{TIER_DOWNGRADE_EXAMPLES}}|$TIER_DOWNGRADE_EXAMPLES|g; s|{{MECHANISM_QUALIFIER_AN}}|$MECHANISM_QUALIFIER_AN|g; s|{{MECHANISM_QUALIFIER}}|$MECHANISM_QUALIFIER|g; s|{{MECHANISM_DISCIPLINE}}|$MECHANISM_DISCIPLINE|g" "$_docfile" && rm "${_docfile}.bak"
+        sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g; s|{{INITIAL_TIER}}|$INITIAL_TIER|g; s|{{TIER_LADDER_PROSE}}|$TIER_LADDER_PROSE|g; s|{{TIER_LIST_INLINE}}|$TIER_LIST_INLINE|g; s|{{TIER_DOWNGRADE_EXAMPLES}}|$TIER_DOWNGRADE_EXAMPLES|g; s|{{MECHANISM_QUALIFIER_AN}}|$MECHANISM_QUALIFIER_AN|g; s|{{MECHANISM_QUALIFIER}}|$MECHANISM_QUALIFIER|g; s|{{MECHANISM_DISCIPLINE}}|$MECHANISM_DISCIPLINE|g; s|{{PRINCIPLED_MECHANISM_PHRASE}}|$PRINCIPLED_MECHANISM_PHRASE|g" "$_docfile" && rm "${_docfile}.bak"
     done
 
     # Inject the variant-specific tier table into stage_4.md (multi-line content via sed -r)
@@ -2243,7 +2288,7 @@ open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{
                 cp "$TEMPLATE_ROOT/extensions/theory_llm/docs/"*.md "$P/docs/"
                 for _docfile in "$TEMPLATE_ROOT/extensions/theory_llm/docs/"*.md; do
                     _name=$(basename "$_docfile")
-                    sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g" "$P/docs/$_name" && rm "$P/docs/${_name}.bak"
+                    sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g; s|{{INITIAL_TIER}}|$INITIAL_TIER|g; s|{{TIER_LADDER_PROSE}}|$TIER_LADDER_PROSE|g; s|{{TIER_LIST_INLINE}}|$TIER_LIST_INLINE|g; s|{{TIER_DOWNGRADE_EXAMPLES}}|$TIER_DOWNGRADE_EXAMPLES|g; s|{{MECHANISM_QUALIFIER_AN}}|$MECHANISM_QUALIFIER_AN|g; s|{{MECHANISM_QUALIFIER}}|$MECHANISM_QUALIFIER|g; s|{{MECHANISM_DISCIPLINE}}|$MECHANISM_DISCIPLINE|g; s|{{PRINCIPLED_MECHANISM_PHRASE}}|$PRINCIPLED_MECHANISM_PHRASE|g" "$P/docs/$_name" && rm "$P/docs/${_name}.bak"
                 done
             fi
 
@@ -2332,13 +2377,17 @@ PYEOF
 
             # Core-bypass guard: the LLM API is a binding source for both the
             # designer (runs experiments) and the reviewer (re-checks them).
-            inject_core_bypass_into_agents experiment-designer experiment-reviewer
+            # polish-experiments included: its reproducibility spot-check re-runs
+            # an experiment slice against the LLM backend — a backend outage must
+            # not be misread as "nothing to verify, pass."
+            inject_core_bypass_into_agents experiment-designer experiment-reviewer polish-experiments
 
             # Report mode: --ext theory_llm is install-only (skills + LLM client).
-            # Both experiment-designer (generative) and experiment-reviewer (audit
-            # of pipeline-produced experiments) are pruned — there are no
-            # pipeline-produced experiments to review on an external submission.
-            prune_report_mode_agents experiment-designer experiment-reviewer
+            # experiment-designer (generative), experiment-reviewer (audit of
+            # pipeline-produced experiments), and polish-experiments (audit of
+            # pipeline-produced stage3b artifacts) are all pruned — there are no
+            # pipeline-produced experiments on an external submission.
+            prune_report_mode_agents experiment-designer experiment-reviewer polish-experiments
             if [ "$MODE" = "report" ]; then
                 rm -f "$P/docs/stage_3b_experiments.md"
                 # Mirror the stage3a cleanup below: the applier creates
@@ -2389,7 +2438,7 @@ open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{
                 cp "$TEMPLATE_ROOT/extensions/empirical/docs/"*.md "$P/docs/"
                 for _docfile in "$TEMPLATE_ROOT/extensions/empirical/docs/"*.md; do
                     _name=$(basename "$_docfile")
-                    sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g" "$P/docs/$_name" && rm "$P/docs/${_name}.bak"
+                    sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g; s|{{INITIAL_TIER}}|$INITIAL_TIER|g; s|{{TIER_LADDER_PROSE}}|$TIER_LADDER_PROSE|g; s|{{TIER_LIST_INLINE}}|$TIER_LIST_INLINE|g; s|{{TIER_DOWNGRADE_EXAMPLES}}|$TIER_DOWNGRADE_EXAMPLES|g; s|{{MECHANISM_QUALIFIER_AN}}|$MECHANISM_QUALIFIER_AN|g; s|{{MECHANISM_QUALIFIER}}|$MECHANISM_QUALIFIER|g; s|{{MECHANISM_DISCIPLINE}}|$MECHANISM_DISCIPLINE|g; s|{{PRINCIPLED_MECHANISM_PHRASE}}|$PRINCIPLED_MECHANISM_PHRASE|g" "$P/docs/$_name" && rm "$P/docs/${_name}.bak"
                 done
             fi
 
@@ -2977,6 +3026,13 @@ if [ ${#DEV_SKILLS[@]} -gt 0 ]; then
 fi
 if [ "$MANUAL" = "1" ] || [ "$MODE" = "report" ]; then
     rm -f dashboard.html
+elif [ -f dashboard.html ]; then
+    # Variant-correct subtitle (mirrors the --local branch; production gets
+    # dashboard.html via the clone, so it must be re-titled here too — the
+    # title-cased PAPER_TYPE renders the historical "Autonomous Finance Theory
+    # Paper Generator" byte-identically for finance).
+    DASHBOARD_SUBTITLE="Autonomous $(python3 -c "import sys; print(sys.argv[1].title())" "$PAPER_TYPE") Generator"
+    sed -i.bak "s|Autonomous Finance Theory Paper Generator|$DASHBOARD_SUBTITLE|" dashboard.html && rm -f dashboard.html.bak
 fi
 echo "  ✓ Template files removed"
 

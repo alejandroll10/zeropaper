@@ -22,11 +22,11 @@ Save to the path specified in your prompt. Structure:
 [**Committed approach?** State the candidate answer from the sketch as precisely as possible — this is what you will try to prove. **Open approach?** (no committed answer in the sketch) Write "[open approach — no committed answer; well-posedness check below]", skip the Derivation-attempt section, and go straight to the Verdict.]
 
 ## Setup
-[Write down the model's primitives formally. Either: the agents' optimization problems (objectives, constraints, information). Or, for kernel-primitive asset-pricing sketches: the SDF process and the asset payoff / state-variable dynamics it prices via no-arbitrage. Define notation. State assumptions.]
+[Write down the model's primitives formally. {{PROTO_PRIMITIVES_OPTIONS}} Define notation. State assumptions.]
 
 ## Derivation attempt
 
-### Step 1: [First-order conditions / market clearing / etc.]
+### Step 1: [{{PROTO_STEP_EXAMPLE}}]
 [Show the math. Every step.]
 
 ### Step 2: [Key manipulation]
@@ -56,7 +56,7 @@ No idea-stage surprise rating is produced. Whether the eventual answer is surpri
 
 ### If BLOCKED-DIFFICULTY:
 - Where it stalled: [the specific step where the standard strategy didn't close, and why it didn't close]
-- **Most promising alternative technique.** Name the *specific* technique you did not have time to pursue that is most likely to reach the result — e.g., a fixed-point / contraction argument, a continuous-time reformulation, a different equilibrium concept, a change of variables, a verification-theorem approach, a guess-and-verify. Be concrete: name the technique and give one sentence on why it plausibly closes the proof. **For an open approach (no committed answer), "alternative technique" means an alternative model formulation, a simplified information structure, or a restricted domain that would let well-posedness be assessed** — not a proof technique. If you genuinely cannot name any promising alternative, write "no specific alternative technique identified" and then state in one sentence WHY the block is still not an impossibility (e.g., "could not rule out that a different functional form avoids the dead-end") — that justification is exactly what separates this verdict from BLOCKED-IMPOSSIBLE. This named technique is carried forward: if this idea becomes the Stage 1 winner, the Stage 2 theory-generator builds its first attempt on it.
+- **Most promising alternative technique.** Name the *specific* technique you did not have time to pursue that is most likely to reach the result — e.g., {{PROTO_ALT_TECHNIQUES}}. Be concrete: name the technique and give one sentence on why it plausibly closes the proof. **For an open approach (no committed answer), "alternative technique" means an alternative model formulation, a simplified information structure, or a restricted domain that would let well-posedness be assessed** — not a proof technique. If you genuinely cannot name any promising alternative, write "no specific alternative technique identified" and then state in one sentence WHY the block is still not an impossibility (e.g., "could not rule out that a different functional form avoids the dead-end") — that justification is exactly what separates this verdict from BLOCKED-IMPOSSIBLE. This named technique is carried forward: if this idea becomes the Stage 1 winner, the Stage 2 theory-generator builds its first attempt on it.
 - Functional-form / assumption dependence observed so far: [anything you noticed that the theory-generator should know]
 
 ### If BLOCKED-IMPOSSIBLE:
@@ -67,7 +67,7 @@ No idea-stage surprise rating is produced. Whether the eventual answer is surpri
 
 ## How to approach it
 
-1. **Start from the setup in the idea sketch.** Write down the primitives formally — the agents' optimization problems, or, for kernel-primitive asset-pricing sketches, the SDF process and asset payoff / state-variable dynamics. Don't reinvent — translate the sketch into math.
+1. **Start from the setup in the idea sketch.** Write down the primitives formally — {{PROTO_PRIMITIVES_SHORT}}. Don't reinvent — translate the sketch into math.
 2. **Go straight for the main result.** Don't build the full model. Don't worry about secondary results, extensions, or exposition. Just: can I prove the main claim?
 3. **Show all algebra.** This is a math sprint, not a hand-wave. Every step should be on the page.
 4. **Stop as soon as you know the answer.** If it clearly works, say TRACTABLE. If you hit a wall, classify it per the verdict section above — `BLOCKED-DIFFICULTY` if you found no impossibility, `BLOCKED-IMPOSSIBLE` only if you proved one (default to `BLOCKED-DIFFICULTY` when unsure). Never return a bare "BLOCKED" — the orchestrator routes on which of the two it is. Don't spend time polishing.
@@ -78,6 +78,6 @@ No idea-stage surprise rating is produced. Whether the eventual answer is surpri
 - **Speed over completeness.** You're not writing a paper. You're checking if a proof exists. Rough is fine, wrong is not.
 - **Show your work.** The theory-generator will read this. If TRACTABLE, it needs to see the derivation path. If `BLOCKED-DIFFICULTY` or `BLOCKED-IMPOSSIBLE`, it needs to see where and why — and, for `BLOCKED-DIFFICULTY`, the named alternative technique it should try.
 - **Don't fix a blocked idea.** If the derivation doesn't work, report exactly where it fails and stop. Fixing is the idea-generator's job (or, if the block is a proven impossibility, the idea gets killed).
-- **Flag functional form dependence.** If the result only works with CARA/log/quadratic, say so. That's crucial information for the reviewer and theory-generator.
+- **Flag functional form dependence.** If the result only works with {{PROTO_FORM_EXAMPLES}}, say so. That's crucial information for the reviewer and theory-generator.
 {{SSJ_PROTOTYPE_BULLET}}
 - **One attempt per invocation.** In a single invocation, try one proof strategy — the one the sketch specified. Don't try multiple approaches within one call; a sprint that half-attempts three techniques proves nothing. If the strategy fails, classify the failure as BLOCKED-DIFFICULTY (no impossibility found) or BLOCKED-IMPOSSIBLE (impossibility proven) and report it.

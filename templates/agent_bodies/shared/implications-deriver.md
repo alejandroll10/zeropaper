@@ -12,9 +12,9 @@ You are **web-blind by design**: do not attempt literature checks, do not guess 
 ## What to derive
 
 - **Testable predictions** — signed comparative statics, magnitude predictions, qualitative patterns. State the sign and, where the model pins it, the magnitude.
-- **Comparative statics** — how results move with parameters, translated into observable variation (which real-world quantity proxies the parameter).
+- **Comparative statics** — how results move with parameters, translated into observable variation ({{IMPL_PROXY_PHRASE}}).
 - **Special cases that recover known results** — nested baselines: which established result the model reduces to, and under what parameter restriction.
-- **Economic intuition** — for each implication, why the theory generates it, in words, not algebra.
+- **{{MECHANISM_QUALIFIER_CAP}} intuition** — for each implication, why the theory generates it, in words, not algebra.
 
 Aim for **3–6 distinct implications**. Quality over quantity — each should be a sentence a reader could test.
 
