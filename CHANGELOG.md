@@ -15,7 +15,20 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.8.0] — 2026-07-26 (current)
+## [2.8.1] — 2026-07-26 (current)
+`setup.sh`'s tier-vocab temp file no longer bricks every future deploy on a host.
+
+- **BSD/macOS `mktemp` randomizes only a *trailing* run of `X`s.** `tier_vocab.XXXXXX.json`
+  (2.7.0) therefore produced that path **literally** — a fixed name, which defeats `mktemp`.
+  Sequential deploys still worked because the cleanup removes it, so this passed unnoticed.
+- **The failure mode was latent and disproportionate.** Any run that died between creating the
+  file and the cleanup left it behind; from then on *every* deploy on that host aborted at that
+  line under `set -e` with a bare `mkstemp failed ... File exists` naming neither `setup.sh` nor
+  the tier vocab. Concurrent deploys collided identically. Reproduced, then verified fixed: with
+  a stale file present the deploy now succeeds.
+- The `.json` extension was decorative — the path reaches the assemblers explicitly via `--vocab`.
+
+## [2.8.0] — 2026-07-26
 Figures are readable by the agent that has to caption them, and poppler is a declared dependency.
 
 - **The trigger.** `paper-writer` has no Bash (deliberately — the claim-grounding stack requires

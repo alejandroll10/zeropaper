@@ -271,7 +271,17 @@ fi
 # (shared + variant, all four runtimes). Build-time only (mktemp, never
 # deployed): no manifest entry. Best-effort cleanup — a leaked file holds only
 # the public tier strings.
-TIER_VOCAB_FILE="$(mktemp "${TMPDIR:-/tmp}/tier_vocab.XXXXXX.json")"
+#
+# No `.json` suffix on the template: BSD/macOS mktemp randomizes only a
+# *trailing* run of X's, so `tier_vocab.XXXXXX.json` yields that name
+# **literally** — a fixed path, which defeats mktemp entirely. Sequential
+# deploys still worked (the cleanup below removes it), but any run that died
+# between here and cleanup left the file behind and then bricked every
+# subsequent deploy on the host: `set -e` aborts on this line with a bare
+# "mkstemp failed ... File exists" that names neither setup.sh nor the tier
+# vocab. Concurrent deploys collided for the same reason. The extension was
+# decorative — the path is passed to the assemblers explicitly via --vocab.
+TIER_VOCAB_FILE="$(mktemp "${TMPDIR:-/tmp}/tier_vocab.XXXXXX")"
 TIER_LIST_INLINE="$TIER_LIST_INLINE" TIER_LADDER_PROSE="$TIER_LADDER_PROSE" python3 - "$TIER_VOCAB_FILE" <<'PYEOF'
 import json, os, sys
 with open(sys.argv[1], "w") as f:
