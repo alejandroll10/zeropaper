@@ -207,6 +207,7 @@ Initial state (created by setup.sh):
   "faithful": false,
   "halt_on_core_bypass": false,
   "status": "not_started",
+  "pending_verification": [],
   "scores": {},
   "stage2b_theory_version": null,
   "archived_best_score_r1": null,
@@ -222,6 +223,10 @@ When `--seed` is used, setup.sh also adds `"seeded": true` and sets `"current_st
 When you start the pipeline, set `"status": "running"` and begin appending to the history array.
 
 **History array:** Append a `{ "timestamp": "ISO-8601", "event": "description" }` entry for every pipeline event. This feeds the dashboard. Use `date -u +%Y-%m-%dT%H:%M:%SZ` to get the timestamp. Never truncate or clear the history array.
+
+**`pending_verification`:** binding verifications the run still owes because their source was rate/budget-limited when they were due. Each entry is
+`{"core": "...", "stage": "...", "why": "...", "earliest_retry_utc": "ISO-8601"}`.
+A non-empty array is what makes `status = "complete_pending_verification"` legible — it names exactly what was never checked. The completion rule that reads and clears it lives in the session guidance and `docs/core_bypass.md`.
 
 ### Audit-loop scoping (generic rule)
 

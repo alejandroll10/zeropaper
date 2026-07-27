@@ -1896,6 +1896,7 @@ cat > "$P/process_log/pipeline_state.json" <<JSONEOF
   "seeded": true,
   "faithful": $([ "$FAITHFUL" = "1" ] && echo true || echo false),
   "halt_on_core_bypass": $([ "$HALT_ON_CORE_BYPASS" = "1" ] && echo true || echo false),
+  "pending_verification": [],
   "scores": {},
   "stage2b_theory_version": null,
   "stage1_candidates": [],
@@ -1933,6 +1934,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "faithful": false,
   "halt_on_core_bypass": __HALT_ON_CORE_BYPASS__,
   "status": "not_started",
+  "pending_verification": [],
   "scores": {},
   "stage2b_theory_version": null,
   "stage1_candidates": [],
@@ -1964,14 +1966,18 @@ recording. A non-empty ledger MUST appear in the run summary — a degraded run
 never reports clean success. Empty = no core was bypassed.
 
 `action` ∈ {`recorded`, `halted`, `resolved`}. A `binding? = yes` row is
-*unresolved* until the binding source is restored, the verification is re-run, and
-its `action` is set to `resolved`. An unresolved binding row blocks
-`status = "complete"` even in the default deploy: the session refuses to complete
-and sets `status = "halted_core_bypass"` instead. This is the terminal backstop.
-Only an operator-driven recovery may set a row `resolved` (a running session is not
-authorized to self-clear). Report mode has no `pipeline_state.json` / `status`
-machine, so the blocking rule does not apply there — rows are recorded and
-surfaced in the returned report only.
+*unresolved* until the verification is re-run as binding and its `action` is set
+to `resolved`. An unresolved binding row blocks a plain `status = "complete"` even
+in the default deploy. Which way it blocks depends on the outage: a **deferrable**
+one (a rate/credit limit with a stated reset horizon, where re-checking is a cheap
+lookup) finishes the run and sets `status = "complete_pending_verification"` with
+the owed check recorded in `pending_verification`; anything else sets
+`status = "halted_core_bypass"`. Either way the run never reports clean success on
+a downgraded core — that is the terminal backstop. A running session may set a row
+`resolved` only for a binding verification it re-ran itself and that came back
+clean; every other resolution is operator-driven. Report mode has no
+`pipeline_state.json` / `status` machine, so the blocking rule does not apply
+there — rows are recorded and surfaced in the returned report only.
 
 | timestamp | stage | core | condition | why | fallback | binding? | action |
 |-----------|-------|------|-----------|-----|----------|----------|--------|

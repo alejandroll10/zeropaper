@@ -49,6 +49,7 @@
   .status-not_started { background: var(--border); color: var(--text-muted); }
   .status-running { background: #1f6feb33; color: var(--blue); border: 1px solid var(--blue); }
   .status-complete { background: #23883033; color: var(--green); border: 1px solid var(--green); }
+  .status-complete_pending_verification { background: #f0883e33; color: #f0883e; border: 1px solid #f0883e; }
   .status-failed { background: #f8514933; color: var(--red); border: 1px solid var(--red); }
   [class*="status-halted_"] { background: #f0883e33; color: #f0883e; border: 1px solid #f0883e; }
   .counter {
@@ -311,7 +312,7 @@ function scoreColor(val) {
 
 function renderPipeline(state) {
   const currentIdx = stageIndex(state.current_stage);
-  const isComplete = state.status === 'complete';
+  const isComplete = state.status === 'complete' || state.status === 'complete_pending_verification';
   const container = document.getElementById('pipeline');
   container.innerHTML = '';
 
@@ -521,11 +522,20 @@ function renderHistory(state) {
 function renderStatus(state) {
   const badge = document.getElementById('status-badge');
   badge.className = `status-badge status-${state.status}`;
-  badge.textContent = state.status.replace('_', ' ');
+  badge.textContent = state.status.replace(/_/g, ' ');
 
   const label = document.getElementById('current-stage-label');
   if (state.status === 'complete') {
     label.textContent = 'Pipeline complete';
+  } else if (state.status === 'complete_pending_verification') {
+    // Terminal, but NOT clean: the paper is finished while a binding
+    // verification is still owed. Name what is outstanding rather than falling
+    // through to the stage label, which would read as "still working".
+    const pend = Array.isArray(state.pending_verification) ? state.pending_verification : [];
+    const cores = pend.map(e => (e && e.core) || 'unknown check').join(', ');
+    label.textContent = pend.length
+      ? `Complete — verification still owed: ${cores}`
+      : 'Complete — verification still owed';
   } else if (state.status === 'not_started') {
     label.textContent = 'Waiting to start';
   } else {

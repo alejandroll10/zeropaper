@@ -105,17 +105,94 @@ pass as verified. When `pipeline_state.json` has `"halt_on_core_bypass": true`
 (set by `--halt-on-core-bypass`), also set `status = "halted_core_bypass"` and
 stop for operator review — the session entry point treats `halted_*` as terminal.
 
-**Completion is blocked on an unresolved binding bypass even in default mode.** A
-ledger row with `binding? = yes` is *unresolved* until the binding source is
-restored, that verification is re-run, and the row's `action` is set to
-`resolved`. The session entry point refuses to set `status = "complete"` while any
-unresolved binding row exists — it sets `status = "halted_core_bypass"` instead.
-So the default never reports clean success on a non-binding verification either; it
-just halts at completion (the terminal backstop) rather than at the bypass itself
-(which is what the flag does). This is what makes "ran to success while a core was
-silently downgraded" impossible regardless of where the bypass occurred. Resolved
-rows and non-binding-flagged rows (`binding? = no`) are surfaced but do not block
-completion.
+**Completion is never clean while a binding bypass is unresolved.** A ledger row
+with `binding? = yes` is *unresolved* until that verification is re-run as binding
+and the row's `action` is set to `resolved`. What an unresolved row does at
+completion depends on whether the outage is **deferrable**.
+
+### Deferrable outages complete as pending, not halted
+
+An outage is **deferrable** when both hold:
+
+- the source is down for a **stated, bounded horizon** — a rate limit or credit
+  budget with a reset time (e.g. OpenAlex's daily budget, which resets 00:00 UTC
+  and reports `Retry-After`), not an indefinite outage or a removed record; and
+- **re-running the verification is cheap** — it is a lookup, not a re-derivation
+  or a re-estimation.
+
+**When the classification is ambiguous, it is not deferrable — halt.** The two
+errors are not symmetric: a wrongly-halted run costs one operator poke, while a
+wrongly-deferred one ships a status containing the word "complete" over a check
+that may never have been possible. Same asymmetry, same answer as the
+sanctioned-skip rule above.
+
+**Under `--halt-on-core-bypass` nothing is deferrable.** That flag exists to make
+a bypassed core a hard stop for strict and audit runs; deferring one would defeat
+it. When `"halt_on_core_bypass": true`, take the halt path for every unresolved
+binding row regardless of horizon.
+
+A deferrable outage does **not** halt a finished run. Record the row
+(`binding? = yes`, `action = recorded`), append an entry to
+`pipeline_state.json`'s `pending_verification` array, and let the pipeline finish
+its remaining work. At completion, set `status = "complete_pending_verification"`
+instead of `"complete"`. Use exactly these keys — the driver loop reads them to
+print what is outstanding:
+
+```json
+{"core": "OpenAlex bib-verify", "stage": "stage_8",
+ "why": "daily credit budget exhausted; 6 cites unchecked (smith2020, ...)",
+ "earliest_retry_utc": "2026-07-28T00:00:00Z"}
+```
+
+That status is the loud mark: it is not `complete`, it names itself in every
+report and on the dashboard, and the pending array says exactly what was never
+checked. The invariant the halt existed to protect — *never report clean success
+on a core that was downgraded* — is preserved, because
+`complete_pending_verification` is not clean success. What it drops is the part
+that was pure friction: parking finished work in a terminal state that needed a
+human to sign off on a lookup the pipeline can simply redo.
+
+**It self-clears.** A session that opens on `complete_pending_verification`
+re-probes each pending core; when one is back, it re-runs that binding
+verification, and on a clean result marks the row `resolved`, removes the entry,
+and sets `status = "complete"` once the array is empty. Keep the two stores in
+step: resolve the ledger row and drop the array entry in the same commit. If they
+ever disagree, the **ledger wins** — it is the audit record, and an unresolved
+binding row means the check is still owed no matter what the array says.
+
+If the source is still down, leave everything as is and report; nothing degrades
+by waiting.
+
+**If the re-run comes back dirty**, do not complete. The run is past Stage 10, so
+re-enter the fix path explicitly: set `current_stage` back to the stage that owns
+the check (`stage_8` for bibliography), `status` back to `"running"`, and work the
+findings through that stage's normal loop, then Stage 9 and Stage 10 again. The
+owning stage's loop cap governs as usual. If the cap is exhausted and a finding
+genuinely cannot be cleared, apply that stage's documented last-resort (for
+Stage 8, drop the unresolvable cites) — that is a real fix, so the row may then be
+`resolved`. What you may **not** do is mark the row `resolved` while a known-bad
+citation stays in the paper; if that is where you land, the run halts as
+`halted_core_bypass` for an operator instead.
+
+### Non-deferrable outages still halt
+
+Anything not meeting both tests above — an indefinite outage, a withdrawn record,
+a credential failure, a source whose re-check is expensive — keeps the old
+behavior: the session entry point refuses `status = "complete"` and sets
+`status = "halted_core_bypass"` for operator review. Resolved rows and
+non-binding rows (`binding? = no`) are surfaced but block nothing.
+
+### Who may mark a row resolved
+
+A running session may set `action = resolved` **only when it has itself re-run
+the binding verification to completion and it came back clean.** That is evidence,
+not faith: a verification that returns a verdict proves the source answered. Note
+in the row's `why`/`fallback` text that the session re-ran it and when.
+
+A session may **not** mark a row resolved on any other basis — not because a
+fallback looked clean, not because a probe returned 200, not to unblock itself.
+Doing so is itself a core bypass. Everything outside the re-ran-it-and-it-passed
+case remains operator-driven.
 
 ## Ledger format
 
@@ -125,8 +202,8 @@ completion.
 `condition` ∈ {`source-unavailable`, `gate-skipped`, `agent-substituted`,
 `tool-misclassified`}; `binding?` = `yes` if the verdict is now NON-BINDING;
 `action` ∈ {`recorded`, `halted`, `resolved`}. A `binding? = yes` row is
-*unresolved* until its `action` is set to `resolved` (binding source restored and
-the verification re-run); an unresolved binding row blocks `status = "complete"`.
-Only an operator-driven recovery may mark a row `resolved` — a running session is
-**not** authorized to self-clear a binding bypass (it cannot know the source was
-genuinely remedied), and doing so to unblock completion is itself a core bypass.
+*unresolved* until its `action` is set to `resolved` (the verification re-run as
+binding). An unresolved binding row blocks a plain `status = "complete"`: a
+deferrable outage completes as `complete_pending_verification`, anything else
+halts. See "Who may mark a row resolved" above — a session may self-clear only a
+verification it actually re-ran and passed.

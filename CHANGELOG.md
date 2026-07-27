@@ -15,7 +15,48 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.11.1] — 2026-07-27 (current)
+## [2.12.0] — 2026-07-27 (current)
+Deferrable core-bypass: a transient outage no longer parks a finished paper (issue #179).
+**Problem:** any unresolved binding row blocked `status = "complete"` and forced terminal
+`halted_core_bypass` awaiting manual operator sign-off. So an OpenAlex daily-budget outage —
+transient, self-healing at 00:00 UTC, with a clean WebSearch fallback already in hand — could
+strand a 100%-finished, submission-ready paper until a human marked a ledger row `resolved` by
+hand. v2.11.0 made that outage far less likely and stopped it hanging; this closes the routing
+half that made it terminal.
+**Deferrable vs not.** An outage is *deferrable* when its source is down for a **stated bounded
+horizon** (a rate limit or credit budget with a reset time) **and** the re-check is a **cheap
+lookup**. Deferrable outages no longer halt: the run finishes, records what it owes in
+`pipeline_state.json`'s new `pending_verification` array, and completes as
+`status = "complete_pending_verification"`. Everything else — indefinite outage, withdrawn
+record, credential failure, expensive re-check — still halts, as does **any ambiguous
+classification** (the errors are asymmetric: a wrongly-deferred outage ships a status containing
+the word "complete") and **every** case under `--halt-on-core-bypass`, which by design makes a
+bypassed core a hard stop.
+**The invariant is unchanged:** `complete_pending_verification` is not clean success. It is the
+loud mark — a distinct status, an amber dashboard badge naming the outstanding cores, a driver
+loop that stops and prints them, and an array saying exactly which citations went unchecked.
+What was dropped is only the friction: a terminal state and a human signature for a lookup the
+pipeline can simply redo.
+**Self-clearing.** A session opening on `complete_pending_verification` re-probes, re-runs the
+owed verification, and on a clean result resolves the ledger row, drops the entry, and sets
+`complete`. Resolution authority was **narrowed, not loosened**: a session may self-clear only a
+verification **it re-ran itself that came back clean** — evidence, not faith; a probe returning
+200 or a fallback looking clean still cannot. A dirty re-check resets `current_stage` to the
+owning stage and re-enters that stage's loop; a row may never be resolved while a known-bad
+citation remains in the paper (that halts). Ledger and array must move together, and the ledger
+wins if they disagree — the completion gate reads the ledger, so a corrupted array cannot force
+a false `complete`.
+**Consumers:** `launch.sh`'s driver `case` matched `complete)` exactly, so the new status would
+have fallen through and re-prompted a finished paper until `MAX_TURNS` — it now exits cleanly and
+prints the pending entries. `dashboard.html` would have rendered the badge unstyled and shown the
+run as still working on "stage_10"; it now reads *Complete — verification still owed: <cores>*
+(and all underscores in status badges are spaced, which also fixes `halted_core_bypass`).
+**Not changed:** `core.md` stays lean per issue #27 — it gains only the `pending_verification`
+schema. All three autonomous runtimes already shared `templates/runtime/claude/session.md`
+(`setup.sh` sets `CODEX_SESSION="$CLAUDE_SESSION"`), so the rule reaches codex and gemini as it
+always did.
+
+## [2.11.1] — 2026-07-27
 Credential documentation + a silent `.env` merge bug found while writing it.
 **Bug:** `update.sh`'s env-merge read the source `.env` with `while IFS= read -r line`, which
 sets the variable but returns non-zero on a final line with no trailing newline — so the loop

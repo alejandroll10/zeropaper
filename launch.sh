@@ -399,6 +399,28 @@ while :; do
     case "$st" in
         complete)
             echo "[driver] pipeline COMPLETE after $turn driver turn(s)" | tee -a "$LOG"; exit 0 ;;
+        complete_pending_verification)
+            # Terminal for the driver: the paper is finished, but a binding
+            # verification is still owed because its source was rate/budget
+            # limited (see docs/core_bypass.md). Re-prompting cannot help —
+            # the source resets on its own clock — so stop rather than burn
+            # turns, and say loudly what is outstanding.
+            echo "[driver] pipeline COMPLETE *PENDING VERIFICATION* after $turn driver turn(s)" | tee -a "$LOG"
+            echo "[driver] A binding verification was never run — the paper is NOT fully verified." | tee -a "$LOG"
+            python3 -c 'import json,sys
+try:
+    p=json.load(open(sys.argv[1])).get("pending_verification") or []
+except Exception:
+    p=[]
+for e in p:
+    if isinstance(e,dict):
+        print("[driver]   pending: %s (stage %s) — %s; retry after %s" % (
+            e.get("core","?"), e.get("stage","?"), e.get("why","?"),
+            e.get("earliest_retry_utc","?")))
+    else:
+        print("[driver]   pending: %s" % (e,))' "$STATE" 2>/dev/null | tee -a "$LOG"
+            echo "[driver] Re-run ./launch.sh codex after that time; the session re-runs the check and self-completes." | tee -a "$LOG"
+            exit 0 ;;
         halted_*)
             echo "[driver] pipeline halted: $st — operator intervention needed (see the runtime doc's halted_* recovery notes)" | tee -a "$LOG"; exit 0 ;;
         '?')
