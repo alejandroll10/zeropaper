@@ -333,13 +333,22 @@ echo "=== Merging .env ==="
 while IFS= read -r env_file; do
     if [ -f "$FRESH/$env_file" ] && [ -f "$PROJECT/$env_file" ]; then
         added=0
-        while IFS= read -r line; do
+        # `|| [ -n "$line" ]` catches a final line with no trailing newline:
+        # plain `read` sets the variable but returns non-zero at EOF, so the
+        # loop body would skip it and that key would be silently dropped from
+        # the merge. Editors that don't terminate the last line are common.
+        while IFS= read -r line || [ -n "$line" ]; do
             [[ -z "$line" || "$line" =~ ^# ]] && continue
             key="${line%%=*}"
             if ! grep -q "^${key}=" "$PROJECT/$env_file" 2>/dev/null; then
                 if [ "$DRY_RUN" = "1" ]; then
                     echo "  + $key (would add)"
                 else
+                    # Guard against the same problem on the receiving side: if
+                    # the target's last line is unterminated, a bare append
+                    # would concatenate onto it and corrupt both keys.
+                    [ -s "$PROJECT/$env_file" ] && [ -n "$(tail -c1 "$PROJECT/$env_file")" ] \
+                        && printf '\n' >> "$PROJECT/$env_file"
                     echo "$line" >> "$PROJECT/$env_file"
                     echo "  + $key"
                 fi

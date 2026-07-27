@@ -15,7 +15,29 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.11.0] — 2026-07-26 (current)
+## [2.11.1] — 2026-07-27 (current)
+Credential documentation + a silent `.env` merge bug found while writing it.
+**Bug:** `update.sh`'s env-merge read the source `.env` with `while IFS= read -r line`, which
+sets the variable but returns non-zero on a final line with no trailing newline — so the loop
+body skipped it and that key was **silently dropped**. The repo's own `.env` ended exactly that
+way, with `OPENALEX_API_KEY` last, so the v2.11.0 key would not have propagated to any existing
+deployment. Fixed with `|| [ -n "$line" ]`, plus a receiving-side guard that newline-terminates
+the *target* before appending (a bare append onto an unterminated target concatenates two keys
+into one corrupt line). `setup.sh` normalizes the trailing newline when copying.
+**New `.env.example`** (committed; `.env` is gitignored, so a fresh clone had none and `setup.sh`
+silently created no `.env` at all — contradicting the README). `setup.sh` now falls back to it,
+so a deployment always lands a scaffold. Documents all 16 credential variables with empty values.
+**README Step 3 rewritten**, and three of its claims were simply false: it said `NAME`/`EMAIL`/
+`UNIVERSITY` appear "on the paper's title page" (nothing reads `NAME`/`UNIVERSITY`, and papers
+ship an anonymized `\author` line that `paper-writer.md` forbids changing); it listed
+`CENSUS_API_KEY` as optional (it is required — `bls_census_utils.py` raises without it, the
+keyless tier having been retired); and it omitted `SEC_EDGAR_NAME`/`SEC_EDGAR_EMAIL` and the
+`LOCAL_LLM_*` self-hosted backend entirely. `OPENALEX_API_KEY` is now documented as an
+all-variants credential with the budget rationale, plus `update.sh` propagation instructions.
+**Issues:** #150 (host-level OpenAlex rate limiter) closed — its per-IP premise is obsolete now
+that the budget is measured per-key; the surviving shared-verdict-cache half is tracked in #207.
+
+## [2.11.0] — 2026-07-26
 OpenAlex credit-budget adaptation — the root cause of issue #179.
 **Discovery:** OpenAlex replaced its per-second rate limit with a **daily credit/dollar
 budget** on 2026-02-24 and now requires an API key past demo use; both utils still modeled
@@ -57,7 +79,9 @@ hit failures doesn't overstate spend. DOI scraping is restricted to structural l
 (`url`/`howpublished`/`eprint`, never the prose `note`, which routinely cites *other* papers'
 DOIs) and no longer captures closing brackets.
 **Not changed:** `.env` needs no scaffolding work — `setup.sh` copies it to new deployments and
-`update.sh`'s env-merge appends the new key to existing ones.
+`update.sh`'s env-merge appends the new key to existing ones. *(Corrected in 2.11.1: the merge
+silently dropped an unterminated final line, which is exactly where `OPENALEX_API_KEY` sat, so
+propagation to existing deployments did not actually work until that release.)*
 
 ## [2.10.0] — 2026-07-26
 llm_cognition hardening pass (second extraction wave + calibration + experiment rigor).

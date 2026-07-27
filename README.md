@@ -124,18 +124,31 @@ This creates `my-paper/` with everything assembled and ready — `CLAUDE.md`, `A
 
 You can create as many projects as you want from the same template.
 
-### Step 3: Configure credentials (if using extensions)
+### Step 3: Configure credentials
 
 ```bash
 cd my-paper
-# Edit .env with your API keys (created by setup.sh)
+# setup.sh puts a .env here — copied from the template repo's own .env if you
+# have one, otherwise scaffolded from .env.example with every key blank.
 nano .env
 ```
 
+Set this one for **every** variant, extensions or not:
+
+| Credential | Why |
+|------------|-----|
+| `OPENALEX_API_KEY` | Free, no card — make an account at [openalex.org](https://openalex.org), then copy the key from [openalex.org/settings/api](https://openalex.org/settings/api). Every variant leans on OpenAlex for literature search, novelty checks, and bibliography verification. It bills a **daily credit budget**: a key gives you 10,000 credits/day *per key*, while going keyless drops you to a 1,000/day demo tier **shared by every process on the host**. A title search costs 10 credits and a DOI lookup is free, so a keyless machine gets ~100 searches/day total — which concurrent pipelines exhaust quickly, and the resulting 429s persist until 00:00 UTC. |
+
+Then, per extension:
+
 | Extension | Credentials needed |
 |-----------|-------------------|
-| `--ext empirical` | `FRED_API_KEY` (free, from [FRED](https://fred.stlouisfed.org/docs/api/api_key.html)), `WRDS_USER` + `WRDS_PASS` (from [WRDS](https://wrds-www.wharton.upenn.edu/)) |
-| `--ext theory_llm` | `UF_API_KEY` (from [UF NaviGator](https://api.ai.it.ufl.edu)) |
+| `--ext empirical` | `FRED_API_KEY` (free, from [FRED](https://fred.stlouisfed.org/docs/api/api_key.html)), `WRDS_USER` + `WRDS_PASS` (from [WRDS](https://wrds-www.wharton.upenn.edu/)), `CENSUS_API_KEY` (free, from [Census](https://api.census.gov/data/key_signup.html) — **required** for any ACS/CPS call; the keyless tier was retired), `SEC_EDGAR_NAME` + `SEC_EDGAR_EMAIL` (no registration; SEC requires a real identity in the User-Agent). Optional: `BLS_API_KEY` (free, raises the daily cap — keyless still works) |
+| `--ext theory_llm` | `UF_API_KEY` (from [UF NaviGator](https://api.ai.it.ufl.edu)); `DEEPINFRA_TOKEN` for cross-family replication. Or run against a self-hosted model with no key at all: set `LOCAL_LLM_MODEL` (+ `LOCAL_LLM_BASE_URL`, defaults to Ollama's) |
+
+`EMAIL` identifies your API traffic to OpenAlex and Crossref (the `mailto` parameter) — worth setting regardless. Note that **no identity value reaches the manuscript**: papers ship `\author{[Author names withheld for double-blind review]}` and the pipeline is forbidden to de-anonymize them.
+
+To add a key to projects you already deployed, put it in this repo's `.env` and run `./update.sh <project>`; the merge appends keys the project is missing without touching values it already has.
 
 ### Step 4: Launch
 

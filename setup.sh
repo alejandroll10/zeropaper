@@ -1998,9 +1998,18 @@ fi
 echo "  ✓ Project structure created"
 
 # ── Copy .env if available ──
+# Falls back to the committed .env.example so a fresh clone (which has no .env,
+# since it is gitignored) still lands a scaffold in the project to fill in,
+# rather than no file at all.
 if [ -f "$SCRIPT_DIR/.env" ]; then
     cp "$SCRIPT_DIR/.env" "$P/.env"
+    # A final line with no trailing newline is silently dropped by update.sh's
+    # line-by-line merge, so normalize on the way out.
+    [ -n "$(tail -c1 "$P/.env")" ] && printf '\n' >> "$P/.env"
     echo "  ✓ .env copied from template repo"
+elif [ -f "$SCRIPT_DIR/.env.example" ]; then
+    cp "$SCRIPT_DIR/.env.example" "$P/.env"
+    echo "  ✓ .env scaffolded from .env.example — fill in your credentials"
 fi
 
 # ── Create the project virtualenv ──
