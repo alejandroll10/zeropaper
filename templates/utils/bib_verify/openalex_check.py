@@ -10,8 +10,8 @@ Writes one JSON result per input line to stdout:
    "matched_title": ..., "doi": ..., "url": ..., "venue": ..., "year": ...,
    "similarity": float, "cited": {...}, "note": "..."}
 
-OpenAlex is free and unauthenticated. Pass EMAIL via env var to enter the
-polite pool (faster, more reliable). Reads .env at the project root if present.
+Reads OPENALEX_API_KEY and EMAIL from .env at the project root (or the env).
+The key buys a usable daily credit budget — see the budget note below.
 """
 from __future__ import annotations
 
@@ -31,9 +31,30 @@ from pathlib import Path
 OPENALEX = "https://api.openalex.org/works"
 CROSSREF = "https://api.crossref.org/works/"
 TIMEOUT = 12
-# OpenAlex/Crossref limits are per-IP, so several pipelines on one host trip 429
-# collectively. Retry with jittered exponential backoff (so concurrent callers
-# don't retry in lockstep and re-collide) and honor Retry-After when sent.
+
+# ── OpenAlex credit budget (why this script prefers DOIs) ────────────────────
+# Since 2026-02-24 OpenAlex bills a daily CREDIT budget instead of capping
+# request rate: 10,000 credits/day with an OPENALEX_API_KEY, 1,000/day keyless
+# (a demo tier shared per-IP, which is how concurrent pipelines used to exhaust
+# it collectively — issue #179). Measured per-call costs:
+#
+#   /works/doi:{doi}  or  /works/W{id}   0 credits   ← canonical single entity
+#   /works?filter=doi:{doi}              1 credit    (list endpoint)
+#   /works?filter=title.search:{title}  10 credits   ← what a title lookup costs
+#
+# So resolving a cite by its DOI is FREE and a title search is not. `verify()`
+# tries the DOI path first whenever the .bib carried a `doi` field, and falls
+# back to (or cross-checks with) a search when there is no DOI, the DOI doesn't
+# resolve, or the DOI's paper doesn't match the cited title. A DOI-bearing
+# bibliography whose DOIs actually match their titles therefore verifies at zero
+# credit cost; each stale or wrong DOI costs the usual 10 for its cross-check.
+#
+# Crossref is separate and still rate-based (10 req/s, no daily cap).
+#
+# Backoff therefore covers transient 5xx and short 429s, not a per-second cap
+# (which no longer bites). Jitter keeps concurrent callers from retrying in
+# lockstep. A short Retry-After is honored; a budget-exhaustion one (hours)
+# raises OpenAlexBudgetExhausted rather than being slept off.
 RETRIES = 10
 BACKOFF = 1.5
 BACKOFF_CAP = 30.0  # don't sleep longer than this per attempt
@@ -51,11 +72,56 @@ def _retry_after_seconds(exc: urllib.error.HTTPError) -> float | None:
     return secs if secs >= 0 else None  # never feed a negative to time.sleep()
 
 
+class OpenAlexBudgetExhausted(RuntimeError):
+    """A 429 whose Retry-After is far too long to wait out.
+
+    OpenAlex's daily-budget limiter sends Retry-After = seconds-until-midnight-UTC
+    (up to ~24h). Sleeping on that stalls the whole verify run — it is the
+    mechanism behind the observed "55+ min, 0/18 entries processed, then killed"
+    in issue #179. Raise instead, so verify() records an explicit api-error for
+    the entry and the caller falls back to WebSearch.
+
+    Carries retry_after for parity with openalex.py's OpenAlexRateLimited, which
+    is the same fix mirrored in the literature-query client.
+    """
+
+    def __init__(self, message: str, retry_after: float | None = None):
+        super().__init__(message)
+        self.retry_after = retry_after
+
+
+def _raise_if_budget_exhausted(retry_after: float | None, code: int) -> None:
+    """Bail immediately on a budget-exhaustion 429 rather than sleeping it off.
+
+    Scoped to 429: a 5xx carrying a long Retry-After is a transient outage, not
+    budget exhaustion, so it takes the normal capped-backoff path.
+    """
+    if code == 429 and retry_after is not None and retry_after > BACKOFF_CAP:
+        tier = (
+            "$1/day keyed budget"
+            if load_env_api_key()
+            else "$0.10/day KEYLESS demo budget (shared across this whole host IP) "
+                 "— set OPENALEX_API_KEY in .env for 10x more"
+        )
+        raise OpenAlexBudgetExhausted(
+            f"OpenAlex daily credit budget exhausted on the {tier}; "
+            f"Retry-After={retry_after:.0f}s (~{retry_after / 3600:.1f}h), resets 00:00 UTC. "
+            f"Not waiting — fall back to WebSearch for this entry.",
+            retry_after=retry_after,
+        )
+
+
 def _backoff_sleep(attempt: int, retry_after: float | None) -> None:
-    """Sleep before the next attempt: honor Retry-After, else exponential + jitter."""
+    """Sleep before the next attempt: honor Retry-After, else exponential + jitter.
+
+    Every sleep is capped at BACKOFF_CAP. A server-sent Retry-After can be hours
+    (see OpenAlexBudgetExhausted); the callers bail on those before reaching
+    here, and this cap is the second line of defense so no single attempt can
+    stall a verify run.
+    """
     window = min(BACKOFF * (2 ** attempt), BACKOFF_CAP)
     delay = retry_after if retry_after is not None else random.uniform(0, window)
-    time.sleep(delay)
+    time.sleep(min(delay, BACKOFF_CAP))
 
 # Surname-token noise to strip. Replaces the old `len >= 3` filter, which
 # silently discarded short *real* surnames (Li, Wu, Bo, Ma, He, An, Xi) and so
@@ -97,19 +163,66 @@ def _filter_particles(tokens: set[str]) -> set[str]:
     return kept or tokens
 
 
-def load_env_email() -> str:
-    email = os.environ.get("EMAIL", "").strip().strip('"').strip("'")
-    if email:
-        return email
+def _load_env(name: str) -> str:
+    """Read `name` from the environment, else from the nearest .env walking up.
+
+    Stops at the first .env found (a project root shadows anything above it).
+    """
+    val = os.environ.get(name, "").strip().strip('"').strip("'")
+    if val:
+        return val
     cwd = Path.cwd()
     for parent in [cwd, *cwd.parents]:
         env = parent / ".env"
         if env.is_file():
             for line in env.read_text().splitlines():
-                if line.startswith("EMAIL="):
+                if line.startswith(f"{name}="):
                     return line.split("=", 1)[1].strip().strip('"').strip("'")
             break
     return ""
+
+
+def load_env_email() -> str:
+    return _load_env("EMAIL")
+
+
+_api_key_cache: str | None = None
+
+
+def load_env_api_key() -> str:
+    """OPENALEX_API_KEY, cached (read once per process, used on every call)."""
+    global _api_key_cache
+    if _api_key_cache is None:
+        _api_key_cache = _load_env("OPENALEX_API_KEY")
+    return _api_key_cache
+
+
+def _openalex_request(url: str) -> urllib.request.Request:
+    """Build an OpenAlex request, authenticating via header when a key is set.
+
+    The key goes in Authorization rather than the query string so it stays out
+    of the error messages below (which embed the URL) and out of any logs.
+    """
+    headers = {}
+    api_key = load_env_api_key()
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    return urllib.request.Request(url, headers=headers)
+
+
+def _clean_doi(doi: str) -> str:
+    """Strip URL/scheme wrappers off a DOI, leaving the bare 10.x/suffix form.
+
+    Prefixes are stripped from the front only — a global replace would corrupt a
+    DOI suffix that happened to contain one of these substrings.
+    """
+    out = (doi or "").strip()
+    for prefix in ("https://doi.org/", "http://doi.org/", "https://dx.doi.org/",
+                   "http://dx.doi.org/", "doi:"):
+        if out.lower().startswith(prefix):
+            out = out[len(prefix):]
+            break
+    return out.strip().rstrip(".,;:")
 
 
 def normalize_title(title: str) -> str:
@@ -122,7 +235,50 @@ def title_similarity(a: str, b: str) -> float:
     return SequenceMatcher(None, normalize_title(a), normalize_title(b)).ratio()
 
 
+def fetch_openalex_by_doi(doi: str, mailto: str) -> dict | None:
+    """Resolve a work by DOI via the canonical single-entity path (0 credits).
+
+    Returns the work dict, or None when the DOI is empty or OpenAlex doesn't
+    have it (404 — a real "not indexed" answer, so the caller should fall back
+    to the title search). Raises only on a genuine transport/limit failure, so
+    a budget-exhaustion 429 is not silently mistaken for "DOI unknown".
+
+    Note the URL form matters for cost: `/works/doi:{doi}` is free, while the
+    `/works/https://doi.org/{doi}` alias and `?filter=doi:` both bill 1 credit.
+    """
+    doi_id = _clean_doi(doi)
+    if not doi_id:
+        return None
+    params = {"mailto": mailto} if mailto else {}
+    url = f"{OPENALEX}/doi:{urllib.parse.quote(doi_id, safe='/')}"
+    if params:
+        url = f"{url}?{urllib.parse.urlencode(params)}"
+    last_err: Exception | None = None
+    for attempt in range(RETRIES + 1):
+        try:
+            with urllib.request.urlopen(_openalex_request(url), timeout=TIMEOUT) as resp:
+                return json.loads(resp.read().decode("utf-8"))
+        except urllib.error.HTTPError as exc:
+            last_err = exc
+            # 404 = OpenAlex genuinely lacks this DOI. That is an answer, not a
+            # fault: report it as a miss so verify() pays for a title search.
+            if exc.code == 404:
+                return None
+            if exc.code != 429 and exc.code < 500:
+                break
+            retry_after = _retry_after_seconds(exc)
+            _raise_if_budget_exhausted(retry_after, exc.code)
+            if attempt < RETRIES:
+                _backoff_sleep(attempt, retry_after)
+        except Exception as exc:
+            last_err = exc
+            if attempt < RETRIES:
+                _backoff_sleep(attempt, None)
+    raise RuntimeError(f"OpenAlex DOI lookup failed: {last_err}")
+
+
 def query_openalex(title: str, mailto: str) -> list[dict]:
+    """Title search — 10 credits per call. Prefer fetch_openalex_by_doi first."""
     params = {"search": title, "per-page": "3"}
     if mailto:
         params["mailto"] = mailto
@@ -130,7 +286,7 @@ def query_openalex(title: str, mailto: str) -> list[dict]:
     last_err: Exception | None = None
     for attempt in range(RETRIES + 1):
         try:
-            with urllib.request.urlopen(url, timeout=TIMEOUT) as resp:
+            with urllib.request.urlopen(_openalex_request(url), timeout=TIMEOUT) as resp:
                 payload = json.loads(resp.read().decode("utf-8"))
                 return payload.get("results", []) or []
         except urllib.error.HTTPError as exc:
@@ -139,8 +295,10 @@ def query_openalex(title: str, mailto: str) -> list[dict]:
             # (e.g. 400/404) are deterministic, so don't waste retries on them.
             if exc.code != 429 and exc.code < 500:
                 break
+            retry_after = _retry_after_seconds(exc)
+            _raise_if_budget_exhausted(retry_after, exc.code)
             if attempt < RETRIES:
-                _backoff_sleep(attempt, _retry_after_seconds(exc))
+                _backoff_sleep(attempt, retry_after)
         except Exception as exc:
             last_err = exc
             if attempt < RETRIES:
@@ -279,14 +437,89 @@ def best_match(cite: dict, results: list[dict]) -> tuple[dict | None, float]:
 
 def verify(cite: dict, mailto: str, threshold: float) -> dict:
     if not cite.get("title"):
-        return {"key": cite.get("key", ""), "status": "MISS", "note": "no title to query", "cited": cite}
-    try:
-        results = query_openalex(cite["title"], mailto)
-    except Exception as exc:
-        return {"key": cite.get("key", ""), "status": "MISS", "note": f"api-error: {exc}", "cited": cite}
-    match, sim = best_match(cite, results)
+        return {"key": cite.get("key", ""), "status": "MISS", "note": "no title to query",
+                "lookup": "none", "credits": 0, "cited": cite}
+
+    # Cheap path first: a cited DOI resolves for 0 credits where a title search
+    # costs 10. The DOI only picks a *candidate* — it is still scored on title
+    # similarity below, so a .bib pointing at the wrong paper gets no free pass.
+    #
+    # `lookup` records how much to trust the cited DOI, which is what a reviewer
+    # needs for triage:
+    #   "doi"      — DOI matched the cited title at >= threshold: trust it alone
+    #   "doi-weak" — DOI matched below threshold, so the cite may name a
+    #                different paper than its DOI points to. Needs human eyes
+    #                whatever the final verdict (see the note for detail).
+    #   "search"   — no usable DOI; resolved by title search alone
+    # `credits` is what this entry actually cost, tracked at the call site so the
+    # report can't overstate spend on a call that failed (and so was never billed).
+    pre_notes: list[str] = []
+    doi_work: dict | None = None
+    match: dict | None = None
+    sim = 0.0
+    doi_sim = 0.0
+    credits = 0
+    lookup = "search"
+
+    if cite.get("doi"):
+        try:
+            doi_work = fetch_openalex_by_doi(cite["doi"], mailto)
+        except Exception as exc:
+            # Transport/budget failure, not "DOI unknown" — fall through to the
+            # search path, but keep the reason so an outage stays visible rather
+            # than reading as a clean miss.
+            pre_notes.append(f"doi-lookup-error: {exc}")
+            doi_work = None
+        if doi_work:
+            match, sim = best_match(cite, [doi_work])
+            doi_sim = sim
+            lookup = "doi" if sim >= threshold else "doi-weak"
+
+    # Accept the free DOI result unchallenged ONLY when it matches the cited
+    # title at VERIFIED caliber. Below that bar the cited DOI may point at a
+    # different paper (typo, companion paper, erratum, wrong copy-paste, or a
+    # DOI scraped out of a link field), and taking it on faith would be *weaker*
+    # than this function's pre-DOI behavior: the Crossref cross-check below
+    # re-fetches the same DOI we started from, so it agrees with itself whenever
+    # that DOI is real, and `doi_confirmed: true` would overclaim. So pay for
+    # the title search and score the DOI candidate alongside the search hits.
+    # The DOI candidate goes LAST so that on an exact title-similarity tie the
+    # search hit wins, exactly as it did before the DOI path existed (best_match
+    # sorts on title similarity only, and Python's sort is stable, so list order
+    # decides ties — a stale-year DOI must not displace a correct-year hit).
+    if match is None or sim < threshold:
+        results: list[dict] = []
+        try:
+            results = query_openalex(cite["title"], mailto)
+            credits += 10
+        except Exception as exc:
+            if match is None:
+                note = "; ".join(pre_notes + [f"api-error: {exc}"])
+                return {"key": cite.get("key", ""), "status": "MISS", "note": note,
+                        "lookup": lookup, "credits": credits, "cited": cite}
+            # Search unavailable but a weak DOI candidate is in hand: keep it and
+            # flag it rather than discarding the only evidence we have. `lookup`
+            # stays "doi-weak", so the entry is still routed for human review —
+            # this failure clusters with budget exhaustion, the exact case where
+            # a silently-trusted weak DOI would do the most damage.
+            pre_notes.append(f"title-search-unavailable: {exc}")
+        if results:
+            if doi_work is not None:
+                pre_notes.append(
+                    f"cited doi matched the cited title only weakly "
+                    f"(sim {doi_sim:.2f}); cross-checked against a title search"
+                )
+            match, sim = best_match(cite, results + ([doi_work] if doi_work else []))
+
     if match is None:
-        return {"key": cite.get("key", ""), "status": "MISS", "note": "no openalex results", "cited": cite}
+        return {
+            "key": cite.get("key", ""),
+            "status": "MISS",
+            "note": "; ".join(pre_notes + ["no openalex results"]),
+            "lookup": lookup,
+            "credits": credits,
+            "cited": cite,
+        }
     matched_title = match.get("title") or match.get("display_name") or ""
     matched_year = match.get("publication_year")
     cited_year = cite.get("year")
@@ -309,9 +542,11 @@ def verify(cite: dict, mailto: str, threshold: float) -> dict:
         "year": matched_year,
         "similarity": round(sim, 3),
         "doi_confirmed": None,
+        "lookup": lookup,     # doi | doi-weak | search — see the note above
+        "credits": credits,   # what this entry actually cost (0 or 10)
         "cited": cite,
     }
-    notes: list[str] = []
+    notes: list[str] = list(pre_notes)
     if not year_ok:
         notes.append(f"year mismatch (cited {cited_year}, openalex {matched_year})")
 
@@ -364,7 +599,9 @@ def main() -> int:
     ap.add_argument("--threshold", type=float, default=0.85,
                     help="Title similarity threshold for VERIFIED (default 0.85).")
     ap.add_argument("--rate-delay", type=float, default=0.12,
-                    help="Seconds to sleep between API calls (default 0.12).")
+                    help="Seconds to sleep between input entries (default 0.12). "
+                         "OpenAlex no longer enforces a per-second cap — this is "
+                         "politeness toward Crossref, which still does (10 req/s).")
     args = ap.parse_args()
 
     mailto = load_env_email()

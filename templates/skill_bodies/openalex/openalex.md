@@ -1,6 +1,13 @@
 ## What this is
 
-A CLI wrapper over the OpenAlex API (~250M scholarly works, free, no key) for **deterministic, hallucination-free literature queries**. Backing script: `code/utils/openalex/openalex.py`. Reads `EMAIL` from `.env` for the polite pool.
+A CLI wrapper over the OpenAlex API (~250M scholarly works) for **deterministic, hallucination-free literature queries**. Backing script: `code/utils/openalex/openalex.py`. Reads `OPENALEX_API_KEY` and `EMAIL` from `.env`.
+
+**OpenAlex bills a daily credit budget** (since 2026-02-24), not a request rate: 10,000 credits/day with a key, 1,000/day keyless. Costs are per call — a single work by DOI or OpenAlex ID is **free**, a list/filter query is 1 credit, and a **keyword search is 10**. Two consequences for how you query:
+
+- **When you already have a DOI or an OpenAlex ID, use `work` — never `search`.** Same answer, zero cost.
+- **Don't spend searches on exploration you could do with one filter.** A `--venue`/`--years` filtered listing is 10x cheaper than the equivalent keyword sweep.
+
+If the budget runs out the script says so explicitly (`daily credit budget exhausted … resets 00:00 UTC`) and the right response is the WebSearch fallback, not a retry.
 
 Use this whenever you want a structured slice of the literature: top-cited papers in a topic, recent published work in a specific venue, citation traversal, or an author's bibliography. Every result has a real DOI, real venue, real year — straight from the database.
 

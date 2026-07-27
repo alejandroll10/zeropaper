@@ -2,7 +2,9 @@
 
 A bibliography sanity check. Verifies every citation in the paper's references file against OpenAlex (a free bibliographic database covering ~250M scholarly works). Catches hallucinated, mistitled, or wrong-year citations before they ship.
 
-Backing script: `code/utils/bib_verify/verify_bib.sh`. Reads `EMAIL` from `.env` for the OpenAlex polite pool.
+Backing script: `code/utils/bib_verify/verify_bib.sh`. Reads `OPENALEX_API_KEY` and `EMAIL` from `.env`.
+
+An entry whose `doi` matches its title resolves for **0 credits** against OpenAlex's daily budget; title-only entries cost **10 each**, as do entries whose DOI disagrees with their title (those get a paid cross-check and are flagged `lookup: "doi-weak"`). The report prints the actual spend, so a `.bib` with complete and correct DOIs verifies free — worth knowing when a paper is re-verified across many referee rounds.
 
 ## When to use
 
@@ -31,8 +33,8 @@ Outputs:
 
 | Status | What it means | What to do |
 |--------|---------------|------------|
-| **VERIFIED** | OpenAlex returned a hit with title similarity ≥ 0.85 and matching year. If the match has a DOI, Crossref was also queried and the title/authors are consistent (`doi_confirmed: true`). High confidence the paper exists as cited. | Nothing. Move on. |
-| **RESOLVED** | Title similarity 0.60–0.85, or year off by >1. Probably the same paper, but the cite is sloppy. Crossref still ran and the DOI is consistent (or the match had no DOI). | Read the matched title/venue. If it's clearly the right paper with a typo in the cite, fix the cite. If not, demote to MISS and triage. |
+| **VERIFIED** | OpenAlex returned a hit with title similarity ≥ 0.85 and matching year. If the match has a DOI, Crossref was also queried and the title/authors are consistent (`doi_confirmed: true`). High confidence the paper exists as cited. | Nothing — **unless `lookup: "doi-weak"`**, in which case the cite is right but the `.bib`'s own `doi` field points at a different paper. Fix the DOI. |
+| **RESOLVED** | Title similarity 0.60–0.85, or year off by >1. Probably the same paper, but the cite is sloppy. Crossref still ran and the DOI is consistent (or the match had no DOI). | Read the matched title/venue. If it's clearly the right paper with a typo in the cite, fix the cite. If not, demote to MISS and triage. **If `lookup: "doi-weak"`, `doi_confirmed` describes the matched work, not the `.bib`'s DOI field** — that field disagrees with the entry's title and needs fixing too. Check venue and authors by hand. |
 | **MISS** | One of: (a) no good OpenAlex match, (b) OpenAlex matched but Crossref disagreed on title or authors (`doi_confirmed: false`, see the `note` for the mismatch) — i.e. a title collision with a real paper that is **not** the cited one, (c) SSRN-only working paper not indexed, (d) very recent (last few months), (e) fabricated. | Read the `note`: a `doi-mismatch` MISS is strong evidence the cite is fabricated or misattributed. Otherwise run the SSRN/WebSearch fallback below; only mark as fabricated after the fallback also fails. |
 
 The `doi_confirmed` field on each JSONL entry is `true` (Crossref agreed), `false` (Crossref disagreed — already demoted to MISS), or `null` (the OpenAlex match had no DOI, or Crossref was unreachable — see the `note`).
@@ -81,5 +83,5 @@ After both passes, write a triage section to `output/bib_verification.md` (appen
 
 - **Don't accept the verdict blindly.** OpenAlex can return a high-similarity match for the wrong paper (common-title collisions). The Crossref DOI check closes most of this gap — a `doi-mismatch` note on a MISS means the OpenAlex hit was on a different paper than the cite — but for RESOLVED entries with `doi_confirmed: null` (no DOI, e.g. SSRN/NBER), still glance at venue and authors.
 - **Don't auto-edit the bibliography.** Report findings; let the caller (paper-writer or human) decide how to fix. Editing `.tex` or the references file is downstream of this skill's job.
-- **EMAIL is required for the polite pool.** If `EMAIL` is missing from `.env`, the script still works but rate limits are tighter and lookups may fail. Warn if you notice many `api-error` notes in the report.
+- **A missing `OPENALEX_API_KEY` is the usual cause of an `api-error` run.** Without it the whole host shares a 1,000-credit/day demo budget, which one or two title-search verifies can exhaust; with it you get 10,000. If the report shows many `api-error` notes or a `daily credit budget exhausted` message, say so explicitly in your findings — it means those entries were never actually checked, so run the WebSearch fallback rather than reporting them as verified.
 - **MISS ≠ fabricated.** Always run the WebSearch fallback before declaring fabrication. False accusations of fabrication are as bad as missing real ones.

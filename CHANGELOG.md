@@ -15,7 +15,51 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.10.0] — 2026-07-26 (current)
+## [2.11.0] — 2026-07-26 (current)
+OpenAlex credit-budget adaptation — the root cause of issue #179.
+**Discovery:** OpenAlex replaced its per-second rate limit with a **daily credit/dollar
+budget** on 2026-02-24 and now requires an API key past demo use; both utils still modeled
+the old regime ("10 req/s, 100k/day") and authenticated with `mailto` only. Every deployment
+was therefore running production literature work on the **keyless $0.10/day demo tier, shared
+per-IP** — ~100 title searches/day for a whole host, which is why concurrent pipelines saw
+sustained 429s and why single-ID lookups kept succeeding while searches failed.
+**Measured costs** (from `x-ratelimit-*`): `/works/doi:{doi}` and `/works/W{id}` = **0
+credits**; the `/works/https://doi.org/…` alias and `?filter=doi:` = 1; **title search = 10**;
+PDF/XML = 100. Budget is **per key**, not per IP.
+**Changes:** `OPENALEX_API_KEY` support in `openalex.py` and `bib_verify/openalex_check.py`
+(Bearer header, so the key stays out of URLs, logs, and error text); `verify_bib.sh` now emits
+each entry's `doi` (previously parsed and discarded, incl. a fallback that scrapes DOIs out of
+`url`/`howpublished`/`eprint`), and `verify()` resolves by DOI first — **a bibliography whose
+DOIs match their titles now verifies for 0 credits** (measured on a 4-entry .bib); an entry whose
+DOI disagrees with its title still pays the usual 10 for a cross-check. Budget is now read off every response into `LAST_BUDGET` with a low-budget stderr
+warning, the exhaustion error names the tier and whether a key was in use, and the bib report
+prints credits spent. Skill docs (`openalex.md`, `bib-verify.md`) teach the cost model:
+prefer `work` over `search` when a DOI or ID is in hand.
+**Also fixes the #179 hang itself:** `openalex_check.py`'s `_backoff_sleep` slept the raw
+`Retry-After`, uncapped. On budget exhaustion that value is seconds-until-midnight-UTC, so the
+first entry slept for *hours* — the mechanism behind the reported "55+ min against 18 entries
+with 0/18 processed, then killed." It is now capped at `BACKOFF_CAP` and a budget-exhaustion 429
+raises `OpenAlexBudgetExhausted` immediately (scoped to 429; a 5xx with a long `Retry-After` is a
+transient outage and still backs off normally). `openalex.py` already had both protections; this
+brings the bib-verify path to parity. Consequence: budget exhaustion now surfaces as a per-entry
+`api-error` with an explicit "resets 00:00 UTC" message and a finished report, instead of a hung
+run with no report — which is what made the degradation unclassifiable in the first place.
+**Verification integrity:** a cited DOI is trusted on its own only when it matches the cited
+title at the VERIFIED bar (0.85). Below that the entry is labeled `lookup: "doi-weak"` and the
+title search runs anyway, with the DOI candidate scored *alongside* the search hits (placed last,
+so a stale-year DOI cannot displace a correct-year hit on a similarity tie). On that branch the
+chosen match's title-similarity is therefore never worse than the pre-change search-only path. `bib-verifier.md`
+and the generated report both now warn that `doi_confirmed: true` on a `doi-weak` entry means
+"the DOI is a real record," not "it is the paper this entry claims" — and the label persists even
+when the cross-check search itself fails, which is precisely when a silently-trusted weak DOI
+would do the most damage. Each entry also reports the `credits` it actually cost, so a run that
+hit failures doesn't overstate spend. DOI scraping is restricted to structural link fields
+(`url`/`howpublished`/`eprint`, never the prose `note`, which routinely cites *other* papers'
+DOIs) and no longer captures closing brackets.
+**Not changed:** `.env` needs no scaffolding work — `setup.sh` copies it to new deployments and
+`update.sh`'s env-merge appends the new key to existing ones.
+
+## [2.10.0] — 2026-07-26
 llm_cognition hardening pass (second extraction wave + calibration + experiment rigor).
 **Vocab:** ~45 new keys close every load-bearing econ leak the v2.9.0 pass missed —
 math-auditor-freeform's full heuristic set (a binding Gate 2 gate), polish-prose items 8–10,

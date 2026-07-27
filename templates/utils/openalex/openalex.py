@@ -15,7 +15,9 @@ Output formats:
   default — human-readable list (for grep / eyeballing)
   --json  — one JSON object per line (for piping to jq or another script)
 
-Reads EMAIL from .env at the project root for the OpenAlex polite pool.
+Reads OPENALEX_API_KEY and EMAIL from .env at the project root. The key is what
+buys a usable daily budget ($1/day vs $0.10/day keyless — see the budget note
+above BACKOFF); EMAIL is sent as `mailto` for identification.
 """
 from __future__ import annotations
 
@@ -48,13 +50,50 @@ try:
 except Exception:
     _SSL_CTX = ssl.create_default_context()
 
-# Base seconds for exponential backoff. OpenAlex limits (10 req/s, 100k/day) are
-# per-IP, so several pipelines sharing one host collectively trip 429 even when
-# none is individually abusive — and the cool-off can outlast a couple of short
-# retries. We back off exponentially with random jitter so concurrent callers
-# don't retry in lockstep and re-collide; on 429 we honor Retry-After when sent.
+# ── The daily credit budget (replaces the old per-second rate limit) ─────────
+# OpenAlex switched from call-rate limits to a credit/dollar DAILY BUDGET on
+# 2026-02-24 and now requires an API key for anything past demo use. Measured
+# from the x-ratelimit-* response headers:
+#
+#   with OPENALEX_API_KEY   10,000 credits/day  ($1.00)
+#   keyless (mailto only)    1,000 credits/day  ($0.10)   ← demo tier only
+#
+# The budget is per-key: a fresh key reported its full allowance on a host whose
+# keyless bucket was already part-spent, so concurrent pipelines can each carry
+# their own key instead of contending for one bucket. Keyless callers share the
+# tier per-IP, which is how several pipelines on one host used to exhaust it
+# collectively (issue #179).
+#
+# Measured per-call costs: the canonical single-entity path `/works/doi:{doi}`
+# and `/works/W{id}` are FREE (0 credits); list/filter = 1; the `/works/https://
+# doi.org/{doi}` alias and `?filter=doi:` = 1; search = 10; PDF/XML = 100. So
+# prefer `work` over `search` whenever a DOI or OpenAlex ID is in hand — same
+# answer at no cost. normalize_work_id() already funnels every accepted input
+# form (bare DOI, doi.org URL, W-id, openalex.org URL) onto the free path.
+#
+# There is no meaningful per-second cap anymore (back-to-back searches all
+# return 200), so backoff now covers only two cases: a transient 5xx, and a
+# budget-exhaustion 429. Jitter still keeps concurrent callers from retrying in
+# lockstep. Budget exhaustion cannot be waited out inside a retry window, so
+# http_get bails immediately on it (see the long-Retry-After branch).
 BACKOFF = 1.5
 BACKOFF_CAP = 30.0  # don't sleep longer than this per attempt
+
+# Credits below which we warn on stderr that the daily budget is nearly gone.
+# Sized so a caller has room to finish a modest bib-verify (18 entries x 10
+# credits for the search path) after seeing the warning.
+BUDGET_WARN_CREDITS = 200
+
+# Last-seen budget, refreshed from x-ratelimit-* on every response. Lets a
+# caller degrade deliberately ("budget nearly gone, defer") instead of
+# discovering the wall by crashing into a 429 mid-run.
+LAST_BUDGET: dict[str, float | None] = {
+    "remaining": None,  # credits left today
+    "limit": None,      # credits/day for this identity
+    "reset": None,      # seconds until refill (00:00 UTC)
+    "cost": None,       # credits charged for the most recent call
+}
+_budget_warned = False
 
 
 class OpenAlexRateLimited(RuntimeError):
@@ -125,19 +164,76 @@ def work_fields(abstracts: bool) -> str:
 
 # ── env / http helpers ────────────────────────────────────────────────────────
 
-def load_env_email() -> str:
-    email = (os.environ.get("EMAIL") or "").strip().strip('"').strip("'")
-    if email:
-        return email
+def _load_env(name: str) -> str:
+    """Read `name` from the environment, else from the nearest .env walking up.
+
+    Stops at the first .env found (a project root shadows anything above it),
+    matching the original EMAIL-only loader's behavior.
+    """
+    val = (os.environ.get(name) or "").strip().strip('"').strip("'")
+    if val:
+        return val
     cwd = Path.cwd()
     for parent in [cwd, *cwd.parents]:
         env = parent / ".env"
         if env.is_file():
             for line in env.read_text().splitlines():
-                if line.startswith("EMAIL="):
+                if line.startswith(f"{name}="):
                     return line.split("=", 1)[1].strip().strip('"').strip("'")
             break
     return ""
+
+
+def load_env_email() -> str:
+    return _load_env("EMAIL")
+
+
+_api_key_cache: str | None = None
+
+
+def load_env_api_key() -> str:
+    """OPENALEX_API_KEY, cached (http_get reads it on every call)."""
+    global _api_key_cache
+    if _api_key_cache is None:
+        _api_key_cache = _load_env("OPENALEX_API_KEY")
+    return _api_key_cache
+
+
+def _record_budget(headers) -> None:
+    """Capture the credit budget off x-ratelimit-* and warn when it runs low."""
+    global _budget_warned
+    if headers is None:
+        return
+
+    def _num(name: str) -> float | None:
+        raw = headers.get(name)
+        if raw is None:
+            return None
+        try:
+            return float(str(raw).strip())
+        except ValueError:
+            return None
+
+    remaining = _num("x-ratelimit-remaining")
+    LAST_BUDGET.update({
+        "remaining": remaining,
+        "limit": _num("x-ratelimit-limit"),
+        "reset": _num("x-ratelimit-reset"),
+        "cost": _num("x-ratelimit-credits-used"),
+    })
+    if remaining is not None and remaining < BUDGET_WARN_CREDITS and not _budget_warned:
+        _budget_warned = True
+        reset = LAST_BUDGET["reset"]
+        when = f", refills in {reset / 3600:.1f}h" if reset else ""
+        hint = "" if load_env_api_key() else (
+            " — no OPENALEX_API_KEY set, so this is the $0.10/day keyless demo "
+            "tier shared across this whole host; a free key gives 10x"
+        )
+        print(
+            f"WARN: OpenAlex daily budget nearly exhausted "
+            f"({remaining:.0f} credits left{when}){hint}",
+            file=sys.stderr,
+        )
 
 
 def _retry_after_seconds(exc: urllib.error.HTTPError) -> float | None:
@@ -173,13 +269,24 @@ def http_get(path: str, params: dict, mailto: str) -> dict:
     if mailto:
         params = {**params, "mailto": mailto}
     url = f"{API}{path}?{urllib.parse.urlencode(params, safe=',:|')}"
+    # Key goes in the Authorization header, not the query string: OpenAlex
+    # accepts either, but a header keeps the secret out of the exception
+    # messages below (which embed `url`), out of logs, and out of referrers.
+    headers = {}
+    api_key = load_env_api_key()
+    if api_key:
+        headers["Authorization"] = f"Bearer {api_key}"
+    req = urllib.request.Request(url, headers=headers)
     last_err: Exception | None = None
     for attempt in range(RETRIES + 1):
         try:
-            with urllib.request.urlopen(url, timeout=TIMEOUT, context=_SSL_CTX) as resp:
-                return json.loads(resp.read().decode("utf-8"))
+            with urllib.request.urlopen(req, timeout=TIMEOUT, context=_SSL_CTX) as resp:
+                payload = json.loads(resp.read().decode("utf-8"))
+                _record_budget(resp.headers)
+                return payload
         except urllib.error.HTTPError as exc:
             last_err = exc
+            _record_budget(exc.headers)
             # 429 = rate-limited, 5xx = transient server error → worth retrying.
             # 4xx other than 429 (e.g. 400/404) are deterministic; don't retry.
             if exc.code != 429 and exc.code < 500:
@@ -194,10 +301,16 @@ def http_get(path: str, params: dict, mailto: str) -> dict:
             # not budget exhaustion, so it takes the normal capped-backoff path
             # below (BACKOFF_CAP already bounds each sleep to 30s — no hang).
             if exc.code == 429 and retry_after is not None and retry_after > BACKOFF_CAP:
+                tier = (
+                    "$1/day keyed budget"
+                    if load_env_api_key()
+                    else "$0.10/day KEYLESS demo budget (shared across this whole "
+                         "host IP) — set OPENALEX_API_KEY in .env for 10x more"
+                )
                 raise OpenAlexRateLimited(
                     f"OpenAlex rate-limited (HTTP 429), Retry-After={retry_after:.0f}s "
-                    f"(~{retry_after / 3600:.1f}h) — daily request budget likely exhausted "
-                    f"(resets 00:00 UTC). Not waiting; fall back to WebSearch.",
+                    f"(~{retry_after / 3600:.1f}h) — daily credit budget exhausted on the "
+                    f"{tier}; resets 00:00 UTC. Not waiting; fall back to WebSearch.",
                     retry_after=retry_after,
                 ) from exc
             if attempt < RETRIES:

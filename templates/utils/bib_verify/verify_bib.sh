@@ -10,7 +10,10 @@
 #   - Raw per-entry JSON: output/bib_verification.jsonl
 #   - Human-readable report: output/bib_verification.md
 #
-# Reads EMAIL from .env (project root) for the OpenAlex polite pool.
+# Reads OPENALEX_API_KEY (daily credit budget) and EMAIL from .env at the project
+# root. An entry whose DOI matches its title resolves for 0 credits; title-only
+# entries — and entries whose DOI disagrees with their title — cost 10 each.
+# See openalex_check.py's budget note.
 
 set -euo pipefail
 
@@ -106,7 +109,23 @@ for raw in entries:
     year = int(ym.group()) if ym else None
     authors_raw = fields.get("author", "")
     authors = [a.strip() for a in re.split(r"\s+and\s+", authors_raw) if a.strip()]
-    print(json.dumps({"key": key, "title": title, "authors": authors, "year": year}))
+    # Emit the DOI when the entry has one: openalex_check.py resolves a DOI for
+    # 0 credits against OpenAlex's daily budget, where a title search costs 10.
+    # Fall back to scraping a DOI out of url/note fields, which is where plenty
+    # of econ/finance .bib entries actually carry it.
+    doi = fields.get("doi", "")
+    if not doi:
+        # Only structural link fields, never `note`: note is prose and routinely
+        # cites OTHER papers' DOIs ("corrects an error in 10.xxxx/...", "see also
+        # ..."), which would attach a wrong DOI to this entry. Excluding )]>
+        # keeps a parenthesized DOI from being captured with its closing bracket.
+        for alt in ("url", "howpublished", "eprint"):
+            m = re.search(r"10\.\d{4,9}/[^\s{}\"',)\]>]+", fields.get(alt, ""))
+            if m:
+                doi = m.group(0).rstrip(".,;:")
+                break
+    print(json.dumps({"key": key, "title": title, "authors": authors,
+                      "year": year, "doi": doi}))
 PYEOF
     PLAIN_FLAG=""
 else
@@ -142,6 +161,27 @@ print(f"**Total entries:** {total}")
 print(f"**VERIFIED:** {counts.get('VERIFIED', 0)}  •  "
       f"**RESOLVED:** {counts.get('RESOLVED', 0)}  •  "
       f"**MISS:** {counts.get('MISS', 0)}")
+print()
+# Credit spend against OpenAlex's daily budget: DOI lookups are free, title
+# searches cost 10 credits each. Surfaced so an operator can see why a run
+# neared the budget, and so adding DOIs to the .bib has a visible payoff.
+# Credit spend against OpenAlex's daily budget, summed from what each entry
+# actually cost (a call that failed was never billed, so inferring cost from the
+# lookup kind would overstate spend exactly when the budget is running out).
+lookups = Counter(r.get("lookup", "search") for r in rows)
+spent = sum(r.get("credits", 10) for r in rows)
+free = lookups.get("doi", 0)
+print(f"**OpenAlex credits spent:** {spent} "
+      f"({free} resolved free by DOI, {spent // 10} by title search at 10 credits each; "
+      f"daily budget 10,000 keyed / 1,000 keyless)")
+weak = lookups.get("doi-weak", 0)
+if weak:
+    subj = "1 entry carries" if weak == 1 else f"{weak} entries carry"
+    print()
+    print(f"⚠️  **{subj} a DOI that disagrees with the entry's own title** (`lookup: doi-weak`). "
+          f"`doi_confirmed` describes the work OpenAlex matched, not the DOI in the .bib, so "
+          f"it cannot vouch for that DOI — fix it even where the verdict is VERIFIED. Check "
+          f"venue and authors by hand; see each entry's note for the similarity.")
 print()
 print("Status meanings:")
 print("- **VERIFIED** — title match ≥ 0.85 in OpenAlex. If a DOI is present, Crossref also confirmed title and authors (`doi_confirmed: true`).")
