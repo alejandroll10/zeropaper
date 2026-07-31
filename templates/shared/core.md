@@ -113,13 +113,24 @@ Stage 1: Idea Generation     ──→ Gate 1: Idea Review (iterates with genera
                                      → winner copied to canonical files
                                    ├── all K eliminated → new Round of Stage 1
                                    └── ≥1 survives → proceed to Stage 2
-<!-- THEORY_FIRST_START -->
+<!-- NO_MODE_START -->
 Stage 2: Theory Development  ──→ Gate 2: Math Audit (structured then free-form)
                                    Gate 3: Novelty Check on full theory
                                    Stage 2b: Theory Exploration (compute, verify, plot)
                                       ├── FAILS → back to Stage 2
                                       └── HOLDS/FRAGILE → proceed
-<!-- THEORY_FIRST_END -->
+<!-- NO_MODE_END -->
+<!-- MEASUREMENT_FIRST_START -->
+Stage 2: Construct Spec      ──→ theory-generator runs in construct mode
+                                   (definition + task family + scoring rule +
+                                   measurement plan)
+                                   Gate 2: Design Plausibility (experiment-reviewer
+                                   reviews the measurement plan; binding) — the
+                                   math-audit form of Gate 2 and Stage 2b are
+                                   DEFERRED, not skipped: both math audits run on
+                                   the post-Stage-3b formal characterization
+                                   Gate 3: Novelty Check on the construct
+<!-- MEASUREMENT_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 Stage 2: Mechanism Document  ──→ theory-generator runs in mechanism mode
                                    (prose + DAG + ≤2 reduced-form posits)
@@ -267,9 +278,12 @@ Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` ob
 | `paper_writer_pse` † | 3 | current claim set | halt for operator routing — `docs/stage_5.md` / `claim-verifier` |
 | `claim_format_reexport` † | 2 | current claim set | halt for operator routing — `docs/stage_5.md` / `claim-verifier` |
 
-<!-- THEORY_FIRST_START -->
+<!-- NO_MODE_START -->
 **`stage2b_theory_version`:** Set to the `theory_version` that Stage 2b last fully explored. Before advancing at Gate 4, the orchestrator must verify this equals the current `theory_version`; if it is stale, re-run Stage 2b on the new content (see `docs/stage_2.md` Stage 2b step 5).
-<!-- THEORY_FIRST_END -->
+<!-- NO_MODE_END -->
+<!-- MEASUREMENT_FIRST_START -->
+**`stage2b_theory_version`:** Initialized to `null` and never updated under `--mode measurement-first`. Stage 2b does not run (piloting is part of the Stage 1 feasibility check, and the formal characterization is written *after* Stage 3b, about the measurements). The Gate 4 staleness rule that consumes this field does not apply here; the analogous binding rule is H3's requirement that the design gate passed on the current construct spec, the Stage 3b chain completed on it, and both math audits passed on its post-experiment characterization. The field remains in `pipeline_state.json` only because legacy reset paths write to it; those resets are harmless no-ops in this mode.
+<!-- MEASUREMENT_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 **`stage2b_theory_version`:** Initialized to `null` and never updated under `--mode empirical-first`. Stage 2b does not run in mechanism mode (the mechanism document has no equilibrium objects to explore), so the Gate 4 staleness rule that consumes this field does not apply here. The analogous binding rules in empirical-first mode are **two** Gate 4 hard blocks: `stage2_mechanism_version == theory_version` (the mechanism-plausibility gate — `docs/stage_2.md` "Gate 4 enforcement") AND `stage3a_theory_version == theory_version` (the empirics — `docs/stage_3a_empirical.md` "Gate 4 enforcement"). Both must hold before any Gate 4 advance. The `stage2b_theory_version` field remains in `pipeline_state.json` only because legacy reset paths (e.g., `puzzle-triager` RECONCILE / PIVOT) write to it; those resets are harmless no-ops in mechanism mode. (`stage2_mechanism_version`, by contrast, **is** reset by those paths — see `docs/stage_puzzle_triage.md` and `docs/stage_6.md` — because a `theory_version` reset to 1 would otherwise let a stale value false-positive the gate.)
 <!-- EMPIRICAL_FIRST_END -->
@@ -417,9 +431,12 @@ When the core result is correct but thin, extend it with mathematically hard, {{
 {{EMPIRICAL_PLAYBOOK_ADDENDUM}}
 
 **How to apply:** Identify the specific {{MECHANISM_QUALIFIER}} weakness from scorer/self-attack feedback. Pick 1-2 extensions that test whether the channel survives under realistic features. Prove the result or prove it breaks (a counterexample is as valuable as a positive result).
-<!-- THEORY_FIRST_START -->
+<!-- NO_MODE_START -->
 Re-run Gate 2 + Gate 4 on extensions.
-<!-- THEORY_FIRST_END -->
+<!-- NO_MODE_END -->
+<!-- MEASUREMENT_FIRST_START -->
+Re-run, on extensions: the design gate (only if the extension changes the measurement plan), Stage 3b (experiment re-fire on the extension's new contrasts), the characterization pass + both math audits on the new formal content, then Gate 4. Gate 3 (novelty) re-fires only if the extension introduces a structurally new construct.
+<!-- MEASUREMENT_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 on extensions. Gate 2 here means the **mechanism-plausibility** gate: re-run it (and re-set `stage2_mechanism_version`) only if the extension changes or extends the channel claim — for a new-predictions-only deepening that leaves the channel prose/DAG unchanged, the mechanism is unchanged and Gate 2 need not re-fire. Gate 3 (novelty) re-fires only if the extension introduces a structurally new channel. A deepening extension is a fresh analysis cycle (typically with new variables, new sample slices, AND potentially new estimators), so `loops.data_integrity` and `loops.method_check` start at 0 on re-entry per the generic Audit-loop scoping rule — a stale counter would otherwise force-FAIL the first legitimate REVISE from any of the three step-7.5 auditors.
 <!-- EMPIRICAL_FIRST_END -->
@@ -439,6 +456,9 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 <!-- THEORY_FIRST_START -->
 | Math audit fails | 3 consecutive audit failures on the same theory (hard cap) | Abandon this theory version. **Seeded/faithful:** does not abandon — after 3 failures the Gate 2 seeded override (`docs/stage_2.md`) applies the ship-honest check (narrow the failed auxiliary claim and continue; halt only if the seed's central result itself is unestablishable). |
 <!-- THEORY_FIRST_END -->
+<!-- MEASUREMENT_FIRST_START -->
+| Gate 2 design REVISE | 3 consecutive REVISEs on the same construct spec (hard cap) | Abandon this spec version — increment `theory_attempt` or swap sketches. **Seeded/faithful:** does not abandon — the Gate 2 seeded override (`docs/stage_2.md`) applies the ship-honest check at the same threshold. |
+<!-- MEASUREMENT_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 | Identification audit fails | 3 plan-revision rounds (cap from `stage_3a_empirical.md`) | Treat as FAIL — empiricist selects a different design from the menu, or escalate per `stage_3a_empirical.md` step 3 routing |
 | Gate 2 mechanism REVISE | 3 consecutive REVISEs on the same mechanism (hard cap) | Abandon this mechanism version — increment `theory_attempt` or swap sketches. **Seeded/faithful:** does not abandon — the Gate 2 seeded override (`docs/stage_2.md`) applies the ship-honest check at the same threshold. |
@@ -469,10 +489,15 @@ output/                   # Pipeline outputs by stage
 ├── seed/                 # (--seed mode only) user idea files + pipeline reports
 ├── stage0/               # literature_map_broad.md, gap_selection.md, literature_map.md, problem_statement.md, question_review.md, best_question{,_review}.md (Gate-0 cap-5 fallback snapshot)
 ├── stage1/               # idea sketches, reviews, selected_idea.md, novelty + prototype
-<!-- THEORY_FIRST_START -->
+<!-- NO_MODE_START -->
 ├── stage2/               # theory drafts, math audits, novelty checks (versioned _v1, _v2…)
 ├── stage2b/              # theory exploration report + figures/
-<!-- THEORY_FIRST_END -->
+<!-- NO_MODE_END -->
+<!-- MEASUREMENT_FIRST_START -->
+├── stage2/               # construct specs + post-experiment characterizations, design-gate
+                          #   reviews, math audits (fired after Stage 3b), novelty checks
+                          # (stage2b/ is not created — piloting is part of the Stage 1 check)
+<!-- MEASUREMENT_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 ├── stage2/               # mechanism documents, novelty checks (versioned _v1, _v2…). No math audit files in this mode.
                           # (stage2b/ is not created — theory exploration is skipped)

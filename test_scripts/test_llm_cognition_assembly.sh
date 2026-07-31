@@ -195,6 +195,66 @@ else
         && fail "ssj installed in llm report build (skill gating regressed)" || pass "skill gating holds in report mode"
 fi
 
+# ── 7. Measurement-first mode (#199): evidence-first llm_cognition build ──
+if ./setup.sh /tmp/llmcog_mf_gate --variant finance --mode measurement-first --local >/dev/null 2>&1; then
+    fail "gate did not fire: finance --mode measurement-first"
+else
+    pass "gate fired: measurement-first is llm_cognition-only"
+fi
+rm -rf test_output
+MF_LOG="$(./setup.sh --variant llm_cognition --mode measurement-first --local 2>&1)"
+if [ $? -ne 0 ]; then
+    fail "llm_cognition --mode measurement-first build failed"
+    echo "$MF_LOG" | tail -5
+else
+    pass "llm_cognition --mode measurement-first builds"
+    echo "$MF_LOG" | grep -q "All placeholders resolved" \
+        && pass "measurement-first placeholders resolved" || fail "measurement-first unresolved placeholders"
+    M=test_output/llm_cognition
+    if grep -rq "MEASUREMENT_FIRST_START\|NO_MODE_START" "$M" 2>/dev/null; then
+        fail "measurement-first marker leaked into deployed files"
+    else
+        pass "no measurement-first marker leakage"
+    fi
+    grep -q "construct mode" "$M/.claude/agents/theory-generator.md" \
+        && pass "theory-generator runs in construct mode" || fail "theory-generator missing construct mode"
+    grep -q "characterization mode" "$M/.claude/agents/theory-generator.md" \
+        && pass "theory-generator carries characterization mode" || fail "characterization mode missing"
+    grep -q "Design Plausibility (measurement-first)" "$M/docs/stage_2.md" \
+        && pass "stage_2 carries the design gate" || fail "design gate missing from stage_2"
+    grep -q "Deferred math audits" "$M/docs/stage_2.md" \
+        && pass "stage_2 carries the deferred-audit procedure" || fail "deferred audits missing"
+    grep -q "Post-experiment characterization" "$M/docs/stage_3b_experiments.md" \
+        && pass "stage_3b routes through characterization" || fail "characterization routing missing"
+    grep -q "design_review_v{N}" "$M/docs/stage_4.md" \
+        && pass "stage_4 scorer inputs include the design review" || fail "design review missing from stage_4"
+    grep -q "Mechanism Plausibility (empirical-first)" "$M/docs/stage_2.md" \
+        && fail "empirical-first gate leaked into measurement-first build" \
+        || pass "no empirical-first gate leakage"
+    grep -q "Stage 2b: Theory Exploration — skipped in measurement-first mode" "$M/docs/stage_2.md" \
+        && pass "stage_2b skip section present" || fail "stage_2b skip section missing"
+    grep -q "Computational exploration — implement the key result" "$M/docs/stage_2.md" \
+        && fail "theory-first Stage 2b procedure leaked into measurement-first stage_2" \
+        || pass "theory-first Stage 2b procedure absent"
+    grep -q 're-set \`stage3b_theory_version = theory_version\`' "$M/docs/stage_3b_experiments.md" \
+        && pass "characterization keeps stage3b_theory_version current" \
+        || fail "characterization stage3b_theory_version re-set rule missing"
+    grep -q "Measurement-first mode note" "$M/docs/stage_puzzle_triage.md" \
+        && pass "puzzle-triage carries the measurement-first note" || fail "puzzle-triage MF note missing"
+    grep -q 'reset \`stage2_design_version\` to \`null\`' "$M/docs/stage_puzzle_triage.md" \
+        && pass "PIVOT resets stage2_design_version" || fail "PIVOT stage2_design_version reset missing"
+    [ -d "$M/output/stage2b" ] \
+        && fail "stage2b dir created despite measurement-first skip" || pass "stage2b dir not created"
+    python3 -c "import json,sys; d=json.load(open('$M/process_log/pipeline_state.json')); sys.exit(0 if 'stage2_design_version' in d and d['stage2_design_version'] is None else 1)" \
+        && pass "stage2_design_version initialized" || fail "stage2_design_version missing from pipeline_state"
+    grep -q "measurement-feasibility check" "$M/.claude/agents/idea-prototyper.md" \
+        && pass "idea-prototyper re-anchored to measurement feasibility" || fail "idea-prototyper not re-anchored"
+    grep -q "measures its construct" "$M/.claude/agents/referee-mechanism.md" \
+        && pass "referee-mechanism runs the construct-validity frame" || fail "referee-mechanism frame not overridden"
+    grep -q "Measurement Paper Pipeline" "$M/CLAUDE.md" \
+        && pass "runtime doc subtitle re-framed" || fail "runtime doc subtitle unchanged"
+fi
+
 echo
 if [ "$FAILS" -gt 0 ]; then
     echo "FAILED: $FAILS check(s)"

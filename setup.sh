@@ -1,6 +1,6 @@
 #!/bin/bash
 # Auto AI Research Template — Setup & Launch
-# Usage: ./setup.sh [project-name] [--variant finance|macro|llm_cognition] [--mode empirical-first|report]
+# Usage: ./setup.sh [project-name] [--variant finance|macro|llm_cognition] [--mode empirical-first|measurement-first|report]
 #                  [--ext empirical|theory_llm] [--seed|--faithful|--manual] [--light]
 #                  [--no-model-probe] [--local]
 #
@@ -102,7 +102,7 @@ if [ "$NEXT_IS_EXT" = "1" ]; then
     exit 1
 fi
 if [ "$NEXT_IS_MODE" = "1" ]; then
-    echo "Error: --mode requires a value (empirical-first, report)"
+    echo "Error: --mode requires a value (empirical-first, measurement-first, report)"
     exit 1
 fi
 
@@ -184,6 +184,24 @@ if [ -n "$MODE" ]; then
                 echo "Info: --mode empirical-first implies --ext empirical (auto-added)."
             fi
             ;;
+        measurement-first)
+            # Evidence-first pipeline shape for the modal ML cognition paper
+            # (measurement, evals, probing, interpretability): construct
+            # definition + task-family design → design-plausibility gate →
+            # Stage 3b experiments as the evidence core → formal
+            # characterization of what was measured. The llm_cognition analog
+            # of empirical-first (issue #199).
+            if [ "$VARIANT" != "llm_cognition" ]; then
+                echo "Error: --mode measurement-first is llm_cognition-only."
+                echo "  The econ variants' evidence-first shape is --mode empirical-first"
+                echo "  (finance); measurement-first is built on the theory_llm experiment"
+                echo "  stage, which only llm_cognition deploys by default."
+                exit 1
+            fi
+            # theory_llm is auto-implied for llm_cognition already (above); the
+            # experiments are this mode's evidence core, so the implication is
+            # load-bearing here rather than merely conventional.
+            ;;
         report)
             # Report mode: referee an external submission instead of generating a paper.
             # Composes with --ext empirical / --ext theory_llm (adds extension auditors
@@ -201,7 +219,7 @@ if [ -n "$MODE" ]; then
             ;;
         *)
             echo "Unknown mode: $MODE"
-            echo "Available modes: empirical-first, report"
+            echo "Available modes: empirical-first, measurement-first, report"
             exit 1
             ;;
     esac
@@ -379,6 +397,16 @@ if [ "$MODE" = "empirical-first" ]; then
             PAPER_TYPE="causal-identification empirical finance paper"
             DOMAIN_AREAS="empirical finance — asset pricing, corporate finance, information economics, market design, financial intermediation, or behavioral finance — with the contribution resting on a credibly-identified causal estimand plus a prose+DAG mechanism"
             DOC_SUBTITLE="Autonomous Empirical Paper Pipeline"
+            ;;
+    esac
+elif [ "$MODE" = "measurement-first" ]; then
+    case "$VARIANT" in
+        llm_cognition)
+            # Article-safe: starts with a consonant sound ("measurement-…"),
+            # matching the base variant's "language-model …" convention.
+            PAPER_TYPE="measurement-first language-model cognition paper"
+            DOMAIN_AREAS="the science of language-model cognition and evaluation, measurement-first — the contribution is a construct made measurable (a formal construct definition plus a task family that operationalizes it) and the experimental evidence it yields in real models; formal characterization follows the measurements rather than preceding them. In scope: capability and behavior measurement, evaluation methodology, probing and interpretability protocols, benchmark design, scaling and context-use measurement."
+            DOC_SUBTITLE="Autonomous Measurement Paper Pipeline"
             ;;
     esac
 elif [ "$MODE" = "report" ]; then
@@ -1710,9 +1738,10 @@ elif [ "$MODE" = "report" ]; then
     :
 else
     # Stage 2b (theory exploration) is permanently skipped under
-    # --mode empirical-first; don't create the empty dir there.
+    # --mode empirical-first and --mode measurement-first (piloting is part
+    # of the design step there); don't create the empty dir in either.
     STAGE2B_DIRS=()
-    [ "$MODE" != "empirical-first" ] && STAGE2B_DIRS=("$P/output/stage2b/figures")
+    [ "$MODE" != "empirical-first" ] && [ "$MODE" != "measurement-first" ] && STAGE2B_DIRS=("$P/output/stage2b/figures")
     mkdir -p "$P/output/stage0" "$P/output/stage1" "$P/output/stage2" "${STAGE2B_DIRS[@]}" "$P/output/stage3" "$P/output/stage4" "$P/output/puzzle_triage" "$P/output/post_pipeline"
     mkdir -p "$P/process_log/sessions" "$P/process_log/decisions"
 fi
@@ -1981,6 +2010,28 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
 }
 JSONEOF
     sed -i.bak "s|__INITIAL_TIER__|$INITIAL_TIER|g; s|__HALT_ON_CORE_BYPASS__|$([ "$HALT_ON_CORE_BYPASS" = "1" ] && echo true || echo false)|g" "$P/process_log/pipeline_state.json" && rm "$P/process_log/pipeline_state.json.bak"
+fi
+
+# pipeline_state.json: measurement-first adds stage2_design_version — the
+# plan-time design gate's version pointer (Gate 4 blocks while it lags
+# theory_version), mirroring empirical-first's stage2_mechanism_version. The
+# theory_llm extension adds stage3b_theory_version separately below.
+if [ "$MODE" = "measurement-first" ] && [ -f "$P/process_log/pipeline_state.json" ]; then
+    python3 - "$P/process_log/pipeline_state.json" <<'PYMF'
+import json, sys
+p = sys.argv[1]
+with open(p) as f:
+    data = json.load(f)
+if "stage2_design_version" not in data:
+    new = {}
+    for k, v in data.items():
+        new[k] = v
+        if k == "stage2b_theory_version":
+            new["stage2_design_version"] = None
+    with open(p, "w") as f:
+        json.dump(new, f, indent=2)
+        f.write("\n")
+PYMF
 fi
 
 if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
@@ -2814,22 +2865,37 @@ EXT_EMPIRICAL_ON=0
 # when the body's mode-specific delta is small. Vocab substitution runs at
 # assembly time (before this resolver fires), so {{KEY}} placeholders are
 # already resolved when the resolver sees the agent files.
-python3 - "$EMPIRICAL_FIRST_ON" "$EXT_EMPIRICAL_ON" "$VARIANT" "$P/docs/"*.md "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
+python3 - "$MODE" "$EXT_EMPIRICAL_ON" "$VARIANT" "$P/docs/"*.md "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
     "$AGENTS_OUT"/*.md "$CODEX_AGENTS_OUT"/*.toml "$GEMINI_AGENTS_OUT"/*.md "$GROK_AGENTS_OUT"/*.md <<'PYEOF'
 import os, re, sys
-ef = sys.argv[1] == "1"
+mode = sys.argv[1]  # "", "empirical-first", "measurement-first", "report"
 xe = sys.argv[2] == "1"
 variant = sys.argv[3].upper()
+
+def keep(name):
+    """Marker-family semantics per mode. THEORY_FIRST = any theory-shaped
+    pipeline (the no-mode default AND measurement-first, whose output is still
+    a theory paper produced evidence-first). NO_MODE = strictly the modeless
+    default — use it for THEORY_FIRST sites whose content a mode-specific
+    block replaces (a site carrying both a NO_MODE and a MEASUREMENT_FIRST
+    block renders exactly one of them in every mode). Report mode copies no
+    stage docs and prunes the marker-carrying generative agents, so it takes
+    the default branch."""
+    if mode == "empirical-first":
+        return name == "EMPIRICAL_FIRST"
+    if mode == "measurement-first":
+        return name in ("THEORY_FIRST", "MEASUREMENT_FIRST")
+    return name in ("THEORY_FIRST", "NO_MODE")
+
 patterns = []  # list of (regex, replacement) applied in order
 # Trailing \n after END markers is optional so a marker at EOF (no final
 # newline) still matches; otherwise the literal HTML comment leaks into the
 # deployed file.
-if ef:
-    patterns.append((re.compile(r"<!-- THEORY_FIRST_START -->\n.*?<!-- THEORY_FIRST_END -->\n{0,2}", re.DOTALL), ""))
-    patterns.append((re.compile(r"<!-- EMPIRICAL_FIRST_(?:START|END) -->\n?"), ""))
-else:
-    patterns.append((re.compile(r"<!-- EMPIRICAL_FIRST_START -->\n.*?<!-- EMPIRICAL_FIRST_END -->\n{0,2}", re.DOTALL), ""))
-    patterns.append((re.compile(r"<!-- THEORY_FIRST_(?:START|END) -->\n?"), ""))
+for fam in ("THEORY_FIRST", "EMPIRICAL_FIRST", "MEASUREMENT_FIRST", "NO_MODE"):
+    if keep(fam):
+        patterns.append((re.compile(r"<!-- " + fam + r"_(?:START|END) -->\n?"), ""))
+    else:
+        patterns.append((re.compile(r"<!-- " + fam + r"_START -->\n.*?<!-- " + fam + r"_END -->\n{0,2}", re.DOTALL), ""))
 if xe:
     patterns.append((re.compile(r"<!-- EXT_EMPIRICAL_(?:START|END) -->\n?"), ""))
 else:

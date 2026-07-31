@@ -4,19 +4,22 @@
 
 1. Read `output/stage1/selected_idea.md`, `output/stage1/idea_prototype.md`, `output/stage0/problem_statement.md`, and `output/stage0/literature_map.md`
 2. Choose strategy:
-   - Attempt 1: develop the selected idea into a full theory, building on the prototype's derivation. (If the selected idea's `prototype` verdict is `BLOCKED-DIFFICULTY`, the prototype has no completed derivation — build instead on its "Most promising alternative technique" note (titled "Most promising alternative angle" under `--mode empirical-first`); if that note names no specific alternative, treat this as a fresh attempt informed by where the first attempt stalled.)
+   - Attempt 1: develop the selected idea into a full theory, building on the prototype's derivation. (If the selected idea's `prototype` verdict is `BLOCKED-DIFFICULTY`, the prototype has no completed derivation — build instead on its "Most promising alternative technique" note (titled "Most promising alternative angle" under `--mode empirical-first` and `--mode measurement-first`); if that note names no specific alternative, treat this as a fresh attempt informed by where the first attempt stalled.)
    - Attempt 2+: mutate (if previous attempt had good elements) or fresh with different approach
 3. Launch theory-generator with the selected idea, problem statement, literature map, **`output/stage1/negative_results.md` if it exists** (BLOCKED-IMPOSSIBLE prototypes from prior Stage-1 rounds — only proven impossibilities propagate here, not mere difficulty stalls — orchestrator must pass this in explicitly so a regenerated or re-attempted theory cannot silently re-propose a known-impossible sketch), and strategy.
-<!-- THEORY_FIRST_START -->
+<!-- NO_MODE_START -->
    Pass the same file to `math-auditor` and `self-attacker` on their launches in step 4 below and at Stage 4. (theory-generator reads the prior `output/stage2/math_audit_v*.md` / `freeform_audit_v*.md` and `novelty_check_v*.md` files itself — see its body's "What you receive" — so the orchestrator does not pass them on relaunch.)
-<!-- THEORY_FIRST_END -->
+<!-- NO_MODE_END -->
+<!-- MEASUREMENT_FIRST_START -->
+   Pass the negative-results file to `self-attacker` at Stage 4 too. (`math-auditor` is not launched at Stage 2 in measurement-first mode — both math audits fire on the post-Stage-3b characterization; see Gate 2 below. theory-generator on a mutate/pivot relaunch should consult the prior `output/stage2/design_review_v*.md` files for recurring design-failure patterns, plus the most recent `referee-mechanism` report and any `self_attack_v*.md` for prior content failures.)
+<!-- MEASUREMENT_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
    Pass the negative-results file to `self-attacker` at Stage 4 too. (`math-auditor` is not launched in empirical-first mode — the math-audit form of Gate 2 below is replaced by the mechanism-plausibility gate — so prior `math_audit_v*.md` / `freeform_audit_v*.md` files do not exist; theory-generator on a mutate/pivot relaunch should instead consult the prior `output/stage2/mechanism_audit_v*.md` files for recurring plausibility-failure patterns, plus the most recent `referee-mechanism` report at Stage 6 and any `self_attack_v*.md` for prior content failures.)
 <!-- EMPIRICAL_FIRST_END -->
 4. Save result to `output/stage2/theory_draft_vN.md` where **N = `theory_version`** from `pipeline_state.json`. On a fresh `theory_attempt`, reset `theory_version` to 1. On each mutation (including re-launches after Gate 2 FAIL within the same attempt), increment `theory_version` and save to the new version file. N is a within-attempt counter — it does not reset across attempts within the same pipeline run, but it can collide across attempts; this is fine because attempts overwrite prior files and only the latest version matters downstream.
 5. Commit: `artifact: theory draft v{N}`
 
-<!-- THEORY_FIRST_START -->
+<!-- NO_MODE_START -->
 ## Gate 2: Math Audit (structured + free-form)
 
 **Agents:** `math-auditor` then `math-auditor-freeform`
@@ -53,7 +56,7 @@ Two sequential audits — structured (step-by-step derivation check) then free-f
    - After mutation, re-run **both** audits from Step 1 (the fix may have introduced new algebraic errors)
    - Same rule as Step 1: the 3-failure hard cap applies, and a narrowing fix narrows every claim of the same shape
 5. If PASS: proceed to Gate 3
-<!-- THEORY_FIRST_END -->
+<!-- NO_MODE_END -->
 <!-- EMPIRICAL_FIRST_START -->
 ## Gate 2: Mechanism Plausibility (empirical-first)
 
@@ -78,6 +81,32 @@ So empirical-first replaces the skipped math audit with a **lightweight plan-tim
 
 **Re-launch on later revision.** When `referee-mechanism`, `self-attacker`, or `scorer` flags a content failure that requires the mechanism to be revised downstream, re-launch `theory-generator` in **mutate** mode with the relevant report attached, then **re-run this Gate 2 plausibility check** on the revised mechanism (which re-sets `stage2_mechanism_version` per step 4) before re-entering Stage 3 / Stage 3a — a mutate that changes the channel must re-pass the gate just as the first version did (on a post-Stage-3a re-fire the auditor uses the documented coefficients for its magnitude check). The version-counter rules (`theory_version`, `theory_attempt`) carry over.
 <!-- EMPIRICAL_FIRST_END -->
+<!-- MEASUREMENT_FIRST_START -->
+## Gate 2: Design Plausibility (measurement-first)
+
+**Agent:** `experiment-reviewer` (plan-time launch)
+
+In measurement-first mode `theory-generator` runs in **construct mode** and produces a construct spec + measurement plan — the formal characterization (and with it the math-audit pair) comes *after* Stage 3b, written about what was measured. But a construct spec can be wrong before any experiment runs: the task family may not operationalize the construct, the scoring rule may admit a shortcut or saturate, the plan may be under-powered or name unreachable models, the contamination argument may be verbal-only. Catching these now costs one read; catching them at Stage 3b costs the experiment budget, and at Stage 6 a full re-run + rewrite.
+
+So measurement-first replaces the Stage-2-time math audit with a **binding plan-time design gate**: launch `experiment-reviewer` on the *measurement plan* (no results exist yet — this is a design review, the plan-time counterpart of its standard Stage 3b results review).
+
+1. Launch `experiment-reviewer` with explicit paths: the construct spec `output/stage2/theory_draft_vN.md`, the feasibility prototype `output/stage1/idea_prototype.md`, and the problem statement `output/stage0/problem_statement.md`. Instruct it: "Plan-time design review — no results exist yet. Evaluate the construct spec's task family, scoring rule, contamination-resistance argument, power sketch, and model plan against your methodology checklist; ignore the results-analysis items. Verdict ACCEPT / REVISE / REDESIGN." Name the output path `output/stage2/design_review_vN.md`.
+2. Save result to `output/stage2/design_review_vN.md`.
+3. Commit: `artifact: design review v{N} — {ACCEPT/REVISE/REDESIGN}`.
+4. Route:
+   - **ACCEPT:** set `pipeline_state.json:stage2_design_version = theory_version`, then proceed to Gate 3 (novelty check).
+   - **REVISE / REDESIGN:** re-launch `theory-generator` in **mutate** mode with `design_review_vN.md` attached, increment `theory_version`, and re-run this gate on the new version. **Hard cap: 3 consecutive non-ACCEPT verdicts on the same construct spec.** At the cap, escalate — increment `theory_attempt` (reset `theory_version` to 1) or swap sketches. The escalation machinery from the theory-first Gate 2 FAIL path applies with the same triggers: the **branch-manager every-3rd-version trigger** (`theory_version % 3 == 0`) and the **pre-Stage-5 sketch-swap authority** (after 3 consecutive non-ACCEPTs OR any branch-manager RESTRUCTURE verdict, evaluate swapping to a different Round-1 sketch on equal footing with continuing; record the evaluation in the commit message).
+
+{{SEED_OVERRIDE_STAGE_2_GATE_2}}
+
+**Deferred math audits (the second half of Gate 2, fired after Stage 3b).** When the Stage 3b chain completes and `theory-generator` (characterization mode) has appended the formal characterization as a new `theory_draft_vN.md` version, run the full math-audit pair on it, exactly as the theory-first Gate 2 specifies: `math-auditor` (structured) then `math-auditor-freeform`, saving `output/stage2/math_audit_vN.md` / `freeform_audit_vN.md`, committing each with its PASS/FAIL. On FAIL, re-launch `theory-generator` in **characterization mode** with the audit attached (the construct spec and the measurements are fixed; only the characterization revises), increment `theory_version`, and re-audit — **hard cap: 3 consecutive audit failures on the same characterization**, at which point escalate per the sketch-swap authority (the *measurements* survive; what failed is the formal account of them, so the usual first escalation is a narrower claim class, not a new construct). The codex-math escalation for load-bearing conjectures applies here as in theory-first mode. Gate 4 must not advance unless both audits PASS on the current `theory_version` (H3).
+
+**Gate 4 enforcement.** Before any Gate 4 advance, the orchestrator must verify `stage2_design_version == theory_version` **and** both math-audit files exist with PASS for the current `theory_version` — a stale design review or an unaudited characterization is a hard block, parallel to the `stage2_mechanism_version` rule in empirical-first. (A characterization-mode re-fire increments `theory_version`; the design gate does **not** re-fire for it unless the revision changed the *measurement plan* — re-set `stage2_design_version = theory_version` with a one-line note in the commit message when the plan is unchanged, or re-run the design gate when it changed.)
+
+**Bypass recording.** This gate — both halves — is a designated core step. Skipping either half, advancing past a non-ACCEPT or FAIL without a re-fire, or running its task via a substitute agent is a core bypass unless this doc sanctions it — record a `gate-skipped` / `agent-substituted` row in `process_log/degradation_ledger.md` before continuing (`docs/core_bypass.md`).
+
+**Re-launch on later revision.** When `referee-mechanism`, `self-attacker`, or `scorer` flags a content failure requiring the construct spec or characterization to revise downstream, re-launch `theory-generator` in the appropriate mode with the report attached, then re-pass the corresponding gate half (design gate for a spec/plan change; math audits for a characterization change) before re-entering later stages. The version-counter rules (`theory_version`, `theory_attempt`) carry over.
+<!-- MEASUREMENT_FIRST_END -->
 
 ## Gate 3: Novelty Check on Full Theory
 
@@ -97,7 +126,7 @@ So empirical-first replaces the skipped math audit with a **lightweight plan-tim
 5. If NOVEL: proceed to Stage 2b (theory exploration)
 6. Commit: `artifact: novelty check v{N} — {NOVEL/INCREMENTAL/KNOWN}`
 
-<!-- THEORY_FIRST_START -->
+<!-- NO_MODE_START -->
 ## Stage 2b: Theory Exploration
 
 **Agent:** `theory-explorer`
@@ -116,7 +145,7 @@ Computational exploration — implement the key result, check at calibration, ex
 5. **Re-run on substantive revision.** If the theory revises after the first Stage 2b pass — new propositions, new sections, new extensions, or any content not explored in the prior pass — re-invoke theory-explorer on the new content before Gate 4 advances. Save targeted re-runs to `output/stage2b/exploration_vN.md` (where N is the theory version); do not overwrite the original `exploration.md`. Combined coverage must span the version that will be written into the paper. On completion, set `pipeline_state.json:stage2b_theory_version` to the current `theory_version`. Gate 4 must not advance while `stage2b_theory_version < theory_version`.
 {{THEORY_LLM_STAGE3B_GATE_ADDENDUM}}
 6. Commit: `artifact: theory exploration — {HOLDS/FRAGILE/FAILS}`
-<!-- THEORY_FIRST_END -->
+<!-- NO_MODE_END -->
 <!-- EMPIRICAL_FIRST_START -->
 ## Stage 2b: Theory Exploration — skipped in empirical-first mode
 
@@ -128,5 +157,16 @@ The empirical-first analogue of "does the result hold at calibration?" is the sa
 
 Proceed directly from Gate 3 (novelty check on the mechanism) to Stage 3 (implications).
 <!-- EMPIRICAL_FIRST_END -->
+<!-- MEASUREMENT_FIRST_START -->
+## Stage 2b: Theory Exploration — skipped in measurement-first mode
+
+The construct spec has no equilibrium objects to compute and no parameter space to grid-search; the feasibility pilot at Stage 1 already played the "does anything separate at all" role, and the real evidence is Stage 3b itself. `theory-explorer` is not launched.
+
+The measurement-first analogue of "does the result hold at calibration?" is the in-body sanity check of construct mode: the predicted headline contrast instantiated at the pilot's parameters must clear the pilot's observed variance. The Gate-4-blocking `stage2b_theory_version` rule from theory-first mode does not apply here; the analogous Gate 4 rules are `stage2_design_version == theory_version` plus the deferred math-audit PASS requirement (see Gate 2 above) and the Stage 3b chain completion (H3).
+
+**On Gate 3 INCREMENTAL re-work:** the unguarded INCREMENTAL routing instruction earlier in this file says "re-run Stage 2b (exploration) AND Stage 3 (implications)." Under measurement-first, **skip the Stage 2b re-run** (permanently skipped per this section). The INCREMENTAL re-work re-fires `theory-generator` (mutate, construct mode), which re-enters **Gate 2 (design gate)** on the revised spec — that gate must re-pass and re-set `stage2_design_version` before proceeding — then re-run Gate 3 + Stage 3 + Stage 3b; the deferred audits then re-fire on the new characterization.
+
+Proceed directly from Gate 3 (novelty check on the construct) to Stage 3 (implications).
+<!-- MEASUREMENT_FIRST_END -->
 
 {{EMPIRICAL_STAGE3A_GATE_ADDENDUM}}

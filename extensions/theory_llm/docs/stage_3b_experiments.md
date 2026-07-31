@@ -27,6 +27,19 @@ Before proceeding to Stage 4, you must check whether the experiment results cont
 
 This step is mandatory and may not be skipped.
 
+<!-- MEASUREMENT_FIRST_START -->
+## Post-experiment characterization (measurement-first only — before Stage 4)
+
+Under `--mode measurement-first` the experiments are the paper's evidence core, and the formal content is written *about them, after them*. On contradiction-check **NONE** (or once puzzle triage resolves), do **not** proceed straight to Stage 4:
+
+1. Launch `theory-generator` in **characterization mode** with the construct spec (`output/stage2/theory_draft_vN.md`), the experiment results (`output/stage3b/experiment_results.md` + analysis artifacts), and any prior math-audit reports. It appends the formal characterization as a new `theory_draft_v{N+1}.md`; increment `theory_version`.
+2. Run the **deferred Gate 2 math audits** on the characterization per `docs/stage_2.md` ("Deferred math audits") — structured then free-form, 3-failure cap, characterization-mode re-fires on FAIL.
+3. **The characterization introduces no new experimentally-testable content** — it formalizes evidence already collected, so the experiments remain current for it. In the same commit, **re-set `stage3b_theory_version = theory_version`** (mirroring the design-gate re-set below): without this, the "Re-fire on theory revision" trigger below would demand a spurious experiment re-run and the Gate 4 staleness check would hard-block on every characterization. **Exception:** if the characterization *does* introduce a genuinely new experimentally-testable claim (rare — a formal prediction the experiments did not measure), do NOT re-set; route through the Re-fire procedure below to test it, then re-enter characterization.
+4. The design gate does not re-fire for the characterization version unless the measurement plan changed — re-set `stage2_design_version = theory_version` with a one-line commit note when the plan is unchanged (see `docs/stage_2.md` "Gate 4 enforcement").
+5. Only then proceed to Stage 4. H3 gates on all three: design-gate ACCEPT, this chain's completion (`stage3b_theory_version` current per step 3), and both audit PASSes on the characterization.
+
+<!-- MEASUREMENT_FIRST_END -->
+
 ## Re-fire on theory revision
 
 Stage 3b is not one-shot. When the theory revises after the first 3b pass — Gate 3 INCREMENTAL rework, Gate 4 REVISE→Stage 2, Stage 6 Major Revision triggering theory-generator work, or any substantive content change — the original `experiment_results.md` becomes stale relative to the current theory. The experiment-designer must re-run on the revised content before Gate 4 can advance again.
