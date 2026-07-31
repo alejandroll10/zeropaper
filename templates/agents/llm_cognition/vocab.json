@@ -201,5 +201,9 @@
   "STYLE_ASSUME_EXAMPLE": "Flag \"I assume the model has a fixed context window,\" \"Assume responses are scored by exact match,\" etc., where \"assume\" describes the formal setup rather than a real-world restriction. The author should rewrite as \"The model has a fixed context window.\" Keep \"assume\" for genuine real-world restrictions (\"I assume no benchmark contamination\").",
   "TRIAGER_DEDUP_EXAMPLE": "a benchmark-provenance mischaracterization",
   "PW_RESULTS_INTUITION_BULLET": "Computational intuition after each result (not before — let the math speak first)",
-  "PW_PHILOSOPHY_OPENER_SNIPPET": "\"Large language models have transformed NLP…\""
+  "PW_PHILOSOPHY_OPENER_SNIPPET": "\"Large language models have transformed NLP…\"",
+  "_comment_v2_16_report": "v2.16.0 (#204): ML overrides for the report-body keys (also MECH_PRIMITIVES_OUTPUT_GUIDANCE, consumed by the base referee-mechanism).",
+  "MECH_PRIMITIVES_OUTPUT_GUIDANCE": "Call out any construct-definition / stimulus-distribution / scoring-rule / model-choice decisions that are tractability-driven rather than evidence-driven, and whether the paper defends them.",
+  "REFEREE_RESHAPE_DISCIPLINE": "formal analysis or experiments",
+  "REFEREE_TOP_OUTLET": "a top ML venue"
 }

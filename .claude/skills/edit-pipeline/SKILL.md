@@ -126,7 +126,8 @@ templates/
 │   ├── finance_modes/       # Mode vocab overlays: empirical_first/, report/
 │   ├── macro/vocab.json
 │   ├── macro_modes/
-│   └── llm_cognition/vocab.json   # no _modes yet: report mode is gated off (LIMITATIONS.md)
+│   ├── llm_cognition/vocab.json
+│   └── llm_cognition_modes/       # report/ (since v2.16.0; measurement-first is future work)
 └── gitignore_project        # .gitignore template for deployed projects
 
 scripts/

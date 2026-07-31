@@ -13,8 +13,8 @@ fail() { echo "✗ $1"; FAILS=$((FAILS+1)); }
 pass() { echo "✓ $1"; }
 
 # ── 1. Gating: these must all exit non-zero ──
+# (--mode report is supported since v2.16.0/#204 and is tested in section 6.)
 for args in "--variant llm_cognition --ext empirical" \
-            "--variant llm_cognition --mode report" \
             "--variant llm_cognition --mode empirical-first"; do
     if ./setup.sh /tmp/llmcog_gate_test $args --local >/dev/null 2>&1; then
         fail "gate did not fire: setup.sh $args"
@@ -147,6 +147,53 @@ grep -q '"neurips"' "$B/code/utils/openalex/openalex.py" \
 # ── 5. Contamination guidance present in experiment-designer ──
 grep -q "Procedurally generate stimuli" "$B/.claude/agents/experiment-designer.md" \
     && pass "contamination-resistant ground-truth rule present" || fail "ground-truth rule missing"
+
+# ── 6. Report mode (#204): llm_cognition report build assembles ML-calibrated referees ──
+rm -rf test_output
+REPORT_LOG="$(./setup.sh --variant llm_cognition --mode report --local 2>&1)"
+if [ $? -ne 0 ]; then
+    fail "llm_cognition --mode report build failed"
+    echo "$REPORT_LOG" | tail -5
+else
+    pass "llm_cognition --mode report builds"
+    echo "$REPORT_LOG" | grep -q "All placeholders resolved" \
+        && pass "report-mode placeholders resolved" || fail "report-mode unresolved placeholders"
+    R=test_output/llm_cognition
+    if echo "$REPORT_LOG" | grep -q "implies --ext theory_llm"; then
+        fail "theory_llm auto-implied under report mode (should be skipped — agents get pruned anyway)"
+    else
+        pass "theory_llm auto-imply skipped under report mode"
+    fi
+    for s in "senior economist|.claude/agents/referee-mechanism.md" \
+             "economic force|.claude/agents/referee-mechanism.md" \
+             "works as economics|.claude/agents/referee-mechanism.md" \
+             "theory/economics or empirics|.claude/agents/referee.md" \
+             "a top journal would expect|.claude/agents/referee.md"; do
+        str="${s%%|*}"; rel="${s##*|}"
+        if [ ! -f "$R/$rel" ]; then fail "report tripwire target missing: $rel"
+        elif grep -qF "$str" "$R/$rel"; then fail "report econ leak: \"$str\" in $rel"
+        else pass "report clean: \"$str\" absent from $rel"; fi
+    done
+    grep -q "top ML venue" "$R/.claude/agents/referee.md" \
+        && pass "report referee anchored to ML venue role" || fail "report referee missing ML venue role"
+    grep -q "Verdict semantics for this variant" "$R/.claude/agents/referee.md" \
+        && pass "conference-cadence verdict note present" || fail "verdict note missing in report referee"
+    # The note must be the REPORT-anchored override, not the pipeline one:
+    # report mode has no editor agent and no tier table to route through.
+    if grep -q "the editor can route\|tier table" "$R/.claude/agents/referee.md"; then
+        fail "report referee carries the pipeline verdict note (names editor/tier table)"
+    else
+        pass "verdict note is report-anchored (no editor/tier-table routing)"
+    fi
+    grep -q "report-synthesizer can aggregate" "$R/.claude/agents/referee.md" \
+        && pass "verdict note routes via report-synthesizer" || fail "verdict note missing synthesizer routing"
+    grep -q "math-auditor handles that" "$R/.claude/agents/referee-mechanism.md" \
+        && pass "report mech frame names the math-auditor" || fail "report mech frame missing math-auditor anchor"
+    [ -f "$R/.claude/agents/report-synthesizer.md" ] \
+        && pass "report-synthesizer assembled" || fail "report-synthesizer missing"
+    [ -e "$R/.claude/skills/ssj" ] \
+        && fail "ssj installed in llm report build (skill gating regressed)" || pass "skill gating holds in report mode"
+fi
 
 echo
 if [ "$FAILS" -gt 0 ]; then

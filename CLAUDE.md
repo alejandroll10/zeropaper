@@ -71,7 +71,7 @@ agent, a skill, or a vocab placeholder.
 |---------|------|--------|-----------------|
 | `finance` | `--variant finance` (default) | Working (v2) | JF, JFE, RFS |
 | `macro` | `--variant macro` | In development | AER, Econometrica, QJE, JPE, ReStud, JME |
-| `llm_cognition` | `--variant llm_cognition` | Working (v2) | NeurIPS, ICML, ICLR (TMLR as field tier) — the science of LLM cognition & evaluation. Auto-implies `--ext theory_llm` (since v2.10.0 — the experiments are the evidence); `--ext empirical` and `--mode report` are gated off (see LIMITATIONS.md). |
+| `llm_cognition` | `--variant llm_cognition` | Working (v2) | NeurIPS, ICML, ICLR (TMLR as field tier) — the science of LLM cognition & evaluation. Auto-implies `--ext theory_llm` (since v2.10.0 — the experiments are the evidence; skipped under `--mode report`, which prunes those agents); `--ext empirical` is gated off (see LIMITATIONS.md). `--mode report` supported since v2.16.0. |
 
 ## Supported extensions
 
@@ -87,6 +87,6 @@ Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory
 | Mode | Flag | Status | Variants | Notes |
 |------|------|--------|----------|-------|
 | `empirical-first` | `--mode empirical-first` | Working (v1) | `finance` | Identification-first instead of theory-first. Auto-implies `--ext empirical`. |
-| `report` | `--mode report` | Working (v1) | `finance`, `macro` | Referee an external submission instead of generating one. One-shot, no stages. |
+| `report` | `--mode report` | Working (v1) | `finance`, `macro`, `llm_cognition` | Referee an external submission instead of generating one. One-shot, no stages. |
 
 Full semantics for both modes are in the `deploy-project` skill.

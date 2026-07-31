@@ -101,5 +101,9 @@
   "STYLE_ASSUME_EXAMPLE": "Flag \"I assume that consumers have power utility,\" \"Assume that returns are normal,\" etc., where \"assume\" describes model structure rather than a real-world restriction. The author should rewrite as \"Consumers have power utility.\" Keep \"assume\" for genuine real-world restrictions (\"I assume there are no demand shifts\").",
   "TRIAGER_DEDUP_EXAMPLE": "a Berk-Green mischaracterization",
   "PW_RESULTS_INTUITION_BULLET": "Economic intuition after each result (not before — let the math speak first)",
-  "PW_PHILOSOPHY_OPENER_SNIPPET": "\"Economists have long…\""
+  "PW_PHILOSOPHY_OPENER_SNIPPET": "\"Economists have long…\"",
+  "_comment_v2_16_report": "v2.16.0 (#204): keys for the --mode report overlay bodies (shared_modes/report/*), extracted so the llm_cognition report gate could lift. Defaults byte-identical to the pre-extraction report-body text. MECH_PRIMITIVES_OUTPUT_GUIDANCE also serves the base referee-mechanism (same line existed hardcoded there).",
+  "MECH_PRIMITIVES_OUTPUT_GUIDANCE": "Call out any preference / information / technology / market-structure choices that are tractability-driven rather than evidence-driven, and whether the paper defends them.",
+  "REFEREE_RESHAPE_DISCIPLINE": "theory/economics or empirics",
+  "REFEREE_TOP_OUTLET": "a top journal"
 }

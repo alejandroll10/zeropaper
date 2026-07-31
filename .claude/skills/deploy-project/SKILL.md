@@ -32,9 +32,12 @@ vocab placeholder — load the `edit-pipeline` skill instead.
 # cognition/evaluation; targets NeurIPS/ICML/ICLR, tier ladder
 # nature → top-ml → field → workshop). --ext theory_llm is AUTO-IMPLIED
 # (since v2.10.0): the variant's evidence base is LLM experiments, so setup.sh
-# adds the extension with an Info message even if the flag is omitted.
-# --ext empirical and --mode report are gated off for this variant (setup.sh
-# errors with pointers; see the llm_cognition entry in LIMITATIONS.md).
+# adds the extension with an Info message even if the flag is omitted (skipped
+# under --mode report, which prunes those agents anyway).
+# --ext empirical is gated off for this variant (setup.sh errors with a
+# pointer; see the llm_cognition entry in LIMITATIONS.md). --mode report is
+# supported since v2.16.0 — the referee fan-out runs ML-calibrated (top-ML
+# venue role, conference-cadence verdict semantics).
 ./setup.sh <project-name> --variant llm_cognition
 
 # Finance theory + LLM experiments
@@ -95,7 +98,7 @@ Flips the pipeline from theory-first to identification-first for empirical paper
 
 ### `--mode report`
 
-Reframes the project as refereeing an external submission. User drops the paper in `submission/`; the orchestrator runs a triage step, fans out all audit agents (`math-auditor` + freeform, `polish-{formula,numerics,consistency,equilibria,identification,prose,bibliography,institutions}`, `bib-verifier`, `novelty-checker`, `self-attacker`, `referee` / `referee-freeform` / `referee-mechanism`) in parallel against the submission, then `report-synthesizer` aggregates `audits/*.md` into `report/referee_report.md` with a single verdict (Accept / Minor revision / Major revision / Reject). One-shot, no stages, no `pipeline_state.json`, no `dashboard.html`. Mutually exclusive with `--seed`, `--faithful`, `--manual`, `--mode empirical-first`. Composes with `--light`.
+Reframes the project as refereeing an external submission. User drops the paper in `submission/`; the orchestrator runs a triage step, fans out all audit agents (`math-auditor` + freeform, `polish-{formula,numerics,consistency,equilibria,identification,prose,bibliography,institutions}`, `bib-verifier`, `novelty-checker`, `self-attacker`, `referee` / `referee-freeform` / `referee-mechanism`) in parallel against the submission, then `report-synthesizer` aggregates `audits/*.md` into `report/referee_report.md` with a single verdict (Accept / Minor revision / Major revision / Reject). One-shot, no stages, no `pipeline_state.json`, no `dashboard.html`. Mutually exclusive with `--seed`, `--faithful`, `--manual`, `--mode empirical-first`. Composes with `--light`. Supported variants: `finance`, `macro`, and (since v2.16.0) `llm_cognition` — the llm_cognition report referees run ML-calibrated (top-ML venue role, conference-cadence verdict semantics: Minor/Major Revision read as rebuttal-cycle / resubmit-next-cycle routing tokens), and the theory_llm auto-imply is skipped (report mode prunes those agents; the flag can still be passed explicitly for install-only skills).
 
 Composes with `--ext empirical` and `--ext theory_llm` in **install-only** mode: the extension's *skills* install (WRDS/FRED/Census/SEC helpers, the LLM-experiment client) so the audit agents can spot-check external data or call an LLM if needed, but the extensions' *audit agents* (`empirics-auditor`, `identification-auditor`, `mechanism-auditor`, `headline-replicator`, `data-integrity-auditor`, `data-selection-auditor`, `method-checker`, `claim-{enumerator,grounder,verifier}`, `experiment-reviewer`) are pruned — they were designed against the pipeline's own empiricist output and would need substantial rewrites for external submissions. The base referees evaluate empirical submissions holistically (identification, magnitude, robustness at editorial level); deep code-level adversarial auditing of external empirical submissions is a v2 feature.
 

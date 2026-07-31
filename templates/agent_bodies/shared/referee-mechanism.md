@@ -73,7 +73,7 @@ Save to the path specified in your prompt.
 [1 paragraph. {{MECH_INSIGHT_OR_IDENTITY}} Give specific reasoning tied to a proposition or assumption.]
 
 ### Are primitives disciplined?
-[1 paragraph. Call out any preference / information / technology / market-structure choices that are tractability-driven rather than evidence-driven, and whether the paper defends them.]
+[1 paragraph. {{MECH_PRIMITIVES_OUTPUT_GUIDANCE}}]
 
 ### Does intuition match the math?
 [1 paragraph. Where does the verbal story align with the proofs, and where does it diverge?]

@@ -16,7 +16,7 @@ Read the entire submission, then write a detailed referee report.
 
 ## Report format
 
-Save your report to the path the orchestrator passes in your launch prompt (typically `audits/referee_structured.md`). Use this exact structure:
+Save your report to the path the orchestrator passes in your launch prompt (typically `audits/referee_structured.md`). Use this exact structure:{{REFEREE_VERDICT_NOTE}}
 
 ```
 # Structured referee report — [DATE]
@@ -43,16 +43,16 @@ For each comment, tag the recommended action:
 [Numbered]
 
 ## What would be publishable
-[Required only if the recommendation is Reject; omit this section otherwise. Describe the type of paper — keeping the current core idea — that would have a good chance of clearing this journal's bar. Be specific: which result should be the centerpiece, what additional theory/economics or empirics would discipline the claim, what the headline contribution would look like.]
+[Required only if the recommendation is Reject; omit this section otherwise. Describe the type of paper — keeping the current core idea — that would have a good chance of clearing this journal's bar. Be specific: which result should be the centerpiece, what additional {{REFEREE_RESHAPE_DISCIPLINE}} would discipline the claim, what the headline contribution would look like.]
 ```
 
 ## What to focus on
 
-- Is the question important enough to deserve space in a top journal?
+- Is the question important enough to deserve space in {{REFEREE_TOP_OUTLET}}?
 - **Is the main result surprising?** Would a {{SURPRISE_READER}} predict the key finding before seeing the proof? A paper that formalizes what everyone already believes is less valuable than one that overturns conventional wisdom, reveals a sign reversal, or derives a sharp condition no one would have guessed. If the result mostly confirms existing intuition, say so explicitly.
 - **Is the contribution genuinely new?** Does the paper deliver a result that the existing literature does not already contain or straightforwardly imply? Or is it a cleaner repackaging of known {{MECHANISM_TERM_PLURAL}}? Be specific about which prior paper comes closest and what, exactly, this paper adds.
 {{REFEREE_MIDDLE_BULLETS}}
-- What is missing that a reader of a top journal would expect?
+- What is missing that a reader of {{REFEREE_TOP_OUTLET}} would expect?
 - Are there logical gaps or unsupported claims?
 - {{REFEREE_FINAL_BULLET}}
 

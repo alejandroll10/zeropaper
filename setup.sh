@@ -146,8 +146,11 @@ fi
 # scorer) demand experimental evidence, and --ext empirical is gated off for it, so
 # theory_llm is the only producer of that evidence. A bare llm_cognition deployment
 # would be an armchair pipeline that never calls a language model — a defaulting
-# error, not a configuration choice.
-if [ "$VARIANT" = "llm_cognition" ] && [[ ! " ${EXTENSIONS[*]} " =~ " theory_llm " ]]; then
+# error, not a configuration choice. Exception: --mode report generates nothing —
+# report mode prunes every theory_llm agent anyway (see prune_report_mode_agents
+# in the theory_llm extension block), so auto-implying the extension there would
+# only install unused deps and skills.
+if [ "$VARIANT" = "llm_cognition" ] && [ "$MODE" != "report" ] && [[ ! " ${EXTENSIONS[*]} " =~ " theory_llm " ]]; then
     EXTENSIONS+=("theory_llm")
     echo "Info: --variant llm_cognition implies --ext theory_llm (auto-added)."
 fi
@@ -187,13 +190,11 @@ if [ -n "$MODE" ]; then
             # to the fan-out) and with --light. No auto-implied extension — a theory-
             # only submission can be refereed without empirical agents.
             case "$VARIANT" in
-                finance|macro) : ;;
+                finance|macro|llm_cognition) : ;;
                 *)
-                    echo "Error: --mode report supports --variant finance or macro."
-                    echo "  llm_cognition report mode is not yet shipped: the report-mode"
-                    echo "  overlay bodies (templates/agent_bodies/shared_modes/report/*) are"
-                    echo "  economics-calibrated and there is no llm_cognition_modes/report"
-                    echo "  vocab overlay — see LIMITATIONS.md."
+                    echo "Error: --mode report supports --variant finance, macro, or llm_cognition."
+                    echo "  A new variant needs a templates/agents/{variant}_modes/report/vocab.json"
+                    echo "  overlay before this mode can ship for it."
                     exit 1
                     ;;
             esac
