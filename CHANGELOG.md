@@ -15,7 +15,42 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.12.0] — 2026-07-27 (current)
+## [2.13.0] — 2026-07-31 (current)
+`GENUINELY-STUCK` is no longer terminal: the abandon decision goes to the agent that owns it (issue #153).
+**Problem:** `last-resort` — the strongest model in the pipeline — had two verdicts with asymmetric
+verification. `FIX-PROPOSED` always re-entered the failing gate. `GENUINELY-STUCK` routed straight to
+abandon/restructure with no second opinion and no re-check, so one false negative from a single call in
+a single context could end an otherwise-recoverable run. The agent body already named the hazard
+("a false GENUINELY-STUCK abandons salvageable work") and nothing downstream mitigated it.
+**The fix is a deletion, not an addition.** The direct `GENUINELY-STUCK → abandon` edge is gone.
+The verdict now re-enters `branch-manager` — the pipeline's existing "has this path ceilinged" advisor —
+at a new context `last-resort-stuck`, which produces **Sections B + E only**, the same subset
+`gate-5-downgrade` already emits. No new agent, no new verdict vocabulary, no new report format: §B's
+existing REACHABLE/STRUCTURAL certification bar already asks the right question ("can you still name an
+untried candidate?"). Both verdicts now obey one rule instead of two — neither self-executes — which
+also let the asymmetry-justification paragraph in `last-resort.md` be cut.
+**Two outcomes.** REACHABLE → branch-manager names the specific untried move *and the agent that owns
+the artifact* (theory-generator, empiricist, paper-writer, the relevant auditor), and the move is
+dispatched there — not back to `last-resort`. STRUCTURAL (certified) → restructure, or abandon **only
+where the never-abandon rule permits**: post-Stage-5 a certified ceiling routes to restructure, deepen,
+or ship-at-a-lower-tier, never to abandonment. The second opinion is genuinely decorrelated: different
+agent, fresh context, and a lower model tier than the one that got stuck.
+**Capped like every other loop.** New `loops.last_resort_stuck` (cap 2, seeded in `pipeline_state.json`).
+It carries an explicit **reset override**, because this loop has a shape the generic rule mishandles:
+attempting a named move *regenerates the stuck artifact*, so artifact-scoped auto-reset would zero the
+counter every iteration and defeat the cap. It is scoped to the stuck **episode** and resets only when
+the impasse clears or the loop exits by certification — recorded as a third documented exception
+("retry-regenerates-the-artifact") in `core.md`'s auto-reset exception list.
+**Impasse-agnostic bar.** `last-resort` is launched on tool and data failures too, not just theory
+ceilings, so §B's journal-tier vocabulary gets two stated substitutions at this context: "core-change
+candidate" → any untried candidate on the stuck artifact (a different estimator, specification, solver,
+or data source), and "a contribution at the target tier" → "clears the impasse." A wedged solver has no
+journal tier. The certification logic itself is unchanged.
+**Also:** `--mode report` ships neither agent, so no mode divergence. Two stale enumerations removed
+rather than corrected — branch-manager's "four contexts" (there were six) and the auto-reset list's
+"two exceptions" — since a hard-coded count is what drifted in the first place.
+
+## [2.12.0] — 2026-07-27
 Deferrable core-bypass: a transient outage no longer parks a finished paper (issue #179).
 **Problem:** any unresolved binding row blocked `status = "complete"` and forced terminal
 `halted_core_bypass` awaiting manual operator sign-off. So an OpenAlex daily-budget outage —

@@ -74,7 +74,7 @@ When a **computational or retrieval tool** fails — a numerical solver that doe
 
 When a problem is **genuinely stuck** — a derivation that will not close after the deepening playbook, a gate that keeps returning the same verdict past its revision budget, a tool the `debugger` could not recover, a structural impasse where the only remaining option is to abandon the work — you **may**, at your discretion, launch the `last-resort` agent. There is **no automatic trigger**: it is your judgment call that normal escalation (the stage's revision rules, `debugger` for tool failures, `branch-manager` for strategic ceilings) has been exhausted and the alternative is abandonment. It is expensive — it runs on a stronger model — so it is a genuine last resort, not a routine step.
 
-`last-resort` receives the stuck artifact plus the **full prior-failure history** (every attempt and every verdict on it) and returns one of two routable verdicts: `FIX-PROPOSED` (a concrete fix) or `GENUINELY-STUCK` (a documented argument for why the problem does not yield, which lets you abandon or restructure with a reason instead of a hunch). **Its fix never self-certifies.** A `FIX-PROPOSED` re-enters the same gate that was failing — math-auditor re-audits a closed derivation, the scorer re-scores a deepened theory, the referee path re-evaluates an answered objection, empirics-auditor re-checks fixed code. `last-resort` proposes; the existing gate disposes. Do not skip the re-verification on the strength of the stronger model — a confident wrong answer from it is the most expensive kind.
+`last-resort` receives the stuck artifact plus the **full prior-failure history** (every attempt and every verdict on it) and returns one of two routable verdicts: `FIX-PROPOSED` (a concrete fix) or `GENUINELY-STUCK` (a documented argument for why the problem does not yield). **Neither verdict self-executes.** A `FIX-PROPOSED` re-enters the same gate that was failing — math-auditor re-audits a closed derivation, the scorer re-scores a deepened theory, the referee path re-evaluates an answered objection, empirics-auditor re-checks fixed code. A `GENUINELY-STUCK` re-enters `branch-manager` at context `last-resort-stuck` (report: `output/last_resort/branch_manager_stuck_r{N}.md`), which owns the abandon decision. It either **names a move** `last-resort` did not take — dispatch that move to the artifact's own owning agent (theory-generator for a derivation, empiricist for a spec or data pull, paper-writer for a draft, the relevant auditor for a gate), *not* back to `last-resort`, and increment `loops.last_resort_stuck.round`; at cap, branch-manager must certify — or it **certifies the ceiling**, which authorizes restructuring around a different result, or abandoning the attempt **only where the never-abandon rule permits it**. Post-Stage-5 a certified ceiling never abandons: it routes to restructure, deepen, or ship-at-a-lower-tier, exactly as every other post-draft dead end does. **`loops.last_resort_stuck.round` resets to 0 only when the impasse actually clears — a `FIX-PROPOSED` passes its gate, or a named move resolves the artifact — or when the run exits the loop by certifying. It does *not* reset merely because a named-move attempt regenerated the stuck artifact: the attempt regenerating the artifact is the loop, so the generic artifact-scoped reset would defeat the cap.** `last-resort` proposes; the existing gate disposes. Do not skip either re-verification on the strength of the stronger model — a confident wrong answer from it is the most expensive kind, and that cuts both ways: a confident wrong `GENUINELY-STUCK` ends a salvageable run.
 {{CORE_BYPASS_GUARD}}
 ## Core principle: do what makes the paper better, not what is easiest
 
@@ -192,6 +192,7 @@ Initial state (created by setup.sh):
     "idea":              {"round": 0, "cap": 5},
     "reject_cosmetic":   {"round": 0, "cap": 2},
     "downgrade_enrich":  {"round": 0, "cap": 2},
+    "last_resort_stuck": {"round": 0, "cap": 2},
     "pivot":             {"round": 0, "cap": 2},
     "fix_empirics":      {"round": 0, "cap": 2},
     "referee":           {"round": 0, "cap": 10},
@@ -237,9 +238,10 @@ Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` ob
 - **At cap** (`loops.<id>.round >= loops.<id>.cap`): stop looping. Treat the loop as FAILED and route per that loop's **FAIL route** (Loop Registry). The FAIL route is loop-specific and is *not* centralized — only the counting and capping are.
 - A loop id **absent** from `loops` defaults to `{round: 0, cap: 3}` on first reference, so a newly added gate is loop-capped for free without a schema edit.
 
-**Two documented exceptions to auto-reset** (the only cases where a changed artifact does *not* zero a counter; each is flagged inline where it occurs):
+**Documented exceptions to auto-reset** (the only cases where a changed artifact does *not* zero a counter; each is flagged inline where it occurs):
 1. **Escalation non-reset** — a loop that FAILs *substantively* (escalating rather than retrying) is left as-is even when a sibling artifact regenerates. Stage 3a step 7.5 is the reference case: a substantive data FAIL resets `loops.method_check` but deliberately leaves `loops.data_integrity` untouched (it is escalating, not being retried), and the method-checker FAIL mirror does the reverse.
 2. **Positive non-reset** — a verdict row that explicitly asserts a counter is untouched. The puzzle-triage PROBE-NULL row is the reference case: it positively holds `loops.pivot`, `loops.fix_empirics`, `loops.data_integrity`, and `loops.headline_replication` at their current values.
+3. **Retry-regenerates-the-artifact non-reset** — a loop whose own retry *is* a regeneration of the artifact it counts, so artifact-scoped auto-reset would zero the counter on every iteration and defeat the cap. `loops.last_resort_stuck` is the reference case (see "a last resort for stubborn problems" above): it is scoped to the stuck *episode*, and resets only when the impasse clears or the loop is exited by certification.
 
 **Loop Registry.** The complete set of capped loops. `cap` is the value seeded into `loops.<id>.cap`; the orchestrator reads the cap from state, never hard-codes it. Empirical-extension loops (marked †) exist only under `--ext empirical`.
 
@@ -250,6 +252,7 @@ Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` ob
 | `idea` | 5 | current problem (zeros on a new problem) | pick best idea, advance to Gate 1b — `docs/stage_1.md` |
 | `reject_cosmetic` | 2 | current Stage-6 Reject episode | Regeneration Round (if eligible) else standard Major Revision — `docs/stage_6.md` |
 | `downgrade_enrich` | 2 | current downgrade episode | certify target-tier ceiling (2b) — `docs/stage_6.md` |
+| `last_resort_stuck` | 2 | current stuck episode (**not** artifact-scoped — see the reset override in "a last resort for stubborn problems" above) | branch-manager must certify the ceiling; abandon/restructure authorized — same section |
 | `pivot` | 2 | current problem | forbid further PIVOT, default HONEST-NULL — `docs/stage_puzzle_triage.md` |
 | `fix_empirics` | 2 | current contradiction | escalate to RECONCILE / HONEST-NULL — `docs/stage_puzzle_triage.md` |
 | `referee` | 10 | current paper (fresh budget per Regeneration) | Stage 6 hard cap — `docs/stage_6.md` |
@@ -479,7 +482,7 @@ output/                   # Pipeline outputs by stage
 ├── stage3b/  # LLM experiments (if --ext theory_llm)
 ├── stage4/               # self-attack + scorer decision (versioned)
 ├── debug/                # debugger reports (launched on tool-execution failures)
-├── last_resort/          # last-resort reports (launched at your discretion on stubborn problems)
+├── last_resort/          # last-resort reports (launched at your discretion on stubborn problems) + the branch-manager stuck reviews of any GENUINELY-STUCK verdict
 ├── post_pipeline/        # post-pipeline math audits
 code/
 ├── utils/                # pre-built helpers (wrds_client, codex-math, download templates)

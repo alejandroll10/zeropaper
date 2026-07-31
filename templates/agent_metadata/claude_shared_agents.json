@@ -303,7 +303,7 @@
   },
   "branch-manager": {
     "name": "branch-manager",
-    "description": "Strategic advisor. Launched at (a) every Gate 4 after scorer(s) return, (b) Gate 5-Reject as a substantive-vs-cosmetic check on deepening attempts (context=gate-5-reject, with a gate-5-reject-regen variant for regeneration entry), and (c) the Stage 2 audit loop every 3rd theory version. Diagnoses whether the current path has ceilinged, surfaces alternatives from the Round 1 sketch portfolio, and recommends continue/restructure/restart. Produces a structured report; does not make the gate decision.",
+    "description": "Strategic advisor. Launched wherever the pipeline is deciding whether a path is dead: every Gate 4 after scorer(s) return, the Stage 2 audit loop every 3rd theory version, Gate 5 reject/downgrade, and after a last-resort GENUINELY-STUCK verdict (context=last-resort-stuck) before any abandonment. Diagnoses whether the current path has ceilinged, surfaces alternatives from the Round 1 sketch portfolio, and recommends continue/restructure/restart. Produces a structured report; does not make the gate decision. The agent body carries the full context list and the per-context report shape.",
     "category": "evaluator",
     "tools": "Read, Write",
     "model": "fable",
@@ -319,7 +319,7 @@
   },
   "last-resort": {
     "name": "last-resort",
-    "description": "General-purpose escalation agent for stubborn problems the normal pipeline cannot crack. Launched at the orchestrator's discretion (no automatic trigger) when a derivation will not close, a gate keeps failing after the stage's revision rules are exhausted, a tool defies the debugger, or a run is otherwise stuck and the alternative is abandonment. Runs on a stronger model (fable, with automatic fallback to opus if fable is unavailable at setup) with broad tool access. Receives the stuck artifact plus the full prior-failure history. Returns a routable deliverable: either a concrete proposed fix (handed back to the normal pipeline) or a reasoned GENUINELY-STUCK verdict with why. Does NOT self-certify — any fix it proposes re-enters the existing gate (math-auditor / scorer / referee / empirics-auditor) for verification.",
+    "description": "General-purpose escalation agent for stubborn problems the normal pipeline cannot crack. Launched at the orchestrator's discretion (no automatic trigger) when a derivation will not close, a gate keeps failing after the stage's revision rules are exhausted, a tool defies the debugger, or a run is otherwise stuck and the alternative is abandonment. Runs on a stronger model (fable, with automatic fallback to opus if fable is unavailable at setup) with broad tool access. Receives the stuck artifact plus the full prior-failure history. Returns a routable deliverable: either a concrete proposed fix (handed back to the normal pipeline) or a reasoned GENUINELY-STUCK verdict with why. Does NOT self-certify, in either direction — a proposed fix re-enters the existing gate (math-auditor / scorer / referee / empirics-auditor) for verification, and a GENUINELY-STUCK re-enters branch-manager (context=last-resort-stuck), which owns the abandon decision. It never ends a run on its own say-so.",
     "category": "developing",
     "tools": "Read, Write, Edit, Bash, Glob, Grep, WebSearch, WebFetch",
     "model": "fable",
