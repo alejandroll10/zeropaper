@@ -299,6 +299,25 @@ if [ -z "${NUMERICAL_VERIFICATION_BULLET:-}" ]; then
     NUMERICAL_VERIFICATION_BULLET="Don't settle for numerical verification of what should be a theorem."
 fi
 
+# ── Per-variant skill gating (issue #205) ──
+# Economics-only toolkits are dead weight in an llm_cognition deployment: since
+# v2.9.0 no assembled body points llm_cognition agents at them (the advice
+# bullets are vocab-keyed), but they still cost context in every session's
+# skill listing and are discoverable by agents browsing the skills dir. Gate
+# them out of assembly, the utils copy, the deps install, and the manual-mode
+# catalogs. Removal on refresh of an existing deployment is handled by
+# update.sh's stale-infrastructure sweep (dirs listed in the old manifest but
+# absent from the fresh manifest are deleted), so no manifest entry changes
+# are needed here — the manifest emission is presence-filtered.
+VARIANT_SKILL_EXCLUDES=""
+[ "$VARIANT" = "llm_cognition" ] && VARIANT_SKILL_EXCLUDES=" ssj nber_agenda "
+variant_wants_skill() {
+    case "$VARIANT_SKILL_EXCLUDES" in
+        *" $1 "*) return 1 ;;
+        *) return 0 ;;
+    esac
+}
+
 # ── Variant/extension compatibility ──
 # The empirical extension loads per-variant agent metadata
 # (extensions/empirical/agent_metadata/${AGENT_DIR}_agents.json), which exists
@@ -886,16 +905,22 @@ if [ "$MANUAL" = "1" ]; then
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/codex_math_skills.json"
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/bib_verify_skills.json"
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/openalex_skills.json"
-        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json"
-        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json"
     )
     CODEX_SKILL_METADATA_ARGS=(
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/sympy_skills.json"
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/bib_verify_skills.json"
         --metadata "$TEMPLATE_ROOT/templates/skill_metadata/openalex_skills.json"
-        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json"
-        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json"
     )
+    # Variant-gated core skills (issue #205): keep the catalogs consistent with
+    # what the install blocks below actually assemble for this variant.
+    if variant_wants_skill nber_agenda; then
+        SKILL_METADATA_ARGS+=(--metadata "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json")
+        CODEX_SKILL_METADATA_ARGS+=(--metadata "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json")
+    fi
+    if variant_wants_skill ssj; then
+        SKILL_METADATA_ARGS+=(--metadata "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json")
+        CODEX_SKILL_METADATA_ARGS+=(--metadata "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json")
+    fi
     for ext in "${EXTENSIONS[@]}"; do
         case "$ext" in
             empirical)
@@ -2183,22 +2208,26 @@ cp "$TEMPLATE_ROOT/templates/utils/openalex/"openalex.py "$P/code/utils/openalex
 chmod +x "$P/code/utils/openalex/"openalex.py
 
 # NBER conference agenda skill (loaded by literature-scout, gap-scout — the
-# pre-publication research frontier: who is presenting what, right now)
-assemble_claude_skills \
-    "$TEMPLATE_ROOT" \
-    "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json" \
-    "$TEMPLATE_ROOT/templates/skill_bodies/nber_agenda" \
-    "$SKILLS_OUT"
+# pre-publication research frontier: who is presenting what, right now).
+# Variant-gated (issue #205): economics conferences are dead weight for
+# llm_cognition, whose frontier bullets point at arXiv/OpenReview instead.
+if variant_wants_skill nber_agenda; then
+    assemble_claude_skills \
+        "$TEMPLATE_ROOT" \
+        "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json" \
+        "$TEMPLATE_ROOT/templates/skill_bodies/nber_agenda" \
+        "$SKILLS_OUT"
 
-python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
-    --metadata "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json" \
-    --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/nber_agenda" \
-    --output-dir "$CODEX_SKILLS_OUT"
+    python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
+        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/nber_agenda_skills.json" \
+        --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/nber_agenda" \
+        --output-dir "$CODEX_SKILLS_OUT"
 
-# Copy NBER agenda utility script
-mkdir -p "$P/code/utils/nber_agenda"
-cp "$TEMPLATE_ROOT/templates/utils/nber_agenda/"nber_agenda.py "$P/code/utils/nber_agenda/"
-chmod +x "$P/code/utils/nber_agenda/"nber_agenda.py
+    # Copy NBER agenda utility script
+    mkdir -p "$P/code/utils/nber_agenda"
+    cp "$TEMPLATE_ROOT/templates/utils/nber_agenda/"nber_agenda.py "$P/code/utils/nber_agenda/"
+    chmod +x "$P/code/utils/nber_agenda/"nber_agenda.py
+fi
 
 # Copy the sandbox-safe git-push credential setup (repo-scoped PAT store; the
 # grok sandbox cannot reach the macOS keychain — issue #190). Opt-in: the user
@@ -2249,29 +2278,33 @@ python3 "$TEMPLATE_ROOT/scripts/emit_model_heal_config.py" \
 
 # Sequence-space Jacobian (SSJ) skill — solve/analyze heterogeneous-agent GE
 # models (theory-explorer Stage 2b, idea-prototyper tractability pre-check)
-assemble_claude_skills \
-    "$TEMPLATE_ROOT" \
-    "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json" \
-    "$TEMPLATE_ROOT/templates/skill_bodies/ssj" \
-    "$SKILLS_OUT"
+# Variant-gated (issue #205): the macro-GE toolkit is dead weight for
+# llm_cognition, whose prototyping bullets point at toy-scale simulation.
+if variant_wants_skill ssj; then
+    assemble_claude_skills \
+        "$TEMPLATE_ROOT" \
+        "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json" \
+        "$TEMPLATE_ROOT/templates/skill_bodies/ssj" \
+        "$SKILLS_OUT"
 
-python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
-    --metadata "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json" \
-    --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/ssj" \
-    --output-dir "$CODEX_SKILLS_OUT"
+    python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
+        --metadata "$TEMPLATE_ROOT/templates/skill_metadata/ssj_skills.json" \
+        --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/ssj" \
+        --output-dir "$CODEX_SKILLS_OUT"
 
-# Copy SSJ driver + worked finance example model
-mkdir -p "$P/code/utils/ssj"
-cp "$TEMPLATE_ROOT/templates/utils/ssj/"ssj_solve.py "$TEMPLATE_ROOT/templates/utils/ssj/"example_asset_pricing.py "$P/code/utils/ssj/"
-chmod +x "$P/code/utils/ssj/"ssj_solve.py
+    # Copy SSJ driver + worked finance example model
+    mkdir -p "$P/code/utils/ssj"
+    cp "$TEMPLATE_ROOT/templates/utils/ssj/"ssj_solve.py "$TEMPLATE_ROOT/templates/utils/ssj/"example_asset_pricing.py "$P/code/utils/ssj/"
+    chmod +x "$P/code/utils/ssj/"ssj_solve.py
 
-# Install sequence-jacobian (non-fatal -- pulls in numba, which can be finicky to
-# build; warn like the codex CLI rather than failing setup). The package declares
-# no deps, so an unpinned install backtracks to a Python-incompatible numba -- pin
-# numpy/scipy/numba>=0.59 explicitly.
-if [ "$LOCAL" = "0" ] && [ -d "$P/.venv" ]; then
-    uv pip install --python "$P/.venv" -r "$TEMPLATE_ROOT/templates/deps/ssj.txt" -q 2>/dev/null \
-        || echo "  ⚠ sequence-jacobian install failed (likely a numba build issue). The ssj skill will not work until you run: source $P/.venv/bin/activate && uv pip install sequence-jacobian numpy scipy 'numba>=0.59'"
+    # Install sequence-jacobian (non-fatal -- pulls in numba, which can be finicky to
+    # build; warn like the codex CLI rather than failing setup). The package declares
+    # no deps, so an unpinned install backtracks to a Python-incompatible numba -- pin
+    # numpy/scipy/numba>=0.59 explicitly.
+    if [ "$LOCAL" = "0" ] && [ -d "$P/.venv" ]; then
+        uv pip install --python "$P/.venv" -r "$TEMPLATE_ROOT/templates/deps/ssj.txt" -q 2>/dev/null \
+            || echo "  ⚠ sequence-jacobian install failed (likely a numba build issue). The ssj skill will not work until you run: source $P/.venv/bin/activate && uv pip install sequence-jacobian numpy scipy 'numba>=0.59'"
+    fi
 fi
 
 echo "  ✓ Core skills assembled"

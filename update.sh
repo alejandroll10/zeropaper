@@ -327,6 +327,38 @@ while IFS= read -r f; do
     fi
 done < <(jq -r '.infrastructure.files_replace[]' "$NEW_MANIFEST")
 
+# ── Stale-infrastructure sweep (issue #205) ──
+# A path recorded as infrastructure in the TARGET's existing manifest but
+# absent from the fresh manifest is infrastructure this template version no
+# longer deploys for this variant/mode/extension set (e.g. per-variant skill
+# gating dropped the ssj + nber-agenda util dirs from llm_cognition). Leaving
+# it would let old deployments diverge permanently from a fresh deploy, so
+# remove it. Only paths the old deploy's own manifest called infrastructure
+# are candidates — user content is never listed there. Pre-manifest deploys
+# have no old manifest, so there is nothing to sweep. files_env_merge (.env)
+# is deliberately not swept: it is user-merged, not replaced.
+if [ -f "$MANIFEST" ]; then
+    sweep() {
+        local kind="$1" jqlist="$2" testflag="$3" p
+        while IFS= read -r p; do
+            # Manifest paths are repo-relative by construction; refuse
+            # anything that could escape the project tree.
+            case "$p" in /*|*..*|"") continue ;; esac
+            [ $testflag "$PROJECT/$p" ] || continue
+            if [ "$DRY_RUN" = "1" ]; then
+                echo "  stale $kind: $p (no longer deployed — would remove)"
+            else
+                rm -rf "$PROJECT/$p"
+                echo "  stale $kind ✗ $p (no longer deployed — removed)"
+            fi
+        done < <(jq -r --slurpfile new "$NEW_MANIFEST" \
+            ".infrastructure.${jqlist}[]? | select(. as \$p | (\$new[0].infrastructure.${jqlist} // [] | index(\$p)) | not)" \
+            "$MANIFEST")
+    }
+    sweep dir dirs_replace -d
+    sweep file files_replace -f
+fi
+
 # ── Merge .env (append missing keys only; never overwrite values) ──
 echo
 echo "=== Merging .env ==="
@@ -455,10 +487,16 @@ fi
 # existing environment (its interpreter paths and user-installed packages).
 VENV="$PROJECT/.venv"
 if [ ! -d "$VENV" ]; then
+    # ssj deps are variant-gated (issue #205; mirrors setup.sh's
+    # variant_wants_skill — keep the two in sync when gating more skills).
+    WANT_SSJ_DEPS=1
+    [ "$VARIANT" = "llm_cognition" ] && WANT_SSJ_DEPS=0
     if [ "$DRY_RUN" = "1" ]; then
         echo
         echo "=== venv bootstrap ==="
-        echo "  would create $VENV and install core + ssj + extension deps [${EXTENSIONS[*]}]"
+        _ssj_label=""
+        [ "$WANT_SSJ_DEPS" = "1" ] && _ssj_label=" + ssj"
+        echo "  would create $VENV and install core${_ssj_label} + extension deps [${EXTENSIONS[*]}]"
     elif ! command -v uv >/dev/null 2>&1; then
         echo
         echo "  ⚠ .venv missing and uv not found — install uv, then re-run update.sh (or create it manually)"
@@ -473,9 +511,11 @@ if [ ! -d "$VENV" ]; then
             uv pip install --python "$VENV" -r "$TEMPLATE_ROOT/templates/deps/core.txt" -q 2>/dev/null \
                 && echo "  ✓ core deps installed" \
                 || echo "  ⚠ core deps failed (source $VENV/bin/activate && uv pip install sympy matplotlib certifi)"
-            uv pip install --python "$VENV" -r "$TEMPLATE_ROOT/templates/deps/ssj.txt" -q 2>/dev/null \
-                && echo "  ✓ ssj deps installed" \
-                || echo "  ⚠ ssj deps skipped (numba build issue; non-fatal — ssj skill only)"
+            if [ "$WANT_SSJ_DEPS" = "1" ]; then
+                uv pip install --python "$VENV" -r "$TEMPLATE_ROOT/templates/deps/ssj.txt" -q 2>/dev/null \
+                    && echo "  ✓ ssj deps installed" \
+                    || echo "  ⚠ ssj deps skipped (numba build issue; non-fatal — ssj skill only)"
+            fi
             for ext in "${EXTENSIONS[@]}"; do
                 _extdeps="$TEMPLATE_ROOT/extensions/$ext/deps.txt"
                 [ -f "$_extdeps" ] || continue

@@ -37,7 +37,7 @@ code/
 ├── download/             # Data download helpers
 ├── explore/              # Exploration scripts
 ├── tmp/                  # Scratch
-└── utils/                # Pre-built helpers (codex-math, openalex, bib-verify, nber-agenda, ssj; more with extensions)
+└── utils/                # Pre-built helpers (codex-math, openalex, bib-verify, plus variant-specific toolkits; more with extensions — the installed set is what's in this directory)
 paper/
 ├── main.tex
 ├── sections/

@@ -103,6 +103,33 @@ else
     pass "no variant-marker leakage"
 fi
 
+# ── 3c. Per-variant skill gating (#205): econ-only skills absent ──
+for gated in ".claude/skills/ssj" ".claude/skills/nber-agenda" \
+             ".agents/skills/ssj" ".agents/skills/nber-agenda" \
+             "code/utils/ssj" "code/utils/nber_agenda"; do
+    if [ -e "$B/$gated" ]; then
+        fail "econ-only skill installed despite gating: $gated"
+    else
+        pass "gated out: $gated"
+    fi
+done
+# The gated dirs must also be absent from the manifest, or update.sh would
+# try to refresh paths the deploy never creates.
+if grep -q "code/utils/ssj\|code/utils/nber_agenda" "$B/.deploy_manifest.json" 2>/dev/null; then
+    fail "manifest still lists gated skill util dirs"
+else
+    pass "manifest clean of gated skill util dirs"
+fi
+# And the always-on core skills must still be present.
+for kept in ".claude/skills/sympy" ".claude/skills/codex-math" \
+            ".claude/skills/openalex" ".claude/skills/bib-verify"; do
+    if [ -d "$B/$kept" ]; then
+        pass "core skill kept: $kept"
+    else
+        fail "core skill missing: $kept"
+    fi
+done
+
 # ── 4. ML venue aliases present in deployed openalex script ──
 grep -q '"neurips"' "$B/code/utils/openalex/openalex.py" \
     && pass "openalex ML venue aliases deployed" || fail "openalex ML venue aliases missing"

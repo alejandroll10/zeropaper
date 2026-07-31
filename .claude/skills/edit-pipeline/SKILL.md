@@ -313,7 +313,7 @@ These four paths (`templates/model_fallbacks.json`, `scripts/resolve_model_fallb
 
 ## Core skills (all variants)
 
-Six skills install unconditionally for every variant (`SKILL_METADATA_ARGS` in `setup.sh`); `empirical_skills.json` and `theory_llm_skills.json` are the only extension-gated ones. Note `codex-math` is Claude-only — it is absent from `CODEX_SKILL_METADATA_ARGS`.
+Four skills install unconditionally for every variant (`sympy`, `codex-math`, `bib-verify`, `openalex`); `ssj` and `nber-agenda` are **variant-gated** (issue #205): `variant_wants_skill` in `setup.sh` drops them from llm_cognition deployments (assembly, `code/utils/` copy, deps install, and the manual-mode catalogs all consult it), and `update.sh`'s stale-infrastructure sweep removes them from pre-gating llm_cognition deployments on refresh. `empirical_skills.json` and `theory_llm_skills.json` are extension-gated. Note `codex-math` is Claude-only — it is absent from `CODEX_SKILL_METADATA_ARGS`. When retiring any deployed path (skill or otherwise), the sweep handles old deployments automatically **only if the path was manifested** — a never-manifested path is invisible to it.
 
 | Skill | Description |
 |-------|-------------|
