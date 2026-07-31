@@ -160,7 +160,9 @@ sudo sysctl --system
 # sanity: bwrap --unshare-all --bind / / true && echo OK
 ```
 
-**Our scripts don't depend on the sandbox shell.** They use `-o "$TMP"` so the Codex CLI (running outside the sandbox) captures the model's final message regardless, and they pre-extract file content via `extract_block.sh` rather than asking codex to `cat` files. So `codex_verify.sh`, `codex_write.sh`, and `codex_explore.sh` work identically whether or not bwrap can start. If you write ad-hoc codex prompts, you can rely on shell + python on a working host; on a broken one, pass content inline.
+**Our scripts don't depend on the sandbox shell.** They use `-o "$TMP"` so the Codex CLI (running outside *codex's* sandbox — the bwrap/seatbelt wrapper around the model's shell commands) captures the model's final message regardless, and they pre-extract file content via `extract_block.sh` rather than asking codex to `cat` files. So `codex_verify.sh`, `codex_write.sh`, and `codex_explore.sh` work identically whether or not bwrap can start. If you write ad-hoc codex prompts, you can rely on shell + python on a working host; on a broken one, pass content inline.
+
+**But the CLI itself still runs inside the *calling agent's* sandbox** — when you (the agent) invoke these scripts through your own sandboxed shell, that outer write allowlist governs the `-o` path. This is why the scripts put `$TMP` under `$TMPDIR`, never a literal `/tmp`: on macOS `/tmp` resolves to `/private/tmp`, which an allowlist carrying the literal `/tmp` entry does not cover, and the `-o` write fails even though the verification itself succeeded. Keep any ad-hoc `-o` paths under `$TMPDIR` or the project tree.
 
 ## Dual audit pattern
 

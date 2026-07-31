@@ -72,7 +72,9 @@ else
 fi
 
 OUTFILE="${OUTDIR}/${SAFE_NAME}.md"
-TMP="/tmp/codex_write_${SAFE_NAME}_$$.txt"
+# $TMPDIR, not a literal /tmp — see the comment in codex_verify.sh (macOS
+# symlink resolution puts /tmp outside sandbox write allowlists).
+TMP="${TMPDIR:-/tmp}/codex_write_${SAFE_NAME}_$$.txt"
 LOG="${OUTDIR}/${SAFE_NAME}.log"
 
 echo "[codex-math] Writing proof ($MODEL, effort=$EFFORT)..."

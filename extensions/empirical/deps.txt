@@ -7,7 +7,11 @@ numpy
 polars
 pyarrow
 statsmodels
+linearmodels
 scipy
+# Direct module-scope import in utils/edgar_utils.py — declared explicitly so a
+# transitive dep dropping it (wrds/fredapi pull it in today) can't break EDGAR.
+requests
 fredapi
 pandas-datareader
 wrds

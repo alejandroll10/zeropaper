@@ -92,6 +92,10 @@ codex_build_no_spawn_args() {
 # and CODEX_NO_SPAWN_ARGS. Call once right before `codex exec`, then pass
 # "${CODEX_NO_SPAWN_ARGS[@]}" into it.
 codex_leaf_setup() {
+    # The literal-/tmp fallback is for Linux, where /tmp is a real directory.
+    # On macOS an unset TMPDIR would hit the /tmp→/private/tmp symlink issue
+    # documented in codex_verify.sh, but the deployed runtimes always set
+    # TMPDIR there; if this mktemp ever fails, check that assumption first.
     _codex_scratch=$(mktemp -d "${TMPDIR:-/tmp}/codex_math.XXXXXX")
     trap 'rm -rf "$_codex_scratch"' EXIT
     codex_build_no_spawn_args "$_codex_scratch"

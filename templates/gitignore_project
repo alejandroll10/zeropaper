@@ -6,6 +6,9 @@ data/**/*.h5
 data/**/*.dta
 data/**/*.xlsx
 data/crsp_daily_raw/
+# edgartools local data store (EDGAR_LOCAL_DATA_DIR, pointed here by
+# code/utils/edgar_utils.py) — re-downloadable, never a tracked artifact
+data/edgar_cache/
 
 # Large binary blobs anywhere in the repo
 *.zip

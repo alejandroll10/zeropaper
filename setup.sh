@@ -2015,6 +2015,17 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
     # line-by-line merge, so normalize on the way out.
     [ -n "$(tail -c1 "$P/.env")" ] && printf '\n' >> "$P/.env"
     echo "  ✓ .env copied from template repo"
+    # The repo's personal .env can predate keys later added to .env.example; a
+    # plain copy would propagate that staleness into every new deployment —
+    # silently, since consumers fall back to placeholder defaults rather than
+    # fail (e.g. the SEC_EDGAR_* identity). Union in whatever is missing, with
+    # the same merge routine update.sh uses on existing deployments.
+    if [ -f "$SCRIPT_DIR/.env.example" ]; then
+        . "$SCRIPT_DIR/scripts/merge_env_keys.sh"
+        merge_env_missing_keys "$SCRIPT_DIR/.env.example" "$P/.env" 0
+        [ "$MERGE_ENV_ADDED" -gt 0 ] \
+            && echo "  ✓ $MERGE_ENV_ADDED key(s) added from .env.example — fill in values if you use them"
+    fi
 elif [ -f "$SCRIPT_DIR/.env.example" ]; then
     cp "$SCRIPT_DIR/.env.example" "$P/.env"
     echo "  ✓ .env scaffolded from .env.example — fill in your credentials"

@@ -56,7 +56,9 @@ mkdir -p "$OUTDIR"
 
 SAFE_NAME=$(echo "$QUESTION" | tr ' /:{}\\?.' '_' | cut -c1-60 | tr -cd '[:alnum:]_-')
 OUTFILE="${OUTDIR}/${SAFE_NAME}.md"
-TMP="/tmp/codex_explore_${SAFE_NAME}_$$.txt"
+# $TMPDIR, not a literal /tmp — see the comment in codex_verify.sh (macOS
+# symlink resolution puts /tmp outside sandbox write allowlists).
+TMP="${TMPDIR:-/tmp}/codex_explore_${SAFE_NAME}_$$.txt"
 LOG="${OUTDIR}/${SAFE_NAME}.log"
 
 # Load context if provided

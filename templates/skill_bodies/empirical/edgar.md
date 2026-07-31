@@ -7,17 +7,24 @@
 ## Setup
 
 ```python
-from edgar import *
 import os
 from dotenv import load_dotenv
 load_dotenv()
 
+# Keep edgartools' local cache inside the repo. Its default is ~/.edgar, which
+# is OUTSIDE the sandbox writable set — the first fetch dies with
+# PermissionError. Set this BEFORE importing edgar; a blank .env value counts
+# as unset (load_dotenv puts '' in os.environ, so setdefault alone won't do).
+if not os.environ.get('EDGAR_LOCAL_DATA_DIR'):
+    os.environ['EDGAR_LOCAL_DATA_DIR'] = os.path.abspath('data/edgar_cache')
+
+from edgar import *
 name = os.getenv('SEC_EDGAR_NAME', 'Research')
 email = os.getenv('SEC_EDGAR_EMAIL', 'research@university.edu')
 set_identity(f"{name} {email}")
 ```
 
-A helper is available at `code/utils/edgar_utils.py` — use `from utils.edgar_utils import get_edgar` to get a configured connection.
+A helper is available at `code/utils/edgar_utils.py` — use `from utils.edgar_utils import get_edgar` to get a configured connection (it sets both the identity and the cache dir for you; prefer it over the manual setup above).
 
 ## How to use
 
@@ -108,6 +115,10 @@ r = requests.get(url, headers=headers)
 - **No `User-Agent` → HTTP 403.** The #1 EDGAR failure. A request with no (or a
   default `python-requests`) User-Agent is rejected outright. Always send a
   descriptive `Name email` string.
+- **Default cache dir → PermissionError.** edgartools writes its local data
+  store to `~/.edgar` by default, which the sandbox does not allow. Set
+  `EDGAR_LOCAL_DATA_DIR` to `data/edgar_cache` *before* importing edgar (the
+  Setup snippet above does; so does `get_edgar()`).
 - **Rate limit: 10 requests/second, hard.** `edgartools` throttles for you; for
   the direct API add `time.sleep(0.1)` between calls and never parallelize
   blindly — sustained bursts get the host IP blocked, not just throttled.

@@ -12,6 +12,12 @@ from dotenv import load_dotenv
 
 load_dotenv()
 
+# Deployed at code/utils/, so ../../data is the project data/ dir (same
+# convention as the other utils' DATA_DIR).
+_EDGAR_CACHE_DIR = os.path.normpath(
+    os.path.join(os.path.dirname(__file__), "..", "..", "data", "edgar_cache")
+)
+
 _IDENTITY = None
 
 def _get_identity():
@@ -32,6 +38,12 @@ def get_edgar():
         edgar = get_edgar()
         company = edgar.Company("AAPL")
     """
+    # edgartools' default local data store is ~/.edgar, which is outside the
+    # sandbox writable set (PermissionError on first fetch). Point it inside
+    # the repo before the import; a blank .env value counts as unset.
+    if not os.environ.get('EDGAR_LOCAL_DATA_DIR'):
+        os.makedirs(_EDGAR_CACHE_DIR, exist_ok=True)
+        os.environ['EDGAR_LOCAL_DATA_DIR'] = _EDGAR_CACHE_DIR
     import edgar
     edgar.set_identity(_get_identity())
     return edgar

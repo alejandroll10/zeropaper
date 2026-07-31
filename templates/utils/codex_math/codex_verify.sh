@@ -8,7 +8,7 @@
 # Examples:
 #   codex_verify.sh paper/model.tex "Theorem 1"
 #   codex_verify.sh paper/model.tex "prop:crra" high
-#   codex_verify.sh notes.md "Proposition 3" high /tmp/audits
+#   codex_verify.sh notes.md "Proposition 3" high output/audits
 #
 # reasoning_effort: low | medium (default) | high
 # output_dir: where to save results (default: ./output/codex_audits)
@@ -39,7 +39,11 @@ mkdir -p "$OUTDIR"
 # Sanitize pattern for filename
 SAFE_NAME=$(echo "$PATTERN" | tr ' /:{}\\' '_' | tr -cd '[:alnum:]_-')
 OUTFILE="${OUTDIR}/${SAFE_NAME}.md"
-TMP="/tmp/codex_verify_${SAFE_NAME}_$$.txt"
+# $TMPDIR, not a literal /tmp: on macOS /tmp is a symlink to /private/tmp, and
+# sandbox write allowlists that carry the literal "/tmp" entry do not cover the
+# resolved path — codex then can't write the -o file, and a verification that
+# actually succeeded exits 1 as "No output file produced".
+TMP="${TMPDIR:-/tmp}/codex_verify_${SAFE_NAME}_$$.txt"
 LOG="${OUTDIR}/${SAFE_NAME}.log"
 
 echo "[codex-math] Extracting: '$PATTERN' from $FILE"

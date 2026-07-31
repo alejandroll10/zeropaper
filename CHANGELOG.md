@@ -15,7 +15,14 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.13.0] — 2026-07-31 (current)
+## [2.13.1] — 2026-07-31 (current)
+Four deployment-correctness fixes: three from the 2026-07-31 EDGAR investigation (issues #209, #210, #211) plus a codex_math output-path defect found in the same day's sandboxed-codex investigation (no issue number; the companion upstream proxy-auth finding is tracked as #213).
+**#211 — stale `.env` propagation:** `setup.sh`'s `.env` copy was an either/or (`cp` personal `.env`, *else* scaffold from `.env.example`), so a personal `.env` predating a key silently deployed without it — observed as fresh projects missing `SEC_EDGAR_*` entirely, with `edgar_utils.py` falling back to its placeholder identity. The copy is now a **union**: after copying `.env`, any key present in `.env.example` but absent from the copy is appended blank. The merge routine is extracted from `update.sh` into shared `scripts/merge_env_keys.sh` (build-time only) and sourced by both scripts, so the trailing-newline guards stay single-sourced instead of re-diverging (the v2.11.1 bug class).
+**#210 — EDGAR cache outside the sandbox:** edgartools writes its local data store to `~/.edgar` by default, which is outside every runtime's writable set → `PermissionError` on first fetch. Rather than widening three per-runtime sandbox configs, `get_edgar()` now defaults `EDGAR_LOCAL_DATA_DIR` to `data/edgar_cache/` inside the project before the lazy `import edgar` (blank `.env` value counts as unset); the edgar skill's Setup snippet sets the same env var before `from edgar import *` for direct callers, with a new gotcha bullet; `data/edgar_cache/` is gitignored in deployments; `.env.example` documents the override, commented out.
+**codex_math `/tmp` output path:** `codex_verify.sh` / `codex_write.sh` / `codex_explore.sh` wrote their `-o` result file to a hardcoded `/tmp/...`. On macOS `/tmp` is a symlink to `/private/tmp`, which sandbox write allowlists carrying the literal `/tmp` entry don't cover after resolution — so a verification that *succeeded* still exited 1 with "No output file produced", which `math-auditor` reads as a codex failure. Now `${TMPDIR:-/tmp}`, matching `codex_common.sh`'s existing scratch-dir pattern.
+**#209 — undeclared empirical deps:** `linearmodels` (policy-canonical for Fama-MacBeth/panel — method-checker REVISEs hand-rolled substitutes, yet it was never installed) and `requests` (module-scope import in `edgar_utils.py`, previously present only transitively) added to `extensions/empirical/deps.txt`; the manual-install fallback hint in `apply_extension_empirical.sh` now derives its package list from `deps.txt` instead of a second hardcoded copy.
+
+## [2.13.0] — 2026-07-31
 `GENUINELY-STUCK` is no longer terminal: the abandon decision goes to the agent that owns it (issue #153).
 **Problem:** `last-resort` — the strongest model in the pipeline — had two verdicts with asymmetric
 verification. `FIX-PROPOSED` always re-entered the failing gate. `GENUINELY-STUCK` routed straight to
