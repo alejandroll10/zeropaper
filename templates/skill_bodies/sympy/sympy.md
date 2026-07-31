@@ -20,7 +20,7 @@ You **must** invoke SymPy for these:
 - **Sign of a derivative.** Any claim of monotonicity, concavity, or comparative-statics direction. Compute the derivative, then check the sign on the relevant domain.
 - **Second-order conditions.** Any claim that an interior FOC root is a maximum (not a minimum or saddle). Compute the second derivative and check sign.
 - **Equality of two expressions.** Before claiming two algebraic expressions are equal (e.g., the paper's formula vs. your re-derivation), compute `sp.simplify(a - b)` and confirm it returns `0`.
-- **Solving for closed-form roots.** Equilibrium prices, fixed points, FOC roots. Use `sp.solve` or `sp.solveset`.
+- **Solving for closed-form roots.** Equilibria, fixed points, first-order-condition roots. Use `sp.solve` or `sp.solveset`.
 - **Comparative statics via implicit differentiation.** When a result depends on $\partial x^* / \partial \theta$, derive it symbolically.
 - **Numerical sanity check at calibration.** Substitute calibration values into both the paper's formula and your derivation and compare the numbers.
 - **Limits and Taylor expansions.** When a result is "for small $\epsilon$" or "as $\theta \to 0$", use `sp.limit` or `sp.series`.

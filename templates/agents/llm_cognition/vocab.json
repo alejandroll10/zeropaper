@@ -4,7 +4,6 @@
   "MECHANISM_TERM_CAP": "Mechanism",
   "DOMAIN": "LLM cognition",
   "SUBMISSION_TIER": "top ML venue",
-
   "H2_CHECK": "Could a reader write down the framework's primitives — the formal definition of the construct being measured (what varies, what is held fixed, in what units), and the stimulus-generating process or task family that operationalizes it? Or, for formal-only analyses of transformer computation (in scope without a measurement apparatus): the model of computation and the formal claim class — what is bounded or characterized, over what family of tasks or architectures?",
   "H2_SHORT_LABEL": "Well-defined construct",
   "H3_REQUIREMENT": "Key result is correct",
@@ -15,7 +14,6 @@
   "H3_BRIEF": "math correctness",
   "EMPIRICS_AUDITOR_MODE_BLOCK": "",
   "H5_CHECK": "The \"mechanism\" section explains WHY in computational or representational terms, not algebra or curve description — a reader who skips the math should understand what about the system and the task produces the behavior",
-
   "IMPORTANCE_100": "changes a first-order decision that AI researchers, evaluators, or deployers make routinely (e.g., how a capability is measured before deployment, how context and memory limits are engineered around, how benchmark scores are read as capability claims). The bar is general CONSEQUENCE — a class of decisions changes, or a broad audience acts on the result — plus immediate relevance. This does NOT require an abstract or de-applied framework: a result delivered through a specific, high-stakes setting (a named model family, benchmark, or deployment domain) qualifies as long as the decision it changes is first-order.",
   "IMPORTANCE_85": "changes how a specific subfield approaches a class of questions (evaluation methodology, long-context modeling, in-context learning, interpretability, reasoning), with downstream effects on measurement practice, future theory, or system design within five years. Also: shows that a class of benchmarks, metrics, or evaluation practices previously thought informative is confounded or undefined under stated conditions (irrelevance / impossibility / no-go results — score on the magnitude of conventional reasoning overturned, not on a forward decision change the result by construction does not deliver); or supplies a tool — a measurement construct, a benchmark family, a capacity metric, an experimental paradigm — that a subfield will adopt to revisit a class of questions (score on the breadth of questions the tool unlocks and the credibility of field adoption).",
   "IMPORTANCE_70": "a result merely relevant to a subfield — it does not change how that subfield approaches the capability or question, with limited spillover to first-order decisions a wider audience acts on. The cap reflects LIMITED CONSEQUENCE within that audience, NOT the narrowness of who acts on the result — a narrow paper that changes how its subfield approaches a class of questions belongs at 85, not here, and audience size alone never caps Importance at 70. A concretely-framed result that changes a first-order decision belongs at 85-100.",
@@ -23,36 +21,27 @@
   "IMPORTANCE_40": "internally interesting but does not connect to any decision, question, or documented behavior anyone acts on.",
   "IMPORTANCE_20": "minor extension of a known benchmark or effect.",
   "IMPORTANCE_OUTCOME": "evaluation or deployment decision",
-
   "NOVELTY_CALIBRATION": "new construct or mechanism that changes how a capability is measured or explained = 100, known construct in a new regime with surprising implication = 80, known construct in a new setting with predictable implication = 40",
-
   "SURPRISE_READER": "knowledgeable ML reader",
   "SURPRISE_CALIBRATION": "overturns a documented field prior on any axis — direction (an effect reverses where the field expected monotonicity; a capacity fails to grow with scale or context length where growth was assumed), magnitude (overturns the consensus number), mechanism (displaces the accepted explanation of a documented behavior), or category (reframes the kind of problem — e.g., a \"reasoning\" failure shown to be a memory failure) = 85-100 (a sign/magnitude reversal is sufficient but NOT necessary — a mechanism or category displacement reaches this tier on its own); a result a knowledgeable reader could not have called ex-ante — a novel mechanism, a non-obvious structural result, or a prediction whose direction the field could not have called — even where the literature documents no prior number to overturn, and even when it holds only under the paper's stated assumptions = 75; a non-obvious effect the field would mostly have anticipated in direction = 60; confirms intuition with precise conditions = 40; formalizes what everyone already believed = 15",
-
   "QUESTION_POSER_ROLE": "creative scientist of machine cognition",
   "QUESTION_REFEREE_ROLE": "senior researcher of machine cognition acting as a top ML venue (NeurIPS, ICML, ICLR) area chair",
   "QUESTION_IMPORTANCE_BAR": "would a NeurIPS/ICML/ICLR area chair see a first-order decision — how a capability is evaluated, how benchmark scores are interpreted, how systems are engineered around a limit — change on the answer, with a broad audience acting on it?",
   "QUESTION_POSER_DEAD_BRANCH": "Flag — but do not automatically abandon — any answer that would be a non-paper (the effect is simply absent, or a result the field already expected): it is a dead branch only when *no standing prior* is being tested; a definitive null against a standing prior (think of claimed emergent abilities dissolving under better metrics) is itself a finding. Prefer questions with no dead branch.",
   "QUESTION_REFEREE_DEAD_BRANCH": "- Enumerate the plausible answers. Does each inform the field, or is one a **dead branch** — a non-paper answer (e.g. \"the effect is simply absent,\" or a result the field already expected) against *no* standing prior?\n- **Null protection:** a definitive null *against a standing prior* (the field believed otherwise — think of claimed emergent abilities dissolving under better metrics) is a live, publishable branch, not a dead one. Check for the standing prior before flagging. The REVISE fix for a dead branch is to re-pose toward answer-symmetry, or surface the standing prior that makes the null live.",
-
   "RIGOR_100": "full proof for formal claims, all assumptions explicitly stated, boundary behavior characterized where relevant to the main result; measurement procedures fully specified (stimulus generation, scoring rule, inference), with uncertainty quantified.",
   "RIGOR_80": "correct proof with clearly stated assumptions. **Default for theorems that pass both structured and free-form math audits.** For a measurement-first framework with no theorem, the same default applies to a fully specified procedure — stimulus generation, scoring rule, and inference all stated precisely enough to rerun — that passes both audits. Not all edge cases need exhaustive treatment; if the result is clean under its stated assumptions, 80 is the expected score. Score below 80 only if reader-noticeable gaps exist despite audit passage (for measurement papers: an under-specified procedure or unquantified uncertainty).",
   "RIGOR_60": "argument is clear but has gaps a careful reader would notice. Not hand-waving, but some steps are asserted rather than shown, or a measurement procedure is under-specified.",
-
   "PARSIMONY_100": "every assumption in the core framework is used in the main result. Every construct defined is measured, every factor manipulated appears in the analysis, and nothing in the core framework can be cut without breaking the paper's main result. (Robustness checks, extension appendices, and additional analyses do not bear on this score.)",
   "PARSIMONY_40_FIRST": "constructs or task families",
-
   "FERTILITY_BULLETS": "- Does it generalize across model families and scales?\n- Does it suggest new measurements or benchmarks others will run?\n- Does it connect model behavior to a human-cognition or information-theory literature?",
   "FERTILITY_CALIBRATION": "reframes how a capability is measured or understood = 100, dead-end result = 20",
-
   "RULES_FEEDBACK_EXAMPLE": "why interference, not raw item count, drives the failure",
   "INFLATION_PHENOMENA_LIST": "hallucination, emergent abilities, a first-order capability question",
   "INFLATION_EXAMPLE": "A paper that says \"explains in-context learning\" but whose own experiments only characterize retrieval under distraction scores Importance on the narrower result it actually supports, not the framing.",
-
   "REFEREE_JOURNAL_ROLE": "**top ML venue** (NeurIPS, ICML, ICLR)",
   "REFEREE_MIDDLE_BULLETS": "- Does the paper answer the question correctly?\n- Are the results robust across model families, scales, prompt formats, and stimulus samples, or do they depend on one model and one phrasing?\n- Does the task isolate the claimed construct from confounds — tokenization artifacts, training-data contamination, format familiarity, raw sequence length?\n- Is the statistical treatment sound — uncertainty across seeds and stimuli, multiple-comparison discipline, curve shapes identified rather than drawn by eye?\n- Do the experiments discriminate the proposed account from the obvious alternatives?\n- Where prior published work has measured the same construct or capability, does the paper compare against it — and reconcile disagreements rather than ignoring them? \"You didn't compare to [prior work]\" is a first-order reject reason at these venues.",
   "REFEREE_FINAL_BULLET": "Does it pass the \"so what\" test?",
-
   "IDEA_REVIEWER_ROLE": "senior researcher of machine cognition",
   "IDEA_TRACTABILITY_HINT": "Viable / well-posed? (a formal capacity result is a bonus, not required; simulation plus measurement is fine — only degenerate, unmeasurable, or compute-infeasible disqualifies)",
   "IDEA_DEVELOP_EXAMPLE_TAIL": "explain exactly why X produces Y, not just that it does",
@@ -63,7 +52,6 @@
   "IDEA_IMPORTANCE_BULLETS": "- Would this change how people evaluate or reason about models?\n- Is there a clear measurable prediction that could fail?\n- Would a seminar audience lean forward or check their phones?\n- Does it speak to a live debate (scaling, emergence, memorization vs. generalization, long-context limits)?",
   "IDEA_FEEDBACK_TAIL": "the computational force connecting them",
   "IDEA_TOP_PAPER_EXAMPLE": "a NeurIPS oral",
-
   "IDEA_GEN_ROLE": "creative scientist of machine cognition",
   "IDEA_GEN_MECHANISM_DESCRIPTION": "[What computational or representational force drives the result? Be specific — not \"models struggle with long contexts\" but \"each arbitrary binding consumes capacity that compressible structure does not, so failure tracks the incompressible residue of the task rather than its raw size.\"]",
   "IDEA_GEN_SETUP_DESC": "[What is the construct, formally? What task family operationalizes it — the stimulus-generating process, the difficulty knobs, the scoring rule? What is held fixed and what varies? Describe enough that a reader could regenerate the benchmark from the description. For a formal-only analysis: the model of computation and the claim class instead.]",
@@ -78,7 +66,6 @@
   "IDEA_GEN_TESTABLE_RULE_DESC": "What models would you run? What manipulation would you make? What curve or contrast would confirm or reject the framework?",
   "IDEA_GEN_DIVERSITY_TERM": "construct",
   "IDEA_GEN_EXTRA_RULE": "\n- **Think about confounds.** You should be able to say how the design separates the construct from tokenization artifacts, training-data contamination, format familiarity, and raw sequence length.",
-
   "SELF_ATTACK_EQUILIBRIUM_SECTION": "\n### Construct-validity attacks\n- Does the task measure the named construct, or something cheaper (pattern matching, format familiarity, copy heuristics)?\n- Could training-data contamination produce the result without the capacity?\n- Is the scoring rule gameable — can a system score well while lacking the construct?\n- Do the difficulty knobs manipulate the construct or a correlate (sequence length, vocabulary rarity, output length)?\n",
   "SELF_ATTACK_RESULT_BULLETS": "- Is the main result obvious once you see the setup? (\"Trivially follows from...\")\n- Is the result fragile — does it depend on a knife-edge case or one prompt format?\n- Does the result reverse with a small change in assumptions, or vanish under paraphrase?\n- Are there counterexamples?\n- Does it hold across model families and scales, or is it one model's quirk?",
   "SELF_ATTACK_MECHANISM_BULLETS": "- Is the proposed account well-known from other papers (in ML or cognitive science)?\n- Could you get the same curves from a simpler account? (Skip this attack if the contribution is multi-piece and each piece is load-bearing for the union thesis — see scorer-core's multi-piece exception.)\n- Is the mechanism consistent with what is known about the architecture? Would interpretability researchers recognize it?",
@@ -88,7 +75,6 @@
   "SELF_ATTACK_LITERATURE_EXTRA": "\n- Is a claimed \"new\" construct a renamed version of an existing benchmark or a known cognitive-science measure? Is the human-cognition literature it borrows from characterized accurately?",
   "SELF_ATTACK_TARGET_EXAMPLE": "Assumption that the benchmark's held-out stimuli are actually unseen by the evaluated models",
   "SELF_ATTACK_RULE_EXAMPLE": "The stimulus battery overlaps a public corpus the model family trains on, and the headline gap shrinks by half when the stimuli are regenerated from post-cutoff material — so the headline claim is fragile",
-
   "THEORY_GEN_ROLE": "theorist of machine cognition",
   "THEORY_GEN_DESCRIPTION": "Proposes formal frameworks for language-model cognition — constructs, capacity measures, and the task designs that test them. The orchestrator launches this agent at Stage 2 (Theory Development). Supports fresh, mutate, and crossover strategies based on attempt history.",
   "THEORY_ENV_DESC": "[Construct, stimulus space, task family, scoring rule — only what's needed]",
@@ -101,7 +87,6 @@
   "THEORY_PARSIMONY_THRESHOLD": "3 assumptions",
   "THEORY_SANITY_EXAMPLE_BAD": "a predicted capacity of 10,000 arbitrary bindings",
   "THEORY_EXTRA_RULES": "\n- **Constructs must be operational.** Every construct gets a measurement procedure a reader could run; every difficulty knob maps to a parameter of the stimulus-generating process.\n- **Predictions must be discriminating.** For each main prediction, state the alternative account it rules out; a prediction every account makes carries no evidential weight.",
-
   "_comment_domain_phrases": "Cross-body domain phrases — ML-native values for wording that is economics-flavored in the finance/macro vocabs (scorer tier bands, force terminology, referee exemplars).",
   "FORCE_TERM": "computational force",
   "NOVELTY_INSIGHT_QUESTION": "How new is the scientific insight (not the technique)?",
@@ -123,7 +108,6 @@
   "IDEA_REVIEWER_CONCEPT_TERM": "formal framework",
   "H1_MULTIPIECE_EXAMPLE": "\"one capacity measure that yields both a benchmark design and a scaling characterization\"",
   "H1_UNIFIER_EXAMPLES": "a single capability, construct, task family, or evaluation practice (\"capacity C degrades along manipulations A–D, and the paper characterizes each manipulation and how they interact or dominate\")",
-
   "_comment_shared_body_overrides": "ML-native overrides for the shared-body/fragment default keys in templates/agent_bodies/shared/vocab.json (v2.9.0). These reach shared bodies via the variant-vocab layer in setup.sh's shared-agent assemblers.",
   "MECHANISM_QUALIFIER": "computational",
   "MECHANISM_QUALIFIER_AN": "a computational",
@@ -163,9 +147,7 @@
   "PW_FORCE_TRIPLE": "{system component, constraint, behavioral consequence}",
   "PW_FORCE_EXAMPLES": "\"Interference between similar bindings, not raw context length, drives the retrieval failure\" satisfies this; \"a capacity limit is at work\" does not.",
   "PW_TITLE_ACRONYM_EXAMPLE": "LLM",
-
   "REFEREE_VERDICT_NOTE": "\n\n> **Verdict semantics for this variant.** The recommendation set below is the pipeline's internal routing vocabulary. The conference venues this paper targets have no Minor Revision, Major Revision, or Revise-and-Resubmit — the real outcome space is accept/reject with one rebuttal round. Read **Minor Revision** as \"a rebuttal or camera-ready cycle absorbs these changes,\" **Major Revision** as \"reject this cycle; the listed changes are what a resubmission next cycle must fix,\" and **Revise and Resubmit** the same way with larger scope. Use the standard tokens so the editor can route; the tier table's Conference-cadence note carries the calendar reality.",
-
   "_comment_v2_10_overrides": "ML-native overrides for the v2.10.0 second extraction pass (agents the v2.9.0 pass missed): free-form math audit heuristics, polish-prose force/stakes items, idea-prototyper primitives, implications-deriver, novelty-checker search targets, role identities, scorer cap-30 archetypes, editor domain guard, paper-writer exemplars, theory-explorer perturbations.",
   "MAF_SENSE_QUESTION": "Does the result make sense given how these systems are known to behave?",
   "MAF_ALT_FORMALIZATION_QUESTION": "Would a different formalization of the task or scoring rule change the result?",
@@ -206,5 +188,18 @@
   "PW_MODEL_SPEC_OBJECTS": "the construct, the task family and stimulus-generating process (or, for formal-only analyses, the model of computation), and whatever scoring rule or claim class the results invoke",
   "PW_LENGTH_RULE": "Top-ML main text runs about 9-10 single-column pages before references and appendices (the NeurIPS/ICML content-cap norm); TMLR has no cap but the same discipline applies. Write the main text to that budget — proofs and secondary experiments go to the appendix, and the checklist and references sit outside it. If the framework is simple (as it should be), the paper should be short.",
   "PC_LABEL_EXAMPLES": "e.g., \"working-memory capacity\" that computes raw accuracy, \"retrieval error\" that includes formatting failures",
-  "PB_IAR_WIKI_BULLET": "- **IAR wiki: not applicable for this variant.** Its distilled coverage is finance/economics journals only; verify prose-level claims via arXiv/OpenReview pages and OpenAlex abstracts instead."
+  "PB_IAR_WIKI_BULLET": "- **IAR wiki: not applicable for this variant.** Its distilled coverage is finance/economics journals only; verify prose-level claims via arXiv/OpenReview pages and OpenAlex abstracts instead.",
+  "_comment_v2_15_extraction": "v2.15.1 third tonal-extraction pass (#206) — residual econ worked examples in debugger/last-resort/style/triager/paper-writer bodies missed by the v2.9.0/v2.10.0 passes. Defaults byte-identical to pre-extraction text; llm_cognition overrides all of them; macro overrides the three finance-flavored exemplars (data-query identifiers, dedup example, specific-fix example).",
+  "DEBUGGER_CONTEXT_ITEMS": "calibration values, model and decoding configuration assumed, stimulus filters applied, search keywords used",
+  "DEBUGGER_MODEL_FAILURE_BULLETS": "- Wrong claim class for the parameter region (e.g., script assumes the asymptotic regime, the tested lengths sit in the pre-asymptotic transient).\n- Scoring rule not matched to the response format (exact match scoring free-form output, a parser assuming a schema the prompt never enforced).",
+  "DEBUGGER_DATA_QUERY_HEADER": "Data / model-API queries (inference endpoints, HuggingFace, benchmark downloads / similar):",
+  "DEBUGGER_DATA_QUERY_BULLETS": "- Connection / socket error or provider outage mistaken for no data.\n- Authentication / credential failure (expired token, quota exhausted).\n- Model identifier or endpoint schema change (model renamed, response field dropped).\n- Wrong identifier type (repo id vs model id vs revision hash).\n- Requested configuration outside the model's limits (context length, max tokens).",
+  "DEBUGGER_SPECIFIC_FIX_EXAMPLE": "\"Adjust the scoring rule\" is not useful; \"in `wm_probe_v3.py` line 42, the exact-match scorer lowercases the response but not the target — normalize both sides and re-run\" is useful.",
+  "LR_DOMAIN_CONSTRAINTS": "the formal framework's claim class, the experimental design",
+  "LR_AVENUE_EXAMPLE": "a different formalization of the construct",
+  "STYLE_PHILOSOPHY_OPENER": "\"Large language models have transformed NLP…,\"",
+  "STYLE_ASSUME_EXAMPLE": "Flag \"I assume the model has a fixed context window,\" \"Assume responses are scored by exact match,\" etc., where \"assume\" describes the formal setup rather than a real-world restriction. The author should rewrite as \"The model has a fixed context window.\" Keep \"assume\" for genuine real-world restrictions (\"I assume no benchmark contamination\").",
+  "TRIAGER_DEDUP_EXAMPLE": "a benchmark-provenance mischaracterization",
+  "PW_RESULTS_INTUITION_BULLET": "Computational intuition after each result (not before — let the math speak first)",
+  "PW_PHILOSOPHY_OPENER_SNIPPET": "\"Large language models have transformed NLP…\""
 }

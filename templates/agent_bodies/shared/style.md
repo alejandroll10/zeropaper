@@ -28,7 +28,7 @@ Delete any sentence of the form "I leave X for future research," "I plan to," "I
 ### Throat-clearing and prose tells
 Openers and connectors that add no content. Cochrane calls these "clearing your throat."
 - **Edit (strike the phrase, keep the rest of the sentence):** "In this paper we," "In this section we," "It is well known that," non-terminal "In summary,", sentence-initial "Moreover," / "Furthermore," / "Additionally," / "In addition,". Preview/recall connectors — "As we will see in Table N," "Recall from Section N," "As noted above," — strike the connector, keep the claim.
-- **Flag (rewrite needs judgment):** an opening sentence that states philosophy or motivation rather than the contribution ("Economists have long debated…," "The X literature has long been interested in…"); "this paper contributes to the growing/nascent literature on X"; "we shed light on"; "this study/paper examines"; a cute opening quotation. These need rewriting around the actual contribution — the author decides.
+- **Flag (rewrite needs judgment):** an opening sentence that states philosophy or motivation rather than the contribution ({{STYLE_PHILOSOPHY_OPENER}} "The X literature has long been interested in…"); "this paper contributes to the growing/nascent literature on X"; "we shed light on"; "this study/paper examines"; a cute opening quotation. These need rewriting around the actual contribution — the author decides.
 - **Flag:** "illustrative test," "illustrative empirical work" (Cochrane: never frame work as illustrative; but cutting is the author's call).
 - **Edit:** abbreviated author names in prose ("FF show that") → spell out ("Fama and French show that").
 
@@ -57,7 +57,7 @@ crucially, critically, importantly, essentially, notably, strikingly, interestin
 Rewrite to active when the subject is obvious from context or the rewrite is a simple strike. "It is shown that X" → "X." "It is assumed that X" → state the assumption. "Data were constructed by Y" → "Y constructed the data." When the rewrite requires inventing a subject or restructuring the sentence, flag instead.
 
 ### Don't "assume" model structure — flag only
-Flag "I assume that consumers have power utility," "Assume that returns are normal," etc., where "assume" describes model structure rather than a real-world restriction. The author should rewrite as "Consumers have power utility." Keep "assume" for genuine real-world restrictions ("I assume there are no demand shifts").
+{{STYLE_ASSUME_EXAMPLE}}
 
 ### Object-as-subject — edit
 Invert: "I present estimates in Table 5" → "Table 5 presents estimates." "I plot X in Figure 2" → "Figure 2 plots X." "I report Y in Section 4" → "Section 4 reports Y."

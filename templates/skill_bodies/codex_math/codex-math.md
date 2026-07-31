@@ -64,7 +64,7 @@ The scripts construct the prompt from extracted content. Your job is to give the
 This is where prompt quality matters most. Before calling `codex_explore.sh`:
 
 1. **State the exact claim.** Not "check the concavity" but "Prove or disprove: V(τ) is strictly concave in τ for all τ > 0, where x*(τ) is the unique fixed point of x = g(τ, x) with g defined by [equation]."
-2. **Define all notation.** Codex doesn't know your paper. Spell out every variable, its domain, and its economic meaning. "where τ > 0 is the tax rate, x*(τ) is the equilibrium effort level, σ² > 0 is the noise variance, γ ∈ (0,1) is risk aversion."
+2. **Define all notation.** Codex doesn't know your paper. Spell out every variable, its domain, and its meaning in the model. "where τ > 0 is the tax rate, x*(τ) is the equilibrium effort level, σ² > 0 is the noise variance, γ ∈ (0,1) is risk aversion." (An illustration of the *format* — use your own model's objects.)
 3. **Say what's been tried and failed.** "Direct computation of V''(τ) via the chain rule produces a rational function whose sign depends on parameter ratios. The Hessian approach doesn't simplify because the implicit function has a non-separable second derivative."
 4. **Ask for specific strategies.** "Try: (a) change of variables to make the composition separable, (b) show the composition of concave functions is concave under the monotonicity conditions that hold here, (c) find a counterexample in the region γ > 0.5, σ² < 1."
 5. **Demand rigor.** "Prove every step. If you claim a function is concave, compute the second derivative and show it's negative. If you claim a counterexample, give specific parameter values and verify numerically. Do not hand-wave."

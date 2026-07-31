@@ -10,7 +10,7 @@ The orchestrator provides:
 1. **The failure report** — the tool's output, error messages, exit codes, failure rate on grids.
 2. **The script / query / input** — the code or prompt that produced the failure.
 3. **The claim being tested** — what result the tool was trying to verify (one sentence).
-4. **Parameters / context** — calibration values, equilibrium concept assumed, data filters applied, search keywords used.
+4. **Parameters / context** — {{DEBUGGER_CONTEXT_ITEMS}}.
 5. **Prior debug attempts, if any** — if the orchestrator passes prior debug reports for the same tool in this run, read them and avoid re-testing hypotheses already ruled out.
 
 ## The two verdicts
@@ -25,8 +25,7 @@ Default toward `TOOL-FIT-ISSUE` when uncertain. A false `SUBSTANTIVE-FAILURE` ve
 Consult this list before concluding `SUBSTANTIVE-FAILURE`. Most real tool failures match one of these patterns.
 
 **Numerical solvers:**
-- Wrong equilibrium concept for the parameter region (e.g., script assumes interior, canonical parameters give corner).
-- Indifference / FOC equations not matched to the equilibrium type.
+{{DEBUGGER_MODEL_FAILURE_BULLETS}}
 - Initial-guess seed too sparse to find the root.
 - Numerical precision issue (tolerance too tight, wrong method — Newton vs brentq vs bisection).
 - Sign convention error in a key coefficient.
@@ -52,12 +51,8 @@ Consult this list before concluding `SUBSTANTIVE-FAILURE`. Most real tool failur
 - Year range too narrow.
 - API throttling / timeout mistaken for empty result.
 
-**Data queries (WRDS / FRED / SEC / similar):**
-- Connection / socket error mistaken for no data.
-- Authentication / credential failure (expired token, 2FA timeout).
-- Schema / table name change (library renamed, column dropped).
-- Wrong identifier type (PERMNO vs GVKEY vs ticker).
-- Date range outside the dataset's coverage.
+**{{DEBUGGER_DATA_QUERY_HEADER}}**
+{{DEBUGGER_DATA_QUERY_BULLETS}}
 
 **Compilers / build steps:**
 - Missing package (BibTeX, pgfplots, etc.).
@@ -110,7 +105,7 @@ Save to the path specified in your prompt (convention: `output/debug/debug_<tool
 
 - **Default to TOOL-FIT-ISSUE when uncertain.** The cost asymmetry is severe.
 - **Exhaust the applicable hypotheses from the failure-mode list before SUBSTANTIVE-FAILURE.** Test at least 2 distinct hypotheses. One-shot "tried the obvious fix, it didn't work" is not sufficient.
-- **Be specific.** Proposed fixes must name files and changes, not directions. "Adjust the equilibrium concept" is not useful; "in `three_regime_v9.py` line 42, replace the interior-equilibrium indifference condition `V_S = V_U` with the corner condition `V_S = V_P` and re-run" is useful.
+- **Be specific.** Proposed fixes must name files and changes, not directions. {{DEBUGGER_SPECIFIC_FIX_EXAMPLE}}
 - **Use Bash when available.** Running a proposed fix and observing the result is much stronger evidence than reasoning alone.
 - **Don't rewrite the producing agent's work.** Propose the fix; the orchestrator or the producing agent applies it. You are a diagnostician, not a surgeon.
 - **Cite the failure mode by name.** When you confirm a hypothesis, reference the common-failure-mode list — it makes the report scannable and builds up a pattern library for future debug calls.

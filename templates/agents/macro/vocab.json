@@ -4,7 +4,6 @@
   "MECHANISM_TERM_CAP": "Channel",
   "DOMAIN": "macroeconomic",
   "SUBMISSION_TIER": "top-5 economics journal",
-
   "H2_CHECK": "Could a reader write down the equilibrium? Are agents' problems specified, market clearing stated, equilibrium concept defined?",
   "H2_SHORT_LABEL": "Well-defined equilibrium",
   "H3_REQUIREMENT": "Key result is correct",
@@ -15,7 +14,6 @@
   "H3_BRIEF": "math correctness",
   "EMPIRICS_AUDITOR_MODE_BLOCK": "",
   "H5_CHECK": "The draft explains WHY the result holds in terms of economic forces — not just algebra. A macro seminar audience would understand the mechanism.",
-
   "IMPORTANCE_100": "changes a first-order policy decision that central banks or fiscal authorities make routinely (e.g., optimal monetary rule, core stabilization design, fiscal multiplier magnitude). The bar is general policy CONSEQUENCE — a class of policy decisions changes, or a broad audience acts on the result — plus immediate relevance. This does NOT require an abstract or de-applied model: a result delivered through a specific, high-stakes setting (a named instrument, institution, episode, or policy regime) qualifies as long as the decision it changes is first-order.",
   "IMPORTANCE_85": "changes how a specific subfield approaches a class of questions, with downstream effects on measurement, future theory, or a concrete policy debate within five years. Also: shows that a class of models, instruments, or policies previously thought to matter is irrelevant or undefined under stated conditions (irrelevance / impossibility / no-go results — score on the magnitude of conventional reasoning overturned, not on a forward policy change the result by construction does not deliver); or supplies a tool — identification strategy, estimator, equilibrium concept, computational method — that a subfield will adopt to revisit a class of questions (score on the breadth of questions the tool unlocks and the credibility of field adoption).",
   "IMPORTANCE_70": "a result merely relevant to a subfield — it does not change how that subfield approaches the transmission channel or question, with limited spillover to first-order policy decisions a wider audience acts on. The cap reflects LIMITED CONSEQUENCE within that audience, NOT the narrowness of who acts on the result — a narrow paper that changes how its subfield approaches a class of questions belongs at 85, not here, and audience size alone never caps Importance at 70. A concretely-framed result that changes a first-order policy decision belongs at 85-100.",
@@ -23,36 +21,27 @@
   "IMPORTANCE_40": "internally interesting but does not connect to any policy decision, measurement question, or empirical fact anyone acts on.",
   "IMPORTANCE_20": "minor extension of a known NK model.",
   "IMPORTANCE_OUTCOME": "policy decision",
-
   "NOVELTY_CALIBRATION": "new channel that changes how we think about transmission = 100, known channel in new setting with surprising implication = 80, known channel in new setting with predictable implication = 40",
-
   "SURPRISE_READER": "knowledgeable macro reader",
   "SURPRISE_CALIBRATION": "overturns a documented field prior on any axis — direction (sign reversal / existence / multiplicity no one expected), magnitude (overturns the consensus number), mechanism (displaces the accepted channel), or category (reframes the kind of problem; micro intuition reversing in GE) = 85-100 (a sign/magnitude reversal is sufficient but NOT necessary — a mechanism or category displacement reaches this tier on its own); a result a knowledgeable reader could not have called ex-ante — a novel mechanism, a non-obvious general-equilibrium structural result, or a comparative static whose sign the field could not have predicted — even where the literature documents no prior number to overturn, and even when it holds only under the paper's stated assumptions = 75; a non-obvious comparative static or multiplicity the field would mostly have anticipated in direction = 60; confirms intuition with precise conditions = 40; formalizes what everyone already believed = 15",
-
   "QUESTION_POSER_ROLE": "creative macroeconomist",
   "QUESTION_REFEREE_ROLE": "senior macroeconomist acting as a top-5 economics journal (AER, Econometrica, QJE, JPE, ReStud) editor",
   "QUESTION_IMPORTANCE_BAR": "would a top-5 editor see a first-order policy decision — the monetary rule, stabilization design, a fiscal-multiplier magnitude — change on the answer, with a broad audience acting on it?",
   "QUESTION_POSER_DEAD_BRANCH": "Flag — but do not automatically abandon — any answer that would be a non-paper (the effect is simply absent, or a result the field already expected): it is a dead branch only when *no standing prior* is being tested; a definitive null against a standing prior (think Modigliani–Miller) is itself a finding. Prefer questions with no dead branch.",
   "QUESTION_REFEREE_DEAD_BRANCH": "- Enumerate the plausible answers. Does each inform the field, or is one a **dead branch** — a non-paper answer (e.g. \"the effect is simply absent,\" or a result the field already expected) against *no* standing prior?\n- **M&M protection:** a definitive null *against a standing prior* (the field believed otherwise) is a live, publishable branch, not a dead one. Check for the standing prior before flagging. The REVISE fix for a dead branch is to re-pose toward answer-symmetry, or surface the standing prior that makes the null live.",
-
   "RIGOR_100": "full equilibrium characterization, all assumptions explicitly stated, boundary behavior characterized where relevant to the main result.",
   "RIGOR_80": "correct proof with clearly stated assumptions, equilibrium well-defined. **Default for theorems that pass both structured and free-form math audits.** Not all edge cases need exhaustive treatment; if the result is clean under its stated assumptions, 80 is the expected score. Score below 80 only if reader-noticeable gaps exist despite audit passage.",
   "RIGOR_60": "argument is clear but has gaps a careful reader would notice. Equilibrium concept may be ambiguous.",
-
   "PARSIMONY_100": "tractable GE with one key friction. Every assumption in the core model is used in the main result. Nothing in the core model can be cut without breaking the paper's main result. Nests a standard benchmark as a special case. (Robustness checks, calibration/welfare appendices, and alternative-shock extensions do not bear on this score.)",
   "PARSIMONY_40_FIRST": "shocks or welfare treatments",
-
   "FERTILITY_BULLETS": "- Does it nest existing results as special cases?\n- Does it suggest testable predictions or matchable moments?\n- Does it have policy implications?",
   "FERTILITY_CALIBRATION": "reframes a literature or changes policy thinking = 100, dead-end result = 20",
-
   "RULES_FEEDBACK_EXAMPLE": "how the wealth distribution amplifies the aggregate effect",
   "INFLATION_PHENOMENA_LIST": "a recession, a crisis, a first-order policy question",
   "INFLATION_EXAMPLE": "A paper that says \"explains the Great Recession\" but whose model only characterizes a narrow transmission channel scores Importance on the channel, not the recession framing.",
-
   "REFEREE_JOURNAL_ROLE": "**top-5 economics journal** (AER, Econometrica, QJE, JPE, ReStud) or a leading macro field journal (JME, JEDC, AEJ:Macro)",
   "REFEREE_MIDDLE_BULLETS": "- Is the equilibrium well-defined and properly characterized?\n- Are the results correct and robust, or do they depend on knife-edge assumptions?\n- Does the paper clearly identify the economic channel driving the results?\n- Does the model nest standard benchmarks (RBC, NK) as special cases?\n- Are the welfare implications properly analyzed (if policy-relevant)?\n- Is there a connection to data — calibration, matchable moments, testable predictions?",
   "REFEREE_FINAL_BULLET": "Is the paper well-organized and of appropriate length?",
-
   "IDEA_REVIEWER_ROLE": "senior macroeconomist",
   "IDEA_TRACTABILITY_HINT": "Viable GE / well-posed? (analytical results a bonus, not required; full numerical solution is fine — only degenerate or ill-posed disqualifies)",
   "IDEA_DEVELOP_EXAMPLE_TAIL": "explain exactly how X affects aggregate Y through Z",
@@ -63,7 +52,6 @@
   "IDEA_IMPORTANCE_BULLETS": "- Would this change how policymakers or researchers think about the problem?\n- Is there a clear testable prediction or matchable moment?\n- Would a seminar audience lean forward or check their phones?\n- Does it speak to a live policy debate or open quantitative question?",
   "IDEA_FEEDBACK_TAIL": "how this works through the equilibrium — does it operate through prices, quantities, or expectations?",
   "IDEA_TOP_PAPER_EXAMPLE": "an AER paper",
-
   "IDEA_GEN_ROLE": "creative macroeconomist",
   "IDEA_GEN_MECHANISM_DESCRIPTION": "[What economic force drives the result? Be specific — not \"heterogeneity matters for monetary policy\" but \"households with high MPC are disproportionately exposed to unemployment risk, so the aggregate consumption response to a rate cut depends on the distribution of employment risk across the wealth distribution.\"]",
   "IDEA_GEN_SETUP_DESC": "[Who are the agents? What does each agent maximize? What's the key friction or departure from the benchmark? What's the equilibrium concept? What's the timing? Describe enough that a reader could write down the optimization problem.]",
@@ -78,7 +66,6 @@
   "IDEA_GEN_TESTABLE_RULE_DESC": "What moments would it match? What regression would you run?",
   "IDEA_GEN_DIVERSITY_TERM": "model architecture",
   "IDEA_GEN_EXTRA_RULE": "\n- **Think about equilibrium.** You should be able to say what agents optimize, how markets clear, and what pins down the key objects.",
-
   "SELF_ATTACK_EQUILIBRIUM_SECTION": "\n### Equilibrium attacks\n- Is the equilibrium well-defined? Can you actually compute it?\n- Is the equilibrium unique, or are there multiple equilibria the paper ignores?\n- Is the equilibrium concept appropriate for the model? (e.g., competitive equilibrium when agents have market power)\n- What happens to determinacy? Are there indeterminate regions the paper ignores?\n- Does the equilibrium exist for all claimed parameter ranges?\n",
   "SELF_ATTACK_RESULT_BULLETS": "- Is the main result obvious once you see the setup? (\"Trivially follows from...\")\n- Is the result fragile — does it depend on a knife-edge case or specific functional forms?\n- Does the result reverse with a small change in assumptions?\n- Are there counterexamples?\n- Is this a local result masquerading as global?",
   "SELF_ATTACK_MECHANISM_BULLETS": "- Is the economic channel well-known from other papers?\n- Could you get the same result from a simpler model? (Skip this attack if the contribution is multi-piece and each piece is load-bearing for the union thesis — see scorer-core's multi-piece exception.)\n- Is the channel realistic? Would practitioners or policymakers recognize it?\n- Is the channel quantitatively important or just qualitatively present?",
@@ -88,7 +75,6 @@
   "SELF_ATTACK_LITERATURE_EXTRA": "\n- Is a claimed \"new\" result actually a special case of something known?",
   "SELF_ATTACK_TARGET_EXAMPLE": "Assumption on policy commitment",
   "SELF_ATTACK_RULE_EXAMPLE": "Assumption 2 (Calvo pricing) is doing all the work and the result vanishes with state-dependent pricing (see Golosov-Lucas 2007), so the paper's quantitative claims are fragile",
-
   "THEORY_GEN_ROLE": "macroeconomist",
   "THEORY_GEN_DESCRIPTION": "Proposes new macroeconomics theory models. The orchestrator launches this agent at Stage 2 (Theory Development). Supports fresh, mutate, and crossover strategies based on attempt history.",
   "THEORY_ENV_DESC": "[Agents, timing, markets, stochastic structure — only what's needed]",
@@ -101,7 +87,6 @@
   "THEORY_PARSIMONY_THRESHOLD": "3 key assumptions beyond standard GE",
   "THEORY_SANITY_EXAMPLE_BAD": "a multiplier of 0.001",
   "THEORY_EXTRA_RULES": "\n- **Equilibrium must be well-defined.** State the equilibrium concept, verify market clearing, address existence and (ideally) uniqueness.\n- **Ground in benchmarks.** Show what parameter restriction recovers the RBC/NK/representative-agent result. The reader needs to know what's new vs. what's standard.",
-
   "_comment_domain_phrases": "Cross-body domain phrases extracted from previously hardcoded economics wording in the -core bodies and editor.md (scorer tier bands, force terminology, referee exemplars). Values here are byte-identical to the pre-extraction body text; the llm_cognition variant supplies ML-native values.",
   "FORCE_TERM": "economic force",
   "_comment_editor_domain": "Macro-native editor domain-guard examples (v2.10.0): without these the shared default renders finance examples ('for finance, e.g., an asset market...') in a macro build's editor.md.",
@@ -127,5 +112,9 @@
   "IDEA_GEN_SAMENESS_TERM": "friction",
   "IDEA_REVIEWER_CONCEPT_TERM": "equilibrium concept",
   "H1_MULTIPIECE_EXAMPLE": "\"an algebraic identity that yields both a within-asset characterization and a methodological observation\"",
-  "H1_UNIFIER_EXAMPLES": "a single policy instrument, welfare question, equilibrium environment, or risk decomposition (\"policy P propagates through margins A–D, and the paper characterizes each margin and how they interact or dominate\")"
+  "H1_UNIFIER_EXAMPLES": "a single policy instrument, welfare question, equilibrium environment, or risk decomposition (\"policy P propagates through margins A–D, and the paper characterizes each margin and how they interact or dominate\")",
+  "_comment_v2_15_extraction": "v2.15.1 (#206): macro overrides for the three finance-flavored debugger/triager exemplars extracted in the third tonal pass — the shared defaults carry CRSP/Compustat identifiers and a mutual-funds paper that have no referent in a macro session.",
+  "DEBUGGER_DATA_QUERY_BULLETS": "- Connection / socket error mistaken for no data.\n- Authentication / credential failure (expired token, 2FA timeout).\n- Schema / series name change (release renamed, column dropped).\n- Wrong identifier or units (FRED series ID mismatch, SAAR vs NSA, real vs nominal).\n- Date range outside the series' coverage or a vintage/revision mismatch.",
+  "TRIAGER_DEDUP_EXAMPLE": "a mischaracterization of the Smets-Wouters estimation sample",
+  "DEBUGGER_SPECIFIC_FIX_EXAMPLE": "\"Adjust the equilibrium concept\" is not useful; \"in `hank_irf_v9.py` line 42, the steady-state solver imposes the flexible-price Euler equation — replace it with the sticky-price block's and re-run\" is useful."
 }

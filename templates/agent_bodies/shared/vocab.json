@@ -1,11 +1,8 @@
 {
   "_comment_purpose": "Defaults for vocab keys referenced by shared-agent metadata, shared-agent bodies, and fragments. Layering (see setup.sh:assemble_claude_shared_agents): this file first, then the variant vocab (templates/agents/{variant}/vocab.json), then the setup-generated tier vocab, then MODE_VOCAB_OVERLAY — later layers win on duplicate keys. Every {{KEY}} referenced by a shared body must have a default here OR appear in every variant vocab; defaults here are the finance/macro (economics) wording, and variants override only the keys whose domain wording differs (llm_cognition overrides most of the *_comment_domain_defaults block).",
-
   "_comment_idea_prototyper_description": "Default description for the shared idea-prototyper agent. Empirical-first mode overrides this via templates/agents/{variant}_modes/empirical_first/vocab.json so the agent describes itself as an empirical-feasibility check rather than a mathematical prototype.",
   "IDEA_PROTOTYPER_DESCRIPTION": "Quick mathematical prototype of a selected idea. Launched between idea selection and full theory development to verify tractability. Attempts the key derivation — if the main result is proven impossible it kills the idea; a mere difficulty stall survives to Stage 2, where the full attempt is made.",
-
   "_comment_domain_defaults": "Domain-sensitive wording in shared bodies and fragments, extracted from previously hardcoded economics prose (v2.9.0). Defaults below must stay byte-identical to the pre-extraction text unless a behavior change is intended; llm_cognition overrides them with ML-native values. Grouped by consuming body.",
-
   "_comment_mechanism_referee": "referee-mechanism.md — the evaluative frame. These are load-bearing: the DECORATIVE/MISATTRIBUTED verdicts are locked routers at Gate 5.",
   "MECHANISM_QUALIFIER": "economic",
   "MECHANISM_QUALIFIER_AN": "an economic",
@@ -26,13 +23,11 @@
   "MECH_DECORATIVE_SUBSTRATE": "a structural identity or a standard result in a new guise",
   "MECH_RULE_EVAL": "- **You are evaluating the economics, not the math.** If a proof is wrong, that's the math referee's job; note it only if a proof error changes what the mechanism actually is. Your job is to assess whether the economic claim the paper makes is the economic claim the math actually supports.",
   "MECH_VENEER_PHRASE": "the economics is genuinely a veneer",
-
   "_comment_fragments": "Shared fragments (templates/fragments/) — resolved before vocab, so these keys reach every body that includes the fragment.",
   "POLICY_MAP_AXES": "one policy instrument, welfare question, equilibrium environment, or risk decomposition",
   "POLICY_MAP_LOAD_TEST": "welfare/risk/policy conclusion",
   "ACRONYM_CARVEOUT_EXAMPLES": "`(CRSP, 2022)`, `(S&P, 2020)`, `(BEA, 2019)`, `(NBER, 2020)`, `(FRED, 2023)`, `(SEC, 2018)`, `(Compustat, 2021)`, `(IMF, 2022)`, `(BIS, 2020)`, `(ECB, 2019)`, `(World Bank, 2021)`, `(OECD, 2020)`, `(Federal Reserve, 2022)`",
   "IAR_WIKI_BULLET": "- **IAR wiki for distilled paper content.** Fetch `https://instituteforautomatedresearch.org/llms.txt` — it lists every distilled paper (recent volumes of top finance/econ journals) with title, authors, and a one-paragraph core result, each linking a raw-Markdown page (core results with source locators, datasets used, theory tested). Grep the list for your title/topic, then fetch the matching `.md`. Cloudflare-free, so it works where the journal sites 403 — often richer than an abstract snippet. Coverage is partial (specific journal-years): a miss means only \"not distilled,\" never \"no such paper.\"",
-
   "_comment_literature_agents": "novelty-checker / gap-scout / literature-scout — search-venue directives. Load-bearing: the NOVEL/KNOWN and gap-open verdicts depend on searching where the domain's prior art actually lives.",
   "CROSS_SUBFIELD_SCOPE": "finance and economics",
   "ABSTRACT_MECHANISM_EXAMPLES": "(e.g., \"competitive entry dissipates observable performance differences\" or \"information asymmetry creates adverse selection in trade\")",
@@ -40,11 +35,9 @@
   "SCOUT_WP_CLAUSE": "Include working papers from NBER/SSRN if highly relevant.",
   "SCOUT_FRONTIER_BULLET": "- **NBER agendas for the pre-publication frontier.** You have the `nber-agenda` skill loaded — `code/utils/nber_agenda/nber_agenda.py <slug> --papers-only`. NBER meeting agendas (Summer Institute, program meetings, methods conferences) list what top groups are presenting *now*, months before the work is published or indexed — a leading indicator OpenAlex and DOI-based search structurally cannot see. Use it to read where a field is heading and to surface new techniques by title, then chase the specific papers/authors via OpenAlex and WebSearch.",
   "GAP_FRESHNESS_BULLET": "- **NBER agendas for the pre-publication frontier.** You have the `nber-agenda` skill loaded — `code/utils/nber_agenda/nber_agenda.py <slug> --papers-only`. A recent meeting agenda in your gap's area reveals whether the gap is *actually* open or already being closed by work too new to be indexed: if three groups are presenting on it this season, it is not an open gap. OpenAlex and DOI-based search structurally cannot see this pre-publication frontier. Use it as a freshness check on the gap before you validate it.",
-
   "_comment_tooling_bullets": "idea-prototyper / theory-explorer — domain-toolkit advice (ssj is a macro GE toolkit; llm_cognition replaces these with simulation-prototype guidance).",
   "SSJ_PROTOTYPE_BULLET": "- **Heterogeneous-agent GE approaches: prototype with the `ssj` skill.** If the approach hinges on a heterogeneous-agent general-equilibrium mechanism (a wealth/MPC distribution feeding back into equilibrium prices — HA asset pricing, HANK, portfolio choice under aggregate risk), the tractability check is not pen-and-paper algebra: it is whether the model has a steady state and the headline comparative dynamic has the claimed sign. Write the het block + market clearing as a `.py` module and run `code/utils/ssj/ssj_solve.py` (see `code/utils/ssj/example_asset_pricing.py`). If the steady state won't solve or the IRF sign is wrong, that is a concrete `BLOCKED` finding; if it solves and the sign is right, that is strong evidence for `TRACTABLE`.",
   "SSJ_EXPLORE_BULLET": "- **Heterogeneous-agent GE models: use the `ssj` skill.** If the theory has a heterogeneous-agent general-equilibrium structure (a cross-section of agents whose distribution feeds back into equilibrium prices — HA asset pricing, household portfolio choice under aggregate risk, HANK), sympy cannot solve it. Use the `ssj` (sequence-space Jacobian) skill: write the het block + market clearing as a `.py` module and run `code/utils/ssj/ssj_solve.py` to get the steady state, GE Jacobians, determinacy verdict, and impulse responses. See `code/utils/ssj/example_asset_pricing.py` for a worked finance example.",
-
   "_comment_writing": "idea-generator-core / paper-writer — domain wording in inputs and style guidance.",
   "DATA_SOURCE_EXAMPLES": "WRDS, FRED, etc.",
   "IDEA_GEN_NOFORMAL_OBJECT": "the equilibrium and the key comparative statics",
@@ -53,10 +46,8 @@
   "PW_FORCE_TRIPLE": "{agent, friction, channel}",
   "PW_FORCE_EXAMPLES": "\"Collateral revaluation forces banks to deleverage when asset prices fall\" satisfies this; \"a financial friction is at work\" does not.",
   "PW_TITLE_ACRONYM_EXAMPLE": "CAPM",
-
   "_comment_referee_verdict_note": "Appended to referee-core's 'Write the report in this exact structure:' line. Empty for journal-cadence variants (finance/macro use the verdict set literally); llm_cognition adds a conference-cadence translation so Minor/Major Revision and R&R — which have no referent at NeurIPS/ICML/ICLR — are read as rebuttal-cycle / resubmit-next-cycle routing tokens.",
   "REFEREE_VERDICT_NOTE": "",
-
   "_comment_v2_10_extraction": "v2.10.0 second extraction pass — econ predicates that had been missed in agents skipped by v2.9.0 (math-auditor-freeform, polish-prose, idea-prototyper, implications-deriver, novelty-checker, role lines, scorer cap-30 archetypes, editor domain guard, paper-writer exemplars, theory-explorer, polish-consistency/bibliography). Defaults byte-identical to pre-extraction text; llm_cognition overrides all of them.",
   "MAF_SENSE_QUESTION": "Does the result make economic sense?",
   "MAF_ALT_FORMALIZATION_QUESTION": "Would a different equilibrium concept change the result?",
@@ -97,5 +88,18 @@
   "PW_MODEL_SPEC_OBJECTS": "the environment, the actors (or kernel/asset structure), and whatever solution concept or pricing condition the results invoke",
   "PW_LENGTH_RULE": "Theory papers should be 20-30 pages including proofs. If the model is simple (as it should be), the paper should be short.",
   "PC_LABEL_EXAMPLES": "e.g., \"the principal's net payoff,\" \"first-best surplus\"",
-  "PB_IAR_WIKI_BULLET": "- **IAR wiki** — `https://instituteforautomatedresearch.org/llms.txt` lists distilled papers (recent volumes of top finance/econ journals) with raw-Markdown pages of core results and source locators; often enough to verify a prose-level claim about a cited paper when the journal site is unfetchable. Partial coverage: a miss means \"not distilled,\" not \"nonexistent.\""
+  "PB_IAR_WIKI_BULLET": "- **IAR wiki** — `https://instituteforautomatedresearch.org/llms.txt` lists distilled papers (recent volumes of top finance/econ journals) with raw-Markdown pages of core results and source locators; often enough to verify a prose-level claim about a cited paper when the journal site is unfetchable. Partial coverage: a miss means \"not distilled,\" not \"nonexistent.\"",
+  "_comment_v2_15_extraction": "v2.15.1 third tonal-extraction pass (#206) — residual econ worked examples in debugger/last-resort/style/triager/paper-writer bodies missed by the v2.9.0/v2.10.0 passes. Defaults byte-identical to pre-extraction text; llm_cognition overrides all of them; macro overrides the three finance-flavored exemplars (data-query identifiers, dedup example, specific-fix example).",
+  "DEBUGGER_CONTEXT_ITEMS": "calibration values, equilibrium concept assumed, data filters applied, search keywords used",
+  "DEBUGGER_MODEL_FAILURE_BULLETS": "- Wrong equilibrium concept for the parameter region (e.g., script assumes interior, canonical parameters give corner).\n- Indifference / FOC equations not matched to the equilibrium type.",
+  "DEBUGGER_DATA_QUERY_HEADER": "Data queries (WRDS / FRED / SEC / similar):",
+  "DEBUGGER_DATA_QUERY_BULLETS": "- Connection / socket error mistaken for no data.\n- Authentication / credential failure (expired token, 2FA timeout).\n- Schema / table name change (library renamed, column dropped).\n- Wrong identifier type (PERMNO vs GVKEY vs ticker).\n- Date range outside the dataset's coverage.",
+  "DEBUGGER_SPECIFIC_FIX_EXAMPLE": "\"Adjust the equilibrium concept\" is not useful; \"in `three_regime_v9.py` line 42, replace the interior-equilibrium indifference condition `V_S = V_U` with the corner condition `V_S = V_P` and re-run\" is useful.",
+  "LR_DOMAIN_CONSTRAINTS": "the equilibrium concept, the identification strategy",
+  "LR_AVENUE_EXAMPLE": "a different equilibrium concept",
+  "STYLE_PHILOSOPHY_OPENER": "\"Economists have long debated…,\"",
+  "STYLE_ASSUME_EXAMPLE": "Flag \"I assume that consumers have power utility,\" \"Assume that returns are normal,\" etc., where \"assume\" describes model structure rather than a real-world restriction. The author should rewrite as \"Consumers have power utility.\" Keep \"assume\" for genuine real-world restrictions (\"I assume there are no demand shifts\").",
+  "TRIAGER_DEDUP_EXAMPLE": "a Berk-Green mischaracterization",
+  "PW_RESULTS_INTUITION_BULLET": "Economic intuition after each result (not before — let the math speak first)",
+  "PW_PHILOSOPHY_OPENER_SNIPPET": "\"Economists have long…\""
 }

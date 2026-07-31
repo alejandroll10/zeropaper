@@ -63,6 +63,16 @@ TRIPWIRES=(
     "top-3-fin|docs/stage_6.md"
     "falls out of economics|docs/stage_puzzle_triage.md"
     "financial analyst|.claude/skills/llm-experiments/SKILL.md"
+    "V_S = V_U|.claude/agents/debugger.md"
+    "PERMNO vs GVKEY|.claude/agents/debugger.md"
+    "Economists have long debated|.claude/agents/style.md"
+    "power utility|.claude/agents/style.md"
+    "Berk-Green|.claude/agents/triager.md"
+    "economic stakes|.claude/agents/triager.md"
+    "equilibrium concept|.claude/agents/last-resort.md"
+    "equilibrium concept|.claude/agents/debugger.md"
+    "Economists have long|.claude/agents/paper-writer.md"
+    "Economic intuition|.claude/agents/paper-writer.md"
 )
 for pair in "${TRIPWIRES[@]}"; do
     s="${pair%%|*}"
