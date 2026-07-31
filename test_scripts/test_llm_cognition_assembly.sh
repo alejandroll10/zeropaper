@@ -253,6 +253,96 @@ else
         && pass "referee-mechanism runs the construct-validity frame" || fail "referee-mechanism frame not overridden"
     grep -q "Measurement Paper Pipeline" "$M/CLAUDE.md" \
         && pass "runtime doc subtitle re-framed" || fail "runtime doc subtitle unchanged"
+
+    # ── v2.17.1 round-2 review fixes ──
+    # The characterization's new-testable-content call belongs to theory-generator,
+    # not to the orchestrator's own reading of the prose (round-2 finding 1).
+    grep -q "NEW-TESTABLE-CONTENT" "$M/.claude/agents/theory-generator.md" \
+        && pass "theory-generator declares new-testable-content" \
+        || fail "theory-generator new-testable-content declaration missing"
+    grep -q "NEW-TESTABLE-CONTENT" "$M/docs/stage_3b_experiments.md" \
+        && pass "stage_3b routes on the declaration" || fail "stage_3b declaration routing missing"
+    grep -q "step 1 guarantees it is present" "$M/docs/stage_3b_experiments.md" \
+        && pass "routing step can rely on the declaration existing" \
+        || fail "routing step still has to handle a missing declaration"
+    # The audit-FAIL loop re-launches characterization mode independently of
+    # Stage 3b step 1, so the check has to live at the audit itself or every
+    # re-fire goes unvalidated.
+    grep -q "Before every audit pass" "$M/docs/stage_2.md" \
+        && pass "declaration re-checked on every audit pass" \
+        || fail "audit-FAIL re-fire bypasses the declaration check"
+    # A re-fire to supply the declaration is a new version, so the step-2 audits
+    # no longer cover it — the doc must route back rather than dead-end at Gate 4.
+    # The declaration must turn on load-bearing, not on which paragraph the claim
+    # was filed under — otherwise the conjecture paragraph becomes an exemption.
+    grep -q "turns on load-bearing" "$M/.claude/agents/theory-generator.md" \
+        && pass "declaration keyed to load-bearing, not placement" \
+        || fail "conjecture-paragraph exemption not closed"
+    # Must match the math audit's sense (anything depending on it), not a narrower
+    # headline-only test — the audit is what backstops a wrong declaration.
+    grep -q "other propositions or conclusions depend on" "$M/.claude/agents/theory-generator.md" \
+        && pass "load-bearing sense matches the math audit's" \
+        || fail "load-bearing sense narrower than the audit that backstops it"
+    # The missing-declaration re-fire must terminate; no existing cap counts it.
+    # The declaration is validated at artifact creation, so no downstream step
+    # has to handle its absence — an incomplete draft is retried at the same
+    # version rather than spawning one.
+    grep -q "incomplete output, not a new version" "$M/docs/stage_3b_experiments.md" \
+        && pass "missing declaration is an incomplete artifact, retried in place" \
+        || fail "missing declaration not caught at artifact creation"
+    grep -q "mandatory output header" "$M/.claude/agents/theory-generator.md" \
+        && pass "declaration is a mandatory output header" \
+        || fail "declaration not marked mandatory on the producer side"
+    # Under MF the verified-numerics source is stage3b; citing stage2b would put
+    # every measured number on the unverified list.
+    grep -q "verified-numerics source in this mode is \`output/stage3b/\`" "$M/.claude/agents/math-auditor.md" \
+        && pass "math-auditor reads stage3b as the verified-numerics source" \
+        || fail "math-auditor still requires a stage2b citation under MF"
+    # Plan-time review must not fault a plan for lacking artifacts it cannot have.
+    grep -q "A missing \*artifact\* is not a flaw at plan time" "$M/.claude/agents/experiment-reviewer.md" \
+        && pass "plan-time review scores commitments, not artifacts" \
+        || fail "plan-time checklist translation missing"
+    # The deferred audits must not inherit theory-first's abandon remedy: under MF
+    # the measurements survive a failed characterization.
+    grep -q "Deferred math audit fails" "$M/CLAUDE.md" \
+        && pass "MF deferred-audit escalation row present" || fail "MF deferred-audit row missing"
+    grep -q "Abandon this theory version" "$M/CLAUDE.md" \
+        && fail "theory-first abandon remedy leaked into measurement-first escalation table" \
+        || pass "theory-first abandon remedy absent under MF"
+    grep -q "3 consecutive non-ACCEPT verdicts" "$M/CLAUDE.md" \
+        && pass "design-gate cap matches its verdict set" || fail "design-gate cap wording still REVISE-only"
+    # stage2_design_version must be visible in the orchestrator's own field glossary.
+    grep -q "stage2_design_version" "$M/CLAUDE.md" \
+        && pass "stage2_design_version documented in runtime doc" \
+        || fail "stage2_design_version absent from runtime doc"
+    # Puzzle triage always fires before any characterization exists, so a literal
+    # reading of "audits incomplete" would force BACK-TO-IDEA every time.
+    grep -q "Theory-formality axis under measurement-first" "$M/.claude/agents/puzzle-triager.md" \
+        && pass "puzzle-triager formality axis redefined for MF" \
+        || fail "puzzle-triager formality axis undefined under MF"
+    # experiment-reviewer is launched at plan time by Gate 2; its body must say so.
+    grep -q "Two invocations" "$M/.claude/agents/experiment-reviewer.md" \
+        && pass "experiment-reviewer carries the plan-time invocation" \
+        || fail "experiment-reviewer plan-time invocation missing"
+    grep -q 'Never write "results are sound" at plan time' "$M/.claude/agents/experiment-reviewer.md" \
+        && pass "plan-time ACCEPT semantics stated" || fail "plan-time ACCEPT semantics missing"
+    # Numerical claims come from stage3b; theory-explorer/stage2b do not exist here.
+    grep -q "NEEDS EXPERIMENT-DESIGNER" "$M/.claude/agents/paper-writer.md" \
+        && pass "paper-writer routes numerical gaps to experiment-designer" \
+        || fail "paper-writer numerical gap routing not re-anchored"
+    grep -q "NEEDS EXPERIMENT-DESIGNER" "$M/docs/stage_5.md" \
+        && pass "stage_5 scans for experiment-designer markers" \
+        || fail "stage_5 experiment-designer scan missing"
+    grep -q "exploration_for_" "$M/docs/stage_5.md" \
+        && fail "theory-explorer re-fire procedure leaked into measurement-first stage_5" \
+        || pass "theory-explorer re-fire absent under MF"
+    # idea-reviewer must not hand construct mode a theorem to prove.
+    grep -q "construct-development instructions" "$M/.claude/agents/idea-reviewer.md" \
+        && pass "idea-reviewer hands off construct-development work" \
+        || fail "idea-reviewer construct-development handoff missing"
+    grep -q "theorem-development instructions" "$M/.claude/agents/idea-reviewer.md" \
+        && fail "theory-first theorem-development handoff leaked into measurement-first idea-reviewer" \
+        || pass "theorem-development handoff absent under MF"
 fi
 
 echo

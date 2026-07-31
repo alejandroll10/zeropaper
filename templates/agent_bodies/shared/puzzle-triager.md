@@ -63,6 +63,10 @@ Is the contradiction real?
                     [override: untested sub-class → FIX-EMPIRICS — see hard rules]
 ```
 
+<!-- MEASUREMENT_FIRST_START -->
+**Theory-formality axis under measurement-first.** In this mode the math audits are *deferred by design* — they fire on the post-Stage-3b characterization, and puzzle triage always reaches you **before** any characterization exists. "Audits incomplete" is therefore true of every invocation here as a matter of pipeline shape, not of theory quality; read literally, the axis would force BACK-TO-IDEA on every Stage-3b contradiction, including exactly the sign reversals this mode exists to surface. Score the axis on the **design gate** instead: an ACCEPT'd `output/stage2/design_review_v*.md` at the current `stage2_design_version`, with no unresolved construct-validity objection in `output/stage4/self_attack_v*.md` (if one exists), counts as **AUDITED**. A REVISE or REDESIGN standing against the current construct spec — or an ACCEPT whose recorded reservations go to whether the task family measures the construct at all — is **PARTIAL** or **SHAKY** as its severity warrants. The absence of math-audit files is not itself evidence of shakiness.
+<!-- MEASUREMENT_FIRST_END -->
+
 When the implication is tagged **PUZZLE-CANDIDATE** in `implications.md` and empirics confirmed the contradiction, default to PIVOT unless one of the upstream conditions clearly fails.
 
 ## Verdict semantics

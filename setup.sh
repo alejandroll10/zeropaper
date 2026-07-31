@@ -2891,11 +2891,23 @@ patterns = []  # list of (regex, replacement) applied in order
 # Trailing \n after END markers is optional so a marker at EOF (no final
 # newline) still matches; otherwise the literal HTML comment leaks into the
 # deployed file.
-for fam in ("THEORY_FIRST", "EMPIRICAL_FIRST", "MEASUREMENT_FIRST", "NO_MODE"):
+# ORDER MATTERS: every block REMOVAL runs before any marker STRIP. The removal
+# pattern eats up to 2 trailing newlines (to collapse the blank line a removed
+# block would otherwise leave behind). If a neighbouring block's markers were
+# already stripped, that removal sees the neighbour's exposed leading blank line
+# and eats it too — silently deleting a blank line from the kept content. That
+# is invisible in single-block files and only shows up once two mode blocks sit
+# adjacent at the same site (e.g. NO_MODE + MEASUREMENT_FIRST before an
+# EMPIRICAL_FIRST twin). Doing all removals first makes the result independent
+# of family order, so adding a mode block at an existing site cannot perturb the
+# other modes' output.
+_families = ("THEORY_FIRST", "EMPIRICAL_FIRST", "MEASUREMENT_FIRST", "NO_MODE")
+for fam in _families:
+    if not keep(fam):
+        patterns.append((re.compile(r"<!-- " + fam + r"_START -->\n.*?<!-- " + fam + r"_END -->\n{0,2}", re.DOTALL), ""))
+for fam in _families:
     if keep(fam):
         patterns.append((re.compile(r"<!-- " + fam + r"_(?:START|END) -->\n?"), ""))
-    else:
-        patterns.append((re.compile(r"<!-- " + fam + r"_START -->\n.*?<!-- " + fam + r"_END -->\n{0,2}", re.DOTALL), ""))
 if xe:
     patterns.append((re.compile(r"<!-- EXT_EMPIRICAL_(?:START|END) -->\n?"), ""))
 else:

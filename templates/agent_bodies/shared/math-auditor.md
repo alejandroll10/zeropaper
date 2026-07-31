@@ -75,5 +75,8 @@ Save to the path specified in your prompt:
 - **Be specific.** "The math seems wrong" is useless. "In equation (3), the sign of the second term should be negative because [reason]" is useful.
 - **Don't fix the errors.** Report them. Fixing is the generator's job.
 - **The `## Unverified claims` section is mandatory on every audit, including PASS verdicts.** If every claim is verified, write "None." under the header — do not omit the section. Downstream scorers and later-revision audits depend on this section existing.
+<!-- MEASUREMENT_FIRST_START -->
+- **The verified-numerics source in this mode is `output/stage3b/`, not `output/stage2b/`. This supersedes the `output/stage2b/` citation target named in the `## Unverified claims` instruction of the output template above** — read that rule as naming `output/stage3b/experiment_results.md` (and its analysis artifacts) wherever it says `output/stage2b/`. You are auditing a characterization written *about measurements already taken*, and Stage 2b never runs here, so no draft in this mode can ever satisfy the template's literal wording. A magnitude traceable to a reported measurement there is **verified**, not automatically unverified — flagging every measured number would fill the list with the paper's actual evidence and invert what the section means. Conversely, a numerical claim citing nothing, or citing a scope the experiments did not cover, still belongs on the list.
+<!-- MEASUREMENT_FIRST_END -->
 - **Flag hand-waving even if the result is probably correct.** A proof with gaps is not a proof.
 - **PASS means you re-derived every step and found no errors.** It's a high bar.

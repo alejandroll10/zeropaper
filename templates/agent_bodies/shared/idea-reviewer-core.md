@@ -63,13 +63,20 @@ Save to the path specified in your prompt. Structure:
 **ITERATE** — [specific instructions for next round]
 or
 **ADVANCE** — Top K approaches ranked for parallel screening at Gates 1b/1c (**target K ≥ 3, up to 5**):
-<!-- THEORY_FIRST_START -->
+<!-- NO_MODE_START -->
 
 1. **[Approach name]** — if this wins the tournament, theory-generator should focus on: [specific theorem-development instructions — proof technique to attempt, comparative statics to derive, {{IDEA_REVIEWER_CONCEPT_TERM}} to use, scope conditions to nail down. **For an *open* approach (no committed candidate answer in the sketch), do NOT prescribe a target theorem to prove** — instruct theory-generator to develop the model and harvest the answer to the question, naming the {{IDEA_REVIEWER_CONCEPT_TERM}} and the regions/limits worth exploring, and let the headline emerge at Stage 2b. For a **committed** approach, name the result to prove and the technique to try.]
 2. **[Approach name]** — if this wins, theory-generator should focus on: [specific theorem-development instructions; for an open approach, develop-and-harvest instructions per #1]
 3. **[Approach name]** — if this wins, theory-generator should focus on: [specific theorem-development instructions; for an open approach, develop-and-harvest instructions per #1]
 [continue to positions 4 and 5 in the same format when 4–5 viable approaches qualify]
-<!-- THEORY_FIRST_END -->
+<!-- NO_MODE_END -->
+<!-- MEASUREMENT_FIRST_START -->
+
+1. **[Approach name]** — if this wins the tournament, theory-generator should focus on: [specific construct-development instructions — the construct to define and what distinguishes it from its nearest neighbour, the task family to instantiate it on, the scoring rule and where it could be gamed or saturate, the contrast that would separate the construct's signature from the most plausible confound, and the contamination risk the design must survive. **Do not prescribe a theorem to prove.** Under measurement-first the formal characterization is written after Stage 3b, about what was measured; asking for a proof at Stage 2 inverts the mode and theory-generator's construct-mode rules will refuse it.]
+2. **[Approach name]** — if this wins, theory-generator should focus on: [specific construct-development instructions per #1]
+3. **[Approach name]** — if this wins, theory-generator should focus on: [specific construct-development instructions per #1]
+[continue to positions 4 and 5 in the same format when 4–5 viable approaches qualify]
+<!-- MEASUREMENT_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 
 1. **[Approach name]** — if this wins the tournament, the Stage 2 mechanism writer should focus on: [specific mechanism-development instructions — the channel's agent/decision/friction to spell out, the DAG edges to make explicit, the reduced-form posit to commit to, the heterogeneity prediction to match against the identification design's recoverable estimand, the leading alternative channel to rule out]. Do NOT request proofs, equilibrium derivations, FOCs, or comparative statics — Stage 2 produces prose + DAG + ≤2 reduced-form posits, not a structural model.

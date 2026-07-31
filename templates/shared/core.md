@@ -223,6 +223,9 @@ Initial state (created by setup.sh):
   "scores": {},
   "stage2b_theory_version": null,
   "archived_best_score_r1": null,
+<!-- MEASUREMENT_FIRST_START -->
+  "stage2_design_version": null,
+<!-- MEASUREMENT_FIRST_END -->
 {{EMPIRICAL_STATE_FIELDS}}
 {{THEORY_LLM_STATE_FIELDS}}
   "stage1_candidates": [],
@@ -282,7 +285,7 @@ Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` ob
 **`stage2b_theory_version`:** Set to the `theory_version` that Stage 2b last fully explored. Before advancing at Gate 4, the orchestrator must verify this equals the current `theory_version`; if it is stale, re-run Stage 2b on the new content (see `docs/stage_2.md` Stage 2b step 5).
 <!-- NO_MODE_END -->
 <!-- MEASUREMENT_FIRST_START -->
-**`stage2b_theory_version`:** Initialized to `null` and never updated under `--mode measurement-first`. Stage 2b does not run (piloting is part of the Stage 1 feasibility check, and the formal characterization is written *after* Stage 3b, about the measurements). The Gate 4 staleness rule that consumes this field does not apply here; the analogous binding rule is H3's requirement that the design gate passed on the current construct spec, the Stage 3b chain completed on it, and both math audits passed on its post-experiment characterization. The field remains in `pipeline_state.json` only because legacy reset paths write to it; those resets are harmless no-ops in this mode.
+**`stage2b_theory_version`:** Initialized to `null` and never updated under `--mode measurement-first`. Stage 2b does not run (piloting is part of the Stage 1 feasibility check, and the formal characterization is written *after* Stage 3b, about the measurements). The Gate 4 staleness rule that consumes this field does not apply here; the analogous binding rule is H3's requirement that the design gate passed on the current construct spec (**`stage2_design_version == theory_version`** — a Gate 4 hard block, see `docs/stage_2.md` "Gate 4 enforcement"), the Stage 3b chain completed on it, and both math audits passed on its post-experiment characterization. The `stage2b_theory_version` field remains in `pipeline_state.json` only because legacy reset paths write to it; those resets are harmless no-ops in this mode. (`stage2_design_version`, by contrast, **is** reset by those paths — see `docs/stage_puzzle_triage.md` — because `theory_version` resets to 1 on a pivot, so a stale value equal to 1 would false-positive the gate and silently skip the design review on the pivoted construct spec.)
 <!-- MEASUREMENT_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 **`stage2b_theory_version`:** Initialized to `null` and never updated under `--mode empirical-first`. Stage 2b does not run in mechanism mode (the mechanism document has no equilibrium objects to explore), so the Gate 4 staleness rule that consumes this field does not apply here. The analogous binding rules in empirical-first mode are **two** Gate 4 hard blocks: `stage2_mechanism_version == theory_version` (the mechanism-plausibility gate — `docs/stage_2.md` "Gate 4 enforcement") AND `stage3a_theory_version == theory_version` (the empirics — `docs/stage_3a_empirical.md` "Gate 4 enforcement"). Both must hold before any Gate 4 advance. The `stage2b_theory_version` field remains in `pipeline_state.json` only because legacy reset paths (e.g., `puzzle-triager` RECONCILE / PIVOT) write to it; those resets are harmless no-ops in mechanism mode. (`stage2_mechanism_version`, by contrast, **is** reset by those paths — see `docs/stage_puzzle_triage.md` and `docs/stage_6.md` — because a `theory_version` reset to 1 would otherwise let a stale value false-positive the gate.)
@@ -453,11 +456,12 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 | Idea review rejects all | 1 rejection | Return to Stage 0 for a different problem |
 | Gates 1b/1c parallel screening eliminates all candidates | All top-K KNOWN at 1b OR BLOCKED-IMPOSSIBLE at 1c | New Round of Stage 1 (counts toward 5-round limit). A BLOCKED-DIFFICULTY verdict does **not** eliminate — such an idea survives and gets its real attempt at Stage 2, ranked below TRACTABLE at Step 3. **Seeded/faithful:** this row does not apply — a BLOCKED seed never starts a new Round; it advances to Stage 2 carrying the blockage (Gate 1c seeded override in `docs/stage_1.md`). |
 | Gate 3 novelty INCREMENTAL | 3 rework attempts at Stage 2 | Abandon this idea, return to Stage 1 for a new one. **Seeded/faithful:** does not abandon the seed — Gate 3 seeded override in `docs/stage_2.md` supersedes this row. |
-<!-- THEORY_FIRST_START -->
+<!-- NO_MODE_START -->
 | Math audit fails | 3 consecutive audit failures on the same theory (hard cap) | Abandon this theory version. **Seeded/faithful:** does not abandon — after 3 failures the Gate 2 seeded override (`docs/stage_2.md`) applies the ship-honest check (narrow the failed auxiliary claim and continue; halt only if the seed's central result itself is unestablishable). |
-<!-- THEORY_FIRST_END -->
+<!-- NO_MODE_END -->
 <!-- MEASUREMENT_FIRST_START -->
-| Gate 2 design REVISE | 3 consecutive REVISEs on the same construct spec (hard cap) | Abandon this spec version — increment `theory_attempt` or swap sketches. **Seeded/faithful:** does not abandon — the Gate 2 seeded override (`docs/stage_2.md`) applies the ship-honest check at the same threshold. |
+| Gate 2 design non-ACCEPT | 3 consecutive non-ACCEPT verdicts (REVISE or REDESIGN, in any combination) on the same construct spec (hard cap) | Abandon this spec version — increment `theory_attempt` or swap sketches. **Seeded/faithful:** does not abandon — the Gate 2 seeded override (`docs/stage_2.md`) applies the ship-honest check at the same threshold. |
+| Deferred math audit fails | 3 consecutive audit failures on the same characterization (hard cap) | Do **not** abandon the theory version — the measurements survive; what failed is the formal account of them. Escalate per the sketch-swap authority, whose usual first move here is a **narrower claim class**, not a new construct (`docs/stage_2.md`, "Deferred math audits"). **Seeded/faithful:** the Gate 2 seeded override applies the ship-honest check at the same threshold. |
 <!-- MEASUREMENT_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 | Identification audit fails | 3 plan-revision rounds (cap from `stage_3a_empirical.md`) | Treat as FAIL — empiricist selects a different design from the menu, or escalate per `stage_3a_empirical.md` step 3 routing |
