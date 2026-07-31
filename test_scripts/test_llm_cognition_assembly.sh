@@ -47,30 +47,61 @@ grep -q "polish-experiments" "$B/docs/stage_9.md" \
 # ── 3. Leakage tripwires: strings that must NOT appear in an llm_cognition build ──
 # Each of these was a confirmed load-bearing leak closed in v2.10.0. A hit means
 # a vocab default regressed or a new hardcode slipped in.
-declare -A TRIPWIRES=(
-    ["economic sense"]=".claude/agents/math-auditor-freeform.md"
-    ["senior economist"]=".claude/agents/scorer-freeform.md"
-    ["academic economics literature"]=".claude/agents/literature-scout.md"
-    ["computational economist"]=".claude/agents/theory-explorer.md"
-    ["SDF process"]=".claude/agents/idea-prototyper.md"
-    ["Economic intuition"]=".claude/agents/implications-deriver.md"
-    ["welfare/risk/policy"]=".claude/agents/referee.md"
-    ["missing economic force"]=".claude/agents/polish-prose.md"
-    ["CARA but not CRRA"]="CLAUDE.md"
-    ["top-3-fin"]="docs/stage_6.md"
-    ["falls out of economics"]="docs/stage_puzzle_triage.md"
-    ["financial analyst"]=".claude/skills/llm-experiments/SKILL.md"
+# Portable string|file pairs (macOS /bin/bash is 3.2 — no associative arrays;
+# the earlier declare -A version died at the loop with set -u, so these
+# tripwires silently never ran on stock macOS).
+TRIPWIRES=(
+    "economic sense|.claude/agents/math-auditor-freeform.md"
+    "senior economist|.claude/agents/scorer-freeform.md"
+    "academic economics literature|.claude/agents/literature-scout.md"
+    "computational economist|.claude/agents/theory-explorer.md"
+    "SDF process|.claude/agents/idea-prototyper.md"
+    "Economic intuition|.claude/agents/implications-deriver.md"
+    "welfare/risk/policy|.claude/agents/referee.md"
+    "missing economic force|.claude/agents/polish-prose.md"
+    "CARA but not CRRA|CLAUDE.md"
+    "top-3-fin|docs/stage_6.md"
+    "falls out of economics|docs/stage_puzzle_triage.md"
+    "financial analyst|.claude/skills/llm-experiments/SKILL.md"
 )
-for s in "${!TRIPWIRES[@]}"; do
-    f="$B/${TRIPWIRES[$s]}"
+for pair in "${TRIPWIRES[@]}"; do
+    s="${pair%%|*}"
+    rel="${pair##*|}"
+    f="$B/$rel"
     if [ ! -f "$f" ]; then
         fail "tripwire target missing: $f"
     elif grep -qF "$s" "$f"; then
-        fail "econ leak regressed: \"$s\" in ${TRIPWIRES[$s]}"
+        fail "econ leak regressed: \"$s\" in $rel"
     else
-        pass "clean: \"$s\" absent from ${TRIPWIRES[$s]}"
+        pass "clean: \"$s\" absent from $rel"
     fi
 done
+
+# ── 3b. Paper skeleton + section list (#200): ML-preprint format, ML sections ──
+grep -q "doublespacing" "$B/paper/main.tex" \
+    && fail "main.tex is double-spaced (econ skeleton shipped instead of ML skeleton)" \
+    || pass "main.tex single-spaced ML skeleton"
+grep -q "documentclass\[10pt\]" "$B/paper/main.tex" \
+    && pass "main.tex 10pt single-column preamble" || fail "main.tex missing 10pt preamble"
+grep -q "sections/related_work" "$B/paper/main.tex" \
+    && pass "main.tex names related_work in section order" || fail "main.tex missing related_work comment"
+grep -q "sections/checklist" "$B/paper/main.tex" \
+    && pass "main.tex carries post-references checklist slot" || fail "main.tex missing checklist slot"
+grep -q "related_work.tex" "$B/docs/stage_5.md" \
+    && pass "stage_5 section list has related_work.tex" || fail "stage_5 missing related_work.tex"
+grep -q "experiments.tex" "$B/docs/stage_5.md" \
+    && pass "stage_5 section list has experiments.tex" || fail "stage_5 missing experiments.tex"
+grep -q "checklist.tex" "$B/docs/stage_5.md" \
+    && pass "stage_5 section list has checklist.tex" || fail "stage_5 missing checklist.tex"
+grep -q '### `experiments.tex`' "$B/.claude/agents/paper-writer.md" \
+    && pass "paper-writer carries experiments.tex guidance" || fail "paper-writer missing experiments.tex guidance"
+grep -q "9-10 single-column pages" "$B/.claude/agents/paper-writer.md" \
+    && pass "paper-writer page budget is ML-calibrated" || fail "paper-writer page budget not ML-calibrated"
+if grep -rq "VARIANT_LLM_COGNITION" "$B" 2>/dev/null; then
+    fail "VARIANT_LLM_COGNITION marker leaked into deployed files"
+else
+    pass "no variant-marker leakage"
+fi
 
 # ── 4. ML venue aliases present in deployed openalex script ──
 grep -q '"neurips"' "$B/code/utils/openalex/openalex.py" \

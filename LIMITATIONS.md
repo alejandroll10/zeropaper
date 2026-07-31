@@ -222,17 +222,13 @@ In all three, the residual is a *missed catch* (a genuinely illegible table can 
 
 ---
 
-## llm_cognition variant: paper skeleton is an economics working-paper format
+## llm_cognition variant: shipped preprint is venue-neutral — the official venue style file is not bundled
 
-**Scope:** every llm_cognition deployment. `templates/paper_skeleton/main.tex.template` ships unchanged for all variants: `\documentclass[12pt]{article}`, double spacing, natbib author-year citations — a standard economics working-paper format. NeurIPS/ICML/ICLR submissions require the venue's own style file (single/two-column, numeric citations, hard page caps, checklist sections); TMLR likewise has its own class.
+**Scope:** every llm_cognition deployment. Closed in v2.14.0 (issue #200): llm_cognition ships its own skeleton (`templates/paper_skeleton/llm_cognition/{main,internet_appendix}.tex.template` — single-column, 10pt, numeric citations, ML section order, a post-references checklist slot; the IA matches the main paper's format), `docs/stage_5.md` and `paper-writer` carry variant-conditional `related_work.tex` / `experiments.tex` / `checklist.tex` sections (via `VARIANT_LLM_COGNITION` markers resolved in `setup.sh`), and the page budget is vocab-keyed (`PW_LENGTH_RULE`).
 
-**Failure modes:** (a) the shipped PDF is an arXiv-preprint-shaped artifact that needs manual reformatting before actual venue submission; (b) length/exhibit reasoning is mis-calibrated — `editor.md`'s llm_cognition format-fit note reasons about "the venue's page cap," which is meaningless against a double-spaced 12pt render; `paper-writer`'s length guidance is calibrated to econ-journal page norms. Paper *content* is unaffected.
+**What remains:** the pipeline deliberately does not fetch or emulate a specific venue's class file (`neurips_20XX.sty`, `icml20XX.sty`, `iclr20XX.sty`, `tmlr.sty` — year-versioned, license-bound, and submission-cycle-specific). The shipped PDF is a venue-neutral ML preprint: content and section structure conform, but camera-ready submission still requires swapping in the venue's official style file at the `\documentclass`/`\usepackage` layer. The emitted `checklist.tex` approximates the NeurIPS checklist's substance (claims-match-evidence, reproducibility, compute, release statements) rather than the exact form the venue's LaTeX macros render.
 
-**Mitigation:** an arXiv-preprint format is a defensible default for an autonomous pipeline (ML papers are arXiv-first, and the preprint is the artifact most readers see). The mismatch is about final venue submission, not about the science.
-
-**Also in scope — the section list, which affects content, not just format:** `docs/stage_5.md` fixes the paper to `introduction / model / results / discussion / conclusion / appendix`. ML venues expect a numbered **Related Work** section (econ folds it into the intro) and an **Experiments** section; under the current list, related work stays intro-embedded and Stage 3b experiments are smuggled into `results.tex`. A reviewer reads both as structural non-conformance before reaching the science.
-
-**What would close it:** a per-variant skeleton — `templates/paper_skeleton/{variant}/` or a variant-conditional preamble block in `setup.sh` — with a NeurIPS-style single-column, numeric-citation preamble for llm_cognition, plus a variant-conditional section list in `docs/stage_5.md` (adding `related_work.tex` and `experiments.tex`) and a page-budget note in `paper-writer`'s variant context. Until then, treat venue reformatting as a manual post-pipeline step.
+**Failure mode it can produce:** an operator submits the shipped PDF directly and gets flagged for a missing official style/checklist form. Treat the style-file swap as the one manual step between the shipped preprint and a venue submission; the arXiv-first norm in ML makes the preprint itself the artifact most readers see.
 
 ---
 

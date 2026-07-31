@@ -47,6 +47,14 @@ Write each section to a separate file in `paper/sections/`:
 <!-- EMPIRICAL_FIRST_END -->
 - No roadmap paragraph — the section structure speaks for itself
 
+<!-- VARIANT_LLM_COGNITION_START -->
+### `related_work.tex`
+- A numbered top-level Related Work section — ML venues expect it. Do not fold the literature discussion into the introduction; the intro's positioning paragraph names only the 2–3 closest papers, and this section carries the rest.
+- Organize by the claim each cluster bears on, not chronologically: one paragraph per adjacent literature (from the literature map), stating what it established and ending with the delta this paper adds over it.
+- The closest competitor gets its own paragraph with the precise difference; background clusters get 2–3 sentences each. Cite only papers in the literature map / `references/references.md`.
+- Placement: after the introduction (the venue default) — or after `model.tex` if the comparison needs the reader to hold the formal definitions first. Pick one home; do not split the discussion across both.
+
+<!-- VARIANT_LLM_COGNITION_END -->
 <!-- THEORY_FIRST_START -->
 ### `model.tex`
 - Specify {{PW_MODEL_SPEC_OBJECTS}}. The order and granularity follow the model — there is no required sequence.
@@ -58,6 +66,20 @@ Write each section to a separate file in `paper/sections/`:
 - Comparative statics
 - Economic intuition after each result (not before — let the math speak first)
 <!-- THEORY_FIRST_END -->
+<!-- VARIANT_LLM_COGNITION_START -->
+### `experiments.tex`
+- The Stage 3b experimental evidence as a numbered top-level Experiments section. Do not smuggle measured results into `results.tex` — `results.tex` carries the formal results; this section carries what was measured in real models.
+- Setup first, precise enough to reproduce: models and families (exact identifiers), decoding parameters, stimulus construction and its contamination-resistance argument, sample sizes, seeds. Every number comes from `output/stage3b/experiment_results.md` (the numerical-claims rule below applies).
+- Each experiment ties back to the implication it tests (`output/stage3/implications.md`): state the prediction, then the measurement.
+- Headline result as a figure (the figure rule below applies), per-condition breakdowns as booktabs tables. Report variance across seeds and stimuli, not just point estimates.
+- Scope statement: which model families and scales the evidence covers and which it does not. Carry the stated limitations from `experiment_results.md` (e.g., single-family evidence) into the paper honestly — referees attack scope claims that outrun the evidence.
+
+### `checklist.tex`
+- The venue paper checklist (NeurIPS-style), rendered **after** the references — add its `\input` after the bibliography commands in `main.tex` per the skeleton's comment. It does not count against the main-text budget.
+- One item per checklist question: claims match evidence; limitations stated; complete proofs for theoretical results; experimental reproducibility (models, seeds, decoding parameters, stimulus generation); compute disclosure; code/data release statement; a broader-impact note where the work warrants one.
+- Ground every answer in artifacts that exist — `output/stage3b/experiment_results.md`'s scope statements, seed/variance reporting, and provenance disclosures are the checklist substance (`polish-experiments` re-verifies them at Stage 9). Never claim a release, disclosure, or safeguard the deployment did not produce.
+
+<!-- VARIANT_LLM_COGNITION_END -->
 <!-- EMPIRICAL_FIRST_START -->
 ### `data.tex`
 - Sample construction: data sources, filters, period coverage, observation count. Cross-reference `output/stage3a/empirical_analysis.md` for the actual realized sample.
@@ -174,7 +196,7 @@ The `style` agent enforces these (and more) at Stage 7 and the polish agents cat
 - **No pipeline-internal strings in the paper.** The LaTeX is reader-facing; pipeline scaffolding must never surface in it. Do not write pipeline paths (`output/...`, `process_log/...`, `stage3a`), standalone all-caps verdict tokens (`ADVANCE`, `REVISE`, `PASS`, `FAIL`), hyphenated agent names (`paper-writer`, `theory-generator`, `referee-mechanism`, …), or state keys (`pipeline_state`, `loops.polish.round`, `pivot_resolved`) into `paper/sections/*.tex`, `paper/internet_appendix.tex`, captions, or shipped comments. Refer to your own results by their economic content, never by the stage or file that produced them. (`polish-consistency` re-scans for these at Stage 9, but write them out the first time.)
 <!-- THEORY_FIRST_START -->
 - **No numerical claims outside Stage 2b / 3a / 3b files.** Every numerical value, "N/N grid points," calibration number, or figure description must come from `output/stage2b/` (theory exploration), `output/stage3a/` (empirical analysis, if `--ext empirical`), or `output/stage3b/` (LLM experiments, if `--ext theory_llm`). If a claim is needed but no such file exists, write `[NEEDS THEORY-EXPLORER: description]` — do not draft the number, do not write or run scripts yourself. Theory-explorer / empiricist / experiment-designer own all new numerical scripts.
-- **Keep it short.** Theory papers should be 20-30 pages including proofs. If the model is simple (as it should be), the paper should be short.
+- **Keep it short.** {{PW_LENGTH_RULE}}
 <!-- THEORY_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 - **No numerical claims outside Stage 3a / 3b files.** Every coefficient, standard error, sample-size figure, calibration number, or descriptive statistic must come from `output/stage3a/` (empirical analysis) or `output/stage3b/` (LLM experiments, if `--ext theory_llm`). If a claim is needed but no such file exists, write `[NEEDS EMPIRICIST: description]` — do not draft the number, do not write or run scripts yourself. Empiricist owns all new numerical scripts. (Stage 2b theory exploration does not run under empirical-first; do not cite `output/stage2b/`.)

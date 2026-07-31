@@ -1,0 +1,83 @@
+% =====================================================================
+% DO NOT MODIFY LATEX SETUP, OTHERWISE PIPELINE MAY NOT WORK AS EXPECTED.
+%
+% Specifically: do not delete paper/arpipeline.sty, do not remove the
+% \usepackage{arpipeline} line, and do not modify lines marked
+% PIPELINE-MANAGED below. These are pipeline infrastructure (deployment
+% fingerprint, downstream verification, dashboard tracking).
+%
+% Edit \title, \date, \begin{abstract}...\end{abstract}, the
+% \input lines, and the bibliography commands freely. Leave \author as
+% shipped (anonymized for double-blind review). paper-writer adds
+% \input lines for new section files under paper/sections/ as the paper
+% grows.
+%
+% FORMAT NOTE (llm_cognition): this skeleton is a machine-learning
+% preprint format — single-column, single-spaced, numeric citations —
+% calibrated to NeurIPS/ICML/ICLR content norms (~9-10 pages of main
+% text before references and appendices). It is deliberately venue-
+% neutral: camera-ready submission still requires the venue's official
+% style file (neurips_20XX.sty, icml20XX.sty, iclr20XX.sty, tmlr.sty),
+% which swaps in at the \documentclass/\usepackage layer without
+% touching section content. Do not fetch or emulate a specific venue's
+% class file here.
+% =====================================================================
+\documentclass[10pt]{article}
+
+% PIPELINE-MANAGED — DO NOT MODIFY
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=blue,urlcolor=blue]{hyperref}
+\IfFileExists{arpipeline.sty}{\usepackage{arpipeline}}{}
+% END PIPELINE-MANAGED
+
+\usepackage[margin=1in]{geometry}
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{microtype}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\title{TITLE PLACEHOLDER}
+% Anonymized for double-blind review. paper-writer must NOT de-anonymize.
+\author{[Author names withheld for double-blind review]}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+\begin{abstract}
+ABSTRACT PLACEHOLDER --- paper-writer fills this at Stage 5.
+\end{abstract}
+
+% paper-writer: add \input lines for each section file under paper/sections/
+% ML-venue section order — Related Work and Experiments are numbered
+% top-level sections, not folded into the introduction or results:
+%   \input{sections/introduction}
+%   \input{sections/related_work}
+%   \input{sections/model}
+%   \input{sections/results}
+%   \input{sections/experiments}
+%   \input{sections/discussion}
+%   \input{sections/conclusion}
+
+\bibliographystyle{unsrtnat}
+\IfFileExists{bib.bib}{\bibliography{bib}}{}
+
+% paper-writer: the paper checklist renders AFTER the references (the
+% NeurIPS convention; it does not count against the main-text budget).
+% Add this \input when sections/checklist.tex is written:
+%   \input{sections/checklist}
+
+\end{document}

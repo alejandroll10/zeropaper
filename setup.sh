@@ -1652,15 +1652,26 @@ if [ "$MODE" != "report" ]; then
     # Don't clobber an existing main.tex (e.g. --seed mode where the user has
     # pre-populated paper/main.tex). The .sty above is always overwritten —
     # it is pipeline infrastructure with a fresh UUID per deployment.
+    # Skeleton templates are variant-aware: templates/paper_skeleton/{VARIANT}/
+    # overrides the shared root template when present (llm_cognition ships an
+    # ML-preprint main.tex — single-column, numeric citations — instead of the
+    # economics working-paper format). Root templates are the fallback, so a
+    # new variant needs no skeleton files unless its format genuinely differs.
     if [ ! -f "$P/paper/main.tex" ]; then
-        cp "$TEMPLATE_ROOT/templates/paper_skeleton/main.tex.template" "$P/paper/main.tex"
+        MAIN_TEX_TEMPLATE="$TEMPLATE_ROOT/templates/paper_skeleton/main.tex.template"
+        [ -f "$TEMPLATE_ROOT/templates/paper_skeleton/$VARIANT/main.tex.template" ] \
+            && MAIN_TEX_TEMPLATE="$TEMPLATE_ROOT/templates/paper_skeleton/$VARIANT/main.tex.template"
+        cp "$MAIN_TEX_TEMPLATE" "$P/paper/main.tex"
     fi
     # Internet appendix skeleton. paper-writer only populates it when a proof
     # exceeds ~3 pages or the in-paper appendix would otherwise blow past ~30%
     # of main-text length; otherwise it stays a no-op placeholder. Same skip-
-    # if-exists guard as main.tex above.
+    # if-exists guard and variant-override lookup as main.tex above.
     if [ ! -f "$P/paper/internet_appendix.tex" ]; then
-        cp "$TEMPLATE_ROOT/templates/paper_skeleton/internet_appendix.tex.template" "$P/paper/internet_appendix.tex"
+        IA_TEX_TEMPLATE="$TEMPLATE_ROOT/templates/paper_skeleton/internet_appendix.tex.template"
+        [ -f "$TEMPLATE_ROOT/templates/paper_skeleton/$VARIANT/internet_appendix.tex.template" ] \
+            && IA_TEX_TEMPLATE="$TEMPLATE_ROOT/templates/paper_skeleton/$VARIANT/internet_appendix.tex.template"
+        cp "$IA_TEX_TEMPLATE" "$P/paper/internet_appendix.tex"
     fi
 fi
 
@@ -2769,11 +2780,12 @@ EXT_EMPIRICAL_ON=0
 # when the body's mode-specific delta is small. Vocab substitution runs at
 # assembly time (before this resolver fires), so {{KEY}} placeholders are
 # already resolved when the resolver sees the agent files.
-python3 - "$EMPIRICAL_FIRST_ON" "$EXT_EMPIRICAL_ON" "$P/docs/"*.md "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
+python3 - "$EMPIRICAL_FIRST_ON" "$EXT_EMPIRICAL_ON" "$VARIANT" "$P/docs/"*.md "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
     "$AGENTS_OUT"/*.md "$CODEX_AGENTS_OUT"/*.toml "$GEMINI_AGENTS_OUT"/*.md "$GROK_AGENTS_OUT"/*.md <<'PYEOF'
 import os, re, sys
 ef = sys.argv[1] == "1"
 xe = sys.argv[2] == "1"
+variant = sys.argv[3].upper()
 patterns = []  # list of (regex, replacement) applied in order
 # Trailing \n after END markers is optional so a marker at EOF (no final
 # newline) still matches; otherwise the literal HTML comment leaks into the
@@ -2788,7 +2800,19 @@ if xe:
     patterns.append((re.compile(r"<!-- EXT_EMPIRICAL_(?:START|END) -->\n?"), ""))
 else:
     patterns.append((re.compile(r"<!-- EXT_EMPIRICAL_START -->\n.*?<!-- EXT_EMPIRICAL_END -->\n{0,2}", re.DOTALL), ""))
-for p in sys.argv[3:]:
+# Variant markers: <!-- VARIANT_{NAME}_START/END --> blocks are kept (markers
+# stripped) when {NAME} matches the deploying variant (uppercased) and removed
+# wholesale otherwise. Generic — a new variant needs no resolver edit. The
+# matching-variant unwrap runs first so the wholesale pattern (backreference-
+# paired, so mismatched START/END names never span) only sees foreign blocks.
+# CAUTION: never INTERLEAVE two differently-named marker blocks
+# (A_START … B_START … A_END … B_END) — the non-greedy wholesale removal
+# would swallow the embedded B_START and leak an orphaned B_END into the
+# deployed file. Nesting (B fully inside A) and siblings are both fine.
+# The same fragility exists in the mode-marker patterns above.
+patterns.append((re.compile(r"<!-- VARIANT_" + re.escape(variant) + r"_(?:START|END) -->\n?"), ""))
+patterns.append((re.compile(r"<!-- VARIANT_([A-Z0-9_]+)_START -->\n.*?<!-- VARIANT_\1_END -->\n{0,2}", re.DOTALL), ""))
+for p in sys.argv[4:]:
     if not os.path.exists(p):
         continue
     with open(p) as f: t = f.read()

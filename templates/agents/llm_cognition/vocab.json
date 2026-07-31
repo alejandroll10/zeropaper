@@ -204,6 +204,7 @@
   "PW_BARE_STAT_EXAMPLE": "\"Accuracy in the 40-item condition is 0.62 (95% CI 0.58–0.66).\"",
   "PW_RIGHT_OPENER_EXAMPLE": "\"Interference between similar bindings, not raw context length, drives long-context retrieval failure; halving inter-item similarity recovers most of the lost accuracy at every context length we test.\"",
   "PW_MODEL_SPEC_OBJECTS": "the construct, the task family and stimulus-generating process (or, for formal-only analyses, the model of computation), and whatever scoring rule or claim class the results invoke",
+  "PW_LENGTH_RULE": "Top-ML main text runs about 9-10 single-column pages before references and appendices (the NeurIPS/ICML content-cap norm); TMLR has no cap but the same discipline applies. Write the main text to that budget — proofs and secondary experiments go to the appendix, and the checklist and references sit outside it. If the framework is simple (as it should be), the paper should be short.",
   "PC_LABEL_EXAMPLES": "e.g., \"working-memory capacity\" that computes raw accuracy, \"retrieval error\" that includes formatting failures",
   "PB_IAR_WIKI_BULLET": "- **IAR wiki: not applicable for this variant.** Its distilled coverage is finance/economics journals only; verify prose-level claims via arXiv/OpenReview pages and OpenAlex abstracts instead."
 }

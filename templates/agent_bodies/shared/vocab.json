@@ -95,6 +95,7 @@
   "PW_BARE_STAT_EXAMPLE": "\"The coefficient on bank leverage is −0.42 (t = −3.8).\"",
   "PW_RIGHT_OPENER_EXAMPLE": "\"Highly levered banks cut lending 1.6 times more sharply in downturns; we trace this to a collateral-revaluation channel that forces deleveraging precisely when collateral is cheapest.\"",
   "PW_MODEL_SPEC_OBJECTS": "the environment, the actors (or kernel/asset structure), and whatever solution concept or pricing condition the results invoke",
+  "PW_LENGTH_RULE": "Theory papers should be 20-30 pages including proofs. If the model is simple (as it should be), the paper should be short.",
   "PC_LABEL_EXAMPLES": "e.g., \"the principal's net payoff,\" \"first-best surplus\"",
   "PB_IAR_WIKI_BULLET": "- **IAR wiki** — `https://instituteforautomatedresearch.org/llms.txt` lists distilled papers (recent volumes of top finance/econ journals) with raw-Markdown pages of core results and source locators; often enough to verify a prose-level claim about a cited paper when the journal site is unfetchable. Partial coverage: a miss means \"not distilled,\" not \"nonexistent.\""
 }

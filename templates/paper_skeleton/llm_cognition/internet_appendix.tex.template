@@ -1,0 +1,87 @@
+% =====================================================================
+% INTERNET APPENDIX SKELETON (llm_cognition — matches the ML-preprint
+% main.tex format: single-column, 10pt, single-spaced, numeric citations).
+%
+% A separate LaTeX document for material that is too long to fit in the
+% main paper or its in-paper appendix --- typically multi-page technical
+% proofs, full derivations of secondary results, or extensive
+% supplementary experiments. Compiles independently of main.tex, but
+% cross-references main.tex's theorems/equations via xr-hyper so you can
+% write "Proposition 3 of the main paper" without hardcoding numbers.
+%
+% paper-writer should only populate this file when:
+%   (a) a single proof exceeds ~3 pages, OR
+%   (b) the in-paper appendix would otherwise exceed ~30% of main-text
+%       length.
+% Otherwise leave it empty (or with the placeholder section) and put
+% proofs in the main text or paper/sections/appendix.tex.
+%
+% Same fingerprint discipline as main.tex: do not delete
+% paper/arpipeline.sty, do not remove the \usepackage{arpipeline} line,
+% and do not modify lines marked PIPELINE-MANAGED below.
+% =====================================================================
+\documentclass[10pt]{article}
+
+% PIPELINE-MANAGED — DO NOT MODIFY
+\usepackage[utf8]{inputenc}
+\usepackage[colorlinks=true,citecolor=blue,linkcolor=blue,urlcolor=blue]{hyperref}
+\IfFileExists{arpipeline.sty}{\usepackage{arpipeline}}{}
+% END PIPELINE-MANAGED
+
+\usepackage[margin=1in]{geometry}
+
+\usepackage{amsmath}
+\usepackage{amssymb}
+\usepackage{amsthm}
+\usepackage{mathtools}
+\usepackage[numbers,sort&compress]{natbib}
+\usepackage{graphicx}
+\usepackage{booktabs}
+\usepackage{microtype}
+
+% Cross-reference the main paper. xr-hyper lets the IA refer to labels
+% defined in main.tex (e.g., \ref{prop:main_result}) without hardcoding
+% numbers. Requires main.aux to exist; harmless if it doesn't.
+\usepackage{xr-hyper}
+\externaldocument[][nocite]{main}
+
+\newtheorem{theorem}{Theorem}
+\newtheorem{proposition}[theorem]{Proposition}
+\newtheorem{lemma}[theorem]{Lemma}
+\newtheorem{corollary}[theorem]{Corollary}
+\theoremstyle{definition}
+\newtheorem{definition}[theorem]{Definition}
+\newtheorem{assumption}{Assumption}
+\theoremstyle{remark}
+\newtheorem{remark}[theorem]{Remark}
+
+\title{Internet Appendix for\\ ``TITLE PLACEHOLDER''}
+% Anonymized for double-blind review — matches main.tex. Do NOT de-anonymize.
+\author{[Author names withheld for double-blind review]}
+\date{\today}
+
+\begin{document}
+\maketitle
+
+% paper-writer: populate ONLY if the trigger above is met. Otherwise leave
+% as the placeholder note below and the file will be a no-op stub.
+%
+% When populated, structure as:
+%   \tableofcontents
+%   \newpage
+%   \appendix
+%   \section{...}
+%   \input{sections/internet_appendix/<topic>}
+%   ...
+%
+% Cross-reference main paper results as e.g. "Proposition~\ref{prop:main}
+% of the main paper" --- xr-hyper resolves the number from main.aux.
+
+\noindent\textit{This internet appendix is a placeholder. paper-writer
+populates it only when a proof exceeds ${\sim}3$ pages or the in-paper
+appendix would otherwise exceed ${\sim}30\%$ of main-text length.}
+
+\bibliographystyle{unsrtnat}
+\IfFileExists{bib.bib}{\bibliography{bib}}{}
+
+\end{document}

@@ -10,10 +10,16 @@
 2. **Review the outline.** Check: does it address the self-attack points? Is the positioning against the literature accurate? Is the structure appropriate for the target journal? If not, provide feedback and re-launch.
 3. **Write.** Launch paper-writer with the approved outline + all inputs. Paper-writer creates files in `paper/sections/`:
    - `introduction.tex`
+<!-- VARIANT_LLM_COGNITION_START -->
+   - `related_work.tex` (numbered Related Work section — ML venues expect it; not folded into the introduction)
+<!-- VARIANT_LLM_COGNITION_END -->
 <!-- THEORY_FIRST_START -->
    - `model.tex`
    - `results.tex`
 <!-- THEORY_FIRST_END -->
+<!-- VARIANT_LLM_COGNITION_START -->
+   - `experiments.tex` (the Stage 3b experimental evidence as a numbered Experiments section — not smuggled into `results.tex`, which carries the formal results)
+<!-- VARIANT_LLM_COGNITION_END -->
 <!-- EMPIRICAL_FIRST_START -->
    - `data.tex` (sample construction, variable definitions, descriptive statistics)
    - `identification.tex` (design class, identifying assumptions, diagnostics, estimand)
@@ -24,6 +30,9 @@
    - `discussion.tex`
    - `conclusion.tex`
    - `appendix.tex` (if needed)
+<!-- VARIANT_LLM_COGNITION_START -->
+   - `checklist.tex` (venue paper checklist, rendered after the references — paper-writer grounds each answer in `output/stage3b/experiment_results.md` scope/seed/provenance statements and adds its `\input` after the bibliography commands per the `main.tex` skeleton comment)
+<!-- VARIANT_LLM_COGNITION_END -->
 <!-- THEORY_FIRST_START -->
    Paper-writer may *also* populate the internet appendix (`paper/internet_appendix.tex`, a separate compile that ships with the deploy) when a single proof exceeds ~3 pages or the in-paper appendix would otherwise exceed ~30% of main-text length. If the trigger does not fire, the IA file stays as the placeholder skeleton and is ignored downstream.
 <!-- THEORY_FIRST_END -->
