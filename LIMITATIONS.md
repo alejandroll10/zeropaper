@@ -28,6 +28,20 @@ Per `CLAUDE.md` ("no unsolved or undocumented architectural limits"), additions 
 
 ---
 
+## Codex behind authenticated proxies: ≤0.144.x is a silent total outage (upstream, mitigated by a warn-only preflight)
+
+**Scope:** every codex invocation — the codex-runtime orchestrator (`launch.sh codex`), dispatched workers (`launch_agent.sh`), and the Claude runtime's codex-math co-processor — in any environment whose only network path is an authenticated HTTP proxy (`HTTPS_PROXY` with embedded credentials; typical for hardened sandboxes).
+
+**Failure mode.** codex-cli ≤0.144.x sends no `Proxy-Authorization` header on its HTTPS CONNECT tunnels, even when credentials are embedded in the proxy URL (verified 2026-07-31 with an instrumented relay: every codex CONNECT arrived without the header while curl in the same env sent it). The proxy 407s the bare CONNECT; reqwest surfaces the failed tunnel as `error sending request for url (...)` with **no HTTP status** — so nothing points at the proxy. The OAuth token refresh against `auth.openai.com` fails the same way, so once the access token expires the outage additionally masquerades as an auth/login problem. Fixed upstream in codex 0.146.0.
+
+**Mitigation (in place).** `code/utils/codex_preflight.sh` (`codex_proxy_auth_preflight`, issue #213): at `launch.sh codex` startup, at every `launch_agent.sh` worker dispatch (per-dispatch on purpose — codex can auto-update or roll back mid-run, staling the startup verdict), and at every codex-math `codex_leaf_setup`, if the codex version is < 0.146.0 **and** a proxy env var carries embedded credentials, print a warning naming the defect and the remedies. Warn-only by design — without an authenticated proxy old versions work fine, and a parse failure must never block a launch; the version lookup runs under a 10s watchdog so a hung binary can't block either.
+
+**Standby remedy (when upgrading codex is not possible).** Run a local forward proxy that accepts CONNECT, injects `Proxy-Authorization: Basic base64(user:pass)` (credentials parsed from the real proxy URL), and tunnels to the real proxy; point `HTTPS_PROXY`/`HTTP_PROXY` at it, leaving the credentials out of the codex-facing URL. This restored codex end-to-end in the 2026-07-31 incident (and, having regained network, codex auto-updated itself past the defect — which is also the caveat: an auto-update is not a durable fix if a rollback or pin lands ≤0.144.x again).
+
+**What would close it:** nothing on our side — it is fixed upstream; the preflight exists because a pinned/rolled-back CLI can silently reintroduce it. Related: #146 (codex hard-stop audit — this is exactly such a hard stop), and the CLI-version-fragility entry above (same "no setup-time probe of the codex CLI" root).
+
+---
+
 ## Grok runtime: single model tier, no model probe, and partial mode/extension coverage
 
 **Scope:** the Grok Build runtime — `scripts/assemble_grok_agents.py`, the `.grok/agents/*.md` it emits, the labeled-dispatch fork in `templates/runtime/codex/session.md`, and the grok wiring in `setup.sh`.

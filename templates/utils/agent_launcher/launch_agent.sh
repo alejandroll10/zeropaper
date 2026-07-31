@@ -87,6 +87,15 @@
 set -euo pipefail
 
 SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
+
+# Proxy-auth version floor (issue #213): warn per-dispatch, not just at
+# orchestrator startup — codex can auto-update or be rolled back mid-run, so
+# the launch.sh preflight's verdict may be stale by the time a worker spawns.
+# Guarded so a deploy predating the preflight never blocks a dispatch.
+if [ -f "$SCRIPT_DIR/../codex_preflight.sh" ]; then
+    . "$SCRIPT_DIR/../codex_preflight.sh"
+    codex_proxy_auth_preflight
+fi
 # code/utils/agent_launcher/ -> project root is three levels up.
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 AGENTS_DIR="$PROJECT_ROOT/.codex/agents"

@@ -198,6 +198,14 @@ CODEX_ARGS=(
     -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$ROOT/.git\"]"
 )
 
+# Proxy-auth version floor (issue #213): codex ≤0.144.x is a silent total
+# outage behind an authenticated proxy. Warn-only; guarded so a pre-preflight
+# deploy (or a refresh not yet run) never blocks the launch.
+if [ -f "$ROOT/code/utils/codex_preflight.sh" ]; then
+    . "$ROOT/code/utils/codex_preflight.sh"
+    codex_proxy_auth_preflight
+fi
+
 if [ "$ONCE" = "1" ]; then
     exec codex "${CODEX_ARGS[@]}"
 fi

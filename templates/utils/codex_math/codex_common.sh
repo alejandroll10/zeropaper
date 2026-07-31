@@ -92,6 +92,16 @@ codex_build_no_spawn_args() {
 # and CODEX_NO_SPAWN_ARGS. Call once right before `codex exec`, then pass
 # "${CODEX_NO_SPAWN_ARGS[@]}" into it.
 codex_leaf_setup() {
+    # Proxy-auth version floor (issue #213): warn if this codex is old enough
+    # to drop Proxy-Authorization behind an authenticated proxy. Guarded so a
+    # deploy that predates the preflight never blocks. Same relative layout in
+    # the template repo (templates/utils/) and deployments (code/utils/).
+    local _cp_dir
+    _cp_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+    if [ -f "$_cp_dir/codex_preflight.sh" ]; then
+        . "$_cp_dir/codex_preflight.sh"
+        codex_proxy_auth_preflight
+    fi
     # The literal-/tmp fallback is for Linux, where /tmp is a real directory.
     # On macOS an unset TMPDIR would hit the /tmp→/private/tmp symlink issue
     # documented in codex_verify.sh, but the deployed runtimes always set

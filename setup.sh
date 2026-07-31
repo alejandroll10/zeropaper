@@ -2195,6 +2195,10 @@ chmod +x "$P/code/utils/nber_agenda/"nber_agenda.py
 cp "$TEMPLATE_ROOT/templates/utils/setup_push_token.sh" "$P/code/utils/"
 chmod +x "$P/code/utils/setup_push_token.sh"
 
+# Copy the codex CLI preflight (proxy-auth version-floor warning, issue #213).
+# Sourced by launch.sh's codex branch and codex_math/codex_common.sh.
+cp "$TEMPLATE_ROOT/templates/utils/codex_preflight.sh" "$P/code/utils/"
+
 # ── Launch-time model heal ──
 # The build-time model remap (resolve_model_fallbacks.py + apply_model_remap.py)
 # runs ONCE and cannot reach an already-deployed project. Deploy a runtime twin so
@@ -2871,6 +2875,7 @@ candidate_files = [
     ".gitignore",
     "dashboard.html",
     "code/utils/setup_push_token.sh",
+    "code/utils/codex_preflight.sh",
 ]
 
 # Extension-installed files. The empirical extension drops *.py / *.sh
