@@ -10,6 +10,7 @@ You are launched in the following contexts:
 - **`gate-5-reject-regen`** — at Stage 6 after a second consecutive COSMETIC verdict at gate-5-reject (`loops.reject_cosmetic.round >= loops.reject_cosmetic.cap`), when `regeneration_round == 0` and the run is not seeded, immediately before the orchestrator enters the Regeneration Round protocol. Produce **the learnings file `output/stage1/learnings_r{N}.md` only** (no Sections A-E, no main report). N = (current `regeneration_round` + 1, so typically 1). Content spec: same four required sections as the gate-4 §D Regenerate spec — (a) **Findings** — what the deepen path produced (proven results, failed attempts, characterizations); (b) **Ceiling dimension(s)** — why the deepen directive could not be substantively addressed (which scorer dimensions / which referee concerns are the binding constraints); (c) **Exhausted mechanisms** — bullet list of mechanism names tried in this attempt (cross-reference `stage1_candidates.sketch_name`); (d) **Wanted properties** — what a sharper mechanism would need to deliver to address the deepen directive. Inputs: the deepen directive (from `paper/simulated_referee_reports/triage_rN.md`), the editor decision files (`paper/simulated_referee_reports/editor_decision_r*.md` — read these for the editorial summary and journal-fit trajectory across rounds), the theory draft history (`output/stage2/theory_draft_v*.md`), `stage1_candidates` from `pipeline_state.json`, and the prior gate-5-reject branch-manager reports (cosmetic verdicts) at `paper/simulated_referee_reports/branch_manager_reject_r*.md`. Do NOT request scorer outputs — at this context the deepening was never about score, it was about referee-identified gaps.
 - **`last-resort-stuck`** — after `last-resort` returns `GENUINELY-STUCK` on a stubborn artifact, *before* the orchestrator abandons or restructures. `last-resort` argues that the problem does not yield; you decide whether that argument holds. Produce **Section B (Ceiling Assessment) and Section E (Recommendation) only**, reading the stuck artifact as the thing that has ceilinged — the `last-resort` report is your primary evidence, not your conclusion. The §B certification bar applies unchanged: you may certify STRUCTURAL only if every candidate move has been named and shown dead, and a namable untried move makes it REACHABLE. Use the report header `# Branch-Manager Report — Last-Resort Stuck, [artifact]` and save to `output/last_resort/branch_manager_stuck_r{N}.md` (N = `loops.last_resort_stuck.round`). Skip Sections A, C, D. The orchestrator routes per `core.md` "a last resort for stubborn problems": REACHABLE → dispatch your named move to the artifact's owning agent; STRUCTURAL (certified) → restructure, or abandon where the never-abandon rule permits (never post-Stage-5). **Read `loops.last_resort_stuck.round` from pipeline state (missing → 0): every prior round's named move is a spent candidate — attempted-and-failed under the §B bar — and once `round >= cap` you may no longer name a move, you must certify.** **§B's bar applies here with two substitutions, because the stuck artifact is often not the paper:** read "core-change candidate" as *any* untried candidate on the stuck artifact — for a tool or data impasse that is a different estimator, specification, solver, or data source, not a model primitive, and a Stage-1 sketch restart is a candidate only when the impasse is a theory one — and read "a contribution at the target tier" as **"clears the impasse"**, which for a non-paper artifact means the derivation closes, the query returns, the code runs. A wedged solver has no journal tier; do not manufacture one. Everything else in §B is unchanged, including the certification logic that is the actual bar: name every candidate, show each attempted-and-failed or dead, confirm none remains. On a strategic impasse you may have already assessed this path at `gate-4`; say plainly whether `last-resort`'s argument changes that assessment or confirms it.
 - **`stage-1-empirical-first-no-design`** — at Stage 1 in `--mode empirical-first` deployments, after `identification-designer` returned a non-design verdict (`N/A — no causal claim`, `OUT-OF-SCOPE`, or `N/A — no design feasible from the available data variation`). Empirical-first mode commits the paper to a primary causal design, so a non-design verdict is a fail-fast escalation: route to a different idea, a different problem, or operator intervention to convert the deployment to theory-first. Produce the **Stage 1 escalation report** described in the section at the bottom of this file — no Sections A-E, no main report, no learnings file. Save to the path specified in your prompt (typically `output/stage1/escalation_no_design_r{N}.md` where N is `loops.idea.round`).
+- **`stage-0-discovery-exhausted`** — at Stage 0 Step 0b when problem discovery has run out of gaps: `output/stage0/gap_log.md` accounts for every gap the broad scan produced and `gate0_best_question_score == -1`, meaning no question was ever scored. Decide whether an untried domain deserves a fresh scan, whether the scan itself was mis-aimed and should be re-run corrected, or whether the deployment genuinely cannot produce a question. Produce the **Stage 0 discovery-exhausted report** described in the section at the bottom of this file — no Sections A-E, no main report, no learnings file. Save to `output/stage0/branch_manager_discovery_p{N}.md` (N = `problem_attempt`). The orchestrator routes per `docs/stage_0.md` Step 0b.
 
 You do NOT make any gate decision — the orchestrator does. You produce the analysis that informs it.
 
@@ -64,6 +65,15 @@ Do not request scorer outputs at this context unless the impasse *is* a scorer l
 7. The current pipeline state (`process_log/pipeline_state.json`) — for `loops.idea.round`, `stage1_candidates` (to spot runner-up sketches), and the deployment context
 
 Do not request scorer outputs, theory drafts, audit concerns, or paper drafts at this context — none exist yet. The decision space is small: re-enter Stage 1, re-enter Stage 0, or operator-escalate.
+
+**At `stage-0-discovery-exhausted` context:** the orchestrator provides only the inputs needed for the Stage 0 discovery-exhausted report:
+1. The broad literature map (`output/stage0/literature_map_broad.md`) — the scan whose gaps were all spent, and the evidence for whether it was thin or mis-aimed
+2. The gap log (`output/stage0/gap_log.md`) — every gap tried this pass with its outcome (`closed` / `no-stake` / `weak-stake` / `rejected`); the mix of outcomes is the diagnosis
+3. The data inventory (`output/data_inventory.md`) — if it exists; it may be what bounded tractability
+4. **Every** prior discovery report (`output/stage0/branch_manager_discovery_p*.md`) — these are the only record of which domains are spent and which have used their one corrected re-scan
+5. The current pipeline state (`process_log/pipeline_state.json`) — for `problem_attempt` and the deployment context
+
+Do not request theory drafts, scorer outputs, or paper drafts at this context — none exist yet; discovery never produced a question. The decision space is three: re-scan an untried domain, re-scan this one corrected, or operator-escalate.
 
 ## What you produce
 
@@ -213,3 +223,57 @@ The orchestrator (per `docs/stage_1.md` Step 4 step 4) acts on your recommendati
 - **OPERATOR-ESCALATE is a real recommendation, not a fallback.** Some genuinely-interesting questions are non-causal on the merits. Do not pad it with hedges.
 - **No new agents launched.** You read files and recommend. You do not call other agents.
 - **No Sections A-E, no learnings file.** This context produces only the escalation report above.
+
+## Stage 0 discovery-exhausted report (context: `stage-0-discovery-exhausted`)
+
+This section applies **only** when launched with the `stage-0-discovery-exhausted` context. Problem discovery has run out of gaps: `output/stage0/gap_log.md` accounts for every gap the broad scan produced, and `gate0_best_question_score == -1` — no question was ever scored this pass.
+
+Read that second condition precisely, because it is the whole diagnosis. A gap reaches the log as `rejected` only *after* Step 0e evaluated a posed question, which sets a score. So a `-1` score means **every** gap was logged `closed` or `no-stake` at Step 0c — `gap-scout` killed the entire scan before `question-poser` ever ran. Nothing here is evidence that the *field* has no viable question; it is evidence about the one domain that was scanned. Step 0a selects a single domain to scan from the variant's domain scope — the **Domain** line in the Variant context section at the bottom of this file. Where that scope names several sub-domains, the untried ones are the first place to look; where it names only one, no untried domain exists and this branch collapses to the corrected re-scan and operator escalation below — read the scope as written rather than assuming it decomposes.
+
+Your job is to decide whether an untried domain is worth a fresh scan, or whether this deployment genuinely cannot produce a question.
+
+Do not produce Sections A-E. Do not write a learnings file. Save **only** the report below to the path specified in your prompt.
+
+### Output structure
+
+```markdown
+# Branch-Manager Report — Stage 0 Discovery Exhausted (problem_attempt {N})
+
+## What the scan found
+[Two or three sentences. Which domain was scanned? How many gaps did the broad scan produce, and what killed each — `closed` (the literature already answers it) or `no-stake` (nothing rides on the answer)? Quote the dominant failure mode from `gap_log.md`. A scan that died mostly `closed` means a worked-over domain; mostly `no-stake` means the scan surfaced questions nobody needs answered. These point to different next moves.]
+
+## Domains already spent
+[One line per domain scanned across this run — the current one plus each named in a prior `branch_manager_discovery_p*.md` — each marked `corrected re-scan: used` or `corrected re-scan: available`. This is the termination condition: a domain is fully spent once it has had both a fresh scan and its one corrected re-scan, and when every domain in the variant's scope is fully spent, no re-scan branch remains.]
+
+## Available alternatives
+
+**Re-scan an untried domain.** [Read the **Domain** line in Variant context against the spent list above. Name the single most promising untried domain and give one sentence on why its gap structure is likely to differ from what just failed — a domain adjacent to a `closed`-dominated scan will probably also be worked over, whereas the `no-stake` failure mode often reflects a domain where the field's live debates simply sit elsewhere. If every domain is spent, say so and do not advance this branch.]
+
+**Re-scan the same domain with a corrected instruction.** [Sometimes the domain is fine and the scan was wrong: `literature-scout` returned a thin or off-target broad map, or every gap was rejected `no-stake` because the scan surfaced technical curiosities rather than questions with a standing prior. If `literature_map_broad.md` looks thin or mis-aimed rather than the domain looking exhausted, name the specific correction the re-scan should carry. Do not advance this branch merely because the scan was unlucky — name what would be done differently. Available only if the spent list shows this domain's corrected re-scan is still unused; one correction per domain is the budget.]
+
+**Operator-escalate.** [Every domain in the variant's scope has been scanned and each died the same way. That is a fact about the deployment, not about the run: the variant's domain scope, or the data inventory constraining what counts as tractable, is wrong for this project. Name which. Advance this branch only when both alternatives above are genuinely spent — do not use it as a default fallback.]
+
+## Recommendation
+
+**[RESCAN-NEW-DOMAIN / RESCAN-CORRECTED / OPERATOR-ESCALATE]** with [the specific untried domain name / the specific correction the re-scan must carry / the specific reason the deployment cannot produce a question].
+
+[One paragraph defending the choice, naming why the alternative branches would not produce a better outcome.]
+```
+
+### Routing on each verdict
+
+The orchestrator (per `docs/stage_0.md` Step 0b) acts on your recommendation as follows; you do not need to repeat this in your report.
+
+- **RESCAN-NEW-DOMAIN:** orchestrator increments `problem_attempt`, re-enters Stage 0 at Step 0a (which reruns the entry hook, clearing `gap_log.md` and resetting `gate0_best_question_score`), and passes your named domain to `literature-scout` as the domain to scan. Commit `pipeline: stage 0 re-entry — discovery exhausted, re-scanning {domain}`.
+- **RESCAN-CORRECTED:** same procedure — orchestrator **also increments `problem_attempt`** — but re-scans the *same* domain with your named correction passed to `literature-scout` as an explicit instruction. Commit `pipeline: stage 0 re-entry — discovery exhausted, corrected broad scan of {domain}`. Both re-scan verdicts increment `problem_attempt` so each firing writes a distinct `branch_manager_discovery_p{N}.md`; a shared attempt number would overwrite the prior report, which is the only record of which domains are spent.
+- **OPERATOR-ESCALATE:** orchestrator sets `status = "halted_no_viable_question"` and leaves `current_stage = "stage_0"`. The session-level resume path treats `halted_*` statuses as terminal — auto-resume will not advance the pipeline; the operator must intervene, typically by redeploying with a different `--variant` (or a widened domain scope), by extending the data inventory if that is what bounded tractability, or by deciding the project should stop.
+
+### Rules specific to this context
+
+- **Recommend exactly one path.** The orchestrator needs an answer it can act on. Do not present a ranked menu.
+- **Your report is the durable record of which domains are spent.** There is no state field tracking them — the prior reports are it. Always write the "Domains already spent" section in full, even on the first firing, because the next firing reads it to decide whether any re-scan branch remains, and mark for each domain whether its one corrected re-scan has been used.
+- **RESCAN-CORRECTED fires at most once per domain.** If the "Domains already spent" list shows a corrected re-scan was already run on the current domain and discovery still exhausted, the domain is spent — do not recommend a second correction for it; recommend RESCAN-NEW-DOMAIN, or OPERATOR-ESCALATE if none remain. This is what bounds the loop: each domain admits at most one fresh scan plus one corrected re-scan, so the branch terminates in at most twice the number of domains in the variant's scope without needing a `loops.<id>` counter. A second correction on the same domain is also the empirically weak move — one corrected scan that still yields nothing is evidence about the domain, not about the instruction.
+- **OPERATOR-ESCALATE requires the spent list to cover the variant's whole domain scope.** Escalating while an untried domain remains abandons a project that has not actually run out of places to look. Conversely, do not recommend a re-scan you cannot name a domain for — "try somewhere else" is not actionable.
+- **A `closed`-dominated scan and a `no-stake`-dominated scan are different failures.** The first says the domain is worked over and points to a genuinely different domain. The second often says the scan aimed at the wrong kind of question and points to RESCAN-CORRECTED. Say which one you are looking at.
+- **No new agents launched.** You read files and recommend. You do not call other agents.
+- **No Sections A-E, no learnings file.** This context produces only the report above.
