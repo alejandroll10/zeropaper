@@ -491,7 +491,7 @@ Before granting another iteration in the current band, the orchestrator classifi
 ```
 output/                   # Pipeline outputs by stage
 ├── seed/                 # (--seed mode only) user idea files + pipeline reports
-├── stage0/               # literature_map_broad.md, gap_selection.md, literature_map.md, problem_statement.md, question_review.md, best_question{,_review}.md (Gate-0 cap-5 fallback snapshot)
+├── stage0/               # literature_map_broad.md, gap_selection.md, literature_map.md, problem_statement.md, question_review.md, best_question{,_review}.md (Gate-0 cap-5 fallback snapshot), gap_log.md (per-pass), domain_log.md (per-run, never cleared)
 ├── stage1/               # idea sketches, reviews, selected_idea.md, novelty + prototype
 <!-- NO_MODE_START -->
 ├── stage2/               # theory drafts, math audits, novelty checks (versioned _v1, _v2…)

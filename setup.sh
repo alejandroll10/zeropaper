@@ -264,7 +264,7 @@ case "$VARIANT" in
     macro)
         PAPER_TYPE="macroeconomics theory paper"
         TARGET_JOURNALS="top-5 economics journal (AER, Econometrica, QJE, JPE, ReStud) or leading macro field journal (JME, JEDC, AEJ:Macro)"
-        DOMAIN_AREAS="macroeconomics"
+        DOMAIN_AREAS="macroeconomics — monetary economics, fiscal policy and public debt, growth and technology, labor search and unemployment, international and open-economy macro, heterogeneous-agent and distributional macro, expectations and information frictions, financial frictions and macro-finance, and business-cycle measurement. Scope is broad, and the following are SUFFICIENT (not necessary) conditions: a model with an aggregate resource constraint, a policy authority or rule, a distribution of agents that aggregates, or a friction whose consequences are measured at the aggregate level is in macro scope even when the topic looks like labor, trade, IO, or finance. These are sufficient, not necessary — a paper can be macro without any of them."
         JOURNAL_LIST="Top-5 econ: AER, Econometrica, QJE, JPE, ReStud, AER Insights (top-5 tier on quality bar, AER-equivalent 'same standards'; CV credit lags; ≤6k words, single-mechanism). Top-3 finance: JF, JFE, RFS. Macro field: JME, JEDC, AEJ:Macro, AEJ:Micro, JIE, JET, RED."
         AGENT_DIR="macro"
         MECHANISM_QUALIFIER="economic"

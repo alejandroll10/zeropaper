@@ -15,7 +15,26 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.18.0] — 2026-08-01 (current)
+## [2.18.1] — 2026-08-01 (current)
+**The Stage-0 domain scope becomes checkable without becoming closed (#218).** v2.18.0's `stage-0-discovery-exhausted` branch bounded itself on "which domains are already spent," but that set lived only in the free text of every prior `branch_manager_discovery_p*.md`, so a fresh `branch-manager` had to re-derive it by reading N growing reports — and two firings could describe the same domain in different words and each read the other as untried.
+
+Fixed by moving the record to where the choice is made rather than where it is reviewed. Step 0a now appends every domain it scans to **`output/stage0/domain_log.md`** (`{domain} — fresh scan` / `{domain} — corrected re-scan: {correction}`), a run-scoped log the Stage 0 entry hook never clears — the deliberate contrast with its sibling `gap_log.md`, which is per-pass. Dedup is now an exact read of one log written by the scanning step itself.
+
+**The issue asked for a closed `DOMAIN_LIST`; that part was declined on the merits.** A machine-readable per-variant enumeration would make the 2 × |domains| bound numeric, but it would also let the pipeline mistake "covered the enumeration" for "covered the field" and freeze each variant's domain space at whatever `setup.sh` happened to name — the failure the repo's *prefer no structured classes* principle exists to prevent. The scope stays prose and is now explicitly documented as **starting points, not an exhaustive list**; `branch-manager` may name an in-scope domain the scope does not list. The cost is stated in `LIMITATIONS.md` rather than hidden: with an open domain space, termination rests on branch-manager's judgment that nothing materially different remains, not on an enumeration running out. What the log removes is the *silent* half of the failure.
+
+**No migration path, deliberately.** A backfill — reconstructing the log from pre-2.18.1 reports for a deployment `update.sh`-ed mid-Stage-0 — was written and then removed. Three consecutive review rounds each found a defect in it and none in the fix proper: it demanded correction wording those reports never persisted, it parsed a report section this same diff deletes from the template, and every trigger placement left an ordering hole that let a later Step 0a create the log with only the current domain and permanently satisfy the "does it exist" check. The population it serves is v2.18.0 deployments — released the same day — that are mid-Stage-0 in exhausted discovery when the refresh lands. The residual cost is one possibly-redundant re-scan in such a run, self-correcting from that point; the gap is recorded in `LIMITATIONS.md` rather than guarded.
+
+**Net-negative on rules, as the fix should be.** Gone from `branch-manager.md`: the "Domains already spent" report section (the log is the record), the "your report is the durable record" rule, and "every prior `branch_manager_discovery_p*.md`" from the context's input list — which also stops that input growing without bound.
+
+**`--variant macro` gained a real domain decomposition.** Its `DOMAIN_AREAS` was the bare string `"macroeconomics"`, so RESCAN-NEW-DOMAIN had nothing to name and the branch degenerated to one corrected re-scan then OPERATOR-ESCALATE. It now names monetary, fiscal/public debt, growth, labor search, international, heterogeneous-agent, expectations, macro-finance, and business-cycle measurement, with the same sufficient-not-necessary scope clause finance and llm_cognition carry.
+
+**Two live mid-sentence `{{DOMAIN_AREAS}}` embeds fixed** — the same class v2.18.0's round-4 review caught in agent bodies, still present in `core_manual.md` (rendered a double period under `--manual` for finance and llm_cognition) and `core_report.md`. Both now point at the **Variant context** / **Submission domain** line instead of interpolating a paragraph mid-clause. Making macro's value a paragraph would otherwise have extended the bug to a third variant.
+
+All seven configurations (`finance`/`macro`/`llm_cognition` defaults, `--mode empirical-first`, `--mode measurement-first`, `--mode report`, `--manual`) build clean with no placeholder leakage and no double periods.
+
+---
+
+## [2.18.0] — 2026-08-01
 **The unrouted-state cluster — five issues that were one defect.** #156, #159, #160, #215, and #216 were filed separately over five weeks; tracing them found a single shape: **a lane exits or re-enters without executing the verification its output depends on.** Fixed as one pass, and four of the five closed by *subtraction* — the change set is net-negative on pipeline rules and touches no assembly logic.
 
 **Two of the issues described the wrong fix, and the corrected scope is smaller.**
