@@ -8,6 +8,19 @@ sys.path.insert(0, str(Path(__file__).parent))
 from agent_body_loader import apply_mode_overrides, apply_vocab_to_metadata, load_body, load_vocab
 
 
+# Claude tier alias → codex capability tier, one-for-one (the mapping the agent
+# metadata already follows agent-by-agent). Used only for --model-override, so a
+# `--light` deployment collapses codex subagents the way it collapses the Claude
+# ones. An unrecognized value is assumed to already be a codex model id and
+# passes through raw (matches the gemini/grok siblings).
+MODEL_MAP = {
+    "fable": "gpt-5.6-sol",
+    "opus": "gpt-5.6-terra",
+    "sonnet": "gpt-5.6-luna",
+    "haiku": "gpt-5.6-luna",
+}
+
+
 def toml_string(value):
     escaped = value.replace("\\", "\\\\").replace('"', '\\"')
     return f'"{escaped}"'
@@ -18,7 +31,7 @@ def toml_multiline(value):
     return f"'''\n{escaped.rstrip()}\n'''"
 
 
-def render_agent(metadata, body):
+def render_agent(metadata, body, model_override=None):
     lines = [
         f'name = {toml_string(metadata["name"])}',
         f'description = {toml_string(metadata["description"])}',
@@ -26,6 +39,17 @@ def render_agent(metadata, body):
     ]
 
     codex = metadata.get("codex", {})
+    if model_override and "model" in codex:
+        # --light collapses every subagent to one tier. Map the Claude alias
+        # through the tier table and drop model_reasoning_effort, mirroring how
+        # assemble_claude_agents.py drops `effort`: the pinned levels are tuned
+        # for the agent's ideal tier, and leaving `high` on a Luna worker would
+        # defeat the cost-reduction intent of --light. launch_agent.sh falls
+        # back to `medium` when the field is absent.
+        codex = {
+            **{k: v for k, v in codex.items() if k != "model_reasoning_effort"},
+            "model": MODEL_MAP.get(model_override, model_override),
+        }
     if "model" in codex:
         lines.append(f'model = {toml_string(codex["model"])}')
     if "model_reasoning_effort" in codex:
@@ -49,6 +73,10 @@ def main():
                              "Repeatable; checked in order, first match wins.")
     parser.add_argument("--vocab", action="append", default=[],
                         help="Variant vocab JSON. Repeatable; later overlays override earlier.")
+    parser.add_argument("--model-override", default=None,
+                        help="Force every agent that pins a codex model onto this one "
+                             "(e.g. `sonnet` under --light, mapped through MODEL_MAP). "
+                             "Also drops model_reasoning_effort.")
     parser.add_argument("--mode", default=None,
                         help="Active --mode slug (underscored, e.g. report). Merges each "
                              "agent's metadata['modes'][slug] field overrides over its base "
@@ -66,7 +94,9 @@ def main():
             agent_metadata, vocab, f"{args.metadata}:{agent_id}"
         )
         body = load_body(agent_id, args.bodies_dir, args.shared_bodies_dir, vocab)
-        (output_dir / f"{agent_id}.toml").write_text(render_agent(agent_metadata, body))
+        (output_dir / f"{agent_id}.toml").write_text(
+            render_agent(agent_metadata, body, args.model_override)
+        )
 
 
 if __name__ == "__main__":

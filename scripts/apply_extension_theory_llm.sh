@@ -52,7 +52,8 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_codex_subagents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \
     --bodies-dir "$EXT_ROOT/agent_bodies" \
     "${EXT_VOCAB_ARGS[@]}" \
-    --output-dir "$CODEX_AGENTS_OUT"
+    --output-dir "$CODEX_AGENTS_OUT" \
+    "${MODEL_OVERRIDE_ARG[@]}"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_gemini_agents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \

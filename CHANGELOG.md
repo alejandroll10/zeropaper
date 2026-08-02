@@ -15,7 +15,22 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.18.1] — 2026-08-01 (current)
+## [2.18.2] — 2026-08-02 (current)
+**`--light` becomes a real flag on the codex runtime.** It was a Claude-side flag wearing a cross-runtime name: `setup.sh` passed `--model-override sonnet` to the claude, gemini, and grok assemblers, but `assemble_codex_subagents.py` had no such argument, so a `--light` deployment launched under `./launch.sh codex` ran the full pinning — 7 agents on Sol, 27 on Terra, only 17 on Luna. The gap was invisible while every codex agent was a flat `gpt-5.5` and became a silent cost bug when the per-agent Sol/Terra/Luna tiering landed. It was documented as a known limitation rather than fixed; this closes it.
+
+The codex assembler now takes `--model-override` and maps the Claude alias through its own tier table (`fable → gpt-5.6-sol`, `opus → gpt-5.6-terra`, `sonnet/haiku → gpt-5.6-luna`), so the argument is reusable for any future non-light override, not just `--light`. All five codex call sites now carry the override — `assemble_codex_{shared,variant}_agents` in `setup.sh` (via its `MODEL_OVERRIDE_ARGS` array), plus the empirical applier's shared and variant blocks and the theory_llm applier's single block (via each applier's own `MODEL_OVERRIDE_ARG`, populated from a positional arg, since they run as separate `bash` subprocesses that inherit no arrays). The three in the appliers are the ones that would otherwise have left `--ext empirical` / `--ext theory_llm` agents at full tier in an otherwise-light build.
+
+**The override drops `model_reasoning_effort` too**, mirroring the Claude assembler dropping `effort`. The pinned levels (37 `high` / 17 `medium` / 1 `low` across the full 55-agent metadata inventory; 33 / 17 / 1 in the 51-agent finance build below, which excludes macro's own `empiricist` plus the three agents pruned unless their flag is set — `report-synthesizer` (`--mode report`), `mechanism-auditor` (`--mode empirical-first`), `faithful-drift-auditor` (`--faithful`)) are calibrated to each agent's *ideal* tier; carrying `high` onto a Luna worker keeps the token bill the flag exists to cut. `launch_agent.sh` already defaults to `medium` when the field is absent, so a light codex agent runs Luna/medium with no launcher change.
+
+Verified by build diff: a no-`--light` finance build with both extensions is byte-identical to its pre-change baseline (the only diffs are the per-deploy random fingerprint and the version stamp, neither of which this change touches); the `--light` build changes nothing outside `.codex/agents/`, where all 51 agents now read `model = "gpt-5.6-luna"` with no effort line. `llm_cognition --light` (40 agents) and `finance --mode report --light` (18) collapse the same way.
+
+Grok is unaffected by construction — its tier table is a single model (`grok-4.5`), so the override is already a no-op there. Untouched by design: the `codex-math` skill (pinned `gpt-5.6-sol` as a *tool*, not a subagent) and the Claude launch-time heal (which already re-decides against the `--light-model` recorded in `code/utils/model_heal/config.json`).
+
+An existing light deployment refreshed with `update.sh` picks the fix up automatically — the flag is replayed from `.deploy_manifest.json`.
+
+---
+
+## [2.18.1] — 2026-08-01
 **The Stage-0 domain scope becomes checkable without becoming closed (#218).** v2.18.0's `stage-0-discovery-exhausted` branch bounded itself on "which domains are already spent," but that set lived only in the free text of every prior `branch_manager_discovery_p*.md`, so a fresh `branch-manager` had to re-derive it by reading N growing reports — and two firings could describe the same domain in different words and each read the other as untried.
 
 Fixed by moving the record to where the choice is made rather than where it is reviewed. Step 0a now appends every domain it scans to **`output/stage0/domain_log.md`** (`{domain} — fresh scan` / `{domain} — corrected re-scan: {correction}`), a run-scoped log the Stage 0 entry hook never clears — the deliberate contrast with its sibling `gap_log.md`, which is per-pass. Dedup is now an exact read of one log written by the scanning step itself.

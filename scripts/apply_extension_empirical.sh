@@ -64,7 +64,8 @@ if [ -f "$EXT_ROOT/agent_metadata/shared_agents.json" ]; then
         --bodies-dir "$EXT_ROOT/agent_bodies/shared" \
         "${EXT_SHARED_ARGS[@]}" \
         "${EXT_VOCAB_ARGS[@]}" \
-        --output-dir "$CODEX_AGENTS_OUT"
+        --output-dir "$CODEX_AGENTS_OUT" \
+        "${MODEL_OVERRIDE_ARG[@]}"
 
     python3 "$TEMPLATE_ROOT/scripts/assemble_gemini_agents.py" \
         --metadata "$EXT_ROOT/agent_metadata/shared_agents.json" \
@@ -89,7 +90,8 @@ if [ -f "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" ]; then
         --bodies-dir "$EXT_ROOT/agent_bodies/${AGENT_DIR}" \
         "${EXT_SHARED_ARGS[@]}" \
         "${EXT_VOCAB_ARGS[@]}" \
-        --output-dir "$CODEX_AGENTS_OUT"
+        --output-dir "$CODEX_AGENTS_OUT" \
+        "${MODEL_OVERRIDE_ARG[@]}"
 
     python3 "$TEMPLATE_ROOT/scripts/assemble_gemini_agents.py" \
         --metadata "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" \

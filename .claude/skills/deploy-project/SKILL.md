@@ -46,7 +46,7 @@ vocab placeholder — load the `edit-pipeline` skill instead.
 # Combine extensions
 ./setup.sh <project-name> --variant finance --ext empirical --ext theory_llm
 
-# Light mode (sonnet for all subagents — cheaper/faster, orchestrator unchanged)
+# Light mode (cheapest tier for all subagents — cheaper/faster, orchestrator unchanged)
 ./setup.sh <project-name> --variant finance --light
 
 # Halt-on-core-bypass (issue #51): make a silently-bypassed core a hard stop, not
@@ -122,6 +122,12 @@ H1 subtitle becomes "Autonomous Referee Report Pipeline".
 A stricter variant of `--seed`; pass one or the other, not both, and not alongside `--manual` (also mutually exclusive). The flag implies `--seed`'s folder structure (creates `output/seed/`, starts at `seed_triage`) but supersedes its semantics with the faithful contract. At seed_triage the orchestrator extracts `output/seed/mechanism_contract.md` (the seed's named mechanism, structural invariants, theorem-statement constraints, identification strategy, stated contribution); developing agents must respect every invariant. Substitution / pivot / headline-replacement are forbidden; additions on top of the faithfully-implemented contract (extra theorems, comparative statics, robustness checks) are encouraged. Genuine impossibilities get documented in `output/seed/limitations.md` and the paper ships documenting them honestly. Agents marked `category: evaluator` in their metadata stay impartial and receive no contract pointer — corrupting the evaluation signal corrupts the paper. The developing/evaluator split is derived from that metadata field at assembly time (`scripts/list_agents_by_category.py`), not from a hardcoded list; run that script for current membership. The faithful constraint enters at the orchestrator's routing of evaluator verdicts (per `templates/shared/faithful.md`) and via a static "read `mechanism_contract.md` first" pointer appended to each developing agent body. A `process_log/pivot_log.md` is seeded for auditing every potentially-mechanism-affecting routing decision.
 
 UNDER `--faithful` THE SEED FREEZES INTO A CONTRACT AT STEP 0, SO SPECIFY THE SETUP (MODEL CLASS, STRUCTURAL INVARIANTS, THEOREM-STATEMENT CONSTRAINTS) AND NEVER THE RESULT — DERIVING RESULTS IS WHAT THE PIPELINE IS FOR.
+
+### `--light`
+
+Collapses every **subagent** to the cheapest capability tier its runtime offers; the orchestrator model is whatever you launch with and is untouched. Composes with every other flag. Since v2.18.2 it is genuinely cross-runtime: `setup.sh` passes `--model-override sonnet` to all four assemblers, and each maps that alias through its own tier table — claude `sonnet`, codex `gpt-5.6-luna`, gemini `gemini-3-flash-preview`. Grok is a no-op because its table is a single model (`grok-4.5`). Before v2.18.2 the codex assembler had no override argument, so `./launch.sh codex` on a `--light` deployment silently ran the full Sol/Terra pinning — if you have a pre-v2.18.2 light deployment that you still launch under codex, re-run `update.sh` (or check `.codex/agents/*.toml` for non-Luna `model =` lines).
+
+The override also drops each agent's per-runtime reasoning effort (`effort` on claude, `model_reasoning_effort` on codex), since those levels are calibrated to the agent's *ideal* tier; a light codex worker therefore runs Luna at the launcher's `medium` default. What `--light` does **not** touch: the codex-math skill (pinned `gpt-5.6-sol` independently — it is a tool, not a subagent) and the Claude launch-time model heal, which re-decides tiers against the `--light-model` recorded in `code/utils/model_heal/config.json` rather than against the ideal pins.
 
 ### `--halt-on-core-bypass`
 

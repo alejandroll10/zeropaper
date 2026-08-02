@@ -33,7 +33,11 @@
 # --manual  Manual mode: assemble agents/skills as a research toolkit, no autonomous
 #           pipeline. The runtime doc lists what's available and lets you drive.
 #           Mutually exclusive with --seed and --faithful.
-# --light   Use sonnet for all subagents (cheaper/faster). Orchestrator model unchanged.
+# --light   Use the cheapest capability tier for all subagents (cheaper/faster);
+#           orchestrator model unchanged. Applies to every runtime through its own
+#           tier table: claude `sonnet`, codex `gpt-5.6-luna`, gemini
+#           `gemini-3-flash-preview` (grok is a no-op — it has one model, grok-4.5).
+#           Per-agent reasoning effort is dropped along with the tier.
 # --no-model-probe  Skip the live claude-CLI availability probe. Agent models are
 #           still remapped off the built-in known-unavailable list (fable/mythos
 #           → opus), but newly-suspended models won't be auto-detected. Use in CI
@@ -589,7 +593,8 @@ assemble_codex_shared_agents() {
         "${bodies_args[@]}" \
         "${vocab_args[@]}" \
         "${MODE_METADATA_ARGS[@]}" \
-        --output-dir "$dest_dir"
+        --output-dir "$dest_dir" \
+        "${MODEL_OVERRIDE_ARGS[@]}"
 }
 
 assemble_codex_variant_agents() {
@@ -615,7 +620,8 @@ assemble_codex_variant_agents() {
         "${shared_args[@]}" \
         "${vocab_args[@]}" \
         "${MODE_METADATA_ARGS[@]}" \
-        --output-dir "$dest_dir"
+        --output-dir "$dest_dir" \
+        "${MODEL_OVERRIDE_ARGS[@]}"
 }
 
 assemble_gemini_shared_agents() {
@@ -3314,7 +3320,7 @@ echo ""
 echo "Variant: $VARIANT"
 echo "Extensions: ${EXTENSIONS[*]:-none}"
 if [ "$LIGHT" = "1" ]; then
-    echo "Mode: light (all subagents use sonnet)"
+    echo "Mode: light (all subagents drop to the cheapest tier: claude sonnet, codex gpt-5.6-luna, gemini flash; per-agent effort dropped)"
 fi
 if [ "$FAITHFUL" = "1" ]; then
     echo "Mode: faithful (the seed is a contract; the pipeline implements it as written)"
