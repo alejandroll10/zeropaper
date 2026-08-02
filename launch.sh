@@ -159,13 +159,64 @@ heal_claude_models() {
     python3 "$script" --agents-dir "$dir" --config "$cfg" --timeout 30 || true
 }
 
+# ── Light-mode orchestrator pin ──────────────────────────────────────────────
+# --light drops every SUBAGENT to the cheapest tier its runtime offers, but the
+# orchestrator is launched by this script and would otherwise keep running on
+# whatever the CLI's session default is — so a "light" run was light everywhere
+# except the process doing the most work. These two helpers close that.
+#
+# The tier string is NOT hardcoded here. It is read back from the assembled
+# agents, the only copy guaranteed to be current: it survives update.sh, it
+# already reflects each runtime's own tier table (the assemblers' MODEL_MAPs),
+# and for claude it reflects the launch-time heal that runs just above. A pin is
+# emitted only when the manifest says --light AND every assembled agent agrees
+# on one model — belt and braces, since a mixed roster means something other
+# than --light produced it. Grok is excluded by design: its table is a single
+# model (grok-4.5), so its roster is uniform in every deployment and there is
+# no cheaper tier to drop to.
+#
+# Best-effort throughout: a missing manifest (pre-manifest deployment), absent
+# python3, or an unreadable agents dir yields no pin and the CLI default stands.
+deploy_is_light() {
+    local mf="$ROOT/.deploy_manifest.json"
+    [ -f "$mf" ] || return 1
+    python3 -c 'import json,sys; sys.exit(0 if json.load(open(sys.argv[1]))["flags"]["light"] else 1)' \
+        "$mf" 2>/dev/null
+}
+
+light_orchestrator_model() {   # $1 = assembled-agents dir; echoes the model or nothing
+    local dir="$1" models
+    deploy_is_light || return 0
+    [ -d "$dir" ] || return 0
+    models=$(grep -h -E '^model[[:space:]]*[:=]' "$dir"/* 2>/dev/null \
+        | sed -E 's/^model[[:space:]]*[:=][[:space:]]*//; s/^"//; s/"$//' \
+        | sort -u) || true
+    [ -n "$models" ] || return 0
+    [ "$(printf '%s\n' "$models" | wc -l | tr -d ' ')" = "1" ] || return 0
+    printf '%s\n' "$models"
+}
+
 case "$RUNTIME" in
     claude)
         heal_claude_models
-        exec claude --dangerously-skip-permissions
+        # Pinned after the heal, so a healed tier (not the pre-heal one) is what
+        # the orchestrator gets.
+        LIGHT_ARGS=()
+        _light_model="$(light_orchestrator_model "$ROOT/.claude/agents")"
+        if [ -n "$_light_model" ]; then
+            LIGHT_ARGS=(--model "$_light_model")
+            echo "[launch] --light: orchestrator pinned to $_light_model" >&2
+        fi
+        exec claude ${LIGHT_ARGS[@]+"${LIGHT_ARGS[@]}"} --dangerously-skip-permissions
         ;;
     gemini)
-        exec gemini --yolo
+        LIGHT_ARGS=()
+        _light_model="$(light_orchestrator_model "$ROOT/.gemini/agents")"
+        if [ -n "$_light_model" ]; then
+            LIGHT_ARGS=(--model "$_light_model")
+            echo "[launch] --light: orchestrator pinned to $_light_model" >&2
+        fi
+        exec gemini ${LIGHT_ARGS[@]+"${LIGHT_ARGS[@]}"} --yolo
         ;;
     grok)
         install_grok_venv_shims
@@ -197,6 +248,16 @@ CODEX_ARGS=(
     -c 'sandbox_workspace_write.network_access=true'
     -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$ROOT/.git\"]"
 )
+
+# --light: pin the orchestrator to the same tier the subagents were assembled
+# on (see light_orchestrator_model above). Config form, not --model, because
+# `codex exec resume` accepts only -c — and the driver resumes on every turn
+# after the first, so a flag-form pin would silently apply to turn 1 alone.
+_light_model="$(light_orchestrator_model "$ROOT/.codex/agents")"
+if [ -n "$_light_model" ]; then
+    CODEX_ARGS+=(-c "model=\"$_light_model\"")
+    echo "[launch] --light: orchestrator pinned to $_light_model" >&2
+fi
 
 # Proxy-auth version floor (issue #213): codex ≤0.144.x is a silent total
 # outage behind an authenticated proxy. Warn-only; guarded so a pre-preflight

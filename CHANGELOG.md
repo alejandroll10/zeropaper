@@ -15,7 +15,20 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.18.2] — 2026-08-02 (current)
+## [2.19.0] — 2026-08-03 (current)
+**`--light` now means light, including the orchestrator.** v2.18.2 fixed the flag's *subagent* half on codex; the first real light run under `./launch.sh codex` immediately exposed the other half — the banner read `model: gpt-5.6-terra`, because the orchestrator is launched by `launch.sh` and inherited the CLI's session default. Every subagent was Luna; the one process doing stage routing, gate decisions, and the whole fan-out was not. Same story on claude and gemini. The flag now pins both halves.
+
+**Two mechanisms, because the halves are pinned at different times.** Subagents are pinned at assembly time (`--model-override` through each assembler's tier table). The orchestrator is pinned at launch: `--model <tier>` for claude and gemini, `-c model="<tier>"` for codex. The codex form is deliberate — `codex exec resume` accepts only `-c`, and the driver resumes on every turn after the first, so a flag-form pin would have applied to turn 1 and silently reverted for the rest of the run.
+
+**The launcher does not carry a fourth copy of the tier table.** `light_orchestrator_model` reads the tier *back* from the assembled agents — the only copy guaranteed current: it already went through each runtime's own `MODEL_MAP`, it survives `update.sh`, and on claude it reflects the launch-time heal that runs immediately before. The pin fires only when `.deploy_manifest.json` records `flags.light` **and** every assembled agent agrees on one model. The manifest check is what makes it correct rather than merely plausible: grok's roster is uniform (`grok-4.5`) in *every* deployment, so roster uniformity alone would have pinned a "light" tier on runs that never asked for one. Grok's branch doesn't consult the helper at all — single-model table, nothing cheaper to drop to.
+
+Best-effort in the safe direction throughout: a pre-manifest deployment, an absent `python3`, or an unreadable agents dir yields no pin and the launch proceeds on the CLI default. Verified against three real deployments — a light one (codex `gpt-5.6-luna`, claude `sonnet`, gemini `gemini-3-flash-preview`), a non-light one, and a pre-manifest one; only the first produces a pin.
+
+**Stated plainly in the docs rather than buried:** the orchestrator is the single process where a cheap model costs the most, so `--light` is now documented as a deliberate choice for drafts, smoke tests, and runtime shakedowns — not a default for a paper you intend to submit. That is a real trade the flag now makes on your behalf, and it should be visible before you pick it, not after.
+
+---
+
+## [2.18.2] — 2026-08-02
 **`--light` becomes a real flag on the codex runtime.** It was a Claude-side flag wearing a cross-runtime name: `setup.sh` passed `--model-override sonnet` to the claude, gemini, and grok assemblers, but `assemble_codex_subagents.py` had no such argument, so a `--light` deployment launched under `./launch.sh codex` ran the full pinning — 7 agents on Sol, 27 on Terra, only 17 on Luna. The gap was invisible while every codex agent was a flat `gpt-5.5` and became a silent cost bug when the per-agent Sol/Terra/Luna tiering landed. It was documented as a known limitation rather than fixed; this closes it.
 
 The codex assembler now takes `--model-override` and maps the Claude alias through its own tier table (`fable → gpt-5.6-sol`, `opus → gpt-5.6-terra`, `sonnet/haiku → gpt-5.6-luna`), so the argument is reusable for any future non-light override, not just `--light`. All five codex call sites now carry the override — `assemble_codex_{shared,variant}_agents` in `setup.sh` (via its `MODEL_OVERRIDE_ARGS` array), plus the empirical applier's shared and variant blocks and the theory_llm applier's single block (via each applier's own `MODEL_OVERRIDE_ARG`, populated from a positional arg, since they run as separate `bash` subprocesses that inherit no arrays). The three in the appliers are the ones that would otherwise have left `--ext empirical` / `--ext theory_llm` agents at full tier in an otherwise-light build.

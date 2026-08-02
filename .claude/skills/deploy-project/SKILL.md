@@ -125,9 +125,18 @@ UNDER `--faithful` THE SEED FREEZES INTO A CONTRACT AT STEP 0, SO SPECIFY THE SE
 
 ### `--light`
 
-Collapses every **subagent** to the cheapest capability tier its runtime offers; the orchestrator model is whatever you launch with and is untouched. Composes with every other flag. Since v2.18.2 it is genuinely cross-runtime: `setup.sh` passes `--model-override sonnet` to all four assemblers, and each maps that alias through its own tier table — claude `sonnet`, codex `gpt-5.6-luna`, gemini `gemini-3-flash-preview`. Grok is a no-op because its table is a single model (`grok-4.5`). Before v2.18.2 the codex assembler had no override argument, so `./launch.sh codex` on a `--light` deployment silently ran the full Sol/Terra pinning — if you have a pre-v2.18.2 light deployment that you still launch under codex, re-run `update.sh` (or check `.codex/agents/*.toml` for non-Luna `model =` lines).
+Runs the **whole pipeline** on the cheapest capability tier its runtime offers — subagents *and* orchestrator. Composes with every other flag. Each runtime maps through its own tier table: claude `sonnet`, codex `gpt-5.6-luna`, gemini `gemini-3-flash-preview`. Grok is a no-op because its table is a single model (`grok-4.5`).
 
-The override also drops each agent's per-runtime reasoning effort (`effort` on claude, `model_reasoning_effort` on codex), since those levels are calibrated to the agent's *ideal* tier; a light codex worker therefore runs Luna at the launcher's `medium` default. What `--light` does **not** touch: the codex-math skill (pinned `gpt-5.6-sol` independently — it is a tool, not a subagent) and the Claude launch-time model heal, which re-decides tiers against the `--light-model` recorded in `code/utils/model_heal/config.json` rather than against the ideal pins.
+Two mechanisms, because the two halves are pinned at different times:
+
+- **Subagents, at assembly time.** `setup.sh` passes `--model-override sonnet` to all four assemblers (cross-runtime since v2.18.2 — before that the codex assembler had no override argument, so `./launch.sh codex` on a light deployment silently ran the full Sol/Terra pinning). The override also drops each agent's per-runtime reasoning effort (`effort` on claude, `model_reasoning_effort` on codex), since those levels are calibrated to the agent's *ideal* tier; a light codex worker therefore runs Luna at the launcher's `medium` default.
+- **Orchestrator, at launch time** (since v2.19.0). `launch.sh` pins it: `--model <tier>` for claude/gemini, `-c model="<tier>"` for codex (config form, not the flag, because `codex exec resume` accepts only `-c` and the driver resumes on every turn after the first). The tier is **read back from the assembled agents**, not hardcoded a fourth time — so it tracks the assemblers' tables automatically, survives `update.sh`, and for claude reflects the launch-time heal that runs immediately before. The pin fires only when `.deploy_manifest.json` records `flags.light` **and** every assembled agent agrees on one model; anything else leaves the CLI default alone. Grok's branch never consults it.
+
+Both halves are best-effort in the safe direction: a pre-manifest deployment, a missing `python3`, or an unreadable agents dir means no orchestrator pin and the launch proceeds normally.
+
+**Worth a deliberate choice, not a default.** The orchestrator makes the stage-routing and gate decisions — it is the single process where a cheaper model degrades the most. Prefer `--light` for drafts, smoke tests, and runtime shakedowns; think twice before running a paper you intend to submit on it.
+
+What `--light` does **not** touch: the codex-math skill (pinned `gpt-5.6-sol` independently — it is a tool, not a subagent) and the Claude launch-time model heal, which re-decides tiers against the `--light-model` recorded in `code/utils/model_heal/config.json` rather than against the ideal pins.
 
 ### `--halt-on-core-bypass`
 
