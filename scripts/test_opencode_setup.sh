@@ -14,6 +14,13 @@ build_and_check() {
     fi
     test -f "$out/opencode.json"
     test -d "$out/.opencode/agents"
+    test -x "$out/code/utils/opencode_driver.py"
+    grep -q '^process_log/.opencode_driver_lock$' "$out/.gitignore"
+    grep -q 'process_log/.opencode-server-password.\*' "$out/.gitignore"
+    grep -q '^process_log/.opencode_background_baseline$' "$out/.gitignore"
+    grep -q '^process_log/.opencode_background_transition$' "$out/.gitignore"
+    grep -q '^process_log/.opencode_recovery_intent$' "$out/.gitignore"
+    grep -q '^process_log/.opencode_parent_server_epoch$' "$out/.gitignore"
     grep -q '\.claude/skills/codex-math/SKILL.md' \
         "$out/AGENTS.md" "$out/docs/start_session_codex.md"
     python3 - "$out/.deploy_manifest.json" <<'PY'
@@ -21,6 +28,7 @@ import json, sys
 d = json.load(open(sys.argv[1]))["infrastructure"]
 assert ".opencode/agents" in d["dirs_replace"]
 assert "opencode.json" in d["files_replace"]
+assert "code/utils/opencode_driver.py" in d["files_replace"]
 PY
     python3 - "$out/.opencode/agents" <<'PY'
 from pathlib import Path

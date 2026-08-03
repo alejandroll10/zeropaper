@@ -8,7 +8,7 @@
 #   ./launch.sh codex --once        # single interactive codex TUI, no driver
 #   ./launch.sh gemini              # interactive Gemini CLI
 #   ./launch.sh grok                # interactive Grok Build
-#   ./launch.sh opencode            # resumable headless OpenCode driver
+#   ./launch.sh opencode            # persistent-server OpenCode driver
 #   ./launch.sh opencode --once     # interactive OpenCode TUI
 #   ./launch.sh <runtime> --tmux    # same, wrapped in a detached tmux window
 #
@@ -290,6 +290,14 @@ PY
     # Select the Claude-compatible skill tree explicitly. Deployments also
     # contain .agents/skills; scanning both would create duplicate skill IDs.
     export OPENCODE_DISABLE_EXTERNAL_SKILLS=1
+    # Keep the helper/server Basic-auth identity stable even if the caller has
+    # a different global OpenCode server username configured.
+    export OPENCODE_SERVER_USERNAME=opencode
+    # OpenCode omits the `background` field from the task schema when this
+    # experimental capability is unavailable. Keeping the flag at the process
+    # boundary therefore degrades safely: capable versions expose native
+    # background tasks; older versions continue to offer foreground task calls.
+    export OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS=true
     if [ "$ONCE" = "1" ]; then
         exec opencode --model opencode/deepseek-v4-flash
     fi
@@ -313,42 +321,248 @@ PY
     }
     OC_SID_CACHE="$ROOT/process_log/.opencode_session_id"
     OC_LOG="$ROOT/process_log/opencode-driver.log"
+    OC_SERVER_LOG="$ROOT/process_log/opencode-server.log"
+    OC_SERVER_PID_FILE="$ROOT/process_log/.opencode_server_pid"
+    OC_SERVER_START_FILE="$ROOT/process_log/.opencode_server_start"
+    OC_SERVER_IDENTITY_FILE="$ROOT/process_log/.opencode_server_identity"
+    OC_SERVER_URL_FILE="$ROOT/process_log/.opencode_server_url"
+    OC_SERVER_PASSWORD_FILE="$ROOT/process_log/.opencode_server_password"
+    OC_DRIVER_LOCK="$ROOT/process_log/.opencode_driver_lock"
+    OC_PENDING_CHILDREN_FILE="$ROOT/process_log/.opencode_background_children"
+    OC_PENDING_PARENT_FILE="$ROOT/process_log/.opencode_background_parent"
+    OC_BACKGROUND_BASELINE_FILE="$ROOT/process_log/.opencode_background_baseline"
+    OC_BACKGROUND_TRANSITION_FILE="$ROOT/process_log/.opencode_background_transition"
+    OC_RECOVERY_INTENT_FILE="$ROOT/process_log/.opencode_recovery_intent"
+    OC_PARENT_SERVER_EPOCH_FILE="$ROOT/process_log/.opencode_parent_server_epoch"
+    OC_UNRESOLVED_SESSION_FILE="$ROOT/process_log/.opencode_unresolved_session"
+    OC_HELPER="$ROOT/code/utils/opencode_driver.py"
+    [ -f "$OC_HELPER" ] || OC_HELPER="$ROOT/templates/utils/opencode_driver.py"
+    [ -f "$OC_HELPER" ] || { echo "ERROR: missing OpenCode driver helper" >&2; exit 1; }
     OPENCODE_TURN_TIMEOUT="${OPENCODE_TURN_TIMEOUT:-3540}"
+    OPENCODE_BACKGROUND_TIMEOUT="${OPENCODE_BACKGROUND_TIMEOUT:-3540}"
+    OPENCODE_ABORT_TIMEOUT="${OPENCODE_ABORT_TIMEOUT:-30}"
     OPENCODE_KILL_GRACE="${OPENCODE_KILL_GRACE:-10}"
     OPENCODE_LOOP_DELAY="${OPENCODE_LOOP_DELAY:-3}"
-    OC_FIRST='Run the pipeline. You are running unattended: never ask the user anything; decide from AGENTS.md and the pipeline artifacts. Use native task calls for .opencode subagents and wait for their foreground results.'
-    OC_CONT='Continue the pipeline from process_log/pipeline_state.json. You are unattended: never ask the user anything. Use native task calls for .opencode subagents and keep working until this turn has made durable progress.'
-    oc_sid_exists() {
-        opencode session list --format json 2>/dev/null | python3 -c 'import json,os,sys
-sid,root=sys.argv[1:]
-try: rows=json.load(sys.stdin)
-except Exception: raise SystemExit(1)
-def local(x):
-    directory=x.get("directory")
-    return isinstance(directory,str) and os.path.realpath(directory) == root
-raise SystemExit(0 if any((x.get("id") or x.get("sessionID")) == sid and local(x) for x in rows) else 1)' "$1" "$ROOT"
+    OC_FIRST='Run the pipeline. You are unattended: never ask the user anything; decide from AGENTS.md and the pipeline artifacts. Use native .opencode task agents. When the task schema offers background, dispatch independent long-running agents with background=true and continue non-overlapping work; otherwise use foreground tasks. Every agent must checkpoint to its explicit artifact path.'
+    OC_CONT='Continue the pipeline from process_log/pipeline_state.json. You are unattended: never ask the user anything. Use native .opencode task agents; use background=true for independent long-running work when the schema offers it, foreground otherwise. Reconcile completed child artifacts before advancing a gate, and keep working until this turn has made durable progress.'
+    OC_RECOVER=' The OpenCode server was restarted, so any in-memory background jobs from its prior instance were interrupted. Inspect this session child history and the explicit artifact paths, then resume each unfinished child with its task_id or relaunch it exactly once. Never mistake a missing completion notification for successful completion.'
+    OC_CANCEL_RECOVER=' The prior turn or background wait timed out and its session tree was cancelled to confirmed quiescence. Inspect child transcripts and explicit artifact paths, then resume unfinished work with its task_id or relaunch it exactly once.'
+    OC_SERVER_PID=""
+    OC_SERVER_START=""
+    OC_SERVER_URL=""
+    OPENCODE_SERVER_PASSWORD=""
+    OC_DRIVER_PID="$$"
+    OC_DRIVER_START="$(ps -o lstart= -p "$$" 2>/dev/null || true)"
+    OC_LOCK_HELD=0
+    OC_LOCK_KEEPER_PID=""
+    OC_SERVER_REUSED=0
+    OC_SERVER_STARTING=0
+    oc_server_api() {
+        python3 "$OC_HELPER" --url "$OC_SERVER_URL" "$@"
     }
-    oc_reconcile_new_sid() { # $1 = JSON snapshot from before the fresh run
+    oc_server_process_matches() {
+        local now pgid command
+        [[ "$OC_SERVER_PID" =~ ^[0-9]+$ ]] || return 1
+        kill -0 "$OC_SERVER_PID" 2>/dev/null || return 1
+        now="$(ps -o lstart= -p "$OC_SERVER_PID" 2>/dev/null || true)"
+        [ -n "$OC_SERVER_START" ] && [ "$now" = "$OC_SERVER_START" ] || return 1
+        pgid="$(ps -o pgid= -p "$OC_SERVER_PID" 2>/dev/null | tr -d ' ' || true)"
+        [ "$pgid" = "$OC_SERVER_PID" ] || return 1
+        command="$(ps -o command= -p "$OC_SERVER_PID" 2>/dev/null || true)"
+        case "$command" in *opencode*serve*) return 0 ;; *) return 1 ;; esac
+    }
+    oc_driver_owner_matches() {
+        local pid="$1" start="$2" now
+        [[ "$pid" =~ ^[0-9]+$ ]] || return 1
+        kill -0 "$pid" 2>/dev/null || return 1
+        now="$(ps -o lstart= -p "$pid" 2>/dev/null || true)"
+        [ -n "$start" ] && [ "$now" = "$start" ]
+    }
+    oc_acquire_lock() {
+        local owner_pid owner_start ready attempt
+        [ -n "$OC_DRIVER_START" ] || { echo "ERROR: cannot establish OpenCode driver process identity" >&2; return 1; }
+        # Migrate a stale directory-format lock from the pre-2.21 driver.
+        if [ -d "$OC_DRIVER_LOCK" ]; then
+            owner_pid="$(cat "$OC_DRIVER_LOCK/pid" 2>/dev/null || true)"
+            owner_start="$(cat "$OC_DRIVER_LOCK/start" 2>/dev/null || true)"
+            if oc_driver_owner_matches "$owner_pid" "$owner_start"; then
+                echo "ERROR: another OpenCode driver owns this project (pid=$owner_pid)" >&2
+                return 1
+            fi
+            rm -f "$OC_DRIVER_LOCK/pid" "$OC_DRIVER_LOCK/start"
+            rmdir "$OC_DRIVER_LOCK" 2>/dev/null || { echo "ERROR: cannot recover stale OpenCode driver lock" >&2; return 1; }
+        fi
+        ready="$(mktemp "$ROOT/process_log/.opencode-lock-ready.XXXXXX")"
+        python3 "$OC_HELPER" lock-hold --path "$OC_DRIVER_LOCK" --parent "$OC_DRIVER_PID" --ready "$ready" &
+        OC_LOCK_KEEPER_PID=$!
+        for attempt in $(seq 1 100); do
+            if [ -s "$ready" ]; then
+                rm -f "$ready"
+                OC_LOCK_HELD=1
+                return 0
+            fi
+            kill -0 "$OC_LOCK_KEEPER_PID" 2>/dev/null || break
+            sleep 0.05
+        done
+        rm -f "$ready"
+        wait "$OC_LOCK_KEEPER_PID" 2>/dev/null || true
+        OC_LOCK_KEEPER_PID=""
+        echo "ERROR: another OpenCode driver owns this project" >&2
+        return 1
+    }
+    oc_release_lock() {
+        [ "$OC_LOCK_HELD" = "1" ] || return 0
+        kill "$OC_LOCK_KEEPER_PID" 2>/dev/null || true
+        wait "$OC_LOCK_KEEPER_PID" 2>/dev/null || true
+        OC_LOCK_KEEPER_PID=""
+        OC_LOCK_HELD=0
+    }
+    oc_clear_server_state() {
+        rm -f "$OC_SERVER_PID_FILE" "$OC_SERVER_START_FILE" "$OC_SERVER_URL_FILE" "$OC_SERVER_PASSWORD_FILE" \
+            "$OC_SERVER_IDENTITY_FILE" "$ROOT/process_log"/.opencode-server-password.* \
+            "$ROOT/process_log"/.opencode-server-identity.*
+        OC_SERVER_PID=""
+        OC_SERVER_START=""
+        OC_SERVER_URL=""
+        OPENCODE_SERVER_PASSWORD=""
+    }
+    oc_reap_starting_server() {
+        if [[ "$OC_SERVER_PID" =~ ^[0-9]+$ ]] && kill -0 "$OC_SERVER_PID" 2>/dev/null; then
+            kill -TERM -- "-$OC_SERVER_PID" 2>/dev/null || kill -TERM "$OC_SERVER_PID" 2>/dev/null || true
+            local deadline=$((SECONDS + OPENCODE_KILL_GRACE))
+            while kill -0 "$OC_SERVER_PID" 2>/dev/null && [ "$SECONDS" -lt "$deadline" ]; do sleep 0.1; done
+            kill -KILL -- "-$OC_SERVER_PID" 2>/dev/null || true
+            kill -KILL "$OC_SERVER_PID" 2>/dev/null || true
+            wait "$OC_SERVER_PID" 2>/dev/null || true
+        fi
+        OC_SERVER_STARTING=0
+    }
+    oc_stop_server() {
+        if oc_server_process_matches; then
+            kill -TERM -- "-$OC_SERVER_PID" 2>/dev/null || true
+            local deadline=$((SECONDS + OPENCODE_KILL_GRACE))
+            while kill -0 "$OC_SERVER_PID" 2>/dev/null && [ "$SECONDS" -lt "$deadline" ]; do sleep 0.1; done
+            kill -KILL -- "-$OC_SERVER_PID" 2>/dev/null || true
+            wait "$OC_SERVER_PID" 2>/dev/null || true
+        elif [ "$OC_SERVER_STARTING" = "1" ]; then
+            oc_reap_starting_server
+        fi
+        oc_clear_server_state
+    }
+    oc_load_server_state() {
+        local health_attempt
+        if [ -s "$OC_SERVER_IDENTITY_FILE" ]; then
+            OC_SERVER_PID="$(sed -n '1p' "$OC_SERVER_IDENTITY_FILE")"
+            OC_SERVER_START="$(sed -n '2p' "$OC_SERVER_IDENTITY_FILE")"
+        elif [ -s "$OC_SERVER_PID_FILE" ] && [ -s "$OC_SERVER_START_FILE" ]; then
+            # Compatibility with a server cached by the initial v2.21 driver.
+            OC_SERVER_PID="$(cat "$OC_SERVER_PID_FILE")"
+            OC_SERVER_START="$(cat "$OC_SERVER_START_FILE")"
+        else
+            return 1
+        fi
+        [ -s "$OC_SERVER_URL_FILE" ] && [ -s "$OC_SERVER_PASSWORD_FILE" ] || return 1
+        OC_SERVER_URL="$(cat "$OC_SERVER_URL_FILE")"
+        OPENCODE_SERVER_PASSWORD="$(cat "$OC_SERVER_PASSWORD_FILE")"
+        export OPENCODE_SERVER_PASSWORD
+        oc_server_process_matches || return 1
+        for health_attempt in 1 2 3; do
+            oc_server_api health >/dev/null 2>&1 && return 0
+            sleep 0.1
+        done
+        # Identity, credentials, and the exact process are all still valid.
+        # A short API outage must not be converted into registry destruction.
+        return 3
+    }
+    oc_start_server() {
+        local attempt url password_tmp identity_tmp
+        OPENCODE_SERVER_PASSWORD="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
+        export OPENCODE_SERVER_PASSWORD
+        : > "$OC_SERVER_LOG"
+        OC_SERVER_STARTING=1
+        {
+            python3 -c 'import os,sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
+                opencode serve --hostname 127.0.0.1 --port 0 </dev/null >> "$OC_SERVER_LOG" 2>&1 &
+            OC_SERVER_PID=$!
+        }
+        OC_SERVER_START="$(ps -o lstart= -p "$OC_SERVER_PID" 2>/dev/null || true)"
+        [ -n "$OC_SERVER_START" ] || { oc_stop_server; echo "ERROR: OpenCode server failed to start" >&2; return 1; }
+        identity_tmp="$(mktemp "$ROOT/process_log/.opencode-server-identity.XXXXXX")"
+        printf '%s\n%s\n' "$OC_SERVER_PID" "$OC_SERVER_START" > "$identity_tmp"
+        chmod 600 "$identity_tmp"
+        mv "$identity_tmp" "$OC_SERVER_IDENTITY_FILE"
+        # Compatibility/observability mirrors; identity_file is authoritative.
+        printf '%s\n' "$OC_SERVER_PID" > "$OC_SERVER_PID_FILE"
+        printf '%s\n' "$OC_SERVER_START" > "$OC_SERVER_START_FILE"
+        password_tmp="$(mktemp "$ROOT/process_log/.opencode-server-password.XXXXXX")"
+        printf '%s\n' "$OPENCODE_SERVER_PASSWORD" > "$password_tmp"
+        chmod 600 "$password_tmp"
+        mv "$password_tmp" "$OC_SERVER_PASSWORD_FILE"
+        for attempt in $(seq 1 100); do
+            url="$(sed -nE 's#.*(http://(127\.0\.0\.1|localhost):[0-9]+).*#\1#p' "$OC_SERVER_LOG" | tail -1)"
+            if [ -n "$url" ]; then
+                OC_SERVER_URL="$url"
+                if oc_server_api health >/dev/null 2>&1; then
+                    printf '%s\n' "$OC_SERVER_URL" > "$OC_SERVER_URL_FILE"
+                    OC_SERVER_STARTING=0
+                    echo "[opencode-driver] persistent server ready at $OC_SERVER_URL" | tee -a "$OC_LOG"
+                    return 0
+                fi
+            fi
+            kill -0 "$OC_SERVER_PID" 2>/dev/null || break
+            sleep 0.1
+        done
+        tail -20 "$OC_SERVER_LOG" >&2 || true
+        oc_stop_server
+        echo "ERROR: OpenCode server did not become healthy" >&2
+        return 1
+    }
+    oc_prepare_server() {
+        local load_rc
+        if oc_load_server_state; then
+            load_rc=0
+        else
+            load_rc=$?
+        fi
+        if [ "$load_rc" = "0" ]; then
+            OC_SERVER_REUSED=1
+            echo "[opencode-driver] reusing persistent server at $OC_SERVER_URL" | tee -a "$OC_LOG"
+            return 0
+        fi
+        if [ "$load_rc" = "3" ]; then
+            OC_SERVER_REUSED=1
+            echo "[opencode-driver] exact cached server is alive but temporarily unhealthy; preserving it and failing closed" | tee -a "$OC_LOG"
+            return 3
+        fi
+        # Kill only the exact process whose PID and start token we recorded;
+        # never act on a reused PID or an unvalidated state file.
+        if oc_server_process_matches; then oc_stop_server; else oc_clear_server_state; fi
+        OC_SERVER_REUSED=0
+        oc_start_server
+    }
+    oc_sid_exists() {
+        local sessions_tmp rc
+        sessions_tmp="$(mktemp "${TMPDIR:-/tmp}/zeropaper-opencode-sessions.XXXXXX")"
+        if ! oc_server_api list-local --root "$ROOT" > "$sessions_tmp" 2>/dev/null; then
+            rm -f "$sessions_tmp"
+            return 2
+        fi
+        if grep -qxF "$1" "$sessions_tmp"; then rc=0; else rc=1; fi
+        rm -f "$sessions_tmp"
+        return "$rc"
+    }
+    oc_reconcile_new_sid() { # $1 = newline-delimited local-session snapshot
         local before_file="$1" after_file candidate
         after_file="$(mktemp "${TMPDIR:-/tmp}/zeropaper-opencode-sessions.XXXXXX")"
-        if ! opencode session list --format json > "$after_file" 2>/dev/null; then
+        if ! oc_server_api list-local --root "$ROOT" > "$after_file" 2>/dev/null; then
             rm -f "$after_file"
             return 1
         fi
-        candidate="$(python3 - "$before_file" "$after_file" "$ROOT" <<'PY'
-import json, os, sys
-try:
-    root = os.path.realpath(sys.argv[3])
-    before_rows = json.load(open(sys.argv[1]))
-    after_rows = json.load(open(sys.argv[2]))
-except Exception:
-    raise SystemExit(1)
-def local(x):
-    directory = x.get("directory")
-    return isinstance(directory, str) and os.path.realpath(directory) == root
-before = {x.get("id") or x.get("sessionID") for x in before_rows if local(x)}
-after = [x.get("id") or x.get("sessionID") for x in after_rows if local(x)]
-new = [x for x in after if x and x not in before]
+        candidate="$(python3 - "$before_file" "$after_file" <<'PY'
+import sys
+before = {x.strip() for x in open(sys.argv[1]) if x.strip()}
+after = [x.strip() for x in open(sys.argv[2]) if x.strip()]
+new = [x for x in after if x not in before]
 if len(new) != 1:
     raise SystemExit(1)
 print(new[0])
@@ -356,6 +570,219 @@ PY
 )" || { rm -f "$after_file"; return 1; }
         rm -f "$after_file"
         printf '%s\n' "$candidate"
+    }
+    oc_clear_pending_children() {
+        rm -f "$OC_PENDING_CHILDREN_FILE" "$OC_PENDING_PARENT_FILE"
+    }
+    oc_clear_background_state() {
+        oc_clear_pending_children
+        rm -f "$OC_BACKGROUND_BASELINE_FILE" "$OC_BACKGROUND_TRANSITION_FILE" "$OC_RECOVERY_INTENT_FILE" \
+            "$OC_PARENT_SERVER_EPOCH_FILE"
+    }
+    oc_mark_unresolved_session() {
+        printf 'An OpenCode turn created or may have created a parent session whose ID could not be determined.\nReason: %s\nInspect sessions with ./launch.sh opencode --once, write the chosen ID to process_log/.opencode_session_id, then remove this marker.\n' \
+            "$1" > "$OC_UNRESOLVED_SESSION_FILE"
+        chmod 600 "$OC_UNRESOLVED_SESSION_FILE"
+    }
+    oc_mark_first_turn_in_progress() {
+        local marker_tmp
+        marker_tmp="$(mktemp "$ROOT/process_log/.opencode-unresolved.XXXXXX")"
+        printf 'An OpenCode first turn is in progress and may create a parent session.\nIf interrupted, inspect sessions with ./launch.sh opencode --once before removing this marker.\n' > "$marker_tmp"
+        chmod 600 "$marker_tmp"
+        mv "$marker_tmp" "$OC_UNRESOLVED_SESSION_FILE"
+    }
+    oc_cache_sid() {
+        local sid_tmp
+        sid_tmp="$(mktemp "$ROOT/process_log/.opencode-session.XXXXXX")"
+        printf '%s\n' "$OC_SID" > "$sid_tmp"
+        chmod 600 "$sid_tmp"
+        mv "$sid_tmp" "$OC_SID_CACHE"
+        oc_set_parent_server_epoch || return 1
+        rm -f "$OC_UNRESOLVED_SESSION_FILE"
+    }
+    oc_bind_pending_parent() {
+        if [ -s "$OC_PENDING_CHILDREN_FILE" ] && \
+                { [ ! -s "$OC_PENDING_PARENT_FILE" ] || [ "$(cat "$OC_PENDING_PARENT_FILE")" != "$OC_SID" ]; }; then
+            oc_clear_pending_children
+        fi
+        printf '%s\n' "$OC_SID" > "$OC_PENDING_PARENT_FILE"
+    }
+    oc_background_after() {
+        local parent epoch count extra current_epoch
+        if [ ! -e "$OC_BACKGROUND_BASELINE_FILE" ]; then
+            printf '0\n'
+            return 0
+        fi
+        [ "$(wc -l < "$OC_BACKGROUND_BASELINE_FILE" | tr -d ' ')" = "1" ] || return 1
+        IFS=' ' read -r parent epoch count extra < "$OC_BACKGROUND_BASELINE_FILE" || return 1
+        current_epoch="$(oc_server_epoch)" || return 1
+        [ -z "$extra" ] && [ "$parent" = "$OC_SID" ] && [ "$epoch" = "$current_epoch" ] && [[ "$count" =~ ^[0-9]+$ ]] || return 1
+        printf '%s\n' "$count"
+    }
+    oc_server_epoch() {
+        local start_sum
+        [ -n "$OC_SERVER_PID" ] && [ -n "$OC_SERVER_START" ] || return 1
+        start_sum="$(printf '%s' "$OC_SERVER_START" | cksum | awk '{print $1 ":" $2}')" || return 1
+        printf '%s:%s\n' "$OC_SERVER_PID" "$start_sum"
+    }
+    oc_set_parent_server_epoch() {
+        local epoch epoch_tmp
+        epoch="$(oc_server_epoch)" || return 1
+        epoch_tmp="$(mktemp "$ROOT/process_log/.opencode-parent-epoch.XXXXXX")"
+        printf '%s %s\n' "$OC_SID" "$epoch" > "$epoch_tmp"
+        chmod 600 "$epoch_tmp"
+        mv "$epoch_tmp" "$OC_PARENT_SERVER_EPOCH_FILE"
+    }
+    oc_parent_server_epoch_status() {
+        local parent epoch extra current_epoch
+        [ -e "$OC_PARENT_SERVER_EPOCH_FILE" ] || return 1
+        [ "$(wc -l < "$OC_PARENT_SERVER_EPOCH_FILE" | tr -d ' ')" = "1" ] || return 2
+        IFS=' ' read -r parent epoch extra < "$OC_PARENT_SERVER_EPOCH_FILE" || return 2
+        [ -z "$extra" ] && [ "$parent" = "$OC_SID" ] && [ -n "$epoch" ] || return 2
+        current_epoch="$(oc_server_epoch)" || return 2
+        [ "$epoch" = "$current_epoch" ] && return 0
+        return 3
+    }
+    oc_background_baseline_status() {
+        local parent epoch count extra current_epoch
+        [ -e "$OC_BACKGROUND_BASELINE_FILE" ] || return 1
+        [ "$(wc -l < "$OC_BACKGROUND_BASELINE_FILE" | tr -d ' ')" = "1" ] || return 2
+        IFS=' ' read -r parent epoch count extra < "$OC_BACKGROUND_BASELINE_FILE" || return 2
+        if [ -n "$extra" ] || [ "$parent" != "$OC_SID" ] || [ -z "$epoch" ] || ! [[ "$count" =~ ^[0-9]+$ ]]; then
+            return 2
+        fi
+        current_epoch="$(oc_server_epoch)" || return 2
+        [ "$epoch" = "$current_epoch" ] && return 0
+        return 3
+    }
+    oc_begin_background_transition() { # $1 = restart or cancel
+        local transition_tmp kind="$1"
+        case "$kind" in restart|cancel) ;; *) return 1 ;; esac
+        transition_tmp="$(mktemp "$ROOT/process_log/.opencode-transition.XXXXXX")"
+        printf '%s %s\n' "$OC_SID" "$kind" > "$transition_tmp"
+        chmod 600 "$transition_tmp"
+        mv "$transition_tmp" "$OC_BACKGROUND_TRANSITION_FILE"
+    }
+    oc_set_background_baseline() {
+        local count epoch baseline_tmp
+        count="$(oc_server_api cursor --session "$OC_SID" 2>/dev/null)" || return 1
+        [[ "$count" =~ ^[0-9]+$ ]] || return 1
+        epoch="$(oc_server_epoch)" || return 1
+        baseline_tmp="$(mktemp "$ROOT/process_log/.opencode-baseline.XXXXXX")"
+        printf '%s %s %s\n' "$OC_SID" "$epoch" "$count" > "$baseline_tmp"
+        chmod 600 "$baseline_tmp"
+        mv "$baseline_tmp" "$OC_BACKGROUND_BASELINE_FILE"
+        oc_clear_pending_children
+    }
+    oc_set_recovery_intent() { # $1 = restart or cancel
+        local kind="$1" token intent_tmp
+        case "$kind" in restart|cancel) ;; *) return 1 ;; esac
+        token="zp-recovery-$(python3 -c 'import secrets; print(secrets.token_hex(16))')" || return 1
+        intent_tmp="$(mktemp "$ROOT/process_log/.opencode-recovery.XXXXXX")"
+        printf '%s %s %s\n' "$OC_SID" "$kind" "$token" > "$intent_tmp"
+        chmod 600 "$intent_tmp"
+        mv "$intent_tmp" "$OC_RECOVERY_INTENT_FILE"
+    }
+    oc_finish_background_transition() { # $1 = restart or cancel
+        local kind="$1"
+        oc_set_background_baseline || return 1
+        oc_set_parent_server_epoch || return 1
+        oc_set_recovery_intent "$kind" || return 1
+        rm -f "$OC_BACKGROUND_TRANSITION_FILE"
+    }
+    oc_recovery_note_from_intent() {
+        local parent kind token extra rc
+        [ -e "$OC_RECOVERY_INTENT_FILE" ] || return 0
+        [ "$(wc -l < "$OC_RECOVERY_INTENT_FILE" | tr -d ' ')" = "1" ] || return 1
+        IFS=' ' read -r parent kind token extra < "$OC_RECOVERY_INTENT_FILE" || return 1
+        [ -z "$extra" ] && [ "$parent" = "$OC_SID" ] && [ -n "$token" ] || return 1
+        case "$kind" in restart|cancel) ;; *) return 1 ;; esac
+        if oc_server_api has-text --session "$OC_SID" --needle "$token" >/dev/null 2>&1; then
+            rm -f "$OC_RECOVERY_INTENT_FILE"
+            return 0
+        else
+            rc=$?
+        fi
+        [ "$rc" = "3" ] || return 1
+        if [ "$kind" = "cancel" ]; then
+            printf '%s Recovery intent token: %s.' "$OC_CANCEL_RECOVER" "$token"
+        else
+            printf '%s Recovery intent token: %s.' "$OC_RECOVER" "$token"
+        fi
+    }
+    oc_ack_recovery_intent() {
+        local parent kind token extra rc
+        [ -e "$OC_RECOVERY_INTENT_FILE" ] || return 0
+        [ "$(wc -l < "$OC_RECOVERY_INTENT_FILE" | tr -d ' ')" = "1" ] || return 1
+        IFS=' ' read -r parent kind token extra < "$OC_RECOVERY_INTENT_FILE" || return 1
+        [ -z "$extra" ] && [ "$parent" = "$OC_SID" ] && [ -n "$token" ] || return 1
+        if oc_server_api has-text --session "$OC_SID" --needle "$token" >/dev/null 2>&1; then
+            rm -f "$OC_RECOVERY_INTENT_FILE"
+            return 0
+        else
+            rc=$?
+        fi
+        [ "$rc" = "3" ] && return 1
+        return 1
+    }
+    oc_refresh_pending_children() {
+        local pending_tmp after
+        after="$(oc_background_after)" || return 1
+        pending_tmp="$(mktemp "$ROOT/process_log/.opencode-pending.XXXXXX")"
+        if ! oc_server_api pending --session "$OC_SID" --after "$after" > "$pending_tmp" 2>/dev/null; then
+            rm -f "$pending_tmp"
+            return 1
+        fi
+        oc_bind_pending_parent
+        if [ -s "$pending_tmp" ]; then
+            chmod 600 "$pending_tmp"
+            mv "$pending_tmp" "$OC_PENDING_CHILDREN_FILE"
+        else
+            rm -f "$pending_tmp" "$OC_PENDING_CHILDREN_FILE"
+        fi
+    }
+    oc_wait_for_quiescence() {
+        local generation after rc=0 args=()
+        after="$(oc_background_after)" || return 2
+        if [ -s "$OC_PENDING_CHILDREN_FILE" ]; then
+            while IFS= read -r generation; do [ -n "$generation" ] && args+=(--generation "$generation"); done < "$OC_PENDING_CHILDREN_FILE"
+            oc_server_api wait-idle --session "$OC_SID" --timeout "$OPENCODE_BACKGROUND_TIMEOUT" \
+                --poll 0.5 --stable-samples 2 --after "$after" "${args[@]}" >> "$OC_LOG" 2>&1 || rc=$?
+        else
+            oc_server_api wait-idle --session "$OC_SID" --timeout "$OPENCODE_BACKGROUND_TIMEOUT" \
+                --poll 0.5 --stable-samples 2 --after "$after" >> "$OC_LOG" 2>&1 || rc=$?
+        fi
+        if [ "$rc" = "0" ]; then
+            oc_clear_pending_children
+            return 0
+        fi
+        return "$rc"
+    }
+    oc_abort_tree_and_wait() {
+        local failed=0
+        oc_begin_background_transition cancel || return 1
+        oc_server_api abort-tree --session "$OC_SID" >> "$OC_LOG" 2>&1 || failed=1
+        oc_server_api wait-idle --session "$OC_SID" --timeout "$OPENCODE_ABORT_TIMEOUT" \
+            --poll 0.2 --stable-samples 2 --status-only >> "$OC_LOG" 2>&1 || failed=1
+        if [ "$failed" = "0" ]; then
+            # Killing the server instance is the hard edge of cancellation:
+            # no delayed notification or parent autowake from its process-local
+            # registry can cross the new history baseline.
+            oc_stop_server
+            OC_SERVER_REUSED=0
+            oc_start_server || return 1
+            oc_sid_exists "$OC_SID" || {
+                echo "[opencode-driver] cancelled parent is unavailable after server replacement; refusing to resume" | tee -a "$OC_LOG"
+                return 1
+            }
+            oc_finish_background_transition cancel || {
+                echo "[opencode-driver] cancellation settled but its recovery epoch/intent could not be persisted; refusing to resume" | tee -a "$OC_LOG"
+                return 1
+            }
+            return 0
+        fi
+        echo "[opencode-driver] cancellation did not reach confirmed quiescence; refusing to resume" | tee -a "$OC_LOG"
+        return 1
     }
     OC_ACTIVE_PGID=""
     OC_WATCHDOG_PID=""
@@ -366,7 +793,7 @@ PY
     oc_turn_group_alive() {
         [ -n "$OC_ACTIVE_PGID" ] && kill -0 -- "-$OC_ACTIVE_PGID" 2>/dev/null
     }
-    oc_driver_cleanup() {
+    oc_turn_cleanup() {
         if [ -n "$OC_WATCHDOG_PID" ]; then
             kill "$OC_WATCHDOG_PID" 2>/dev/null || true
             wait "$OC_WATCHDOG_PID" 2>/dev/null || true
@@ -377,16 +804,36 @@ PY
             oc_kill_turn_group KILL
         fi
     }
-    trap oc_driver_cleanup EXIT
-    trap 'oc_driver_cleanup; trap - EXIT; exit 130' INT TERM
+    oc_signal_cleanup() {
+        oc_turn_cleanup
+        if [ -n "${OC_SID:-}" ]; then oc_server_api abort-tree --session "$OC_SID" >/dev/null 2>&1 || true; fi
+        oc_stop_server
+        oc_release_lock
+    }
+    oc_exit_cleanup() {
+        oc_turn_cleanup
+        if [ "$OC_SERVER_STARTING" = "1" ]; then
+            oc_reap_starting_server
+            oc_clear_server_state
+        fi
+        oc_release_lock
+    }
+    trap oc_exit_cleanup EXIT
+    trap 'oc_signal_cleanup; trap - EXIT; exit 130' INT TERM
+    oc_acquire_lock
+    if [ -s "$OC_UNRESOLVED_SESSION_FILE" ]; then
+        echo "ERROR: unresolved OpenCode parent session; inspect $OC_UNRESOLVED_SESSION_FILE before launching again" >&2
+        exit 1
+    fi
+    oc_prepare_server
     run_opencode_turn() {
         local oc_pid oc_start oc_now watchdog_pid rc timeout_marker="${oc_events}.timeout"
         # Capture to a regular file, then replay into the durable log after the
         # turn. Avoid process substitution here: restricted shells can reject
         # writes through /dev/fd even when the project itself is writable.
-        # Python's os.setsid is available on every supported Unix host and
-        # makes the turn leader its own process-group leader. Killing the group
-        # therefore reaches Bash commands and subagents as well as OpenCode.
+        # The attached CLI gets its own process group, separate from the server
+        # and its native background jobs. A turn timeout can therefore reap a
+        # wedged client without destroying unrelated children or autowake.
         python3 -c 'import os,sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
             "$@" </dev/null > "$oc_events" 2>&1 &
         oc_pid=$!
@@ -419,8 +866,7 @@ PY
         else
             kill "$watchdog_pid" 2>/dev/null || true
             wait "$watchdog_pid" 2>/dev/null || true
-            # A normally exiting CLI should have no live descendants. If one
-            # remains, give it the same orderly shutdown window.
+            # A normally exiting attached client should have no descendants.
             if oc_turn_group_alive; then
                 oc_kill_turn_group TERM
                 sleep "$OPENCODE_KILL_GRACE"
@@ -438,20 +884,135 @@ PY
         if oc_sid_exists "$_cached_oc_sid"; then
             OC_SID="$_cached_oc_sid"
         else
+            oc_sid_rc=$?
+            if [ "$oc_sid_rc" = "2" ]; then
+                echo "[opencode-driver] cannot validate the cached session through the live server; refusing to create a duplicate parent" | tee -a "$OC_LOG"
+                exit 1
+            fi
             echo "[opencode-driver] cached session is stale; starting a fresh session" | tee -a "$OC_LOG"
             rm -f "$OC_SID_CACHE"
+            oc_clear_background_state
         fi
     fi
     oc_turn=0
     oc_no_progress=0
     oc_fast_any=0
+    oc_recovery_note=""
+    oc_parent_epoch_missing=0
+    if [ -n "$OC_SID" ] && [ -e "$OC_BACKGROUND_TRANSITION_FILE" ]; then
+        [ "$(wc -l < "$OC_BACKGROUND_TRANSITION_FILE" | tr -d ' ')" = "1" ] || {
+            echo "[opencode-driver] malformed background transition; refusing recovery" | tee -a "$OC_LOG"
+            exit 1
+        }
+        IFS=' ' read -r oc_transition_parent oc_transition_kind oc_transition_extra < "$OC_BACKGROUND_TRANSITION_FILE" || true
+        if [ -n "${oc_transition_extra:-}" ] || [ "${oc_transition_parent:-}" != "$OC_SID" ]; then
+            echo "[opencode-driver] background transition belongs to an unexpected parent; refusing recovery" | tee -a "$OC_LOG"
+            exit 1
+        fi
+        case "${oc_transition_kind:-}" in
+            cancel)
+                # Re-abort idempotently, replace the server, and finish the epoch.
+                oc_abort_tree_and_wait || exit 1
+                ;;
+            restart)
+                oc_finish_background_transition restart || exit 1
+                ;;
+            *) echo "[opencode-driver] malformed background transition; refusing recovery" | tee -a "$OC_LOG"; exit 1 ;;
+        esac
+    fi
+    if [ -n "$OC_SID" ]; then
+        if oc_parent_server_epoch_status; then
+            oc_parent_epoch_rc=0
+        else
+            oc_parent_epoch_rc=$?
+        fi
+        case "$oc_parent_epoch_rc" in
+            0) ;;
+            1)
+                if [ "$OC_SERVER_REUSED" = "1" ]; then
+                    # Migration/manual quarantine repair on the exact live
+                    # server: reconstruct from history zero and quiesce before
+                    # adopting the epoch. Do not retire possibly-live work.
+                    oc_parent_epoch_missing=1
+                    rm -f "$OC_BACKGROUND_BASELINE_FILE"
+                    oc_clear_pending_children
+                else
+                    oc_begin_background_transition restart || exit 1
+                    oc_finish_background_transition restart || exit 1
+                fi
+                ;;
+            3)
+                # A mismatch proves that process-local work belonged to a
+                # different server instance and requires durable recovery.
+                oc_begin_background_transition restart || exit 1
+                oc_finish_background_transition restart || exit 1
+                ;;
+            *) echo "[opencode-driver] malformed parent/server epoch; refusing recovery" | tee -a "$OC_LOG"; exit 1 ;;
+        esac
+    fi
+    if [ -n "$OC_SID" ] && [ "$OC_SERVER_REUSED" = "1" ]; then
+        if [ -e "$OC_BACKGROUND_BASELINE_FILE" ]; then
+            set +e
+            oc_background_baseline_status
+            oc_baseline_rc=$?
+            set -e
+            if [ "$oc_baseline_rc" = "3" ]; then
+                # The server identity was committed before this driver's epoch
+                # update. Since registries are process-local, pre-instance launches
+                # cannot notify here; retire them before sending recovery work.
+                oc_begin_background_transition restart || exit 1
+                oc_finish_background_transition restart || exit 1
+            elif [ "$oc_baseline_rc" != "0" ]; then
+                echo "[opencode-driver] malformed background history baseline; refusing recovery" | tee -a "$OC_LOG"
+                exit 1
+            fi
+        fi
+        if ! oc_refresh_pending_children; then
+            oc_prepare_server
+            if [ "$OC_SERVER_REUSED" = "1" ]; then
+                echo "[opencode-driver] transient API failure while reconstructing background work; refusing to prompt the live session" | tee -a "$OC_LOG"
+                exit 1
+            fi
+            oc_begin_background_transition restart || exit 1
+            oc_finish_background_transition restart || exit 1
+        fi
+        # A previous driver may have exited while the parent itself was still
+        # producing an autowake response, even when no child remains in the
+        # reconstructed ledger. Never overlap that work with a new prompt.
+        set +e
+        oc_wait_for_quiescence
+        oc_pending_rc=$?
+        set -e
+        if [ "$oc_pending_rc" = "3" ]; then
+            oc_abort_tree_and_wait || exit 1
+        elif [ "$oc_pending_rc" != "0" ]; then
+            oc_prepare_server
+            if [ "$OC_SERVER_REUSED" = "1" ]; then
+                echo "[opencode-driver] transient API failure while awaiting existing session work; refusing to prompt the live session" | tee -a "$OC_LOG"
+                exit 1
+            fi
+            oc_begin_background_transition restart || exit 1
+            oc_finish_background_transition restart || exit 1
+        fi
+        if [ "$oc_parent_epoch_missing" = "1" ] && [ ! -e "$OC_PARENT_SERVER_EPOCH_FILE" ]; then
+            # The full history-zero barrier passed. Publish its current cursor
+            # before adopting this server; a crash between the two safely
+            # repeats history-zero reconstruction on the next launch.
+            oc_set_background_baseline || exit 1
+            oc_set_parent_server_epoch || exit 1
+        fi
+    fi
+    oc_recovery_note="$(oc_recovery_note_from_intent)" || {
+        echo "[opencode-driver] cannot reconcile durable recovery intent; refusing to prompt" | tee -a "$OC_LOG"
+        exit 1
+    }
     while :; do
         oc_st="$(oc_status)"
         case "$oc_st" in
             complete|complete_pending_verification)
-                echo "[opencode-driver] pipeline $oc_st after $oc_turn turn(s)" | tee -a "$OC_LOG"; exit 0 ;;
+                echo "[opencode-driver] pipeline $oc_st after $oc_turn turn(s)" | tee -a "$OC_LOG"; oc_stop_server; exit 0 ;;
             halted_*)
-                echo "[opencode-driver] pipeline halted: $oc_st" | tee -a "$OC_LOG"; exit 0 ;;
+                echo "[opencode-driver] pipeline halted: $oc_st" | tee -a "$OC_LOG"; oc_stop_server; exit 0 ;;
             '?') echo "[opencode-driver] cannot read $OC_STATE" | tee -a "$OC_LOG"; exit 1 ;;
         esac
         oc_turn=$((oc_turn + 1))
@@ -463,29 +1024,58 @@ PY
         oc_sessions_before_valid=0
         if [ -z "$OC_SID" ]; then
             oc_sessions_before="$(mktemp "${TMPDIR:-/tmp}/zeropaper-opencode-sessions.XXXXXX")"
-            if opencode session list --format json > "$oc_sessions_before" 2>/dev/null && \
-                    python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$oc_sessions_before" 2>/dev/null; then
+            if oc_server_api list-local --root "$ROOT" > "$oc_sessions_before" 2>/dev/null; then
                 oc_sessions_before_valid=1
             fi
         fi
         oc_before="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true):$(oc_worktree_hash):$(cksum "$OC_STATE" 2>/dev/null || true)"
         oc_t0=$SECONDS
+        oc_event_sid_rc=0
         set +e
         if [ -n "$OC_SID" ]; then
-            run_opencode_turn opencode run --session "$OC_SID" --model opencode/deepseek-v4-flash --format json "$OC_CONT"
+            run_opencode_turn opencode run --attach "$OC_SERVER_URL" --session "$OC_SID" --model opencode/deepseek-v4-flash --format json "$OC_CONT$oc_recovery_note"
             oc_rc=$?
         else
-            run_opencode_turn opencode run --model opencode/deepseek-v4-flash --format json "$OC_FIRST"
+            oc_mark_first_turn_in_progress
+            run_opencode_turn opencode run --attach "$OC_SERVER_URL" --model opencode/deepseek-v4-flash --format json "$OC_FIRST$oc_recovery_note"
             oc_rc=$?
             OC_SID="$(python3 -c 'import json,sys
+ids=[]
 for line in open(sys.argv[1]):
     try: event=json.loads(line)
     except Exception: continue
-    sid=event.get("sessionID") or event.get("sessionId")
-    if sid: print(sid); break' "$oc_events")"
-            [ -n "$OC_SID" ] && printf '%s\n' "$OC_SID" > "$OC_SID_CACHE"
+    if not isinstance(event, dict): continue
+    for key in ("sessionID", "sessionId"):
+        if key not in event: continue
+        sid=event[key]
+        if not isinstance(sid, str) or not sid: raise SystemExit(2)
+        ids.append(sid)
+if not ids: raise SystemExit(1)
+if len(set(ids)) != 1: raise SystemExit(2)
+print(ids[0])' "$oc_events")"
+            oc_event_sid_rc=$?
+            if [ "$oc_event_sid_rc" = "0" ]; then
+                if oc_sid_exists "$OC_SID"; then
+                    oc_clear_background_state
+                    if ! oc_cache_sid; then
+                        OC_SID=""
+                        oc_event_sid_rc=2
+                    fi
+                else
+                    OC_SID=""
+                    oc_event_sid_rc=2
+                fi
+            fi
         fi
         set -e
+        if [ -n "$oc_recovery_note" ] && oc_server_api health >/dev/null 2>&1; then
+            oc_ack_recovery_intent || {
+                echo "[opencode-driver] recovery prompt is not observable in the parent transcript; refusing to continue" | tee -a "$OC_LOG"
+                rm -f "$oc_events" "${oc_events}.timeout"
+                exit 1
+            }
+        fi
+        oc_recovery_note=""
         oc_timed_out=0
         [ -f "${oc_events}.timeout" ] && oc_timed_out=1
         oc_substantive_tool_completed=0
@@ -500,26 +1090,90 @@ for line in open(sys.argv[1]):
 raise SystemExit(1)' "$oc_events"; then
             oc_substantive_tool_completed=1
         fi
+        if [ "$oc_event_sid_rc" = "2" ]; then
+            [ -n "$oc_sessions_before" ] && rm -f "$oc_sessions_before"
+            oc_mark_unresolved_session "first-turn events contained an invalid, conflicting, or non-local session ID"
+            echo "[opencode-driver] first-turn session ID failed validation; refusing reconciliation" | tee -a "$OC_LOG"
+            rm -f "$oc_events" "${oc_events}.timeout"
+            exit 1
+        fi
         if [ -z "$OC_SID" ] && [ "$oc_sessions_before_valid" = "1" ]; then
             OC_SID="$(oc_reconcile_new_sid "$oc_sessions_before" || true)"
-            [ -n "$OC_SID" ] && printf '%s\n' "$OC_SID" > "$OC_SID_CACHE"
+            if [ -n "$OC_SID" ]; then
+                oc_clear_background_state
+                oc_cache_sid
+            fi
         fi
         [ -n "$oc_sessions_before" ] && rm -f "$oc_sessions_before"
-        rm -f "$oc_events"
-        rm -f "${oc_events}.timeout"
         if [ "$oc_timed_out" = "1" ]; then
             if [ -z "$OC_SID" ]; then
                 echo "[opencode-driver] timed-out first turn returned no session id; cannot resume" | tee -a "$OC_LOG"
+                oc_mark_unresolved_session "timed-out first turn had no event ID and no unique session-list reconciliation"
+                rm -f "$oc_events" "${oc_events}.timeout"
+                # With no session handle there is nothing a later invocation
+                # can safely resume or inspect. Do not strand the otherwise
+                # reusable server (and any unaddressable work) on this path.
+                oc_stop_server
                 exit 1
             fi
+            oc_abort_tree_and_wait || { rm -f "$oc_events" "${oc_events}.timeout"; exit 1; }
+            oc_recovery_note="$(oc_recovery_note_from_intent)" || exit 1
+            rm -f "$oc_events" "${oc_events}.timeout"
             sleep "$OPENCODE_LOOP_DELAY"
             continue
         fi
         if [ "$oc_rc" -ne 0 ]; then
-            echo "[opencode-driver] turn failed (exit $oc_rc); stopping for inspection" | tee -a "$OC_LOG"
+            rm -f "$oc_events" "${oc_events}.timeout"
+            if [ -z "$OC_SID" ]; then
+                oc_mark_unresolved_session "failed first turn returned no session ID"
+                echo "[opencode-driver] failed first turn has no resolvable session ID; refusing automatic recovery" | tee -a "$OC_LOG"
+                exit "$oc_rc"
+            fi
+            if ! oc_server_api health >/dev/null 2>&1; then
+                echo "[opencode-driver] server disappeared; restarting and reconciling child sessions" | tee -a "$OC_LOG"
+                oc_prepare_server
+                if [ "$OC_SERVER_REUSED" = "1" ]; then
+                    echo "[opencode-driver] server recovered but the attached turn failed; leaving it running without an automatic retry" | tee -a "$OC_LOG"
+                    exit "$oc_rc"
+                fi
+                oc_begin_background_transition restart || exit 1
+                oc_finish_background_transition restart || exit 1
+                oc_recovery_note="$(oc_recovery_note_from_intent)" || exit 1
+                sleep "$OPENCODE_LOOP_DELAY"
+                continue
+            fi
+            echo "[opencode-driver] turn failed (exit $oc_rc); server left running for inspection/resume" | tee -a "$OC_LOG"
             exit "$oc_rc"
         fi
-        [ -n "$OC_SID" ] || { echo "[opencode-driver] no session id returned" | tee -a "$OC_LOG"; exit 1; }
+        if [ -z "$OC_SID" ]; then
+            oc_mark_unresolved_session "successful first turn returned no event ID and no unique session-list reconciliation"
+            echo "[opencode-driver] no session id returned; unresolved marker written" | tee -a "$OC_LOG"
+            exit 1
+        fi
+        # Native background completions inject a synthetic user message and
+        # autowake the parent inside the persistent server. Wait for both the
+        # parent and all leaf children to be stably idle before an external
+        # continuation, preventing a race with that internal parent turn.
+        set +e
+        oc_wait_for_quiescence
+        oc_wait_rc=$?
+        set -e
+        if [ "$oc_wait_rc" = "3" ]; then
+            echo "[opencode-driver] background/session tree exceeded OPENCODE_BACKGROUND_TIMEOUT=${OPENCODE_BACKGROUND_TIMEOUT}s; aborting busy sessions" | tee -a "$OC_LOG"
+            oc_abort_tree_and_wait || exit 1
+            oc_recovery_note="$(oc_recovery_note_from_intent)" || exit 1
+        elif [ "$oc_wait_rc" != "0" ]; then
+            echo "[opencode-driver] server disappeared while awaiting background work; restarting and reconciling" | tee -a "$OC_LOG"
+            oc_prepare_server
+            if [ "$OC_SERVER_REUSED" = "1" ]; then
+                echo "[opencode-driver] server recovered after a transient API failure; refusing to prompt until a later inspected resume" | tee -a "$OC_LOG"
+                exit 1
+            fi
+            oc_begin_background_transition restart || exit 1
+            oc_finish_background_transition restart || exit 1
+            oc_recovery_note="$(oc_recovery_note_from_intent)" || exit 1
+        fi
+        rm -f "$oc_events" "${oc_events}.timeout"
         oc_after="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true):$(oc_worktree_hash):$(cksum "$OC_STATE" 2>/dev/null || true)"
         oc_dt=$((SECONDS - oc_t0))
         if [ "$oc_dt" -lt 60 ]; then

@@ -9,7 +9,7 @@ The review is on the *report*, not on the submission — we never edit the submi
 When the user says "start" or "run", check `submission/`. If empty, point them at `submission/README.md` and stop. Otherwise:
 
 1. Run Step 1 (Triage) inline — read `submission/`, write `process_log/triage.md`.
-2. Launch the Step 2 audit fan-out in parallel. On Codex, every `launch_agent.sh` call is fire-and-forget; fan them all out, then end your turn. On OpenCode or Grok, use parallel native `task` calls with each runtime's agent name and wait for the foreground results.
+2. Launch the Step 2 audit fan-out in parallel. On Codex, every `launch_agent.sh` call is fire-and-forget; fan them all out, then end your turn. On OpenCode, dispatch every audit with native `task(background: true)` when that field exists in the task schema, then end the turn and let completion autowake the session; if the field is absent, use parallel foreground task calls. On Grok, use parallel native foreground `task` calls.
 3. On a later turn, poll each audit's output file by checking ONCE (`ls`/`cat`) and moving on — never a blocking `sleep`-loop in one command (it would hit codex's ~10s silent-exec cap). The file appears only when that worker finishes; a file containing a `WORKER FAILED (rc=N)` banner means that audit failed (read the log tail, relaunch it deliberately). Do NOT relaunch an agent whose `.<agent>.running` sentinel is still present — that is a live worker, not a stalled one.
 4. Once all audits have written to `audits/`, launch `report-synthesizer`.
 5. Run the self-review pass above.

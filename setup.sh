@@ -2372,6 +2372,11 @@ chmod +x "$P/code/utils/setup_push_token.sh"
 # Sourced by launch.sh's codex branch and codex_math/codex_common.sh.
 cp "$TEMPLATE_ROOT/templates/utils/codex_preflight.sh" "$P/code/utils/"
 
+# Stdlib-only control client used by launch.sh's persistent OpenCode server
+# driver (health, session-tree quiescence, timeout abort, and reconciliation).
+cp "$TEMPLATE_ROOT/templates/utils/opencode_driver.py" "$P/code/utils/"
+chmod +x "$P/code/utils/opencode_driver.py"
+
 # ── Launch-time model heal ──
 # The build-time model remap (resolve_model_fallbacks.py + apply_model_remap.py)
 # runs ONCE and cannot reach an already-deployed project. Deploy a runtime twin so
@@ -3097,6 +3102,7 @@ candidate_files = [
     "dashboard.html",
     "code/utils/setup_push_token.sh",
     "code/utils/codex_preflight.sh",
+    "code/utils/opencode_driver.py",
 ]
 
 # Extension-installed files. The empirical extension drops *.py / *.sh

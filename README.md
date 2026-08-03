@@ -369,7 +369,7 @@ my-paper/
 - Claude Code: `claude --dangerously-skip-permissions`
 - Codex: `./launch.sh codex` runs the headless driver loop (codex has no autowake; an interactive TUI stalls at every turn-end). Manual posture: `codex --sandbox workspace-write --ask-for-approval never -c 'sandbox_workspace_write.network_access=true' -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$(pwd)/.git\"]"` (write-confined to the project; run from the project root — the `$(pwd)/.git` root is required for pipeline commits; see Safety)
 - Gemini CLI: `gemini --yolo`
-- OpenCode: set `OPENCODE_API_KEY` in `.env`. `./launch.sh opencode` runs a resumable non-interactive driver on `opencode/deepseek-v4-flash`; `./launch.sh opencode --once` opens the TUI. OpenCode reuses `.claude/skills` through its native `skill` tool and uses generated `.opencode/agents` through native foreground `task` calls.
+- OpenCode: set `OPENCODE_API_KEY` in `.env`. `./launch.sh opencode` runs a resumable non-interactive driver on `opencode/deepseek-v4-flash`; `./launch.sh opencode --once` opens the TUI. The autonomous driver maintains an authenticated localhost OpenCode server so native experimental background `task` children survive individual client turns, inject completion into the parent, and autowake it; versions whose task schema lacks `background` use foreground calls. OpenCode reuses `.claude/skills` through its native `skill` tool and generated `.opencode/agents` through native tasks.
 - All runtimes read the same pipeline state and produce identical artifacts — you can switch runtimes mid-pipeline.
 
 ## Safety
