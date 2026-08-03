@@ -42,6 +42,20 @@ Per `CLAUDE.md` ("no unsolved or undocumented architectural limits"), additions 
 
 ---
 
+## OpenCode runtime: no OS sandbox, one model tier, and foreground-only subagents
+
+**Scope:** the OpenCode runtime assembled under `.opencode/agents/`, configured by `opencode.json`, and launched through `./launch.sh opencode`.
+
+1. **Bash is not OS-confined.** `external_directory: deny` protects OpenCode's file tools, but the autonomous orchestrator may run Bash and OpenCode does not place arbitrary child commands inside a project filesystem sandbox. A mistaken or prompt-injected command can therefore access files available to the host user outside the project. **Mitigation:** run OpenCode in a disposable VM/container or dedicated account. **What would close it:** a verified kernel sandbox covering OpenCode and every Bash descendant.
+
+2. **All capability tiers collapse to one model.** Every generated subagent and the orchestrator use `opencode/deepseek-v4-flash`; `--light` is a no-op. Generator/judge model decorrelation and automatic model fallback are unavailable. **What would close it:** multiple suitable OpenCode Zen tiers plus an availability probe/remap.
+
+3. **Background subagents are deliberately unsupported.** Stable native `task` calls create child sessions and can run in parallel, but background execution is experimental and can race the external session-resume driver. OpenCode instructions therefore require foreground calls. **What would close it:** stable background lifecycle and autowake semantics verified with the driver.
+
+4. **Skill-source selection depends on the launcher.** Deployments contain `.claude/skills` and `.agents/skills`. `./launch.sh opencode` disables automatic external scans while `opencode.json` explicitly registers `.claude/skills`, avoiding duplicate IDs. Starting bare `opencode` bypasses that selection; use `./launch.sh opencode --once` for the TUI.
+
+---
+
 ## Grok runtime: single model tier, no model probe, and partial mode/extension coverage
 
 **Scope:** the Grok Build runtime — `scripts/assemble_grok_agents.py`, the `.grok/agents/*.md` it emits, the labeled-dispatch fork in `templates/runtime/codex/session.md`, and the grok wiring in `setup.sh`.
@@ -56,11 +70,11 @@ Per `CLAUDE.md` ("no unsolved or undocumented architectural limits"), additions 
 
 **Limitations (five, documented not closed):**
 
-1. **Single model tier collapses generator↔judge decorrelation.** xAI exposes one general-purpose model in v1 (`grok-4.5`; the only other listed model is `grok-composer-2.5-fast`), so `assemble_grok_agents.py`'s `MODEL_MAP` maps every Claude tier (`fable`/`opus`/`sonnet`) to `grok-4.5`. The other three runtimes deliberately run the generative spine and its evaluators on *different* tiers (e.g. fable generator vs opus judge) as a decorrelation safeguard; on grok, generator and judge run the same model. Per-agent `reasoning_effort` (`low`/`medium`/`high`) still varies and is honored, but that is a weaker lever than a tier split. **What would close it:** an xAI capability-tier lineup — at which point `MODEL_MAP` is the one place to split.
+1. **Single model tier collapses generator↔judge decorrelation.** xAI exposes one general-purpose model in v1 (`grok-4.5`), so every Claude tier maps to it. Claude, Codex, and Gemini use different generator/evaluator tiers where available; Grok and OpenCode cannot. Per-agent reasoning effort still varies on Grok, but that is weaker than a tier split. **What would close it:** an xAI capability-tier lineup.
 
 2. **Grok subagent models are not probed/remapped.** Like the codex/gemini runtimes (see the model-availability section in `CLAUDE.md`), only *Claude* models are probed at setup and remapped on unavailability. If `grok-4.5` is withdrawn or the account loses access, grok agents hard-fail at launch with no fallback. The `model_fallbacks.json` schema and resolver/apply split are provider-agnostic; what's missing is a `grok models`-based probe and applying the remap over `.grok/agents/*.md`.
 
-3. **Manual and report modes still carry codex-only dispatch guidance grok would misread.** The labeled-dispatch fork was added to `templates/runtime/codex/session.md` (the autonomous-mode discipline). The `session_manual.md` and `session_report.md` variants — which grok also reads via the shared `AGENTS.md` under `--manual` / `--mode report` — still describe codex's `launch_agent.sh` without a grok branch. A grok orchestrator in those modes would read codex dispatch instructions. **What would close it:** apply the same runtime-labeled fork to `session_manual.md` and `session_report.md`.
+3. **Manual/report dispatch guidance — closed in v2.20.0.** The shared manual and report sessions now distinguish Codex's detached launcher from Grok/OpenCode native tasks.
 
 4. **Skills and extension agents are not wired for grok.** `assemble_grok_agents.py` does not emit a `skills:` frontmatter list, and grok project-skill discovery is unverified (grok reads Claude-format skills at the user level; project-level discovery of `.claude/skills`/`.agents/skills` was not confirmed). The extension appliers (`apply_extension_empirical.sh`, `apply_extension_theory_llm.sh`) take the claude/codex/gemini agent dirs as positionals but not `.grok/agents`, so `--ext empirical` / `--ext theory_llm` deploy no grok extension agents while the extension's stage instructions are still baked into the shared `AGENTS.md` (a Grok orchestrator would be told to launch agents absent from `.grok/agents/`). Base theory-only agents are unaffected. **What would close it:** thread `$GROK_AGENTS_OUT` through both extension appliers (agents), and add a `skills:` emitter + confirm grok's project-skill path (skills).
 
@@ -182,7 +196,7 @@ In all three, the residual is a *missed catch* (a genuinely illegible table can 
 
 ## Extension agents never reach the Grok runtime
 
-**Scope:** every deployment with `--ext empirical` or `--ext theory_llm`. Both extension appliers (`scripts/apply_extension_empirical.sh`, `scripts/apply_extension_theory_llm.sh`) call the claude/codex/gemini assemblers only — neither contains a `assemble_grok_agents.py` call (verified `grep -c grok` = 0 in both). Base agents assemble for all four runtimes, so a Grok-runtime deployment has the full core roster but **no** extension agents (`empiricist`, `experiment-designer`, `polish-experiments`, the claim chain, …) in `.grok/agents/`.
+**Scope:** every deployment with `--ext empirical` or `--ext theory_llm`. Both extension appliers now assemble Claude, Codex, Gemini, and OpenCode agents, but still contain no `assemble_grok_agents.py` call. Base agents assemble for all five runtimes, so Grok has the core roster but **no** extension agents (`empiricist`, `experiment-designer`, `polish-experiments`, the claim chain, …).
 
 **Failure mode:** a Grok orchestrator on an extension deployment reaches Stage 3a/3b, is instructed by the runtime doc to launch an agent that has no `.grok/agents/*.md` definition, and either errors or improvises the role inline without the agent's calibrated body.
 

@@ -30,7 +30,7 @@ When auditing or editing the pipeline, if a known architectural limit is identif
 
 ## Working principle: no implementation-complexity budget — do what is best for the pipeline
 
-There is no implementation-complexity budget, no edit-cost ceiling, no "this change is too big" threshold. The pipeline is designed to be run millions of times; any one-time cost of editing the template — updating three runtime assemblers, reshaping `pipeline_state.json`, rewriting the escalation table, expanding the orchestrator prompt, adding agents, writing new tests — is trivially amortized against that. Do not reject or water down a structural proposal because it is expensive to *implement*; reject it only if it is worse for the pipeline on the merits.
+There is no implementation-complexity budget, no edit-cost ceiling, no "this change is too big" threshold. The pipeline is designed to be run millions of times; any one-time cost of editing the template — updating five runtime assemblers, reshaping `pipeline_state.json`, rewriting the escalation table, expanding the orchestrator prompt, adding agents, writing new tests — is trivially amortized against that. Do not reject or water down a structural proposal because it is expensive to *implement*; reject it only if it is worse for the pipeline on the merits.
 
 Concretely:
 - If a change makes the pipeline produce better papers, do it — even if it touches every runtime, rewrites state, and requires new agents.

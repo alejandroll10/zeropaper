@@ -1,8 +1,8 @@
 #!/bin/bash
 set -e
 
-# Mode threading: positional $10 = MODE_BODIES_OVERLAY, $11 = MODE_VOCAB_OVERLAY,
-# $12 = base variant vocab path. The variant vocab supplies default values for
+# Mode threading: positional $11 = MODE_BODIES_OVERLAY, $12 = MODE_VOCAB_OVERLAY,
+# $13 = base variant vocab path. The variant vocab supplies default values for
 # placeholders the extension bodies use (e.g. {{EMPIRICS_AUDITOR_MODE_BLOCK}}
 # is empty in the base vocab and populated only by the empirical-first
 # overlay). The base vocab MUST be passed even outside mode-empirical-first
@@ -17,16 +17,17 @@ PROJECT_ROOT="$2"
 AGENTS_OUT="$3"
 CODEX_AGENTS_OUT="$4"
 GEMINI_AGENTS_OUT="$5"
-SKILLS_OUT="$6"
-AGENT_DIR="$7"
-LOCAL="$8"
+OPENCODE_AGENTS_OUT="$6"
+SKILLS_OUT="$7"
+AGENT_DIR="$8"
+LOCAL="$9"
 MODEL_OVERRIDE_ARG=()
-if [ -n "$9" ]; then
-    MODEL_OVERRIDE_ARG=(--model-override "$9")
+if [ -n "${10}" ]; then
+    MODEL_OVERRIDE_ARG=(--model-override "${10}")
 fi
-EXT_MODE_BODIES_OVERLAY="${10}"
-EXT_MODE_VOCAB_OVERLAY="${11}"
-EXT_BASE_VOCAB="${12}"
+EXT_MODE_BODIES_OVERLAY="${11}"
+EXT_MODE_VOCAB_OVERLAY="${12}"
+EXT_BASE_VOCAB="${13}"
 
 # Build vocab args: shared defaults first, then base variant vocab, then mode
 # overlay (last-write-wins) — same layering as the base assemblers in setup.sh.
@@ -74,6 +75,14 @@ if [ -f "$EXT_ROOT/agent_metadata/shared_agents.json" ]; then
         "${EXT_VOCAB_ARGS[@]}" \
         --output-dir "$GEMINI_AGENTS_OUT" \
         "${MODEL_OVERRIDE_ARG[@]}"
+
+    python3 "$TEMPLATE_ROOT/scripts/assemble_opencode_agents.py" \
+        --metadata "$EXT_ROOT/agent_metadata/shared_agents.json" \
+        --bodies-dir "$EXT_ROOT/agent_bodies/shared" \
+        "${EXT_SHARED_ARGS[@]}" \
+        "${EXT_VOCAB_ARGS[@]}" \
+        --output-dir "$OPENCODE_AGENTS_OUT" \
+        "${MODEL_OVERRIDE_ARG[@]}"
 fi
 
 if [ -f "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" ]; then
@@ -99,6 +108,14 @@ if [ -f "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" ]; then
         "${EXT_SHARED_ARGS[@]}" \
         "${EXT_VOCAB_ARGS[@]}" \
         --output-dir "$GEMINI_AGENTS_OUT" \
+        "${MODEL_OVERRIDE_ARG[@]}"
+
+    python3 "$TEMPLATE_ROOT/scripts/assemble_opencode_agents.py" \
+        --metadata "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" \
+        --bodies-dir "$EXT_ROOT/agent_bodies/${AGENT_DIR}" \
+        "${EXT_SHARED_ARGS[@]}" \
+        "${EXT_VOCAB_ARGS[@]}" \
+        --output-dir "$OPENCODE_AGENTS_OUT" \
         "${MODEL_OVERRIDE_ARG[@]}"
 else
     echo "  ⚠ No empiricist agent for variant '${AGENT_DIR}' — Stage 3a will be skipped at runtime"

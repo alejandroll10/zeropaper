@@ -23,7 +23,7 @@ VOCAB_KEY_PATTERN = re.compile(r"\{\{([A-Z][A-Z0-9_]*)\}\}")
 INCLUDE_PATTERN = re.compile(r"\{\{>\s*([a-z0-9][a-z0-9_-]*)\s*\}\}")
 
 # Single-source rule fragments live here, resolved relative to this loader so
-# every assembler (base + extensions, all three runtimes) picks up the same
+# every assembler (base + extensions, all five runtimes) picks up the same
 # directory with no per-call-site wiring. Build-time only — fragments are
 # inlined at assembly, never copied into deployed projects.
 DEFAULT_FRAGMENTS_DIR = Path(__file__).resolve().parent.parent / "templates" / "fragments"

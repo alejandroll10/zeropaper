@@ -8,6 +8,8 @@
 #   ./launch.sh codex --once        # single interactive codex TUI, no driver
 #   ./launch.sh gemini              # interactive Gemini CLI
 #   ./launch.sh grok                # interactive Grok Build
+#   ./launch.sh opencode            # resumable headless OpenCode driver
+#   ./launch.sh opencode --once     # interactive OpenCode TUI
 #   ./launch.sh <runtime> --tmux    # same, wrapped in a detached tmux window
 #
 # WHY THE CODEX DRIVER EXISTS: codex has no autowake. When the orchestrator
@@ -41,7 +43,7 @@ set -euo pipefail
 ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
 cd "$ROOT"
 
-RUNTIME="${1:?Usage: ./launch.sh <claude|codex|gemini|grok> [--tmux] [--once]}"
+RUNTIME="${1:?Usage: ./launch.sh <claude|codex|gemini|grok|opencode> [--tmux] [--once]}"
 shift
 TMUX_WRAP=0
 ONCE=0
@@ -227,12 +229,320 @@ case "$RUNTIME" in
         # other (issue #186/#190; see README).
         exec grok --sandbox pipeline --always-approve --leader-socket "$ROOT/.grok/leader.sock"
         ;;
-    codex) ;;  # falls through to the driver below
+    codex|opencode) ;;  # falls through to the appropriate driver below
     *)
-        echo "ERROR: unknown runtime '$RUNTIME' (claude|codex|gemini|grok)" >&2
+        echo "ERROR: unknown runtime '$RUNTIME' (claude|codex|gemini|grok|opencode)" >&2
         exit 2
         ;;
 esac
+
+# ── opencode ─────────────────────────────────────────────────────────────────
+# OpenCode discovers the deployed Claude-compatible and Agent-compatible
+# SKILL.md files natively. Its custom subagents are separately assembled into
+# .opencode/agents because Claude agent frontmatter is not compatible.
+if [ "$RUNTIME" = "opencode" ]; then
+    # OpenCode's provider reads this key from the process environment, while
+    # deployments store credentials in a gitignored project .env. Import only
+    # this one value without sourcing/evaluating arbitrary shell text. An
+    # already-exported value wins over the file.
+    if [ -z "${OPENCODE_API_KEY:-}" ] && [ -f "$ROOT/.env" ]; then
+        OPENCODE_API_KEY="$(python3 - "$ROOT/.env" <<'PY'
+import ast, re, sys
+
+def strip_inline_comment(text):
+    quote = None
+    escaped = False
+    for index, char in enumerate(text):
+        if escaped:
+            escaped = False
+            continue
+        if quote:
+            if quote == '"' and char == "\\":
+                escaped = True
+            elif char == quote:
+                quote = None
+            continue
+        if char in {"'", '"'}:
+            quote = char
+        elif char == "#" and (index == 0 or text[index - 1].isspace()):
+            return text[:index].rstrip()
+    return text.strip()
+
+for raw in open(sys.argv[1], encoding="utf-8"):
+    line = raw.strip()
+    if line.startswith("export "):
+        line = line[7:].lstrip()
+    match = re.match(r"OPENCODE_API_KEY\s*=\s*(.*)$", line)
+    if not match:
+        continue
+    value = strip_inline_comment(match.group(1).strip())
+    if value[:1] in {"'", '"'} and value[-1:] == value[:1]:
+        try:
+            value = ast.literal_eval(value)
+        except (SyntaxError, ValueError):
+            value = value[1:-1]
+    print(value, end="")
+    break
+PY
+)"
+        [ -z "$OPENCODE_API_KEY" ] || export OPENCODE_API_KEY
+    fi
+    # Select the Claude-compatible skill tree explicitly. Deployments also
+    # contain .agents/skills; scanning both would create duplicate skill IDs.
+    export OPENCODE_DISABLE_EXTERNAL_SKILLS=1
+    if [ "$ONCE" = "1" ]; then
+        exec opencode --model opencode/deepseek-v4-flash
+    fi
+    OC_STATE="$ROOT/process_log/pipeline_state.json"
+    if [ ! -f "$OC_STATE" ]; then
+        echo "ERROR: no process_log/pipeline_state.json — use ./launch.sh opencode --once for manual/report work." >&2
+        exit 1
+    fi
+    oc_status() {
+        python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("status","?"))' "$OC_STATE" 2>/dev/null || echo "?"
+    }
+    oc_worktree_hash() {
+        {
+            git -C "$ROOT" diff --binary --no-ext-diff 2>/dev/null || true
+            git -C "$ROOT" diff --cached --binary --no-ext-diff 2>/dev/null || true
+            git -C "$ROOT" ls-files --others --exclude-standard -z 2>/dev/null \
+                | while IFS= read -r -d '' _oc_file; do
+                    cksum "$ROOT/$_oc_file" 2>/dev/null || true
+                done
+        } | cksum
+    }
+    OC_SID_CACHE="$ROOT/process_log/.opencode_session_id"
+    OC_LOG="$ROOT/process_log/opencode-driver.log"
+    OPENCODE_TURN_TIMEOUT="${OPENCODE_TURN_TIMEOUT:-3540}"
+    OPENCODE_KILL_GRACE="${OPENCODE_KILL_GRACE:-10}"
+    OPENCODE_LOOP_DELAY="${OPENCODE_LOOP_DELAY:-3}"
+    OC_FIRST='Run the pipeline. You are running unattended: never ask the user anything; decide from AGENTS.md and the pipeline artifacts. Use native task calls for .opencode subagents and wait for their foreground results.'
+    OC_CONT='Continue the pipeline from process_log/pipeline_state.json. You are unattended: never ask the user anything. Use native task calls for .opencode subagents and keep working until this turn has made durable progress.'
+    oc_sid_exists() {
+        opencode session list --format json 2>/dev/null | python3 -c 'import json,os,sys
+sid,root=sys.argv[1:]
+try: rows=json.load(sys.stdin)
+except Exception: raise SystemExit(1)
+def local(x):
+    directory=x.get("directory")
+    return isinstance(directory,str) and os.path.realpath(directory) == root
+raise SystemExit(0 if any((x.get("id") or x.get("sessionID")) == sid and local(x) for x in rows) else 1)' "$1" "$ROOT"
+    }
+    oc_reconcile_new_sid() { # $1 = JSON snapshot from before the fresh run
+        local before_file="$1" after_file candidate
+        after_file="$(mktemp "${TMPDIR:-/tmp}/zeropaper-opencode-sessions.XXXXXX")"
+        if ! opencode session list --format json > "$after_file" 2>/dev/null; then
+            rm -f "$after_file"
+            return 1
+        fi
+        candidate="$(python3 - "$before_file" "$after_file" "$ROOT" <<'PY'
+import json, os, sys
+try:
+    root = os.path.realpath(sys.argv[3])
+    before_rows = json.load(open(sys.argv[1]))
+    after_rows = json.load(open(sys.argv[2]))
+except Exception:
+    raise SystemExit(1)
+def local(x):
+    directory = x.get("directory")
+    return isinstance(directory, str) and os.path.realpath(directory) == root
+before = {x.get("id") or x.get("sessionID") for x in before_rows if local(x)}
+after = [x.get("id") or x.get("sessionID") for x in after_rows if local(x)]
+new = [x for x in after if x and x not in before]
+if len(new) != 1:
+    raise SystemExit(1)
+print(new[0])
+PY
+)" || { rm -f "$after_file"; return 1; }
+        rm -f "$after_file"
+        printf '%s\n' "$candidate"
+    }
+    OC_ACTIVE_PGID=""
+    OC_WATCHDOG_PID=""
+    oc_kill_turn_group() { # $1 = TERM or KILL
+        [ -n "$OC_ACTIVE_PGID" ] || return 0
+        kill -"$1" -- "-$OC_ACTIVE_PGID" 2>/dev/null || true
+    }
+    oc_turn_group_alive() {
+        [ -n "$OC_ACTIVE_PGID" ] && kill -0 -- "-$OC_ACTIVE_PGID" 2>/dev/null
+    }
+    oc_driver_cleanup() {
+        if [ -n "$OC_WATCHDOG_PID" ]; then
+            kill "$OC_WATCHDOG_PID" 2>/dev/null || true
+            wait "$OC_WATCHDOG_PID" 2>/dev/null || true
+        fi
+        if oc_turn_group_alive; then
+            oc_kill_turn_group TERM
+            sleep "$OPENCODE_KILL_GRACE"
+            oc_kill_turn_group KILL
+        fi
+    }
+    trap oc_driver_cleanup EXIT
+    trap 'oc_driver_cleanup; trap - EXIT; exit 130' INT TERM
+    run_opencode_turn() {
+        local oc_pid oc_start oc_now watchdog_pid rc timeout_marker="${oc_events}.timeout"
+        # Capture to a regular file, then replay into the durable log after the
+        # turn. Avoid process substitution here: restricted shells can reject
+        # writes through /dev/fd even when the project itself is writable.
+        # Python's os.setsid is available on every supported Unix host and
+        # makes the turn leader its own process-group leader. Killing the group
+        # therefore reaches Bash commands and subagents as well as OpenCode.
+        python3 -c 'import os,sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
+            "$@" </dev/null > "$oc_events" 2>&1 &
+        oc_pid=$!
+        OC_ACTIVE_PGID="$oc_pid"
+        oc_start="$(ps -o lstart= -p "$oc_pid" 2>/dev/null || true)"
+        (
+            sleep "$OPENCODE_TURN_TIMEOUT"
+            oc_now="$(ps -o lstart= -p "$oc_pid" 2>/dev/null || true)"
+            # ps may be unavailable inside a restricted parent sandbox. In
+            # that case kill -0 still gives the watchdog a usable liveness
+            # check; when ps works, lstart additionally protects against reuse.
+            if kill -0 "$oc_pid" 2>/dev/null && { [ -z "$oc_start" ] || [ -z "$oc_now" ] || [ "$oc_now" = "$oc_start" ]; }; then
+                : > "$timeout_marker"
+                echo "[opencode-driver] turn exceeded OPENCODE_TURN_TIMEOUT=${OPENCODE_TURN_TIMEOUT}s; terminating and resuming" | tee -a "$OC_LOG"
+                oc_kill_turn_group TERM
+                sleep "$OPENCODE_KILL_GRACE"
+                if oc_turn_group_alive; then
+                    oc_kill_turn_group KILL
+                fi
+            fi
+        ) &
+        watchdog_pid=$!
+        OC_WATCHDOG_PID="$watchdog_pid"
+        wait "$oc_pid"
+        rc=$?
+        if [ -f "$timeout_marker" ]; then
+            # The watchdog has already sent TERM. Let its configured grace
+            # period expire before it kills descendants that are checkpointing.
+            wait "$watchdog_pid" 2>/dev/null || true
+        else
+            kill "$watchdog_pid" 2>/dev/null || true
+            wait "$watchdog_pid" 2>/dev/null || true
+            # A normally exiting CLI should have no live descendants. If one
+            # remains, give it the same orderly shutdown window.
+            if oc_turn_group_alive; then
+                oc_kill_turn_group TERM
+                sleep "$OPENCODE_KILL_GRACE"
+                oc_kill_turn_group KILL
+            fi
+        fi
+        OC_WATCHDOG_PID=""
+        OC_ACTIVE_PGID=""
+        tee -a "$OC_LOG" < "$oc_events"
+        return "$rc"
+    }
+    OC_SID=""
+    if [ -s "$OC_SID_CACHE" ]; then
+        _cached_oc_sid="$(cat "$OC_SID_CACHE")"
+        if oc_sid_exists "$_cached_oc_sid"; then
+            OC_SID="$_cached_oc_sid"
+        else
+            echo "[opencode-driver] cached session is stale; starting a fresh session" | tee -a "$OC_LOG"
+            rm -f "$OC_SID_CACHE"
+        fi
+    fi
+    oc_turn=0
+    oc_no_progress=0
+    oc_fast_any=0
+    while :; do
+        oc_st="$(oc_status)"
+        case "$oc_st" in
+            complete|complete_pending_verification)
+                echo "[opencode-driver] pipeline $oc_st after $oc_turn turn(s)" | tee -a "$OC_LOG"; exit 0 ;;
+            halted_*)
+                echo "[opencode-driver] pipeline halted: $oc_st" | tee -a "$OC_LOG"; exit 0 ;;
+            '?') echo "[opencode-driver] cannot read $OC_STATE" | tee -a "$OC_LOG"; exit 1 ;;
+        esac
+        oc_turn=$((oc_turn + 1))
+        if [ "$oc_turn" -gt "${MAX_TURNS:-300}" ]; then
+            echo "[opencode-driver] MAX_TURNS reached (status=$oc_st)" | tee -a "$OC_LOG"; exit 1
+        fi
+        oc_events="$(mktemp "${TMPDIR:-/tmp}/zeropaper-opencode.XXXXXX")"
+        oc_sessions_before=""
+        oc_sessions_before_valid=0
+        if [ -z "$OC_SID" ]; then
+            oc_sessions_before="$(mktemp "${TMPDIR:-/tmp}/zeropaper-opencode-sessions.XXXXXX")"
+            if opencode session list --format json > "$oc_sessions_before" 2>/dev/null && \
+                    python3 -c 'import json,sys; json.load(open(sys.argv[1]))' "$oc_sessions_before" 2>/dev/null; then
+                oc_sessions_before_valid=1
+            fi
+        fi
+        oc_before="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true):$(oc_worktree_hash):$(cksum "$OC_STATE" 2>/dev/null || true)"
+        oc_t0=$SECONDS
+        set +e
+        if [ -n "$OC_SID" ]; then
+            run_opencode_turn opencode run --session "$OC_SID" --model opencode/deepseek-v4-flash --format json "$OC_CONT"
+            oc_rc=$?
+        else
+            run_opencode_turn opencode run --model opencode/deepseek-v4-flash --format json "$OC_FIRST"
+            oc_rc=$?
+            OC_SID="$(python3 -c 'import json,sys
+for line in open(sys.argv[1]):
+    try: event=json.loads(line)
+    except Exception: continue
+    sid=event.get("sessionID") or event.get("sessionId")
+    if sid: print(sid); break' "$oc_events")"
+            [ -n "$OC_SID" ] && printf '%s\n' "$OC_SID" > "$OC_SID_CACHE"
+        fi
+        set -e
+        oc_timed_out=0
+        [ -f "${oc_events}.timeout" ] && oc_timed_out=1
+        oc_substantive_tool_completed=0
+        if python3 -c 'import json,sys
+for line in open(sys.argv[1]):
+    try: event=json.loads(line)
+    except Exception: continue
+    part=event.get("part") or {}
+    state=part.get("state") or {}
+    if event.get("type") == "tool_use" and part.get("tool") in {"task", "bash", "skill", "websearch", "webfetch"} and state.get("status") == "completed":
+        raise SystemExit(0)
+raise SystemExit(1)' "$oc_events"; then
+            oc_substantive_tool_completed=1
+        fi
+        if [ -z "$OC_SID" ] && [ "$oc_sessions_before_valid" = "1" ]; then
+            OC_SID="$(oc_reconcile_new_sid "$oc_sessions_before" || true)"
+            [ -n "$OC_SID" ] && printf '%s\n' "$OC_SID" > "$OC_SID_CACHE"
+        fi
+        [ -n "$oc_sessions_before" ] && rm -f "$oc_sessions_before"
+        rm -f "$oc_events"
+        rm -f "${oc_events}.timeout"
+        if [ "$oc_timed_out" = "1" ]; then
+            if [ -z "$OC_SID" ]; then
+                echo "[opencode-driver] timed-out first turn returned no session id; cannot resume" | tee -a "$OC_LOG"
+                exit 1
+            fi
+            sleep "$OPENCODE_LOOP_DELAY"
+            continue
+        fi
+        if [ "$oc_rc" -ne 0 ]; then
+            echo "[opencode-driver] turn failed (exit $oc_rc); stopping for inspection" | tee -a "$OC_LOG"
+            exit "$oc_rc"
+        fi
+        [ -n "$OC_SID" ] || { echo "[opencode-driver] no session id returned" | tee -a "$OC_LOG"; exit 1; }
+        oc_after="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true):$(oc_worktree_hash):$(cksum "$OC_STATE" 2>/dev/null || true)"
+        oc_dt=$((SECONDS - oc_t0))
+        if [ "$oc_dt" -lt 60 ]; then
+            oc_fast_any=$((oc_fast_any + 1))
+        else
+            oc_fast_any=0
+        fi
+        if [ "$oc_after" = "$oc_before" ] && [ "$oc_substantive_tool_completed" = "0" ] && [ "$oc_dt" -lt 60 ]; then
+            oc_no_progress=$((oc_no_progress + 1))
+        else
+            oc_no_progress=0
+        fi
+        if [ "$oc_no_progress" -ge "${NO_PROGRESS_CEILING:-5}" ]; then
+            echo "[opencode-driver] ${NO_PROGRESS_CEILING:-5} fast turns without repository progress or completed substantive tool work; stopping to bound cost" | tee -a "$OC_LOG"
+            exit 1
+        fi
+        if [ "$oc_fast_any" -ge "${FAST_TURN_CEILING:-60}" ]; then
+            echo "[opencode-driver] ${FAST_TURN_CEILING:-60} consecutive fast turns; stopping abnormal churn" | tee -a "$OC_LOG"
+            exit 1
+        fi
+        sleep "$OPENCODE_LOOP_DELAY"
+    done
+fi
 
 # ── codex ───────────────────────────────────────────────────────────────────
 # Sandbox posture: workspace-write mirroring the Claude deploy (open egress,

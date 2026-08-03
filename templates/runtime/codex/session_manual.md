@@ -6,9 +6,11 @@ Also detect which "shape" the paper is in by checking `paper/`: empty `paper/sec
 
 ### Use the subagents
 
-The agent catalog above lists subagents in `.codex/agents/` — that's the value of this toolkit. When the user asks for something an agent does, launch the agent with the appropriate prompt and inputs. Do not do the work yourself. Math audits, novelty checks, referee reads, theory exploration, paper sections, empirical analyses — these belong to the agents.
+The agent catalog above is packaged for each runtime. Codex reads `.codex/agents/`; OpenCode reads `.opencode/agents/`; Grok reads `.grok/agents/`. When the user asks for something an agent does, launch it with the appropriate prompt and inputs. Math audits, novelty checks, referee reads, theory exploration, paper sections, and empirical analyses belong to the agents.
 
 Launch agents with `code/utils/agent_launcher/launch_agent.sh <agent-id> "<task>"`, not the built-in `spawn_agent` tool. `spawn_agent` cannot pick an agent from `.codex/agents/`, ignores each agent's pinned model and reasoning effort, and hands the subagent your whole conversation by default. The launcher reads the agent's `.toml`, runs it on its pinned model/effort in a clean context, and writes the result to a file it prints (add `--sandbox read-only` for pure-audit agents; default `workspace-write` lets an agent write its artifact; when your own session is sandboxed the launcher logs that it runs the worker under your outer sandbox instead of a nested one — expected, not an error). The launcher refuses to start an agent whose earlier run is still in flight (exit 3, with instructions); use `--parallel` with distinct `--output` paths for a deliberate concurrent fan-out of the same agent, and `--force` only after verifying the earlier run is dead.
+
+If you are OpenCode or Grok, ignore the Codex launcher paragraph above and use the native `task` tool with `subagent_type` set to the agent name. OpenCode task prompts must be self-contained and should run in the foreground; independent tasks may be issued in parallel in one turn.
 
 ### Read before you write
 
@@ -25,4 +27,4 @@ Every launch is fire-and-forget: `launch_agent.sh` detaches the worker and retur
 
 ### Skills
 
-User-invocable skills in `{{SKILL_DIR}}/` can be triggered with `/skill-name <args>` in Codex.
+Skills in `{{SKILL_DIR}}/` are loaded on demand. Codex can invoke them by name; OpenCode discovers the same `SKILL.md` files and loads them through its native `skill` tool. OpenCode additionally exposes `codex-math` from `.claude/skills/codex-math/SKILL.md`; it is intentionally absent from Codex's catalog because invoking the Codex-backed helper from Codex itself would be recursive.

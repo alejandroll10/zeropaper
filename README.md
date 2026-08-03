@@ -1,6 +1,6 @@
 # Auto AI Research Template
 
-Autonomous research paper generator. Set up a project, launch Claude Code, Codex, or Gemini CLI, walk away. The system discovers a problem, generates a theory, verifies it adversarially, and writes a publication-ready paper.
+Autonomous research paper generator. Set up a project, launch Claude Code, Codex, Gemini CLI, Grok Build, or OpenCode, and walk away. The system discovers a problem, generates a theory, verifies it adversarially, and writes a publication-ready paper.
 
 ## Responsible use — please read before running
 
@@ -42,7 +42,7 @@ Claude Code will handle the clone, setup, and prereq checks for you. Works on Ma
 
 1. You clone this template repo once
 2. You run `setup.sh` to create a new project — each run creates an independent project folder with its own git repo
-3. You open the project folder in Claude Code, Codex, or Gemini CLI and say "Run the pipeline"
+3. You open the project folder in a supported runtime and say "Run the pipeline"
 4. The pipeline runs autonomously: problem discovery → idea generation → theory development → math verification → paper writing → referee simulation
 
 
@@ -66,6 +66,9 @@ npm install -g @openai/codex
 
 # Gemini CLI
 npm install -g @google/gemini-cli
+
+# OpenCode (macOS)
+brew install anomalyco/tap/opencode
 
 # Git identity (one-time, used by every setup.sh run)
 git config --global user.email "you@example.com"
@@ -120,7 +123,7 @@ cd zeropaper
 ./setup.sh my-paper --variant finance --ext empirical --seed --light
 ```
 
-This creates `my-paper/` with everything assembled and ready — `CLAUDE.md`, `AGENTS.md`, `GEMINI.md`, agents for all three runtimes, skills, and pipeline state. The folder is a standalone git repo detached from this template.
+This creates `my-paper/` with everything assembled and ready — runtime instructions, agents for all five runtimes, compatible skills, and pipeline state. The folder is a standalone git repo detached from this template.
 
 You can create as many projects as you want from the same template.
 
@@ -242,7 +245,7 @@ If `identification-designer` returns `N/A — no causal claim` at Stage 1 (the q
 | `--seed` | Create a seeded-idea project. Creates `output/seed/` — drop your idea files there (markdown, PDFs, drafts, etc.) before launching. Pipeline triages seed maturity and enters at the appropriate stage. Never silently abandons the seeded idea, but **may** pivot under puzzle-triage / refine framing under scorer recommendations. |
 | `--faithful` | Stricter variant of `--seed`. Treats the seed as a **contract**. At seed_triage the orchestrator extracts `output/seed/mechanism_contract.md` (the seed's named mechanism, structural invariants, theorem-statement constraints, identification strategy, stated contribution); developing agents must respect every invariant. Substitution / pivot / headline-replacement are forbidden — additions on top of the faithfully-implemented contract (extra theorems, comparative statics, robustness checks) are allowed and encouraged once the contract is in place. Genuine impossibilities (proof unrepairable, identification infeasible, prediction contradicted by data) get documented in `output/seed/limitations.md` and the paper ships documenting them honestly. Evaluators (scorers, referees, auditors) stay impartial — the constraint enters only at the orchestrator's routing of their verdicts, with every routing decision logged to `process_log/pivot_log.md` for auditability. Use `--faithful` when you want the seed implemented as written; use `--seed` when you want the pipeline to preserve the seed but allow puzzle-triage pivots and scorer-driven framing refinements. Mutually exclusive with `--seed` and `--manual`. |
 | `--manual` | Set up the same agents and skills as a research toolkit — no autonomous pipeline. The runtime doc lists every agent and skill with a one-line description; you invoke them yourself. Useful when you want the math-auditor, novelty-checker, theory-explorer, paper-writer, polish-* agents, etc. as standalone helpers without committing to the end-to-end loop. Mutually exclusive with `--seed` and `--faithful`. **Paths are fixed**: agents read from `paper/main.tex`, `paper/sections/*.tex`, `output/`, `references/`. **Bringing your own paper:** (1) existing paper as its own git repo → drop the whole repo into `paper/` and add a bare `paper/` line to `.gitignore` so the outer git ignores the nested repo entirely (the existing `paper/*.aux`/`paper/*.pdf`/etc. lines become harmless once `paper/` is excluded); (2) flat `.tex` files → drop them into `paper/sections/` + `paper/main.tex`, the default `.gitignore` handles them; (3) no paper yet → launch `paper-writer` to create one from scratch. **License note:** human-directed manual-mode work is *Assisted Output* — exempt from the §2 submission notice and §3 disclosure (LICENSE §2, Assisted Output exemption; your venue's own AI policy still applies). The watermark still installs (`mode=manual`) and §4 applies in full. |
-| `--light` | Run the whole pipeline on the cheapest tier its runtime offers (cheaper/faster) — **orchestrator included**, and each agent's pinned reasoning effort dropped with it. Applies to all four runtimes through their own tier tables — claude `sonnet`, codex `gpt-5.6-luna`, gemini `gemini-3-flash-preview`; grok has a single model, so it is already a no-op there. Subagents are pinned at assembly time; `launch.sh` pins the orchestrator at launch. Good for drafts or iteration — but note the orchestrator makes the stage-routing and gate decisions, so this is the setting where a cheaper model costs the most. |
+| `--light` | Run the whole pipeline on the cheapest tier its runtime offers (cheaper/faster) — **orchestrator included**, and each agent's pinned reasoning effort dropped with it. Applies across all five runtimes — claude `sonnet`, codex `gpt-5.6-luna`, gemini `gemini-3-flash-preview`; Grok and OpenCode each have one configured model, so the flag is a no-op for them. Subagents are pinned at assembly time; `launch.sh` pins the orchestrator at launch. Good for drafts or iteration — but note the orchestrator makes the stage-routing and gate decisions, so this is the setting where a cheaper model costs the most. |
 
 These flags combine freely with `--variant` and `--ext` (except `--manual` and `--seed`/`--faithful`, which are mutually exclusive).
 
@@ -362,10 +365,11 @@ my-paper/
 
 ## Runtime notes
 
-- Preferred: `./launch.sh <claude|codex|gemini|grok>` — activates the venv and applies each runtime's correct flags (`--tmux` wraps in a detached tmux window)
+- Preferred: `./launch.sh <claude|codex|gemini|grok|opencode>` — activates the venv and applies each runtime's correct flags (`--tmux` wraps in a detached tmux window)
 - Claude Code: `claude --dangerously-skip-permissions`
 - Codex: `./launch.sh codex` runs the headless driver loop (codex has no autowake; an interactive TUI stalls at every turn-end). Manual posture: `codex --sandbox workspace-write --ask-for-approval never -c 'sandbox_workspace_write.network_access=true' -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$(pwd)/.git\"]"` (write-confined to the project; run from the project root — the `$(pwd)/.git` root is required for pipeline commits; see Safety)
 - Gemini CLI: `gemini --yolo`
+- OpenCode: set `OPENCODE_API_KEY` in `.env`. `./launch.sh opencode` runs a resumable non-interactive driver on `opencode/deepseek-v4-flash`; `./launch.sh opencode --once` opens the TUI. OpenCode reuses `.claude/skills` through its native `skill` tool and uses generated `.opencode/agents` through native foreground `task` calls.
 - All runtimes read the same pipeline state and produce identical artifacts — you can switch runtimes mid-pipeline.
 
 ## Safety
@@ -383,6 +387,8 @@ my-paper/
 Two further grok-sandbox consequences (issue #190) — the launcher fixes the first and warns about the second (whose fix is a one-time opt-in script): **(1) venv PATH demotion** — grok's bash tool rebuilds PATH with the macOS defaults ahead of inherited entries, so the activated `.venv` lands below `/usr/bin` and bare `python3` resolves to the system interpreter (no `sympy`, no `wrds`). `./launch.sh grok` installs transparent `VIRTUAL_ENV`-keyed shims (`python3`/`python`/`pip3`/`pip`) into `~/.local/bin`, which grok keeps ahead of `/usr/bin`; the shims are inert outside grok (no active venv → they exec the next real binary on PATH) and are never installed over a pre-existing non-shim file. **(2) `git push` cannot use the macOS keychain** — the `osxkeychain` helper needs `mach-lookup com.apple.SecurityServer`, which grok's sandbox schema (filesystem+network only) cannot grant, so pushes to an HTTPS remote fail on auth while local commits succeed. To enable pushes, run `bash code/utils/setup_push_token.sh` once per project: it stores a **fine-grained PAT scoped to that project's backup repo** in `.git/push-credentials` (untracked, 0600) and switches the repo to a local credential store — the narrowest blast radius (a compromised agent can reach only that one repo's token, never the keychain). Without it, runs proceed normally but stay local-only.
 
 **Gemini** — currently launches unconfined (`--yolo`); filesystem-confinement parity is tracked in #186.
+
+**OpenCode** — `opencode.json` denies OpenCode file-tool access outside the project, but the autonomous profile permits Bash and OpenCode does not apply an OS/kernel sandbox to arbitrary child commands. Treat it as an unconfined runtime and run it only in a host/container whose files and credentials it may access; see `LIMITATIONS.md`.
 
 ## License
 

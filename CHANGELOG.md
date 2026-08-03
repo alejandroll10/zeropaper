@@ -15,7 +15,21 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.19.0] — 2026-08-03 (current)
+## [2.20.0] — 2026-08-03 (current)
+
+**OpenCode runtime.** Deployments now include `.opencode/agents/*.md` generated from the shared agent metadata and bodies, with per-agent permissions and every tier mapped to `opencode/deepseek-v4-flash`. Base, variant, mode, and extension assembly paths all participate; pruning, injections, marker resolution, and the deployment manifest cover the fifth agent tree.
+
+OpenCode reuses the existing Claude-compatible `SKILL.md` catalog through its native on-demand `skill` tool. The launcher selects `.claude/skills` explicitly to avoid duplicate IDs from the parallel `.agents/skills` compatibility tree. Shared `AGENTS.md` guidance now dispatches OpenCode agents through foreground native `task` calls.
+
+`./launch.sh opencode` provides a resumable non-interactive session driver with stale-session validation, terminal-state detection, and a five-turn no-progress cost guard; `--once` opens the interactive TUI. `opencode.json` pins the model and project file-tool permissions. OpenCode Bash is not kernel-sandboxed, so the security limitation is stated in README and `LIMITATIONS.md` rather than implied away.
+
+Follow-up hardening makes unattended execution explicit: session sharing is disabled, `doom_loop` cannot block waiting for approval, every turn has a process-group watchdog, and the cost guard distinguishes completed native subagent work from empty fast turns while retaining an absolute churn ceiling. Timeout shutdown gives Bash descendants the configured grace period before killing them. Cached and reconciled sessions must belong to the current physical checkout, and reconciliation fails closed when its pre-run session snapshot is unavailable. OpenCode agents receive foreground/checkpointed Bash guidance instead of Claude's unsupported `run_in_background` argument. A mocked launcher regression suite covers interactive launch, fresh/resumed/stale/malformed and cross-project sessions, invalid reconciliation baselines, substantive-tool progress, descendant cleanup, and forced timeout recovery.
+
+The launcher safely exports the project `.env`'s `OPENCODE_API_KEY` without evaluating the file, while preserving an already-exported value. This makes the documented per-project credential path work for both interactive and headless launches without requiring a separate shell export or global OpenCode auth state.
+
+---
+
+## [2.19.0] — 2026-08-03
 **`--light` now means light, including the orchestrator.** v2.18.2 fixed the flag's *subagent* half on codex; the first real light run under `./launch.sh codex` immediately exposed the other half — the banner read `model: gpt-5.6-terra`, because the orchestrator is launched by `launch.sh` and inherited the CLI's session default. Every subagent was Luna; the one process doing stage routing, gate decisions, and the whole fan-out was not. Same story on claude and gemini. The flag now pins both halves.
 
 **Two mechanisms, because the halves are pinned at different times.** Subagents are pinned at assembly time (`--model-override` through each assembler's tier table). The orchestrator is pinned at launch: `--model <tier>` for claude and gemini, `-c model="<tier>"` for codex. The codex form is deliberate — `codex exec resume` accepts only `-c`, and the driver resumes on every turn after the first, so a flag-form pin would have applied to turn 1 and silently reverted for the rest of the run.

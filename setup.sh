@@ -35,8 +35,8 @@
 #           Mutually exclusive with --seed and --faithful.
 # --light   Use the cheapest capability tier for the whole run (cheaper/faster).
 #           Applies to every runtime through its own tier table: claude `sonnet`,
-#           codex `gpt-5.6-luna`, gemini `gemini-3-flash-preview` (grok is a no-op
-#           — it has one model, grok-4.5). Subagents are pinned at assembly time
+#           codex `gpt-5.6-luna`, gemini `gemini-3-flash-preview`. Grok and
+#           OpenCode are no-ops because each has one configured model. Subagents are pinned at assembly time
 #           and their per-agent reasoning effort is dropped; the ORCHESTRATOR is
 #           pinned to the same tier by launch.sh, which reads it back from the
 #           assembled agents rather than carrying its own copy of the table.
@@ -363,7 +363,7 @@ fi
 # slugs (editor.md's ladder/allowed-values lines) reference {{TIER_LIST_INLINE}}
 # / {{TIER_LADDER_PROSE}}, resolved from this generated overlay so the ladder
 # has exactly one source of truth per deploy. Passed to every base assembler
-# (shared + variant, all four runtimes). Build-time only (mktemp, never
+# (shared + variant, all five runtimes). Build-time only (mktemp, never
 # deployed): no manifest entry. Best-effort cleanup — a leaked file holds only
 # the public tier strings.
 #
@@ -460,6 +460,10 @@ GROK_AGENTS_REL="$GROK_DIR_REL/agents"
 # (the per-project leader socket keeps concurrent grok projects from cancelling
 # each other's turns — see the launch-line comment below).
 GROK_SANDBOX_REL="$GROK_DIR_REL/sandbox.toml"
+OPENCODE_DIR_REL=".opencode"
+OPENCODE_AGENTS_REL="$OPENCODE_DIR_REL/agents"
+OPENCODE_CONFIG_REL="opencode.json"
+OPENCODE_CONFIG_SRC_REL="templates/runtime/opencode/opencode.json"
 
 
 MODEL_OVERRIDE_ARGS=()
@@ -728,6 +732,39 @@ assemble_grok_variant_agents() {
         "${MODEL_OVERRIDE_ARGS[@]}"
 }
 
+assemble_opencode_shared_agents() {
+    local template_root="$1" dest_dir="$2"
+    local bodies_args=() vocab_args=()
+    [ -n "$MODE_BODIES_OVERLAY" ] && bodies_args+=(--bodies-dir "$MODE_BODIES_OVERLAY")
+    bodies_args+=(--bodies-dir "$template_root/templates/agent_bodies/shared")
+    vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    local variant_vocab="$template_root/templates/agents/${AGENT_DIR}/vocab.json"
+    [ -f "$variant_vocab" ] && vocab_args+=(--vocab "$variant_vocab")
+    vocab_args+=(--vocab "$TIER_VOCAB_FILE")
+    [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
+    python3 "$template_root/scripts/assemble_opencode_agents.py" \
+        --metadata "$template_root/templates/agent_metadata/claude_shared_agents.json" \
+        "${bodies_args[@]}" "${vocab_args[@]}" "${MODE_METADATA_ARGS[@]}" \
+        --output-dir "$dest_dir" "${MODEL_OVERRIDE_ARGS[@]}"
+}
+
+assemble_opencode_variant_agents() {
+    local template_root="$1" variant="$2" dest_dir="$3"
+    local vocab_file="$template_root/templates/agents/${variant}/vocab.json"
+    local vocab_args=() shared_args=()
+    vocab_args+=(--vocab "$template_root/templates/agent_bodies/shared/vocab.json")
+    [ -f "$vocab_file" ] && vocab_args+=(--vocab "$vocab_file")
+    vocab_args+=(--vocab "$TIER_VOCAB_FILE")
+    [ -n "$MODE_VOCAB_OVERLAY" ] && vocab_args+=(--vocab "$MODE_VOCAB_OVERLAY")
+    [ -n "$MODE_BODIES_OVERLAY" ] && shared_args+=(--shared-bodies-dir "$MODE_BODIES_OVERLAY")
+    shared_args+=(--shared-bodies-dir "$template_root/templates/agent_bodies/shared")
+    python3 "$template_root/scripts/assemble_opencode_agents.py" \
+        --metadata "$template_root/templates/agent_metadata/claude_variant_agents.json" \
+        --bodies-dir "$template_root/templates/agents/${variant}" \
+        "${shared_args[@]}" "${vocab_args[@]}" "${MODE_METADATA_ARGS[@]}" \
+        --output-dir "$dest_dir" "${MODEL_OVERRIDE_ARGS[@]}"
+}
+
 assemble_claude_skills() {
     local template_root="$1"
     local metadata_file="$2"
@@ -771,11 +808,13 @@ if [ "$LOCAL" = "1" ]; then
     mkdir -p "$OUT_DIR/$CODEX_AGENTS_REL"
     mkdir -p "$OUT_DIR/$GEMINI_AGENTS_REL"
     mkdir -p "$OUT_DIR/$GROK_AGENTS_REL"
+    mkdir -p "$OUT_DIR/$OPENCODE_AGENTS_REL"
     # Copy shared project files. (The runtime settings files themselves are
     # installed by the shared install_runtime_settings block below, which serves
     # both --local and production.)
     mkdir -p "$OUT_DIR/$CLAUDE_DIR_REL"
     mkdir -p "$OUT_DIR/$GEMINI_DIR_REL"
+    cp "$SCRIPT_DIR/$OPENCODE_CONFIG_SRC_REL" "$OUT_DIR/$OPENCODE_CONFIG_REL"
     # Project-specific gitignore (tracks paper/, output/, code/; ignores data
     # blobs + build artifacts). Production mode copies this at the cleanup step
     # (line ~1878), but --local exits before reaching it, so copy it here too.
@@ -1150,15 +1189,19 @@ if [ "$LOCAL" = "1" ]; then
     CODEX_AGENTS_OUT="$OUT_DIR/$CODEX_AGENTS_REL"
     GEMINI_AGENTS_OUT="$OUT_DIR/$GEMINI_AGENTS_REL"
     GROK_AGENTS_OUT="$OUT_DIR/$GROK_AGENTS_REL"
+    OPENCODE_AGENTS_OUT="$OUT_DIR/$OPENCODE_AGENTS_REL"
 else
     AGENTS_OUT="$CLAUDE_AGENTS_REL"
     CODEX_AGENTS_OUT="$CODEX_AGENTS_REL"
     GEMINI_AGENTS_OUT="$GEMINI_AGENTS_REL"
     GROK_AGENTS_OUT="$GROK_AGENTS_REL"
+    OPENCODE_AGENTS_OUT="$OPENCODE_AGENTS_REL"
     mkdir -p "$AGENTS_OUT"
     mkdir -p "$CODEX_AGENTS_OUT"
     mkdir -p "$GEMINI_AGENTS_OUT"
     mkdir -p "$GROK_AGENTS_OUT"
+    mkdir -p "$OPENCODE_AGENTS_OUT"
+    cp "$TEMPLATE_ROOT/$OPENCODE_CONFIG_SRC_REL" "$OPENCODE_CONFIG_REL"
 fi
 
 # ── Resolve unavailable Claude subagent models → fallbacks ──
@@ -1216,12 +1259,14 @@ assemble_claude_shared_agents "$TEMPLATE_ROOT" "$AGENTS_OUT"
 assemble_codex_shared_agents "$TEMPLATE_ROOT" "$CODEX_AGENTS_OUT"
 assemble_gemini_shared_agents "$TEMPLATE_ROOT" "$GEMINI_AGENTS_OUT"
 assemble_grok_shared_agents "$TEMPLATE_ROOT" "$GROK_AGENTS_OUT"
+assemble_opencode_shared_agents "$TEMPLATE_ROOT" "$OPENCODE_AGENTS_OUT"
 
 if [ -f "$TEMPLATE_ROOT/templates/agent_metadata/claude_variant_agents.json" ]; then
     assemble_claude_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$AGENTS_OUT"
     assemble_codex_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$CODEX_AGENTS_OUT"
     assemble_gemini_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$GEMINI_AGENTS_OUT"
     assemble_grok_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$GROK_AGENTS_OUT"
+    assemble_opencode_variant_agents "$TEMPLATE_ROOT" "$AGENT_DIR" "$OPENCODE_AGENTS_OUT"
 fi
 
 # ── Grok filesystem/network sandbox profile ──
@@ -1275,7 +1320,7 @@ deny = [
 ]
 GROKSB
 
-echo "  ✓ Agents assembled (shared + ${AGENT_DIR})"
+echo "  ✓ Agents assembled for five runtimes (shared + ${AGENT_DIR})"
 
 # ── Prune agents not used in --mode report ──
 # Report mode only invokes the audit fan-out + report-synthesizer. Generative,
@@ -1285,14 +1330,14 @@ echo "  ✓ Agents assembled (shared + ${AGENT_DIR})"
 # bib-verifier, novelty-checker, self-attacker, debugger, report-synthesizer
 # stay; extension generative agents (empiricist, identification-designer,
 # experiment-designer) are pruned per-extension below by the same function.
-# Delete assembled agent output files across all three runtimes. The
+# Delete assembled agent output files across all five runtimes. The
 # mode/flag-conditional prune passes below decide *when* to call this; this
 # helper just does the removal, so a new runtime output dir is wired in one
 # place, not once per prune pass.
 prune_agents() {
     local _name
     for _name in "$@"; do
-        rm -f "$AGENTS_OUT/${_name}.md" "$CODEX_AGENTS_OUT/${_name}.toml" "$GEMINI_AGENTS_OUT/${_name}.md" "$GROK_AGENTS_OUT/${_name}.md"
+        rm -f "$AGENTS_OUT/${_name}.md" "$CODEX_AGENTS_OUT/${_name}.toml" "$GEMINI_AGENTS_OUT/${_name}.md" "$GROK_AGENTS_OUT/${_name}.md" "$OPENCODE_AGENTS_OUT/${_name}.md"
     done
 }
 
@@ -1405,13 +1450,16 @@ for agent in literature-scout gap-scout novelty-checker theory-explorer implicat
     if [ -f "$GROK_AGENTS_OUT/$agent.md" ]; then
         echo "$VARIANT_BLOCK" >> "$GROK_AGENTS_OUT/$agent.md"
     fi
+    if [ -f "$OPENCODE_AGENTS_OUT/$agent.md" ]; then
+        echo "$VARIANT_BLOCK" >> "$OPENCODE_AGENTS_OUT/$agent.md"
+    fi
 done
 echo "  ✓ Variant context injected into agents"
 
 # ── Agent body inject helpers ──
 # `inject_block_into_agents <inject_file> <agent>...` appends the contents of
-# <inject_file> to the assembled body of each named agent across all three runtimes
-# (claude `.md`, codex `.toml`, gemini `.md`). The codex append uses awk to splice
+# <inject_file> to the assembled body of each named agent across all five runtimes.
+# The codex append uses awk to splice
 # the block in just before the closing `'''` of the TOML prompt body; the claude/
 # gemini appends are plain. File-existence guards make a not-yet-assembled agent a
 # harmless no-op. Single source of the per-runtime append logic for every inject
@@ -1448,6 +1496,9 @@ inject_block_into_agents() {
         if [ -f "$GROK_AGENTS_OUT/$_agent.md" ]; then
             printf '\n%s\n' "$_block" >> "$GROK_AGENTS_OUT/$_agent.md"
         fi
+        if [ -f "$OPENCODE_AGENTS_OUT/$_agent.md" ]; then
+            printf '\n%s\n' "$_block" >> "$OPENCODE_AGENTS_OUT/$_agent.md"
+        fi
     done
 }
 
@@ -1476,6 +1527,28 @@ inject_faithful_into_agents() {
 # go unmonitored. Called after core assembly and inside each extension block.
 inject_bash_background_into_agents() {
     inject_block_into_agents "$TEMPLATE_ROOT/templates/shared/bash_background.md" "$@"
+    # OpenCode has no Bash run_in_background argument. Replace the generic
+    # Claude-compatible paragraph in only its generated agent bodies with the
+    # foreground/checkpointing contract. Exact replacement fails loudly if the
+    # expected generic block is absent, preventing silent instruction drift.
+    python3 - \
+        "$TEMPLATE_ROOT/templates/shared/bash_background.md" \
+        "$TEMPLATE_ROOT/templates/shared/bash_foreground_opencode.md" \
+        "$OPENCODE_AGENTS_OUT" "$@" <<'PYEOF'
+import os, sys
+old = open(sys.argv[1]).read().rstrip()
+new = open(sys.argv[2]).read().rstrip()
+root = sys.argv[3]
+for agent in sys.argv[4:]:
+    path = os.path.join(root, agent + ".md")
+    if not os.path.exists(path):
+        continue
+    text = open(path).read()
+    if old not in text:
+        raise SystemExit(f"OpenCode Bash injection missing from {path}")
+    with open(path, "w") as f:
+        f.write(text.replace(old, new, 1))
+PYEOF
 }
 
 # `inject_efficiency_into_agents` appends the compute-efficiency mandate (issue
@@ -2399,6 +2472,7 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$AGENTS_OUT" \
                 "$CODEX_AGENTS_OUT" \
                 "$GEMINI_AGENTS_OUT" \
+                "$OPENCODE_AGENTS_OUT" \
                 "$SKILLS_OUT" \
                 "$LOCAL" \
                 "$LIGHT_MODEL" \
@@ -2546,6 +2620,7 @@ PYEOF
                 "$AGENTS_OUT" \
                 "$CODEX_AGENTS_OUT" \
                 "$GEMINI_AGENTS_OUT" \
+                "$OPENCODE_AGENTS_OUT" \
                 "$SKILLS_OUT" \
                 "$AGENT_DIR" \
                 "$LOCAL" \
@@ -2589,7 +2664,7 @@ open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{
                 "$TEMPLATE_ROOT/extensions/empirical/scorer_fertility_inject.md" \
                 "$P/docs/stage_2.md" \
                 "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
-                "$AGENTS_OUT/scorer.md" "$CODEX_AGENTS_OUT/scorer.toml" "$GEMINI_AGENTS_OUT/scorer.md" "$GROK_AGENTS_OUT/scorer.md" \
+                "$AGENTS_OUT/scorer.md" "$CODEX_AGENTS_OUT/scorer.toml" "$GEMINI_AGENTS_OUT/scorer.md" "$GROK_AGENTS_OUT/scorer.md" "$OPENCODE_AGENTS_OUT/scorer.md" \
                 "$TEMPLATE_ROOT/extensions/empirical/state_loop_fields_inject.md" <<'PYEOF'
 import json, os, sys
 # Inject files are read raw — each file is responsible for its own leading/trailing
@@ -2603,13 +2678,13 @@ playbook = open(sys.argv[5]).read()
 fertility = open(sys.argv[6]).read()
 stage2_md = sys.argv[7]
 runtime_docs = sys.argv[8:11]
-# Four scorer files, not three — Grok is the fourth runtime (.grok/agents/scorer.md).
+# Five scorer files — OpenCode is the fifth runtime (.opencode/agents/scorer.md).
 # These slices are hand-indexed against the argv list above; when you add a call
 # site, re-count BOTH the slice end and every index after it. Getting this wrong is
 # silent: an off-by-one previously made `state_loop` read the grok scorer body and
 # splice that whole agent prompt into the deployed runtime docs.
-scorer_files = sys.argv[11:15]
-state_loop = open(sys.argv[15]).read()
+scorer_files = sys.argv[11:16]
+state_loop = open(sys.argv[16]).read()
 
 def patch(path, pairs):
     if not os.path.exists(path):
@@ -2795,7 +2870,7 @@ done
 python3 - \
     "$P/docs/stage_2.md" \
     "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
-    "$AGENTS_OUT/scorer.md" "$CODEX_AGENTS_OUT/scorer.toml" "$GEMINI_AGENTS_OUT/scorer.md" "$GROK_AGENTS_OUT/scorer.md" <<'PYEOF'
+    "$AGENTS_OUT/scorer.md" "$CODEX_AGENTS_OUT/scorer.toml" "$GEMINI_AGENTS_OUT/scorer.md" "$GROK_AGENTS_OUT/scorer.md" "$OPENCODE_AGENTS_OUT/scorer.md" <<'PYEOF'
 import os, re, sys
 # Match a whole line that is just {{EMPIRICAL_*}} or {{THEORY_LLM_*}} (with optional
 # surrounding whitespace), including its trailing newline. Inline (mid-line)
@@ -2816,14 +2891,14 @@ for p in sys.argv[1:]:
         with open(p, "w") as f: f.write(new)
 PYEOF
 
-# Resolve THEORY_ONLY_GUARD markers in branch-manager across the three runtimes.
+# Resolve THEORY_ONLY_GUARD markers in branch-manager across all five runtimes.
 # Empirical mode: strip the whole guarded block (body + markers).
 # Theory-only mode: strip just the marker lines, keep the rule text.
 EMPIRICAL_ENABLED=0
 for ext in "${EXTENSIONS[@]}"; do
     [ "$ext" = "empirical" ] && EMPIRICAL_ENABLED=1
 done
-python3 - "$EMPIRICAL_ENABLED" "$AGENTS_OUT/branch-manager.md" "$CODEX_AGENTS_OUT/branch-manager.toml" "$GEMINI_AGENTS_OUT/branch-manager.md" "$GROK_AGENTS_OUT/branch-manager.md" <<'PYEOF'
+python3 - "$EMPIRICAL_ENABLED" "$AGENTS_OUT/branch-manager.md" "$CODEX_AGENTS_OUT/branch-manager.toml" "$GEMINI_AGENTS_OUT/branch-manager.md" "$GROK_AGENTS_OUT/branch-manager.md" "$OPENCODE_AGENTS_OUT/branch-manager.md" <<'PYEOF'
 import re, sys
 emp = sys.argv[1] == "1"
 if emp:
@@ -2866,7 +2941,7 @@ EXT_EMPIRICAL_ON=0
 [[ " ${EXTENSIONS[*]} " =~ " empirical " ]] && EXT_EMPIRICAL_ON=1
 # Resolver runs over stage docs, the three runtime docs (CLAUDE.md /
 # AGENTS.md / GEMINI.md, assembled from templates/shared/core.md), AND the
-# three runtimes' assembled agent files. The agent-file coverage lets shared
+# five runtimes' assembled agent files. The agent-file coverage lets shared
 # agent bodies (e.g., paper-writer.md) carry inline EMPIRICAL_FIRST /
 # THEORY_FIRST / EXT_EMPIRICAL markers — the alternative is a parallel body
 # in templates/agent_bodies/shared_modes/{mode}/, which is more duplication
@@ -2874,7 +2949,7 @@ EXT_EMPIRICAL_ON=0
 # assembly time (before this resolver fires), so {{KEY}} placeholders are
 # already resolved when the resolver sees the agent files.
 python3 - "$MODE" "$EXT_EMPIRICAL_ON" "$VARIANT" "$P/docs/"*.md "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
-    "$AGENTS_OUT"/*.md "$CODEX_AGENTS_OUT"/*.toml "$GEMINI_AGENTS_OUT"/*.md "$GROK_AGENTS_OUT"/*.md <<'PYEOF'
+    "$AGENTS_OUT"/*.md "$CODEX_AGENTS_OUT"/*.toml "$GEMINI_AGENTS_OUT"/*.md "$GROK_AGENTS_OUT"/*.md "$OPENCODE_AGENTS_OUT"/*.md <<'PYEOF'
 import os, re, sys
 mode = sys.argv[1]  # "", "empirical-first", "measurement-first", "report"
 xe = sys.argv[2] == "1"
@@ -2990,6 +3065,7 @@ candidate_dirs = [
     ".agents/skills",
     ".gemini/agents",
     ".grok/agents",
+    ".opencode/agents",
     "docs",
     "code/utils/codex_math",
     "code/utils/agent_launcher",
@@ -3016,6 +3092,7 @@ candidate_files = [
     ".claude/settings.json",
     ".gemini/settings.json",
     ".grok/sandbox.toml",
+    "opencode.json",
     ".gitignore",
     "dashboard.html",
     "code/utils/setup_push_token.sh",
@@ -3110,6 +3187,9 @@ if [ "$LOCAL" = "1" ]; then
     echo ""
     echo "=== Grok Agents ($GROK_AGENTS_REL/) ==="
     ls -1 "$GROK_AGENTS_OUT/"
+    echo ""
+    echo "=== OpenCode Agents ($OPENCODE_AGENTS_REL/) ==="
+    ls -1 "$OPENCODE_AGENTS_OUT/"
     if [ -d "$OUT_DIR/$CLAUDE_SKILLS_REL" ]; then
         echo ""
         echo "=== Skills ($CLAUDE_SKILLS_REL/) ==="
@@ -3285,7 +3365,7 @@ echo ""
 echo "  # Activate the project venv first so the pipeline's python3 finds its deps:"
 echo "  source .venv/bin/activate"
 echo ""
-echo "Preferred: ./launch.sh <claude|codex|gemini|grok>   (activates the venv and applies each runtime's flags)"
+echo "Preferred: ./launch.sh <claude|codex|gemini|grok|opencode>   (activates the venv and applies each runtime's flags)"
 echo ""
 echo "Claude:"
 echo "  source .venv/bin/activate && claude --dangerously-skip-permissions"
@@ -3332,6 +3412,6 @@ elif [ "$SEEDED" = "1" ]; then
     echo "Seeded: drop your idea files in output/seed/ before launching"
     echo "Pipeline will triage seed maturity and enter at the appropriate stage"
 fi
-echo "Sandbox is pre-configured for Claude ($CLAUDE_SETTINGS_REL) and Grok ($GROK_SANDBOX_REL)"
-echo "(writes/deletes restricted to the project folder + caches, web access works freely)"
+echo "Runtime permissions are pre-configured for Claude, Grok, and OpenCode ($OPENCODE_CONFIG_REL)"
+echo "(OpenCode file tools are project-confined; permitted Bash commands are not OS-sandboxed — see LIMITATIONS.md)"
 rm -f "$TIER_VOCAB_FILE"

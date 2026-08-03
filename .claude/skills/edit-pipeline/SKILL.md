@@ -21,7 +21,7 @@ Build-time-only paths get **no** manifest entry, because they never ship. Curren
 
 A load-bearing block of rule text that must read **byte-identically** across many agent bodies (the substance-over-form archetype list, the policy-map axes enumeration, the institutional-acronym citation carve-out, the `irreducible_stochasticity` JSON schema) is single-sourced as a fragment and referenced with a `{{> fragment_id }}` include directive.
 
-`scripts/agent_body_loader.py` inlines the fragment at assembly time, **before** vocab substitution — so a fragment may itself carry `{{VOCAB_KEY}}` placeholders. The directory is auto-discovered relative to the loader, so every assembler (base + extensions, all three runtimes) shares it with **no** per-call wiring. Build-time only: inlined into deployed agents, never copied out, so no manifest entry.
+`scripts/agent_body_loader.py` inlines the fragment at assembly time, **before** vocab substitution — so a fragment may itself carry `{{VOCAB_KEY}}` placeholders. The directory is auto-discovered relative to the loader, so every assembler (base + extensions, all five runtimes) shares it with **no** per-call wiring. Build-time only: inlined into deployed agents, never copied out, so no manifest entry.
 
 - Fragment IDs are lowercase (`[a-z0-9][a-z0-9_-]*`). An uppercase ID in a `{{> … }}` directive will **not** match and ships literally.
 - Use a fragment only for genuinely byte-identical atoms. Do **not** fragment role-adapted prose that merely looks similar — the copies across scorer / referee / self-attacker / triager are intentionally verb- and verdict-specific, and flattening them changes behavior.
@@ -176,9 +176,9 @@ test_scripts/                # Skill verification scripts (removed on deploy)
 The pipeline is split into two layers:
 
 - **Runtime-agnostic**: `templates/shared/core.md` (orchestrator logic, pipeline stages), `templates/agent_bodies/shared/` and `templates/agents/{variant}/vocab.json` (agent prompts and per-variant vocab including scorer calibrations) — these are the same regardless of runtime.
-- **Runtime-specific**: `templates/runtime/{claude,codex,gemini}/session.md` (session guidance per runtime), `templates/agent_metadata/claude_*.json` (shared metadata with per-runtime overrides via `codex` and `gemini` keys), `scripts/assemble_{claude_agents,codex_subagents,gemini_agents,grok_agents}.py`.
+- **Runtime-specific**: session guidance under `templates/runtime/`, shared metadata with per-runtime overrides, and `scripts/assemble_{claude_agents,codex_subagents,gemini_agents,grok_agents,opencode_agents}.py`.
 
-**Four** runtimes share the same core + agent bodies, with runtime-specific packaging: Claude, Codex, Gemini, and **Grok**. Grok is the odd one — it has no `templates/runtime/grok/session.md` (it reads the shared AGENTS.md, per the comment in `setup.sh`), but it is otherwise fully wired: `assemble_grok_shared_agents` / `assemble_grok_variant_agents` in `setup.sh`, `scripts/assemble_grok_agents.py`, output to `.grok/agents/*.md`, a generated `.grok/sandbox.toml`, and manifest entries for both. When you add an agent or change assembly, Grok is a fourth call site that is easy to miss precisely because it has no session.md next to the others.
+**Five** runtimes share the same core + agent bodies: Claude, Codex, Gemini, Grok, and OpenCode. Grok and OpenCode read the shared `AGENTS.md`; their generated agents live in `.grok/agents/*.md` and `.opencode/agents/*.md`. Every base/variant agent change has five assembly call sites. Extension appliers currently cover Claude, Codex, Gemini, and OpenCode; Grok extension agents remain a documented gap.
 
 ## How setup.sh works
 
@@ -206,7 +206,7 @@ The pipeline is split into two layers:
    - Codex/Gemini skills into `.agents/skills/` (shared)
    - Copies utility scripts to `code/utils/`
 9. Applies extensions (`--ext empirical`, `--ext theory_llm`):
-   - Assembles extension agents for all three runtimes
+   - Assembles extension agents for Claude, Codex, Gemini, and OpenCode (Grok remains a documented extension gap)
    - Assembles extension skills from shared skill metadata + bodies
    - Copies utilities, creates dirs, appends API keys to `.env`
 10. Removes template infrastructure, detaches from origin, commits initial state
@@ -308,7 +308,7 @@ If that model is unavailable on the account at setup time (a provider suspension
 
 **`--light` also pins the orchestrator (v2.19.0).** The subagent pinning below happens at assembly time; the orchestrator is launched by `launch.sh`, which pins it separately (`--model` for claude/gemini, `-c model="…"` for codex — `codex exec resume` accepts only the config form, and the driver resumes every turn after the first). `light_orchestrator_model` in `launch.sh` **reads the tier back from the assembled agents** instead of carrying a fourth copy of the tier table: it fires only when `.deploy_manifest.json` has `flags.light` and every assembled agent agrees on one model, so it tracks the assemblers automatically and cannot drift from them. Grok's branch never calls it (single-model table, and its roster is uniform in *every* deployment — which is exactly why the manifest check, not roster uniformity alone, is the trigger). When you add a runtime, its launch branch is a call site.
 
-**`--light` reaches every runtime (v2.18.2).** `setup.sh` passes `--model-override sonnet` to all four assemblers; each maps the Claude alias through its own tier table — `assemble_codex_subagents.py`'s `MODEL_MAP` sends `sonnet → gpt-5.6-luna` (and `fable → gpt-5.6-sol`, `opus → gpt-5.6-terra`, so the argument is reusable for a future non-light override). The override also **drops `model_reasoning_effort`**, mirroring the Claude assembler dropping `effort`: the pinned levels are tuned for each agent's ideal tier, and leaving `high` on a Luna worker would defeat the point. `launch_agent.sh` falls back to `medium` when the field is absent, so a light codex agent runs Luna/medium. Grok is unaffected by construction — its tier table is a single model (`grok-4.5`). Only agents that already pin a model are overridden (all 55 currently do); **five** codex call sites carry the flag — two in `setup.sh` (`assemble_codex_{shared,variant}_agents`), two in the empirical applier (its shared-agents and variant-agents blocks), one in the theory_llm applier. That 2/2/1 shape is the same for the claude and gemini assemblers; grok has only the two `setup.sh` sites, because neither applier assembles grok agents at all.
+**`--light` reaches every runtime.** `setup.sh` passes `--model-override sonnet` to all five assemblers; each maps the Claude alias through its tier table. Claude, Codex, and Gemini select their cheap tiers. Grok and OpenCode each expose one configured model, so the override is a no-op for them. Base and variant assembly have five call sites; extension assembly covers Claude, Codex, Gemini, and OpenCode, with Grok's missing extension path documented in `LIMITATIONS.md`.
 
 **Known limitation (documented, not solved):** only **Claude** subagent models are probed/remapped. Codex (`gpt-5.6-{sol,terra,luna}`) and Gemini (`gemini-3-preview`) subagents use a different provider/CLI; their availability is not checked. If an OpenAI/Google model used by the codex/gemini runtimes is withdrawn, those agents would hard-fail the same way — closing that would require per-provider probes (an `openai`/`gemini` CLI check) and provider-specific fallback chains. The `model_fallbacks.json` schema and the resolver/apply split are already provider-agnostic; what's missing is the per-runtime probe command and wiring the apply pass over `.codex/agents` / `.gemini/agents`.
 
@@ -316,12 +316,12 @@ These four paths (`templates/model_fallbacks.json`, `scripts/resolve_model_fallb
 
 ## Core skills (all variants)
 
-Four skills install unconditionally for every variant (`sympy`, `codex-math`, `bib-verify`, `openalex`); `ssj` and `nber-agenda` are **variant-gated** (issue #205): `variant_wants_skill` in `setup.sh` drops them from llm_cognition deployments (assembly, `code/utils/` copy, deps install, and the manual-mode catalogs all consult it), and `update.sh`'s stale-infrastructure sweep removes them from pre-gating llm_cognition deployments on refresh. `empirical_skills.json` and `theory_llm_skills.json` are extension-gated. Note `codex-math` is Claude-only — it is absent from `CODEX_SKILL_METADATA_ARGS`. When retiring any deployed path (skill or otherwise), the sweep handles old deployments automatically **only if the path was manifested** — a never-manifested path is invisible to it.
+Four skills install unconditionally for every variant (`sympy`, `codex-math`, `bib-verify`, `openalex`); `ssj` and `nber-agenda` are **variant-gated** (issue #205). `codex-math` is absent from `.agents/skills` to prevent Codex self-reference, but OpenCode deliberately consumes the complete `.claude/skills` tree and therefore can use it. When retiring any deployed path, the update sweep can remove it only if it was manifested.
 
 | Skill | Description |
 |-------|-------------|
 | `sympy` | Symbolic math — the workhorse for derivations and verification. Used by 6+ core agents. |
-| `codex-math` | OpenAI Codex (gpt-5.6-sol, pinned explicitly rather than via the `gpt-5.6` alias) for proof verification, writing, and exploration. Erratic genius — substantial false-positive rate, always triage. Scripts at `code/utils/codex_math/`. Claude runtime only. |
+| `codex-math` | OpenAI Codex (gpt-5.6-sol) for proof verification, writing, and exploration. Scripts at `code/utils/codex_math/`. Available to Claude and OpenCode; excluded from Codex to prevent self-reference. |
 | `bib-verify` | Bibliography verification — the tool behind the `bib-verifier` agent. |
 | `openalex` | OpenAlex literature queries. Used by `literature-scout`, `gap-scout`, `novelty-checker`, all three referees (`referee`, `referee-freeform`, `referee-mechanism`), `polish-institutions`, `polish-bibliography`. |
 | `ssj` | Sequence-space Jacobian toolkit. Used by `idea-prototyper` and `theory-explorer`. |

@@ -23,15 +23,16 @@ PROJECT_ROOT="$2"
 AGENTS_OUT="$3"
 CODEX_AGENTS_OUT="$4"
 GEMINI_AGENTS_OUT="$5"
-SKILLS_OUT="$6"
-LOCAL="$7"
+OPENCODE_AGENTS_OUT="$6"
+SKILLS_OUT="$7"
+LOCAL="$8"
 MODEL_OVERRIDE_ARG=()
-if [ -n "$8" ]; then
-    MODEL_OVERRIDE_ARG=(--model-override "$8")
+if [ -n "$9" ]; then
+    MODEL_OVERRIDE_ARG=(--model-override "$9")
 fi
-# $9 = base variant vocab path (templates/agents/{variant}/vocab.json).
+# $10 = base variant vocab path (templates/agents/{variant}/vocab.json).
 # Layering mirrors the base assemblers: shared defaults first, then variant.
-EXT_BASE_VOCAB="${9}"
+EXT_BASE_VOCAB="${10}"
 EXT_VOCAB_ARGS=()
 EXT_SHARED_VOCAB="$TEMPLATE_ROOT/templates/agent_bodies/shared/vocab.json"
 [ -f "$EXT_SHARED_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_SHARED_VOCAB")
@@ -60,6 +61,13 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_gemini_agents.py" \
     --bodies-dir "$EXT_ROOT/agent_bodies" \
     "${EXT_VOCAB_ARGS[@]}" \
     --output-dir "$GEMINI_AGENTS_OUT" \
+    "${MODEL_OVERRIDE_ARG[@]}"
+
+python3 "$TEMPLATE_ROOT/scripts/assemble_opencode_agents.py" \
+    --metadata "$EXT_ROOT/agent_metadata/agents.json" \
+    --bodies-dir "$EXT_ROOT/agent_bodies" \
+    "${EXT_VOCAB_ARGS[@]}" \
+    --output-dir "$OPENCODE_AGENTS_OUT" \
     "${MODEL_OVERRIDE_ARG[@]}"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_claude_skills.py" \

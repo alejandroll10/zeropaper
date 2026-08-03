@@ -9,7 +9,7 @@ The review is on the *report*, not on the submission — we never edit the submi
 When the user says "start" or "run", check `submission/`. If empty, point them at `submission/README.md` and stop. Otherwise:
 
 1. Run Step 1 (Triage) inline — read `submission/`, write `process_log/triage.md`.
-2. Launch the Step 2 audit fan-out in parallel. Every `launch_agent.sh` call is fire-and-forget — it detaches the worker and returns in ~1s (there is no "foreground" launch on codex); fan them all out, then end your turn.
+2. Launch the Step 2 audit fan-out in parallel. On Codex, every `launch_agent.sh` call is fire-and-forget; fan them all out, then end your turn. On OpenCode or Grok, use parallel native `task` calls with each runtime's agent name and wait for the foreground results.
 3. On a later turn, poll each audit's output file by checking ONCE (`ls`/`cat`) and moving on — never a blocking `sleep`-loop in one command (it would hit codex's ~10s silent-exec cap). The file appears only when that worker finishes; a file containing a `WORKER FAILED (rc=N)` banner means that audit failed (read the log tail, relaunch it deliberately). Do NOT relaunch an agent whose `.<agent>.running` sentinel is still present — that is a live worker, not a stalled one.
 4. Once all audits have written to `audits/`, launch `report-synthesizer`.
 5. Run the self-review pass above.
@@ -29,7 +29,7 @@ Then, after each audit agent completes, append a row to the same log recording t
 
 ### Use the subagents
 
-The agent catalog above lists subagents in `.codex/agents/` — that's the value of this mode. Math audits, novelty checks, referee reads, citation verification, institution checks — these belong to the agents. Do not do the audit work yourself.
+The agent catalog is in `.codex/agents/` for Codex, `.opencode/agents/` for OpenCode, and `.grok/agents/` for Grok. Math audits, novelty checks, referee reads, citation verification, and institution checks belong to the agents. Do not do the audit work yourself.
 
 ### Read before you launch
 
@@ -58,4 +58,4 @@ The audit agents are adversarial by design. Do not soften their outputs. The syn
 
 ## Skills
 
-User-invocable skills in `{{SKILL_DIR}}/` can be triggered with `/skill-name <args>` in Codex. In report mode the main relevant skills are `openalex` (for citation sanity-checks) and `codex-math` (for spot-checking flagged derivations).
+Skills in `{{SKILL_DIR}}/` load on demand. OpenCode uses its native `skill` tool against the same compatible `SKILL.md` files. In report mode the main relevant skills are `openalex` and `codex-math`. The latter is exposed to OpenCode from `.claude/skills/codex-math/SKILL.md` even though it is intentionally omitted from Codex's own catalog to prevent a recursive Codex-on-Codex invocation.
