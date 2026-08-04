@@ -31,7 +31,8 @@ Set up an autonomous finance research project in this folder.
 2. From there, run ./setup.sh my-paper --variant finance
    (or --variant finance --ext empirical if I want CRSP/Compustat data)
 3. Move the resulting my-paper/ folder here
-4. Check that I have the prerequisites installed (python3, uv, git; bubblewrap on Linux).
+4. Check that I have the prerequisites installed (python3, uv, git; if I plan to use
+   OpenCode, Anthropic Sandbox Runtime plus bubblewrap, socat, and ripgrep on Linux).
    If anything is missing, walk me through installing it on my machine (Mac or Linux).
 5. When setup is done, tell me to cd into my-paper and say "Run the pipeline."
 ```
@@ -51,15 +52,19 @@ Claude Code will handle the clone, setup, and prereq checks for you. Works on Ma
 ```bash
 # System packages
 #   Linux (Ubuntu/Debian):
-sudo apt-get install python3 python3-pip git bubblewrap
-#   macOS (Homebrew): sandbox is built-in via Seatbelt — no bubblewrap needed
-brew install python git
+sudo apt-get install python3 python3-pip git bubblewrap socat ripgrep
+#   macOS (Homebrew): sandbox is built-in via Seatbelt — no bubblewrap needed;
+#   ripgrep is additionally required when using OpenCode/SRT
+brew install python git ripgrep
 
 # uv (Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
 
 # Claude Code
 npm install -g @anthropic-ai/claude-code
+
+# Anthropic Sandbox Runtime (only required when using OpenCode)
+npm install -g @anthropic-ai/sandbox-runtime
 
 # Codex
 npm install -g @openai/codex
@@ -74,6 +79,8 @@ brew install anomalyco/tap/opencode
 git config --global user.email "you@example.com"
 git config --global user.name "Your Name"
 ```
+
+On Ubuntu 24.04+, AppArmor restricts the user namespaces required by bubblewrap by default. Configure an AppArmor `userns` profile for the SRT/bubblewrap binaries (preferred), or use the broader sysctl workaround described in [Anthropic Sandbox Runtime's Linux notes](https://github.com/anthropic-experimental/sandbox-runtime#platform-specific-dependencies). OpenCode's launcher fails closed when SRT cannot initialize. Running the OpenCode runtime as root is intentionally unsupported.
 
 ## Quick start
 
@@ -369,7 +376,7 @@ my-paper/
 - Claude Code: `claude --dangerously-skip-permissions`
 - Codex: `./launch.sh codex` runs the headless driver loop (codex has no autowake; an interactive TUI stalls at every turn-end). Manual posture: `codex --sandbox workspace-write --ask-for-approval never -c 'sandbox_workspace_write.network_access=true' -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$(pwd)/.git\"]"` (write-confined to the project; run from the project root — the `$(pwd)/.git` root is required for pipeline commits; see Safety)
 - Gemini CLI: `gemini --yolo`
-- OpenCode: set `OPENCODE_API_KEY` in `.env`. `./launch.sh opencode` runs a resumable non-interactive driver on `opencode/deepseek-v4-flash`; `./launch.sh opencode --once` opens the TUI. The autonomous driver maintains an authenticated localhost OpenCode server so native experimental background `task` children survive individual client turns, inject completion into the parent, and autowake it; versions whose task schema lacks `background` use foreground calls. OpenCode reuses `.claude/skills` through its native `skill` tool and generated `.opencode/agents` through native tasks.
+- OpenCode: set `OPENCODE_API_KEY` in `.env`. `./launch.sh opencode` runs a resumable non-interactive driver on `opencode/deepseek-v4-flash`; `./launch.sh opencode --once` opens the TUI. Both forms fail closed unless Anthropic Sandbox Runtime is installed, and wrap the OpenCode execution owner so native Bash/task descendants inherit its OS filesystem boundary. The autonomous driver maintains an authenticated localhost OpenCode server so native experimental background `task` children survive individual client turns, inject completion into the parent, and autowake it; versions whose task schema lacks `background` use foreground calls. OpenCode reuses `.claude/skills` through its native `skill` tool and generated `.opencode/agents` through native tasks.
 - All runtimes read the same pipeline state and produce identical artifacts — you can switch runtimes mid-pipeline.
 
 ## Safety
@@ -388,7 +395,7 @@ Two further grok-sandbox consequences (issue #190) — the launcher fixes the fi
 
 **Gemini** — currently launches unconfined (`--yolo`); filesystem-confinement parity is tracked in #186.
 
-**OpenCode** — `opencode.json` denies OpenCode file-tool access outside the project, but the autonomous profile permits Bash and OpenCode does not apply an OS/kernel sandbox to arbitrary child commands. Treat it as an unconfined runtime and run it only in a host/container whose files and credentials it may access; see `LIMITATIONS.md`.
+**OpenCode** — `./launch.sh opencode` wraps the persistent server and every attached client in Anthropic Sandbox Runtime; `--once` wraps the whole TUI. Seatbelt (macOS) / bubblewrap (Linux) confines the descendant trees to project, project-scoped OpenCode state, and approved cache/runtime writes, and denies reads and writes under `~/.ssh` and `~/.aws`. The SRT policy, adapter, launcher, OpenCode config, project `.env`/deployment manifest, host driver, and host control state are immutable from inside the sandbox; the host driver also uses an isolated Python and a PATH with every sandbox-writable directory removed, and runs Git-based progress inspection inside SRT. Network egress remains unrestricted because literature, package, and data hosts cannot be known in advance. The adapter fails closed if SRT or its policy is missing or invalid. Bare `opencode` bypasses this boundary; always use the launcher. See `LIMITATIONS.md` for the external-runtime and global cache/Codex-state caveats.
 
 ## License
 

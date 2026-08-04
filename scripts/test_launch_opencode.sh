@@ -1,20 +1,27 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-TEST_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/zeropaper-launch-test.XXXXXX")"
+TEST_ROOT="$(mktemp -d "${HOME:?HOME must be set}/.zeropaper-launch-test.XXXXXX")"
 BIN="$TEST_ROOT/bin"
 PROJECT="$TEST_ROOT/project"
 ROOT="$(cd "$(dirname "$0")/.." && pwd)"
-mkdir -p "$BIN" "$PROJECT/process_log" "$PROJECT/code/utils"
+mkdir -p "$BIN" "$PROJECT/process_log" "$PROJECT/code/utils" "$PROJECT/.opencode"
 cp "$ROOT/launch.sh" "$PROJECT/launch.sh"
-cp "$ROOT/templates/utils/opencode_driver.py" "$PROJECT/code/utils/opencode_driver.py"
-chmod +x "$PROJECT/launch.sh" "$PROJECT/code/utils/opencode_driver.py"
+cp "$ROOT/templates/runtime/opencode/opencode.json" "$PROJECT/opencode.json"
+cp "$ROOT/templates/utils/opencode_driver.py" "$PROJECT/.opencode/opencode_driver.py"
+cp "$ROOT/templates/runtime/opencode/sandbox.json" "$PROJECT/.opencode/sandbox.json"
+cp "$ROOT/templates/utils/opencode_sandbox_exec.sh" "$PROJECT/.opencode/opencode_sandbox_exec.sh"
+cp "$ROOT/templates/utils/opencode_sandbox_exec.mjs" "$PROJECT/.opencode/opencode_sandbox_exec.mjs"
+chmod +x "$PROJECT/launch.sh" "$PROJECT/.opencode/opencode_driver.py" \
+    "$PROJECT/.opencode/opencode_sandbox_exec.sh" "$PROJECT/.opencode/opencode_sandbox_exec.mjs"
 
 cat > "$TEST_ROOT/mock_server.py" <<'PY'
 import base64, json, os, signal, subprocess, sys, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 root = os.path.realpath(os.getcwd())
+with open(os.environ["MOCK_SERVER_IDENTITIES"], "a") as handle:
+    handle.write(f"{os.getpid()} {os.getpgrp()}\n")
 expected = "Basic " + base64.b64encode(
     (os.environ.get("OPENCODE_SERVER_USERNAME", "opencode") + ":" + os.environ["OPENCODE_SERVER_PASSWORD"]).encode()
 ).decode()
@@ -147,6 +154,8 @@ if [ "${1:-}" = "serve" ]; then
     exec python3 "$MOCK_SERVER_SCRIPT" opencode serve
 fi
 if [ "${1:-}" = "run" ]; then
+    run_pgid="$(ps -o pgid= -p "$$" | tr -d ' ')"
+    printf '%s %s\n' "$$" "$run_pgid" >> "$MOCK_RUN_IDENTITIES"
     count=0
     [ -f "$MOCK_COUNT" ] && count="$(cat "$MOCK_COUNT")"
     count=$((count + 1)); printf '%s\n' "$count" > "$MOCK_COUNT"
@@ -175,9 +184,31 @@ fi
 MOCK
 chmod +x "$BIN/opencode"
 
+cat > "$BIN/srt" <<'MOCK'
+#!/usr/bin/env bash
+exit 0
+MOCK
+chmod +x "$BIN/srt"
+
+# Exercise launcher's boundary and process-group lifecycle without requiring a
+# real OS sandbox in this mocked server suite. Real SRT confinement has its own
+# canary below/in CI.
+cat > "$PROJECT/.opencode/opencode_sandbox_exec.sh" <<'MOCK'
+#!/usr/bin/env bash
+set -euo pipefail
+policy="${1:?missing policy}"
+shift
+printf 'policy=%s command=%s\n' "$policy" "$*" >> "$MOCK_SANDBOX_CALLS"
+export SANDBOX_RUNTIME=1
+[ -z "${ZEROPAPER_OPENCODE_CHILD_PATH:-}" ] || export PATH="$ZEROPAPER_OPENCODE_CHILD_PATH"
+exec "$@"
+MOCK
+chmod +x "$PROJECT/.opencode/opencode_sandbox_exec.sh"
+
 export PATH="$BIN:$PATH"
 export MOCK_SERVER_SCRIPT="$TEST_ROOT/mock_server.py"
 export MOCK_CALLS="$TEST_ROOT/calls"
+export MOCK_SANDBOX_CALLS="$TEST_ROOT/sandbox-calls"
 export MOCK_COUNT="$TEST_ROOT/count"
 export MOCK_LIST_COUNT="$TEST_ROOT/list-count"
 export MOCK_STATUS_COUNT="$TEST_ROOT/status-count"
@@ -194,13 +225,15 @@ export MOCK_REUSED_BUSY_MARKER="$TEST_ROOT/reused-busy"
 export MOCK_REUSED_BUSY_COUNT="$TEST_ROOT/reused-busy-count"
 export MOCK_SERVER_DESCENDANTS="$TEST_ROOT/server-descendants"
 export MOCK_DESCENDANT_TERM_SEEN="$TEST_ROOT/descendant-term-seen"
+export MOCK_SERVER_IDENTITIES="$TEST_ROOT/server-identities"
+export MOCK_RUN_IDENTITIES="$TEST_ROOT/run-identities"
 export OPENCODE_LOOP_DELAY=0
 export MOCK_EXPECTED_KEY=test-only-secret
 
 stop_mock_server() {
     local pid command descendant_pid
-    if [ -s "$PROJECT/process_log/.opencode_server_pid" ]; then
-        pid="$(cat "$PROJECT/process_log/.opencode_server_pid")"
+    if [ -s "$PROJECT/process_log/.opencode-control/server_pid" ]; then
+        pid="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
         if [[ "$pid" =~ ^[0-9]+$ ]]; then
             command="$(ps -o command= -p "$pid" 2>/dev/null || true)"
             case "$command" in
@@ -223,29 +256,23 @@ stop_mock_server() {
         done < "$MOCK_SERVER_DESCENDANTS"
     fi
 }
-trap 'stop_mock_server; rm -rf "$TEST_ROOT"' EXIT
+trap 'stop_mock_server; if [ "${KEEP_OPENCODE_TEST_ROOT:-0}" = "1" ]; then echo "kept test root: $TEST_ROOT" >&2; else rm -rf "$TEST_ROOT"; fi' EXIT
 
 reset_project() {
     stop_mock_server
     printf '%s\n' '{"status":"running"}' > "$PROJECT/process_log/pipeline_state.json"
     printf '%s\n' 'OPENCODE_API_KEY=test-only-secret' > "$PROJECT/.env"
-    rm -f "$PROJECT/process_log/.opencode_session_id" "$PROJECT/process_log/.opencode_server_"* \
-        "$PROJECT/process_log/.opencode_background_children" \
-        "$PROJECT/process_log/.opencode_background_parent" "$PROJECT/process_log"/.opencode-server-password.* \
-        "$PROJECT/process_log/.opencode_background_baseline" "$PROJECT/process_log"/.opencode-baseline.* \
-        "$PROJECT/process_log/.opencode_background_transition" "$PROJECT/process_log"/.opencode-transition.* \
-        "$PROJECT/process_log/.opencode_recovery_intent" "$PROJECT/process_log"/.opencode-recovery.* \
-        "$PROJECT/process_log/.opencode_parent_server_epoch" "$PROJECT/process_log"/.opencode-parent-epoch.* \
-        "$PROJECT/process_log"/.opencode-unresolved.* "$PROJECT/process_log"/.opencode-session.* \
-        "$PROJECT/process_log/.opencode_unresolved_session" "$PROJECT/process_log"/.opencode-server-identity.* \
-        "$PROJECT/process_log/.opencode_driver_lock" "$PROJECT/process_log"/.opencode-lock-ready.* \
+    rm -rf "$PROJECT/process_log/.opencode-control"
+    rm -f "$PROJECT/process_log/.opencode_"* "$PROJECT/process_log"/.opencode-* \
+        "$PROJECT/process_log/opencode-driver.log" "$PROJECT/process_log/opencode-server.log" \
         "$MOCK_CALLS" "$MOCK_COUNT" "$MOCK_LIST_COUNT" "$MOCK_STATUS_COUNT" \
+        "$MOCK_SANDBOX_CALLS" \
         "$MOCK_ABORT_STATUS_COUNT" "$MOCK_MESSAGE_COUNT" "$MOCK_CREATED" "$MOCK_CHILD_PID" "$MOCK_ABORTS" "$MOCK_ABORTED"
+    mkdir -p "$PROJECT/process_log/.opencode-control"
     rm -f "$MOCK_SERVER_DESCENDANTS" "$MOCK_DESCENDANT_TERM_SEEN"
     rm -f "$MOCK_LAST_PROMPT"
     rm -f "$MOCK_UNHEALTHY_MARKER"
     rm -f "$MOCK_MISSING_NOTIFICATION_MARKER"
-    rm -f "$PROJECT/process_log/opencode-driver.log" "$PROJECT/process_log/opencode-server.log"
     rm -f "$MOCK_REUSED_BUSY_MARKER" "$MOCK_REUSED_BUSY_COUNT"
 }
 
@@ -254,8 +281,131 @@ reset_project() {
 reset_project
 (cd "$PROJECT" && env -u OPENCODE_API_KEY OPENCODE_SERVER_USERNAME=custom ./launch.sh opencode --once)
 grep -q '^external_skills=1 background=true username=opencode opencode_key_set=1 opencode_key_match=1 args=--model opencode/deepseek-v4-flash$' "$MOCK_CALLS"
+grep -q 'policy=.*/\.opencode/sandbox.json command=opencode --model opencode/deepseek-v4-flash' "$MOCK_SANDBOX_CALLS"
 ! grep -q 'test-only-secret' "$MOCK_CALLS"
 ! grep -q -- '--auto' "$MOCK_CALLS"
+
+# A pre-sandbox deployment must not be able to redirect the protected runtime
+# directory or its policy leaf into model-writable project space.
+mv "$PROJECT/.opencode" "$PROJECT/.opencode-real"
+ln -s .opencode-real "$PROJECT/.opencode"
+if (cd "$PROJECT" && ./launch.sh opencode --once); then
+    echo "symlinked .opencode runtime was accepted" >&2; exit 1
+fi
+rm "$PROJECT/.opencode"
+mv "$PROJECT/.opencode-real" "$PROJECT/.opencode"
+mv "$PROJECT/.opencode/sandbox.json" "$PROJECT/sandbox-target.json"
+ln -s ../sandbox-target.json "$PROJECT/.opencode/sandbox.json"
+if (cd "$PROJECT" && ./launch.sh opencode --once); then
+    echo "symlinked sandbox policy was accepted" >&2; exit 1
+fi
+rm "$PROJECT/.opencode/sandbox.json"
+mv "$PROJECT/sandbox-target.json" "$PROJECT/.opencode/sandbox.json"
+ln "$PROJECT/.opencode/opencode_driver.py" "$PROJECT/driver-hardlink.py"
+if (cd "$PROJECT" && ./launch.sh opencode --once); then
+    echo "hard-linked host helper was accepted" >&2; exit 1
+fi
+rm "$PROJECT/driver-hardlink.py"
+
+mv "$PROJECT/.env" "$PROJECT/project-env-original"
+printf 'OPENCODE_API_KEY=aliased-secret\n' > "$TEST_ROOT/external-env"
+ln -s "$TEST_ROOT/external-env" "$PROJECT/.env"
+if (cd "$PROJECT" && env -u OPENCODE_API_KEY ./launch.sh opencode --once); then
+    echo "symlinked project .env was accepted" >&2; exit 1
+fi
+rm "$PROJECT/.env"
+mv "$PROJECT/project-env-original" "$PROJECT/.env"
+
+mv "$PROJECT/process_log" "$PROJECT/process-log-original"
+mkdir "$TEST_ROOT/external-process-log"
+ln -s "$TEST_ROOT/external-process-log" "$PROJECT/process_log"
+if (cd "$PROJECT" && ./launch.sh opencode --once); then
+    echo "symlinked process_log was accepted" >&2; exit 1
+fi
+test ! -e "$TEST_ROOT/external-process-log/.opencode-control"
+rm "$PROJECT/process_log"
+mv "$PROJECT/process-log-original" "$PROJECT/process_log"
+
+# The host interpreter resolver skips a user-owned PATH executable with a
+# writable hard-link alias in favor of the safe system Python.
+TRUSTED_PYTHON_BIN="$TEST_ROOT/trusted-python-bin"
+mkdir "$TRUSTED_PYTHON_BIN"
+printf '#!/usr/bin/env bash\nexit 99\n' > "$TRUSTED_PYTHON_BIN/python3"
+chmod +x "$TRUSTED_PYTHON_BIN/python3"
+ln "$TRUSTED_PYTHON_BIN/python3" "$TEST_ROOT/python3-hardlink"
+(cd "$PROJECT" && PATH="$TRUSTED_PYTHON_BIN:$PATH" ./launch.sh opencode --once)
+rm "$TRUSTED_PYTHON_BIN/python3" "$TEST_ROOT/python3-hardlink"
+rm -rf "$TRUSTED_PYTHON_BIN"
+
+# Repository-controlled Git filters/fsmonitor must execute only inside SRT;
+# the host driver never runs a worktree diff directly. The mock boundary marks
+# its environment, while the real Seatbelt suite covers actual denial.
+reset_project
+git -C "$PROJECT" init -q
+git -C "$PROJECT" config user.email test@example.invalid
+git -C "$PROJECT" config user.name test
+printf 'base\n' > "$PROJECT/filter-probe.txt"
+git -C "$PROJECT" add filter-probe.txt
+git -C "$PROJECT" -c commit.gpgsign=false commit -qm base
+export MOCK_GIT_HOST_ESCAPE="$TEST_ROOT/git-host-escape"
+export MOCK_GIT_SANDBOX_SEEN="$TEST_ROOT/git-sandbox-seen"
+cat > "$PROJECT/malicious-git-filter.sh" <<'MOCK'
+#!/usr/bin/env bash
+if [ "${SANDBOX_RUNTIME:-}" != "1" ]; then
+    printf 'escaped\n' > "$MOCK_GIT_HOST_ESCAPE"
+else
+    printf 'sandboxed\n' > "$MOCK_GIT_SANDBOX_SEEN"
+fi
+cat
+MOCK
+chmod +x "$PROJECT/malicious-git-filter.sh"
+printf '*.txt diff=hostprobe filter=hostprobe\n' > "$PROJECT/.gitattributes"
+git -C "$PROJECT" config core.fsmonitor "$PROJECT/malicious-git-filter.sh"
+git -C "$PROJECT" config diff.hostprobe.textconv "$PROJECT/malicious-git-filter.sh"
+git -C "$PROJECT" config filter.hostprobe.clean "$PROJECT/malicious-git-filter.sh"
+printf 'changed\n' > "$PROJECT/filter-probe.txt"
+(cd "$PROJECT" && ./launch.sh opencode)
+test ! -e "$MOCK_GIT_HOST_ESCAPE"
+test -s "$MOCK_GIT_SANDBOX_SEEN"
+rm -rf "$PROJECT/.git"
+rm -f "$PROJECT/.gitattributes" "$PROJECT/filter-probe.txt" "$PROJECT/malicious-git-filter.sh"
+
+# A project-writable venv is inherited only by the sandboxed OpenCode child.
+# The host control plane never sources activate or resolves its python3.
+reset_project
+mkdir -p "$PROJECT/.venv/bin"
+cat > "$PROJECT/.venv/bin/activate" <<'MOCK'
+printf 'sourced\n' > "$MOCK_VENV_ESCAPE"
+MOCK
+cat > "$PROJECT/.venv/bin/python3" <<'MOCK'
+#!/usr/bin/env bash
+printf 'executed\n' > "$MOCK_VENV_ESCAPE"
+exit 99
+MOCK
+cat > "$PROJECT/.venv/bin/bash" <<'MOCK'
+#!/bin/bash
+if [ "${SANDBOX_RUNTIME:-}" = "1" ]; then
+    exec /bin/bash "$@"
+fi
+printf 'bash-executed\n' > "$MOCK_VENV_ESCAPE"
+exit 99
+MOCK
+cat > "$PROJECT/.venv/bin/dirname" <<'MOCK'
+#!/bin/bash
+printf 'dirname-executed\n' > "$MOCK_VENV_ESCAPE"
+exit 99
+MOCK
+cat > "$PROJECT/.venv/bin/opencode" <<'MOCK'
+#!/usr/bin/env bash
+exec "$MOCK_REAL_OPENCODE" "$@"
+MOCK
+chmod +x "$PROJECT/.venv/bin/python3" "$PROJECT/.venv/bin/bash" \
+    "$PROJECT/.venv/bin/dirname" "$PROJECT/.venv/bin/opencode"
+export MOCK_VENV_ESCAPE="$TEST_ROOT/venv-escape"
+export MOCK_REAL_OPENCODE="$BIN/opencode"
+(cd "$PROJECT" && PATH="$PROJECT/.venv/bin:$PATH" ./launch.sh opencode --once)
+test ! -e "$MOCK_VENV_ESCAPE"
+rm -rf "$PROJECT/.venv"
 
 # Standard quoted dotenv values, parent precedence, and literal shell-looking
 # values retain the v2.20.0 safety contract.
@@ -277,40 +427,42 @@ test ! -e "$side_effect"
 # terminal pipeline stops that server and clears its runtime state.
 reset_project
 (cd "$PROJECT" && ./launch.sh opencode)
-grep -q '^ses_test$' "$PROJECT/process_log/.opencode_session_id"
+grep -q '^ses_test$' "$PROJECT/process_log/.opencode-control/session_id"
 grep -q 'args=serve --hostname 127.0.0.1 --port 0' "$MOCK_CALLS"
+grep -q 'policy=.*/\.opencode/sandbox.json command=opencode serve --hostname 127.0.0.1 --port 0' "$MOCK_SANDBOX_CALLS"
 grep -q 'args=run --attach http://127.0.0.1:' "$MOCK_CALLS"
-test ! -e "$PROJECT/process_log/.opencode_server_pid"
+grep -q 'policy=.*/\.opencode/sandbox.json command=opencode run --attach http://127.0.0.1:' "$MOCK_SANDBOX_CALLS"
+test ! -e "$PROJECT/process_log/.opencode-control/server_pid"
 
 # A crash between announcing startup and publishing a complete identity must
 # block a later launcher instead of allowing an overlapping server.
 reset_project
-printf '%s\n' pending > "$PROJECT/process_log/.opencode_server_starting"
+printf '%s\n' pending > "$PROJECT/process_log/.opencode-control/server_starting"
 if (cd "$PROJECT" && ./launch.sh opencode); then
     echo "incomplete startup marker allowed a replacement server" >&2; exit 1
 fi
-test "$(cat "$PROJECT/process_log/.opencode_server_starting")" = pending
+test "$(cat "$PROJECT/process_log/.opencode-control/server_starting")" = pending
 test ! -e "$MOCK_CALLS"
 
 # Cached sessions are accepted only when the persistent server reports that
 # they belong to this physical checkout.
 reset_project
-printf '%s\n' good > "$PROJECT/process_log/.opencode_session_id"
+printf '%s\n' good > "$PROJECT/process_log/.opencode-control/session_id"
 (cd "$PROJECT" && MOCK_VALID_SID=good ./launch.sh opencode)
 grep -q -- '--session good --model opencode/deepseek-v4-flash' "$MOCK_CALLS"
 reset_project
-printf '%s\n' good > "$PROJECT/process_log/.opencode_session_id"
+printf '%s\n' good > "$PROJECT/process_log/.opencode-control/session_id"
 (cd "$PROJECT" && MOCK_SESSIONS='[{"id":"good","directory":"/another/project"}]' ./launch.sh opencode)
 ! grep -q -- '--session good ' "$MOCK_CALLS"
 
 # A ledger from a stale parent is discarded rather than imposed on the fresh
 # replacement session.
 reset_project
-printf '%s\n' stale > "$PROJECT/process_log/.opencode_session_id"
-printf '%s\n' old-child > "$PROJECT/process_log/.opencode_background_children"
-printf '%s\n' stale > "$PROJECT/process_log/.opencode_background_parent"
+printf '%s\n' stale > "$PROJECT/process_log/.opencode-control/session_id"
+printf '%s\n' old-child > "$PROJECT/process_log/.opencode-control/background_children"
+printf '%s\n' stale > "$PROJECT/process_log/.opencode-control/background_parent"
 (cd "$PROJECT" && ./launch.sh opencode)
-test ! -e "$PROJECT/process_log/.opencode_background_children"
+test ! -e "$PROJECT/process_log/.opencode-control/background_children"
 
 # A wedged attached client is killed without killing the persistent server;
 # the parent session is aborted through the HTTP API and then resumed.
@@ -330,8 +482,8 @@ reset_project
 if (cd "$PROJECT" && MOCK_LIST_FAIL_FIRST=1 MOCK_TIMEOUT_FIRST=1 MOCK_NO_EVENT_FIRST=1 OPENCODE_TURN_TIMEOUT=1 OPENCODE_KILL_GRACE=0 ./launch.sh opencode); then
     echo "invalid session-list baseline was reconciled" >&2; exit 1
 fi
-grep -q 'timed-out first turn returned no session id' "$PROJECT/process_log/opencode-driver.log"
-test -s "$PROJECT/process_log/.opencode_unresolved_session"
+grep -q 'timed-out first turn returned no session id' "$PROJECT/process_log/.opencode-control/driver.log"
+test -s "$PROJECT/process_log/.opencode-control/unresolved_session"
 if (cd "$PROJECT" && ./launch.sh opencode); then
     echo "unresolved first-turn marker allowed a duplicate parent" >&2; exit 1
 fi
@@ -343,7 +495,7 @@ reset_project
 if (cd "$PROJECT" && MOCK_MALFORMED_SID_FIRST=1 ./launch.sh opencode); then
     echo "malformed first-turn SID was accepted" >&2; exit 1
 fi
-test -s "$PROJECT/process_log/.opencode_unresolved_session"
+test -s "$PROJECT/process_log/.opencode-control/unresolved_session"
 test "$(cat "$MOCK_COUNT")" = 1
 
 # Native background work delays the external continuation through child busy,
@@ -363,8 +515,61 @@ test "$(cat "$MOCK_ABORT_STATUS_COUNT")" -ge 4
 # a synthetic completion is retired by the persisted post-cancel epoch.
 reset_project
 (cd "$PROJECT" && MOCK_TIMEOUT_FIRST=1 MOCK_MISSING_NOTIFICATION=1 OPENCODE_TURN_TIMEOUT=1 OPENCODE_KILL_GRACE=0 ./launch.sh opencode)
-test -s "$PROJECT/process_log/.opencode_background_baseline"
+test -s "$PROJECT/process_log/.opencode-control/background_baseline"
 test "$(grep -c 'args=serve ' "$MOCK_CALLS")" = 2
+
+# Updating from v2.21 migrates the cached parent/control bundle, but fails
+# closed until a still-live old unconfined server is explicitly stopped.
+reset_project
+mkdir "$PROJECT/process_log/.opencode_driver_lock"
+(sleep 30) &
+legacy_driver=$!
+printf '%s\n' "$legacy_driver" > "$PROJECT/process_log/.opencode_driver_lock/pid"
+ps -o lstart= -p "$legacy_driver" > "$PROJECT/process_log/.opencode_driver_lock/start"
+if (cd "$PROJECT" && ./launch.sh opencode --once); then
+    echo "interactive launch accepted a live pre-v2.21 directory lock" >&2; exit 1
+fi
+kill "$legacy_driver" 2>/dev/null || true
+wait "$legacy_driver" 2>/dev/null || true
+rm -f "$PROJECT/process_log/.opencode_driver_lock/pid" "$PROJECT/process_log/.opencode_driver_lock/start"
+rmdir "$PROJECT/process_log/.opencode_driver_lock"
+
+reset_project
+if (cd "$PROJECT" && MOCK_TOOL_TYPE=none MOCK_COMPLETE_AFTER=99 NO_PROGRESS_CEILING=1 ./launch.sh opencode); then
+    echo "legacy-migration fixture did not preserve its server" >&2; exit 1
+fi
+legacy_server="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
+for mapping in \
+    'session_id:.opencode_session_id' 'driver.log:opencode-driver.log' 'server.log:opencode-server.log' \
+    'server_pid:.opencode_server_pid' 'server_start:.opencode_server_start' \
+    'server_identity:.opencode_server_identity' 'server_url:.opencode_server_url' \
+    'server_password:.opencode_server_password' 'driver_lock:.opencode_driver_lock' \
+    'background_baseline:.opencode_background_baseline' 'parent_server_epoch:.opencode_parent_server_epoch'
+do
+    current="${mapping%%:*}" legacy="${mapping#*:}"
+    [ ! -e "$PROJECT/process_log/.opencode-control/$current" ] || \
+        mv "$PROJECT/process_log/.opencode-control/$current" "$PROJECT/process_log/$legacy"
+done
+rmdir "$PROJECT/process_log/.opencode-control"
+if (cd "$PROJECT" && ./launch.sh opencode); then
+    echo "live migrated unconfined server was reused or replaced automatically" >&2; exit 1
+fi
+kill -0 "$legacy_server"
+# The interactive launch must apply the same live-legacy refusal; opening a
+# confined TUI cannot leave the old unconfined execution owner running.
+if (cd "$PROJECT" && ./launch.sh opencode --once); then
+    echo "interactive launch accepted a live legacy server" >&2; exit 1
+fi
+kill -0 "$legacy_server"
+kill -TERM -- "-$legacy_server" 2>/dev/null || true
+for _ in $(seq 1 50); do kill -0 "$legacy_server" 2>/dev/null || break; sleep 0.1; done
+if (cd "$PROJECT" && MOCK_TOOL_TYPE=none MOCK_COMPLETE_AFTER=99 NO_PROGRESS_CEILING=1 ./launch.sh opencode); then
+    echo "post-migration replacement fixture unexpectedly completed" >&2; exit 1
+fi
+replacement_server="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
+test "$replacement_server" != "$legacy_server"
+test "$(grep -c 'args=serve ' "$MOCK_CALLS")" = 2
+test ! -e "$PROJECT/process_log/.opencode_server_password"
 
 # Server replacement is not complete when only the leader exits. A descendant
 # in the same PGID ignores TERM; the launcher must KILL and confirm the whole
@@ -378,7 +583,7 @@ while IFS= read -r descendant_pid; do
     for _ in $(seq 1 50); do kill -0 "$descendant_pid" 2>/dev/null || break; sleep 0.02; done
     ! kill -0 "$descendant_pid" 2>/dev/null
 done < "$MOCK_SERVER_DESCENDANTS"
-test -s "$PROJECT/process_log/.opencode_background_baseline"
+test -s "$PROJECT/process_log/.opencode-control/background_baseline"
 
 # A failed abort is fail-closed: no overlapping continuation is submitted.
 reset_project
@@ -386,7 +591,7 @@ if (cd "$PROJECT" && MOCK_TIMEOUT_FIRST=1 MOCK_ABORT_FAIL=1 OPENCODE_TURN_TIMEOU
     echo "failed cancellation resumed the parent" >&2; exit 1
 fi
 test "$(cat "$MOCK_COUNT")" = 1
-failed_server_pid="$(cat "$PROJECT/process_log/.opencode_server_pid")"
+failed_server_pid="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
 kill -TERM -- "-$failed_server_pid" 2>/dev/null || true
 for _ in $(seq 1 50); do kill -0 "$failed_server_pid" 2>/dev/null || break; sleep 0.1; done
 
@@ -395,7 +600,7 @@ for _ in $(seq 1 50); do kill -0 "$failed_server_pid" 2>/dev/null || break; slee
 reset_project
 (cd "$PROJECT" && exec env MOCK_RUN_SLEEP=2 ./launch.sh opencode) &
 first_driver=$!
-for _ in $(seq 1 50); do [ -f "$PROJECT/process_log/.opencode_driver_lock" ] && break; sleep 0.02; done
+for _ in $(seq 1 50); do [ -f "$PROJECT/process_log/.opencode-control/driver_lock" ] && break; sleep 0.02; done
 if (cd "$PROJECT" && ./launch.sh opencode); then
     echo "concurrent OpenCode driver acquired the project" >&2; exit 1
 fi
@@ -406,12 +611,12 @@ wait "$first_driver"
 reset_project
 (cd "$PROJECT" && exec env MOCK_SERVER_START_DELAY=5 ./launch.sh opencode) &
 starting_driver=$!
-for _ in $(seq 1 50); do [ -s "$PROJECT/process_log/.opencode_server_pid" ] && break; sleep 0.1; done
-starting_server="$(cat "$PROJECT/process_log/.opencode_server_pid")"
+for _ in $(seq 1 50); do [ -s "$PROJECT/process_log/.opencode-control/server_pid" ] && break; sleep 0.1; done
+starting_server="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
 kill -TERM "$starting_driver"
 wait "$starting_driver" 2>/dev/null || true
 ! kill -0 "$starting_server" 2>/dev/null
-test -f "$PROJECT/process_log/.opencode_driver_lock"
+test -f "$PROJECT/process_log/.opencode-control/driver_lock"
 
 # Quarantine parent creation before the first attached command. A signal after
 # the server creates the session but before the CLI returns cannot permit a
@@ -422,7 +627,7 @@ first_turn_driver=$!
 for _ in $(seq 1 50); do [ -e "$MOCK_CREATED" ] && break; sleep 0.1; done
 kill -TERM "$first_turn_driver"
 wait "$first_turn_driver" 2>/dev/null || true
-test -s "$PROJECT/process_log/.opencode_unresolved_session"
+test -s "$PROJECT/process_log/.opencode-control/unresolved_session"
 if (cd "$PROJECT" && ./launch.sh opencode); then
     echo "interrupted first-turn quarantine allowed a duplicate parent" >&2; exit 1
 fi
@@ -434,8 +639,8 @@ reset_project
 if (cd "$PROJECT" && MOCK_TOOL_TYPE=none MOCK_COMPLETE_AFTER=99 NO_PROGRESS_CEILING=1 ./launch.sh opencode); then
     echo "partial-state fixture did not preserve its server" >&2; exit 1
 fi
-partial_server="$(cat "$PROJECT/process_log/.opencode_server_pid")"
-rm -f "$PROJECT/process_log/.opencode_server_url" "$PROJECT/process_log/.opencode_server_password"
+partial_server="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
+rm -f "$PROJECT/process_log/.opencode-control/server_url" "$PROJECT/process_log/.opencode-control/server_password"
 (cd "$PROJECT" && MOCK_COMPLETE_AFTER=1 ./launch.sh opencode)
 ! kill -0 "$partial_server" 2>/dev/null
 test "$(grep -c 'args=serve ' "$MOCK_CALLS")" = 2
@@ -443,25 +648,49 @@ test "$(grep -c 'args=serve ' "$MOCK_CALLS")" = 2
 # A one-shot API failure followed by healthy reuse is not called a restart and
 # never triggers an automatic duplicate prompt/relaunch instruction.
 reset_project
-printf '%s\n' good > "$PROJECT/process_log/.opencode_session_id"
+printf '%s\n' good > "$PROJECT/process_log/.opencode-control/session_id"
 if (cd "$PROJECT" && MOCK_VALID_SID=good MOCK_MESSAGE_FAIL_FIRST=1 ./launch.sh opencode); then
     echo "transient message failure prompted the live session" >&2; exit 1
 fi
 test ! -e "$MOCK_COUNT"
-transient_server="$(cat "$PROJECT/process_log/.opencode_server_pid")"
+
+transient_server="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
 kill -0 "$transient_server"
 (cd "$PROJECT" && MOCK_COMPLETE_AFTER=1 ./launch.sh opencode)
 test "$(grep -c 'args=serve ' "$MOCK_CALLS")" = 1
 
+# Existing control entries are never trusted across updates: a symlink or
+# non-regular entry must fail before any host-side helper opens it.
+reset_project
+ln -s "$TEST_ROOT/tainted-target" "$PROJECT/process_log/.opencode-control/driver.log"
+if (cd "$PROJECT" && ./launch.sh opencode); then
+    echo "symlinked control state was accepted" >&2; exit 1
+fi
+test ! -e "$MOCK_CALLS"
+reset_project
+mkdir "$PROJECT/process_log/.opencode-control/server_url"
+if (cd "$PROJECT" && ./launch.sh opencode); then
+    echo "non-regular control state was accepted" >&2; exit 1
+fi
+test ! -e "$MOCK_CALLS"
+reset_project
+printf 'host-target\n' > "$PROJECT/control-hardlink-target"
+ln "$PROJECT/control-hardlink-target" "$PROJECT/process_log/.opencode-control/driver.log"
+if (cd "$PROJECT" && ./launch.sh opencode); then
+    echo "hard-linked control state was accepted" >&2; exit 1
+fi
+test "$(cat "$PROJECT/control-hardlink-target")" = "host-target"
+rm "$PROJECT/control-hardlink-target"
+
 # A transient session-list failure never converts a cached parent into a fresh,
 # duplicate session. The same server can be inspected/resumed on the next run.
 reset_project
-printf '%s\n' good > "$PROJECT/process_log/.opencode_session_id"
+printf '%s\n' good > "$PROJECT/process_log/.opencode-control/session_id"
 if (cd "$PROJECT" && MOCK_VALID_SID=good MOCK_LIST_FAIL_FIRST=1 ./launch.sh opencode); then
     echo "session-list failure created a replacement parent" >&2; exit 1
 fi
 test ! -e "$MOCK_COUNT"
-list_failure_server="$(cat "$PROJECT/process_log/.opencode_server_pid")"
+list_failure_server="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
 kill -0 "$list_failure_server"
 (cd "$PROJECT" && MOCK_COMPLETE_AFTER=1 ./launch.sh opencode)
 test "$(grep -c 'args=serve ' "$MOCK_CALLS")" = 1
@@ -472,7 +701,7 @@ reset_project
 if (cd "$PROJECT" && MOCK_TOOL_TYPE=none MOCK_COMPLETE_AFTER=99 NO_PROGRESS_CEILING=1 ./launch.sh opencode); then
     echo "epoch fixture did not preserve its server" >&2; exit 1
 fi
-old_epoch_server="$(cat "$PROJECT/process_log/.opencode_server_pid")"
+old_epoch_server="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
 kill -TERM -- "-$old_epoch_server" 2>/dev/null || true
 for _ in $(seq 1 50); do kill -0 "$old_epoch_server" 2>/dev/null || break; sleep 0.1; done
 (cd "$PROJECT" && MOCK_COMPLETE_AFTER=1 ./launch.sh opencode)
@@ -485,7 +714,7 @@ reset_project
 if (cd "$PROJECT" && MOCK_TOOL_TYPE=none MOCK_COMPLETE_AFTER=99 NO_PROGRESS_CEILING=1 ./launch.sh opencode); then
     echo "health-preservation fixture did not preserve its server" >&2; exit 1
 fi
-unhealthy_pid="$(cat "$PROJECT/process_log/.opencode_server_pid")"
+unhealthy_pid="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
 : > "$MOCK_UNHEALTHY_MARKER"
 if (cd "$PROJECT" && ./launch.sh opencode); then
     echo "temporarily unhealthy exact server was replaced" >&2; exit 1
@@ -502,10 +731,10 @@ reset_project
 if (cd "$PROJECT" && MOCK_TOOL_TYPE=none MOCK_COMPLETE_AFTER=99 NO_PROGRESS_CEILING=1 ./launch.sh opencode); then
     echo "transition fixture did not preserve its server" >&2; exit 1
 fi
-printf '%s\n' 'ses_test cancel' > "$PROJECT/process_log/.opencode_background_transition"
+printf '%s\n' 'ses_test cancel' > "$PROJECT/process_log/.opencode-control/background_transition"
 (cd "$PROJECT" && MOCK_COMPLETE_AFTER=1 ./launch.sh opencode)
 grep -q 'zp-recovery-' "$MOCK_LAST_PROMPT"
-test ! -e "$PROJECT/process_log/.opencode_recovery_intent"
+test ! -e "$PROJECT/process_log/.opencode-control/recovery_intent"
 test "$(grep -c 'args=serve ' "$MOCK_CALLS")" = 2
 
 # Missing epoch plus a surviving positive baseline still reconstructs from
@@ -514,9 +743,9 @@ reset_project
 if (cd "$PROJECT" && MOCK_TOOL_TYPE=none MOCK_COMPLETE_AFTER=99 NO_PROGRESS_CEILING=1 ./launch.sh opencode); then
     echo "positive-baseline fixture did not preserve its server" >&2; exit 1
 fi
-saved_epoch="$(awk '{print $2}' "$PROJECT/process_log/.opencode_parent_server_epoch")"
-printf 'ses_test %s 1\n' "$saved_epoch" > "$PROJECT/process_log/.opencode_background_baseline"
-rm -f "$PROJECT/process_log/.opencode_parent_server_epoch"
+saved_epoch="$(awk '{print $2}' "$PROJECT/process_log/.opencode-control/parent_server_epoch")"
+printf 'ses_test %s 1\n' "$saved_epoch" > "$PROJECT/process_log/.opencode-control/background_baseline"
+rm -f "$PROJECT/process_log/.opencode-control/parent_server_epoch"
 : > "$MOCK_MISSING_NOTIFICATION_MARKER"
 (cd "$PROJECT" && MOCK_COMPLETE_AFTER=1 OPENCODE_BACKGROUND_TIMEOUT=1 OPENCODE_KILL_GRACE=0 ./launch.sh opencode)
 grep -q '/session/ses_test/abort' "$MOCK_ABORTS"
@@ -528,14 +757,27 @@ reset_project
 if (cd "$PROJECT" && MOCK_TOOL_TYPE=none MOCK_COMPLETE_AFTER=99 NO_PROGRESS_CEILING=1 ./launch.sh opencode); then
     echo "empty-turn guard did not fire" >&2; exit 1
 fi
-server_pid="$(cat "$PROJECT/process_log/.opencode_server_pid")"
+server_pid="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
 kill -0 "$server_pid"
-rm -f "$PROJECT/process_log/.opencode_parent_server_epoch"
+rm -f "$PROJECT/process_log/.opencode-control/parent_server_epoch"
 : > "$MOCK_REUSED_BUSY_MARKER"
 (cd "$PROJECT" && MOCK_COMPLETE_AFTER=1 ./launch.sh opencode)
 test "$(grep -c 'args=serve ' "$MOCK_CALLS")" = 1
 test "$(cat "$MOCK_REUSED_BUSY_COUNT")" -ge 4
-test -s "$PROJECT/process_log/.opencode_parent_server_epoch"
+test -s "$PROJECT/process_log/.opencode-control/parent_server_epoch"
 ! kill -0 "$server_pid" 2>/dev/null
+
+# Every server and attached client must be the leader of the private process
+# group recorded through $!, and no process from this fixture may survive.
+while read -r pid pgid; do test "$pid" = "$pgid"; done < "$MOCK_SERVER_IDENTITIES"
+while read -r pid pgid; do test "$pid" = "$pgid"; done < "$MOCK_RUN_IDENTITIES"
+while read -r pid _pgid; do
+    command="$(ps -o command= -p "$pid" 2>/dev/null || true)"
+    case "$command" in *"$TEST_ROOT"*) echo "mock server survived suite: $pid" >&2; exit 1;; esac
+done < "$MOCK_SERVER_IDENTITIES"
+while read -r pid _pgid; do
+    command="$(ps -o command= -p "$pid" 2>/dev/null || true)"
+    case "$command" in *"$TEST_ROOT"*) echo "mock client survived suite: $pid" >&2; exit 1;; esac
+done < "$MOCK_RUN_IDENTITIES"
 
 echo "OpenCode launcher tests passed"

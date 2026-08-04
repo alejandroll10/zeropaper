@@ -60,9 +60,9 @@ CODEX_SANDBOX_WS_ARGS=(
 # egress is whatever the outer sandbox grants. That is not a regression — it
 # was already true before this guard; the guard just fixes apply_patch and
 # makes the situation explicit. Pass as: --sandbox "$CODEX_SANDBOX_MODE".
-if [ -n "${CODEX_SANDBOX:-}" ]; then
+if [ -n "${CODEX_SANDBOX:-}" ] || [ "${SANDBOX_RUNTIME:-}" = "1" ]; then
     CODEX_SANDBOX_MODE="danger-full-access"
-    echo "[codex-math] nested inside a codex sandbox (CODEX_SANDBOX=$CODEX_SANDBOX): worker runs danger-full-access; the caller's outer sandbox still confines it" >&2
+    echo "[codex-math] nested inside an outer sandbox: worker runs danger-full-access; the caller's outer sandbox still confines it" >&2
 else
     CODEX_SANDBOX_MODE="workspace-write"
 fi

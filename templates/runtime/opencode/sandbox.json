@@ -1,0 +1,39 @@
+{
+  "network": {
+    "mode": "unrestricted"
+  },
+  "filesystem": {
+    "allowWrite": [
+      ".",
+      "/tmp",
+      "process_log/.opencode-runtime",
+      "~/.cache",
+      "~/Library/Caches",
+      "~/.matplotlib",
+      "~/.codex"
+    ],
+    "denyWrite": [
+      ".opencode",
+      "process_log/.opencode-control",
+      ".env",
+      ".deploy_manifest.json",
+      "launch.sh",
+      "opencode.json",
+      "~/.ssh",
+      "~/.aws",
+      "~/.claude",
+      "~/.codex/auth.json",
+      "~/.codex/config.toml",
+      "~/.codex/plugins",
+      "~/.codex/skills",
+      "~/.codex/rules",
+      "~/.codex/packages",
+      "/etc",
+      "/root"
+    ],
+    "denyRead": [
+      "~/.ssh",
+      "~/.aws"
+    ]
+  }
+}

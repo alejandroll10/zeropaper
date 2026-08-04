@@ -80,6 +80,8 @@ process_log/driver.log.*
 # launch.sh codex-driver session cache (host-local codex session id — resuming
 # on another host would be meaningless; never a tracked artifact)
 process_log/.codex_session_id
+process_log/.opencode-control/
+process_log/.opencode-runtime/
 process_log/.opencode_session_id
 process_log/opencode-driver.log
 process_log/opencode-server.log

@@ -1,4 +1,4 @@
-#!/usr/bin/env bash
+#!/bin/bash
 # launch.sh — start a pipeline runtime for this project.
 #
 # Usage:
@@ -40,7 +40,9 @@ set -euo pipefail
 # symlinks (macOS /tmp -> /private/tmp). find_sid matches our path against the
 # recorded one, so ROOT must be the physical form or resume silently degrades
 # to a fresh session on any symlinked project path.
-ROOT="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd -P)"
+_launch_source="${BASH_SOURCE[0]}"
+case "$_launch_source" in */*) _launch_dir="${_launch_source%/*}" ;; *) _launch_dir=. ;; esac
+ROOT="$(cd "$_launch_dir" && pwd -P)"
 cd "$ROOT"
 
 RUNTIME="${1:?Usage: ./launch.sh <claude|codex|gemini|grok|opencode> [--tmux] [--once]}"
@@ -55,9 +57,37 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+# Capture the caller environment for sandboxed OpenCode children, then remove
+# project/temp/cache paths before even the optional tmux re-exec. This closes
+# the pre-branch shebang/dirname/tmux trust gap for an activated project venv.
+OPENCODE_CALLER_PATH="${PATH:-}"
+if [ "$RUNTIME" = "opencode" ]; then
+    _oc_early_path=""
+    IFS=: read -r -a _oc_early_entries <<< "${PATH:-}"
+    for _oc_early_entry in /usr/bin /bin /usr/sbin /sbin "${_oc_early_entries[@]}"; do
+        [ -n "$_oc_early_entry" ] && [ -d "$_oc_early_entry" ] || continue
+        _oc_early_physical="$(cd "$_oc_early_entry" 2>/dev/null && pwd -P)" || continue
+        case "$_oc_early_physical" in
+            "$ROOT"|"$ROOT"/*|/tmp|/tmp/*|/private/tmp|/private/tmp/*|/var/tmp|/var/tmp/*|/private/var/folders|/private/var/folders/*|\
+            "$HOME/.local/share/opencode"|"$HOME/.local/share/opencode"/*|\
+            "$HOME/.local/state/opencode"|"$HOME/.local/state/opencode"/*|\
+            "$HOME/.cache"|"$HOME/.cache"/*|"$HOME/Library/Caches"|"$HOME/Library/Caches"/*|\
+            "$HOME/.matplotlib"|"$HOME/.matplotlib"/*|"$HOME/.codex"|"$HOME/.codex"/*)
+                continue ;;
+        esac
+        case ":$_oc_early_path:" in *":$_oc_early_physical:"*) ;; *)
+            _oc_early_path="${_oc_early_path:+$_oc_early_path:}$_oc_early_physical" ;;
+        esac
+    done
+    [ -n "$_oc_early_path" ] || { echo "ERROR: no trusted OpenCode launcher PATH remains" >&2; exit 1; }
+    PATH="$_oc_early_path"
+    export PATH
+    hash -r
+fi
+
 # Re-wrap into tmux first, so everything below runs inside the window.
 if [ "$TMUX_WRAP" = "1" ]; then
-    _win="pipeline-$RUNTIME-$(basename "$ROOT")"
+    _win="pipeline-$RUNTIME-${ROOT##*/}"
     # `|| true`: the && chain returns 1 when ONCE=0, and an assignment's exit
     # status is its command substitution's — without the guard, set -e kills
     # the script right here, silently, on every plain `--tmux` launch.
@@ -71,9 +101,19 @@ if [ "$TMUX_WRAP" = "1" ]; then
     exit 0
 fi
 
-# Every runtime wants the project venv active (bare python3 resolves to it,
-# and agent subshells inherit it).
-if [ -f "$ROOT/.venv/bin/activate" ]; then
+# Every runtime wants the project venv active. OpenCode is different: its
+# unsandboxed control plane must never source or execute project-writable venv
+# files, so only the sandboxed server/client descendants receive this PATH.
+OPENCODE_CHILD_PATH="$OPENCODE_CALLER_PATH"
+OPENCODE_CHILD_VIRTUAL_ENV=""
+if [ "$RUNTIME" = "opencode" ]; then
+    if [ -f "$ROOT/.venv/bin/activate" ]; then
+        OPENCODE_CHILD_PATH="$ROOT/.venv/bin:$OPENCODE_CHILD_PATH"
+        OPENCODE_CHILD_VIRTUAL_ENV="$ROOT/.venv"
+    else
+        echo "WARNING: no .venv in this project — python deps may be missing (create with: uv venv .venv)" >&2
+    fi
+elif [ -f "$ROOT/.venv/bin/activate" ]; then
     # shellcheck disable=SC1091
     source "$ROOT/.venv/bin/activate"
 else
@@ -241,13 +281,94 @@ esac
 # SKILL.md files natively. Its custom subagents are separately assembled into
 # .opencode/agents because Claude agent frontmatter is not compatible.
 if [ "$RUNTIME" = "opencode" ]; then
+    # The server and attached OpenCode clients run inside SRT, but this driver
+    # deliberately remains outside so it can supervise/restart them. Remove
+    # every sandbox-writable directory (including a caller-activated project
+    # venv) from its executable search path. Resolve symlinks now so a trusted
+    # lexical PATH entry cannot point back into a writable tree.
+    OC_CONTROL_PATH=""
+    IFS=: read -r -a _oc_path_entries <<< "${PATH:-}"
+    for _oc_path_entry in "${_oc_path_entries[@]}" /usr/bin /bin /usr/sbin /sbin; do
+        [ -n "$_oc_path_entry" ] && [ -d "$_oc_path_entry" ] || continue
+        _oc_path_physical="$(cd "$_oc_path_entry" 2>/dev/null && pwd -P)" || continue
+        case "$_oc_path_physical" in
+            "$ROOT"|"$ROOT"/*|/tmp|/tmp/*|/private/tmp|/private/tmp/*|/var/tmp|/var/tmp/*|/private/var/folders|/private/var/folders/*|\
+            "$HOME/.local/share/opencode"|"$HOME/.local/share/opencode"/*|\
+            "$HOME/.local/state/opencode"|"$HOME/.local/state/opencode"/*|\
+            "$HOME/.cache"|"$HOME/.cache"/*|"$HOME/Library/Caches"|"$HOME/Library/Caches"/*|\
+            "$HOME/.matplotlib"|"$HOME/.matplotlib"/*|"$HOME/.codex"|"$HOME/.codex"/*)
+                continue
+                ;;
+        esac
+        case ":$OC_CONTROL_PATH:" in
+            *":$_oc_path_physical:"*) ;;
+            *) OC_CONTROL_PATH="${OC_CONTROL_PATH:+$OC_CONTROL_PATH:}$_oc_path_physical" ;;
+        esac
+    done
+    [ -n "$OC_CONTROL_PATH" ] || { echo "ERROR: no trusted control-plane PATH remains" >&2; exit 1; }
+    PATH="$OC_CONTROL_PATH"
+    export PATH
+    unset VIRTUAL_ENV PYTHONHOME PYTHONPATH PYTHONSTARTUP PYTHONINSPECT
+    export PYTHONNOUSERSITE=1
+    hash -r
+    # Prefer the OS interpreter over user-managed/Conda shims. Besides being a
+    # smaller trust path, this avoids rejecting legitimate Conda package-cache
+    # hard links when a safe system interpreter is available.
+    if [ -f /usr/bin/python3 ] && [ -x /usr/bin/python3 ]; then
+        OC_CONTROL_PYTHON=/usr/bin/python3
+    else
+        OC_CONTROL_PYTHON="$(command -v python3 || true)"
+    fi
+    [ -n "$OC_CONTROL_PYTHON" ] || { echo "ERROR: trusted python3 is unavailable" >&2; exit 1; }
+    _oc_python_depth=0
+    while [ -L "$OC_CONTROL_PYTHON" ]; do
+        _oc_python_depth=$((_oc_python_depth + 1))
+        [ "$_oc_python_depth" -le 16 ] || {
+            echo "ERROR: trusted python3 has an excessive or cyclic symlink chain" >&2; exit 1;
+        }
+        _oc_python_link="$(readlink "$OC_CONTROL_PYTHON")" || {
+            echo "ERROR: cannot resolve trusted python3" >&2; exit 1;
+        }
+        case "$_oc_python_link" in
+            /*) OC_CONTROL_PYTHON="$_oc_python_link" ;;
+            *) OC_CONTROL_PYTHON="$(cd "$(dirname "$OC_CONTROL_PYTHON")" && pwd -P)/$_oc_python_link" ;;
+        esac
+    done
+    OC_CONTROL_PYTHON="$(cd "$(dirname "$OC_CONTROL_PYTHON")" 2>/dev/null && pwd -P)/$(basename "$OC_CONTROL_PYTHON")"
+    case "$OC_CONTROL_PYTHON" in
+        "$ROOT"|"$ROOT"/*|/tmp|/tmp/*|/private/tmp|/private/tmp/*|/var/tmp|/var/tmp/*|/private/var/folders|/private/var/folders/*|\
+        "$HOME/.cache"|"$HOME/.cache"/*|"$HOME/Library/Caches"|"$HOME/Library/Caches"/*|\
+        "$HOME/.matplotlib"|"$HOME/.matplotlib"/*|"$HOME/.codex"|"$HOME/.codex"/*)
+            echo "ERROR: trusted python3 resolves inside a sandbox-writable path: $OC_CONTROL_PYTHON" >&2
+            exit 1
+            ;;
+    esac
+    [ -f "$OC_CONTROL_PYTHON" ] && [ -x "$OC_CONTROL_PYTHON" ] || {
+        echo "ERROR: resolved trusted python3 is not executable: $OC_CONTROL_PYTHON" >&2; exit 1;
+    }
+    case "$(/usr/bin/uname -s)" in
+        Darwin) _oc_python_stat="$(/usr/bin/stat -f '%l %u' "$OC_CONTROL_PYTHON")" ;;
+        *) _oc_python_stat="$(/usr/bin/stat -c '%h %u' "$OC_CONTROL_PYTHON")" ;;
+    esac
+    _oc_python_nlink="${_oc_python_stat%% *}"
+    _oc_python_uid="${_oc_python_stat##* }"
+    if [ "$_oc_python_nlink" != "1" ] && [ "$_oc_python_uid" = "$EUID" ]; then
+        echo "ERROR: user-owned trusted python3 has alternate hard links: $OC_CONTROL_PYTHON" >&2
+        exit 1
+    fi
+    # -I also removes cwd and user site-packages from sys.path, preventing a
+    # sandboxed run from planting json.py/sitecustomize.py for the driver.
+    python3() { "$OC_CONTROL_PYTHON" -I "$@"; }
+    export ZEROPAPER_OPENCODE_CHILD_PATH="$OPENCODE_CHILD_PATH"
+    export ZEROPAPER_OPENCODE_CHILD_VIRTUAL_ENV="$OPENCODE_CHILD_VIRTUAL_ENV"
+
     # OpenCode's provider reads this key from the process environment, while
     # deployments store credentials in a gitignored project .env. Import only
     # this one value without sourcing/evaluating arbitrary shell text. An
     # already-exported value wins over the file.
-    if [ -z "${OPENCODE_API_KEY:-}" ] && [ -f "$ROOT/.env" ]; then
+    if [ -z "${OPENCODE_API_KEY:-}" ] && { [ -e "$ROOT/.env" ] || [ -L "$ROOT/.env" ]; }; then
         OPENCODE_API_KEY="$(python3 - "$ROOT/.env" <<'PY'
-import ast, re, sys
+import ast, os, re, stat, sys
 
 def strip_inline_comment(text):
     quote = None
@@ -268,7 +389,14 @@ def strip_inline_comment(text):
             return text[:index].rstrip()
     return text.strip()
 
-for raw in open(sys.argv[1], encoding="utf-8"):
+flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(sys.argv[1], flags)
+info = os.fstat(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    os.close(fd)
+    raise SystemExit("unsafe .env: expected one regular non-aliased file")
+
+for raw in os.fdopen(fd, encoding="utf-8"):
     line = raw.strip()
     if line.startswith("export "):
         line = line[7:].lstrip()
@@ -298,47 +426,349 @@ PY
     # boundary therefore degrades safely: capable versions expose native
     # background tasks; older versions continue to offer foreground task calls.
     export OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS=true
-    if [ "$ONCE" = "1" ]; then
-        exec opencode --model opencode/deepseek-v4-flash
-    fi
+    OC_SRT="$(command -v srt || true)"
+    [ -n "$OC_SRT" ] || {
+        echo "ERROR: OpenCode requires Anthropic Sandbox Runtime: npm install -g @anthropic-ai/sandbox-runtime" >&2
+        exit 1
+    }
+    OC_RUNTIME_DIR="$ROOT/.opencode"
+    OC_SANDBOX_SETTINGS="$OC_RUNTIME_DIR/sandbox.json"
+    OC_SANDBOX_EXEC="$OC_RUNTIME_DIR/opencode_sandbox_exec.sh"
+    OC_SANDBOX_RUNNER="$OC_RUNTIME_DIR/opencode_sandbox_exec.mjs"
+    OC_HELPER="$OC_RUNTIME_DIR/opencode_driver.py"
+    # These files are executed by the unsandboxed control plane or establish
+    # its sandbox policy. Reject ancestor/leaf symlinks, special files, and
+    # alternate hard-link aliases before opening any of them.
+    python3 - "$OC_RUNTIME_DIR" "$OC_SANDBOX_SETTINGS" "$OC_SANDBOX_EXEC" \
+        "$OC_SANDBOX_RUNNER" "$OC_HELPER" "$ROOT/launch.sh" "$ROOT/opencode.json" <<'PY'
+import os, stat, sys
+
+runtime, *leaves = sys.argv[1:]
+try:
+    runtime_stat = os.lstat(runtime)
+    if stat.S_ISLNK(runtime_stat.st_mode) or not stat.S_ISDIR(runtime_stat.st_mode):
+        raise ValueError(f"OpenCode runtime path is not a real directory: {runtime}")
+    if os.path.realpath(runtime) != os.path.abspath(runtime):
+        raise ValueError(f"OpenCode runtime path did not resolve in place: {runtime}")
+    for path in leaves:
+        info = os.lstat(path)
+        if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode):
+            raise ValueError(f"OpenCode protected file is not a regular non-symlink: {path}")
+        if info.st_nlink != 1:
+            raise ValueError(f"OpenCode protected file has alternate hard links: {path}")
+except (OSError, ValueError) as error:
+    print(f"ERROR: {error} (refresh this deployment with update.sh)", file=sys.stderr)
+    raise SystemExit(1)
+PY
+    [ -x "$OC_SANDBOX_EXEC" ] || {
+        echo "ERROR: OpenCode sandbox handoff is not executable: $OC_SANDBOX_EXEC (refresh this deployment with update.sh)" >&2
+        exit 1
+    }
     OC_STATE="$ROOT/process_log/pipeline_state.json"
-    if [ ! -f "$OC_STATE" ]; then
-        echo "ERROR: no process_log/pipeline_state.json — use ./launch.sh opencode --once for manual/report work." >&2
+    if [ "$ONCE" != "1" ]; then
+        python3 - "$OC_STATE" <<'PY' || {
+import os, stat, sys
+try:
+    info = os.lstat(sys.argv[1])
+except FileNotFoundError:
+    raise SystemExit(1)
+raise SystemExit(0 if stat.S_ISREG(info.st_mode) and info.st_nlink == 1 else 1)
+PY
+            echo "ERROR: pipeline_state.json must be one regular non-aliased file; use ./launch.sh opencode --once for manual/report work." >&2
+            exit 1
+        }
+    fi
+    OC_CONTROL_DIR="$ROOT/process_log/.opencode-control"
+    OC_PROCESS_LOG="$ROOT/process_log"
+    if [ -L "$OC_PROCESS_LOG" ] || { [ -e "$OC_PROCESS_LOG" ] && [ ! -d "$OC_PROCESS_LOG" ]; }; then
+        echo "ERROR: OpenCode process_log must be a real directory: $OC_PROCESS_LOG" >&2
         exit 1
     fi
+    mkdir -p "$OC_PROCESS_LOG"
+    [ "$(cd "$OC_PROCESS_LOG" && pwd -P)" = "$OC_PROCESS_LOG" ] || {
+        echo "ERROR: OpenCode process_log did not resolve inside the project: $OC_PROCESS_LOG" >&2
+        exit 1
+    }
+    if [ -L "$OC_CONTROL_DIR" ]; then
+        echo "ERROR: OpenCode control directory must not be a symlink: $OC_CONTROL_DIR" >&2
+        exit 1
+    fi
+    (umask 077 && mkdir -p "$OC_CONTROL_DIR")
+    [ "$(cd "$OC_CONTROL_DIR" && pwd -P)" = "$OC_CONTROL_DIR" ] || {
+        echo "ERROR: OpenCode control directory did not resolve in place: $OC_CONTROL_DIR" >&2
+        exit 1
+    }
     oc_status() {
-        python3 -c 'import json,sys; print(json.load(open(sys.argv[1])).get("status","?"))' "$OC_STATE" 2>/dev/null || echo "?"
+        python3 - "$OC_STATE" 2>/dev/null <<'PY' || echo "?"
+import json, os, stat, sys
+flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(sys.argv[1], flags)
+info = os.fstat(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    raise SystemExit(1)
+with os.fdopen(fd, encoding="utf-8") as handle:
+    print(json.load(handle).get("status", "?"))
+PY
+    }
+    oc_state_hash() {
+        python3 - "$OC_STATE" 2>/dev/null <<'PY' || echo "state-hash-failed"
+import hashlib, os, stat, sys
+flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(sys.argv[1], flags)
+info = os.fstat(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    raise SystemExit(1)
+digest = hashlib.sha256()
+with os.fdopen(fd, "rb") as handle:
+    while chunk := handle.read(1024 * 1024):
+        digest.update(chunk)
+print(digest.hexdigest())
+PY
     }
     oc_worktree_hash() {
-        {
-            git -C "$ROOT" diff --binary --no-ext-diff 2>/dev/null || true
-            git -C "$ROOT" diff --cached --binary --no-ext-diff 2>/dev/null || true
-            git -C "$ROOT" ls-files --others --exclude-standard -z 2>/dev/null \
-                | while IFS= read -r -d '' _oc_file; do
-                    cksum "$ROOT/$_oc_file" 2>/dev/null || true
-                done
-        } | cksum
+        "$OC_CONTROL_PYTHON" -I - "$OC_SANDBOX_EXEC" "$OC_SANDBOX_SETTINGS" \
+            "$OC_CONTROL_PYTHON" "$OC_HELPER" "$ROOT" <<'PY'
+import os, signal, subprocess, sys
+
+command = [sys.argv[1], sys.argv[2], sys.argv[3], "-I", sys.argv[4],
+           "worktree-hash", "--root", sys.argv[5], "--timeout", "10"]
+process = subprocess.Popen(command, stdout=subprocess.PIPE, stderr=subprocess.DEVNULL,
+                           text=True, start_new_session=True)
+try:
+    output, _ = process.communicate(timeout=20)
+except subprocess.TimeoutExpired:
+    os.killpg(process.pid, signal.SIGTERM)
+    try:
+        process.communicate(timeout=2)
+    except subprocess.TimeoutExpired:
+        os.killpg(process.pid, signal.SIGKILL)
+        process.communicate()
+    print("worktree-hash-timeout")
+    raise SystemExit(0)
+if process.returncode == 0 and output.strip():
+    print(output.strip())
+else:
+    print("worktree-hash-failed")
+PY
     }
-    OC_SID_CACHE="$ROOT/process_log/.opencode_session_id"
-    OC_LOG="$ROOT/process_log/opencode-driver.log"
-    OC_SERVER_LOG="$ROOT/process_log/opencode-server.log"
-    OC_SERVER_PID_FILE="$ROOT/process_log/.opencode_server_pid"
-    OC_SERVER_START_FILE="$ROOT/process_log/.opencode_server_start"
-    OC_SERVER_IDENTITY_FILE="$ROOT/process_log/.opencode_server_identity"
-    OC_SERVER_STARTING_FILE="$ROOT/process_log/.opencode_server_starting"
-    OC_SERVER_URL_FILE="$ROOT/process_log/.opencode_server_url"
-    OC_SERVER_PASSWORD_FILE="$ROOT/process_log/.opencode_server_password"
-    OC_DRIVER_LOCK="$ROOT/process_log/.opencode_driver_lock"
-    OC_PENDING_CHILDREN_FILE="$ROOT/process_log/.opencode_background_children"
-    OC_PENDING_PARENT_FILE="$ROOT/process_log/.opencode_background_parent"
-    OC_BACKGROUND_BASELINE_FILE="$ROOT/process_log/.opencode_background_baseline"
-    OC_BACKGROUND_TRANSITION_FILE="$ROOT/process_log/.opencode_background_transition"
-    OC_RECOVERY_INTENT_FILE="$ROOT/process_log/.opencode_recovery_intent"
-    OC_PARENT_SERVER_EPOCH_FILE="$ROOT/process_log/.opencode_parent_server_epoch"
-    OC_UNRESOLVED_SESSION_FILE="$ROOT/process_log/.opencode_unresolved_session"
-    OC_HELPER="$ROOT/code/utils/opencode_driver.py"
-    [ -f "$OC_HELPER" ] || OC_HELPER="$ROOT/templates/utils/opencode_driver.py"
-    [ -f "$OC_HELPER" ] || { echo "ERROR: missing OpenCode driver helper" >&2; exit 1; }
+    OC_SID_CACHE="$OC_CONTROL_DIR/session_id"
+    OC_LOG="$OC_CONTROL_DIR/driver.log"
+    OC_SERVER_LOG="$OC_CONTROL_DIR/server.log"
+    OC_SERVER_PID_FILE="$OC_CONTROL_DIR/server_pid"
+    OC_SERVER_START_FILE="$OC_CONTROL_DIR/server_start"
+    OC_SERVER_IDENTITY_FILE="$OC_CONTROL_DIR/server_identity"
+    OC_SERVER_STARTING_FILE="$OC_CONTROL_DIR/server_starting"
+    OC_SERVER_URL_FILE="$OC_CONTROL_DIR/server_url"
+    OC_SERVER_PASSWORD_FILE="$OC_CONTROL_DIR/server_password"
+    OC_DRIVER_LOCK="$OC_CONTROL_DIR/driver_lock"
+    OC_PENDING_CHILDREN_FILE="$OC_CONTROL_DIR/background_children"
+    OC_PENDING_PARENT_FILE="$OC_CONTROL_DIR/background_parent"
+    OC_BACKGROUND_BASELINE_FILE="$OC_CONTROL_DIR/background_baseline"
+    OC_BACKGROUND_TRANSITION_FILE="$OC_CONTROL_DIR/background_transition"
+    OC_RECOVERY_INTENT_FILE="$OC_CONTROL_DIR/recovery_intent"
+    OC_PARENT_SERVER_EPOCH_FILE="$OC_CONTROL_DIR/parent_server_epoch"
+    OC_UNRESOLVED_SESSION_FILE="$OC_CONTROL_DIR/unresolved_session"
+    OC_LEGACY_UNCONFINED_FILE="$OC_CONTROL_DIR/legacy_unconfined"
+    # v2.21 stored control state directly in process_log/. Migrate it before
+    # starting any sandboxed process so update.sh cannot orphan/reuse an old
+    # unconfined server or duplicate its parent session. Legacy state was
+    # model-writable, so accept regular files only and let the normal identity,
+    # PGID, command, and API checks validate their contents after the move.
+    OC_LEGACY_SERVER_MIGRATED=0
+    _oc_legacy_lock="$ROOT/process_log/.opencode_driver_lock"
+    if [ -d "$_oc_legacy_lock" ] && [ ! -L "$_oc_legacy_lock" ]; then
+        _oc_legacy_owner="$(python3 - "$_oc_legacy_lock" <<'PY'
+import os, stat, sys
+
+root = sys.argv[1]
+names = set(os.listdir(root))
+if names - {"pid", "start"}:
+    raise SystemExit("unexpected legacy driver-lock entries")
+values = []
+for name in ("pid", "start"):
+    path = os.path.join(root, name)
+    try:
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+        fd = os.open(path, flags)
+    except FileNotFoundError:
+        values.append("")
+        continue
+    info = os.fstat(fd)
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        os.close(fd)
+        raise SystemExit("unsafe legacy driver-lock entry")
+    with os.fdopen(fd, encoding="utf-8") as handle:
+        values.append(handle.read().strip())
+print("|".join(values))
+PY
+)" || { echo "ERROR: unsafe pre-v2.21 OpenCode driver lock" >&2; exit 1; }
+        _oc_legacy_owner_pid="${_oc_legacy_owner%%|*}"
+        _oc_legacy_owner_start="${_oc_legacy_owner#*|}"
+        if [[ "$_oc_legacy_owner_pid" =~ ^[0-9]+$ ]] && \
+           kill -0 "$_oc_legacy_owner_pid" 2>/dev/null && \
+           [ "$(ps -o lstart= -p "$_oc_legacy_owner_pid" 2>/dev/null | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' || true)" = "$_oc_legacy_owner_start" ]; then
+            echo "ERROR: a pre-v2.21 OpenCode driver is still running (pid=$_oc_legacy_owner_pid); stop it before launching the updated runtime" >&2
+            exit 1
+        fi
+        rm -f "$_oc_legacy_lock/pid" "$_oc_legacy_lock/start"
+        rmdir "$_oc_legacy_lock" || {
+            echo "ERROR: cannot remove stale pre-v2.21 OpenCode driver lock" >&2
+            exit 1
+        }
+    fi
+    if { [ -e "$_oc_legacy_lock" ] || [ -L "$_oc_legacy_lock" ]; } && [ ! -d "$_oc_legacy_lock" ]; then
+        [ -f "$_oc_legacy_lock" ] && [ ! -L "$_oc_legacy_lock" ] || {
+            echo "ERROR: legacy OpenCode driver lock is not a regular file; inspect $_oc_legacy_lock" >&2
+            exit 1
+        }
+        python3 - "$_oc_legacy_lock" <<'PY' || {
+import os, sys
+raise SystemExit(0 if os.lstat(sys.argv[1]).st_nlink == 1 else 1)
+PY
+            echo "ERROR: legacy OpenCode driver lock has alternate hard links: $_oc_legacy_lock" >&2
+            exit 1
+        }
+        if ! python3 - "$_oc_legacy_lock" <<'PY'
+import fcntl, os, sys
+flags = os.O_RDWR | getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(sys.argv[1], flags)
+try:
+    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+except BlockingIOError:
+    raise SystemExit(1)
+finally:
+    os.close(fd)
+PY
+        then
+            echo "ERROR: a pre-v2.22 OpenCode driver is still running; stop it before launching the updated runtime" >&2
+            exit 1
+        fi
+    fi
+    _oc_legacy_pairs=(
+        ".opencode_session_id|session_id"
+        "opencode-driver.log|driver.log"
+        "opencode-server.log|server.log"
+        ".opencode_server_pid|server_pid"
+        ".opencode_server_start|server_start"
+        ".opencode_server_identity|server_identity"
+        ".opencode_server_starting|server_starting"
+        ".opencode_server_url|server_url"
+        ".opencode_server_password|server_password"
+        ".opencode_driver_lock|driver_lock"
+        ".opencode_background_children|background_children"
+        ".opencode_background_parent|background_parent"
+        ".opencode_background_baseline|background_baseline"
+        ".opencode_background_transition|background_transition"
+        ".opencode_recovery_intent|recovery_intent"
+        ".opencode_parent_server_epoch|parent_server_epoch"
+        ".opencode_unresolved_session|unresolved_session"
+    )
+    for _oc_legacy_pair in "${_oc_legacy_pairs[@]}"; do
+        _oc_legacy_name="${_oc_legacy_pair%%|*}"
+        _oc_control_name="${_oc_legacy_pair#*|}"
+        _oc_legacy_path="$ROOT/process_log/$_oc_legacy_name"
+        _oc_control_path="$OC_CONTROL_DIR/$_oc_control_name"
+        if [ -e "$_oc_legacy_path" ] || [ -L "$_oc_legacy_path" ]; then
+            if [ "$_oc_control_name" = "driver_lock" ] && [ -d "$_oc_legacy_path" ] && [ ! -L "$_oc_legacy_path" ]; then
+                : # pre-2.21 directory lock; oc_acquire_lock validates/reaps it
+            else
+                [ -f "$_oc_legacy_path" ] && [ ! -L "$_oc_legacy_path" ] || {
+                    echo "ERROR: legacy OpenCode state is not a regular file: $_oc_legacy_path" >&2
+                    exit 1
+                }
+                python3 - "$_oc_legacy_path" <<'PY' || {
+import os, sys
+raise SystemExit(0 if os.lstat(sys.argv[1]).st_nlink == 1 else 1)
+PY
+                    echo "ERROR: legacy OpenCode state has alternate hard links: $_oc_legacy_path" >&2
+                    exit 1
+                }
+            fi
+            [ ! -e "$_oc_control_path" ] || {
+                echo "ERROR: both legacy and v2.22 OpenCode state exist for $_oc_control_name; inspect process_log" >&2
+                exit 1
+            }
+            mv "$_oc_legacy_path" "$_oc_control_path"
+            case "$_oc_control_name" in server_*) OC_LEGACY_SERVER_MIGRATED=1 ;; esac
+        fi
+    done
+    if [ "$OC_LEGACY_SERVER_MIGRATED" = "1" ]; then
+        python3 - "$OC_LEGACY_UNCONFINED_FILE" <<'PY'
+import os, sys
+flags = os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(sys.argv[1], flags, 0o600)
+os.close(fd)
+PY
+    fi
+    if [ -e "$OC_LEGACY_UNCONFINED_FILE" ]; then
+        _oc_legacy_pid=""
+        if [ -s "$OC_SERVER_IDENTITY_FILE" ]; then
+            _oc_legacy_pid="$(python3 - "$OC_SERVER_IDENTITY_FILE" <<'PY'
+import os, stat, sys
+flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(sys.argv[1], flags)
+info = os.fstat(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    raise SystemExit(1)
+with os.fdopen(fd, encoding="utf-8") as handle:
+    print(handle.readline().strip())
+PY
+)" || { echo "ERROR: unsafe migrated OpenCode server identity" >&2; exit 1; }
+        elif [ -s "$OC_SERVER_PID_FILE" ]; then
+            _oc_legacy_pid="$(python3 - "$OC_SERVER_PID_FILE" <<'PY'
+import os, stat, sys
+flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(sys.argv[1], flags)
+info = os.fstat(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    raise SystemExit(1)
+with os.fdopen(fd, encoding="utf-8") as handle:
+    print(handle.read().strip())
+PY
+)" || { echo "ERROR: unsafe migrated OpenCode server pid" >&2; exit 1; }
+        fi
+        if [[ "$_oc_legacy_pid" =~ ^[0-9]+$ ]] && \
+           { kill -0 "$_oc_legacy_pid" 2>/dev/null || kill -0 -- "-$_oc_legacy_pid" 2>/dev/null; }; then
+            echo "ERROR: a pre-v2.22 unconfined OpenCode server/process group is still alive (pid=$_oc_legacy_pid). Stop it before launching the updated runtime; no replacement was started." >&2
+            exit 1
+        fi
+        rm -f "$OC_LEGACY_UNCONFINED_FILE"
+    fi
+    # A pre-v2.22 unconfined process could have planted control-path symlinks
+    # before the policy existed. Once legacy liveness is ruled out, reject every
+    # non-regular entry before the host driver opens logs/state. The one allowed
+    # directory is the old pid/start lock format, validated by oc_acquire_lock.
+    [ ! -L "$OC_CONTROL_DIR" ] && [ "$(cd "$OC_CONTROL_DIR" && pwd -P)" = "$OC_CONTROL_DIR" ] || {
+        echo "ERROR: unsafe OpenCode control directory: $OC_CONTROL_DIR" >&2
+        exit 1
+    }
+    for _oc_control_entry in "$OC_CONTROL_DIR"/* "$OC_CONTROL_DIR"/.[!.]* "$OC_CONTROL_DIR"/..?*; do
+        [ -e "$_oc_control_entry" ] || [ -L "$_oc_control_entry" ] || continue
+        if [ -L "$_oc_control_entry" ]; then
+            echo "ERROR: symlink found in OpenCode control state: $_oc_control_entry" >&2
+            exit 1
+        fi
+        if [ -d "$_oc_control_entry" ]; then
+            [ "$(basename "$_oc_control_entry")" = "driver_lock" ] || {
+                echo "ERROR: unexpected directory in OpenCode control state: $_oc_control_entry" >&2
+                exit 1
+            }
+        elif [ ! -f "$_oc_control_entry" ]; then
+            echo "ERROR: non-regular OpenCode control state: $_oc_control_entry" >&2
+            exit 1
+        elif ! python3 - "$_oc_control_entry" <<'PY'
+import os, sys
+raise SystemExit(0 if os.lstat(sys.argv[1]).st_nlink == 1 else 1)
+PY
+        then
+            echo "ERROR: hard-linked OpenCode control state: $_oc_control_entry" >&2
+            exit 1
+        fi
+    done
+    if [ "$ONCE" = "1" ]; then
+        exec "$OC_SANDBOX_EXEC" "$OC_SANDBOX_SETTINGS" \
+            opencode --model opencode/deepseek-v4-flash
+    fi
     OPENCODE_TURN_TIMEOUT="${OPENCODE_TURN_TIMEOUT:-3540}"
     OPENCODE_BACKGROUND_TIMEOUT="${OPENCODE_BACKGROUND_TIMEOUT:-3540}"
     OPENCODE_ABORT_TIMEOUT="${OPENCODE_ABORT_TIMEOUT:-30}"
@@ -393,8 +823,8 @@ PY
             rm -f "$OC_DRIVER_LOCK/pid" "$OC_DRIVER_LOCK/start"
             rmdir "$OC_DRIVER_LOCK" 2>/dev/null || { echo "ERROR: cannot recover stale OpenCode driver lock" >&2; return 1; }
         fi
-        ready="$(mktemp "$ROOT/process_log/.opencode-lock-ready.XXXXXX")"
-        python3 "$OC_HELPER" lock-hold --path "$OC_DRIVER_LOCK" --parent "$OC_DRIVER_PID" --ready "$ready" &
+        ready="$(mktemp "$OC_CONTROL_DIR/lock-ready.XXXXXX")"
+        "$OC_CONTROL_PYTHON" -I "$OC_HELPER" lock-hold --path "$OC_DRIVER_LOCK" --parent "$OC_DRIVER_PID" --ready "$ready" &
         OC_LOCK_KEEPER_PID=$!
         for attempt in $(seq 1 100); do
             if [ -s "$ready" ]; then
@@ -551,16 +981,18 @@ PY
         export OPENCODE_SERVER_PASSWORD
         : > "$OC_SERVER_LOG"
         OC_SERVER_STARTING=1
-        starting_tmp="$(mktemp "$ROOT/process_log/.opencode-server-starting.XXXXXX")"
+        starting_tmp="$(mktemp "$OC_CONTROL_DIR/server-starting.XXXXXX")"
         printf '%s\n' pending > "$starting_tmp"
         chmod 600 "$starting_tmp"
         mv "$starting_tmp" "$OC_SERVER_STARTING_FILE"
         {
-            python3 -c 'import os,sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
-                opencode serve --hostname 127.0.0.1 --port 0 </dev/null >> "$OC_SERVER_LOG" 2>&1 &
+            "$OC_CONTROL_PYTHON" -I -c 'import os,sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
+                "$OC_SANDBOX_EXEC" "$OC_SANDBOX_SETTINGS" \
+                opencode serve --hostname 127.0.0.1 --port 0 \
+                </dev/null >> "$OC_SERVER_LOG" 2>&1 &
             OC_SERVER_PID=$!
         }
-        starting_tmp="$(mktemp "$ROOT/process_log/.opencode-server-starting.XXXXXX")"
+        starting_tmp="$(mktemp "$OC_CONTROL_DIR/server-starting.XXXXXX")"
         printf '%s\n' "$OC_SERVER_PID" > "$starting_tmp"
         chmod 600 "$starting_tmp"
         mv "$starting_tmp" "$OC_SERVER_STARTING_FILE"
@@ -570,14 +1002,14 @@ PY
             echo "ERROR: OpenCode server failed to start" >&2
             return 1
         fi
-        identity_tmp="$(mktemp "$ROOT/process_log/.opencode-server-identity.XXXXXX")"
+        identity_tmp="$(mktemp "$OC_CONTROL_DIR/server-identity.XXXXXX")"
         printf '%s\n%s\n' "$OC_SERVER_PID" "$OC_SERVER_START" > "$identity_tmp"
         chmod 600 "$identity_tmp"
         mv "$identity_tmp" "$OC_SERVER_IDENTITY_FILE"
         # Compatibility/observability mirrors; identity_file is authoritative.
         printf '%s\n' "$OC_SERVER_PID" > "$OC_SERVER_PID_FILE"
         printf '%s\n' "$OC_SERVER_START" > "$OC_SERVER_START_FILE"
-        password_tmp="$(mktemp "$ROOT/process_log/.opencode-server-password.XXXXXX")"
+        password_tmp="$(mktemp "$OC_CONTROL_DIR/server-password.XXXXXX")"
         printf '%s\n' "$OPENCODE_SERVER_PASSWORD" > "$password_tmp"
         chmod 600 "$password_tmp"
         mv "$password_tmp" "$OC_SERVER_PASSWORD_FILE"
@@ -641,7 +1073,7 @@ PY
     }
     oc_sid_exists() {
         local sessions_tmp rc
-        sessions_tmp="$(mktemp "${TMPDIR:-/tmp}/zeropaper-opencode-sessions.XXXXXX")"
+        sessions_tmp="$(mktemp "$OC_CONTROL_DIR/sessions.XXXXXX")"
         if ! oc_server_api list-local --root "$ROOT" > "$sessions_tmp" 2>/dev/null; then
             rm -f "$sessions_tmp"
             return 2
@@ -652,7 +1084,7 @@ PY
     }
     oc_reconcile_new_sid() { # $1 = newline-delimited local-session snapshot
         local before_file="$1" after_file candidate
-        after_file="$(mktemp "${TMPDIR:-/tmp}/zeropaper-opencode-sessions.XXXXXX")"
+        after_file="$(mktemp "$OC_CONTROL_DIR/sessions.XXXXXX")"
         if ! oc_server_api list-local --root "$ROOT" > "$after_file" 2>/dev/null; then
             rm -f "$after_file"
             return 1
@@ -679,20 +1111,20 @@ PY
             "$OC_PARENT_SERVER_EPOCH_FILE"
     }
     oc_mark_unresolved_session() {
-        printf 'An OpenCode turn created or may have created a parent session whose ID could not be determined.\nReason: %s\nInspect sessions with ./launch.sh opencode --once, write the chosen ID to process_log/.opencode_session_id, then remove this marker.\n' \
+        printf 'An OpenCode turn created or may have created a parent session whose ID could not be determined.\nReason: %s\nInspect sessions with ./launch.sh opencode --once, write the chosen ID to process_log/.opencode-control/session_id, then remove this marker.\n' \
             "$1" > "$OC_UNRESOLVED_SESSION_FILE"
         chmod 600 "$OC_UNRESOLVED_SESSION_FILE"
     }
     oc_mark_first_turn_in_progress() {
         local marker_tmp
-        marker_tmp="$(mktemp "$ROOT/process_log/.opencode-unresolved.XXXXXX")"
+        marker_tmp="$(mktemp "$OC_CONTROL_DIR/unresolved.XXXXXX")"
         printf 'An OpenCode first turn is in progress and may create a parent session.\nIf interrupted, inspect sessions with ./launch.sh opencode --once before removing this marker.\n' > "$marker_tmp"
         chmod 600 "$marker_tmp"
         mv "$marker_tmp" "$OC_UNRESOLVED_SESSION_FILE"
     }
     oc_cache_sid() {
         local sid_tmp
-        sid_tmp="$(mktemp "$ROOT/process_log/.opencode-session.XXXXXX")"
+        sid_tmp="$(mktemp "$OC_CONTROL_DIR/session.XXXXXX")"
         printf '%s\n' "$OC_SID" > "$sid_tmp"
         chmod 600 "$sid_tmp"
         mv "$sid_tmp" "$OC_SID_CACHE"
@@ -727,7 +1159,7 @@ PY
     oc_set_parent_server_epoch() {
         local epoch epoch_tmp
         epoch="$(oc_server_epoch)" || return 1
-        epoch_tmp="$(mktemp "$ROOT/process_log/.opencode-parent-epoch.XXXXXX")"
+        epoch_tmp="$(mktemp "$OC_CONTROL_DIR/parent-epoch.XXXXXX")"
         printf '%s %s\n' "$OC_SID" "$epoch" > "$epoch_tmp"
         chmod 600 "$epoch_tmp"
         mv "$epoch_tmp" "$OC_PARENT_SERVER_EPOCH_FILE"
@@ -757,7 +1189,7 @@ PY
     oc_begin_background_transition() { # $1 = restart or cancel
         local transition_tmp kind="$1"
         case "$kind" in restart|cancel) ;; *) return 1 ;; esac
-        transition_tmp="$(mktemp "$ROOT/process_log/.opencode-transition.XXXXXX")"
+        transition_tmp="$(mktemp "$OC_CONTROL_DIR/transition.XXXXXX")"
         printf '%s %s\n' "$OC_SID" "$kind" > "$transition_tmp"
         chmod 600 "$transition_tmp"
         mv "$transition_tmp" "$OC_BACKGROUND_TRANSITION_FILE"
@@ -767,7 +1199,7 @@ PY
         count="$(oc_server_api cursor --session "$OC_SID" 2>/dev/null)" || return 1
         [[ "$count" =~ ^[0-9]+$ ]] || return 1
         epoch="$(oc_server_epoch)" || return 1
-        baseline_tmp="$(mktemp "$ROOT/process_log/.opencode-baseline.XXXXXX")"
+        baseline_tmp="$(mktemp "$OC_CONTROL_DIR/baseline.XXXXXX")"
         printf '%s %s %s\n' "$OC_SID" "$epoch" "$count" > "$baseline_tmp"
         chmod 600 "$baseline_tmp"
         mv "$baseline_tmp" "$OC_BACKGROUND_BASELINE_FILE"
@@ -777,7 +1209,7 @@ PY
         local kind="$1" token intent_tmp
         case "$kind" in restart|cancel) ;; *) return 1 ;; esac
         token="zp-recovery-$(python3 -c 'import secrets; print(secrets.token_hex(16))')" || return 1
-        intent_tmp="$(mktemp "$ROOT/process_log/.opencode-recovery.XXXXXX")"
+        intent_tmp="$(mktemp "$OC_CONTROL_DIR/recovery.XXXXXX")"
         printf '%s %s %s\n' "$OC_SID" "$kind" "$token" > "$intent_tmp"
         chmod 600 "$intent_tmp"
         mv "$intent_tmp" "$OC_RECOVERY_INTENT_FILE"
@@ -827,7 +1259,7 @@ PY
     oc_refresh_pending_children() {
         local pending_tmp after
         after="$(oc_background_after)" || return 1
-        pending_tmp="$(mktemp "$ROOT/process_log/.opencode-pending.XXXXXX")"
+        pending_tmp="$(mktemp "$OC_CONTROL_DIR/pending.XXXXXX")"
         if ! oc_server_api pending --session "$OC_SID" --after "$after" > "$pending_tmp" 2>/dev/null; then
             rm -f "$pending_tmp"
             return 1
@@ -932,7 +1364,7 @@ PY
         # The attached CLI gets its own process group, separate from the server
         # and its native background jobs. A turn timeout can therefore reap a
         # wedged client without destroying unrelated children or autowake.
-        python3 -c 'import os,sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
+        "$OC_CONTROL_PYTHON" -I -c 'import os,sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
             "$@" </dev/null > "$oc_events" 2>&1 &
         oc_pid=$!
         OC_ACTIVE_PGID="$oc_pid"
@@ -1117,25 +1549,25 @@ PY
         if [ "$oc_turn" -gt "${MAX_TURNS:-300}" ]; then
             echo "[opencode-driver] MAX_TURNS reached (status=$oc_st)" | tee -a "$OC_LOG"; exit 1
         fi
-        oc_events="$(mktemp "${TMPDIR:-/tmp}/zeropaper-opencode.XXXXXX")"
+        oc_events="$(mktemp "$OC_CONTROL_DIR/events.XXXXXX")"
         oc_sessions_before=""
         oc_sessions_before_valid=0
         if [ -z "$OC_SID" ]; then
-            oc_sessions_before="$(mktemp "${TMPDIR:-/tmp}/zeropaper-opencode-sessions.XXXXXX")"
+            oc_sessions_before="$(mktemp "$OC_CONTROL_DIR/sessions.XXXXXX")"
             if oc_server_api list-local --root "$ROOT" > "$oc_sessions_before" 2>/dev/null; then
                 oc_sessions_before_valid=1
             fi
         fi
-        oc_before="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true):$(oc_worktree_hash):$(cksum "$OC_STATE" 2>/dev/null || true)"
+        oc_before="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true):$(oc_worktree_hash):$(oc_state_hash)"
         oc_t0=$SECONDS
         oc_event_sid_rc=0
         set +e
         if [ -n "$OC_SID" ]; then
-            run_opencode_turn opencode run --attach "$OC_SERVER_URL" --session "$OC_SID" --model opencode/deepseek-v4-flash --format json "$OC_CONT$oc_recovery_note"
+            run_opencode_turn "$OC_SANDBOX_EXEC" "$OC_SANDBOX_SETTINGS" opencode run --attach "$OC_SERVER_URL" --session "$OC_SID" --model opencode/deepseek-v4-flash --format json "$OC_CONT$oc_recovery_note"
             oc_rc=$?
         else
             oc_mark_first_turn_in_progress
-            run_opencode_turn opencode run --attach "$OC_SERVER_URL" --model opencode/deepseek-v4-flash --format json "$OC_FIRST$oc_recovery_note"
+            run_opencode_turn "$OC_SANDBOX_EXEC" "$OC_SANDBOX_SETTINGS" opencode run --attach "$OC_SERVER_URL" --model opencode/deepseek-v4-flash --format json "$OC_FIRST$oc_recovery_note"
             oc_rc=$?
             OC_SID="$(python3 -c 'import json,sys
 ids=[]
@@ -1272,7 +1704,7 @@ raise SystemExit(1)' "$oc_events"; then
             oc_recovery_note="$(oc_recovery_note_from_intent)" || exit 1
         fi
         rm -f "$oc_events" "${oc_events}.timeout"
-        oc_after="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true):$(oc_worktree_hash):$(cksum "$OC_STATE" 2>/dev/null || true)"
+        oc_after="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true):$(oc_worktree_hash):$(oc_state_hash)"
         oc_dt=$((SECONDS - oc_t0))
         if [ "$oc_dt" -lt 60 ]; then
             oc_fast_any=$((oc_fast_any + 1))

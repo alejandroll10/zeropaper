@@ -6,9 +6,12 @@ from __future__ import annotations
 import argparse
 import base64
 import fcntl
+import hashlib
 import json
 import os
 import re
+import stat
+import subprocess
 import sys
 import time
 import urllib.error
@@ -334,6 +337,45 @@ def cmd_lock_hold(args) -> int:
     return 0
 
 
+def cmd_worktree_hash(args) -> int:
+    """Hash repository changes while running inside the outer SRT boundary."""
+    digest = hashlib.sha256()
+    git_base = ["git", "-C", args.root]
+    for command in (
+        ["diff", "--binary", "--no-ext-diff", "--no-textconv"],
+        ["diff", "--cached", "--binary", "--no-ext-diff", "--no-textconv"],
+    ):
+        result = subprocess.run(git_base + command, stdout=subprocess.PIPE,
+                                stderr=subprocess.STDOUT, timeout=args.timeout, check=False)
+        digest.update(result.stdout)
+        digest.update(str(result.returncode).encode())
+    listed = subprocess.run(git_base + ["ls-files", "--others", "--exclude-standard", "-z"],
+                            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+                            timeout=args.timeout, check=False)
+    digest.update(str(listed.returncode).encode())
+    for encoded in listed.stdout.split(b"\0"):
+        if not encoded:
+            continue
+        relative = os.fsdecode(encoded)
+        if os.path.isabs(relative) or ".." in relative.split(os.sep):
+            continue
+        path = os.path.join(args.root, relative)
+        try:
+            flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
+            fd = os.open(path, flags)
+            info = os.fstat(fd)
+            if not stat.S_ISREG(info.st_mode):
+                os.close(fd)
+                continue
+            with os.fdopen(fd, "rb") as handle:
+                while chunk := handle.read(1024 * 1024):
+                    digest.update(chunk)
+        except OSError:
+            continue
+    print(digest.hexdigest())
+    return 0
+
+
 def build_parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser()
     parser.add_argument("--url", type=_base_url)
@@ -384,12 +426,17 @@ def build_parser() -> argparse.ArgumentParser:
     lock.add_argument("--parent", type=int, required=True)
     lock.add_argument("--ready", required=True)
     lock.set_defaults(func=cmd_lock_hold)
+
+    worktree = sub.add_parser("worktree-hash")
+    worktree.add_argument("--root", required=True)
+    worktree.add_argument("--timeout", type=float, default=10.0)
+    worktree.set_defaults(func=cmd_worktree_hash)
     return parser
 
 
 def main() -> int:
     args = build_parser().parse_args()
-    if args.command != "lock-hold" and (not args.url or not args.password):
+    if args.command not in {"lock-hold", "worktree-hash"} and (not args.url or not args.password):
         print("OpenCode server password is required", file=sys.stderr)
         return 2
     try:

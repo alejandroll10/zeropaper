@@ -464,6 +464,8 @@ OPENCODE_DIR_REL=".opencode"
 OPENCODE_AGENTS_REL="$OPENCODE_DIR_REL/agents"
 OPENCODE_CONFIG_REL="opencode.json"
 OPENCODE_CONFIG_SRC_REL="templates/runtime/opencode/opencode.json"
+OPENCODE_SANDBOX_REL="$OPENCODE_DIR_REL/sandbox.json"
+OPENCODE_SANDBOX_SRC_REL="templates/runtime/opencode/sandbox.json"
 
 
 MODEL_OVERRIDE_ARGS=()
@@ -815,6 +817,7 @@ if [ "$LOCAL" = "1" ]; then
     mkdir -p "$OUT_DIR/$CLAUDE_DIR_REL"
     mkdir -p "$OUT_DIR/$GEMINI_DIR_REL"
     cp "$SCRIPT_DIR/$OPENCODE_CONFIG_SRC_REL" "$OUT_DIR/$OPENCODE_CONFIG_REL"
+    cp "$SCRIPT_DIR/$OPENCODE_SANDBOX_SRC_REL" "$OUT_DIR/$OPENCODE_SANDBOX_REL"
     # Project-specific gitignore (tracks paper/, output/, code/; ignores data
     # blobs + build artifacts). Production mode copies this at the cleanup step
     # (line ~1878), but --local exits before reaching it, so copy it here too.
@@ -1196,12 +1199,21 @@ else
     GEMINI_AGENTS_OUT="$GEMINI_AGENTS_REL"
     GROK_AGENTS_OUT="$GROK_AGENTS_REL"
     OPENCODE_AGENTS_OUT="$OPENCODE_AGENTS_REL"
+    if [ -L "$OPENCODE_DIR_REL" ] || { [ -e "$OPENCODE_DIR_REL" ] && [ ! -d "$OPENCODE_DIR_REL" ]; }; then
+        echo "Error: $OPENCODE_DIR_REL must be a real directory; refusing to update through an alias." >&2
+        exit 1
+    fi
+    if [ -d "$OPENCODE_DIR_REL" ] && [ "$(cd "$OPENCODE_DIR_REL" && pwd -P)" != "$(pwd -P)/$OPENCODE_DIR_REL" ]; then
+        echo "Error: $OPENCODE_DIR_REL does not resolve inside this project." >&2
+        exit 1
+    fi
     mkdir -p "$AGENTS_OUT"
     mkdir -p "$CODEX_AGENTS_OUT"
     mkdir -p "$GEMINI_AGENTS_OUT"
     mkdir -p "$GROK_AGENTS_OUT"
     mkdir -p "$OPENCODE_AGENTS_OUT"
     cp "$TEMPLATE_ROOT/$OPENCODE_CONFIG_SRC_REL" "$OPENCODE_CONFIG_REL"
+    cp "$TEMPLATE_ROOT/$OPENCODE_SANDBOX_SRC_REL" "$OPENCODE_SANDBOX_REL"
 fi
 
 # ── Resolve unavailable Claude subagent models → fallbacks ──
@@ -2374,8 +2386,17 @@ cp "$TEMPLATE_ROOT/templates/utils/codex_preflight.sh" "$P/code/utils/"
 
 # Stdlib-only control client used by launch.sh's persistent OpenCode server
 # driver (health, session-tree quiescence, timeout abort, and reconciliation).
-cp "$TEMPLATE_ROOT/templates/utils/opencode_driver.py" "$P/code/utils/"
-chmod +x "$P/code/utils/opencode_driver.py"
+cp "$TEMPLATE_ROOT/templates/utils/opencode_driver.py" "$P/.opencode/"
+chmod +x "$P/.opencode/opencode_driver.py"
+
+# Fail-closed Anthropic Sandbox Runtime adapter. The headless server is the
+# execution owner for task/Bash tools, and both it and each attached client are
+# wrapped so their whole native child trees share the filesystem boundary. The
+# narrow Python lifecycle/HTTP control driver remains host-side.
+cp "$TEMPLATE_ROOT/templates/utils/opencode_sandbox_exec.sh" "$P/.opencode/"
+chmod +x "$P/.opencode/opencode_sandbox_exec.sh"
+cp "$TEMPLATE_ROOT/templates/utils/opencode_sandbox_exec.mjs" "$P/.opencode/"
+chmod +x "$P/.opencode/opencode_sandbox_exec.mjs"
 
 # ── Launch-time model heal ──
 # The build-time model remap (resolve_model_fallbacks.py + apply_model_remap.py)
@@ -3097,12 +3118,15 @@ candidate_files = [
     ".claude/settings.json",
     ".gemini/settings.json",
     ".grok/sandbox.toml",
+    ".opencode/sandbox.json",
     "opencode.json",
     ".gitignore",
     "dashboard.html",
     "code/utils/setup_push_token.sh",
     "code/utils/codex_preflight.sh",
-    "code/utils/opencode_driver.py",
+    ".opencode/opencode_driver.py",
+    ".opencode/opencode_sandbox_exec.sh",
+    ".opencode/opencode_sandbox_exec.mjs",
 ]
 
 # Extension-installed files. The empirical extension drops *.py / *.sh
@@ -3419,5 +3443,5 @@ elif [ "$SEEDED" = "1" ]; then
     echo "Pipeline will triage seed maturity and enter at the appropriate stage"
 fi
 echo "Runtime permissions are pre-configured for Claude, Grok, and OpenCode ($OPENCODE_CONFIG_REL)"
-echo "(OpenCode file tools are project-confined; permitted Bash commands are not OS-sandboxed — see LIMITATIONS.md)"
+echo "(OpenCode's launcher wraps its server and Bash descendants in Anthropic Sandbox Runtime)"
 rm -f "$TIER_VOCAB_FILE"

@@ -96,12 +96,88 @@ if [ -z "$PROJECT" ]; then
     exit 1
 fi
 
-PROJECT="$(cd "$PROJECT" && pwd)"
-TEMPLATE_ROOT="$(cd "$(dirname "$0")" && pwd)"
+PROJECT="$(cd "$PROJECT" && pwd -P)"
+_update_source="$0"
+case "$_update_source" in */*) _update_dir="${_update_source%/*}" ;; *) _update_dir=. ;; esac
+TEMPLATE_ROOT="$(cd "$_update_dir" && pwd -P)"
 MANIFEST="$PROJECT/.deploy_manifest.json"
 
+# The target venv/project is agent-writable. Never let an activated venv (or a
+# temp/cache shim) provide host-authority tools used by the updater.
+UPDATE_CONTROL_PATH=""
+IFS=: read -r -a _update_path_entries <<< "${PATH:-}"
+for _update_path_entry in /usr/bin /bin /usr/sbin /sbin "${_update_path_entries[@]}"; do
+    [ -n "$_update_path_entry" ] && [ -d "$_update_path_entry" ] || continue
+    _update_path_physical="$(cd "$_update_path_entry" 2>/dev/null && pwd -P)" || continue
+    case "$_update_path_physical" in
+        "$PROJECT"|"$PROJECT"/*|"$TEMPLATE_ROOT"|"$TEMPLATE_ROOT"/*|\
+        /tmp|/tmp/*|/private/tmp|/private/tmp/*|/var/tmp|/var/tmp/*|/private/var/folders|/private/var/folders/*|\
+        "$HOME/.local/share/opencode"|"$HOME/.local/share/opencode"/*|\
+        "$HOME/.local/state/opencode"|"$HOME/.local/state/opencode"/*|\
+        "$HOME/.cache"|"$HOME/.cache"/*|"$HOME/Library/Caches"|"$HOME/Library/Caches"/*|\
+        "$HOME/.matplotlib"|"$HOME/.matplotlib"/*|"$HOME/.codex"|"$HOME/.codex"/*)
+            continue ;;
+    esac
+    case ":$UPDATE_CONTROL_PATH:" in *":$_update_path_physical:"*) ;; *)
+        UPDATE_CONTROL_PATH="${UPDATE_CONTROL_PATH:+$UPDATE_CONTROL_PATH:}$_update_path_physical" ;;
+    esac
+done
+[ -n "$UPDATE_CONTROL_PATH" ] || { echo "update.sh could not establish a trusted host PATH"; exit 1; }
+PATH="$UPDATE_CONTROL_PATH"
+export PATH PYTHONNOUSERSITE=1
+unset VIRTUAL_ENV PYTHONHOME PYTHONPATH PYTHONSTARTUP PYTHONINSPECT
+hash -r
+[ -f /usr/bin/python3 ] && [ -x /usr/bin/python3 ] || {
+    echo "update.sh requires the OS Python at /usr/bin/python3"; exit 1;
+}
+UPDATE_CONTROL_PYTHON=/usr/bin/python3
+python3() { "$UPDATE_CONTROL_PYTHON" -I "$@"; }
+
 command -v jq >/dev/null 2>&1 || { echo "update.sh requires jq (sudo apt-get install jq)"; exit 1; }
-command -v python3 >/dev/null 2>&1 || { echo "update.sh requires python3"; exit 1; }
+
+if [ -e "$MANIFEST" ] || [ -L "$MANIFEST" ]; then
+    python3 - "$MANIFEST" <<'PY'
+import os, stat, sys
+info = os.lstat(sys.argv[1])
+if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    raise SystemExit("ERROR: deployment manifest must be one regular non-aliased file")
+PY
+fi
+
+# The legacy folder migration below predates manifests and touches paper/
+# before the fresh deployment exists. Refuse an aliased parent first.
+if [ -L "$PROJECT/paper" ] || { [ -e "$PROJECT/paper" ] && [ ! -d "$PROJECT/paper" ]; }; then
+    echo "ERROR: $PROJECT/paper must be a real project directory" >&2
+    exit 1
+fi
+if [ -d "$PROJECT/paper" ] && [ "$(cd "$PROJECT/paper" && pwd -P)" != "$PROJECT/paper" ]; then
+    echo "ERROR: $PROJECT/paper resolves outside the deployment" >&2
+    exit 1
+fi
+
+# Host-authority update staging must be invisible to a concurrently running
+# sandboxed OpenCode tree. /tmp and the project root are intentionally writable
+# inside SRT, so use the policy-denied control directory on the project fs.
+UPDATE_PROCESS_LOG="$PROJECT/process_log"
+UPDATE_CONTROL_DIR="$UPDATE_PROCESS_LOG/.opencode-control"
+if [ -L "$UPDATE_PROCESS_LOG" ] || { [ -e "$UPDATE_PROCESS_LOG" ] && [ ! -d "$UPDATE_PROCESS_LOG" ]; }; then
+    echo "ERROR: $UPDATE_PROCESS_LOG must be a real project directory" >&2
+    exit 1
+fi
+mkdir -p "$UPDATE_PROCESS_LOG"
+if [ "$(cd "$UPDATE_PROCESS_LOG" && pwd -P)" != "$UPDATE_PROCESS_LOG" ]; then
+    echo "ERROR: $UPDATE_PROCESS_LOG resolves outside the deployment" >&2
+    exit 1
+fi
+if [ -L "$UPDATE_CONTROL_DIR" ] || { [ -e "$UPDATE_CONTROL_DIR" ] && [ ! -d "$UPDATE_CONTROL_DIR" ]; }; then
+    echo "ERROR: $UPDATE_CONTROL_DIR must be a real control directory" >&2
+    exit 1
+fi
+(umask 077 && mkdir -p "$UPDATE_CONTROL_DIR")
+if [ "$(cd "$UPDATE_CONTROL_DIR" && pwd -P)" != "$UPDATE_CONTROL_DIR" ]; then
+    echo "ERROR: $UPDATE_CONTROL_DIR resolves outside the deployment" >&2
+    exit 1
+fi
 
 # poppler-utils is a *runtime* dependency of the refreshed pipeline, not of this
 # script — so warn, never block. requirements.system is build-time-only and is
@@ -259,7 +335,7 @@ for ext in "${EXTENSIONS[@]}"; do SETUP_FLAGS+=( --ext "$ext" ); done
 [ "$HALT_ON_CORE_BYPASS" = "true" ] && SETUP_FLAGS+=( --halt-on-core-bypass )
 
 # ── Deploy fresh into tmp ──
-TMP=$(mktemp -d)
+TMP=$(mktemp -d "$UPDATE_CONTROL_DIR/update.XXXXXX")
 trap 'rm -rf "$TMP"' EXIT
 FRESH="$TMP/refresh"
 
@@ -277,6 +353,42 @@ if [ ! -f "$NEW_MANIFEST" ]; then
     echo "ERROR: fresh deploy did not produce a manifest. Is setup.sh up to date?"
     exit 1
 fi
+
+# Pre-sandbox agents could have aliased any managed parent, not just
+# `.opencode`. Validate every existing ancestor used by replacement, merging,
+# or stale sweeping before the first target mutation.
+python3 - "$PROJECT" "$NEW_MANIFEST" "$MANIFEST" <<'PY'
+import json, os, stat, sys
+from pathlib import PurePosixPath
+
+project, new_path, old_path = sys.argv[1:]
+manifests = [json.load(open(new_path, encoding="utf-8"))]
+if os.path.isfile(old_path):
+    manifests.append(json.load(open(old_path, encoding="utf-8")))
+paths = set()
+for manifest in manifests:
+    infra = manifest.get("infrastructure", {})
+    for key in ("dirs_replace", "files_replace", "files_env_merge"):
+        values = infra.get(key, [])
+        if not isinstance(values, list) or not all(isinstance(value, str) for value in values):
+            raise SystemExit(f"ERROR: invalid manifest path list: {key}")
+        paths.update(values)
+for value in paths:
+    pure = PurePosixPath(value)
+    if not value or pure.is_absolute() or any(part in {"", ".", ".."} for part in pure.parts):
+        raise SystemExit(f"ERROR: unsafe manifest path: {value!r}")
+    current = project
+    for part in pure.parts[:-1]:
+        current = os.path.join(current, part)
+        try:
+            info = os.lstat(current)
+        except FileNotFoundError:
+            break
+        if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+            raise SystemExit(f"ERROR: managed path ancestor is not a real directory: {current}")
+        if os.path.commonpath((project, os.path.realpath(current))) != project:
+            raise SystemExit(f"ERROR: managed path ancestor escapes deployment: {current}")
+PY
 
 # ── Snapshot agent set BEFORE replacement (for diff) ──
 OLD_AGENTS_TMP="$TMP/old_agents.txt"
@@ -344,6 +456,43 @@ if [ -f "$MANIFEST" ]; then
             # Manifest paths are repo-relative by construction; refuse
             # anything that could escape the project tree.
             case "$p" in /*|*..*|"") continue ;; esac
+            case "$kind:$p" in
+                dir:.claude/agents|dir:.claude/skills|dir:.codex/agents|dir:.agents/skills|\
+                dir:.gemini/agents|dir:.grok/agents|dir:.opencode/agents|dir:docs|\
+                dir:code/utils/codex_math|dir:code/utils/agent_launcher|dir:code/utils/bib_verify|\
+                dir:code/utils/openalex|dir:code/utils/nber_agenda|dir:code/utils/model_heal|dir:code/utils/ssj)
+                    ;;
+                file:CLAUDE.md|file:AGENTS.md|file:GEMINI.md|file:launch.sh|\
+                file:docs/start_session_claude.md|file:docs/start_session_codex.md|file:docs/start_session_gemini.md|\
+                file:.claude/settings.json|file:.gemini/settings.json|file:.grok/sandbox.toml|\
+                file:.opencode/sandbox.json|file:.opencode/opencode_driver.py|\
+                file:.opencode/opencode_sandbox_exec.sh|file:.opencode/opencode_sandbox_exec.mjs|\
+                file:opencode.json|file:.gitignore|file:dashboard.html|file:llm_client.py|\
+                file:code/utils/setup_push_token.sh|file:code/utils/codex_preflight.sh|\
+                file:code/utils/bls_census_utils.py|file:code/utils/call_reports_utils.py|\
+                file:code/utils/chen_zimmerman_utils.py|file:code/utils/download_crsp_daily.py|\
+                file:code/utils/download_crsp_monthly.py|file:code/utils/edgar_utils.py|\
+                file:code/utils/form_5500_utils.py|file:code/utils/fred_utils.py|\
+                file:code/utils/hrs_scf_utils.py|file:code/utils/ken_french_utils.py|\
+                file:code/utils/mutual_fund_utils.py|file:code/utils/open_bond_pricing_utils.py|\
+                file:code/utils/process_crsp_daily.py|file:code/utils/process_crsp_monthly.py|\
+                file:code/utils/sec_funds_utils.py|file:code/utils/start_services.sh|\
+                file:code/utils/trace_bonds_utils.py|file:code/utils/treasury_yields_utils.py|\
+                file:code/utils/wrds_client.py|file:code/utils/wrds_server.py|file:code/utils/wrds_utils.py)
+                    ;;
+                *)
+                    echo "  stale $kind: $p (untrusted legacy path — preserved)"
+                    continue
+                    ;;
+            esac
+            # Never let an untrusted old manifest remove a current managed path
+            # or one of its ancestors/descendants.
+            if jq -e --arg p "$p" '
+                [.infrastructure.dirs_replace[]?, .infrastructure.files_replace[]?, .infrastructure.files_env_merge[]?]
+                | any(. as $q | $q == $p or ($q | startswith($p + "/")) or ($p | startswith($q + "/")))
+            ' "$NEW_MANIFEST" >/dev/null; then
+                continue
+            fi
             [ $testflag "$PROJECT/$p" ] || continue
             if [ "$DRY_RUN" = "1" ]; then
                 echo "  stale $kind: $p (no longer deployed — would remove)"
@@ -362,18 +511,44 @@ fi
 # ── Merge .env (append missing keys only; never overwrite values) ──
 echo
 echo "=== Merging .env ==="
-. "$TEMPLATE_ROOT/scripts/merge_env_keys.sh"
 while IFS= read -r env_file; do
-    if [ -f "$FRESH/$env_file" ] && [ -f "$PROJECT/$env_file" ]; then
-        merge_env_missing_keys "$FRESH/$env_file" "$PROJECT/$env_file" "$DRY_RUN"
-        [ "$MERGE_ENV_ADDED" = "0" ] && echo "  (no new keys)"
-    elif [ ! -f "$PROJECT/$env_file" ] && [ -f "$FRESH/$env_file" ]; then
+    if [ -f "$FRESH/$env_file" ] && { [ -e "$PROJECT/$env_file" ] || [ -L "$PROJECT/$env_file" ]; }; then
+        python3 - "$FRESH/$env_file" "$PROJECT/$env_file" "$DRY_RUN" <<'PY'
+import os, stat, sys
+
+source, target, dry_run = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
+flags = os.O_RDONLY if dry_run else os.O_RDWR
+flags |= getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(target, flags)
+info = os.fstat(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    os.close(fd)
+    raise SystemExit(f"ERROR: environment target must be one regular non-aliased file: {target}")
+with os.fdopen(fd, "r" if dry_run else "r+", encoding="utf-8", newline="") as handle:
+    existing = handle.read()
+    additions = []
+    for line in open(source, encoding="utf-8"):
+        line = line.rstrip("\n")
+        if not line or line.startswith("#"):
+            continue
+        key = line.split("=", 1)[0]
+        if not any(row.startswith(key + "=") for row in existing.splitlines()):
+            additions.append((key, line))
+            existing += ("" if not existing or existing.endswith("\n") else "\n") + line + "\n"
+    for key, _line in additions:
+        print(f"  + {key}" + (" (would add)" if dry_run else ""))
+    if not additions:
+        print("  (no new keys)")
+    if additions and not dry_run:
+        handle.seek(0)
+        handle.write(existing)
+        handle.truncate()
+        handle.flush()
+        os.fsync(handle.fileno())
+PY
+    elif [ ! -e "$PROJECT/$env_file" ] && [ ! -L "$PROJECT/$env_file" ] && [ -f "$FRESH/$env_file" ]; then
         echo "  ! $env_file missing in target — copying fresh"
-        # rm -f for the same dangling-symlink reason as files_replace: -f
-        # tests regular files, so a dangling symlink at this path would
-        # satisfy "! -f" and then trip cp.
         if [ "$DRY_RUN" = "0" ]; then
-            rm -f "$PROJECT/$env_file"
             cp "$FRESH/$env_file" "$PROJECT/$env_file"
         fi
     fi
@@ -388,19 +563,40 @@ done < <(jq -r '.infrastructure.files_env_merge[]?' "$NEW_MANIFEST")
 # venv (pre-venv deploys) or the template copy is missing (updating from an old
 # template checkout).
 _guard_src="$TEMPLATE_ROOT/templates/utils/pipeline_dotenv_guard.py"
-if [ -f "$_guard_src" ] && [ -x "$PROJECT/.venv/bin/python3" ]; then
-    _venv_sp="$("$PROJECT/.venv/bin/python3" -c 'import sysconfig; print(sysconfig.get_paths()["purelib"])' 2>/dev/null)"
+if [ -f "$_guard_src" ] && [ -d "$PROJECT/.venv" ] && [ ! -L "$PROJECT/.venv" ]; then
+    _venv_sp="$(python3 - "$PROJECT/.venv" <<'PY'
+import glob, os, stat, sys
+root = os.path.abspath(sys.argv[1])
+if os.path.realpath(root) != root:
+    raise SystemExit(1)
+candidates = []
+for path in glob.glob(os.path.join(root, "lib", "python*", "site-packages")):
+    current = root
+    safe = True
+    for part in os.path.relpath(path, root).split(os.sep):
+        current = os.path.join(current, part)
+        info = os.lstat(current)
+        if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+            safe = False
+            break
+    if safe and os.path.commonpath((root, os.path.realpath(path))) == root:
+        candidates.append(path)
+if candidates:
+    print(sorted(candidates)[-1])
+PY
+)"
     if [ -n "$_venv_sp" ] && [ -d "$_venv_sp" ]; then
         if [ "$DRY_RUN" = "1" ]; then
             echo "  venv: would refresh _pipeline_dotenv_guard (dotenv stdin guard)"
         else
+            rm -f "$_venv_sp/_pipeline_dotenv_guard.py" "$_venv_sp/_pipeline_dotenv_guard.pth"
             cp "$_guard_src" "$_venv_sp/_pipeline_dotenv_guard.py"
             printf 'import _pipeline_dotenv_guard\n' > "$_venv_sp/_pipeline_dotenv_guard.pth"
             # Remove the shadowed first-attempt install — but only if it is
             # OURS (the old file carries the _find_dotenv_stdin_safe wrapper).
             # A user-created sitecustomize.py (e.g. coverage.py's documented
             # subprocess-coverage hook) must survive the refresh.
-            if [ -f "$_venv_sp/sitecustomize.py" ] \
+            if [ -f "$_venv_sp/sitecustomize.py" ] && [ ! -L "$_venv_sp/sitecustomize.py" ] \
                && grep -q '_find_dotenv_stdin_safe' "$_venv_sp/sitecustomize.py" 2>/dev/null; then
                 rm -f "$_venv_sp/sitecustomize.py"
             fi
@@ -418,12 +614,28 @@ fi
 # in-progress round values, so a resumed run's state matches the new docs. Idempotent:
 # if `loops` already exists this is a no-op.
 STATE_FILE="$PROJECT/process_log/pipeline_state.json"
-if [ "$DRY_RUN" = "0" ] && [ -f "$STATE_FILE" ]; then
+if [ -L "$PROJECT/process_log" ] || { [ -e "$PROJECT/process_log" ] && [ ! -d "$PROJECT/process_log" ]; }; then
+    echo "ERROR: $PROJECT/process_log must be a real project directory" >&2
+    exit 1
+fi
+if [ -d "$PROJECT/process_log" ] && [ "$(cd "$PROJECT/process_log" && pwd -P)" != "$PROJECT/process_log" ]; then
+    echo "ERROR: $PROJECT/process_log resolves outside the deployment" >&2
+    exit 1
+fi
+if [ "$DRY_RUN" = "0" ] && { [ -e "$STATE_FILE" ] || [ -L "$STATE_FILE" ]; }; then
     python3 - "$STATE_FILE" <<'PYEOF'
-import json, sys
+import json, os, stat, sys
 p = sys.argv[1]
-with open(p) as f: data = json.load(f)
-if "loops" not in data:
+flags = os.O_RDWR | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(p, flags)
+info = os.fstat(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    os.close(fd)
+    raise SystemExit(f"ERROR: pipeline state must be one regular non-aliased file: {p}")
+with os.fdopen(fd, "r+", encoding="utf-8") as f:
+ data = json.load(f)
+ f.seek(0)
+ if "loops" not in data:
     # legacy field -> (loop id, default cap)
     base = {
         "gate0_revise_cycles":               ("gate0_revise", 3),
@@ -471,8 +683,7 @@ if "loops" not in data:
             inserted = True
     if not inserted:
         new["loops"] = loops
-    with open(p, "w") as f:
-        json.dump(new, f, indent=2); f.write("\n")
+    json.dump(new, f, indent=2); f.write("\n"); f.truncate(); f.flush(); os.fsync(f.fileno())
     print("  ✓ pipeline_state.json migrated to loops:{} (issue #166)")
 PYEOF
 fi
@@ -529,6 +740,7 @@ fi
 
 # ── Refresh manifest in target (preserve original deploy_date + fingerprint) ──
 if [ "$DRY_RUN" = "0" ]; then
+    manifest_tmp="$TMP/manifest.next"
     if [ -f "$MANIFEST" ]; then
         # Update template_version + last_updated; sync deployment selectors
         # (mode, extensions) from the fresh deploy so that an --override on
@@ -549,13 +761,17 @@ if [ "$DRY_RUN" = "0" ]; then
             | .extensions = $new.extensions
             | .flags = $new.flags
             | .infrastructure = $new.infrastructure' \
-           "$MANIFEST" "$NEW_MANIFEST" > "$MANIFEST.tmp" && mv "$MANIFEST.tmp" "$MANIFEST"
+           "$MANIFEST" "$NEW_MANIFEST" > "$manifest_tmp" && mv "$manifest_tmp" "$MANIFEST" || {
+               rm -f "$manifest_tmp"; exit 1;
+           }
     else
         # No prior manifest — adopt the fresh manifest but blank deploy_fingerprint
         # (we don't know the original UUID; user can copy it from paper/arpipeline.sty if needed).
         jq --arg d "$(date -u +%Y-%m-%d)" \
            '.deploy_fingerprint = "(unknown — pre-manifest deploy)" | .last_updated = $d' \
-           "$NEW_MANIFEST" > "$MANIFEST"
+           "$NEW_MANIFEST" > "$manifest_tmp" && mv "$manifest_tmp" "$MANIFEST" || {
+               rm -f "$manifest_tmp"; exit 1;
+           }
     fi
     echo
     echo "  ✓ manifest updated: template_version $OLD_VERSION → $NEW_VERSION"
