@@ -137,9 +137,12 @@ scripts/
 ├── assemble_codex_subagents.py # Combines agent metadata + bodies → .codex/agents/*.toml
 ├── assemble_gemini_agents.py   # Combines agent metadata + bodies → .gemini/agents/*.md
 ├── assemble_grok_agents.py     # Combines agent metadata + bodies → .grok/agents/*.md
+├── assemble_opencode_agents.py # Combines agent metadata + bodies → .opencode/agents/*.md
 ├── assemble_runtime_doc.py     # Builds CLAUDE.md / AGENTS.md / GEMINI.md from core + session
 ├── agent_body_loader.py        # Resolves bodies ({id}.md vs {id}-core.md), fragments, vocab
 ├── test_agent_body_loader.py   # Tests for the loader
+├── test_launch_opencode.sh     # Tests launch.sh's opencode server/quiescence driver
+├── test_launch_workers.sh      # Tests launch.sh's codex detached-worker wait (issue #223)
 ├── list_agents_by_category.py  # Source of truth for the developing/evaluator split
 ├── generate_catalog.py         # Manual mode: emits agent/skill catalog markdown from metadata
 ├── apply_extension_empirical.sh    # Wires the empirical extension into a deployment

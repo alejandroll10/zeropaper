@@ -194,6 +194,18 @@ In all three, the residual is a *missed catch* (a genuinely illegible table can 
 
 ---
 
+## Codex driver: worker liveness is inferred from the wrapper pid alone, so a pid-targeted kill can orphan a live worker
+
+**Scope:** `wait_for_workers()` in `launch.sh` (codex driver only — the opencode driver tracks background work through server-side quiescence and does not use sentinels).
+
+**Why.** Since v2.21.2 the wait decides whether a detached worker is still running by probing the `wrapper_pid` recorded in `process_log/agent_runs/.<agent>.running` with `kill -0` (plus `wrapper_lstart` as a pid-reuse guard where both sides captured it). That is the strongest signal available: `ps`/`pgrep` return nothing inside a codex sandbox without sysmond, which is also why `wrapper_lstart` is frequently empty. But `launch_agent.sh` runs the actual `codex exec` worker as an ordinary foreground child of the wrapper script rather than `exec`ing it in place, so wrapper and worker are two processes with one recorded pid between them.
+
+**Failure mode:** a kill that targets the wrapper's pid alone — not its process group — leaves the worker running and unparented. The driver then reads the wrapper as dead, clears the sentinel, and the orchestrator (seeing no sentinel and a possibly-partial output file) may relaunch the same agent while the orphan is still writing the *same* `$OUTPUT` path, which the pipeline deliberately reuses across attempts. Two writers on one file can interleave a partial report with a fresh one and produce a plausible-looking hybrid that no gate would flag. Ordinary shutdown paths do not do this: a driver exit, a `TERM` to the process group, or a machine reboot takes wrapper and worker together, and the pre-v2.21.2 code made the same wrapper-pid-is-the-worker assumption, so this is a long-standing property rather than a new regression.
+
+**What would close it:** have `launch_agent.sh` record the worker pid alongside the wrapper pid (or `exec` the worker so a single pid covers both), and treat *either* being alive as pending. A cheaper partial mitigation is to make the worker write to a unique per-attempt path and have the wrapper promote it to `$OUTPUT` on completion, so two live writers can never share a file. Neither is implemented; the driver currently trusts that nothing kills a bare wrapper pid.
+
+---
+
 ## Extension agents never reach the Grok runtime
 
 **Scope:** every deployment with `--ext empirical` or `--ext theory_llm`. Both extension appliers now assemble Claude, Codex, Gemini, and OpenCode agents, but still contain no `assemble_grok_agents.py` call. Base agents assemble for all five runtimes, so Grok has the core roster but **no** extension agents (`empiricist`, `experiment-designer`, `polish-experiments`, the claim chain, …).

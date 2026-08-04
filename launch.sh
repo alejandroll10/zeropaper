@@ -1426,8 +1426,9 @@ run_turn() {
 # resumed turn would have nothing to do but babysit the sentinel, and a model
 # that keeps ending such turns would trip the fast-turn guard. Wait until
 # every live sentinel clears (the worker's wrapper removes it on completion),
-# treating a sentinel whose recorded output file already exists as finished
-# (wrapper died before cleanup — rare). WORKER_WAIT_MAX caps the wait so a
+# where "live" is decided by probing the recorded wrapper pid — NOT by whether
+# the output file has content, which is false for every worker that streams
+# its report incrementally. WORKER_WAIT_MAX caps the wait so a
 # truly wedged worker can't park the driver forever; on cap the orchestrator
 # is resumed anyway and its prompt tells it how to handle a live sentinel.
 # Outcome globals for the fast-cycle guard: WAITED = seconds this call
@@ -1438,6 +1439,7 @@ run_turn() {
 # would let a hung worker reset the stuck-guard forever.
 wait_for_workers() {
     local waited=0 cap="${WORKER_WAIT_MAX:-14400}" s out pending wait_start=$SECONDS
+    local w_pid w_lstart w_dead w_now out_f out_mtime out_now out_age
     WAITED=0; WAIT_CAPPED=0
     while :; do
         pending=0
@@ -1447,22 +1449,24 @@ wait_for_workers() {
             # between our [ -e ] test and the read; a failed assignment under
             # set -e would kill the whole driver on that poll race.
             out="$(sed -n 's/.*output=//p' "$s" 2>/dev/null | head -1 || true)"
-            if [ -n "$out" ] && { [ -s "$out" ] || [ -s "$ROOT/$out" ]; }; then
-                continue  # output already written: worker is done, sentinel stale
-            fi
-            # Liveness check via the wrapper pid the launcher recorded: a
-            # dead wrapper with no output means worker AND wrapper were
-            # externally killed — the sentinel is an orphan that would
-            # otherwise park us until the wait cap. Clear it and move on; the
-            # resumed orchestrator sees the missing output and relaunches.
+            w_pid="$(sed -n 's/.*wrapper_pid=\([0-9][0-9]*\).*/\1/p' "$s" 2>/dev/null | head -1 || true)"
+            w_lstart="$(sed -n 's/.*wrapper_lstart=\(.*\)$/\1/p' "$s" 2>/dev/null | head -1 || true)"
+            # LIVENESS DECIDES; output content only breaks ties. A live
+            # wrapper means the worker is still running EVEN IF its output
+            # file already holds bytes: several agents (the novelty-checker
+            # most visibly) STREAM their report as they go, so "non-empty" is
+            # not "finished". Judging by file content first — as this did
+            # before — silently unblocked the wait on every such worker: the
+            # driver re-prompted instantly, the orchestrator saw the live
+            # sentinel and correctly refused to relaunch or route a partial
+            # report, and the resulting ~15s no-op turns tripped the
+            # fast-cycle guard. Two long runs died that way with their worker
+            # healthy and minutes from done.
             # kill -0 is the primary probe (signal-based — works even though
             # macOS ps/pgrep need sysmond and return NOTHING from inside
             # sandboxes, which is also why the recorded lstart may be empty:
             # the launcher runs inside the orchestrator's sandbox). lstart is
             # only a secondary pid-reuse guard when both sides captured it.
-            # Old-format sentinels without wrapper_pid keep plain waiting.
-            w_pid="$(sed -n 's/.*wrapper_pid=\([0-9][0-9]*\).*/\1/p' "$s" 2>/dev/null | head -1 || true)"
-            w_lstart="$(sed -n 's/.*wrapper_lstart=\(.*\)$/\1/p' "$s" 2>/dev/null | head -1 || true)"
             if [ -n "$w_pid" ]; then
                 w_dead=""
                 if ! kill -0 "$w_pid" 2>/dev/null; then
@@ -1471,10 +1475,56 @@ wait_for_workers() {
                     w_now="$(ps -o lstart= -p "$w_pid" 2>/dev/null || true)"
                     [ -n "$w_now" ] && [ "$w_now" != "$w_lstart" ] && w_dead=1  # pid reused
                 fi
-                if [ -n "$w_dead" ]; then
-                    echo "[driver] sentinel $(basename "$s") references a dead worker with no output — clearing the orphan" | tee -a "$LOG"
-                    rm -f "$s"
+                if [ -z "$w_dead" ]; then
+                    pending=1
                     continue
+                fi
+                # Wrapper is gone — exited before rm'ing the sentinel, killed,
+                # or its pid now belongs to something else. Either way the
+                # recorded worker is no longer running, so the sentinel now
+                # lies, and leaving it parks the ORCHESTRATOR too — its prompt
+                # reads a live sentinel as poll-don't-relaunch, so it will
+                # neither route a finished report nor relaunch a lost worker.
+                # Clear it; the next turn routes on the output file's presence.
+                if [ -n "$out" ] && { [ -s "$out" ] || [ -s "$ROOT/$out" ]; }; then
+                    echo "[driver] sentinel $(basename "$s") outlived its worker and the output exists — clearing it so the orchestrator can route the result" | tee -a "$LOG"
+                else
+                    echo "[driver] sentinel $(basename "$s") references a dead worker with no output — clearing the orphan" | tee -a "$LOG"
+                fi
+                rm -f "$s"
+                continue
+            fi
+            # Old-format sentinel (no wrapper_pid): no liveness probe exists,
+            # so the file is all we have. Require non-empty AND untouched for
+            # WORKER_STALE_MTIME before calling it finished — an incrementally
+            # written report keeps its mtime moving, so mtime distinguishes
+            # "still streaming" from "done" where mere non-emptiness cannot.
+            if [ -n "$out" ]; then
+                out_f=""
+                [ -s "$out" ] && out_f="$out"
+                [ -z "$out_f" ] && [ -s "$ROOT/$out" ] && out_f="$ROOT/$out"
+                if [ -n "$out_f" ]; then
+                    # BSD (macOS) then GNU. Both probes are digit-validated
+                    # rather than trusted: GNU `stat -f` is filesystem mode
+                    # with a DIFFERENT format-sequence set, and an unknown
+                    # sequence there can echo back literally instead of
+                    # failing — feeding "%m" into $(( )) would be a fatal
+                    # arithmetic syntax error under set -e, killing a driver
+                    # that should merely have kept waiting. Same reason `date`
+                    # is captured with || true and validated: every command
+                    # substitution in this loop must degrade to "keep
+                    # waiting", never to a dead driver.
+                    out_mtime="$(stat -f %m "$out_f" 2>/dev/null || true)"
+                    case "$out_mtime" in ''|*[!0-9]*) out_mtime="$(stat -c %Y "$out_f" 2>/dev/null || true)" ;; esac
+                    case "$out_mtime" in ''|*[!0-9]*) out_mtime="" ;; esac
+                    out_now="$(date +%s 2>/dev/null || true)"
+                    case "$out_now" in ''|*[!0-9]*) out_now="" ;; esac
+                    if [ -n "$out_mtime" ] && [ -n "$out_now" ]; then
+                        out_age=$(( out_now - out_mtime ))
+                        if [ "$out_age" -ge "${WORKER_STALE_MTIME:-600}" ]; then
+                            continue  # output complete and idle: worker is done, sentinel stale
+                        fi
+                    fi
                 fi
             fi
             pending=1
@@ -1629,6 +1679,18 @@ for e in p:
     fi
     if [ "$fast_nocommit" -ge 5 ]; then
         echo "[driver] 5 consecutive sub-60s cycles (turn + worker wait) with no new commit — model appears stuck, refusing, or poll-spinning; stopping to avoid burning tokens. Inspect $LOG." | tee -a "$LOG"
+        # A sentinel still present at abort time changes the diagnosis
+        # entirely: the orchestrator was probably obeying poll-don't-relaunch
+        # on a worker the wait loop judged finished, not refusing to work.
+        # Say so — the bare message above sent one post-mortem hunting a
+        # "stuck model" that was in fact doing exactly what it was told.
+        for s in "$ROOT"/process_log/agent_runs/.*.running; do
+            [ -e "$s" ] || continue
+            # cat, not `tr … < "$s"`: a redirect whose file vanished between
+            # the [ -e ] test and here fails at open time, and that message
+            # escapes the command's own 2>/dev/null onto the terminal.
+            echo "[driver]   NOTE: sentinel $(basename "$s") is still present at abort — $(cat "$s" 2>/dev/null | tr '\n' ' ' || true)" | tee -a "$LOG"
+        done
         exit 1
     fi
     if [ "$fast_any" -ge "${FAST_TURN_CEILING:-60}" ]; then
