@@ -86,6 +86,7 @@ process_log/opencode-server.log
 process_log/.opencode_server_pid
 process_log/.opencode_server_start
 process_log/.opencode_server_identity
+process_log/.opencode_server_starting
 process_log/.opencode_server_url
 process_log/.opencode_server_password
 process_log/.opencode_driver_lock
@@ -106,6 +107,7 @@ process_log/.opencode-parent-epoch.*
 process_log/.opencode_unresolved_session
 process_log/.opencode-server-password.*
 process_log/.opencode-server-identity.*
+process_log/.opencode-server-starting.*
 
 # Grok Build's per-project leader socket (grok --leader-socket "$(pwd)/.grok/leader.sock").
 # A live unix socket, created lazily by the running leader; never a tracked artifact.

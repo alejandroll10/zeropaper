@@ -325,6 +325,7 @@ PY
     OC_SERVER_PID_FILE="$ROOT/process_log/.opencode_server_pid"
     OC_SERVER_START_FILE="$ROOT/process_log/.opencode_server_start"
     OC_SERVER_IDENTITY_FILE="$ROOT/process_log/.opencode_server_identity"
+    OC_SERVER_STARTING_FILE="$ROOT/process_log/.opencode_server_starting"
     OC_SERVER_URL_FILE="$ROOT/process_log/.opencode_server_url"
     OC_SERVER_PASSWORD_FILE="$ROOT/process_log/.opencode_server_password"
     OC_DRIVER_LOCK="$ROOT/process_log/.opencode_driver_lock"
@@ -419,35 +420,105 @@ PY
     }
     oc_clear_server_state() {
         rm -f "$OC_SERVER_PID_FILE" "$OC_SERVER_START_FILE" "$OC_SERVER_URL_FILE" "$OC_SERVER_PASSWORD_FILE" \
-            "$OC_SERVER_IDENTITY_FILE" "$ROOT/process_log"/.opencode-server-password.* \
+            "$OC_SERVER_IDENTITY_FILE" "$OC_SERVER_STARTING_FILE" "$ROOT/process_log"/.opencode-server-password.* \
             "$ROOT/process_log"/.opencode-server-identity.*
         OC_SERVER_PID=""
         OC_SERVER_START=""
         OC_SERVER_URL=""
         OPENCODE_SERVER_PASSWORD=""
     }
+    oc_server_group_alive() {
+        [[ "$OC_SERVER_PID" =~ ^[0-9]+$ ]] && kill -0 -- "-$OC_SERVER_PID" 2>/dev/null
+    }
+    oc_wait_server_group_gone() { # $1 = absolute SECONDS deadline
+        local deadline="$1"
+        while oc_server_group_alive && [ "$SECONDS" -lt "$deadline" ]; do sleep 0.1; done
+        ! oc_server_group_alive
+    }
+    oc_shutdown_authorized_group() { # $1 = diagnostic label
+        local label="$1" deadline final_deadline
+        kill -TERM -- "-$OC_SERVER_PID" 2>/dev/null || true
+        deadline=$((SECONDS + OPENCODE_KILL_GRACE))
+        oc_wait_server_group_gone "$deadline" || true
+        if oc_server_group_alive; then kill -KILL -- "-$OC_SERVER_PID" 2>/dev/null || true; fi
+        wait "$OC_SERVER_PID" 2>/dev/null || true
+        final_deadline=$((SECONDS + 5))
+        if ! oc_wait_server_group_gone "$final_deadline"; then
+            echo "[opencode-driver] $label process group did not terminate; retaining identity and refusing replacement" | tee -a "$OC_LOG"
+            return 1
+        fi
+    }
     oc_reap_starting_server() {
-        if [[ "$OC_SERVER_PID" =~ ^[0-9]+$ ]] && kill -0 "$OC_SERVER_PID" 2>/dev/null; then
-            kill -TERM -- "-$OC_SERVER_PID" 2>/dev/null || kill -TERM "$OC_SERVER_PID" 2>/dev/null || true
-            local deadline=$((SECONDS + OPENCODE_KILL_GRACE))
-            while kill -0 "$OC_SERVER_PID" 2>/dev/null && [ "$SECONDS" -lt "$deadline" ]; do sleep 0.1; done
-            kill -KILL -- "-$OC_SERVER_PID" 2>/dev/null || true
-            kill -KILL "$OC_SERVER_PID" 2>/dev/null || true
-            wait "$OC_SERVER_PID" 2>/dev/null || true
+        local marker now pgid deadline
+        [[ "$OC_SERVER_PID" =~ ^[0-9]+$ ]] || return 1
+        marker="$(cat "$OC_SERVER_STARTING_FILE" 2>/dev/null || true)"
+        [ "$marker" = "$OC_SERVER_PID" ] || return 1
+        if kill -0 "$OC_SERVER_PID" 2>/dev/null && [ -n "$OC_SERVER_START" ]; then
+            now="$(ps -o lstart= -p "$OC_SERVER_PID" 2>/dev/null || true)"
+            [ "$now" = "$OC_SERVER_START" ] || return 1
+        fi
+        pgid="$(ps -o pgid= -p "$OC_SERVER_PID" 2>/dev/null | tr -d ' ' || true)"
+        if [ "$pgid" = "$OC_SERVER_PID" ] || oc_server_group_alive; then
+            oc_shutdown_authorized_group "starting server" || return 1
+        elif kill -0 "$OC_SERVER_PID" 2>/dev/null; then
+            # The setsid wrapper has not created its private group yet. Only
+            # target the direct child PID, then re-check whether it became the
+            # leader of its private group before escalating.
+            kill -TERM "$OC_SERVER_PID" 2>/dev/null || true
+            deadline=$((SECONDS + OPENCODE_KILL_GRACE))
+            while kill -0 "$OC_SERVER_PID" 2>/dev/null && [ "$SECONDS" -lt "$deadline" ]; do
+                pgid="$(ps -o pgid= -p "$OC_SERVER_PID" 2>/dev/null | tr -d ' ' || true)"
+                [ "$pgid" = "$OC_SERVER_PID" ] && break
+                sleep 0.1
+            done
+            if oc_server_group_alive; then
+                oc_shutdown_authorized_group "starting server" || return 1
+            elif kill -0 "$OC_SERVER_PID" 2>/dev/null; then
+                # It is still the same direct child; never KILL a reused PID.
+                if [ -n "$OC_SERVER_START" ]; then
+                    now="$(ps -o lstart= -p "$OC_SERVER_PID" 2>/dev/null || true)"
+                    [ "$now" = "$OC_SERVER_START" ] || return 1
+                fi
+                pgid="$(ps -o pgid= -p "$OC_SERVER_PID" 2>/dev/null | tr -d ' ' || true)"
+                if [ "$pgid" = "$OC_SERVER_PID" ]; then
+                    oc_shutdown_authorized_group "starting server" || return 1
+                else
+                    kill -KILL "$OC_SERVER_PID" 2>/dev/null || true
+                    wait "$OC_SERVER_PID" 2>/dev/null || true
+                    kill -0 "$OC_SERVER_PID" 2>/dev/null && return 1
+                    # Catch a private group created immediately before leader exit.
+                    oc_server_group_alive && oc_shutdown_authorized_group "starting server" || true
+                    oc_server_group_alive && return 1
+                fi
+            else
+                wait "$OC_SERVER_PID" 2>/dev/null || true
+                if oc_server_group_alive; then
+                    oc_shutdown_authorized_group "starting server" || return 1
+                fi
+            fi
         fi
         OC_SERVER_STARTING=0
+        oc_clear_server_state
+        return 0
     }
     oc_stop_server() {
         if oc_server_process_matches; then
-            kill -TERM -- "-$OC_SERVER_PID" 2>/dev/null || true
-            local deadline=$((SECONDS + OPENCODE_KILL_GRACE))
-            while kill -0 "$OC_SERVER_PID" 2>/dev/null && [ "$SECONDS" -lt "$deadline" ]; do sleep 0.1; done
-            kill -KILL -- "-$OC_SERVER_PID" 2>/dev/null || true
-            wait "$OC_SERVER_PID" 2>/dev/null || true
+            # Authorization happens once while PID/start/PGID/command all
+            # match. From here on, signal only the authorized process group:
+            # its PGID cannot be reused while any member remains alive.
+            oc_shutdown_authorized_group "server" || return 1
         elif [ "$OC_SERVER_STARTING" = "1" ]; then
-            oc_reap_starting_server
+            oc_reap_starting_server || return 1
+            return 0
+        elif oc_server_group_alive; then
+            # The leader is gone, so its start/command identity can no longer
+            # be revalidated. Preserve the group and state for operator
+            # inspection rather than signaling an unauthenticated target.
+            echo "[opencode-driver] recorded server leader is gone but its process group remains; refusing unsafe replacement" | tee -a "$OC_LOG"
+            return 1
         fi
         oc_clear_server_state
+        return 0
     }
     oc_load_server_state() {
         local health_attempt
@@ -475,18 +546,30 @@ PY
         return 3
     }
     oc_start_server() {
-        local attempt url password_tmp identity_tmp
+        local attempt url password_tmp identity_tmp starting_tmp
         OPENCODE_SERVER_PASSWORD="$(python3 -c 'import secrets; print(secrets.token_hex(32))')"
         export OPENCODE_SERVER_PASSWORD
         : > "$OC_SERVER_LOG"
         OC_SERVER_STARTING=1
+        starting_tmp="$(mktemp "$ROOT/process_log/.opencode-server-starting.XXXXXX")"
+        printf '%s\n' pending > "$starting_tmp"
+        chmod 600 "$starting_tmp"
+        mv "$starting_tmp" "$OC_SERVER_STARTING_FILE"
         {
             python3 -c 'import os,sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
                 opencode serve --hostname 127.0.0.1 --port 0 </dev/null >> "$OC_SERVER_LOG" 2>&1 &
             OC_SERVER_PID=$!
         }
+        starting_tmp="$(mktemp "$ROOT/process_log/.opencode-server-starting.XXXXXX")"
+        printf '%s\n' "$OC_SERVER_PID" > "$starting_tmp"
+        chmod 600 "$starting_tmp"
+        mv "$starting_tmp" "$OC_SERVER_STARTING_FILE"
         OC_SERVER_START="$(ps -o lstart= -p "$OC_SERVER_PID" 2>/dev/null || true)"
-        [ -n "$OC_SERVER_START" ] || { oc_stop_server; echo "ERROR: OpenCode server failed to start" >&2; return 1; }
+        if [ -z "$OC_SERVER_START" ]; then
+            oc_reap_starting_server || echo "ERROR: failed to reap incomplete OpenCode server; startup marker retained" >&2
+            echo "ERROR: OpenCode server failed to start" >&2
+            return 1
+        fi
         identity_tmp="$(mktemp "$ROOT/process_log/.opencode-server-identity.XXXXXX")"
         printf '%s\n%s\n' "$OC_SERVER_PID" "$OC_SERVER_START" > "$identity_tmp"
         chmod 600 "$identity_tmp"
@@ -505,6 +588,7 @@ PY
                 if oc_server_api health >/dev/null 2>&1; then
                     printf '%s\n' "$OC_SERVER_URL" > "$OC_SERVER_URL_FILE"
                     OC_SERVER_STARTING=0
+                    rm -f "$OC_SERVER_STARTING_FILE"
                     echo "[opencode-driver] persistent server ready at $OC_SERVER_URL" | tee -a "$OC_LOG"
                     return 0
                 fi
@@ -513,7 +597,7 @@ PY
             sleep 0.1
         done
         tail -20 "$OC_SERVER_LOG" >&2 || true
-        oc_stop_server
+        oc_stop_server || return 1
         echo "ERROR: OpenCode server did not become healthy" >&2
         return 1
     }
@@ -525,6 +609,7 @@ PY
             load_rc=$?
         fi
         if [ "$load_rc" = "0" ]; then
+            rm -f "$OC_SERVER_STARTING_FILE"
             OC_SERVER_REUSED=1
             echo "[opencode-driver] reusing persistent server at $OC_SERVER_URL" | tee -a "$OC_LOG"
             return 0
@@ -534,9 +619,23 @@ PY
             echo "[opencode-driver] exact cached server is alive but temporarily unhealthy; preserving it and failing closed" | tee -a "$OC_LOG"
             return 3
         fi
+        if [ -e "$OC_SERVER_STARTING_FILE" ]; then
+            OC_SERVER_PID="$(cat "$OC_SERVER_STARTING_FILE" 2>/dev/null || true)"
+            if [[ "$OC_SERVER_PID" =~ ^[0-9]+$ ]] && ! kill -0 "$OC_SERVER_PID" 2>/dev/null && ! oc_server_group_alive; then
+                rm -f "$OC_SERVER_STARTING_FILE"
+                OC_SERVER_PID=""
+            else
+                echo "[opencode-driver] incomplete server startup may still be alive; retaining marker and refusing replacement" | tee -a "$OC_LOG"
+                return 3
+            fi
+        fi
         # Kill only the exact process whose PID and start token we recorded;
         # never act on a reused PID or an unvalidated state file.
-        if oc_server_process_matches; then oc_stop_server; else oc_clear_server_state; fi
+        if oc_server_process_matches || oc_server_group_alive; then
+            oc_stop_server || return 1
+        else
+            oc_clear_server_state
+        fi
         OC_SERVER_REUSED=0
         oc_start_server
     }
@@ -768,7 +867,7 @@ PY
             # Killing the server instance is the hard edge of cancellation:
             # no delayed notification or parent autowake from its process-local
             # registry can cross the new history baseline.
-            oc_stop_server
+            oc_stop_server || return 1
             OC_SERVER_REUSED=0
             oc_start_server || return 1
             oc_sid_exists "$OC_SID" || {
@@ -807,14 +906,13 @@ PY
     oc_signal_cleanup() {
         oc_turn_cleanup
         if [ -n "${OC_SID:-}" ]; then oc_server_api abort-tree --session "$OC_SID" >/dev/null 2>&1 || true; fi
-        oc_stop_server
+        oc_stop_server || true
         oc_release_lock
     }
     oc_exit_cleanup() {
         oc_turn_cleanup
         if [ "$OC_SERVER_STARTING" = "1" ]; then
-            oc_reap_starting_server
-            oc_clear_server_state
+            oc_reap_starting_server || true
         fi
         oc_release_lock
     }
@@ -1010,9 +1108,9 @@ PY
         oc_st="$(oc_status)"
         case "$oc_st" in
             complete|complete_pending_verification)
-                echo "[opencode-driver] pipeline $oc_st after $oc_turn turn(s)" | tee -a "$OC_LOG"; oc_stop_server; exit 0 ;;
+                echo "[opencode-driver] pipeline $oc_st after $oc_turn turn(s)" | tee -a "$OC_LOG"; oc_stop_server || exit 1; exit 0 ;;
             halted_*)
-                echo "[opencode-driver] pipeline halted: $oc_st" | tee -a "$OC_LOG"; oc_stop_server; exit 0 ;;
+                echo "[opencode-driver] pipeline halted: $oc_st" | tee -a "$OC_LOG"; oc_stop_server || exit 1; exit 0 ;;
             '?') echo "[opencode-driver] cannot read $OC_STATE" | tee -a "$OC_LOG"; exit 1 ;;
         esac
         oc_turn=$((oc_turn + 1))
@@ -1113,7 +1211,7 @@ raise SystemExit(1)' "$oc_events"; then
                 # With no session handle there is nothing a later invocation
                 # can safely resume or inspect. Do not strand the otherwise
                 # reusable server (and any unaddressable work) on this path.
-                oc_stop_server
+                oc_stop_server || exit 1
                 exit 1
             fi
             oc_abort_tree_and_wait || { rm -f "$oc_events" "${oc_events}.timeout"; exit 1; }

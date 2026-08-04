@@ -11,13 +11,32 @@ cp "$ROOT/templates/utils/opencode_driver.py" "$PROJECT/code/utils/opencode_driv
 chmod +x "$PROJECT/launch.sh" "$PROJECT/code/utils/opencode_driver.py"
 
 cat > "$TEST_ROOT/mock_server.py" <<'PY'
-import base64, json, os, sys, time
+import base64, json, os, signal, subprocess, sys, time
 from http.server import BaseHTTPRequestHandler, ThreadingHTTPServer
 
 root = os.path.realpath(os.getcwd())
 expected = "Basic " + base64.b64encode(
     (os.environ.get("OPENCODE_SERVER_USERNAME", "opencode") + ":" + os.environ["OPENCODE_SERVER_PASSWORD"]).encode()
 ).decode()
+
+if os.environ.get("MOCK_SERVER_STUBBORN_DESCENDANT") == "1":
+    descendant = subprocess.Popen([sys.executable, "-c", """
+import os, signal, time
+descendants = os.environ['MOCK_SERVER_DESCENDANTS']
+term_seen = os.environ['MOCK_DESCENDANT_TERM_SEEN']
+def ignore_term(_signum, _frame):
+    with open(term_seen, 'a') as handle: handle.write(str(os.getpid()) + '\\n')
+signal.signal(signal.SIGTERM, ignore_term)
+with open(descendants, 'a') as handle: handle.write(str(os.getpid()) + '\\n')
+while True: time.sleep(30)
+"""])
+    for _ in range(100):
+        if os.path.exists(os.environ["MOCK_SERVER_DESCENDANTS"]):
+            if str(descendant.pid) in open(os.environ["MOCK_SERVER_DESCENDANTS"]).read().splitlines():
+                break
+        time.sleep(0.01)
+    else:
+        raise RuntimeError("stubborn descendant did not initialize")
 
 def bump(path):
     try: value = int(open(path).read())
@@ -173,20 +192,35 @@ export MOCK_UNHEALTHY_MARKER="$TEST_ROOT/unhealthy"
 export MOCK_MISSING_NOTIFICATION_MARKER="$TEST_ROOT/missing-notification"
 export MOCK_REUSED_BUSY_MARKER="$TEST_ROOT/reused-busy"
 export MOCK_REUSED_BUSY_COUNT="$TEST_ROOT/reused-busy-count"
+export MOCK_SERVER_DESCENDANTS="$TEST_ROOT/server-descendants"
+export MOCK_DESCENDANT_TERM_SEEN="$TEST_ROOT/descendant-term-seen"
 export OPENCODE_LOOP_DELAY=0
 export MOCK_EXPECTED_KEY=test-only-secret
 
 stop_mock_server() {
-    local pid command
+    local pid command descendant_pid
     if [ -s "$PROJECT/process_log/.opencode_server_pid" ]; then
         pid="$(cat "$PROJECT/process_log/.opencode_server_pid")"
         if [[ "$pid" =~ ^[0-9]+$ ]]; then
             command="$(ps -o command= -p "$pid" 2>/dev/null || true)"
-            case "$command" in *"$MOCK_SERVER_SCRIPT"*) ;; *) return 0 ;; esac
-            kill -TERM -- "-$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
-            for _ in $(seq 1 50); do kill -0 "$pid" 2>/dev/null || break; sleep 0.02; done
-            kill -KILL -- "-$pid" 2>/dev/null || true
+            case "$command" in
+                *"$MOCK_SERVER_SCRIPT"*)
+                    kill -TERM -- "-$pid" 2>/dev/null || kill -TERM "$pid" 2>/dev/null || true
+                    for _ in $(seq 1 50); do kill -0 -- "-$pid" 2>/dev/null || break; sleep 0.02; done
+                    kill -KILL -- "-$pid" 2>/dev/null || true
+                    for _ in $(seq 1 50); do kill -0 -- "-$pid" 2>/dev/null || break; sleep 0.02; done
+                    ;;
+            esac
         fi
+    fi
+    if [ -s "$MOCK_SERVER_DESCENDANTS" ]; then
+        while IFS= read -r descendant_pid; do
+            [[ "$descendant_pid" =~ ^[0-9]+$ ]] || continue
+            command="$(ps -o command= -p "$descendant_pid" 2>/dev/null || true)"
+            case "$command" in
+                *MOCK_SERVER_DESCENDANTS*) kill -KILL "$descendant_pid" 2>/dev/null || true ;;
+            esac
+        done < "$MOCK_SERVER_DESCENDANTS"
     fi
 }
 trap 'stop_mock_server; rm -rf "$TEST_ROOT"' EXIT
@@ -207,6 +241,7 @@ reset_project() {
         "$PROJECT/process_log/.opencode_driver_lock" "$PROJECT/process_log"/.opencode-lock-ready.* \
         "$MOCK_CALLS" "$MOCK_COUNT" "$MOCK_LIST_COUNT" "$MOCK_STATUS_COUNT" \
         "$MOCK_ABORT_STATUS_COUNT" "$MOCK_MESSAGE_COUNT" "$MOCK_CREATED" "$MOCK_CHILD_PID" "$MOCK_ABORTS" "$MOCK_ABORTED"
+    rm -f "$MOCK_SERVER_DESCENDANTS" "$MOCK_DESCENDANT_TERM_SEEN"
     rm -f "$MOCK_LAST_PROMPT"
     rm -f "$MOCK_UNHEALTHY_MARKER"
     rm -f "$MOCK_MISSING_NOTIFICATION_MARKER"
@@ -246,6 +281,16 @@ grep -q '^ses_test$' "$PROJECT/process_log/.opencode_session_id"
 grep -q 'args=serve --hostname 127.0.0.1 --port 0' "$MOCK_CALLS"
 grep -q 'args=run --attach http://127.0.0.1:' "$MOCK_CALLS"
 test ! -e "$PROJECT/process_log/.opencode_server_pid"
+
+# A crash between announcing startup and publishing a complete identity must
+# block a later launcher instead of allowing an overlapping server.
+reset_project
+printf '%s\n' pending > "$PROJECT/process_log/.opencode_server_starting"
+if (cd "$PROJECT" && ./launch.sh opencode); then
+    echo "incomplete startup marker allowed a replacement server" >&2; exit 1
+fi
+test "$(cat "$PROJECT/process_log/.opencode_server_starting")" = pending
+test ! -e "$MOCK_CALLS"
 
 # Cached sessions are accepted only when the persistent server reports that
 # they belong to this physical checkout.
@@ -320,6 +365,20 @@ reset_project
 (cd "$PROJECT" && MOCK_TIMEOUT_FIRST=1 MOCK_MISSING_NOTIFICATION=1 OPENCODE_TURN_TIMEOUT=1 OPENCODE_KILL_GRACE=0 ./launch.sh opencode)
 test -s "$PROJECT/process_log/.opencode_background_baseline"
 test "$(grep -c 'args=serve ' "$MOCK_CALLS")" = 2
+
+# Server replacement is not complete when only the leader exits. A descendant
+# in the same PGID ignores TERM; the launcher must KILL and confirm the whole
+# group is gone before publishing the replacement server/baseline.
+reset_project
+(cd "$PROJECT" && MOCK_SERVER_STUBBORN_DESCENDANT=1 MOCK_TIMEOUT_FIRST=1 \
+    OPENCODE_TURN_TIMEOUT=1 OPENCODE_KILL_GRACE=1 ./launch.sh opencode)
+test "$(grep -c 'args=serve ' "$MOCK_CALLS")" = 2
+test "$(wc -l < "$MOCK_DESCENDANT_TERM_SEEN" | tr -d ' ')" -ge 2
+while IFS= read -r descendant_pid; do
+    for _ in $(seq 1 50); do kill -0 "$descendant_pid" 2>/dev/null || break; sleep 0.02; done
+    ! kill -0 "$descendant_pid" 2>/dev/null
+done < "$MOCK_SERVER_DESCENDANTS"
+test -s "$PROJECT/process_log/.opencode_background_baseline"
 
 # A failed abort is fail-closed: no overlapping continuation is submitted.
 reset_project

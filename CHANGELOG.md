@@ -15,7 +15,11 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.21.0] — 2026-08-04 (current)
+## [2.21.1] — 2026-08-04 (current)
+
+**OpenCode server replacement now proves whole-process-group termination (#222 follow-up).** The v2.21.0 cancellation boundary authenticated the server leader by PID/start/PGID/command, but waited only for that leader PID to exit. A TERM-resistant Bash/tool descendant in the same server process group could therefore outlive the leader and continue mutating artifacts after a replacement server and recovery baseline were published. Shutdown now authorizes the exact group while the leader identity is still valid, tracks group liveness through TERM and KILL, and clears server state only after the entire PGID is confirmed gone. KILL escalation is group-only after authorization, avoiding a PID-reuse target; startup reaping revalidates the exact PID/start token and rechecks PGID before escalation. A durable startup marker closes the pre-identity crash gap and makes later launchers fail closed if an incomplete server may remain alive. If a later launcher finds the recorded leader gone but its group still alive, it retains the identity and fails closed rather than signaling an unauthenticated group or starting a replacement. A lifecycle fixture covers a server leader that exits on TERM while its same-PGID descendant records and ignores TERM.
+
+## [2.21.0] — 2026-08-04
 
 **OpenCode background subagents now work in unattended pipelines (#222).** OpenCode's experimental `task(background=true)` support is viable only while the server that owns its in-memory job registry remains alive: a plain ephemeral `opencode run` exits with its client and aborts the child, while `opencode serve` plus an attached client lets the child finish, injects its result into the parent, and autowakes the parent without another client. The launcher now uses that verified architecture. It starts or reuses an authenticated localhost server, attaches every headless turn to it, and enables `OPENCODE_EXPERIMENTAL_BACKGROUND_SUBAGENTS`; older OpenCode versions whose task schema omits `background` continue through foreground calls.
 
