@@ -57,6 +57,11 @@ def _send_request(request, timeout=300):
     sock.close()
     return json.loads(b''.join(chunks).decode())
 
+class WrdsAuthBlocked(RuntimeError):
+    """WRDS refused the credential. Terminal — the server has latched and will
+    not attempt another login until an operator fixes it. Never retry this."""
+
+
 def wrds_ping():
     """Check if wrds_server is running. Returns True/False."""
     try:
@@ -65,6 +70,45 @@ def wrds_ping():
     except (ConnectionRefusedError, OSError):
         return False
 
+
+def wrds_auth_error():
+    """Return the operator-facing message if the server has latched a
+    credential rejection, else None.
+
+    Callers that poll for readiness MUST consult this: a latched server stays
+    up and answers pings forever, so a plain `while not wrds_ping()` loop would
+    spin for its full budget on a failure no amount of waiting can fix.
+    """
+    try:
+        resp = _send_request({'cmd': 'ping'}, timeout=5)
+    except (ConnectionRefusedError, OSError):
+        # Server down — the latch persists on disk precisely so a restart is
+        # not a free way around the operator gate. Report it, or a caller
+        # would spawn a server that instantly exits 2 and then wait out its
+        # full readiness budget for a process already gone.
+        return _persisted_auth_block()
+    if resp.get('error_kind') == 'auth':
+        return resp.get('msg') or 'WRDS credential rejected'
+    return None
+
+
+def _server_module():
+    """Import wrds_server either as a package member (`utils.wrds_server`, the
+    normal pipeline import path) or as a sibling module (when this file is run
+    directly as a CLI, where sys.path[0] is its own directory)."""
+    try:
+        from utils import wrds_server as m
+    except ImportError:
+        import wrds_server as m
+    return m
+
+
+def _persisted_auth_block():
+    try:
+        return _server_module()._read_auth_block()
+    except Exception:
+        return None
+
 def wrds_start():
     """Start the wrds_server if not already running.
 
@@ -72,6 +116,13 @@ def wrds_start():
     """
     if wrds_ping():
         return True
+
+    # A latched server is alive but refusing to log in again. Spawning another
+    # one would bind-fail anyway, and polling it would burn the full readiness
+    # budget on an unfixable condition — so stop here and escalate.
+    latched = wrds_auth_error()
+    if latched:
+        raise WrdsAuthBlocked(latched)
 
     # Find the server script
     utils_dir = os.path.dirname(os.path.abspath(__file__))
@@ -87,7 +138,7 @@ def wrds_start():
     wrds_pass = os.getenv('WRDS_PASS')
     if wrds_pass:
         server_env['PGPASSWORD'] = wrds_pass
-    subprocess.Popen(
+    proc = subprocess.Popen(
         [sys.executable, server_script],
         stdout=subprocess.PIPE,
         stderr=subprocess.PIPE,
@@ -95,12 +146,33 @@ def wrds_start():
         env=server_env,
     )
 
-    # Wait for server to be ready (Duo can take a while)
+    # Wait for server to be ready (Duo can take a while).
+    #
+    # Three exits, not one: ready, credential rejected, or timeout. Only the
+    # last is worth waiting out. wrds_server exits 2 on a credential rejection,
+    # so a dead child with that code means "operator must act" — waiting the
+    # remaining budget would just delay the report.
     for i in range(120):  # 2 minutes max
         time.sleep(1)
         if wrds_ping():
             print("[wrds_client] WRDS server is ready.")
             return True
+        latched = wrds_auth_error()
+        if latched:
+            raise WrdsAuthBlocked(latched)
+        if proc.poll() is not None:
+            err = (proc.stderr.read() or b'').decode(errors='replace')
+            out = (proc.stdout.read() or b'').decode(errors='replace')
+            detail = (out + err).strip()[-800:]
+            if proc.returncode == 2:
+                raise WrdsAuthBlocked(
+                    "WRDS server exited on a credential rejection — not retrying. "
+                    f"{detail}"
+                )
+            raise RuntimeError(
+                f"WRDS server exited (code {proc.returncode}) before becoming "
+                f"ready: {detail}"
+            )
 
     raise TimeoutError("WRDS server did not start within 2 minutes. Check Duo.")
 
@@ -146,9 +218,67 @@ def wrds_describe(library, table):
     from io import StringIO
     return pd.read_json(StringIO(resp['data']), orient='split')
 
+def wrds_unblock():
+    """OPERATOR ONLY — approve one retry after a latched credential rejection.
+
+    Returns (ok, detail). The server reloads .env and spends exactly one login
+    attempt; if WRDS refuses again it re-latches, so calling this in a loop is
+    the one thing that recreates the lockout this design exists to prevent.
+
+    Agents must never call this. A latched credential is an operator decision:
+    escalate and stop. See the WRDS skill's escalation rule.
+
+        python code/utils/wrds_client.py unblock
+    """
+    try:
+        resp = _send_request({'cmd': 'unblock'}, timeout=180)
+    except (ConnectionRefusedError, OSError):
+        # Server down with a latch on disk: approving means clearing the latch
+        # and spending the one approved attempt on a fresh start. Without this
+        # the persisted latch would be unclearable except by hand.
+        srv = _server_module()
+        if not srv._read_auth_block():
+            return False, 'no WRDS server running, and no latch to clear'
+        srv._clear_auth_block()
+        try:
+            wrds_start()
+            return True, 'latch cleared; server started and credential accepted'
+        except WrdsAuthBlocked as e:
+            return False, str(e)
+        except Exception as e:
+            return False, f'latch cleared but server did not start: {e}'
+    if resp.get('status') == 'ok':
+        return True, resp.get('msg', 'unblocked')
+    return False, resp.get('msg', 'unblock failed')
+
+
 def wrds_shutdown():
     """Shut down the wrds_server."""
     try:
         _send_request({'cmd': 'shutdown'}, timeout=5)
     except:
         pass
+
+
+if __name__ == '__main__':
+    # Small operator CLI. Deliberately minimal: `status` reports whether the
+    # server has latched a credential rejection, `unblock` approves exactly one
+    # retry. Neither is for agent use — see the WRDS skill's escalation rule.
+    _cmd = sys.argv[1] if len(sys.argv) > 1 else 'status'
+    if _cmd == 'status':
+        if wrds_ping():
+            print('WRDS server: healthy')
+        else:
+            _msg = wrds_auth_error()
+            if _msg:
+                print(f'WRDS server: AUTH BLOCKED\n  {_msg}')
+                sys.exit(2)
+            print('WRDS server: down or unhealthy (no auth latch)')
+            sys.exit(1)
+    elif _cmd == 'unblock':
+        _ok, _detail = wrds_unblock()
+        print(('OK: ' if _ok else 'FAILED: ') + str(_detail))
+        sys.exit(0 if _ok else 2)
+    else:
+        print(f'usage: {sys.argv[0]} [status|unblock]')
+        sys.exit(64)
