@@ -1,3 +1,3 @@
 # AGENTS.md
 
-This is the **pipeline template development** repo. See [`README.md`](README.md) for what it is and how to use it, and [`CLAUDE.md`](CLAUDE.md) for the working instructions and repo layout (the same guidance applies to any runtime, not just Claude).
+This file is auto-generated from `CLAUDE.md` by `scripts/sync_dev_instructions.sh`. Do not edit directly. Edit `CLAUDE.md` and `.claude/skills/`, then run the sync script.
