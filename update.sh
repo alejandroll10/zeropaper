@@ -100,6 +100,9 @@ PROJECT="$(cd "$PROJECT" && pwd -P)"
 _update_source="$0"
 case "$_update_source" in */*) _update_dir="${_update_source%/*}" ;; *) _update_dir=. ;; esac
 TEMPLATE_ROOT="$(cd "$_update_dir" && pwd -P)"
+# Build inputs (templates/, scripts/, extensions/) live under deploy_assets/;
+# TEMPLATE_ROOT stays the repo checkout (setup.sh and VERSION live there).
+ASSETS_ROOT="$TEMPLATE_ROOT/deploy_assets"
 MANIFEST="$PROJECT/.deploy_manifest.json"
 
 # The target venv/project is agent-writable. Never let an activated venv (or a
@@ -562,7 +565,7 @@ done < <(jq -r '.infrastructure.files_env_merge[]?' "$NEW_MANIFEST")
 # dedicated step, like the .env merge. Skipped silently when the target has no
 # venv (pre-venv deploys) or the template copy is missing (updating from an old
 # template checkout).
-_guard_src="$TEMPLATE_ROOT/templates/utils/pipeline_dotenv_guard.py"
+_guard_src="$ASSETS_ROOT/templates/utils/pipeline_dotenv_guard.py"
 if [ -f "$_guard_src" ] && [ -d "$PROJECT/.venv" ] && [ ! -L "$PROJECT/.venv" ]; then
     _venv_sp="$(python3 - "$PROJECT/.venv" <<'PY'
 import glob, os, stat, sys
@@ -719,16 +722,16 @@ if [ ! -d "$VENV" ]; then
             || uv venv --clear "$VENV" 2>/dev/null \
             || { rm -rf "$VENV"; echo "  ⚠ could not create $VENV (create manually: uv venv $VENV)"; }
         if [ -d "$VENV" ]; then
-            uv pip install --python "$VENV" -r "$TEMPLATE_ROOT/templates/deps/core.txt" -q 2>/dev/null \
+            uv pip install --python "$VENV" -r "$ASSETS_ROOT/templates/deps/core.txt" -q 2>/dev/null \
                 && echo "  ✓ core deps installed" \
                 || echo "  ⚠ core deps failed (source $VENV/bin/activate && uv pip install sympy matplotlib certifi)"
             if [ "$WANT_SSJ_DEPS" = "1" ]; then
-                uv pip install --python "$VENV" -r "$TEMPLATE_ROOT/templates/deps/ssj.txt" -q 2>/dev/null \
+                uv pip install --python "$VENV" -r "$ASSETS_ROOT/templates/deps/ssj.txt" -q 2>/dev/null \
                     && echo "  ✓ ssj deps installed" \
                     || echo "  ⚠ ssj deps skipped (numba build issue; non-fatal — ssj skill only)"
             fi
             for ext in "${EXTENSIONS[@]}"; do
-                _extdeps="$TEMPLATE_ROOT/extensions/$ext/deps.txt"
+                _extdeps="$ASSETS_ROOT/extensions/$ext/deps.txt"
                 [ -f "$_extdeps" ] || continue
                 uv pip install --python "$VENV" -r "$_extdeps" -q 2>/dev/null \
                     && echo "  ✓ $ext deps installed" \

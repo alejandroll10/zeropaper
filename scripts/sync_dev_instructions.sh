@@ -9,7 +9,7 @@
 # Both mirrors are DEV-ONLY — they exist so a Codex session started in this repo
 # gets the same instructions and dev skills a Claude session does. Neither reaches
 # a deployed research project: setup.sh regenerates AGENTS.md from
-# templates/shared/core.md for the deployed runtime, and strips the .agents/skills
+# deploy_assets/templates/shared/core.md for the deployed runtime, and strips the .agents/skills
 # symlinks right after the clone (grep "Meta-repo dev skill links"). Consequently
 # neither gets a deployment-manifest entry.
 #

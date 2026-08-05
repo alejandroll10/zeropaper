@@ -1,7 +1,9 @@
 #!/usr/bin/env bash
 set -euo pipefail
 
-ROOT="$(cd "$(dirname "$0")/.." && pwd)"
+# This script lives in deploy_assets/scripts/; setup.sh is at the repo root,
+# two levels up.
+ROOT="$(cd "$(dirname "$0")/../.." && pwd)"
 TMP_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/zeropaper-opencode-setup.XXXXXX")"
 trap 'rm -rf "$TMP_ROOT"' EXIT
 

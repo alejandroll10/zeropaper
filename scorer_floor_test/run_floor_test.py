@@ -36,13 +36,14 @@ from pathlib import Path
 
 ROOT = Path(__file__).resolve().parent
 REPO = ROOT.parent
+ASSETS = REPO / "deploy_assets"
 FIXTURES = ROOT / "fixtures"
 REPORT = ROOT / "report.md"
 
-SCORER_CORE = REPO / "templates" / "agent_bodies" / "shared"
-FINANCE_BODIES = REPO / "templates" / "agents" / "finance"
-FINANCE_VOCAB = REPO / "templates" / "agents" / "finance" / "vocab.json"
-EMPIRICAL_FIRST_VOCAB = REPO / "templates" / "agents" / "finance_modes" / "empirical_first" / "vocab.json"
+SCORER_CORE = ASSETS / "templates" / "agent_bodies" / "shared"
+FINANCE_BODIES = ASSETS / "templates" / "agents" / "finance"
+FINANCE_VOCAB = ASSETS / "templates" / "agents" / "finance" / "vocab.json"
+EMPIRICAL_FIRST_VOCAB = ASSETS / "templates" / "agents" / "finance_modes" / "empirical_first" / "vocab.json"
 
 # Each fixture is scored by the scorer config its pipeline route would use, read
 # from meta.json's "route". The pipeline has exactly two scoring routes:
@@ -103,7 +104,7 @@ def resolve_markers(body, empirical_first=False, ext_empirical=False):
     # empirical-first route.
     if ext_empirical:
         # Read raw (no transformation) to be byte-exact with setup.sh's patch().
-        addendum = (REPO / "extensions" / "empirical" / "scorer_fertility_inject.md").read_text()
+        addendum = (ASSETS / "extensions" / "empirical" / "scorer_fertility_inject.md").read_text()
         body = body.replace("<!-- EMPIRICAL_FERTILITY_ADDENDUM -->", addendum)
     else:
         body = re.sub(r"^[ \t]*<!-- EMPIRICAL_FERTILITY_ADDENDUM -->[ \t]*\n", "", body, flags=re.MULTILINE)
@@ -124,7 +125,7 @@ def assemble_scorer(route="theory-first"):
                                  layer wins on duplicate keys), ef=True xe=True.
     (A descriptive fixture is scored with the theory-first scorer for reference.)
     """
-    sys.path.insert(0, str(REPO / "scripts"))
+    sys.path.insert(0, str(ASSETS / "scripts"))
     from agent_body_loader import load_body, load_vocab
     ef = route == "empirical-first"
     vocab_paths = [str(FINANCE_VOCAB)] + ([str(EMPIRICAL_FIRST_VOCAB)] if ef else [])

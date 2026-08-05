@@ -217,7 +217,7 @@ if [ -n "$MODE" ]; then
                 finance|macro|llm_cognition) : ;;
                 *)
                     echo "Error: --mode report supports --variant finance, macro, or llm_cognition."
-                    echo "  A new variant needs a templates/agents/{variant}_modes/report/vocab.json"
+                    echo "  A new variant needs a deploy_assets/templates/agents/{variant}_modes/report/vocab.json"
                     echo "  overlay before this mode can ship for it."
                     exit 1
                     ;;
@@ -489,8 +489,8 @@ MODE_VOCAB_OVERLAY=""
 MODE_METADATA_ARGS=()
 if [ -n "$MODE" ]; then
     mode_slug="${MODE//-/_}"  # 'empirical-first' → 'empirical_first'
-    candidate_bodies="$SCRIPT_DIR/templates/agent_bodies/shared_modes/${mode_slug}"
-    candidate_vocab="$SCRIPT_DIR/templates/agents/${AGENT_DIR}_modes/${mode_slug}/vocab.json"
+    candidate_bodies="$SCRIPT_DIR/deploy_assets/templates/agent_bodies/shared_modes/${mode_slug}"
+    candidate_vocab="$SCRIPT_DIR/deploy_assets/templates/agents/${AGENT_DIR}_modes/${mode_slug}/vocab.json"
     if [ -d "$candidate_bodies" ]; then
         MODE_BODIES_OVERLAY="$candidate_bodies"
     fi
@@ -782,7 +782,10 @@ assemble_claude_skills() {
 if [ "$LOCAL" = "1" ]; then
     # Local test mode — no clone, no git, no prereq checks
     PROJECT_NAME="${PROJECT_NAME:-test_output/$VARIANT}"
-    TEMPLATE_ROOT="$SCRIPT_DIR"
+    # SRC_ROOT = the repo checkout (VERSION lives here); TEMPLATE_ROOT = the
+    # build-input tree (templates/, scripts/, extensions/) under deploy_assets/.
+    SRC_ROOT="$SCRIPT_DIR"
+    TEMPLATE_ROOT="$SRC_ROOT/deploy_assets"
 
     # Resolve OUT_DIR: absolute path stays absolute, relative anchors to SCRIPT_DIR
     case "$PROJECT_NAME" in
@@ -816,8 +819,8 @@ if [ "$LOCAL" = "1" ]; then
     # both --local and production.)
     mkdir -p "$OUT_DIR/$CLAUDE_DIR_REL"
     mkdir -p "$OUT_DIR/$GEMINI_DIR_REL"
-    cp "$SCRIPT_DIR/$OPENCODE_CONFIG_SRC_REL" "$OUT_DIR/$OPENCODE_CONFIG_REL"
-    cp "$SCRIPT_DIR/$OPENCODE_SANDBOX_SRC_REL" "$OUT_DIR/$OPENCODE_SANDBOX_REL"
+    cp "$TEMPLATE_ROOT/$OPENCODE_CONFIG_SRC_REL" "$OUT_DIR/$OPENCODE_CONFIG_REL"
+    cp "$TEMPLATE_ROOT/$OPENCODE_SANDBOX_SRC_REL" "$OUT_DIR/$OPENCODE_SANDBOX_REL"
     # Project-specific gitignore (tracks paper/, output/, code/; ignores data
     # blobs + build artifacts). Production mode copies this at the cleanup step
     # (line ~1878), but --local exits before reaching it, so copy it here too.
@@ -825,11 +828,11 @@ if [ "$LOCAL" = "1" ]; then
     # code/, process_log/ — and since .gitignore is in the manifest's
     # files_replace list, update.sh would then clobber a real project's correct
     # gitignore with one that untracks the entire research output.
-    cp "$SCRIPT_DIR/templates/gitignore_project" "$OUT_DIR/.gitignore"
+    cp "$TEMPLATE_ROOT/templates/gitignore_project" "$OUT_DIR/.gitignore"
     # dashboard.html visualizes pipeline_state.json; report mode (one-shot audit
     # fan-out) doesn't produce one, so the dashboard would be empty/misleading.
     if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
-        cp "$SCRIPT_DIR/dashboard.html" "$OUT_DIR/"
+        cp "$TEMPLATE_ROOT/dashboard.html" "$OUT_DIR/"
         # Variant-correct subtitle (title-cased PAPER_TYPE; renders the historical
         # "Autonomous Finance Theory Paper Generator" byte-identically for finance).
         DASHBOARD_SUBTITLE="Autonomous $(python3 -c "import sys; print(sys.argv[1].title())" "$PAPER_TYPE") Generator"
@@ -840,7 +843,7 @@ if [ "$LOCAL" = "1" ]; then
     # deploys get it via the clone). All modes: the non-driver runtimes and
     # `codex --once` apply everywhere; the codex driver self-refuses cleanly
     # when there is no pipeline_state.json (manual/report).
-    cp "$SCRIPT_DIR/launch.sh" "$OUT_DIR/"
+    cp "$TEMPLATE_ROOT/launch.sh" "$OUT_DIR/"
 
     echo "Local test mode: $VARIANT → $OUT_DIR"
 else
@@ -951,8 +954,22 @@ else
         echo "  ✓ Meta-repo dev skill links removed from .agents/skills ($dev_link_removed)"
     fi
 
-    TEMPLATE_ROOT="."
+    # cwd is the clone. SRC_ROOT = clone root (VERSION lives here);
+    # TEMPLATE_ROOT = the build-input tree the clone carried in deploy_assets/.
+    SRC_ROOT="."
+    TEMPLATE_ROOT="./deploy_assets"
     OUT_DIR="."
+
+    # launch.sh and dashboard.html ship verbatim but live under deploy_assets/
+    # in the clone; pull them to the project root NOW, before the manifest
+    # emission checkpoint runs — a later copy silently drops them from the
+    # manifest's files_replace (they must exist when the is_file() probes run).
+    # Mirrors the --local branch, including the dashboard gating (manual/report
+    # deploys get no dashboard). The re-title happens in the cleanup block.
+    cp "$TEMPLATE_ROOT/launch.sh" .
+    if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
+        cp "$TEMPLATE_ROOT/dashboard.html" .
+    fi
 fi
 
 # ── Install per-runtime settings files (install_runtime_settings) ──
@@ -1807,7 +1824,7 @@ ARP_DATE=$(date -u +%Y-%m-%d)
 # it needs no deployment-manifest entry. If VERSION is missing or empty we fall
 # back to the bare hash — identical to the pre-versioning behavior, fail-safe.
 ARP_HASH=$(cd "$TEMPLATE_ROOT" && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-ARP_SEMVER=$(tr -d '[:space:]' < "$TEMPLATE_ROOT/VERSION" 2>/dev/null || true)
+ARP_SEMVER=$(tr -d '[:space:]' < "$SRC_ROOT/VERSION" 2>/dev/null || true)
 if [ -n "$ARP_SEMVER" ]; then
     ARP_VERSION="${ARP_SEMVER}+${ARP_HASH}"
 else
@@ -2247,7 +2264,7 @@ if [ -f "$SCRIPT_DIR/.env" ]; then
     # fail (e.g. the SEC_EDGAR_* identity). Union in whatever is missing, with
     # the same merge routine update.sh uses on existing deployments.
     if [ -f "$SCRIPT_DIR/.env.example" ]; then
-        . "$SCRIPT_DIR/scripts/merge_env_keys.sh"
+        . "$TEMPLATE_ROOT/scripts/merge_env_keys.sh"
         merge_env_missing_keys "$SCRIPT_DIR/.env.example" "$P/.env" 0
         [ "$MERGE_ENV_ADDED" -gt 0 ] \
             && echo "  ✓ $MERGE_ENV_ADDED key(s) added from .env.example — fill in values if you use them"
@@ -3311,11 +3328,10 @@ fi
 # ── Production mode: clean up and commit ──
 echo "Cleaning up template files..."
 
-# Replace template .gitignore with project-specific one (before deleting templates/)
-cp templates/gitignore_project .gitignore
+# Replace template .gitignore with project-specific one (before deleting deploy_assets/)
+cp "$TEMPLATE_ROOT/templates/gitignore_project" .gitignore
 
-rm -rf templates/
-rm -rf extensions/
+rm -rf deploy_assets/
 rm -rf meta_paper/
 rm -rf test_scripts/
 rm -rf scripts/

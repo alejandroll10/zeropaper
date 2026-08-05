@@ -12,7 +12,7 @@ import os
 import sys
 
 sys.path.insert(
-    0, os.path.join(os.path.dirname(__file__), "..", "templates", "utils", "bib_verify")
+    0, os.path.join(os.path.dirname(__file__), "..", "deploy_assets", "templates", "utils", "bib_verify")
 )
 from openalex_check import _surname_tokens as s  # noqa: E402
 
