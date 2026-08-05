@@ -53,6 +53,15 @@
       "allowed-tools": "Bash, Read, Write"
     }
   },
+  "paris-club": {
+    "name": "paris-club",
+    "description": "Paris Club Dataset (1956-2026; van der Zaag, van Mourik & Blackmon) — agreement-level record of every sovereign debt restructuring negotiated through the Paris Club of official bilateral creditors, no key, CC BY 4.0. One zip from Harvard Dataverse (doi:10.7910/DVN/BBWLO8, ~2.3 MB): 543 agreements, 102 debtors, 1956 to 2024-08, in tabular (one row per agreement), long, network (creditor/observer edges) and xlsx layouts. Fields: debtor, participating creditors, amounts treated/cancelled/rescheduled, terms (Toronto/London/Naples/Lyon/Cologne/HIPC Exit, plus the Houston track), cut-off dates, meeting chairs, observers, source URLs. Use for sovereign default, official debt relief, and DSSI work. Gotchas: the published USD 863bn total is inflated by a x100 decimal-comma bug on 41 DSSI rows (USD 609bn once repaired; this skill ships the fix); cancelled is populated for only 84 of 543; no unique key (DSSI extensions share a url); country names are free text, no ISO codes; excludes China and private restructurings.",
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[tabular | long | network | debtor country | year]",
+      "allowed-tools": "Bash, Read, Write"
+    }
+  },
   "open-bond-pricing": {
     "name": "open-bond-pricing",
     "description": "Open Source Bond Asset Pricing (OSBAP; Dickerson, Nozawa & Robotti) — corporate-bond data with NO WRDS and NO authentication, the fixed-income analog of chen-zimmerman. Public downloads, cached locally: ~341 long-short corporate-bond factor return series (monthly from 2002-08, ~2 MB); the bond-month characteristics panel of 341 ranked predictors (2002-07..2022-12, ~886 MB); ML return predictions + realized returns (~200 MB); and a daily bond panel from cleaned Enhanced/Standard/144A TRACE with returns, credit spreads, duration and accrued interest (~1.8 GB). OSBAP already cleans raw TRACE (error-correction, +100% truncation fix) so you consume the panels rather than re-clean trades. Use for corporate-bond cross-section, credit-spread, bond-factor, and bond-return work. Trade-level intraday TRACE (individual trade reports / dealer flow via a WRDS trace-library, subscription-gated pull) is the separate `trace-bonds` skill, not this one.",
