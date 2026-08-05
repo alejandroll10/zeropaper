@@ -906,6 +906,51 @@ else
         fi
     done
 
+    # Codex discovers repo skills under .agents/skills (CODEX_DIR_REL), so the
+    # meta-repo exposes the same dev skills there as symlinks into .claude/skills,
+    # created by scripts/sync_dev_instructions.sh. They are tracked, so a fresh
+    # clone of the template repo has them immediately — which also means the clone
+    # carries them in here, into the very directory assemble_codex_skills.py is
+    # about to write the deployed project's real skills into. That assembler does
+    # mkdir(exist_ok) + write_text and never wipes, so anything left here survives
+    # alongside the assembled skills. Remove them.
+    #
+    # Two deliberate differences from the .claude/skills snapshot above:
+    #
+    #   - No checksum guard, because none is needed. The assembler only ever
+    #     creates real directories, so a symlink at this depth is unambiguously a
+    #     dev exposure and can never be a legitimate assembled project skill.
+    #   - Removed here rather than in the cleanup block. They have to go either way:
+    #     their targets are this clone's .claude/skills entries, which the dev-skill
+    #     cleanup below deletes, so leaving them would ship dangling links. Early is
+    #     the better moment for a second reason — mkdir(exist_ok) on a symlink-to-dir
+    #     succeeds, so if a future skill_id ever collided with a dev-skill name,
+    #     write_text would follow the link and drop the assembled Codex skill into
+    #     this clone's .claude/skills/<name>/SKILL.md instead of .agents/skills/<name>,
+    #     leaving the deployed project with that skill at the wrong path and missing
+    #     from the Codex tree. (Only the clone is ever at risk; git clone never writes
+    #     back to origin.) Breaking the links now makes that unreachable, and nothing
+    #     in setup reads them.
+    # The test is "not a real directory", not "is a symlink". A checkout with
+    # core.symlinks=false (native Windows without symlink privilege, exFAT/FAT32,
+    # some network mounts) materializes a tracked 120000 entry as a REGULAR FILE
+    # containing the target path as text — for which -L is false, so a symlink-only
+    # test would silently strip nothing and ship the placeholders. Nothing legitimate
+    # exists under .agents/skills at this point (the assembler has not run yet) and it
+    # only ever creates real directories, so anything here that is not one came with
+    # the clone and must go, whichever form git gave it.
+    dev_link_removed=0
+    for d in .agents/skills/*; do
+        [ -e "$d" ] || [ -L "$d" ] || continue   # unmatched glob, or a dangling link
+        if [ -L "$d" ] || [ ! -d "$d" ]; then
+            rm -f "$d"
+            dev_link_removed=$((dev_link_removed + 1))
+        fi
+    done
+    if [ "$dev_link_removed" -gt 0 ]; then
+        echo "  ✓ Meta-repo dev skill links removed from .agents/skills ($dev_link_removed)"
+    fi
+
     TEMPLATE_ROOT="."
     OUT_DIR="."
 fi

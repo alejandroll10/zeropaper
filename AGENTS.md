@@ -1,3 +1,99 @@
-# AGENTS.md
+<!-- GENERATED FILE — DO NOT EDIT.
+     Mirror of CLAUDE.md, written by scripts/sync_dev_instructions.sh.
+     Edit CLAUDE.md instead, then re-run that script. -->
 
-This is the **pipeline template development** repo. See [`README.md`](README.md) for what it is and how to use it, and [`CLAUDE.md`](CLAUDE.md) for the working instructions and repo layout (the same guidance applies to any runtime, not just Claude).
+# CLAUDE.md — Meta Project: Pipeline Template Development
+
+AFTER EVERY BIG CHANGE, LAUNCH AN INDEPENDENT REVIEW AGENT TO REVIEW YOUR CHANGES FOR ISSUES — **SONNET** WHEN RUNNING UNDER CLAUDE, **GPT SOL** WHEN RUNNING UNDER CODEX. IF ANY ISSUES ARE FOUND, ADD A NEW ROUND OF AUDITING AFTER FIXING THE CURRENT ROUND'S ISSUES (EVEN IF THERE ARE ONLY MINOR CHANGES). ITERATE UNTIL DONE.
+
+`CLAUDE.md` AND `.claude/skills/` ARE CANONICAL. `AGENTS.md` IS A GENERATED COPY OF `CLAUDE.md`, AND `.agents/skills/` HOLDS SYMLINKS INTO `.claude/skills/` (CODEX'S DISCOVERY PATH). EDIT ONLY THE CANONICAL PAIR, THEN RUN `scripts/sync_dev_instructions.sh` — NEVER EDIT `AGENTS.md` OR `.agents/skills/` BY HAND. NOTHING IN GIT ENFORCES THIS, SO THE MIRRORS CAN DRIFT SILENTLY AND A LATER CODEX SESSION WOULD READ STALE INSTRUCTIONS. THE SYNC SCRIPT IS IDEMPOTENT, SO RUNNING IT IS ALSO HOW YOU FIND OUT WHETHER YOU WERE OUT OF SYNC. `scripts/test_sync_dev_instructions.sh` VALIDATES WHAT A COMMIT WOULD RECORD — IT READS THE INDEX, NOT THE WORKING TREE — SO STAGE THE MIRRORS BEFORE RUNNING IT, AND WIRE IT AS A `.git/hooks/pre-commit` SYMLINK IF YOU WANT IT ENFORCED. BOTH MIRRORS ARE DEV-ONLY: `setup.sh` REGENERATES `AGENTS.md` FOR DEPLOYED PROJECTS AND STRIPS THE `.agents/skills` SYMLINKS RIGHT AFTER THE CLONE, SO NEITHER GETS A MANIFEST ENTRY.
+
+WHEN ADDING A NEW INFRASTRUCTURE PATH TO `setup.sh` (DIR OR FILE THAT GETS DEPLOYED), ALSO ADD IT TO THE `candidate_dirs` / `candidate_files` LIST IN THE MANIFEST EMISSION BLOCK (GREP `# ── Emit deployment manifest ──`); OTHERWISE `update.sh` WILL SILENTLY SKIP IT WHEN REFRESHING EXISTING DEPLOYMENTS. BUILD-TIME-ONLY PATHS (NEVER PRESENT IN A DEPLOYED PROJECT) GET **NO** ENTRY.
+
+VERSIONING (`VERSION` = SINGLE SOURCE OF TRUTH; `setup.sh`/`update.sh` STAMP `<version>+<git-hash>` INTO DEPLOYMENTS): WHEN YOU SHIP SOMETHING NOTABLE, BUMP `VERSION` (**PATCH** = FIXES, **MINOR** = NEW MODE/CAPABILITY, **MAJOR** = IDENTITY SHIFT), ADD A `CHANGELOG.md` LINE, COMMIT, THEN `git tag -a vX.Y.Z -m "…"` AND PUSH WITH `--follow-tags`. `VERSION`/`CHANGELOG.md` ARE BUILD-TIME ONLY (READ AT SETUP, STRIPPED IN THE CLEANUP BLOCK, NEVER DEPLOYED) — SO **NO** MANIFEST ENTRY.
+
+RULE TEXT THAT MUST READ BYTE-IDENTICALLY ACROSS MANY AGENT BODIES BELONGS IN `templates/fragments/*.md`, INCLUDED VIA `{{> fragment_id }}` (LOWERCASE IDS ONLY — AN UPPERCASE ID SILENTLY SHIPS LITERALLY). DO **NOT** FRAGMENT ROLE-ADAPTED PROSE THAT MERELY LOOKS SIMILAR: THE scorer/referee/self-attacker/triager COPIES ARE INTENTIONALLY VERB- AND VERDICT-SPECIFIC, AND FLATTENING THEM CHANGES BEHAVIOR. MECHANISM + THE ZERO-BEHAVIOR-CHANGE VERIFICATION PROCEDURE: `edit-pipeline` SKILL.
+
+WHEN ADDING A NEW `{{KEY}}` PLACEHOLDER TO ANY AGENT BODY OR FRAGMENT (SHARED `{id}.md` OR VARIANT `{id}-core.md` — SINCE v2.9.0 **BOTH** RESOLVE AGAINST THE LAYERED VOCAB shared → variant → tier → mode, LATER WINS): PUT ITS DEFAULT IN `templates/agent_bodies/shared/vocab.json` (OR IN **EVERY** VARIANT VOCAB `templates/agents/{finance,macro,llm_cognition}/vocab.json`), THEN ADD PER-VARIANT OVERRIDES ONLY WHERE THE DOMAIN WORDING DIFFERS. ECON DEFAULTS MUST STAY BYTE-IDENTICAL TO THE PRE-EXTRACTION TEXT UNLESS A BEHAVIOR CHANGE IS INTENDED. THE LOADER RAISES `KeyError` ON UNRESOLVED PLACEHOLDERS, SO A KEY DEFINED IN ONLY SOME VARIANT VOCABS BREAKS SETUP FOR THE OTHERS.
+
+## What this is
+
+This is the **template repository** for the autonomous research paper pipeline. We are building and iterating on the pipeline infrastructure itself — agents, setup scripts, CLAUDE.md templates, dashboard, etc.
+
+This file is tracked in git but **overwritten by `setup.sh`** in cloned projects. It is for our development work only. The pipeline's CLAUDE.md that end users see is assembled by `setup.sh` from `templates/shared/core.md` + `templates/runtime/claude/session.md` + per-variant vocab substitution. (Variant-specific scorer calibrations live in `templates/agents/{variant}/vocab.json` and are substituted into the scorer agent body, not appended as a separate block.)
+
+## Sibling repo: the IAR website + wiki
+
+The pipeline's empirical dataset skills (`templates/skill_bodies/empirical/<dataset>.md` + `templates/skill_metadata/empirical_skills.json`, assembled into a deployed project's `.claude/skills/<dataset>/SKILL.md`) and the IAR wiki dataset pages (`src/content/docs/datasets/*` in `github.com/institute-for-automated-research/website`) are two mirrors of the same dataset knowledge, kept in sync both ways. When a change here affects a wiki page or a published paper PDF/landing page (dataset access or gotchas, citation format, provenance disclosure), file the issue **in the website repo** (`gh issue create --repo institute-for-automated-research/website`), not here. The website repo's CLAUDE.md carries the reciprocal rule for changes that originate there.
+
+## Working principle: the pipeline is not ground truth
+
+The pipeline is the current best we have, not necessarily correct. Do not assume the pipeline's current way of doing things is the right way — it is a candidate to be questioned and improved, not a baseline to defer to.
+
+## Working principle: no unsolved or undocumented architectural limits
+
+When auditing or editing the pipeline, if a known architectural limit is identified (e.g., a self-referential check, a subjective rule, an enforcement gap, a missing producer for a consumed artifact), do not leave it acknowledged-and-moved-on. Either (a) solve it in the same pass, or (b) document it explicitly — in the relevant agent body, doc file, or a dedicated `LIMITATIONS.md` — with the failure mode it can produce and what would be needed to close it. Acknowledged-but-undocumented limits accumulate silently and produce surprises in future runs.
+
+## Working principle: no implementation-complexity budget — do what is best for the pipeline
+
+There is no implementation-complexity budget, no edit-cost ceiling, no "this change is too big" threshold. The pipeline is designed to be run millions of times; any one-time cost of editing the template — updating five runtime assemblers, reshaping `pipeline_state.json`, rewriting the escalation table, expanding the orchestrator prompt, adding agents, writing new tests — is trivially amortized against that. Do not reject or water down a structural proposal because it is expensive to *implement*; reject it only if it is worse for the pipeline on the merits.
+
+Concretely:
+- If a change makes the pipeline produce better papers, do it — even if it touches every runtime, rewrites state, and requires new agents.
+- Do not propose a "narrower variant" to save implementation effort. Propose the narrower variant only if it is genuinely better for the output.
+- Do not invoke "implementation-complexity cost," "maintenance burden," or "surface area" as reasons to decline. These are real for a one-shot project; here they are rounding errors against millions of runs. (This is about *build* cost — runtime complexity in the prompts is a different axis, governed by the "prefer removing rules" principle below.)
+- The only legitimate reasons to decline a structural proposal are: it makes the output worse, it introduces a correctness/safety regression, or a strictly better alternative exists on the merits.
+
+## Working principle: prefer removing rules over adding them
+
+When possible, avoid adding rules — prefer removing. More rules mean more overfitting and harder debugging; when a new rule and an existing one would do the same work, cut, don't stack.
+
+## Working principle: prefer no structured classes
+
+Prefer prose over fixed categories when agents report findings — a label set looks like coverage while checking nothing. Verdicts the pipeline routes on, and counts, are fine.
+
+## Setting up a new project
+
+**Load the `deploy-project` skill.** It carries every `setup.sh` flag and composition
+(`--variant`, `--ext`, `--mode {empirical-first,report}`, `--seed`, `--faithful`, `--manual`,
+`--light`, `--halt-on-core-bypass`), the mutual exclusions, post-setup launch instructions
+(`launch.sh`, tmux, unattended runs), and WRDS server startup.
+
+One thing worth knowing without loading it, because it also applies to template-assembly testing:
+
+- **`--local` is a debug flag, never a real run.** It skips the clone, dumps to `test_output/{variant}/`, and exits before dependency install / origin detach / initial commit.
+
+## Editing this repo
+
+**Load the `edit-pipeline` skill.** It carries the repository layout, how `setup.sh`
+assembles a deployment, the runtime-agnostic-core vs runtime-specific-packaging split,
+the full agent roster and classification, subagent model pinning / fallback / launch-heal,
+the core-skill catalog, and the step-by-step procedures for adding a variant, a mode, an
+agent, a skill, or a vocab placeholder.
+
+## Supported variants
+
+| Variant | Flag | Status | Target journals |
+|---------|------|--------|-----------------|
+| `finance` | `--variant finance` (default) | Working (v2) | JF, JFE, RFS |
+| `macro` | `--variant macro` | In development | AER, Econometrica, QJE, JPE, ReStud, JME |
+| `llm_cognition` | `--variant llm_cognition` | Working (v2) | NeurIPS, ICML, ICLR (TMLR as field tier) — the science of LLM cognition & evaluation. Auto-implies `--ext theory_llm` (since v2.10.0 — the experiments are the evidence; skipped under `--mode report`, which prunes those agents); `--ext empirical` is gated off (see LIMITATIONS.md). `--mode report` supported since v2.16.0. |
+
+## Supported extensions
+
+| Extension | Flag | Status |
+|-----------|------|--------|
+| `empirical` | `--ext empirical` | Working |
+| `theory_llm` | `--ext theory_llm` | Working (v1) |
+
+Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory_llm`.
+
+## Supported modes
+
+| Mode | Flag | Status | Variants | Notes |
+|------|------|--------|----------|-------|
+| `empirical-first` | `--mode empirical-first` | Working (v1) | `finance` | Identification-first instead of theory-first. Auto-implies `--ext empirical`. |
+| `measurement-first` | `--mode measurement-first` | Working (v1) | `llm_cognition` | Evidence-first for the modal ML cognition paper: construct spec + design gate → Stage 3b experiments as the evidence core → post-experiment formal characterization (math audits fire there). |
+| `report` | `--mode report` | Working (v1) | `finance`, `macro`, `llm_cognition` | Referee an external submission instead of generating one. One-shot, no stages. |
+
+Full semantics for both modes are in the `deploy-project` skill.
