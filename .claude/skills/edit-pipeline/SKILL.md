@@ -9,11 +9,13 @@ This repo builds the pipeline; it is not the pipeline. Deployment usage (setup.s
 
 ## Conventions that bite
 
-These four have non-obvious failure modes. Each has a one-line trip-wire in CLAUDE.md (which fires without this skill being loaded) and its mechanism here. Adding a meta-repo dev *skill* is still zero-maintenance — the strip is snapshot-based, so `setup.sh` needs no edit — but since v2.22.2 the dev skills and CLAUDE.md are mirrored for Codex, and **that** part is not automatic: edit the canonical copy, then run `scripts/sync_dev_instructions.sh`.
+These four have non-obvious failure modes. Each has a one-line trip-wire in CLAUDE.md (which fires without this skill being loaded) and its mechanism here. Adding a meta-repo dev *skill* is zero-maintenance for deployments — dev skills live outside `deploy_assets/`, so a build never even sees them — but since v2.22.2 the dev skills and CLAUDE.md are mirrored for Codex, and **that** part is not automatic: edit the canonical copy, then run `scripts/sync_dev_instructions.sh`.
 
 ### Deployment manifest
 
 When adding a new infrastructure path to `setup.sh` (a dir or file that gets **deployed**), also add it to `candidate_dirs` / `candidate_files` in the manifest emission block (`# ── Emit deployment manifest ──`; `candidate_dirs = [` and `candidate_files = [`). Otherwise `update.sh` silently skips it when refreshing existing deployments — new deployments are fine, which is what makes this easy to miss.
+
+The path must also **exist before the manifest emission block runs**: membership is decided by live `is_file()` / `is_dir()` probes against the project, so a file produced later in `setup.sh` silently drops out of `files_replace` even with a correct candidate entry. (This bit once: launch.sh/dashboard.html were briefly copied after the checkpoint during the #232 refactor and vanished from production manifests while `--local` manifests stayed correct.)
 
 Build-time-only paths get **no** manifest entry, because they never ship. Current examples: `VERSION`, `CHANGELOG.md`, `deploy_assets/templates/model_fallbacks.json`, `deploy_assets/scripts/resolve_model_fallbacks.py`, `deploy_assets/scripts/apply_model_remap.py`, `deploy_assets/scripts/emit_model_heal_config.py`, `deploy_assets/templates/fragments/`, and the meta-repo dev skills. The test is not "is it new?" but "does a deployed project contain it?"
 
@@ -39,23 +41,21 @@ Domain wording extracted from previously hardcoded economics prose lives in two 
 
 ### Meta-repo dev skills
 
-`.claude/skills/` is tracked in this repo (it is **not** gitignored, unlike `.claude/agents/`). `setup.sh` snapshots whatever dev skills the clone carried in, immediately after `git init` (`DEV_SKILLS`), and removes them in the cleanup block before the initial commit — so they never ship into a research project.
-
-The mechanism is snapshot-based, not a name list: **adding a new dev skill requires no `setup.sh` edit.** The strip is checksum-guarded, so if a future `skill_id` in `deploy_assets/templates/skill_metadata/` ever collides with a dev-skill directory name, the assembled project skill is kept and a rename warning is printed rather than the skill being silently deleted.
+`.claude/skills/` is tracked in this repo (it is **not** gitignored, unlike `.claude/agents/`) and lives **outside** `deploy_assets/`, so a build never sees it: since v2.23.0 (#232) `setup.sh` assembles a deployed project's skills from `deploy_assets/templates/skill_bodies/` into an empty project directory. There is no strip/snapshot machinery anymore — the v2.22.x `DEV_SKILLS` checksum guard and the `.agents/skills` early strip were deleted with the clone-then-strip flow, and a `skill_id` colliding with a dev-skill directory name is no longer a hazard (the dev tree and the assembly destination never coexist). **Adding a new dev skill requires no `setup.sh` edit** — it does require a sync run (next paragraph).
 
 **The Codex mirror (v2.22.2).** Codex loads `AGENTS.md` automatically and discovers repo skills under `.agents/skills`, so the meta-repo mirrors both: `AGENTS.md` is a generated copy of `CLAUDE.md`, and `.agents/skills/{name}` is a relative symlink to `../../.claude/skills/{name}`. `CLAUDE.md` and `.claude/skills/` are canonical — edit those, then run `scripts/sync_dev_instructions.sh`. Never hand-edit a mirror. Under `.agents/skills` the script refuses to overwrite any entry that does not already point at that skill's canonical directory — being a symlink does not exempt it, since a foreign link at a colliding name is as much someone else's content as a foreign file is. (The one thing it *does* rewrite is the plain file git leaves when symlinks are unavailable, and only once the content proves it is that skill's own link.) An edit to `AGENTS.md`, by contrast, is simply lost on the next sync.
 
 **Known limit — silent drift (#233).** Nothing in git enforces that the generator ran. Edit `CLAUDE.md` under a Claude session, commit, and a later Codex session reads stale instructions with no warning. The generator is idempotent, so running it is how you discover you were out of sync — but nothing makes you run it. Closing this properly needs a validator wired as a pre-commit hook or CI; a first attempt was cut before merge after review found it wrong seven times across four rewrites, so treat #233 as unsolved rather than as a small chore. Note the instinct this breaks: adding a dev skill still needs no `setup.sh` edit, but it *does* need a sync run.
 
-Three constraints shape this, and none is arbitrary:
+Constraints that still shape the mirror, none arbitrary:
 
-- **`.agents/skills` is a real directory because `setup.sh` needs it to be, not because Codex requires it.** Codex does follow a symlinked `.agents/skills` — the maintainer on openai/codex#11314: *"Codex does support symlinking the `/.agents/skills` directory (both global and per-project)… We even have unit tests in place."* But in a deployed project that same path is where `assemble_codex_skills.py` writes the real Codex skills, so it must be a real writable directory there, and a wholesale symlink into `.claude/skills` would let a colliding `skill_id` write straight through into the clone's own copy of that skill. Symlinking `SKILL.md` itself *is* genuinely unsupported (openai/codex#9365 — *"We support symlinks to a skill directory, not the SKILL.md file itself"*): link the folder, never the file.
+- **Link the folder, never the file.** Codex follows a symlinked skill *directory* — the maintainer on openai/codex#11314: *"Codex does support symlinking the `/.agents/skills` directory (both global and per-project)… We even have unit tests in place."* Symlinking `SKILL.md` itself is genuinely unsupported (openai/codex#9365 — *"We support symlinks to a skill directory, not the SKILL.md file itself"*).
 - **Get the relative depth right; wrong is silent.** A link at `.agents/skills/{name}` resolves its first `..` to `.agents/`, so the target is `../../.claude/skills/{name}`. openai/codex#11314 was closed *not planned* because it was never a bug — the reporter's symlink simply had an invalid relative target. Note also that Codex's live-reload file watcher does not fire through a symlink, so edits to a canonical `SKILL.md` appear only after relaunching the Codex CLI.
-- **`AGENTS.md` is a copy, never a symlink to `CLAUDE.md`.** `setup.sh` writes `CLAUDE.md` and then `AGENTS.md` by bare filename inside the clone; a symlink would be followed and would clobber the deployed `CLAUDE.md` with the Codex runtime doc.
+- **`AGENTS.md` is a copy, never a symlink to `CLAUDE.md`.** `sync_dev_instructions.sh` regenerates it wholesale; through a symlink that regeneration would overwrite the canonical `CLAUDE.md` instead. (The old clone-then-strip flow had a second, harder reason — `setup.sh` used to write both files inside a clone that carried the dev mirror — but deployments no longer contain the dev mirrors at all.)
 - **Codex's two frontmatter caps behave differently, and both count CHARACTERS, not bytes** (`edit-pipeline`'s own description is 586 characters but 590 bytes, so the distinction is not academic). `name` > 64 is **hard** — `codex-rs/skills/src/parser.rs` calls `validate_len()` and the skill fails to parse — so `sync_dev_instructions.sh` fails the sync. `description` > 1024 is **soft** since openai/codex#29006 (2026-06-19), which removed length rejection at load and moved the cap to model-visible rendering: the skill loads with its description intact, and only the catalog entry is truncated to 1021 chars + `...`, degrading implicit selection. The script warns rather than failing, because refusing would be stricter than Codex. Beware stale sources — the cap began at 500 **bytes**, openai/codex#7915 fixed the byte-vs-char bug and raised it to 1024 while it was still a hard reject, and the maintainer confirmation on openai/codex#13941 predates #29006. A separate aggregate skills-metadata budget across all rendered descriptions also truncates — and it is **tokens**, not characters: `skill_metadata_budget()` returns `SkillMetadataBudget::Tokens(2% of context window)`, falling back to `Characters` only when the window is unknown, so openai/codex#24299's `budget_limit=5440` is `272_000 × 2%` tokens. It depends on the model and on what else is installed, so it is not checked. **Known gap:** `deploy_assets/scripts/assemble_codex_skills.py` still hard-`raise`s on 1024 **bytes** for deployed project skills — over-strict on both axes, tracked in issue #231.
-- **`.agents/skills` is also a deployed, manifest-managed path** (`CODEX_SKILLS_REL`, i.e. `$CODEX_DIR_REL/skills`), where `assemble_codex_skills.py` writes the project's real Codex skills. Since the dev symlinks are tracked, the clone carries them into that same directory, so `setup.sh` strips them immediately after `git clone` — before the assembler runs, not in the cleanup block. Early is required: `mkdir(exist_ok)` on a symlink-to-dir succeeds, so a colliding `skill_id` would otherwise have `write_text` write *through* the link into the meta-repo's own `.claude/skills/{name}/SKILL.md`. The strip needs no checksum guard (the assembler only creates real directories, so a non-directory there is unambiguously a dev exposure) and deliberately tests "not a real directory" rather than "is a symlink", so a `core.symlinks=false` checkout — which materializes the links as plain text files — cannot slip past it.
+- **In a deployed project, `.agents/skills` is a real directory, freshly created** by `assemble_codex_skills.py` and manifest-managed (`CODEX_SKILLS_REL`, i.e. `$CODEX_DIR_REL/skills`). The dev repo's symlinked entries never enter a build, so the old write-through-the-link collision hazard (and the early strip that guarded it) is gone.
 
-Both mirrors are build-time only and get **no** manifest entry.
+Both mirrors are dev-only and get **no** manifest entry.
 
 ### Dev settings vs deployed settings
 
@@ -63,7 +63,7 @@ This repo's `.claude/settings.json` configures the **template-development** sess
 nowhere. The settings a deployed project runs under — including the sandbox profile — live in
 `deploy_assets/templates/runtime/{claude,gemini}/settings.json` and are installed by the
 `install_runtime_settings` block in `setup.sh` (grep that string), which runs for both `--local`
-and production and overwrites whatever the clone carried in.
+and production and is the only writer of those paths (the project directory starts empty).
 
 Keep the two apart. They want opposite things: the template repo needs a permissive posture
 (it deploys projects into arbitrary paths), a research project wants the sandbox on. A single
@@ -186,7 +186,7 @@ Note: extension *skills* do NOT live here — see "Adding a new extension" below
 deploy_assets/launch.sh      # Runtime launcher, shipped verbatim into every deployment
 deploy_assets/dashboard.html # Live progress dashboard, shipped verbatim (pipeline modes only)
 
-setup.sh                     # Repo root. Clones repo, assembles CLAUDE.md + AGENTS.md + GEMINI.md + agents + skills
+setup.sh                     # Repo root. Fetches deploy_assets/ into tmp (production), assembles a deployment into an empty project dir
 update.sh                    # Repo root. Refreshes deployed projects from a fresh --local build
 scripts/                     # Repo root: dev-only tooling (sync_dev_instructions.sh) — NOT build input
 test_scripts/                # Repo root: skill verification scripts, dev-only
@@ -208,7 +208,13 @@ The pipeline is split into two layers:
 
 ## How setup.sh works
 
-1. Clones this repo into a new project folder
+1. Fetches build inputs into a throwaway tmp source tree (sparse clone of
+   `deploy_assets/` in cone mode — root files like VERSION come along free;
+   full-clone fallback for old git), creates the project directory **empty**,
+   runs `git init` in it, and copies in the verbatim-shipped root files
+   (`.gitignore`, `launch.sh`, `dashboard.html`, `LICENSE`). The tmp tree is
+   deleted by an EXIT trap; nothing dev-only can reach the project because
+   nothing is ever assembled inside the source tree (#232, v2.23.0).
 2. Reads `--variant` flag (default: `finance`)
 3. Assembles runtime docs (CLAUDE.md, AGENTS.md, GEMINI.md):
    - Reads `deploy_assets/templates/shared/core.md` (runtime-agnostic orchestrator)
@@ -235,7 +241,7 @@ The pipeline is split into two layers:
    - Assembles extension agents for Claude, Codex, Gemini, and OpenCode (Grok remains a documented extension gap)
    - Assembles extension skills from shared skill metadata + bodies
    - Copies utilities, creates dirs, appends API keys to `.env`
-10. Removes template infrastructure, detaches from origin, commits initial state
+10. Commits the initial project state (and optionally auto-publishes); the tmp source tree is discarded by the EXIT trap — there is no strip step
 
 ## Agent classification
 

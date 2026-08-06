@@ -2,11 +2,11 @@
 
 AFTER EVERY BIG CHANGE, LAUNCH AN INDEPENDENT REVIEW AGENT TO REVIEW YOUR CHANGES FOR ISSUES — **SONNET** WHEN RUNNING UNDER CLAUDE, **GPT SOL** WHEN RUNNING UNDER CODEX. IF ANY ISSUES ARE FOUND, ADD A NEW ROUND OF AUDITING AFTER FIXING THE CURRENT ROUND'S ISSUES (EVEN IF THERE ARE ONLY MINOR CHANGES). ITERATE UNTIL DONE.
 
-`CLAUDE.md` AND `.claude/skills/` ARE CANONICAL. `AGENTS.md` IS A GENERATED COPY OF `CLAUDE.md`, AND `.agents/skills/` HOLDS SYMLINKS INTO `.claude/skills/` (CODEX'S DISCOVERY PATH). EDIT ONLY THE CANONICAL PAIR, THEN RUN `scripts/sync_dev_instructions.sh` — NEVER EDIT `AGENTS.md` OR `.agents/skills/` BY HAND. NOTHING IN GIT ENFORCES THIS, SO THE MIRRORS CAN DRIFT SILENTLY AND A LATER CODEX SESSION WOULD READ STALE INSTRUCTIONS — A KNOWN, OPEN GAP (#233). THE SYNC SCRIPT IS IDEMPOTENT, SO RUNNING IT IS ALSO HOW YOU FIND OUT WHETHER YOU WERE OUT OF SYNC. BOTH MIRRORS ARE DEV-ONLY: `setup.sh` REGENERATES `AGENTS.md` FOR DEPLOYED PROJECTS AND STRIPS THE `.agents/skills` SYMLINKS RIGHT AFTER THE CLONE, SO NEITHER GETS A MANIFEST ENTRY.
+`CLAUDE.md` AND `.claude/skills/` ARE CANONICAL. `AGENTS.md` IS A GENERATED COPY OF `CLAUDE.md`, AND `.agents/skills/` HOLDS SYMLINKS INTO `.claude/skills/` (CODEX'S DISCOVERY PATH). EDIT ONLY THE CANONICAL PAIR, THEN RUN `scripts/sync_dev_instructions.sh` — NEVER EDIT `AGENTS.md` OR `.agents/skills/` BY HAND. NOTHING IN GIT ENFORCES THIS, SO THE MIRRORS CAN DRIFT SILENTLY AND A LATER CODEX SESSION WOULD READ STALE INSTRUCTIONS — A KNOWN, OPEN GAP (#233). THE SYNC SCRIPT IS IDEMPOTENT, SO RUNNING IT IS ALSO HOW YOU FIND OUT WHETHER YOU WERE OUT OF SYNC. BOTH MIRRORS ARE DEV-ONLY: SINCE v2.23.0 (#232) A DEPLOYMENT IS ASSEMBLED FROM `deploy_assets/` INTO AN EMPTY PROJECT DIRECTORY, SO NEITHER MIRROR EVER ENTERS ONE — `setup.sh` GENERATES A PROJECT'S OWN `AGENTS.md` AND `.agents/skills` FROM SCRATCH. NEITHER GETS A MANIFEST ENTRY.
 
-WHEN ADDING A NEW INFRASTRUCTURE PATH TO `setup.sh` (DIR OR FILE THAT GETS DEPLOYED), ALSO ADD IT TO THE `candidate_dirs` / `candidate_files` LIST IN THE MANIFEST EMISSION BLOCK (GREP `# ── Emit deployment manifest ──`); OTHERWISE `update.sh` WILL SILENTLY SKIP IT WHEN REFRESHING EXISTING DEPLOYMENTS. BUILD-TIME-ONLY PATHS (NEVER PRESENT IN A DEPLOYED PROJECT) GET **NO** ENTRY.
+WHEN ADDING A NEW INFRASTRUCTURE PATH TO `setup.sh` (DIR OR FILE THAT GETS DEPLOYED), ALSO ADD IT TO THE `candidate_dirs` / `candidate_files` LIST IN THE MANIFEST EMISSION BLOCK (GREP `# ── Emit deployment manifest ──`); OTHERWISE `update.sh` WILL SILENTLY SKIP IT WHEN REFRESHING EXISTING DEPLOYMENTS. THE PATH MUST ALSO EXIST **BEFORE** THE MANIFEST EMISSION BLOCK RUNS — MEMBERSHIP IS DECIDED BY LIVE `is_file()`/`is_dir()` PROBES, SO A FILE PRODUCED LATER IN `setup.sh` SILENTLY DROPS OUT OF THE MANIFEST. BUILD-TIME-ONLY PATHS (NEVER PRESENT IN A DEPLOYED PROJECT) GET **NO** ENTRY.
 
-VERSIONING (`VERSION` = SINGLE SOURCE OF TRUTH; `setup.sh`/`update.sh` STAMP `<version>+<git-hash>` INTO DEPLOYMENTS): WHEN YOU SHIP SOMETHING NOTABLE, BUMP `VERSION` (**PATCH** = FIXES, **MINOR** = NEW MODE/CAPABILITY, **MAJOR** = IDENTITY SHIFT), ADD A `CHANGELOG.md` LINE, COMMIT, THEN `git tag -a vX.Y.Z -m "…"` AND PUSH WITH `--follow-tags`. `VERSION`/`CHANGELOG.md` ARE BUILD-TIME ONLY (READ AT SETUP, STRIPPED IN THE CLEANUP BLOCK, NEVER DEPLOYED) — SO **NO** MANIFEST ENTRY.
+VERSIONING (`VERSION` = SINGLE SOURCE OF TRUTH; `setup.sh`/`update.sh` STAMP `<version>+<git-hash>` INTO DEPLOYMENTS): WHEN YOU SHIP SOMETHING NOTABLE, BUMP `VERSION` (**PATCH** = FIXES, **MINOR** = NEW MODE/CAPABILITY, **MAJOR** = IDENTITY SHIFT), ADD A `CHANGELOG.md` LINE, COMMIT, THEN `git tag -a vX.Y.Z -m "…"` AND PUSH WITH `--follow-tags`. `VERSION`/`CHANGELOG.md` ARE BUILD-TIME ONLY (READ FROM THE SOURCE TREE AT SETUP, NEVER COPIED INTO A DEPLOYMENT) — SO **NO** MANIFEST ENTRY.
 
 RULE TEXT THAT MUST READ BYTE-IDENTICALLY ACROSS MANY AGENT BODIES BELONGS IN `deploy_assets/templates/fragments/*.md`, INCLUDED VIA `{{> fragment_id }}` (LOWERCASE IDS ONLY — AN UPPERCASE ID SILENTLY SHIPS LITERALLY). DO **NOT** FRAGMENT ROLE-ADAPTED PROSE THAT MERELY LOOKS SIMILAR: THE scorer/referee/self-attacker/triager COPIES ARE INTENTIONALLY VERB- AND VERDICT-SPECIFIC, AND FLATTENING THEM CHANGES BEHAVIOR. MECHANISM + THE ZERO-BEHAVIOR-CHANGE VERIFICATION PROCEDURE: `edit-pipeline` SKILL.
 
@@ -15,6 +15,8 @@ WHEN ADDING A NEW `{{KEY}}` PLACEHOLDER TO ANY AGENT BODY OR FRAGMENT (SHARED `{
 ## What this is
 
 This is the **template repository** for the autonomous research paper pipeline. We are building and iterating on the pipeline infrastructure itself — agents, setup scripts, CLAUDE.md templates, dashboard, etc.
+
+Every build input lives under `deploy_assets/` (templates/, scripts/, extensions/, launch.sh, dashboard.html); everything outside it is dev-only tooling. Since v2.23.0 (#232) `setup.sh` assembles a deployment from `deploy_assets/` into an **empty** project directory — there is no clone-then-strip step, so a path that isn't explicitly produced simply never ships (fail-closed).
 
 This file is tracked in git but **overwritten by `setup.sh`** in cloned projects. It is for our development work only. The pipeline's CLAUDE.md that end users see is assembled by `setup.sh` from `deploy_assets/templates/shared/core.md` + `deploy_assets/templates/runtime/claude/session.md` + per-variant vocab substitution. (Variant-specific scorer calibrations live in `deploy_assets/templates/agents/{variant}/vocab.json` and are substituted into the scorer agent body, not appended as a separate block.)
 
@@ -57,7 +59,7 @@ Prefer prose over fixed categories when agents report findings — a label set l
 
 One thing worth knowing without loading it, because it also applies to template-assembly testing:
 
-- **`--local` is a debug flag, never a real run.** It skips the clone, dumps to `test_output/{variant}/`, and exits before dependency install / origin detach / initial commit.
+- **`--local` is a debug flag, never a real run.** It skips the tmp source clone (assembling from this checkout's `deploy_assets/`), dumps to `test_output/{variant}/`, and exits before dependency install / git init / initial commit.
 
 ## Editing this repo
 

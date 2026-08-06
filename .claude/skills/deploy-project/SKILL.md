@@ -10,7 +10,7 @@ If a user asks to create/set up/start a new research project, run `setup.sh` for
 For editing the template repo itself — adding a variant, a mode, an agent, a skill, or a
 vocab placeholder — load the `edit-pipeline` skill instead.
 
-> **`--local` is a debug flag, never a real run.** It skips the git clone, dumps assembled output into `test_output/{variant}/` for inspection, and **exits before** the production steps (dependency install, origin detach, initial commit, cleanup). Use it *only* to verify template assembly (placeholder resolution, agent/skill files, marker stripping) — typically against a `/tmp` target. A full, deployable run is the plain `./setup.sh <project-name> ...` form **without** `--local`. The `--local` form appears only in the template repo's own "Adding a new variant" / "Adding a new mode" procedures (the `edit-pipeline` skill), because those are assembly tests, not paper runs.
+> **`--local` is a debug flag, never a real run.** It skips the tmp source clone (assembling straight from this checkout's `deploy_assets/`), dumps assembled output into `test_output/{variant}/` for inspection, and **exits before** the production steps (dependency install, git init, initial commit). Use it *only* to verify template assembly (placeholder resolution, agent/skill files, marker stripping) — typically against a `/tmp` target. A full, deployable run is the plain `./setup.sh <project-name> ...` form **without** `--local`. The `--local` form appears only in the template repo's own "Adding a new variant" / "Adding a new mode" procedures (the `edit-pipeline` skill), because those are assembly tests, not paper runs.
 
 ```bash
 # Basic finance theory
