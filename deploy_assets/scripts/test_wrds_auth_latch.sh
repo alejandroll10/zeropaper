@@ -3,8 +3,8 @@
 #
 # Guards the lockout bug: a PAM rejection arrives as a psycopg2
 # OperationalError, which _is_conn_error() classified as a recoverable dropped
-# socket. Because healthcheck() calls _recover() on every unhealthy ping, and
-# _recover()'s Tier 2 and Tier 3 each perform a fresh login, ONE ping cost two
+# socket. Because healthcheck() called _recover() on every unhealthy ping, and
+# the old recovery tiers each performed a fresh login, ONE ping cost two
 # failed authentications — while start_services.sh pings up to 120 times and
 # wrds_start() another 120. A stale password could therefore fire hundreds of
 # logins and lock the shared WRDS account for every project on the host, which
@@ -31,16 +31,31 @@ trap 'rm -rf "$TEST_ROOT"' EXIT
 export XDG_RUNTIME_DIR="$TEST_ROOT"
 
 PY="${PYTHON:-python3}"
-if ! "$PY" -c 'import sqlalchemy, dotenv' 2>/dev/null; then
-    echo "SKIP: sqlalchemy/python-dotenv unavailable — run inside a project venv" >&2
-    echo "      e.g. PYTHON=<project>/.venv/bin/python bash scripts/test_wrds_auth_latch.sh" >&2
-    exit 0
+if ! "$PY" -c 'import sqlalchemy, dotenv, wrds' 2>/dev/null; then
+    echo "ERROR: sqlalchemy/python-dotenv/wrds unavailable — run inside a project venv" >&2
+    echo "      e.g. PYTHON=<project>/.venv/bin/python bash deploy_assets/scripts/test_wrds_auth_latch.sh" >&2
+    exit 1
 fi
 
 PYTHONPATH="$ROOT/extensions/empirical/utils" "$PY" - <<'PY'
+import importlib.metadata
+import inspect
 import os, sys
+import types
 import sqlalchemy.exc as sa_exc
+import wrds
 import wrds_server as S
+import wrds_client as C
+import wrds_utils as U
+from unittest import mock
+
+# Production latch state is durable under ~/.cache so it survives logout and
+# reboot. Point this process at scratch storage without exposing a deploy-time
+# environment override that automated code could use to bypass the latch.
+S.AUTH_BLOCK_FILE = os.path.join(os.environ['XDG_RUNTIME_DIR'],
+                                 'wrds-auth-latch-test', 'authblock')
+S.LEGACY_AUTH_BLOCK_FILE = os.path.join(os.environ['XDG_RUNTIME_DIR'],
+                                        '.wrds_server_23847.authblock.test')
 
 FAILURES = []
 
@@ -54,6 +69,12 @@ PAM = sa_exc.OperationalError(
     "s", {}, Exception('FATAL:  PAM authentication failed for user "someuser"'))
 DROP = sa_exc.OperationalError(
     "s", {}, Exception("server closed the connection unexpectedly"))
+
+try:
+    raise EOFError("EOF when reading a line")
+except EOFError as cause:
+    WRAPPED_EOF = S.WrdsAuthError("WRDS connection setup failed")
+    WRAPPED_EOF.__cause__ = cause
 
 logins = {"n": 0}
 fixed = {"ok": False}
@@ -71,7 +92,8 @@ class FakeDB:
 
     engine = None
 
-    def connect(self):          # recovery Tier 2 == one login
+    def _Connection__make_sa_engine_conn(self, raise_err=False):
+        # recovery Tier 2 == exactly one login; public connect() is forbidden
         logins["n"] += 1
         raise PAM
 
@@ -92,6 +114,7 @@ def fake_raw(db, sql):
     return True
 
 
+real_connect_wrds = S.connect_wrds
 S.connect_wrds = fake_connect
 S._safe_raw_sql = fake_raw
 
@@ -99,6 +122,7 @@ print("\n[1] classification — auth must not be mistaken for a recoverable drop
 check("_is_auth_error(PAM)", S._is_auth_error(PAM), True)
 check("_is_conn_error(PAM)", S._is_conn_error(PAM), False)
 check("_is_auth_error(EOFError)", S._is_auth_error(EOFError("EOF when reading a line")), True)
+check("_is_auth_error(wrapped EOF)", S._is_auth_error(WRAPPED_EOF), True)
 check("_is_conn_error(socket drop)", S._is_conn_error(DROP), True)
 check("_is_auth_error(socket drop)", S._is_auth_error(DROP), False)
 
@@ -121,6 +145,19 @@ logins["n"] = 0
 check("fresh process reads latch", bool(S._read_auth_block()), True)
 check("logins spent by restart", logins["n"], 0)
 
+print("\n[4a] a v2.22.1 runtime latch migrates without spending a login")
+S._clear_auth_block()
+with open(S.LEGACY_AUTH_BLOCK_FILE, 'w', encoding='utf-8') as f:
+    f.write('legacy credential rejection')
+os.chmod(S.LEGACY_AUTH_BLOCK_FILE, 0o600)
+check("legacy-only latch is read", S._read_auth_block(),
+      'legacy credential rejection')
+check("legacy latch copied to durable storage",
+      os.path.exists(S.AUTH_BLOCK_FILE), True)
+check("legacy copy retained for old daemon",
+      os.path.exists(S.LEGACY_AUTH_BLOCK_FILE), True)
+check("migration spends no login", logins["n"], 0)
+
 print("\n[5] operator approves, credential still broken -> one attempt, re-latch")
 logins["n"] = 0
 st2 = S.WrdsState(FakeDB())
@@ -141,9 +178,373 @@ check("latch cleared", st2.auth_blocked(), False)
 check("latch removed from disk", os.path.exists(S.AUTH_BLOCK_FILE), False)
 check("healthy afterwards", st2.healthcheck()[0], True)
 
+print("\n[7] lazy auth failure in healthcheck latches before recovery")
+fixed["ok"] = False
+logins["n"] = 0
+st3 = S.WrdsState(FakeDB())
+S._safe_raw_sql = lambda db, sql: (_ for _ in ()).throw(WRAPPED_EOF)
+ok, _ = st3.healthcheck()
+check("healthcheck succeeded", ok, False)
+check("lazy failure latched", st3.auth_blocked(), True)
+check("recovery logins after lazy auth", logins["n"], 0)
+
+print("\n[8] auth failure on the post-recovery retry latches")
+S._clear_auth_block()
+logins["n"] = 0
+st4 = S.WrdsState(FakeDB())
+calls = {"n": 0}
+st4._recover = lambda: 'rolled_back'
+def drop_then_auth(db):
+    calls["n"] += 1
+    if calls["n"] == 1:
+        raise DROP
+    raise WRAPPED_EOF
+try:
+    st4.run(drop_then_auth)
+except S.WrdsAuthError:
+    pass
+check("operation calls", calls["n"], 2)
+check("post-retry failure latched", st4.auth_blocked(), True)
+check("extra logins after post-retry auth", logins["n"], 0)
+
+print("\n[9] every client API preserves the terminal auth signal")
+auth_response = {'status': 'error', 'msg': 'latched', 'error_kind': 'auth',
+                 'safety_protocol': C.SAFETY_PROTOCOL}
+hello_response = {'status': 'ok', 'msg': 'hello',
+                  'safety_protocol': C.SAFETY_PROTOCOL}
+C._send_request = lambda request, **kwargs: (
+    hello_response if request.get('cmd') == 'safety_hello_v2' else auth_response)
+for label, call in (
+    ('query', lambda: C.wrds_query('SELECT 1')),
+    ('list_tables', lambda: C.wrds_list_tables('crsp')),
+    ('list_libraries', C.wrds_list_libraries),
+    ('get_table', lambda: C.wrds_get_table('crsp', 'msf')),
+    ('describe', lambda: C.wrds_describe('crsp', 'msf')),
+):
+    try:
+        call()
+    except C.WrdsAuthBlocked:
+        typed = True
+    except Exception:
+        typed = False
+    else:
+        typed = False
+    check(f"{label} raises WrdsAuthBlocked", typed, True)
+
+legacy_response = {'status': 'ok', 'msg': 'legacy server'}
+legacy_commands = []
+def legacy_server_response(request, **kwargs):
+    legacy_commands.append(request.get('cmd'))
+    return legacy_response
+C._send_request = legacy_server_response
+with mock.patch.object(C.subprocess, 'Popen') as legacy_spawn:
+    try:
+        C.wrds_start()
+    except C.WrdsAuthBlocked:
+        legacy_refused = True
+    else:
+        legacy_refused = False
+check("updated client refuses legacy daemon", legacy_refused, True)
+check("legacy daemon mismatch is never auto-restarted", legacy_spawn.call_count, 0)
+try:
+    C.wrds_query('SELECT 1')
+except C.WrdsSafetyBlocked:
+    legacy_query_refused = True
+else:
+    legacy_query_refused = False
+check("legacy daemon cannot execute updated-client query", legacy_query_refused, True)
+C.wrds_shutdown()
+check("legacy daemon receives only DB-free hello",
+      set(legacy_commands), {'safety_hello_v2'})
+
+with mock.patch.object(C, 'wrds_ping', return_value=False), \
+     mock.patch.object(C, 'wrds_auth_error', return_value=None), \
+     mock.patch.object(C, 'wrds_login_in_progress', return_value=True), \
+     mock.patch.object(C, '_wait_for_ready', return_value=True) as peer_wait, \
+     mock.patch.object(C.subprocess, 'Popen') as peer_spawn:
+    peer_result = C.wrds_start()
+check("concurrent starter joins existing wait", peer_result, True)
+check("concurrent starter waits once", peer_wait.call_count, 1)
+check("concurrent starter spawns no losing child", peer_spawn.call_count, 0)
+
+class LosingStarter:
+    returncode = 0
+    def poll(self):
+        return 0
+losing_starter = LosingStarter()
+with mock.patch.object(C, 'wrds_ping', side_effect=[False, True]), \
+     mock.patch.object(C, 'wrds_auth_error', return_value=None), \
+     mock.patch.object(C, 'wrds_login_in_progress', return_value=False), \
+     mock.patch.object(C.time, 'sleep'), \
+     mock.patch.object(C.time, 'monotonic', side_effect=[0, 0, 1, 1]):
+    loser_joined = C._wait_for_ready(losing_starter)
+check("post-spawn singleton loser joins winner", loser_joined, True)
+
+print("\n[10] recovery bypasses wrds.Connection.connect() hidden retry")
+attempts = {"private": 0, "public": 0}
+class HiddenRetryDB:
+    def _Connection__make_sa_engine_conn(self, raise_err=False):
+        attempts["private"] += 1
+        raise PAM
+    def connect(self):
+        attempts["public"] += 2
+        raise PAM
+try:
+    S._connect_once(HiddenRetryDB())
+except Exception:
+    pass
+check("one-attempt engine calls", attempts["private"], 1)
+check("public hidden-retry calls", attempts["public"], 0)
+
+check("wrds dependency pinned version", importlib.metadata.version('wrds'), '3.5.0')
+private_connect = wrds.Connection._Connection__make_sa_engine_conn
+private_source = inspect.getsource(private_connect)
+check("installed primitive accepts raise_err",
+      'raise_err' in inspect.signature(private_connect).parameters, True)
+check("installed primitive has one engine login",
+      private_source.count('self.engine.connect()'), 1)
+check("installed primitive does not call public connect",
+      private_source.count('self.connect()'), 0)
+with mock.patch.object(wrds.Connection, 'connect') as installed_public_connect:
+    wrds.Connection(wrds_username='offline-test',
+                    wrds_password='offline-test', autoconnect=False)
+check("installed autoconnect=False performs no public connect",
+      installed_public_connect.call_count, 0)
+installed_distribution = importlib.metadata.distribution('wrds')
+mismatched_distribution = types.SimpleNamespace(
+    version='9.9.9', files=installed_distribution.files,
+    locate_file=installed_distribution.locate_file)
+with mock.patch.object(S.importlib.metadata, 'distribution',
+                       return_value=mismatched_distribution), \
+     mock.patch.object(S, '_begin_login_attempt') as mismatched_begin:
+    try:
+        real_connect_wrds()
+    except S.WrdsAuthError:
+        mismatch_refused = True
+    else:
+        mismatch_refused = False
+check("mismatched ambient wrds runtime refused", mismatch_refused, True)
+check("runtime contract fails before login marker",
+      mismatched_begin.call_count, 0)
+
+shadowed_wrds = types.SimpleNamespace(Connection=wrds.Connection,
+                                      __file__='/tmp/shadowed-wrds.py')
+try:
+    S._verify_wrds_runtime_contract(shadowed_wrds)
+except RuntimeError:
+    shadow_refused = True
+else:
+    shadow_refused = False
+check("shadowed wrds module refused", shadow_refused, True)
+
+real_getsource = S.inspect.getsource
+def looped_primitive_source(fn):
+    if fn is wrds.Connection._Connection__make_sa_engine_conn:
+        return ('def __make_sa_engine_conn(self, raise_err=False):\n'
+                '    for address in self.addresses:\n'
+                '        self.connection = self.engine.connect()\n')
+    return real_getsource(fn)
+with mock.patch.object(S.inspect, 'getsource', side_effect=looped_primitive_source):
+    try:
+        S._verify_wrds_runtime_contract(wrds)
+    except RuntimeError:
+        looped_refused = True
+    else:
+        looped_refused = False
+check("loop-containing one-call source refused by hash", looped_refused, True)
+
+print("\n[10.1] SQLAlchemy implicit reconnect is blocked before authentication")
+S._clear_auth_block()
+sqlite_engine = __import__('sqlalchemy').create_engine('sqlite://')
+sqlite_connection = sqlite_engine.connect()
+sqlite_db = types.SimpleNamespace(engine=sqlite_engine,
+                                  connection=sqlite_connection)
+S._install_reconnect_guard(sqlite_db)
+sqlite_connection.invalidate()
+try:
+    sqlite_connection.execute(__import__('sqlalchemy').text('SELECT 1'))
+except Exception as implicit_error:
+    implicit_blocked = S._is_conn_error(implicit_error)
+else:
+    implicit_blocked = False
+check("invalidated connection cannot reconnect implicitly", implicit_blocked, True)
+check("implicit reconnect routes as connection failure",
+      S._is_conn_error(S.WrdsImplicitReconnectError('blocked')), True)
+check("implicit reconnect spent no WRDS latch/login",
+      os.path.exists(S.AUTH_BLOCK_FILE), False)
+sqlite_connection.close()
+sqlite_engine.dispose()
+
+print("\n[10a] every credentialed startup is guarded before its first login")
+S._clear_auth_block()
+guard_observations = []
+class GuardedConnection:
+    def __init__(self, **kwargs):
+        guard_observations.append(('construct', S._read_auth_block()))
+    def _Connection__make_sa_engine_conn(self, raise_err=False):
+        guard_observations.append(('login', S._read_auth_block()))
+    def load_library_list(self):
+        guard_observations.append(('libraries', S._read_auth_block()))
+guarded_module = types.SimpleNamespace(Connection=GuardedConnection)
+with mock.patch.dict(sys.modules, {'wrds': guarded_module}), \
+     mock.patch.object(S, '_verify_wrds_runtime_contract'), \
+     mock.patch.object(S, '_install_reconnect_guard'), \
+     mock.patch.object(S, '_safe_raw_sql', return_value=True):
+    guarded_db = real_connect_wrds()
+check("startup returned guarded connection", isinstance(guarded_db, GuardedConnection), True)
+check("all startup edges saw write-ahead marker",
+      all(S.LOGIN_ATTEMPT_PREFIX in msg for _, msg in guard_observations), True)
+check("verified startup clears marker", os.path.exists(S.AUTH_BLOCK_FILE), False)
+
+class FailedGuardedConnection(GuardedConnection):
+    def _Connection__make_sa_engine_conn(self, raise_err=False):
+        guard_observations.append(('failed-login', S._read_auth_block()))
+        raise PAM
+failed_module = types.SimpleNamespace(Connection=FailedGuardedConnection)
+with mock.patch.dict(sys.modules, {'wrds': failed_module}), \
+     mock.patch.object(S, '_verify_wrds_runtime_contract'), \
+     mock.patch.object(S, '_install_reconnect_guard'), \
+     mock.patch.object(S, '_safe_raw_sql', return_value=True):
+    try:
+        real_connect_wrds()
+    except S.WrdsAuthError:
+        pass
+failed_marker = S._read_auth_block()
+check("failed startup leaves write-ahead marker",
+      failed_marker.startswith(S.LOGIN_ATTEMPT_PREFIX), True)
+C._server_module = lambda: S
+check("live startup marker lets readiness wait", C._persisted_auth_block(), None)
+with mock.patch.object(S.os, 'kill', side_effect=ProcessLookupError()):
+    dead_marker = C._persisted_auth_block()
+check("dead startup marker blocks restart", dead_marker, failed_marker)
+
+print("\n[10a.1] a live-server timeout can never clear the durable latch")
+with mock.patch.object(C, '_send_request', side_effect=TimeoutError('live timeout')), \
+     mock.patch.object(S, '_clear_auth_block') as timeout_clear:
+    try:
+        C.wrds_unblock()
+    except TimeoutError:
+        timeout_propagated = True
+    else:
+        timeout_propagated = False
+check("live timeout propagates", timeout_propagated, True)
+check("live timeout does not clear latch", timeout_clear.call_count, 0)
+
+print("\n[10b] ambiguous reconnect failure also stops automatic polling")
+S._clear_auth_block()
+ambiguous_logins = {"n": 0}
+class AmbiguousDB(FakeDB):
+    def _Connection__make_sa_engine_conn(self, raise_err=False):
+        ambiguous_logins["n"] += 1
+        raise RuntimeError('TLS handshake ended without an auth marker')
+S._safe_raw_sql = lambda db, sql: (_ for _ in ()).throw(DROP)
+st_ambiguous = S.WrdsState(AmbiguousDB())
+for _ in range(25):
+    st_ambiguous.healthcheck()
+check("ambiguous login attempts after 25 pings", ambiguous_logins["n"], 1)
+check("ambiguous failure latched", st_ambiguous.auth_blocked(), True)
+
+print("\n[11] latch persistence is atomic and fails closed")
+S._clear_auth_block()
+production_latch = S._auth_block_path()
+check("production latch survives runtime-dir cleanup",
+      production_latch.startswith(os.environ['XDG_RUNTIME_DIR']), False)
+check("production latch uses durable per-user cache",
+      os.path.join('.cache', 'zeropaper', 'wrds') in production_latch, True)
+S._write_auth_block('blocked')
+check("latch mode", oct(os.stat(S.AUTH_BLOCK_FILE).st_mode & 0o777), '0o600')
+check("atomic latch readable", S._read_auth_block(), 'blocked')
+with mock.patch.object(S.os, 'open', side_effect=PermissionError('denied')):
+    C._server_module = lambda: S
+    unreadable = C._persisted_auth_block()
+check("unreadable latch blocks startup", bool(unreadable), True)
+
+S._clear_auth_block()
+with open(S.AUTH_BLOCK_FILE, 'w', encoding='utf-8'):
+    pass
+os.chmod(S.AUTH_BLOCK_FILE, 0o600)
+try:
+    S._read_auth_block()
+except S.WrdsLatchError:
+    refused_empty = True
+else:
+    refused_empty = False
+check("empty existing latch blocks startup", refused_empty, True)
+
+S._clear_auth_block()
+target = os.path.join(os.environ['XDG_RUNTIME_DIR'], 'latch-target')
+with open(target, 'w', encoding='utf-8') as f:
+    f.write('not a latch')
+os.symlink(target, S.AUTH_BLOCK_FILE)
+try:
+    S._read_auth_block()
+except S.WrdsLatchError:
+    refused_symlink = True
+else:
+    refused_symlink = False
+check("latch symlink refused", refused_symlink, True)
+os.unlink(S.AUTH_BLOCK_FILE)
+os.unlink(target)
+
+st5 = S.WrdsState(FakeDB())
+with mock.patch.object(
+        S, '_write_auth_block', side_effect=S.WrdsLatchError('disk unavailable')):
+    try:
+        st5._latch_auth_failure(PAM)
+    except S.WrdsAuthError:
+        pass
+check("memory latch survives persistence error", st5.auth_blocked(), True)
+
+print("\n[12] legacy wrds_utils routes through the latched client")
+client_calls = []
+U._DB = None
+U._client_api = lambda: (
+    lambda sql: client_calls.append(('query', sql)) or 'query-result',
+    lambda library: client_calls.append(('tables', library)) or ['msf'],
+    lambda library, table: client_calls.append(('describe', library, table)) or 'desc',
+    lambda: client_calls.append(('libraries',)) or ['crsp'],
+    lambda library, table, **kwargs: client_calls.append(
+        ('get_table', library, table, kwargs)) or 'table-result',
+)
+check("wrds_utils.query result", U.query('SELECT 1'), 'query-result')
+proxy = U.get_wrds()
+check("proxy raw_sql result", proxy.raw_sql('SELECT 2'), 'query-result')
+check("proxy list_tables result", proxy.list_tables('crsp'), ['msf'])
+check("proxy describe result", proxy.describe_table('crsp', 'msf'), 'desc')
+check("proxy list_libraries result", proxy.list_libraries(), ['crsp'])
+check("proxy get_table result", proxy.get_table('crsp', 'msf', rows=3), 'table-result')
+try:
+    proxy.engine
+except U.WrdsDirectAccessDisabled:
+    engine_blocked = True
+else:
+    engine_blocked = False
+check("proxy engine access fails explicitly", engine_blocked, True)
+check("client route count", len(client_calls), 6)
+
 print()
 if FAILURES:
     print(f"FAILED ({len(FAILURES)}): " + ", ".join(FAILURES))
     sys.exit(1)
 print("All WRDS auth-latch tests passed.")
 PY
+
+if rg -n '^[[:space:]]*(import[[:space:]]+wrds([[:space:]]|$)|from[[:space:]]+wrds([[:space:]]|$))|wrds\.Connection\(' \
+    "$ROOT/extensions/empirical/utils/wrds_utils.py" \
+    "$ROOT/../test_scripts/test_wrds.py" \
+    "$ROOT/../test_scripts/wrds_explore.py"; then
+    echo "FAILED: a compatibility/dev script contains a direct WRDS connection path" >&2
+    exit 1
+fi
+
+if rg -n '\bdb\.(raw_sql|get_table|list_tables|describe_table)|^[[:space:]]*import wrds' \
+    "$ROOT/templates/skill_bodies/empirical/wrds.md"; then
+    echo "FAILED: WRDS skill still teaches a direct connection path" >&2
+    exit 1
+fi
+
+if rg -n "['\"]cmd['\"]:[[:space:]]*['\"](query|ping|shutdown|unblock|list_tables|list_libraries|get_table|describe)['\"]" \
+    "$ROOT/extensions/empirical/utils" "$ROOT/../test_scripts"; then
+    echo "FAILED: legacy unversioned WRDS wire command remains" >&2
+    exit 1
+fi

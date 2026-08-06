@@ -24,7 +24,9 @@ one-time Duo already completed). Run from a deployed empirical project:
 
     PYTHONPATH=code python3 test_scripts/test_wrds_reconnect.py
 """
-from utils.wrds_client import wrds_query, wrds_ping, wrds_start, _send_request
+from utils.wrds_client import (wrds_query, wrds_ping, wrds_start,
+                               _safety_hello, _send_request,
+                               _validate_protocol)
 
 wrds_start()
 assert wrds_ping(), "WRDS server not running / not healthy on start"
@@ -49,7 +51,13 @@ except RuntimeError as e:
 # Go through the raw protocol so we can inspect resp['recovered']: the
 # server must report that the _recover() path actually fired, AND return
 # correct data. (wrds_query() discards the 'recovered' field.)
-resp = _send_request({'cmd': 'query', 'sql': 'SELECT 42 AS answer'})
+# Use only the DB-free protocol hello here. The ordinary checked-request
+# preflight includes a health ping, and that ping would consume the recovery
+# before this query could assert resp['recovered'] is True.
+_safety_hello()
+resp = _send_request(
+    {'cmd': 'safe_query_v2', 'sql': 'SELECT 42 AS answer'})
+_validate_protocol(resp)
 assert resp['status'] == 'ok', f"recovering query failed: {resp}"
 assert resp['recovered'] is True, (
     "server did not report recovery after an induced connection drop "

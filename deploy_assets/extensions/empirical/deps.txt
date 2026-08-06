@@ -25,7 +25,10 @@ scipy
 requests
 fredapi
 pandas-datareader
-wrds
+# wrds.Connection.connect() contains hidden retries. The server deliberately
+# invokes 3.5.0's private, one-attempt engine primitive and regression-tests
+# its implementation; do not upgrade without re-auditing that contract.
+wrds==3.5.0
 edgartools
 openassetpricing
 gdown

@@ -39,31 +39,19 @@ PYTHONPATH=code python3 code/utils/download_crsp_monthly.py
 python3 code/utils/process_crsp_monthly.py
 ```
 
-### Fallback: Direct connection (single-script only)
-
-If the server isn't available, connect directly — but keep all WRDS queries in one script:
-
-```python
-import os
-from dotenv import load_dotenv
-load_dotenv()
-import wrds
-
-db = wrds.Connection(
-    wrds_username=os.getenv('WRDS_USER'),
-    wrds_password=os.getenv('WRDS_PASS')
-)
-
-# ... all queries here, using the same db object ...
-
-db.close()  # only at the very end
-```
+There is no direct-connection fallback. A direct `wrds.Connection()` bypasses
+the host-global rejection latch and can spend another login after the server
+has already learned that the credential is bad. One apparent call is not a
+one-attempt guarantee: the WRDS library, SQLAlchemy, a readiness loop, or a
+process supervisor may reconnect or relaunch internally. If the server is
+unavailable, inspect `wrds_auth_error()` and follow the terminal escalation
+rule below.
 
 ## How to query
 
 ### Option 1: raw_sql (preferred for complex queries)
 ```python
-df = db.raw_sql("""
+df = wrds_query("""
     SELECT a.permno, a.date, a.ret, a.prc, a.shrout
     FROM crsp.msf AS a
     WHERE a.date BETWEEN '2000-01-01' AND '2023-12-31'
@@ -72,25 +60,30 @@ df = db.raw_sql("""
 """)
 ```
 
-### Option 2: get_table (full table download — use LIMIT or date filters)
+### Option 2: simple table selection (use LIMIT or date filters)
 ```python
-df = db.get_table('crsp', 'msenames', columns=['permno', 'comnam', 'ticker', 'shrcd', 'exchcd'])
+df = wrds_query("""
+    SELECT permno, comnam, ticker, shrcd, exchcd
+    FROM crsp.msenames
+    LIMIT 1000
+""")
 ```
 
 ### Exploration helpers
 ```python
-db.list_libraries()                    # all available libraries
-db.list_tables(library='crsp')         # tables in a library
-db.describe_table('crsp', 'msf')       # columns, types, row count
+from utils.wrds_client import wrds_list_tables, wrds_describe
+libraries = wrds_query("SELECT DISTINCT table_schema FROM information_schema.tables")
+tables = wrds_list_tables('crsp')
+description = wrds_describe('crsp', 'msf')
 ```
 
 ## Before declaring a variable/table unavailable
 
 "Not in WRDS" is a substantive claim — never reach it as an easy-path default. Before concluding a variable, table, code value, or time window isn't there, run this protocol and log the result to `output/stage3a/data_search_log.md`:
 
-1. **List tables.** `db.list_tables(library=...)` and grep the names for the concept. CRSP delisting/event tables (`mse`, `dsedelist`, `dse`, `dlret`) are easy to miss because they aren't in the headline table list below.
+1. **List tables.** `wrds_list_tables(library)` and grep the names for the concept. CRSP delisting/event tables (`mse`, `dsedelist`, `dse`, `dlret`) are easy to miss because they aren't in the headline table list below.
 2. **Try canonical alternates.** Tables and field names get renamed across DB migrations. For delisting info try `mse` / `dsedelist` / `dlret`. For legacy CRSP fields, check `describe_table()` for the modern name. For Compustat fundamentals, try both `funda` (annual) and `fundq` (quarterly) plus `compm` variants.
-3. **Search column descriptions.** `db.describe_table(lib, tbl)` returns a dataframe with column descriptions — grep those for the concept, not just exact field names.
+3. **Search column descriptions.** `wrds_describe(lib, tbl)` returns a dataframe with column descriptions — grep those for the concept, not just exact field names.
 4. **WebSearch for renames.** Query "WRDS [library] [concept] table name" or "[concept] CRSP [year] migration" — vendors publish migration notes that reveal the post-rename home.
 5. **Only then is "not available" substantiated.** Write the negative-search log: what you queried, what came back, what alternates you tried, and the WebSearch results. A documentation-only check ("the docs don't mention it") is not a substitute when the question is whether a result is a coding artifact — pull the data.
 
@@ -175,7 +168,7 @@ An N that is off by an order of magnitude from these (e.g. 500K or 50M firm-mont
 ### CRSP-Compustat merged panel
 ```python
 # Step 1: Get the link table
-ccm = db.raw_sql("""
+ccm = wrds_query("""
     SELECT gvkey, lpermno AS permno, linkdt, linkenddt, linktype, linkprim
     FROM crsp.ccmxpf_linktable
     WHERE linktype IN ('LU', 'LC')
@@ -183,7 +176,7 @@ ccm = db.raw_sql("""
 """)
 
 # Step 2: Get Compustat annual data
-comp = db.raw_sql("""
+comp = wrds_query("""
     SELECT gvkey, datadate, fyear, at, sale, ni, ceq, csho, prcc_f, lt
     FROM comp.funda
     WHERE indfmt = 'INDL' AND datafmt = 'STD'
@@ -192,7 +185,7 @@ comp = db.raw_sql("""
 """)
 
 # Step 3: Get CRSP monthly returns
-crsp = db.raw_sql("""
+crsp = wrds_query("""
     SELECT permno, date, ret, prc, shrout
     FROM crsp.msf
     WHERE date BETWEEN '1963-01-01' AND '2024-12-31'
@@ -218,7 +211,7 @@ comp_ccm = comp_ccm[
 
 ### Monthly returns with market cap
 ```python
-df = db.raw_sql("""
+df = wrds_query("""
     SELECT a.permno, a.date, a.ret, ABS(a.prc) * a.shrout AS mktcap,
            b.shrcd, b.exchcd, b.siccd
     FROM crsp.msf AS a
@@ -233,7 +226,7 @@ df = db.raw_sql("""
 
 ### Analyst forecast dispersion
 ```python
-df = db.raw_sql("""
+df = wrds_query("""
     SELECT ticker, fpedats, statpers, meanest, medest, stdev, numest
     FROM ibes.statsum_epsus
     WHERE fpi = '1'
@@ -250,7 +243,7 @@ df = db.raw_sql("""
 - **Use SQL aggregation** when possible — faster than downloading raw data and aggregating in pandas.
 
 ## Rules
-- **One connection per session.** Duo 2FA fires on each `wrds.Connection()`. Never reconnect unnecessarily.
+- **Use only the persistent client.** Never instantiate `wrds.Connection()` in a pipeline script; direct connections bypass the shared latch, and a library call that looks singular may retry internally. Never put WRDS startup or queries under a generic retry decorator, shell retry loop, supervisor restart policy, or fallback process. A `WrdsSafetyBlocked`/protocol-mismatch error is also terminal for agents: an operator must replace the stale daemon with the deployed version; do not restart it yourself.
 - **A credential rejection is terminal — never retry it, and never work around it.** WRDS locks the account after enough failed logins, and a locked account takes the whole empirical pipeline down for everyone on this host. The server distinguishes the two failure modes for you: a dropped socket recovers silently, but a refused credential *latches* and every later call fails fast with `[auth error]` (client side: `WrdsAuthBlocked`, or `wrds_auth_error()` returns a message; `start_services.sh` exits 2). When you see that, **halt and escalate to the operator** — report it as a blocked core per `docs/core_bypass.md` and record it in `process_log/degradation_ledger.md`. Do not re-run `wrds_start()`, do not restart the server, do not loop on `wrds_ping()`, and do not try alternate credentials. **Never call `wrds_unblock()` or `python code/utils/wrds_client.py unblock`** — that is the operator's approval gate, and calling it in a loop is precisely what recreates the lockout. Clearing the latch is an operator action: they fix `WRDS_PASS` in `.env`, then approve one retry, which reloads `.env` and reconnects in place. A second rejection re-latches, so each approval costs exactly one login attempt.
 - **Credentials only in `.env`.** Never hardcode username/password.
 - **Filter aggressively.** Specify date ranges, shrcd, exchcd, indfmt/datafmt/popsrc/consol filters.

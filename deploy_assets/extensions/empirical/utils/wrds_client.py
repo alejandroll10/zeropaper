@@ -30,9 +30,13 @@ load_dotenv()
 
 HOST = '127.0.0.1'
 PORT = 23847
+# Bump with the server whenever login/recovery safety semantics change. Keep a
+# literal here: importing the deployed module cannot identify a stale process.
+SAFETY_PROTOCOL = 'wrds-auth-latch-v2'
 
 def _send_request(request, timeout=300):
     """Send a request to the wrds_server and return the response."""
+    request = {**request, 'safety_protocol': SAFETY_PROTOCOL}
     sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
     sock.settimeout(timeout)
     sock.connect((HOST, PORT))
@@ -62,12 +66,58 @@ class WrdsAuthBlocked(RuntimeError):
     not attempt another login until an operator fixes it. Never retry this."""
 
 
+class WrdsSafetyBlocked(RuntimeError):
+    """The live daemon cannot prove the current no-retry safety contract."""
+
+
+def _safety_message(got=None):
+    return (
+        f"WRDS daemon safety protocol mismatch (got {got!r}, expected "
+        f"{SAFETY_PROTOCOL!r}). Do not query, retry, or auto-restart it. "
+        "OPERATOR: stop the stale daemon, then start the deployed server; if "
+        "a credential latch is reported, use the one-attempt unblock procedure."
+    )
+
+
+def _validate_protocol(resp):
+    if resp.get('safety_protocol') != SAFETY_PROTOCOL:
+        raise WrdsSafetyBlocked(_safety_message(resp.get('safety_protocol')))
+
+
+def _safety_hello():
+    """DB-free handshake; legacy servers reject this as an unknown command."""
+    resp = _send_request({'cmd': 'safety_hello_v2'}, timeout=5)
+    _validate_protocol(resp)
+    if resp.get('status') != 'ok':
+        raise WrdsSafetyBlocked(resp.get('msg') or _safety_message())
+
+
+def _ensure_safe_server(allow_auth=False):
+    """Handshake before any command an old daemon could execute unsafely."""
+    _safety_hello()
+    resp = _send_request({'cmd': 'safe_ping_v2'}, timeout=5)
+    _validate_protocol(resp)
+    if resp.get('status') == 'error':
+        if allow_auth and resp.get('error_kind') == 'auth':
+            return
+        _raise("WRDS server unavailable", resp)
+
+
+def _checked_request(request, timeout=300):
+    _ensure_safe_server()
+    resp = _send_request(request, timeout=timeout)
+    _validate_protocol(resp)
+    return resp
+
+
 def wrds_ping():
     """Check if wrds_server is running. Returns True/False."""
     try:
-        resp = _send_request({'cmd': 'ping'}, timeout=5)
-        return resp.get('status') == 'ok'
-    except (ConnectionRefusedError, OSError):
+        _safety_hello()
+        resp = _send_request({'cmd': 'safe_ping_v2'}, timeout=5)
+        return (resp.get('status') == 'ok' and
+                resp.get('safety_protocol') == SAFETY_PROTOCOL)
+    except (ConnectionRefusedError, OSError, WrdsSafetyBlocked):
         return False
 
 
@@ -80,13 +130,20 @@ def wrds_auth_error():
     spin for its full budget on a failure no amount of waiting can fix.
     """
     try:
-        resp = _send_request({'cmd': 'ping'}, timeout=5)
+        _safety_hello()
+        resp = _send_request({'cmd': 'safe_ping_v2'}, timeout=5)
+    except WrdsSafetyBlocked as e:
+        return str(e)
     except (ConnectionRefusedError, OSError):
         # Server down — the latch persists on disk precisely so a restart is
         # not a free way around the operator gate. Report it, or a caller
         # would spawn a server that instantly exits 2 and then wait out its
         # full readiness budget for a process already gone.
         return _persisted_auth_block()
+    if resp.get('safety_protocol') != SAFETY_PROTOCOL:
+        return _safety_message(resp.get('safety_protocol'))
+    if resp.get('error_kind') == 'safety':
+        return resp.get('msg') or _safety_message()
     if resp.get('error_kind') == 'auth':
         return resp.get('msg') or 'WRDS credential rejected'
     return None
@@ -103,11 +160,75 @@ def _server_module():
     return m
 
 
-def _persisted_auth_block():
+def _persisted_auth_state():
     try:
-        return _server_module()._read_auth_block()
-    except Exception:
-        return None
+        server = _server_module()
+        message = server._read_auth_block()
+        # During the one live process's startup, the write-ahead marker means
+        # "wait for Duo", not "credentials were rejected". If that process
+        # dies, the exact same marker becomes a terminal persisted latch.
+        if message and server._live_login_attempt(message):
+            return 'in_progress', message
+        if message:
+            return 'blocked', message
+        return 'none', None
+    except Exception as e:
+        # Unreadable latch state is not evidence that no rejection occurred.
+        # Refuse automatic startup until the operator repairs the state path.
+        return ('blocked',
+                f"WRDS retry latch is unreadable; refusing automatic start: {e}")
+
+
+def _persisted_auth_block():
+    kind, message = _persisted_auth_state()
+    return message if kind == 'blocked' else None
+
+
+def wrds_login_in_progress():
+    """True while another live server owns the write-ahead login marker."""
+    return _persisted_auth_state()[0] == 'in_progress'
+
+
+def _wait_for_ready(proc=None):
+    """Wait for either a server we spawned or an already-starting peer."""
+    deadline = time.monotonic() + 120
+    while time.monotonic() < deadline:
+        time.sleep(1)
+        if wrds_ping():
+            print("[wrds_client] WRDS server is ready.")
+            return True
+        latched = wrds_auth_error()
+        if latched:
+            raise WrdsAuthBlocked(latched)
+        if proc is not None and proc.poll() is not None:
+            # Two starters can both spawn before the winner writes its marker.
+            # The loser exits on PID/port ownership; that is a cue to join the
+            # peer, not report failure to an outer supervisor that may retry.
+            if proc.returncode == 0 or wrds_login_in_progress():
+                print("[wrds_client] Starter lost the singleton race; waiting "
+                      "for the existing WRDS server.")
+                proc = None
+                continue
+            err = (proc.stderr.read() or b'').decode(errors='replace')
+            out = (proc.stdout.read() or b'').decode(errors='replace')
+            detail = (out + err).strip()[-800:]
+            if proc.returncode == 2:
+                raise WrdsAuthBlocked(
+                    "WRDS server exited on a safety/authentication gate — not "
+                    f"retrying. {detail}"
+                )
+            raise RuntimeError(
+                f"WRDS server exited (code {proc.returncode}) before becoming "
+                f"ready: {detail}"
+            )
+    raise TimeoutError("WRDS server did not start within 2 minutes. Check Duo.")
+
+
+def wrds_wait_for_existing():
+    """Wait for a peer's live write-ahead attempt without spawning a process."""
+    if not wrds_login_in_progress():
+        raise RuntimeError('no live WRDS login attempt to wait for')
+    return _wait_for_ready()
 
 def wrds_start():
     """Start the wrds_server if not already running.
@@ -123,6 +244,9 @@ def wrds_start():
     latched = wrds_auth_error()
     if latched:
         raise WrdsAuthBlocked(latched)
+    if wrds_login_in_progress():
+        print("[wrds_client] Another WRDS login is in progress; waiting for it.")
+        return _wait_for_ready()
 
     # Find the server script
     utils_dir = os.path.dirname(os.path.abspath(__file__))
@@ -146,41 +270,16 @@ def wrds_start():
         env=server_env,
     )
 
-    # Wait for server to be ready (Duo can take a while).
-    #
-    # Three exits, not one: ready, credential rejected, or timeout. Only the
-    # last is worth waiting out. wrds_server exits 2 on a credential rejection,
-    # so a dead child with that code means "operator must act" — waiting the
-    # remaining budget would just delay the report.
-    for i in range(120):  # 2 minutes max
-        time.sleep(1)
-        if wrds_ping():
-            print("[wrds_client] WRDS server is ready.")
-            return True
-        latched = wrds_auth_error()
-        if latched:
-            raise WrdsAuthBlocked(latched)
-        if proc.poll() is not None:
-            err = (proc.stderr.read() or b'').decode(errors='replace')
-            out = (proc.stdout.read() or b'').decode(errors='replace')
-            detail = (out + err).strip()[-800:]
-            if proc.returncode == 2:
-                raise WrdsAuthBlocked(
-                    "WRDS server exited on a credential rejection — not retrying. "
-                    f"{detail}"
-                )
-            raise RuntimeError(
-                f"WRDS server exited (code {proc.returncode}) before becoming "
-                f"ready: {detail}"
-            )
-
-    raise TimeoutError("WRDS server did not start within 2 minutes. Check Duo.")
+    return _wait_for_ready(proc)
 
 def _raise(prefix, resp):
-    """Raise a RuntimeError from an error response, tagging connection-level
-    failures so callers can distinguish a wedged server from bad SQL."""
+    """Raise the typed client exception represented by an error response."""
     kind = resp.get('error_kind')
     tag = f" [{kind} error]" if kind else ""
+    if kind == 'auth':
+        raise WrdsAuthBlocked(f"{prefix}{tag}: {resp['msg']}")
+    if kind == 'safety':
+        raise WrdsSafetyBlocked(f"{prefix}{tag}: {resp['msg']}")
     raise RuntimeError(f"{prefix}{tag}: {resp['msg']}")
 
 def wrds_query(sql, timeout=300):
@@ -197,7 +296,7 @@ def wrds_query(sql, timeout=300):
     retries once before returning an error; resp['recovered'] is True when
     that happened.
     """
-    resp = _send_request({'cmd': 'query', 'sql': sql}, timeout=timeout)
+    resp = _checked_request({'cmd': 'safe_query_v2', 'sql': sql}, timeout=timeout)
     if resp['status'] == 'error':
         _raise("WRDS query failed", resp)
     from io import StringIO
@@ -205,14 +304,43 @@ def wrds_query(sql, timeout=300):
 
 def wrds_list_tables(library):
     """List tables in a WRDS library."""
-    resp = _send_request({'cmd': 'list_tables', 'library': library})
+    resp = _checked_request({'cmd': 'safe_list_tables_v2', 'library': library})
     if resp['status'] == 'error':
         _raise("WRDS list_tables failed", resp)
     return resp['tables']
 
+def wrds_list_libraries():
+    """List WRDS libraries via the persistent server."""
+    resp = _checked_request({'cmd': 'safe_list_libraries_v2'})
+    if resp['status'] == 'error':
+        _raise("WRDS list_libraries failed", resp)
+    return resp['libraries']
+
+def wrds_get_table(library, table, rows=-1, obs=None, offset=0, columns=None,
+                   coerce_float=True, index_col=None, date_cols=None):
+    """Compatibility wrapper for ``wrds.Connection.get_table``."""
+    kwargs = {
+        'rows': rows,
+        'obs': obs,
+        'offset': offset,
+        'columns': columns,
+        'coerce_float': coerce_float,
+        'index_col': index_col,
+        'date_cols': date_cols,
+    }
+    resp = _checked_request({
+        'cmd': 'safe_get_table_v2', 'library': library, 'table': table,
+        'kwargs': kwargs,
+    })
+    if resp['status'] == 'error':
+        _raise("WRDS get_table failed", resp)
+    from io import StringIO
+    return pd.read_json(StringIO(resp['data']), orient='split')
+
 def wrds_describe(library, table):
     """Describe a WRDS table (columns, types, row count)."""
-    resp = _send_request({'cmd': 'describe', 'library': library, 'table': table})
+    resp = _checked_request(
+        {'cmd': 'safe_describe_v2', 'library': library, 'table': table})
     if resp['status'] == 'error':
         _raise("WRDS describe failed", resp)
     from io import StringIO
@@ -231,8 +359,10 @@ def wrds_unblock():
         python code/utils/wrds_client.py unblock
     """
     try:
-        resp = _send_request({'cmd': 'unblock'}, timeout=180)
-    except (ConnectionRefusedError, OSError):
+        _ensure_safe_server(allow_auth=True)
+        resp = _send_request({'cmd': 'safe_unblock_v2'}, timeout=180)
+        _validate_protocol(resp)
+    except ConnectionRefusedError:
         # Server down with a latch on disk: approving means clearing the latch
         # and spending the one approved attempt on a fresh start. Without this
         # the persisted latch would be unclearable except by hand.
@@ -255,8 +385,12 @@ def wrds_unblock():
 def wrds_shutdown():
     """Shut down the wrds_server."""
     try:
-        _send_request({'cmd': 'shutdown'}, timeout=5)
-    except:
+        # DB-free hello + versioned lifecycle command: never let an updated
+        # client kill a stale daemon and invite an automated replacement.
+        _safety_hello()
+        resp = _send_request({'cmd': 'safe_shutdown_v2'}, timeout=5)
+        _validate_protocol(resp)
+    except Exception:
         pass
 
 

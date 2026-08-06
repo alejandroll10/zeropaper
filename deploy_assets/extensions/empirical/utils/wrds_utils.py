@@ -1,70 +1,107 @@
-"""WRDS utilities — single persistent connection and common queries.
+"""WRDS utilities — compatibility wrappers over the persistent server.
 
 Usage:
     from utils.wrds_utils import get_wrds, query, crsp_monthly, compustat_annual, ccm_link
 
-CRITICAL: WRDS requires Duo 2FA on each new connection. This module
-maintains a single connection for the entire session. Never close it
-until all WRDS work is done.
-
-All functions read WRDS_USER and WRDS_PASS from .env.
+This module never opens a direct ``wrds.Connection``. All calls route through
+wrds_client so the host-global credential-rejection latch remains authoritative
+across scripts and processes.
 """
-import os
 import pandas as pd
-from dotenv import load_dotenv
-
-load_dotenv()
 
 _DB = None
 
-def get_wrds():
-    """Get or create persistent WRDS connection.
 
-    Returns the wrds.Connection object. Reuses existing connection
-    if already established (Duo 2FA only fires once).
-    """
+def _client_api():
+    try:
+        from .wrds_client import (wrds_query, wrds_list_tables, wrds_describe,
+                                  wrds_list_libraries, wrds_get_table)
+    except ImportError:
+        from wrds_client import (wrds_query, wrds_list_tables, wrds_describe,
+                                 wrds_list_libraries, wrds_get_table)
+    return (wrds_query, wrds_list_tables, wrds_describe,
+            wrds_list_libraries, wrds_get_table)
+
+
+class WrdsDirectAccessDisabled(RuntimeError):
+    """A legacy caller requested a DB handle that would bypass the latch."""
+
+
+class _ServerConnectionProxy:
+    """Small compatibility surface for older callers of get_wrds()."""
+
+    def raw_sql(self, sql, coerce_float=True, date_cols=None, index_col=None,
+                params=None, chunksize=500000, return_iter=False, dtype=None,
+                dtype_backend='numpy_nullable'):
+        unsupported = {
+            'date_cols': date_cols,
+            'index_col': index_col,
+            'params': params,
+            'return_iter': return_iter or None,
+            'dtype': dtype,
+        }
+        requested = [name for name, value in unsupported.items()
+                     if value is not None]
+        if requested:
+            raise WrdsDirectAccessDisabled(
+                "get_wrds().raw_sql compatibility mode does not support "
+                f"{', '.join(requested)}; use wrds_query() and transform the "
+                "returned DataFrame explicitly"
+            )
+        # Keep the upstream call signature so ordinary legacy calls continue
+        # to work. coerce_float/chunksize/dtype_backend affect transfer details
+        # in wrds.Connection; the server returns the same completed DataFrame.
+        return _client_api()[0](sql)
+
+    def list_tables(self, library):
+        return _client_api()[1](library)
+
+    def describe_table(self, library, table):
+        return _client_api()[2](library, table)
+
+    def list_libraries(self):
+        return _client_api()[3]()
+
+    def get_table(self, library, table, rows=-1, obs=None, offset=0,
+                  columns=None, coerce_float=True, index_col=None,
+                  date_cols=None):
+        return _client_api()[4](
+            library, table, rows=rows, obs=obs, offset=offset,
+            columns=columns, coerce_float=coerce_float,
+            index_col=index_col, date_cols=date_cols)
+
+    @property
+    def engine(self):
+        raise WrdsDirectAccessDisabled(
+            "get_wrds().engine is unavailable: direct database handles bypass "
+            "the host-global authentication latch; use wrds_query() instead"
+        )
+
+    @property
+    def connection(self):
+        raise WrdsDirectAccessDisabled(
+            "get_wrds().connection is unavailable: use the persistent WRDS "
+            "client API instead"
+        )
+
+    @property
+    def insp(self):
+        raise WrdsDirectAccessDisabled(
+            "get_wrds().insp is unavailable: use list_tables() or "
+            "describe_table() on this proxy"
+        )
+
+    def close(self):
+        # The server is host-shared; one script must never close it for others.
+        return None
+
+
+def get_wrds():
+    """Return a server-backed compatibility proxy; never connect directly."""
     global _DB
     if _DB is None:
-        import wrds
-        # wrds.Connection silently drops the wrds_password kwarg (sql.py:62 hardcodes
-        # self._password = ""), so libpq sees an empty-password URI. Set PGPASSWORD
-        # in the env before connecting — libpq picks it up before the empty URI value.
-        wrds_pass = os.getenv('WRDS_PASS')
-        if wrds_pass:
-            os.environ['PGPASSWORD'] = wrds_pass
-        _DB = wrds.Connection(
-            wrds_username=os.getenv('WRDS_USER'),
-            wrds_password=wrds_pass
-        )
+        _DB = _ServerConnectionProxy()
     return _DB
-
-def _safe_raw_sql(db, sql):
-    """Mirror of wrds_server._safe_raw_sql: works around two wrds.raw_sql bugs.
-
-    `wrds.Connection.raw_sql()` hardcodes `dtype_backend="numpy_nullable"` which trips
-    `sqlalchemy.cyextension.immutabledict.immutabledict is not a sequence` on some
-    queries (LIKE, pg_tables, information_schema, certain GROUP BY ... COUNT(*)).
-    On pandas >= 2.2, `pd.read_sql_query` also rejects the raw psycopg2 Connection
-    with "'Connection' object has no attribute 'cursor'". Both shapes fall through
-    to a manual sqlalchemy path that constructs the DataFrame from raw rows.
-    """
-    try:
-        return db.raw_sql(sql)
-    except TypeError as e:
-        if 'immutabledict' not in str(e):
-            raise
-    except AttributeError as e:
-        if "'Connection' object has no attribute 'cursor'" not in str(e):
-            raise
-    except Exception as e:
-        if 'immutabledict' not in str(e):
-            raise
-    from sqlalchemy import text
-    with db.engine.connect() as conn:
-        result = conn.execute(text(sql))
-        cols = list(result.keys())
-        rows = [tuple(r) for r in result.fetchall()]
-    return pd.DataFrame(rows, columns=cols)
 
 
 def query(sql):
@@ -76,7 +113,7 @@ def query(sql):
     Returns:
         pandas DataFrame
     """
-    return _safe_raw_sql(get_wrds(), sql)
+    return _client_api()[0](sql)
 
 def crsp_monthly(start='1963-07-01', end='2024-12-31', shrcd=(10, 11), exchcd=(1, 2, 3)):
     """Download CRSP monthly stock file with market cap.
@@ -159,7 +196,7 @@ def market_index(start='1963-07-01', end='2024-12-31', freq='monthly'):
     """)
 
 def close():
-    """Close WRDS connection. Call only when all WRDS work is done."""
+    """Release this process's proxy; the host-shared server remains open."""
     global _DB
     if _DB is not None:
         _DB.close()
