@@ -380,9 +380,12 @@ fi
 # replaces the earlier one and silently leaks the first resource. Also covers
 # error exits, which the old explicit `rm -f "$TIER_VOCAB_FILE"` calls missed.
 _setup_cleanup() {
-    [ -n "${TIER_VOCAB_FILE:-}" ] && rm -f "$TIER_VOCAB_FILE"
-    [ -n "${CATALOG_TMPDIR:-}" ] && rm -rf "$CATALOG_TMPDIR"
-    [ -n "${SRC_TMP:-}" ] && rm -rf "$SRC_TMP"
+    # Largest resource first, and `|| true` per line: under `set -e` a failing
+    # rm would abort the trap function mid-way and silently leak whatever was
+    # scheduled after it.
+    [ -n "${SRC_TMP:-}" ] && rm -rf "$SRC_TMP" 2>/dev/null || true
+    [ -n "${CATALOG_TMPDIR:-}" ] && rm -rf "$CATALOG_TMPDIR" 2>/dev/null || true
+    [ -n "${TIER_VOCAB_FILE:-}" ] && rm -f "$TIER_VOCAB_FILE" 2>/dev/null || true
     return 0
 }
 trap _setup_cleanup EXIT
@@ -860,8 +863,9 @@ else
     # the public repo. A local-path clone only sees committed state.
     #
     # The sparse checkout is a transport optimization, not the safety boundary:
-    # cone mode materializes deploy_assets/ plus root-level files (VERSION,
-    # LICENSE) and skips every other top-level dir. If the git/transport combo
+    # cone mode materializes deploy_assets/ plus ALL root-level files (of
+    # which only VERSION and LICENSE are read) and skips every other
+    # top-level dir. If the git/transport combo
     # can't do partial clones, fall back to a full clone — same build, more
     # bytes. The clone keeps its .git on purpose: the version stamp reads
     # `git rev-parse` from it (the old flow ran `rm -rf .git` before stamping,
@@ -950,11 +954,9 @@ fi
 
 # ── Install per-runtime settings files (install_runtime_settings) ──
 # Runs for BOTH --local and production, and is the only writer of these two
-# paths. In production the clone carries this repo's own .claude/settings.json /
-# .gemini/settings.json into the project folder; those are the template repo's
-# DEV settings and must not survive, so the copies below overwrite them
-# unconditionally rather than merging. Fail loud on a missing source: shipping a
-# project with the dev sandbox posture (or none) is worse than not shipping.
+# paths (the project directory starts empty — since #232 nothing dev-side can
+# carry a settings file in). Fail loud on a missing source: shipping a
+# project with no sandbox posture is worse than not shipping.
 # .grok/sandbox.toml needs no entry here — it is generated per-deploy further
 # down, with the deploying user's $HOME baked in.
 mkdir -p "$OUT_DIR/$CLAUDE_DIR_REL" "$OUT_DIR/$GEMINI_DIR_REL"
