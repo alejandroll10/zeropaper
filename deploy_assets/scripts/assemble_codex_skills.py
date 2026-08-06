@@ -5,14 +5,14 @@ from pathlib import Path
 
 FIELD_ORDER = ["name", "description"]
 
-# Codex rejects (and silently skips) any skill whose `description` metadata
-# exceeds this many BYTES — see issue #143. The limit is measured in UTF-8 bytes,
-# not characters: Codex validates with Rust's `str::len()` (openai/codex #7730),
-# so a description under 1024 *characters* can still trip the limit once multi-byte
-# characters (em-dashes "—", accented letters "ü", math glyphs "≈"/"↔") are counted.
-# Enforced fail-loud at assembly so an over-long description breaks the build (and
-# assembly tests) instead of silently dropping the skill from Codex at runtime.
-CODEX_DESCRIPTION_LIMIT = 1024
+# Codex's bundled skill-creator validator caps `name` at 64 characters and
+# `description` at 1024 CHARACTERS. Its quick_validate.py strips each string, then
+# uses Python's len(), matching the character-based contract rather than UTF-8 byte
+# length. The runtime loader may tolerate an overlong description, but generated
+# skills should satisfy the authoring validator instead of relying on that permissive
+# implementation detail.
+CODEX_NAME_LIMIT_CHARS = 64
+CODEX_DESCRIPTION_LIMIT_CHARS = 1024
 
 
 def yaml_scalar(value):
@@ -66,15 +66,25 @@ def main():
         skill_dir = output_dir / skill_id
         skill_dir.mkdir(parents=True, exist_ok=True)
         codex_metadata = resolve_codex_metadata(skill_metadata)
+        name = codex_metadata.get("name", "")
+        name_len = len(name.strip())
+        if name_len > CODEX_NAME_LIMIT_CHARS:
+            raise ValueError(
+                f"Codex skill '{skill_id}' ({args.metadata}) has a name of "
+                f"{name_len} characters, exceeding Codex's "
+                f"{CODEX_NAME_LIMIT_CHARS}-character skill-authoring limit. "
+                f"Add a shorter \"codex\": {{\"name\": \"...\"}} override "
+                f"to this skill's metadata."
+            )
         description = codex_metadata.get("description", "")
-        byte_len = len(description.encode("utf-8"))
-        if byte_len > CODEX_DESCRIPTION_LIMIT:
+        char_len = len(description.strip())
+        if char_len > CODEX_DESCRIPTION_LIMIT_CHARS:
             raise ValueError(
                 f"Codex skill '{skill_id}' ({args.metadata}) has a description of "
-                f"{byte_len} UTF-8 bytes ({len(description)} chars), exceeding Codex's "
-                f"{CODEX_DESCRIPTION_LIMIT}-byte limit; Codex would silently skip it "
-                f"(issue #143). Add a shorter \"codex\": {{\"description\": \"...\"}} "
-                f"override to this skill's metadata (note the limit is bytes, not chars)."
+                f"{char_len} characters, exceeding Codex's "
+                f"{CODEX_DESCRIPTION_LIMIT_CHARS}-character skill-authoring limit. "
+                f"Add a shorter \"codex\": {{\"description\": \"...\"}} override "
+                f"to this skill's metadata."
             )
         (skill_dir / "SKILL.md").write_text(render_skill(codex_metadata, body))
 

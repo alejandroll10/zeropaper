@@ -8,22 +8,18 @@
 #
 # Both mirrors are DEV-ONLY — they exist so a Codex session started in this repo
 # gets the same instructions and dev skills a Claude session does. Neither reaches
-# a deployed research project: setup.sh regenerates AGENTS.md from
-# deploy_assets/templates/shared/core.md for the deployed runtime, and strips the .agents/skills
-# symlinks right after the clone (grep "Meta-repo dev skill links"). Consequently
-# neither gets a deployment-manifest entry.
+# a deployed research project: setup.sh assembles into an empty project directory,
+# generates that project's AGENTS.md and .agents/skills from deploy_assets/, and
+# never copies either dev mirror. Consequently neither gets a manifest entry.
 #
 # Idempotent: safe to re-run, rewrites only what has drifted.
 #
-# The shape is a REAL .agents/skills directory containing SYMLINKED skill folders:
-#   - .agents/skills is a real directory because SETUP.SH needs it to be, not because
-#     Codex requires it. Codex does follow a symlinked .agents/skills (maintainer, on
-#     openai/codex#11314: "Codex does support symlinking the /.agents/skills directory
-#     (both global and per-project) ... We even have unit tests in place"). But in a
-#     deployed project this same path is where assemble_codex_skills.py writes the real
-#     Codex skills, so it must be a real writable directory there — and a wholesale
-#     symlink into .claude/skills would let a colliding skill_id write straight through
-#     into the meta-repo's own canonical skill.
+# The shape is a REAL .agents/skills directory containing SYMLINKED skill folders.
+# This lets the sync own, validate, and prune each mirror entry independently; it is
+# not a deployment constraint, because the dev mirror never enters a deployment.
+# Codex also follows a wholesale symlinked .agents/skills directory (maintainer, on
+# openai/codex#11314: "Codex does support symlinking the /.agents/skills directory
+# (both global and per-project) ... We even have unit tests in place").
 #   - symlinking SKILL.md itself is genuinely unsupported (openai/codex#9365: "We
 #     support symlinks to a skill directory, not the SKILL.md file itself"). Link the
 #     folder, never the file.
@@ -31,9 +27,9 @@
 #     was closed not-planned because it was not a bug at all: the reporter's symlink had
 #     an invalid relative target. A link at .agents/skills/{name} resolves its first ..
 #     to .agents/, so ../.claude/... points at the non-existent .agents/.claude/.
-#   - AGENTS.md is a COPY, never a symlink to CLAUDE.md: setup.sh writes CLAUDE.md
-#     and then AGENTS.md by bare filename inside the clone, and the write would
-#     follow the link and clobber the deployed CLAUDE.md with the Codex doc.
+#   - AGENTS.md is a COPY, never a symlink to CLAUDE.md: this script regenerates
+#     AGENTS.md wholesale, so writing through a symlink would overwrite the canonical
+#     CLAUDE.md rather than refresh the mirror.
 #
 # Live-reload caveat (same issue thread): Codex watches skill files for live updates,
 # and the watcher does not fire through a symlink. Edits to .claude/skills/{name}/SKILL.md
@@ -116,7 +112,7 @@ fi
 # inside the symlink's target while its ../../ target string still assumes the
 # intended location — producing broken links in a directory the operator never
 # chose, and failing later with an error that blames the skill rather than the
-# hijacked path. setup.sh depends on the same invariant.
+# hijacked path.
 for _d in "$ROOT_DIR/.agents" "$MIRROR_SKILLS_DIR"; do
     if [ -L "$_d" ]; then
         echo "ERROR: $_d is a symlink; it must be a real directory." >&2
@@ -194,8 +190,7 @@ if [ "$SYMLINKS_OK" = "0" ]; then
     echo "         fresh checkout) to fix it. Existing entries are left untouched." >&2
 fi
 
-# Discovered, not a hardcoded name list — adding a dev skill needs no edit here,
-# matching the snapshot-based dev-skill handling in setup.sh.
+# Discovered, not a hardcoded name list — adding a dev skill needs no edit here.
 linked=0
 for src in "$CANONICAL_SKILLS_DIR"/*/; do
     [ -d "$src" ] || continue
@@ -207,27 +202,15 @@ for src in "$CANONICAL_SKILLS_DIR"/*/; do
         echo "ERROR: $skill has no SKILL.md — Codex will not discover it." >&2
         exit 1
     fi
-    # Frontmatter is checked against Codex's two caps, which behave DIFFERENTLY —
-    # both measured with .chars().count(), so CHARACTERS, not bytes. Counting bytes
-    # would over-flag any description with non-ASCII punctuation, and every one of
-    # ours uses em-dashes (edit-pipeline: 586 chars, 590 bytes).
+    # Frontmatter is checked against Codex's bundled skill-creator validator. Both
+    # caps are measured in CHARACTERS, not UTF-8 bytes: quick_validate.py uses
+    # len(name) / len(description). Counting bytes would over-flag descriptions
+    # containing non-ASCII punctuation, including every dev skill currently here.
     #
-    #   name  <= 64   HARD. codex-rs/skills/src/parser.rs calls validate_len() on the
-    #                 name and returns SkillParseError, so the skill fails to parse and
-    #                 does not load. Fail the sync.
-    #   description   SOFT since openai/codex#29006 (merged 2026-06-19). That PR removed
-    #                 <= 1024   length rejection at load — parser.rs now only checks the
-    #                 description is non-empty — and moved the cap to model-visible
-    #                 rendering, where an over-long description is TRUNCATED to 1021
-    #                 characters plus "...". The skill still loads and $skill injection
-    #                 and skills.read stay full-fidelity; what degrades is implicit
-    #                 selection, which routes off the truncated catalog text. So warn,
-    #                 do not fail — refusing to sync would be stricter than Codex.
-    #
-    # (History, since stale sources abound: the cap began at 500 BYTES, and
-    # openai/codex#7915 fixed the byte-vs-char bug and raised it to 1024 characters
-    # while it was still a hard load-time rejection. Maintainer confirmations of the
-    # reject behavior on openai/codex#13941 predate #29006 and no longer describe it.)
+    #   name         <= 64    HARD authoring limit; also rejected by the loader.
+    #   description  <= 1024  HARD authoring limit. The current runtime loader is
+    #                          permissive above it, but generated skills must not rely
+    #                          on that implementation detail.
     #
     # Separate mechanism, deliberately not checked: an aggregate skills-metadata budget
     # across ALL rendered descriptions, which also truncates (openai/codex#24299). It is
@@ -239,43 +222,47 @@ for src in "$CANONICAL_SKILLS_DIR"/*/; do
     python3 - "$src/SKILL.md" "$skill" <<'PY' || exit 1
 import sys
 
+try:
+    import yaml
+except ImportError:
+    print(
+        "ERROR: scripts/sync_dev_instructions.sh requires PyYAML to validate "
+        "Codex skill frontmatter.",
+        file=sys.stderr,
+    )
+    sys.exit(1)
+
 path, skill = sys.argv[1], sys.argv[2]
 
 def fail(msg):
     print(f"ERROR: {skill} SKILL.md {msg}", file=sys.stderr)
     sys.exit(1)
 
-lines = open(path, encoding="utf-8").read().splitlines()
-if not lines or lines[0].strip() != "---":
+lines = open(path, encoding="utf-8").read().splitlines(keepends=True)
+if not lines or lines[0].rstrip("\r\n") != "---":
     fail("does not open with a '---' frontmatter block.")
 
-block = []
+block_lines = []
 for line in lines[1:]:
-    if line.strip() == "---":
+    if line.rstrip("\r\n") == "---":
         break
-    block.append(line)
+    block_lines.append(line)
 else:
     fail("has an unterminated frontmatter block (no closing '---').")
 
-# Flat 'key: value' with indented continuation lines — the only shape these use.
-# Not a YAML parser: a folded/block scalar ('description: >') would fold its
-# indicator into the value, and only simple surrounding quotes are stripped.
-fields, key = {}, None
-for line in block:
-    if line[:1] not in (" ", "\t") and ":" in line:
-        key, _, val = line.partition(":")
-        key = key.strip()
-        fields[key] = val.strip()
-    elif key and line.strip():
-        fields[key] = (fields[key] + " " + line.strip()).strip()
+try:
+    fields = yaml.safe_load("".join(block_lines))
+except yaml.YAMLError as exc:
+    fail(f"has invalid YAML frontmatter: {exc}")
+if not isinstance(fields, dict):
+    fail("frontmatter must be a YAML mapping.")
 
 for field in ("name", "description"):
-    v = fields.get(field, "")
-    if len(v) >= 2 and v[0] == v[-1] and v[0] in "\"'":
-        fields[field] = v[1:-1]
-
-for field in ("name", "description"):
-    if not fields.get(field, ""):
+    value = fields.get(field)
+    if not isinstance(value, str):
+        fail(f"frontmatter '{field}' must be a string.")
+    fields[field] = value.strip()
+    if not fields[field]:
         fail(f"frontmatter is missing a non-empty '{field}:'.")
 
 # Hard: parser.rs validate_len() rejects the skill outright.
@@ -283,16 +270,11 @@ n = len(fields["name"])
 if n > 64:
     fail(f"'name' is {n} characters; Codex rejects a name over 64. Shorten it.")
 
-# Soft: since openai/codex#29006 the skill loads with its description intact and
-# only the model-visible catalog entry is truncated to 1021 chars + "...".
-# Warn — refusing to sync would be stricter than Codex actually is.
 d = len(fields["description"])
 if d > 1024:
-    print(
-        f"WARNING: {skill} description is {d} characters. Codex still loads the "
-        f"skill, but truncates its catalog entry to 1021 chars + '...', which "
-        f"degrades implicit skill selection. Consider shortening it.",
-        file=sys.stderr,
+    fail(
+        f"'description' is {d} characters; Codex's skill-authoring validator "
+        "rejects a description over 1024. Shorten it."
     )
 print(f"  {skill}: name {n}/64, description {d}/1024 chars")
 PY
@@ -305,8 +287,7 @@ PY
     # core.symlinks=false checkout materializes a tracked symlink as a plain file
     # holding the target path, so an `-L` test would call a correct fresh clone
     # "foreign content" and refuse — a dead end, since deleting the file just restores
-    # it on the next checkout. setup.sh's strip already learned this lesson ("not a
-    # real directory"); this is the same axis.
+    # it on the next checkout.
     # One rule, identical to the sweep below: an existing entry must already point at
     # this skill's canonical directory, or it is not ours and we refuse. Being a
     # symlink does not make it ours — a foreign link at a colliding name is exactly
