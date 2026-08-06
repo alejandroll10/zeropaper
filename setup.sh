@@ -54,8 +54,6 @@ PROJECT_NAME=""
 VARIANT="finance"
 MODE=""
 LOCAL=0
-DEV_SKILLS=()       # meta-repo dev skills carried in by the clone; stripped before deploy
-DEV_SKILL_SUMS=()   # parallel array: SKILL.md checksum at snapshot time (collision guard)
 NEXT_IS_VARIANT=0
 NEXT_IS_EXT=0
 NEXT_IS_MODE=0
@@ -376,6 +374,18 @@ fi
 # "mkstemp failed ... File exists" that names neither setup.sh nor the tier
 # vocab. Concurrent deploys collided for the same reason. The extension was
 # decorative — the path is passed to the assemblers explicitly via --vocab.
+# Single EXIT trap for every temp resource this script creates (tier vocab
+# file here; manual-mode catalog dir and the production source clone later).
+# One trap function, not per-resource `trap` lines — a later `trap ... EXIT`
+# replaces the earlier one and silently leaks the first resource. Also covers
+# error exits, which the old explicit `rm -f "$TIER_VOCAB_FILE"` calls missed.
+_setup_cleanup() {
+    [ -n "${TIER_VOCAB_FILE:-}" ] && rm -f "$TIER_VOCAB_FILE"
+    [ -n "${CATALOG_TMPDIR:-}" ] && rm -rf "$CATALOG_TMPDIR"
+    [ -n "${SRC_TMP:-}" ] && rm -rf "$SRC_TMP"
+    return 0
+}
+trap _setup_cleanup EXIT
 TIER_VOCAB_FILE="$(mktemp "${TMPDIR:-/tmp}/tier_vocab.XXXXXX")"
 TIER_LIST_INLINE="$TIER_LIST_INLINE" TIER_LADDER_PROSE="$TIER_LADDER_PROSE" python3 - "$TIER_VOCAB_FILE" <<'PYEOF'
 import json, os, sys
@@ -473,42 +483,11 @@ if [ "$LIGHT" = "1" ]; then
     MODEL_OVERRIDE_ARGS=(--model-override sonnet)
 fi
 
-# ── Mode-overlay paths ──
-# When --mode is set, the variant assemblers append a mode-specific shared
-# bodies dir (consulted before the base shared dir; first match wins, so a
-# mode override of `theory-generator-core.md` shadows the base body) and a
-# mode-specific vocab overlay (merged onto the base variant vocab; later
-# layer wins on duplicate keys, so mode-specific values override defaults).
-# Sourcing both via per-mode dirs lets future modes drop in their own
-# overrides without further setup.sh wiring.
-MODE_BODIES_OVERLAY=""
-MODE_VOCAB_OVERLAY=""
-# Metadata twin of the body/vocab overlays: passed to every agent assembler so
-# an agent's metadata["modes"][mode_slug] field overrides (e.g. a report-mode
-# `description` matching the overlaid body) merge over its base fields.
-MODE_METADATA_ARGS=()
-if [ -n "$MODE" ]; then
-    mode_slug="${MODE//-/_}"  # 'empirical-first' → 'empirical_first'
-    candidate_bodies="$SCRIPT_DIR/deploy_assets/templates/agent_bodies/shared_modes/${mode_slug}"
-    candidate_vocab="$SCRIPT_DIR/deploy_assets/templates/agents/${AGENT_DIR}_modes/${mode_slug}/vocab.json"
-    if [ -d "$candidate_bodies" ]; then
-        MODE_BODIES_OVERLAY="$candidate_bodies"
-    fi
-    if [ -f "$candidate_vocab" ]; then
-        MODE_VOCAB_OVERLAY="$candidate_vocab"
-    fi
-    MODE_METADATA_ARGS=(--mode "$mode_slug")
-    # Either layer may be empty if the mode has no overrides at that layer
-    # (e.g., a pure-vocab mode with no body overrides). But shipping a mode
-    # name with neither layer present is a configuration error.
-    if [ -z "$MODE_BODIES_OVERLAY" ] && [ -z "$MODE_VOCAB_OVERLAY" ]; then
-        echo "Error: --mode $MODE has no overlay assets for variant $VARIANT."
-        echo "  Expected at least one of:"
-        echo "    $candidate_bodies/"
-        echo "    $candidate_vocab"
-        exit 1
-    fi
-fi
+# Mode-overlay paths are resolved AFTER the LOCAL/production branch sets
+# TEMPLATE_ROOT — search "── Mode-overlay paths ──" below. (They used to be
+# resolved here against $SCRIPT_DIR, i.e. the invoking checkout, which in
+# production silently mixed local-checkout overlays with clone-sourced
+# everything-else — a version skew fixed by the relocation.)
 
 assemble_claude_shared_agents() {
     local template_root="$1"
@@ -809,21 +788,12 @@ if [ "$LOCAL" = "1" ]; then
     fi
 
     rm -rf "$OUT_DIR"
-    mkdir -p "$OUT_DIR/$CLAUDE_AGENTS_REL"
-    mkdir -p "$OUT_DIR/$CODEX_AGENTS_REL"
-    mkdir -p "$OUT_DIR/$GEMINI_AGENTS_REL"
-    mkdir -p "$OUT_DIR/$GROK_AGENTS_REL"
-    mkdir -p "$OUT_DIR/$OPENCODE_AGENTS_REL"
-    # Copy shared project files. (The runtime settings files themselves are
-    # installed by the shared install_runtime_settings block below, which serves
-    # both --local and production.)
-    mkdir -p "$OUT_DIR/$CLAUDE_DIR_REL"
-    mkdir -p "$OUT_DIR/$GEMINI_DIR_REL"
-    cp "$TEMPLATE_ROOT/$OPENCODE_CONFIG_SRC_REL" "$OUT_DIR/$OPENCODE_CONFIG_REL"
-    cp "$TEMPLATE_ROOT/$OPENCODE_SANDBOX_SRC_REL" "$OUT_DIR/$OPENCODE_SANDBOX_REL"
+    mkdir -p "$OUT_DIR"
+    # (Agent output dirs, runtime settings dirs, and the opencode config files
+    # are all created by shared blocks below that serve both --local and
+    # production — this branch only stages the verbatim-shipped root files.)
     # Project-specific gitignore (tracks paper/, output/, code/; ignores data
-    # blobs + build artifacts). Production mode copies this at the cleanup step
-    # (line ~1878), but --local exits before reaching it, so copy it here too.
+    # blobs + build artifacts). Production copies it in its own branch below.
     # Using the template repo's own .gitignore would ignore paper/, output/,
     # code/, process_log/ — and since .gitignore is in the manifest's
     # files_replace list, update.sh would then clobber a real project's correct
@@ -840,7 +810,7 @@ if [ "$LOCAL" = "1" ]; then
     fi
     # launch.sh must be present in the fresh --local deploy so update.sh's
     # manifest copy can propagate it into existing deployments (production
-    # deploys get it via the clone). All modes: the non-driver runtimes and
+    # copies it in its own branch below). All modes: the non-driver runtimes and
     # `codex --once` apply everywhere; the codex driver self-refuses cleanly
     # when there is no pipeline_state.json (manual/report).
     cp "$TEMPLATE_ROOT/launch.sh" "$OUT_DIR/"
@@ -877,98 +847,104 @@ else
         exit 1
     fi
 
-    echo "Cloning template into $PROJECT_NAME..."
+    # ── Fetch build inputs into a throwaway source tree; the project directory
+    # only ever receives build OUTPUTS (issue #232). The clone is pure
+    # transport: it lives in tmp, is read through TEMPLATE_ROOT/SRC_ROOT, and
+    # is deleted wholesale by the EXIT trap. Nothing dev-only can leak into the
+    # project because nothing is ever assembled inside the clone — there is no
+    # strip/denylist step anymore, and a forgotten copy shows up as a MISSING
+    # file in the deployment (fail-closed), not as dev content shipping.
+    #
     # Clone source is overridable via ZEROPAPER_REPO (a local path or alternate
     # URL) for offline/local testing of un-pushed template changes; defaults to
     # the public repo. A local-path clone only sees committed state.
-    git clone "${ZEROPAPER_REPO:-https://github.com/alejandroll10/zeropaper.git}" "$PROJECT_NAME"
-    cd "$PROJECT_NAME"
-    git remote remove origin
-    rm -rf .git
-    git init -q -b main
-
-    # Snapshot the meta-repo's own dev-facing skills (currently deploy-project).
-    # Anything under .claude/skills/ at this point arrived with the clone and is
-    # template-development tooling; the deployed project's real skills are assembled
-    # later from templates/skill_bodies/. Removed in the cleanup block below, so no
-    # deployment-manifest entry (build-time only, same as VERSION/CHANGELOG.md).
-    # Snapshot-based rather than a name list: adding a dev skill needs no setup.sh edit.
     #
-    # The checksum is a collision guard. assemble_claude_skills.py does mkdir(exist_ok)
-    # + write_text, so a future skill_id matching a dev-skill directory name would
-    # overwrite it in place — and a name-only cleanup would then delete a legitimate
-    # assembled project skill. Recording the checksum lets cleanup tell the two apart
-    # and fail safe (keep the project skill) rather than fail destructive.
-    for d in .claude/skills/*/; do
-        [ -d "$d" ] || continue
-        DEV_SKILLS+=("$d")
-        if [ -f "$d/SKILL.md" ]; then
-            DEV_SKILL_SUMS+=("$(cksum < "$d/SKILL.md")")
-        else
-            DEV_SKILL_SUMS+=("")
-        fi
-    done
-
-    # Codex discovers repo skills under .agents/skills (CODEX_DIR_REL), so the
-    # meta-repo exposes the same dev skills there as symlinks into .claude/skills,
-    # created by scripts/sync_dev_instructions.sh. They are tracked, so a fresh
-    # clone of the template repo has them immediately — which also means the clone
-    # carries them in here, into the very directory assemble_codex_skills.py is
-    # about to write the deployed project's real skills into. That assembler does
-    # mkdir(exist_ok) + write_text and never wipes, so anything left here survives
-    # alongside the assembled skills. Remove them.
-    #
-    # Two deliberate differences from the .claude/skills snapshot above:
-    #
-    #   - No checksum guard, because none is needed. The assembler only ever
-    #     creates real directories, so a symlink at this depth is unambiguously a
-    #     dev exposure and can never be a legitimate assembled project skill.
-    #   - Removed here rather than in the cleanup block. They have to go either way:
-    #     their targets are this clone's .claude/skills entries, which the dev-skill
-    #     cleanup below deletes, so leaving them would ship dangling links. Early is
-    #     the better moment for a second reason — mkdir(exist_ok) on a symlink-to-dir
-    #     succeeds, so if a future skill_id ever collided with a dev-skill name,
-    #     write_text would follow the link and drop the assembled Codex skill into
-    #     this clone's .claude/skills/<name>/SKILL.md instead of .agents/skills/<name>,
-    #     leaving the deployed project with that skill at the wrong path and missing
-    #     from the Codex tree. (Only the clone is ever at risk; git clone never writes
-    #     back to origin.) Breaking the links now makes that unreachable, and nothing
-    #     in setup reads them.
-    # The test is "not a real directory", not "is a symlink". A checkout with
-    # core.symlinks=false (native Windows without symlink privilege, exFAT/FAT32,
-    # some network mounts) materializes a tracked 120000 entry as a REGULAR FILE
-    # containing the target path as text — for which -L is false, so a symlink-only
-    # test would silently strip nothing and ship the placeholders. Nothing legitimate
-    # exists under .agents/skills at this point (the assembler has not run yet) and it
-    # only ever creates real directories, so anything here that is not one came with
-    # the clone and must go, whichever form git gave it.
-    dev_link_removed=0
-    for d in .agents/skills/*; do
-        [ -e "$d" ] || [ -L "$d" ] || continue   # unmatched glob, or a dangling link
-        if [ -L "$d" ] || [ ! -d "$d" ]; then
-            rm -f "$d"
-            dev_link_removed=$((dev_link_removed + 1))
-        fi
-    done
-    if [ "$dev_link_removed" -gt 0 ]; then
-        echo "  ✓ Meta-repo dev skill links removed from .agents/skills ($dev_link_removed)"
+    # The sparse checkout is a transport optimization, not the safety boundary:
+    # cone mode materializes deploy_assets/ plus root-level files (VERSION,
+    # LICENSE) and skips every other top-level dir. If the git/transport combo
+    # can't do partial clones, fall back to a full clone — same build, more
+    # bytes. The clone keeps its .git on purpose: the version stamp reads
+    # `git rev-parse` from it (the old flow ran `rm -rf .git` before stamping,
+    # which is why every production manifest said "+unknown").
+    SRC_TMP="$(mktemp -d "${TMPDIR:-/tmp}/zeropaper-src.XXXXXX")"
+    _zp_repo="${ZEROPAPER_REPO:-https://github.com/alejandroll10/zeropaper.git}"
+    echo "Fetching template into $SRC_TMP/src..."
+    if ! { git clone -q --filter=blob:none --sparse "$_zp_repo" "$SRC_TMP/src" 2>/dev/null \
+           && git -C "$SRC_TMP/src" sparse-checkout set deploy_assets 2>/dev/null; }; then
+        echo "  (sparse clone unavailable — falling back to a full clone)"
+        rm -rf "$SRC_TMP/src"
+        git clone -q "$_zp_repo" "$SRC_TMP/src"
+    fi
+    if [ ! -d "$SRC_TMP/src/deploy_assets" ]; then
+        echo "Error: clone has no deploy_assets/ — template source too old for this setup.sh?" >&2
+        exit 1
     fi
 
-    # cwd is the clone. SRC_ROOT = clone root (VERSION lives here);
-    # TEMPLATE_ROOT = the build-input tree the clone carried in deploy_assets/.
-    SRC_ROOT="."
-    TEMPLATE_ROOT="./deploy_assets"
+    echo "Creating project $PROJECT_NAME..."
+    mkdir -p "$PROJECT_NAME"
+    cd "$PROJECT_NAME"
+    git init -q -b main
+
+    # cwd is the fresh, empty project. SRC_ROOT = clone root (VERSION lives
+    # there); TEMPLATE_ROOT = the build-input tree under deploy_assets/.
+    SRC_ROOT="$SRC_TMP/src"
+    TEMPLATE_ROOT="$SRC_ROOT/deploy_assets"
     OUT_DIR="."
 
-    # launch.sh and dashboard.html ship verbatim but live under deploy_assets/
-    # in the clone; pull them to the project root NOW, before the manifest
-    # emission checkpoint runs — a later copy silently drops them from the
-    # manifest's files_replace (they must exist when the is_file() probes run).
+    # Verbatim-shipped files. These must exist before the manifest-emission
+    # checkpoint runs (its is_file() probes decide files_replace membership).
     # Mirrors the --local branch, including the dashboard gating (manual/report
-    # deploys get no dashboard). The re-title happens in the cleanup block.
+    # deploys get no dashboard). The dashboard re-title happens at the end.
+    cp "$TEMPLATE_ROOT/templates/gitignore_project" .gitignore
     cp "$TEMPLATE_ROOT/launch.sh" .
     if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
         cp "$TEMPLATE_ROOT/dashboard.html" .
+    fi
+    # The license shipped with every deployment under the old clone-based flow
+    # (deployments get auto-published, and paper/arpipeline.sty cites LICENSE
+    # §2); keep shipping it. Not manifest-managed — update.sh never refreshed
+    # it, and that behavior is preserved.
+    cp "$SRC_ROOT/LICENSE" .
+fi
+
+# ── Mode-overlay paths ──
+# When --mode is set, the variant assemblers append a mode-specific shared
+# bodies dir (consulted before the base shared dir; first match wins, so a
+# mode override of `theory-generator-core.md` shadows the base body) and a
+# mode-specific vocab overlay (merged onto the base variant vocab; later
+# layer wins on duplicate keys, so mode-specific values override defaults).
+# Sourcing both via per-mode dirs lets future modes drop in their own
+# overrides without further setup.sh wiring.
+#
+# Resolved against TEMPLATE_ROOT (set by the branch above), so overlays come
+# from the same source tree as every other build input — the clone in
+# production, the checkout under --local.
+MODE_BODIES_OVERLAY=""
+MODE_VOCAB_OVERLAY=""
+# Metadata twin of the body/vocab overlays: passed to every agent assembler so
+# an agent's metadata["modes"][mode_slug] field overrides (e.g. a report-mode
+# `description` matching the overlaid body) merge over its base fields.
+MODE_METADATA_ARGS=()
+if [ -n "$MODE" ]; then
+    mode_slug="${MODE//-/_}"  # 'empirical-first' → 'empirical_first'
+    candidate_bodies="$TEMPLATE_ROOT/templates/agent_bodies/shared_modes/${mode_slug}"
+    candidate_vocab="$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}_modes/${mode_slug}/vocab.json"
+    if [ -d "$candidate_bodies" ]; then
+        MODE_BODIES_OVERLAY="$candidate_bodies"
+    fi
+    if [ -f "$candidate_vocab" ]; then
+        MODE_VOCAB_OVERLAY="$candidate_vocab"
+    fi
+    MODE_METADATA_ARGS=(--mode "$mode_slug")
+    # Either layer may be empty if the mode has no overrides at that layer
+    # (e.g., a pure-vocab mode with no body overrides). But shipping a mode
+    # name with neither layer present is a configuration error.
+    if [ -z "$MODE_BODIES_OVERLAY" ] && [ -z "$MODE_VOCAB_OVERLAY" ]; then
+        echo "Error: --mode $MODE has no overlay assets for variant $VARIANT."
+        echo "  Expected at least one of:"
+        echo "    $candidate_bodies/"
+        echo "    $candidate_vocab"
+        exit 1
     fi
 fi
 
@@ -1028,8 +1004,7 @@ done
 CATALOG_ARGS=()
 CODEX_CATALOG_ARGS=()
 if [ "$MANUAL" = "1" ]; then
-    CATALOG_TMPDIR="$(mktemp -d)"
-    trap 'rm -rf "$CATALOG_TMPDIR"' EXIT
+    CATALOG_TMPDIR="$(mktemp -d)"   # removed by the shared _setup_cleanup EXIT trap
     AGENT_CATALOG_FILE="$CATALOG_TMPDIR/agents.md"
     SKILL_CATALOG_FILE="$CATALOG_TMPDIR/skills.md"
     CODEX_SKILL_CATALOG_FILE="$CATALOG_TMPDIR/skills_codex.md"
@@ -1117,17 +1092,12 @@ if [ "$MANUAL" = "1" ]; then
     CODEX_CATALOG_ARGS=(--agent-catalog "$AGENT_CATALOG_FILE" --skill-catalog "$CODEX_SKILL_CATALOG_FILE")
 fi
 
-if [ "$LOCAL" = "1" ]; then
-    CLAUDE_MD_OUT="$OUT_DIR/CLAUDE.md"
-    AGENTS_MD_OUT="$OUT_DIR/AGENTS.md"
-    GEMINI_MD_OUT="$OUT_DIR/GEMINI.md"
-    SESSION_OUT_DIR="$OUT_DIR/docs"
-else
-    CLAUDE_MD_OUT="CLAUDE.md"
-    AGENTS_MD_OUT="AGENTS.md"
-    GEMINI_MD_OUT="GEMINI.md"
-    SESSION_OUT_DIR="docs"
-fi
+# Both modes write into $OUT_DIR (production sets OUT_DIR="." with cwd = the
+# fresh project; --local sets it to the test_output target).
+CLAUDE_MD_OUT="$OUT_DIR/CLAUDE.md"
+AGENTS_MD_OUT="$OUT_DIR/AGENTS.md"
+GEMINI_MD_OUT="$OUT_DIR/GEMINI.md"
+SESSION_OUT_DIR="$OUT_DIR/docs"
 
 # Flag-gated halt pointer at {{CORE_BYPASS_GUARD}} in the orchestrator doc. Default
 # (flag absent) leaves the placeholder empty — recording stays agent-driven via the
@@ -1249,34 +1219,19 @@ echo "  ✓ Runtime docs assembled (CLAUDE.md + AGENTS.md + GEMINI.md)"
 # ── Assemble agents ──
 echo "Copying agents..."
 
-if [ "$LOCAL" = "1" ]; then
-    AGENTS_OUT="$OUT_DIR/$CLAUDE_AGENTS_REL"
-    CODEX_AGENTS_OUT="$OUT_DIR/$CODEX_AGENTS_REL"
-    GEMINI_AGENTS_OUT="$OUT_DIR/$GEMINI_AGENTS_REL"
-    GROK_AGENTS_OUT="$OUT_DIR/$GROK_AGENTS_REL"
-    OPENCODE_AGENTS_OUT="$OUT_DIR/$OPENCODE_AGENTS_REL"
-else
-    AGENTS_OUT="$CLAUDE_AGENTS_REL"
-    CODEX_AGENTS_OUT="$CODEX_AGENTS_REL"
-    GEMINI_AGENTS_OUT="$GEMINI_AGENTS_REL"
-    GROK_AGENTS_OUT="$GROK_AGENTS_REL"
-    OPENCODE_AGENTS_OUT="$OPENCODE_AGENTS_REL"
-    if [ -L "$OPENCODE_DIR_REL" ] || { [ -e "$OPENCODE_DIR_REL" ] && [ ! -d "$OPENCODE_DIR_REL" ]; }; then
-        echo "Error: $OPENCODE_DIR_REL must be a real directory; refusing to update through an alias." >&2
-        exit 1
-    fi
-    if [ -d "$OPENCODE_DIR_REL" ] && [ "$(cd "$OPENCODE_DIR_REL" && pwd -P)" != "$(pwd -P)/$OPENCODE_DIR_REL" ]; then
-        echo "Error: $OPENCODE_DIR_REL does not resolve inside this project." >&2
-        exit 1
-    fi
-    mkdir -p "$AGENTS_OUT"
-    mkdir -p "$CODEX_AGENTS_OUT"
-    mkdir -p "$GEMINI_AGENTS_OUT"
-    mkdir -p "$GROK_AGENTS_OUT"
-    mkdir -p "$OPENCODE_AGENTS_OUT"
-    cp "$TEMPLATE_ROOT/$OPENCODE_CONFIG_SRC_REL" "$OPENCODE_CONFIG_REL"
-    cp "$TEMPLATE_ROOT/$OPENCODE_SANDBOX_SRC_REL" "$OPENCODE_SANDBOX_REL"
-fi
+# Both modes write into $OUT_DIR. The pre-#232 production branch carried
+# alias guards here (the clone could have brought in a symlinked .opencode);
+# the project directory is now created empty by this very script, so nothing
+# can pre-exist to alias.
+AGENTS_OUT="$OUT_DIR/$CLAUDE_AGENTS_REL"
+CODEX_AGENTS_OUT="$OUT_DIR/$CODEX_AGENTS_REL"
+GEMINI_AGENTS_OUT="$OUT_DIR/$GEMINI_AGENTS_REL"
+GROK_AGENTS_OUT="$OUT_DIR/$GROK_AGENTS_REL"
+OPENCODE_AGENTS_OUT="$OUT_DIR/$OPENCODE_AGENTS_REL"
+mkdir -p "$AGENTS_OUT" "$CODEX_AGENTS_OUT" "$GEMINI_AGENTS_OUT" \
+         "$GROK_AGENTS_OUT" "$OPENCODE_AGENTS_OUT"
+cp "$TEMPLATE_ROOT/$OPENCODE_CONFIG_SRC_REL" "$OUT_DIR/$OPENCODE_CONFIG_REL"
+cp "$TEMPLATE_ROOT/$OPENCODE_SANDBOX_SRC_REL" "$OUT_DIR/$OPENCODE_SANDBOX_REL"
 
 # ── Resolve unavailable Claude subagent models → fallbacks ──
 # Agent metadata pins an *ideal* model per agent (e.g. `fable`). If that model is
@@ -1764,11 +1719,7 @@ fi
 # ── Create project directories and initial files ──
 echo "Creating project structure..."
 
-if [ "$LOCAL" = "1" ]; then
-    P="$OUT_DIR"
-else
-    P="."
-fi
+P="$OUT_DIR"
 
 if [ "$MODE" = "report" ]; then
     # Report mode: read-only `submission/` (user drops the paper here), parallel
@@ -2327,13 +2278,8 @@ fi
 # ── Assemble core skills ──
 echo "Assembling core skills..."
 
-if [ "$LOCAL" = "1" ]; then
-    SKILLS_OUT="$OUT_DIR/$CLAUDE_SKILLS_REL"
-    CODEX_SKILLS_OUT="$OUT_DIR/$CODEX_SKILLS_REL"
-else
-    SKILLS_OUT="$CLAUDE_SKILLS_REL"
-    CODEX_SKILLS_OUT="$CODEX_SKILLS_REL"
-fi
+SKILLS_OUT="$OUT_DIR/$CLAUDE_SKILLS_REL"
+CODEX_SKILLS_OUT="$OUT_DIR/$CODEX_SKILLS_REL"
 
 # SymPy skill (available for all variants — preloaded into math-touching subagents)
 assemble_claude_skills \
@@ -2531,13 +2477,8 @@ fi
 echo "  ✓ Core skills assembled"
 
 # ── Apply extensions ──
-if [ "$LOCAL" = "1" ]; then
-    SKILLS_OUT="$OUT_DIR/$CLAUDE_SKILLS_REL"
-    CODEX_SKILLS_OUT="$OUT_DIR/$CODEX_SKILLS_REL"
-else
-    SKILLS_OUT="$CLAUDE_SKILLS_REL"
-    CODEX_SKILLS_OUT="$CODEX_SKILLS_REL"
-fi
+SKILLS_OUT="$OUT_DIR/$CLAUDE_SKILLS_REL"
+CODEX_SKILLS_OUT="$OUT_DIR/$CODEX_SKILLS_REL"
 
 for ext in "${EXTENSIONS[@]}"; do
     case "$ext" in
@@ -3321,68 +3262,22 @@ if [ "$LOCAL" = "1" ]; then
     fi
     echo ""
     echo "Output at: $OUT_DIR/"
-    rm -f "$TIER_VOCAB_FILE"
-    exit 0
+    exit 0   # tier vocab file removed by the shared _setup_cleanup EXIT trap
 fi
 
-# ── Production mode: clean up and commit ──
-echo "Cleaning up template files..."
-
-# Replace template .gitignore with project-specific one (before deleting deploy_assets/)
-cp "$TEMPLATE_ROOT/templates/gitignore_project" .gitignore
-
-rm -rf deploy_assets/
-rm -rf meta_paper/
-rm -rf test_scripts/
-rm -rf scripts/
-rm -rf codex_inspect/
-rm -rf test_output/
-rm -rf scorer_floor_test/   # build-time scorer-calibration harness (#102); never ships
-rm -f setup.sh
-rm -f README.md
-rm -f CLAUDE_REFACTOR_PLAN.md
-rm -f requirements.system
-rm -f texput.log
-rm -f LIMITATIONS.md   # meta-project architectural-limits doc; dev-facing, never ships
-rm -f VERSION CHANGELOG.md   # build-time version stamp + template changelog; read at setup, never ships
-# Meta-repo dev skills snapshotted right after the clone (see the DEV_SKILLS block there).
-# Dev-facing template tooling — a research project has no use for instructions on how to
-# deploy or edit the template. The project's own skills were assembled separately and are
-# not in this list, so they survive.
-if [ ${#DEV_SKILLS[@]} -gt 0 ]; then
-    dev_skill_i=0
-    dev_skill_removed=0
-    for d in "${DEV_SKILLS[@]}"; do
-        dev_skill_want="${DEV_SKILL_SUMS[$dev_skill_i]}"
-        dev_skill_i=$((dev_skill_i + 1))
-        dev_skill_now=""
-        [ -f "$d/SKILL.md" ] && dev_skill_now="$(cksum < "$d/SKILL.md")"
-        if [ "$dev_skill_now" = "$dev_skill_want" ]; then
-            rm -rf "$d"
-            dev_skill_removed=$((dev_skill_removed + 1))
-        else
-            # Contents changed since the snapshot: an assembled project skill now owns
-            # this directory. Keep it — deleting it would drop a real skill from the
-            # deployed project. The dev content is already gone (overwritten), so
-            # nothing leaks; only the name needs fixing upstream.
-            echo "  ⚠ $d was overwritten by an assembled project skill — keeping it."
-            echo "    A skill_id in templates/skill_metadata/ collides with a meta-repo"
-            echo "    dev-skill directory name. Rename one so they cannot share a path."
-        fi
-    done
-    echo "  ✓ Meta-repo dev skills removed ($dev_skill_removed/${#DEV_SKILLS[@]})"
-fi
-if [ "$MANUAL" = "1" ] || [ "$MODE" = "report" ]; then
-    rm -f dashboard.html
-elif [ -f dashboard.html ]; then
-    # Variant-correct subtitle (mirrors the --local branch; production gets
-    # dashboard.html via the clone, so it must be re-titled here too — the
-    # title-cased PAPER_TYPE renders the historical "Autonomous Finance Theory
-    # Paper Generator" byte-identically for finance).
+# ── Production mode: finalize and commit ──
+# There is no cleanup/strip step (issue #232): the project directory only ever
+# received build outputs, and the source clone in $SRC_TMP is deleted wholesale
+# by the EXIT trap. A build-input path that is not explicitly copied simply
+# never exists here — fail-closed by construction.
+if [ -f dashboard.html ]; then
+    # Variant-correct subtitle (mirrors the --local branch; the title-cased
+    # PAPER_TYPE renders the historical "Autonomous Finance Theory Paper
+    # Generator" byte-identically for finance). The copy itself is gated at
+    # the copy site — manual/report deploys never have a dashboard.html here.
     DASHBOARD_SUBTITLE="Autonomous $(python3 -c "import sys; print(sys.argv[1].title())" "$PAPER_TYPE") Generator"
     sed -i.bak "s|Autonomous Finance Theory Paper Generator|$DASHBOARD_SUBTITLE|" dashboard.html && rm -f dashboard.html.bak
 fi
-echo "  ✓ Template files removed"
 
 git add -A
 if [ "$MANUAL" = "1" ]; then
@@ -3505,4 +3400,4 @@ elif [ "$SEEDED" = "1" ]; then
 fi
 echo "Runtime permissions are pre-configured for Claude, Grok, and OpenCode ($OPENCODE_CONFIG_REL)"
 echo "(OpenCode's launcher wraps its server and Bash descendants in Anthropic Sandbox Runtime)"
-rm -f "$TIER_VOCAB_FILE"
+# temp resources (tier vocab file, source clone) removed by the shared _setup_cleanup EXIT trap
