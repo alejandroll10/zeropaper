@@ -1,0 +1,44 @@
+name: Dev instruction mirrors
+
+on:
+  pull_request:
+  push:
+    branches:
+      - main
+
+permissions:
+  contents: read
+
+jobs:
+  verify:
+    name: Verify generated mirrors
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the proposed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install the dev-sync dependency
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.3
+
+      - name: Test mirror synchronization
+        run: python -m unittest -v test_scripts.test_sync_dev_instructions
+
+      - name: Regenerate the mirrors
+        run: bash scripts/sync_dev_instructions.sh
+
+      - name: Require the committed mirrors to match
+        shell: bash
+        run: |
+          git add -A -f -- AGENTS.md .agents/skills
+          if ! git diff --cached --exit-code HEAD -- AGENTS.md .agents/skills; then
+            echo "::error::Generated dev-instruction mirrors are stale. Run bash scripts/sync_dev_instructions.sh, commit the result, and push again."
+            exit 1
+          fi

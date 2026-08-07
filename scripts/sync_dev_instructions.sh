@@ -44,15 +44,19 @@ set -euo pipefail
 #              pattern strings, match nothing, and the sync silently does nothing
 #              while still exiting 0 — and the drift check then reports PASS with a
 #              mirror genuinely missing.
-#   noclobber  the AGENTS.md staging write is a truncating redirect; under -C a
-#              leftover .tmp from an interrupted run makes it fail outright.
+#   noclobber  mktemp creates the AGENTS.md staging file before the truncating
+#              redirect opens it; under -C even that new unique file is refused.
 #   CDPATH     `cd` with a bare relative operand resolves through a CDPATH entry and
 #              ECHOES the resolved path, landing inside the command substitutions
 #              below and embedding a newline in the derived paths.
-#   GLOBIGNORE/IFS  alter which glob matches survive and how results are split.
+#   GLOBIGNORE/IFS and inherited shopt glob modes alter which entries the mirror
+#              loops see. In particular, failglob can abort an empty sweep and
+#              dotglob/nocaseglob can silently change membership, while
+#              nocasematch weakens the lowercase-only skill-name case check.
 set +f +C
 unset CDPATH GLOBIGNORE
 IFS=$' \t\n'
+shopt -u failglob nullglob dotglob nocaseglob nocasematch
 
 # Resolve the script's own path before deriving the repo root: invoked through a
 # symlink (a .git/hooks entry, a ~/bin shortcut), an unresolved BASH_SOURCE makes
@@ -82,24 +86,72 @@ fi
 # mirror indistinguishable from a hand-authored file, and the next person to edit
 # would edit the copy and lose the change on the following sync.
 #
-# Staged through a .tmp so a failure mid-write cannot leave a half-written AGENTS.md.
-# The trap removes it on any exit — an interrupted run (Ctrl-C during a pre-commit
-# hook) would otherwise strand one, which is both litter and, under an inherited
-# noclobber, a hard failure for every subsequent run.
-trap 'rm -f "$MIRROR_DOC.tmp"' EXIT
+# Staged through a unique same-directory tempfile so a failure mid-write cannot leave
+# a half-written AGENTS.md and an existing predictable path cannot redirect the write
+# through a symlink. Same-directory placement keeps the final mv atomic. The trap
+# removes the tempfile on any ordinary exit or handled interruption.
+MIRROR_DOC_TMP="$(mktemp "$ROOT_DIR/.AGENTS.md.tmp.XXXXXX")"
+cleanup_mirror_doc_tmp() {
+    if [ -n "${SYMLINK_PROBE_DIR:-}" ]; then
+        rm -f "$SYMLINK_PROBE_DIR/link"
+        rmdir "$SYMLINK_PROBE_DIR" 2>/dev/null || true
+    fi
+    if [ -n "${MIRROR_DOC_TMP:-}" ]; then
+        rm -f "$MIRROR_DOC_TMP"
+    fi
+}
+trap cleanup_mirror_doc_tmp EXIT
 {
     echo "<!-- GENERATED FILE — DO NOT EDIT."
     echo "     Mirror of CLAUDE.md, written by scripts/sync_dev_instructions.sh."
     echo "     Edit CLAUDE.md instead, then re-run that script. -->"
     echo
     cat "$CANONICAL_DOC"
-} > "$MIRROR_DOC.tmp"
+} > "$MIRROR_DOC_TMP"
 
-if [ -f "$MIRROR_DOC" ] && cmp -s "$MIRROR_DOC.tmp" "$MIRROR_DOC"; then
-    rm -f "$MIRROR_DOC.tmp"
+if [ ! -L "$MIRROR_DOC" ] && [ -f "$MIRROR_DOC" ] \
+    && cmp -s "$MIRROR_DOC_TMP" "$MIRROR_DOC"; then
+    rm -f "$MIRROR_DOC_TMP"
+    MIRROR_DOC_TMP=""
+    # Normalize unconditionally: Git records the executable bit, but local read/write
+    # policy belongs to the checkout's umask and ACL rather than this generator.
+    chmod a-x "$MIRROR_DOC"
     echo "AGENTS.md already current"
 else
-    mv "$MIRROR_DOC.tmp" "$MIRROR_DOC"
+    # A content refresh should not replace the checkout's read/write policy merely
+    # because mktemp starts at 0600. Preserve an existing regular file's permission
+    # bits while removing execute bits; a missing/symlinked mirror gets the normal
+    # file-creation mode filtered through the caller's umask. Atomic replacement does
+    # replace inode-local ACLs: a checkout that adds a custom ACL to AGENTS.md must
+    # reapply it after content-changing syncs. Closing that portably would require
+    # platform-specific ACL snapshot/restore or giving up the atomic replacement.
+    if [ ! -L "$MIRROR_DOC" ] && [ -f "$MIRROR_DOC" ]; then
+        python3 - "$MIRROR_DOC" "$MIRROR_DOC_TMP" <<'PY'
+import os
+import stat
+import sys
+
+mode = stat.S_IMODE(os.stat(sys.argv[1], follow_symlinks=False).st_mode)
+os.chmod(sys.argv[2], mode & ~0o111)
+PY
+    else
+        chmod =rw "$MIRROR_DOC_TMP"
+    fi
+
+    # The mirror is a regular copy, never a symlink. Remove a link explicitly
+    # before mv: when it points at a directory, a bare mv treats that target as the
+    # destination directory and puts AGENTS.md.tmp inside it instead of replacing
+    # the link. Other non-regular paths are foreign content and fail closed.
+    if [ -L "$MIRROR_DOC" ]; then
+        rm -f "$MIRROR_DOC"
+    elif [ -e "$MIRROR_DOC" ] && [ ! -f "$MIRROR_DOC" ]; then
+        echo "ERROR: $MIRROR_DOC exists but is not a regular file." >&2
+        echo "       Move or delete it, then re-run this script." >&2
+        exit 1
+    fi
+    mv "$MIRROR_DOC_TMP" "$MIRROR_DOC"
+    MIRROR_DOC_TMP=""
+    chmod a-x "$MIRROR_DOC"
     echo "AGENTS.md <- CLAUDE.md"
 fi
 
@@ -154,8 +206,16 @@ fi
 mirror_target() {
     local p="$1" size content
     if [ -L "$p" ]; then
-        readlink "$p"
-        return 0
+        # Write the target bytes with no record delimiter. `readlink` adds a newline,
+        # and command substitution would then strip both that delimiter and any real
+        # trailing newlines in the target. A byte-oriented Python call avoids both.
+        python3 - "$p" <<'PY'
+import os
+import sys
+
+sys.stdout.buffer.write(os.readlink(os.fsencode(sys.argv[1])))
+PY
+        return $?
     fi
     [ -f "$p" ] && [ -r "$p" ] || return 0
     size="$(wc -c < "$p")"
@@ -176,17 +236,32 @@ mirror_target() {
     return 0
 }
 
+# Capture mirror_target without command substitution stripping trailing newlines.
+# The appended sentinel is removed after capture; if the real target itself ends in
+# the same byte, removing one occurrence still removes only the appended sentinel.
+mirror_target_tagged() {
+    mirror_target "$1" || return 1
+    printf '\034'
+}
+
 # Can this checkout create symlinks at all? Probe once rather than guessing from the
 # git config, which is not the same question: git may be configured either way while
 # the filesystem decides. Without support we leave the mirror as git left it.
-# Clear any probe a killed run left behind first: `ln -s` fails with "File exists"
-# on a stale one, which would misreport a perfectly capable filesystem as incapable.
+# Probe inside the actual destination filesystem and directory — probing elsewhere
+# can disagree on both symlink support and write permission. A unique private
+# directory avoids deleting or overwriting a developer's content at a fixed name.
 SYMLINKS_OK=0
-rm -f "$MIRROR_SKILLS_DIR/.symlink-probe"
-if ln -s .probe-target "$MIRROR_SKILLS_DIR/.symlink-probe" 2>/dev/null; then
-    SYMLINKS_OK=1
+SYMLINK_PROBE_DIR=""
+if SYMLINK_PROBE_DIR="$(
+    mktemp -d "$MIRROR_SKILLS_DIR/.symlink-probe.XXXXXX" 2>/dev/null
+)"; then
+    if ln -s .probe-target "$SYMLINK_PROBE_DIR/link" 2>/dev/null; then
+        SYMLINKS_OK=1
+    fi
+    rm -f "$SYMLINK_PROBE_DIR/link"
+    rmdir "$SYMLINK_PROBE_DIR"
+    SYMLINK_PROBE_DIR=""
 fi
-rm -f "$MIRROR_SKILLS_DIR/.symlink-probe"
 if [ "$SYMLINKS_OK" = "0" ]; then
     echo "WARNING: this checkout cannot create symlinks, so the dev skills cannot be" >&2
     echo "         exposed under .agents/skills and Codex will not discover them here." >&2
@@ -197,9 +272,22 @@ fi
 
 # Discovered, not a hardcoded name list — adding a dev skill needs no edit here.
 linked=0
-for src in "$CANONICAL_SKILLS_DIR"/*/; do
+for src in "$CANONICAL_SKILLS_DIR"/*/ \
+    "$CANONICAL_SKILLS_DIR"/.[!.]*/ "$CANONICAL_SKILLS_DIR"/..?*/; do
     [ -d "$src" ] || continue
-    skill="$(basename "$src")"
+    skill_path="${src%/}"
+    skill="${skill_path##*/}"
+    case "$skill" in
+        ""|*[!abcdefghijklmnopqrstuvwxyz0123456789-]*|-*|*-|*--*)
+            echo "ERROR: canonical skill directory '$skill' is not a valid Codex skill name." >&2
+            echo "       Use lowercase letters, digits, and single interior hyphens." >&2
+            exit 1
+            ;;
+    esac
+    if [ "${#skill}" -gt 64 ]; then
+        echo "ERROR: canonical skill directory '$skill' exceeds Codex's 64-character name limit." >&2
+        exit 1
+    fi
     dst="$MIRROR_SKILLS_DIR/$skill"
     target="../../.claude/skills/$skill"
 
@@ -237,7 +325,12 @@ for src in "$CANONICAL_SKILLS_DIR"/*/; do
     # as much someone else's content as a foreign file is, and the two loops
     # disagreeing about that is what produced silent deletions twice before.
     if [ -e "$dst" ] || [ -L "$dst" ]; then
-        if [ "$(mirror_target "$dst")" != "$target" ]; then
+        if ! observed_tagged="$(mirror_target_tagged "$dst")"; then
+            echo "ERROR: cannot inspect mirror target: $dst" >&2
+            exit 1
+        fi
+        observed="${observed_tagged%$'\034'}"
+        if [ "$observed" != "$target" ]; then
             echo "ERROR: $dst is not a generated mirror entry for '$skill'." >&2
             echo "       .agents/skills/ holds only links into .claude/skills/." >&2
             echo "       Move or delete that path, then re-run this script." >&2
@@ -278,10 +371,15 @@ done
 # a link aimed somewhere it should not be — is touched by neither loop and would sit
 # here indefinitely, invisible to the drift check too once committed. Every entry must
 # be a mirror entry AND aimed at the canonical skill of its own name.
-for dst in "$MIRROR_SKILLS_DIR"/*; do
+for dst in "$MIRROR_SKILLS_DIR"/* \
+    "$MIRROR_SKILLS_DIR"/.[!.]* "$MIRROR_SKILLS_DIR"/..?*; do
     [ -e "$dst" ] || [ -L "$dst" ] || continue   # unmatched glob on an empty dir
-    name="$(basename "$dst")"
-    current="$(mirror_target "$dst")"
+    name="${dst##*/}"
+    if ! current_tagged="$(mirror_target_tagged "$dst")"; then
+        echo "ERROR: cannot inspect mirror target: $dst" >&2
+        exit 1
+    fi
+    current="${current_tagged%$'\034'}"
 
     if [ -z "$current" ]; then
         echo "ERROR: $dst is not a generated mirror entry." >&2
