@@ -15,7 +15,11 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.23.3] — 2026-08-07 (current)
+## [2.23.4] — 2026-08-07 (current)
+
+**GitHub publication is now an explicit opt-in (#234).** A normal production `setup.sh` run creates and commits only a local repository; it no longer creates a repository in `automated-papers-produced` merely because the operator is an authenticated organization member. `--publish` is the sole enablement path, prints the exact organization/name/visibility before any GitHub mutation, and retains `PUBLISH_ORG` / `PUBLISH_VISIBILITY` as configuration rather than hidden activation switches. `--no-publish` makes the safe default explicit in automation. Contradictory publish flags, `--publish --local`, empty or invalid publish configuration, and `--publish --mode report` fail before project creation. Missing GitHub CLI authentication or organization membership leaves the committed local project intact with a warning; a create/push failure preserves the local commit, surfaces `gh`'s error, and treats remote state as uncertain because repository creation may have succeeded before a later step failed. `setup.sh --help`, the deployment skill, and the README now state the contract directly.
+
+## [2.23.3] — 2026-08-07
 
 **Every shipped Codex skill now satisfies the complete bundled skill-authoring validator (#237).** Five rendered descriptions (`ssj`, `call-reports`, `tnic`, `trace-bonds`, and `revelio`) used ASCII arrow/comparison notation containing `<` or `>`, which Codex's bundled `skill-creator/scripts/quick_validate.py` rejects even though the current runtime loader accepts it. Their seven base/override metadata fields now use equivalent prose. A shared build-time validator single-sources the complete public contract — allowed and required fields, field types, hyphen-case name syntax, edge/doubled-hyphen rejection, 64/1024 Unicode-character caps, and the description angle-bracket ban — for both deployed-skill assembly and the dev-skill mirror; it also retains the repository's stricter non-empty-field requirement. Unit coverage exercises every rule, and an exhaustive integration assembles and validates every Codex-targeted skill metadata set while preserving the intentional `codex-math` exclusion.
 

@@ -1,6 +1,6 @@
 ---
 name: deploy-project
-description: Deploy a new research paper project from this template repo with setup.sh — every flag (--variant, --ext, --mode, --seed, --faithful, --manual, --light, --halt-on-core-bypass), their compositions and mutual exclusions, plus post-setup launch instructions (launch.sh, tmux, unattended runs) and WRDS server startup. Use whenever the user asks to create/set up/start/deploy a new research project, asks which setup.sh flags to pass, asks how to launch or resume a deployed pipeline, or asks about the WRDS socket server.
+description: Deploy a new research paper project from this template repo with setup.sh — every flag (--variant, --ext, --mode, --seed, --faithful, --manual, --light, --halt-on-core-bypass, --publish), their compositions and mutual exclusions, safe opt-in GitHub publishing, plus post-setup launch instructions (launch.sh, tmux, unattended runs) and WRDS server startup. Use whenever the user asks to create/set up/start/deploy a new research project, asks which setup.sh flags to pass, asks how to launch or resume a deployed pipeline, or asks about the WRDS socket server.
 ---
 
 # Deploying a project
@@ -12,9 +12,14 @@ vocab placeholder — load the `edit-pipeline` skill instead.
 
 > **`--local` is a debug flag, never a real run.** It skips the tmp source clone (assembling straight from this checkout's `deploy_assets/`), dumps assembled output into `test_output/{variant}/` for inspection, and **exits before** the production steps (dependency install, git init, initial commit). Use it *only* to verify template assembly (placeholder resolution, agent/skill files, marker stripping) — typically against a `/tmp` target. A full, deployable run is the plain `./setup.sh <project-name> ...` form **without** `--local`. The `--local` form appears only in the template repo's own "Adding a new variant" / "Adding a new mode" procedures (the `edit-pipeline` skill), because those are assembly tests, not paper runs.
 
+> **Publishing is opt-in.** A normal production setup creates and commits a standalone local repository but does not create or push a GitHub repository. (It still fetches the template source from GitHub unless `ZEROPAPER_REPO` points elsewhere.) Add `--publish` only when the operator deliberately wants setup to create and push a remote repository. `--no-publish` is an explicit spelling of the default for scripts and test runs.
+
 ```bash
 # Basic finance theory
 ./setup.sh <project-name> --variant finance
+
+# Basic finance theory + deliberate GitHub publication
+./setup.sh <project-name> --variant finance --publish
 
 # Finance theory + empirical data (CRSP, Compustat, FRED, WRDS)
 ./setup.sh <project-name> --variant finance --ext empirical
@@ -93,6 +98,14 @@ Legacy aliases: `--variant finance_llm` is shorthand for `--variant finance --ex
 
 ## Flag semantics
 
+### `--publish` / `--no-publish`
+
+Publishing is **off by default**. `--publish` opts a production deployment into creating and pushing a GitHub repository after the local initial commit; setup prints the exact target before calling GitHub. `--no-publish` explicitly selects the default local-only behavior and is useful in automation where the safety decision should be visible. Passing both is an error, and `--publish` is incompatible with `--local` because debug builds do not produce deployable repositories.
+
+The target defaults to `automated-papers-produced`; override it with `PUBLISH_ORG=<org>`. Visibility defaults to private and can be set with `PUBLISH_VISIBILITY=private|public|internal`. These environment variables configure an explicit `--publish` request—they do not enable publishing by themselves. An empty `PUBLISH_ORG` with `--publish` is an error; without `--publish`, including `PUBLISH_ORG=` has no effect because the deployment remains local.
+
+`--mode report` rejects `--publish`: report deployments can contain someone else's confidential submission. An operator who has reviewed the contents and intentionally wants a remote can push it manually afterward. Missing `gh` authentication, a failed user/membership API lookup, or a confirmed non-active organization membership leaves the committed local repository intact and prints a distinct warning; API failures are not mislabeled as non-membership. A failed `gh repo create --push` also preserves the local commit, but GitHub state may be partial if repository creation succeeded before the remote or push step failed; setup prints the exact URL to inspect before retrying and preserves `gh`'s error output.
+
 ### `--manual`
 
 Mutually exclusive with `--seed` and `--faithful`. It assembles `core_manual.md` instead of `core.md`, auto-generates an agent/skill catalog from the metadata files, swaps in per-runtime `session_manual.md` files, and skips creating `process_log/pipeline_state.json`, the `output/stage*` subdirs, and `dashboard.html`. Pipeline-only agents (`scribe`, `triager`, `puzzle-triager`, `branch-manager`) are still assembled into `.claude/agents/` etc. but flagged `pipeline_only: true` in metadata so `deploy_assets/scripts/generate_catalog.py` hides them from the user-facing catalog.
@@ -144,7 +157,7 @@ What `--light` does **not** touch: the codex-math skill (pinned `gpt-5.6-sol` in
 
 ## After setup
 
-Setup creates a standalone project folder with assembled CLAUDE.md, AGENTS.md, GEMINI.md, agents for all runtimes, and skills. Tell the user to:
+Setup creates a standalone local git repository with assembled CLAUDE.md, AGENTS.md, GEMINI.md, agents for all runtimes, and skills. A successful `--publish` adds and pushes its GitHub remote. If publication reports a failure, inspect the printed target URL before retrying because GitHub may have created the repository before a later step failed. Tell the user to:
 
 1. `cd <project-name>`
 2. Edit `.env` with any required API keys (FRED, WRDS, etc.)

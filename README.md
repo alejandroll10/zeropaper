@@ -42,7 +42,7 @@ Claude Code will handle the clone, setup, and prereq checks for you. Works on Ma
 ## How it works
 
 1. You clone this template repo once
-2. You run `setup.sh` to create a new project — each run creates an independent project folder with its own git repo
+2. You run `setup.sh` to create a new project — each run creates an independent project folder with its own local git repo (GitHub publishing is opt-in with `--publish`)
 3. You open the project folder in a supported runtime and say "Run the pipeline"
 4. The pipeline runs autonomously: problem discovery → idea generation → theory development → math verification → paper writing → referee simulation
 
@@ -97,6 +97,9 @@ cd zeropaper
 # Pure finance theory (default)
 ./setup.sh my-paper
 
+# Deliberately create and push a private GitHub repo after setup
+./setup.sh my-paper --publish
+
 # Finance theory + empirical analysis (CRSP, Compustat, FRED, etc.)
 ./setup.sh my-paper --variant finance --ext empirical
 
@@ -130,7 +133,7 @@ cd zeropaper
 ./setup.sh my-paper --variant finance --ext empirical --seed --light
 ```
 
-This creates `my-paper/` with everything assembled and ready — runtime instructions, agents for all five runtimes, compatible skills, and pipeline state. The folder is a standalone git repo detached from this template.
+This creates `my-paper/` with everything assembled and ready — runtime instructions, agents for all five runtimes, compatible skills, and pipeline state. The folder is a standalone local git repo detached from this template. Setup does not create or push a GitHub repository unless you pass `--publish` (production setup still fetches this template from GitHub by default); use `PUBLISH_ORG=<org>` and `PUBLISH_VISIBILITY=private|public|internal` to configure that explicit publish request. Report-mode deployments cannot use `--publish` because they may contain confidential submissions.
 
 You can create as many projects as you want from the same template.
 

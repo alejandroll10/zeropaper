@@ -242,7 +242,7 @@ The pipeline is split into two layers:
    - Assembles extension agents for Claude, Codex, Gemini, and OpenCode (Grok remains a documented extension gap)
    - Assembles extension skills from shared skill metadata + bodies
    - Copies utilities, creates dirs, appends API keys to `.env`
-10. Commits the initial project state (and optionally auto-publishes); the tmp source tree is discarded by the EXIT trap — there is no strip step
+10. Commits the initial project state; only an explicit `--publish` then creates and pushes a GitHub repository. The tmp source tree is discarded by the EXIT trap — there is no strip step
 
 ## Agent classification
 

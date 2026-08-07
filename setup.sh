@@ -2,7 +2,7 @@
 # Auto AI Research Template — Setup & Launch
 # Usage: ./setup.sh [project-name] [--variant finance|macro|llm_cognition] [--mode empirical-first|measurement-first|report]
 #                  [--ext empirical|theory_llm] [--seed|--faithful|--manual] [--light]
-#                  [--no-model-probe] [--local]
+#                  [--no-model-probe] [--publish|--no-publish] [--local]
 #
 # --local   Skip git clone, use templates from this repo directly.
 #           Outputs to test_output/{variant}/ for inspection.
@@ -44,12 +44,47 @@
 #           still remapped off the built-in known-unavailable list (fable/mythos
 #           → opus), but newly-suspended models won't be auto-detected. Use in CI
 #           or offline setups where launching `claude` at setup time isn't wanted.
+# --publish Create and push a GitHub repository after setup. Publishing is opt-in;
+#           new deployments stay local unless this flag is present. The target
+#           defaults to automated-papers-produced and can be changed with
+#           PUBLISH_ORG=<org>; PUBLISH_VISIBILITY defaults to private.
+# --no-publish  Explicitly keep the deployment local (the default). Useful in
+#           scripts that want the safety choice visible at the call site.
 #
 # Legacy: --variant finance_llm is shorthand for --variant finance --ext theory_llm
 
 set -e
 
 # ── Parse arguments ──
+usage() {
+    cat <<'EOF'
+Usage: ./setup.sh [project-name] [options]
+
+Create a standalone research-project deployment. Deployments stay local by
+default; pass --publish explicitly to create and push a GitHub repository.
+
+Core options:
+  --variant finance|macro|llm_cognition
+  --ext empirical|theory_llm             Repeatable
+  --mode empirical-first|measurement-first|report
+  --seed | --faithful | --manual
+  --light
+  --halt-on-core-bypass
+  --no-model-probe
+  --publish                               Create and push a GitHub repository
+  --no-publish                            Explicit local-only mode (default)
+  --local                                 Assembly debug mode; never publishes
+  -h, --help
+
+Publishing environment:
+  PUBLISH_ORG=<org>                       Target org (default: automated-papers-produced)
+  PUBLISH_VISIBILITY=private|public|internal
+                                          Repository visibility (default: private)
+
+--publish is disabled for --mode report because submissions may be confidential.
+EOF
+}
+
 PROJECT_NAME=""
 VARIANT="finance"
 MODE=""
@@ -64,6 +99,11 @@ MANUAL=0
 LIGHT=0
 HALT_ON_CORE_BYPASS=0
 MODEL_PROBE=1
+PUBLISH=0
+USER_PASSED_PUBLISH=0
+USER_PASSED_NO_PUBLISH=0
+PUBLISH_ORG="${PUBLISH_ORG-automated-papers-produced}"
+PUBLISH_VISIBILITY="${PUBLISH_VISIBILITY-private}"
 EXTENSIONS=()
 
 for arg in "$@"; do
@@ -77,7 +117,10 @@ for arg in "$@"; do
         --light)       LIGHT=1 ;;
         --halt-on-core-bypass) HALT_ON_CORE_BYPASS=1 ;;
         --no-model-probe) MODEL_PROBE=0 ;;
+        --publish)     PUBLISH=1; USER_PASSED_PUBLISH=1 ;;
+        --no-publish)  PUBLISH=0; USER_PASSED_NO_PUBLISH=1 ;;
         --local)       LOCAL=1 ;;
+        -h|--help)     usage; exit 0 ;;
         --theory-llm)  [[ " ${EXTENSIONS[*]} " =~ " theory_llm " ]] || EXTENSIONS+=("theory_llm") ;;  # legacy alias for --ext theory_llm (does not touch --variant)
         -*)            echo "Unknown option: $arg"; exit 1 ;;
         *)
@@ -108,6 +151,35 @@ fi
 if [ "$NEXT_IS_MODE" = "1" ]; then
     echo "Error: --mode requires a value (empirical-first, measurement-first, report)"
     exit 1
+fi
+
+if [ "$USER_PASSED_PUBLISH" = "1" ] && [ "$USER_PASSED_NO_PUBLISH" = "1" ]; then
+    echo "Error: --publish and --no-publish are mutually exclusive."
+    exit 1
+fi
+if [ "$PUBLISH" = "1" ] && [ "$LOCAL" = "1" ]; then
+    echo "Error: --publish cannot be used with --local."
+    echo "  --local is assembly-only debug mode and never creates a deployable repository."
+    exit 1
+fi
+if [ "$PUBLISH" = "1" ] && [ "$MODE" = "report" ]; then
+    echo "Error: --publish cannot be used with --mode report."
+    echo "  Report deployments may contain confidential submissions and are kept local; push manually only after review."
+    exit 1
+fi
+if [ "$PUBLISH" = "1" ] && [ -z "$PUBLISH_ORG" ]; then
+    echo "Error: --publish requires a non-empty PUBLISH_ORG."
+    echo "  Omit PUBLISH_ORG to use automated-papers-produced, or set PUBLISH_ORG=<org>."
+    exit 1
+fi
+if [ "$PUBLISH" = "1" ]; then
+    case "$PUBLISH_VISIBILITY" in
+        private|public|internal) ;;
+        *)
+            echo "Error: PUBLISH_VISIBILITY must be private, public, or internal."
+            exit 1
+            ;;
+    esac
 fi
 
 if [ "$MODE" = "report" ]; then
@@ -833,7 +905,7 @@ else
         command -v bwrap >/dev/null 2>&1 || missing+=("bubblewrap (sudo apt-get install bubblewrap)")
     fi
     # Git identity is required: setup.sh runs `git commit` on the new project, and
-    # `set -e` aborts the whole script (skipping the auto-publish step) if commit
+    # `set -e` aborts the whole script (skipping any requested publish step) if commit
     # fails with "Author identity unknown". Check both global and local config.
     if ! git config --get user.email >/dev/null 2>&1 || ! git config --get user.name >/dev/null 2>&1; then
         missing+=("git identity (run: git config --global user.email \"you@example.com\" && git config --global user.name \"Your Name\")")
@@ -905,7 +977,7 @@ else
         cp "$TEMPLATE_ROOT/dashboard.html" .
     fi
     # The license shipped with every deployment under the old clone-based flow
-    # (deployments get auto-published, and paper/arpipeline.sty cites LICENSE
+    # (deployments may be published, and paper/arpipeline.sty cites LICENSE
     # §2); keep shipping it. Not manifest-managed — update.sh never refreshed
     # it, and that behavior is preserved.
     cp "$SRC_ROOT/LICENSE" .
@@ -3290,51 +3362,50 @@ else
     git commit -m "setup: initialized ${VARIANT} variant pipeline" -q
 fi
 
-# ── Optional: auto-publish to a GitHub org if the current user is a member ──
-# Set PUBLISH_ORG=<org> (or leave the default) to opt in. Silently skipped for
-# non-members so other users of this template just get a local repo.
-#
-# Opt-out paths:
-#   - PUBLISH_ORG= ./setup.sh ...      (single -, so an explicit empty string
-#                                       is honored — :- would substitute the
-#                                       default and re-enable publishing)
-#   - --mode report runs auto-disable below (refereeing external submissions
-#     involves someone else's unpublished work; default-publish is unsafe).
-PUBLISH_ORG="${PUBLISH_ORG-automated-papers-produced}"
-PUBLISH_VISIBILITY="${PUBLISH_VISIBILITY-private}"
-# Report mode handles external (often confidential) submissions; never auto-
-# publish those. The user can still push manually if they want.
-if [ "$MODE" = "report" ] && [ -n "$PUBLISH_ORG" ]; then
-    echo "  (skipping publish — --mode report deploys are kept local by default)"
-    PUBLISH_ORG=""
-fi
-# GitHub repo name = <project>-<first 8 chars of ARP_UUID>. The suffix is the
-# same deployment fingerprint baked into paper/arpipeline.sty (and every PDF
-# the pipeline produces), so the repo URL is a 1:1 lookup for the deployment.
-# Always-suffixing eliminates name collisions between unrelated projects that
-# happen to share a project name (e.g., two charlie-2 folders on different hosts).
-PUBLISH_SUFFIX="${ARP_UUID:0:8}"
-# PROJECT_NAME may be an absolute or relative path; GitHub repo names can't
-# contain slashes, so use just the basename for the repo name.
-PUBLISH_NAME="$(basename "$PROJECT_NAME")-${PUBLISH_SUFFIX}"
-if [ -n "$PUBLISH_ORG" ] && command -v gh >/dev/null 2>&1 \
-   && gh auth status >/dev/null 2>&1; then
-    gh_user=$(gh api user --jq .login 2>/dev/null || true)
-    if [ -n "$gh_user" ] \
-       && gh api "orgs/$PUBLISH_ORG/memberships/$gh_user" >/dev/null 2>&1; then
-        echo "Publishing to $PUBLISH_ORG/$PUBLISH_NAME ($PUBLISH_VISIBILITY)..."
-        if gh repo create "$PUBLISH_ORG/$PUBLISH_NAME" \
-               "--$PUBLISH_VISIBILITY" \
-               --source=. --remote=origin --push >/dev/null 2>&1; then
-            echo "  ✓ Pushed to $PUBLISH_ORG/$PUBLISH_NAME"
-            echo "    (deployment fingerprint: $ARP_UUID)"
-        else
-            echo "  ⚠ gh repo create failed. Repo remains local."
-            echo "    (would have published to $PUBLISH_ORG/$PUBLISH_NAME)"
-        fi
+# ── Optional: publish to a GitHub org (explicit --publish only) ──
+if [ "$PUBLISH" = "1" ]; then
+    # GitHub repo name = <project>-<first 8 chars of ARP_UUID>. The suffix is the
+    # same deployment fingerprint baked into paper/arpipeline.sty (and every PDF
+    # the pipeline produces), so the repo URL is a 1:1 lookup for the deployment.
+    # Always-suffixing eliminates name collisions between unrelated projects that
+    # happen to share a project name (e.g., two charlie-2 folders on different hosts).
+    PUBLISH_SUFFIX="${ARP_UUID:0:8}"
+    # PROJECT_NAME may be an absolute or relative path; GitHub repo names can't
+    # contain slashes, so use just the basename for the repo name.
+    PUBLISH_NAME="$(basename "$PROJECT_NAME")-${PUBLISH_SUFFIX}"
+    echo "Publish requested: $PUBLISH_ORG/$PUBLISH_NAME ($PUBLISH_VISIBILITY)"
+
+    if ! command -v gh >/dev/null 2>&1; then
+        echo "  ⚠ GitHub CLI (gh) not found. Repo remains local."
+    elif ! gh auth status >/dev/null 2>&1; then
+        echo "  ⚠ GitHub CLI is not authenticated. Repo remains local."
     else
-        echo "  (skipping $PUBLISH_ORG push — not a member)"
+        gh_user=""
+        membership_state=""
+        if ! gh_user=$(gh api user --jq .login); then
+            echo "  ⚠ Could not identify the authenticated GitHub user. Repo remains local."
+        elif [ -z "$gh_user" ]; then
+            echo "  ⚠ GitHub returned an empty authenticated-user login. Repo remains local."
+        elif ! membership_state=$(gh api "orgs/$PUBLISH_ORG/memberships/$gh_user" --jq .state); then
+            echo "  ⚠ Could not verify active membership in $PUBLISH_ORG. Repo remains local."
+        elif [ "$membership_state" != "active" ]; then
+            membership_state="${membership_state:-unknown}"
+            echo "  ⚠ GitHub membership in $PUBLISH_ORG is $membership_state, not active. Repo remains local."
+        else
+            echo "Publishing to $PUBLISH_ORG/$PUBLISH_NAME ($PUBLISH_VISIBILITY)..."
+            if gh repo create "$PUBLISH_ORG/$PUBLISH_NAME" \
+                   "--$PUBLISH_VISIBILITY" \
+                   --source=. --remote=origin --push >/dev/null; then
+                echo "  ✓ Pushed to $PUBLISH_ORG/$PUBLISH_NAME"
+                echo "    (deployment fingerprint: $ARP_UUID)"
+            else
+                echo "  ⚠ GitHub publication failed. The local commit is intact, but remote state may be partial."
+                echo "    Inspect https://github.com/$PUBLISH_ORG/$PUBLISH_NAME before retrying."
+            fi
+        fi
     fi
+else
+    echo "Publishing skipped: local repository only (pass --publish to create and push a GitHub repository)."
 fi
 
 echo ""
