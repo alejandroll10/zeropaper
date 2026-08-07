@@ -236,12 +236,12 @@ else
     grep -q "Computational exploration — implement the key result" "$M/docs/stage_2.md" \
         && fail "theory-first Stage 2b procedure leaked into measurement-first stage_2" \
         || pass "theory-first Stage 2b procedure absent"
-    grep -q 're-set \`stage3b_theory_version = theory_version\`' "$M/docs/stage_3b_experiments.md" \
+    grep -Fq 're-set `stage3b_theory_version = theory_version`' "$M/docs/stage_3b_experiments.md" \
         && pass "characterization keeps stage3b_theory_version current" \
         || fail "characterization stage3b_theory_version re-set rule missing"
     grep -q "Measurement-first mode note" "$M/docs/stage_puzzle_triage.md" \
         && pass "puzzle-triage carries the measurement-first note" || fail "puzzle-triage MF note missing"
-    grep -q 'reset \`stage2_design_version\` to \`null\`' "$M/docs/stage_puzzle_triage.md" \
+    grep -Fq 'reset `stage2_design_version` to `null`' "$M/docs/stage_puzzle_triage.md" \
         && pass "PIVOT resets stage2_design_version" || fail "PIVOT stage2_design_version reset missing"
     [ -d "$M/output/stage2b" ] \
         && fail "stage2b dir created despite measurement-first skip" || pass "stage2b dir not created"
@@ -333,9 +333,15 @@ else
     grep -q "NEEDS EXPERIMENT-DESIGNER" "$M/docs/stage_5.md" \
         && pass "stage_5 scans for experiment-designer markers" \
         || fail "stage_5 experiment-designer scan missing"
-    grep -q "exploration_for_" "$M/docs/stage_5.md" \
-        && fail "theory-explorer re-fire procedure leaked into measurement-first stage_5" \
-        || pass "theory-explorer re-fire absent under MF"
+    grep -Fq "exploration_for_" "$M/docs/stage_5.md" \
+        && pass "stage_5 scans theory-explorer markers generically" \
+        || fail "generic theory-explorer marker scan missing"
+    grep -Fq "a mode where Stage 2b never runs" "$M/docs/stage_5.md" \
+        && pass "stage_5 recognizes mode-unavailable producers" \
+        || fail "stage_5 mode-unavailable producer guard missing"
+    grep -Fq "paper-writer error, not a re-fire request" "$M/docs/stage_5.md" \
+        && pass "stage_5 rejects unavailable producer markers" \
+        || fail "stage_5 unavailable producer routing missing"
     # idea-reviewer must not hand construct mode a theorem to prove.
     grep -q "construct-development instructions" "$M/.claude/agents/idea-reviewer.md" \
         && pass "idea-reviewer hands off construct-development work" \
