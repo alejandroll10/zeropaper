@@ -7,6 +7,8 @@ from pathlib import Path
 
 
 SCRIPT = Path(__file__).with_name("assemble_codex_skills.py")
+VALIDATOR = Path(__file__).with_name("codex_skill_validation.py")
+REPO_ROOT = Path(__file__).resolve().parents[2]
 
 
 class AssembleCodexSkillsTest(unittest.TestCase):
@@ -91,6 +93,73 @@ class AssembleCodexSkillsTest(unittest.TestCase):
         self.assertIsNone(rendered)
         self.assertIn("65 characters", result.stderr)
         self.assertIn("64-character skill-authoring limit", result.stderr)
+
+    def test_rejects_angle_brackets(self):
+        for bracket in ("<", ">"):
+            with self.subTest(bracket=bracket):
+                result, rendered = self.run_assembler(f"before {bracket} after")
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIsNone(rendered)
+                self.assertIn(
+                    "description cannot contain angle brackets (< or >)", result.stderr
+                )
+
+    def test_all_shipped_codex_skills_pass_full_validator(self):
+        metadata_root = REPO_ROOT / "deploy_assets" / "templates" / "skill_metadata"
+        bodies_root = REPO_ROOT / "deploy_assets" / "templates" / "skill_bodies"
+        metadata_files = sorted(metadata_root.glob("*_skills.json"))
+        metadata_files = [
+            path for path in metadata_files if path.name != "codex_math_skills.json"
+        ]
+
+        with tempfile.TemporaryDirectory() as tmp:
+            output = Path(tmp) / "skills"
+            expected = set()
+            for metadata in metadata_files:
+                group = metadata.stem.removesuffix("_skills")
+                bodies = bodies_root / group
+                self.assertTrue(bodies.is_dir(), f"missing bodies directory for {metadata}")
+                skill_ids = set(json.loads(metadata.read_text(encoding="utf-8")))
+                self.assertTrue(
+                    expected.isdisjoint(skill_ids),
+                    f"duplicate skill ids in {metadata}: {expected & skill_ids}",
+                )
+                expected.update(skill_ids)
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(SCRIPT),
+                        "--metadata",
+                        str(metadata),
+                        "--bodies-dir",
+                        str(bodies),
+                        "--output-dir",
+                        str(output),
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
+
+            assembled = {path.name for path in output.iterdir()}
+            self.assertEqual(assembled, expected)
+            self.assertNotIn("codex-math", assembled)
+            for skill_id in sorted(assembled):
+                result = subprocess.run(
+                    [
+                        sys.executable,
+                        str(VALIDATOR),
+                        str(output / skill_id / "SKILL.md"),
+                        "--label",
+                        skill_id,
+                    ],
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                )
+                self.assertEqual(result.returncode, 0, result.stderr)
 
 
 if __name__ == "__main__":

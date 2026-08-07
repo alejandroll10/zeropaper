@@ -3,16 +3,10 @@ import argparse
 import json
 from pathlib import Path
 
-FIELD_ORDER = ["name", "description"]
+from codex_skill_validation import CodexSkillValidationError
+from codex_skill_validation import validate_codex_skill_frontmatter
 
-# Codex's bundled skill-creator validator caps `name` at 64 characters and
-# `description` at 1024 CHARACTERS. Its quick_validate.py strips each string, then
-# uses Python's len(), matching the character-based contract rather than UTF-8 byte
-# length. The runtime loader may tolerate an overlong description, but generated
-# skills should satisfy the authoring validator instead of relying on that permissive
-# implementation detail.
-CODEX_NAME_LIMIT_CHARS = 64
-CODEX_DESCRIPTION_LIMIT_CHARS = 1024
+FIELD_ORDER = ["name", "description"]
 
 
 def yaml_scalar(value):
@@ -66,26 +60,13 @@ def main():
         skill_dir = output_dir / skill_id
         skill_dir.mkdir(parents=True, exist_ok=True)
         codex_metadata = resolve_codex_metadata(skill_metadata)
-        name = codex_metadata.get("name", "")
-        name_len = len(name.strip())
-        if name_len > CODEX_NAME_LIMIT_CHARS:
+        try:
+            validate_codex_skill_frontmatter(codex_metadata)
+        except CodexSkillValidationError as exc:
             raise ValueError(
-                f"Codex skill '{skill_id}' ({args.metadata}) has a name of "
-                f"{name_len} characters, exceeding Codex's "
-                f"{CODEX_NAME_LIMIT_CHARS}-character skill-authoring limit. "
-                f"Add a shorter \"codex\": {{\"name\": \"...\"}} override "
-                f"to this skill's metadata."
-            )
-        description = codex_metadata.get("description", "")
-        char_len = len(description.strip())
-        if char_len > CODEX_DESCRIPTION_LIMIT_CHARS:
-            raise ValueError(
-                f"Codex skill '{skill_id}' ({args.metadata}) has a description of "
-                f"{char_len} characters, exceeding Codex's "
-                f"{CODEX_DESCRIPTION_LIMIT_CHARS}-character skill-authoring limit. "
-                f"Add a shorter \"codex\": {{\"description\": \"...\"}} override "
-                f"to this skill's metadata."
-            )
+                f"Codex skill '{skill_id}' ({args.metadata}) fails Codex's "
+                f"bundled skill-authoring validator: {exc}"
+            ) from None
         (skill_dir / "SKILL.md").write_text(render_skill(codex_metadata, body))
 
 

@@ -9,6 +9,7 @@ import yaml
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
 SCRIPT = REPO_ROOT / "scripts" / "sync_dev_instructions.sh"
+VALIDATOR = REPO_ROOT / "deploy_assets" / "scripts" / "codex_skill_validation.py"
 
 
 class SyncDevInstructionsTest(unittest.TestCase):
@@ -16,8 +17,10 @@ class SyncDevInstructionsTest(unittest.TestCase):
         with tempfile.TemporaryDirectory() as tmp:
             root = Path(tmp)
             (root / "scripts").mkdir()
+            (root / "deploy_assets" / "scripts").mkdir(parents=True)
             (root / ".claude" / "skills" / "demo").mkdir(parents=True)
             shutil.copy2(SCRIPT, root / "scripts" / SCRIPT.name)
+            shutil.copy2(VALIDATOR, root / "deploy_assets" / "scripts" / VALIDATOR.name)
             (root / "CLAUDE.md").write_text("# Test instructions\n", encoding="utf-8")
             (root / ".claude" / "skills" / "demo" / "SKILL.md").write_text(
                 skill_md,
@@ -58,8 +61,25 @@ class SyncDevInstructionsTest(unittest.TestCase):
         result = self.run_sync(skill_md)
 
         self.assertNotEqual(result.returncode, 0)
-        self.assertIn("skill-authoring validator", result.stderr)
-        self.assertIn("over 1024", result.stderr)
+        self.assertIn("1024-character skill-authoring limit", result.stderr)
+
+    def test_rejects_each_angle_bracket(self):
+        for bracket in ("<", ">"):
+            skill_md = (
+                "---\n"
+                "name: demo\n"
+                f'description: "before {bracket} after"\n'
+                "---\n\n"
+                "# Demo\n"
+            )
+
+            with self.subTest(bracket=bracket):
+                result = self.run_sync(skill_md)
+
+                self.assertNotEqual(result.returncode, 0)
+                self.assertIn(
+                    "description cannot contain angle brackets (< or >)", result.stderr
+                )
 
 
 if __name__ == "__main__":

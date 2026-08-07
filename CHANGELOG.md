@@ -15,7 +15,11 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.23.2] — 2026-08-06 (current)
+## [2.23.3] — 2026-08-07 (current)
+
+**Every shipped Codex skill now satisfies the complete bundled skill-authoring validator (#237).** Five rendered descriptions (`ssj`, `call-reports`, `tnic`, `trace-bonds`, and `revelio`) used ASCII arrow/comparison notation containing `<` or `>`, which Codex's bundled `skill-creator/scripts/quick_validate.py` rejects even though the current runtime loader accepts it. Their seven base/override metadata fields now use equivalent prose. A shared build-time validator single-sources the complete public contract — allowed and required fields, field types, hyphen-case name syntax, edge/doubled-hyphen rejection, 64/1024 Unicode-character caps, and the description angle-bracket ban — for both deployed-skill assembly and the dev-skill mirror; it also retains the repository's stricter non-empty-field requirement. Unit coverage exercises every rule, and an exhaustive integration assembles and validates every Codex-targeted skill metadata set while preserving the intentional `codex-math` exclusion.
+
+## [2.23.2] — 2026-08-06
 
 **Codex skills are validated against the real 64-character name and 1,024-character description authoring limits (#231).** The deployed-skill assembler previously counted description bytes and could reject valid multibyte punctuation while failing to check the name cap; it now enforces both limits in Unicode characters, matching Codex's bundled `skill-creator` validator. The dev-skill mirror validator now enforces the same authoring contract instead of treating runtime-loader tolerance as permission to exceed it, the canonical `edit-pipeline` guidance identifies the public Codex validator as the source of truth, and stale sync-script commentary about the removed clone-and-strip deployment architecture is gone.
 

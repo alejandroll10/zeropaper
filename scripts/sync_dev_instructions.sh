@@ -70,6 +70,7 @@ CANONICAL_DOC="$ROOT_DIR/CLAUDE.md"
 MIRROR_DOC="$ROOT_DIR/AGENTS.md"
 CANONICAL_SKILLS_DIR="$ROOT_DIR/.claude/skills"
 MIRROR_SKILLS_DIR="$ROOT_DIR/.agents/skills"
+CODEX_SKILL_VALIDATOR="$ROOT_DIR/deploy_assets/scripts/codex_skill_validation.py"
 
 if [ ! -f "$CANONICAL_DOC" ]; then
     echo "ERROR: canonical instructions not found: $CANONICAL_DOC" >&2
@@ -133,6 +134,10 @@ mkdir -p "$MIRROR_SKILLS_DIR"
 
 if [ ! -d "$CANONICAL_SKILLS_DIR" ]; then
     echo "ERROR: canonical skills dir not found: $CANONICAL_SKILLS_DIR" >&2
+    exit 1
+fi
+if [ ! -f "$CODEX_SKILL_VALIDATOR" ]; then
+    echo "ERROR: Codex skill validator not found: $CODEX_SKILL_VALIDATOR" >&2
     exit 1
 fi
 
@@ -202,15 +207,11 @@ for src in "$CANONICAL_SKILLS_DIR"/*/; do
         echo "ERROR: $skill has no SKILL.md — Codex will not discover it." >&2
         exit 1
     fi
-    # Frontmatter is checked against Codex's bundled skill-creator validator. Both
-    # caps are measured in CHARACTERS, not UTF-8 bytes: quick_validate.py uses
-    # len(name) / len(description). Counting bytes would over-flag descriptions
-    # containing non-ASCII punctuation, including every dev skill currently here.
-    #
-    #   name         <= 64    HARD authoring limit; also rejected by the loader.
-    #   description  <= 1024  HARD authoring limit. The current runtime loader is
-    #                          permissive above it, but generated skills must not rely
-    #                          on that implementation detail.
+    # The shared validator mirrors Codex's complete bundled skill-creator contract:
+    # allowed/required fields and types, hyphen-case name syntax, the 64/1024
+    # character caps, and the description angle-bracket ban. Both caps count Unicode
+    # CHARACTERS, not UTF-8 bytes. It is shared with assemble_codex_skills.py so dev
+    # mirrors and deployed skills cannot drift onto different authoring rules.
     #
     # Separate mechanism, deliberately not checked: an aggregate skills-metadata budget
     # across ALL rendered descriptions, which also truncates (openai/codex#24299). It is
@@ -219,65 +220,7 @@ for src in "$CANONICAL_SKILLS_DIR"/*/; do
     # to Characters only when the context window is unknown. The budget_limit=5440 in that
     # issue is 272_000 * 2%, i.e. tokens. It depends on the model and on what else is
     # installed, so it is not knowable from this repo.
-    python3 - "$src/SKILL.md" "$skill" <<'PY' || exit 1
-import sys
-
-try:
-    import yaml
-except ImportError:
-    print(
-        "ERROR: scripts/sync_dev_instructions.sh requires PyYAML to validate "
-        "Codex skill frontmatter.",
-        file=sys.stderr,
-    )
-    sys.exit(1)
-
-path, skill = sys.argv[1], sys.argv[2]
-
-def fail(msg):
-    print(f"ERROR: {skill} SKILL.md {msg}", file=sys.stderr)
-    sys.exit(1)
-
-lines = open(path, encoding="utf-8").read().splitlines(keepends=True)
-if not lines or lines[0].rstrip("\r\n") != "---":
-    fail("does not open with a '---' frontmatter block.")
-
-block_lines = []
-for line in lines[1:]:
-    if line.rstrip("\r\n") == "---":
-        break
-    block_lines.append(line)
-else:
-    fail("has an unterminated frontmatter block (no closing '---').")
-
-try:
-    fields = yaml.safe_load("".join(block_lines))
-except yaml.YAMLError as exc:
-    fail(f"has invalid YAML frontmatter: {exc}")
-if not isinstance(fields, dict):
-    fail("frontmatter must be a YAML mapping.")
-
-for field in ("name", "description"):
-    value = fields.get(field)
-    if not isinstance(value, str):
-        fail(f"frontmatter '{field}' must be a string.")
-    fields[field] = value.strip()
-    if not fields[field]:
-        fail(f"frontmatter is missing a non-empty '{field}:'.")
-
-# Hard: parser.rs validate_len() rejects the skill outright.
-n = len(fields["name"])
-if n > 64:
-    fail(f"'name' is {n} characters; Codex rejects a name over 64. Shorten it.")
-
-d = len(fields["description"])
-if d > 1024:
-    fail(
-        f"'description' is {d} characters; Codex's skill-authoring validator "
-        "rejects a description over 1024. Shorten it."
-    )
-print(f"  {skill}: name {n}/64, description {d}/1024 chars")
-PY
+    python3 "$CODEX_SKILL_VALIDATOR" "$src/SKILL.md" --label "$skill" || exit 1
 
     # Refuse rather than clobber. Everything under .agents/skills is generated, so
     # content that is not one of ours arrived by mistake, and replacing it would be
