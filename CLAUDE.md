@@ -28,9 +28,9 @@ The pipeline's empirical dataset skills (`deploy_assets/templates/skill_bodies/e
 
 The pipeline is the current best we have, not necessarily correct. Do not assume the pipeline's current way of doing things is the right way — it is a candidate to be questioned and improved, not a baseline to defer to.
 
-## Working principle: no unsolved or undocumented architectural limits
+## Working principle: no unsolved, undocumented, or untracked architectural limits
 
-When auditing or editing the pipeline, if a known architectural limit is identified (e.g., a self-referential check, a subjective rule, an enforcement gap, a missing producer for a consumed artifact), do not leave it acknowledged-and-moved-on. Either (a) solve it in the same pass, or (b) document it explicitly — in the relevant agent body, doc file, or a dedicated `LIMITATIONS.md` — with the failure mode it can produce and what would be needed to close it. Acknowledged-but-undocumented limits accumulate silently and produce surprises in future runs.
+When auditing or editing the pipeline, if a known architectural limit is identified (e.g., a self-referential check, a subjective rule, an enforcement gap, a missing producer for a consumed artifact), do not leave it acknowledged-and-moved-on. Either (a) solve it in the same pass, or (b) document it in `LIMITATIONS.md` with the failure mode it can produce and what would be needed to close it, **and open a corresponding GitHub issue linked from that entry**. Add explanation to the relevant agent body or doc file when it helps operators, but that does not replace the mandatory `LIMITATIONS.md` entry + GitHub issue pair. Acknowledged-but-untracked limits accumulate silently and produce surprises in future runs.
 
 ## Working principle: no implementation-complexity budget — do what is best for the pipeline
 
