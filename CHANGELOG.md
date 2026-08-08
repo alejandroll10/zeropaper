@@ -15,7 +15,11 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.23.5] — 2026-08-07 (current)
+## [2.23.6] — 2026-08-08 (current)
+
+**Running or resuming a deployed workflow now explicitly authorizes every prescribed subagent launch (#238).** A short, uppercase instruction at the top of every autonomous-pipeline and report-mode runtime document tells the orchestrator not to ask again for confirmation or perform the subagent's work itself. This closes the ambiguity that let Claude Code over-generalize the separate `Workflow` opt-in rule to ordinary `Agent` launches and silently stall at evaluation gates.
+
+## [2.23.5] — 2026-08-07
 
 **A clean-checkout CI guard now detects stale Codex-facing dev mirrors (#233).** Every pull request and push to `main` runs the canonical `sync_dev_instructions.sh`, force-stages only `AGENTS.md` and `.agents/skills`, and fails if the regenerated paths differ in type, executable mode, or bytes from the proposed commit. This avoids reimplementing the generator in the discarded index-only pre-commit checker, whose repeated false PASSes included normalized trailing newlines and partially trusted generated headers. The generator now normalizes `AGENTS.md` to a regular, non-executable copy while preserving existing read/write permission bits, stages it through an atomically created same-directory tempfile rather than a predictable path that could redirect the write through a symlink, compares symlink-target bytes without newline normalization, rejects hidden or invalid canonical skill directories, sweeps hidden mirror entries, and tests symlink support in a unique temporary directory rather than deleting a foreign fixed-name probe path. Focused regressions cover exact document bytes, type, permissions, and every header line; tempfile and probe-path safety; invalid canonical directories; and missing/new/extra/hidden/malformed skill links, including ignored generated additions and resolvable newline targets. The check becomes merge-blocking when its status is required by branch protection; until then it still reports drift on every PR and after any direct push to `main`.
 
