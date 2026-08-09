@@ -40,7 +40,10 @@ EXT_SHARED_VOCAB="$TEMPLATE_ROOT/templates/agent_bodies/shared/vocab.json"
 
 EXT_ROOT="$TEMPLATE_ROOT/extensions/theory_llm"
 
-cp "$EXT_ROOT/llm_client.py" "$PROJECT_ROOT/"
+# shellcheck source=/dev/null
+source "$TEMPLATE_ROOT/scripts/setup/ownership.sh"
+P="$PROJECT_ROOT"
+infrastructure_copy_file 1100 "$EXT_ROOT/llm_client.py" "llm_client.py"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_claude_agents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \
@@ -75,7 +78,7 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_claude_skills.py" \
     --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/theory_llm" \
     --output-dir "$SKILLS_OUT"
 
-mkdir -p "$PROJECT_ROOT/output/stage3b/figures"
+bootstrap_dir "output/stage3b/figures"
 
 # Amend the deployed Stage 9 doc: theory_llm adds a ninth polish agent.
 # Guarded (grep) so update.sh re-runs don't append twice; skipped when the
@@ -104,13 +107,4 @@ UF_API_KEY=your-key-here
 # DeepInfra (pay-per-token): https://deepinfra.com
 DEEPINFRA_TOKEN=your-key-here
 ENVEOF
-fi
-
-if [ "$LOCAL" = "0" ] && [ -d "$PROJECT_ROOT/.venv" ]; then
-    # Target the project venv created by setup.sh (deployed pipeline uses bare
-    # python3). Dep list single-sourced in extensions/theory_llm/deps.txt (also
-    # read by update.sh's venv bootstrap). Guarded on venv existence so a failed
-    # venv creation in setup.sh doesn't add a second doomed install here.
-    uv pip install --python "$PROJECT_ROOT/.venv" -r "$TEMPLATE_ROOT/extensions/theory_llm/deps.txt" -q 2>/dev/null \
-        || echo "Note: theory_llm deps failed; install manually: source $PROJECT_ROOT/.venv/bin/activate && uv pip install openai python-dotenv"
 fi

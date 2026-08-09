@@ -15,7 +15,11 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.23.6] — 2026-08-08 (current)
+## [2.23.7] — 2026-08-08 (current)
+
+**Deployment assembly now has explicit infrastructure and project ownership, with `setup.sh` reduced to a fail-fast coordinator (#255, closes #236).** A 39-shape golden characterization first captured complete local deployments (files, modes, symlinks, empty directories, manifests, and CLI contracts), then configuration, runtime documents, five-runtime agent assembly, project bootstrap, infrastructure docs, skills/utilities, extensions/injections, provisioning, and finalization moved behind sourced module interfaces. Template-owned producers now create or verify paths through hardened `infrastructure_*` helpers that register replacement ownership at the write site; mutable paper/state/seed/license content remains bootstrap-owned, while `.env` alone is explicitly merge-managed. Manifest arrays are derived structurally from the producer registries with exact historical ordering, including extension subprocess outputs, eliminating the distant candidate lists and their silent two-place failure mode. Ownership paths reject traversal, control characters, symlink components, and non-regular file targets before mutation. Venv/core/SSJ/extension dependency installation is single-sourced in provisioning order, while git initialization, initial commit, opt-in publication, and completion reporting live in finalization. CI runs configuration, cleanup, ownership/update, production provisioning/publication, and full characterization fixtures. Iterative independent GPT-SOL audits found and closed reentrant config leakage, inherited-temp cleanup, pre-validation writes, registry control-character corruption, symlink escapes, and missing production CI coverage; final fresh rounds were clean.
+
+## [2.23.6] — 2026-08-08
 
 **Running or resuming a deployed workflow now explicitly authorizes every prescribed subagent launch (#238).** A short, uppercase instruction at the top of every autonomous-pipeline and report-mode runtime document tells the orchestrator not to ask again for confirmation or perform the subagent's work itself. This closes the ambiguity that let Claude Code over-generalize the separate `Workflow` opt-in rule to ordinary `Agent` launches and silently stall at evaluation gates.
 

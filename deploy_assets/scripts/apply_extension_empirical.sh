@@ -45,6 +45,9 @@ EXT_SHARED_ARGS=()
 [ -n "$EXT_MODE_BODIES_OVERLAY" ] && [ -d "$EXT_MODE_BODIES_OVERLAY" ] && EXT_SHARED_ARGS+=(--shared-bodies-dir "$EXT_MODE_BODIES_OVERLAY")
 
 EXT_ROOT="$TEMPLATE_ROOT/extensions/empirical"
+# shellcheck source=/dev/null
+source "$TEMPLATE_ROOT/scripts/setup/ownership.sh"
+P="$PROJECT_ROOT"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_claude_skills.py" \
     --metadata "$TEMPLATE_ROOT/templates/skill_metadata/empirical_skills.json" \
@@ -122,12 +125,17 @@ else
 fi
 
 mkdir -p "$PROJECT_ROOT/code/utils"
-cp "$EXT_ROOT/utils/"*.py "$PROJECT_ROOT/code/utils/"
-cp "$EXT_ROOT/utils/"*.sh "$PROJECT_ROOT/code/utils/" 2>/dev/null || true
+for _infra_src in "$EXT_ROOT/utils/"*.py "$EXT_ROOT/utils/"*.sh; do
+    [ -f "$_infra_src" ] || continue
+    infrastructure_copy_file 1000 "$_infra_src" "code/utils/$(basename "$_infra_src")"
+done
 chmod +x "$PROJECT_ROOT/code/utils/"*.sh 2>/dev/null || true
-touch "$PROJECT_ROOT/code/utils/__init__.py"
+if [ ! -f "$PROJECT_ROOT/code/utils/__init__.py" ]; then
+    touch "$PROJECT_ROOT/code/utils/__init__.py"
+fi
+infrastructure_file 1000 "code/utils/__init__.py"
 
-mkdir -p "$PROJECT_ROOT/output/stage3a/figures"
+bootstrap_dir "output/stage3a/figures"
 
 ENV_FILE="$PROJECT_ROOT/.env"
 if ! grep -q 'FRED_API_KEY' "$ENV_FILE" 2>/dev/null; then
@@ -151,13 +159,4 @@ WRDS_PASS=your-password
 SEC_EDGAR_NAME=Your Name
 SEC_EDGAR_EMAIL=your@email.edu
 ENVEOF
-fi
-
-if [ "$LOCAL" = "0" ] && [ -d "$PROJECT_ROOT/.venv" ]; then
-    # Target the project venv created by setup.sh (deployed pipeline uses bare
-    # python3). Dep list single-sourced in extensions/empirical/deps.txt (also
-    # read by update.sh's venv bootstrap). Guarded on venv existence so a failed
-    # venv creation in setup.sh doesn't add a second doomed install here.
-    uv pip install --python "$PROJECT_ROOT/.venv" -r "$TEMPLATE_ROOT/extensions/empirical/deps.txt" -q 2>/dev/null \
-        || echo "Note: empirical deps failed; install manually: source $PROJECT_ROOT/.venv/bin/activate && uv pip install $(grep -vE '^[[:space:]]*(#|$)' "$TEMPLATE_ROOT/extensions/empirical/deps.txt" | tr '\n' ' ')"
 fi

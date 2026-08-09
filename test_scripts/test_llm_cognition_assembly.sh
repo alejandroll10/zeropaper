@@ -25,7 +25,7 @@ done
 
 # ── 2. Assembly: bare llm_cognition must build, auto-imply theory_llm, resolve all placeholders ──
 rm -rf test_output
-BUILD_LOG="$(./setup.sh --variant llm_cognition --local 2>&1)"
+BUILD_LOG="$(./setup.sh --variant llm_cognition --local --no-model-probe 2>&1)"
 if [ $? -ne 0 ]; then
     fail "bare --variant llm_cognition build failed"
     echo "$BUILD_LOG" | tail -5
@@ -150,7 +150,7 @@ grep -q "Procedurally generate stimuli" "$B/.claude/agents/experiment-designer.m
 
 # ── 6. Report mode (#204): llm_cognition report build assembles ML-calibrated referees ──
 rm -rf test_output
-REPORT_LOG="$(./setup.sh --variant llm_cognition --mode report --local 2>&1)"
+REPORT_LOG="$(./setup.sh --variant llm_cognition --mode report --local --no-model-probe 2>&1)"
 if [ $? -ne 0 ]; then
     fail "llm_cognition --mode report build failed"
     echo "$REPORT_LOG" | tail -5
@@ -202,7 +202,7 @@ else
     pass "gate fired: measurement-first is llm_cognition-only"
 fi
 rm -rf test_output
-MF_LOG="$(./setup.sh --variant llm_cognition --mode measurement-first --local 2>&1)"
+MF_LOG="$(./setup.sh --variant llm_cognition --mode measurement-first --local --no-model-probe 2>&1)"
 if [ $? -ne 0 ]; then
     fail "llm_cognition --mode measurement-first build failed"
     echo "$MF_LOG" | tail -5

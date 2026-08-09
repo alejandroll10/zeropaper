@@ -16,7 +16,7 @@ pass() { echo "✓ $1"; }
 
 for v in finance macro; do
     rm -rf test_output
-    if ! ./setup.sh --variant "$v" --mode report --local >/dev/null 2>&1; then
+    if ! ./setup.sh --variant "$v" --mode report --local --no-model-probe >/dev/null 2>&1; then
         fail "$v --mode report build failed"
         continue
     fi

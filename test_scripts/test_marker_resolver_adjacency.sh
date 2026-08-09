@@ -40,7 +40,7 @@ PY
 build() {  # $1 = variant, rest = extra flags
     local v="$1"; shift
     rm -rf test_output
-    ./setup.sh --variant "$v" --local "$@" >/dev/null 2>&1 || return 1
+    ./setup.sh --variant "$v" --local --no-model-probe "$@" >/dev/null 2>&1 || return 1
 }
 
 # The idea-reviewer ADVANCE site carries three sibling mode blocks

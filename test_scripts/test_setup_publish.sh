@@ -53,7 +53,17 @@ TEMPLATE_REPO="$TEST_ROOT/template"
 git clone -q "$REPO_ROOT" "$TEMPLATE_REPO"
 cp "$REPO_ROOT/setup.sh" "$TEMPLATE_REPO/setup.sh"
 cp "$REPO_ROOT/VERSION" "$TEMPLATE_REPO/VERSION"
-git -C "$TEMPLATE_REPO" add setup.sh VERSION
+# The decomposition modules may be uncommitted in the working tree under test,
+# so the temporary production source must stage them alongside setup.sh. A real
+# release commit naturally carries the same files.
+mkdir -p "$TEMPLATE_REPO/deploy_assets/scripts/setup"
+cp "$REPO_ROOT/deploy_assets/scripts/setup/"*.sh "$TEMPLATE_REPO/deploy_assets/scripts/setup/"
+cp "$REPO_ROOT/deploy_assets/scripts/apply_extension_empirical.sh" \
+    "$REPO_ROOT/deploy_assets/scripts/apply_extension_theory_llm.sh" \
+    "$TEMPLATE_REPO/deploy_assets/scripts/"
+git -C "$TEMPLATE_REPO" add setup.sh VERSION deploy_assets/scripts/setup \
+    deploy_assets/scripts/apply_extension_empirical.sh \
+    deploy_assets/scripts/apply_extension_theory_llm.sh
 if ! git -C "$TEMPLATE_REPO" diff --cached --quiet; then
     git -C "$TEMPLATE_REPO" \
         -c user.name='Publish Test' -c user.email='publish-test@example.invalid' \
@@ -65,6 +75,18 @@ mkdir -p "$FAKE_BIN"
 
 cat >"$FAKE_BIN/uv" <<'EOF'
 #!/usr/bin/env bash
+set -eu
+printf '%s\n' "$*" >>"${TEST_UV_LOG:?}"
+if [ "${1:-}" = "venv" ]; then
+    eval "target=\${$#}"
+    mkdir -p "$target/bin" "$target/lib/python3.12/site-packages"
+    cat > "$target/bin/python3" <<'PYEOF'
+#!/usr/bin/env bash
+venv_root="$(cd "$(dirname "$0")/.." && pwd)"
+printf '%s\n' "$venv_root/lib/python3.12/site-packages"
+PYEOF
+    chmod +x "$target/bin/python3"
+fi
 exit 0
 EOF
 cat >"$FAKE_BIN/claude" <<'EOF'
@@ -132,12 +154,15 @@ RUN_ROOT="$TEST_ROOT/runs"
 mkdir -p "$RUN_ROOT"
 GH_LOG="$TEST_ROOT/gh.log"
 : >"$GH_LOG"
+UV_LOG="$TEST_ROOT/uv.log"
+: >"$UV_LOG"
 
 COMMON_ENV=(
     env
     PATH="$FAKE_BIN:$PATH"
     BASH_ENV="$BASH_ENV_FILE"
     TEST_GH_LOG="$GH_LOG"
+    TEST_UV_LOG="$UV_LOG"
     ZEROPAPER_REPO="$TEMPLATE_REPO"
     GIT_CONFIG_GLOBAL=/dev/null
     GIT_CONFIG_NOSYSTEM=1
@@ -162,6 +187,40 @@ grep -Fq -- "Publishing skipped: local repository only" "$DEFAULT_LOG" \
 [ ! -s "$GH_LOG" ] || fail "default production setup invoked gh"
 git -C "$RUN_ROOT/default-project" rev-parse --verify HEAD >/dev/null \
     || fail "default production setup did not commit the local repository"
+grep -Fq -- "pip install --python ./.venv -r" "$UV_LOG" \
+    || fail "default production setup did not provision project dependencies"
+[ -f "$RUN_ROOT/default-project/.venv/lib/python3.12/site-packages/_pipeline_dotenv_guard.pth" ] \
+    || fail "default production setup did not install the dotenv guard"
+
+# Provisioning remains ordered at its historical boundaries: core first, SSJ
+# with the finance skill, then extension dependencies in the user's extension
+# order. This production clone path verifies the coordinator/module wiring, not
+# merely the provisioning functions in isolation.
+: >"$UV_LOG"
+PROVISION_LOG="$TEST_ROOT/provision.log"
+"${COMMON_ENV[@]}" "$SETUP" "$RUN_ROOT/provision-project" --no-model-probe \
+    --ext theory_llm --ext empirical >"$PROVISION_LOG" 2>&1
+python3 - "$UV_LOG" <<'PY' || fail "dependency provisioning order changed"
+import sys
+
+lines = [line.strip() for line in open(sys.argv[1]) if line.startswith("pip install ")]
+needles = [
+    "/templates/deps/core.txt",
+    "/templates/deps/ssj.txt",
+    "/extensions/theory_llm/deps.txt",
+    "/extensions/empirical/deps.txt",
+]
+positions = []
+for needle in needles:
+    matches = [i for i, line in enumerate(lines) if needle in line]
+    if len(matches) != 1:
+        print(f"expected one {needle!r} install, saw {len(matches)}; uv log={lines!r}", file=sys.stderr)
+        raise SystemExit(1)
+    positions.append(matches[0])
+if positions != sorted(positions):
+    print(f"dependency order mismatch: positions={positions!r}; uv log={lines!r}", file=sys.stderr)
+    raise SystemExit(1)
+PY
 
 # Explicit publishing prints the target before mutation and reaches gh with the
 # configured org/visibility. The fake gh makes this test side-effect free.
