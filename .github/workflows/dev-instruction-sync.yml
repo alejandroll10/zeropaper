@@ -34,6 +34,9 @@ jobs:
       - name: Test setup cleanup ownership
         run: bash test_scripts/test_setup_cleanup.sh
 
+      - name: Test checkout-local setup source policy
+        run: bash test_scripts/test_setup_source_policy.sh
+
       - name: Test infrastructure/bootstrap ownership
         run: bash test_scripts/test_setup_ownership.sh
 

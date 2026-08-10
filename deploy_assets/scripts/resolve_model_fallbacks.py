@@ -41,11 +41,11 @@ UNAVAILABLE_MARKERS = [
 PROBE_PROMPT = "Reply with exactly: ok"
 
 
-def probe(model, timeout):
+def probe(model, timeout, claude_executable):
     """Return 'available' | 'unavailable' | 'inconclusive'."""
     try:
         r = subprocess.run(
-            ["claude", "-p", "--model", model],
+            [claude_executable, "-p", "--model", model],
             input=PROBE_PROMPT,
             capture_output=True,
             text=True,
@@ -73,6 +73,8 @@ def main():
                          "is off or inconclusive (safety net for known suspensions).")
     ap.add_argument("--no-probe", action="store_true",
                     help="Skip the live claude-CLI probe; rely on --known-unavailable only.")
+    ap.add_argument("--claude-executable", default="claude",
+                    help="Exact Claude CLI executable selected by the setup launcher.")
     ap.add_argument("--timeout", type=int, default=120, help="Per-probe timeout (s).")
     ap.add_argument("--extra-model", action="append", default=[],
                     help="Additional model string(s) to consider (e.g. a --light override).")
@@ -104,7 +106,7 @@ def main():
         if args.no_probe:
             s = "unavailable" if model in known_unavail else "inconclusive"
         else:
-            s = probe(model, args.timeout)
+            s = probe(model, args.timeout, args.claude_executable)
             # A flaky/inconclusive probe still downgrades a model we KNOW is suspended.
             if s == "inconclusive" and model in known_unavail:
                 s = "unavailable"

@@ -1,804 +1,97 @@
-#!/bin/bash
-# update.sh — Refresh pipeline infrastructure in a deployed project.
-#
-# Usage:
-#   ./update.sh <deployed-project-path>
-#   ./update.sh <deployed-project-path> --dry-run
-#   ./update.sh <deployed-project-path> --variant finance --ext empirical
-#   ./update.sh <deployed-project-path> --seeded --manual --light
-#
-# Overrides (--variant, --ext, --seeded/--no-seeded, --manual/--no-manual,
-# --light/--no-light) take precedence over the manifest's recorded values
-# AND over sniffed values for pre-manifest deploys. Use them when the
-# manifest is wrong, or when you want to migrate a project across variants.
-# Each --ext repeats; passing --ext replaces the manifest's full extension
-# list (does not append).
-#
-# What it does:
-#   1. Reads .deploy_manifest.json from the target project (or sniffs/accepts
-#      flags if the project predates manifests).
-#   2. Deploys a fresh project into a tmp dir using setup.sh --local with the
-#      same variant + extensions + flags.
-#   3. Copies allow-listed infrastructure paths from the fresh deploy into the
-#      target project (rm -rf + cp -r for dirs; overwrite for files; key-merge
-#      for .env). Everything else is preserved: paper/, output/, process_log/,
-#      data/, references.bib, .git/, paper/arpipeline.sty fingerprint.
-#   4. Prints a diff summary (added / removed / changed agents).
-#
-# Safe to re-run. Does not touch git in the target project — review and
-# commit the changes yourself.
+#!/usr/bin/python3 -I
+"""Start the updater without allowing Bash startup hooks to run first."""
 
-set -e
+import os
+import stat
+import sys
 
-# ── Parse arguments ──
-PROJECT=""
-DRY_RUN=0
-OVERRIDE_VARIANT=""
-OVERRIDE_MODE=""
-OVERRIDE_MODE_SET=0   # distinguishes "no --mode flag" from "--no-mode (clear)"
-OVERRIDE_EXTS=()
-OVERRIDE_EXTS_SET=0   # distinguishes "no --ext flags" from "--ext '' (clear list)"
-OVERRIDE_SEEDED=""    # "", "true", or "false"
-OVERRIDE_MANUAL=""
-OVERRIDE_LIGHT=""
-NEXT_IS_VARIANT=0
-NEXT_IS_MODE=0
-NEXT_IS_EXT=0
 
-for arg in "$@"; do
-    case "$arg" in
-        --dry-run)        DRY_RUN=1 ;;
-        --variant)        NEXT_IS_VARIANT=1 ;;
-        --variant=*)      OVERRIDE_VARIANT="${arg#--variant=}" ;;
-        --mode)           NEXT_IS_MODE=1 ;;
-        --mode=*)         OVERRIDE_MODE="${arg#--mode=}";  OVERRIDE_MODE_SET=1 ;;
-        --no-mode)        OVERRIDE_MODE="";                OVERRIDE_MODE_SET=1 ;;
-        --ext)            NEXT_IS_EXT=1 ;;
-        --ext=*)          OVERRIDE_EXTS+=("${arg#--ext=}"); OVERRIDE_EXTS_SET=1 ;;
-        --clear-ext)      OVERRIDE_EXTS=();                  OVERRIDE_EXTS_SET=1 ;;
-        --seeded)         OVERRIDE_SEEDED=true ;;
-        --no-seeded)      OVERRIDE_SEEDED=false ;;
-        --manual)         OVERRIDE_MANUAL=true ;;
-        --no-manual)      OVERRIDE_MANUAL=false ;;
-        --light)          OVERRIDE_LIGHT=true ;;
-        --no-light)       OVERRIDE_LIGHT=false ;;
-        -*)               echo "Unknown option: $arg"; exit 1 ;;
-        *)
-            if [ "$NEXT_IS_VARIANT" = "1" ]; then
-                OVERRIDE_VARIANT="$arg"; NEXT_IS_VARIANT=0
-            elif [ "$NEXT_IS_MODE" = "1" ]; then
-                OVERRIDE_MODE="$arg"; OVERRIDE_MODE_SET=1; NEXT_IS_MODE=0
-            elif [ "$NEXT_IS_EXT" = "1" ]; then
-                OVERRIDE_EXTS+=("$arg"); OVERRIDE_EXTS_SET=1; NEXT_IS_EXT=0
-            else
-                PROJECT="$arg"
-            fi
-            ;;
-    esac
-done
+checkout_root = os.path.dirname(os.path.realpath(__file__))
+coordinator = os.path.join(checkout_root, "scripts", "update_coordinator.sh")
+try:
+    coordinator_info = os.lstat(coordinator)
+except OSError as error:
+    raise SystemExit(f"Error: cannot inspect update coordinator: {error}") from error
+if (
+    not stat.S_ISREG(coordinator_info.st_mode)
+    or coordinator_info.st_nlink != 1
+    or (
+        coordinator_info.st_uid != os.geteuid()
+        and coordinator_info.st_mode & (stat.S_IWGRP | stat.S_IWOTH)
+    )
+):
+    raise SystemExit(
+        f"Error: update coordinator must be one regular non-aliased file: {coordinator}"
+    )
 
-# Catch dangling NEXT_IS_* sentinels — without these, `update.sh PROJECT
-# --mode --variant finance` silently drops the --mode flag because --variant
-# is an explicit case match (not a *) fallthrough), so NEXT_IS_MODE never
-# gets consumed and OVERRIDE_MODE_SET stays 0.
-if [ "$NEXT_IS_VARIANT" = "1" ]; then
-    echo "Error: --variant requires a value (finance, macro, llm_cognition)"; exit 1
-fi
-if [ "$NEXT_IS_MODE" = "1" ]; then
-    echo "Error: --mode requires a value (empirical-first), or use --no-mode to clear"; exit 1
-fi
-if [ "$NEXT_IS_EXT" = "1" ]; then
-    echo "Error: --ext requires a value (empirical, theory_llm)"; exit 1
-fi
-
-if [ -z "$PROJECT" ]; then
-    echo "usage: update.sh <deployed-project-path> [--dry-run] [--variant X] [--mode M] [--ext Y ...]"
-    exit 1
-fi
-
-PROJECT="$(cd "$PROJECT" && pwd -P)"
-_update_source="$0"
-case "$_update_source" in */*) _update_dir="${_update_source%/*}" ;; *) _update_dir=. ;; esac
-TEMPLATE_ROOT="$(cd "$_update_dir" && pwd -P)"
-# Build inputs (templates/, scripts/, extensions/) live under deploy_assets/;
-# TEMPLATE_ROOT stays the repo checkout (setup.sh and VERSION live there).
-ASSETS_ROOT="$TEMPLATE_ROOT/deploy_assets"
-MANIFEST="$PROJECT/.deploy_manifest.json"
-
-# The target venv/project is agent-writable. Never let an activated venv (or a
-# temp/cache shim) provide host-authority tools used by the updater.
-UPDATE_CONTROL_PATH=""
-IFS=: read -r -a _update_path_entries <<< "${PATH:-}"
-for _update_path_entry in /usr/bin /bin /usr/sbin /sbin "${_update_path_entries[@]}"; do
-    [ -n "$_update_path_entry" ] && [ -d "$_update_path_entry" ] || continue
-    _update_path_physical="$(cd "$_update_path_entry" 2>/dev/null && pwd -P)" || continue
-    case "$_update_path_physical" in
-        "$PROJECT"|"$PROJECT"/*|"$TEMPLATE_ROOT"|"$TEMPLATE_ROOT"/*|\
-        /tmp|/tmp/*|/private/tmp|/private/tmp/*|/var/tmp|/var/tmp/*|/private/var/folders|/private/var/folders/*|\
-        "$HOME/.local/share/opencode"|"$HOME/.local/share/opencode"/*|\
-        "$HOME/.local/state/opencode"|"$HOME/.local/state/opencode"/*|\
-        "$HOME/.cache"|"$HOME/.cache"/*|"$HOME/Library/Caches"|"$HOME/Library/Caches"/*|\
-        "$HOME/.matplotlib"|"$HOME/.matplotlib"/*|"$HOME/.codex"|"$HOME/.codex"/*)
-            continue ;;
-    esac
-    case ":$UPDATE_CONTROL_PATH:" in *":$_update_path_physical:"*) ;; *)
-        UPDATE_CONTROL_PATH="${UPDATE_CONTROL_PATH:+$UPDATE_CONTROL_PATH:}$_update_path_physical" ;;
-    esac
-done
-[ -n "$UPDATE_CONTROL_PATH" ] || { echo "update.sh could not establish a trusted host PATH"; exit 1; }
-PATH="$UPDATE_CONTROL_PATH"
-export PATH PYTHONNOUSERSITE=1
-unset VIRTUAL_ENV PYTHONHOME PYTHONPATH PYTHONSTARTUP PYTHONINSPECT
-hash -r
-[ -f /usr/bin/python3 ] && [ -x /usr/bin/python3 ] || {
-    echo "update.sh requires the OS Python at /usr/bin/python3"; exit 1;
+clean = {
+    key: value
+    for key, value in os.environ.items()
+    if key
+    not in {
+        "BASH_ENV",
+        "ENV",
+        "BASHOPTS",
+        "SHELLOPTS",
+        "BASH_COMPAT",
+        "POSIXLY_CORRECT",
+        "CDPATH",
+        "GLOBIGNORE",
+        "VIRTUAL_ENV",
+        "CONDA_PREFIX",
+        "CONDA_DEFAULT_ENV",
+        "CONDA_PROMPT_MODIFIER",
+        "PIPENV_ACTIVE",
+        "POETRY_ACTIVE",
+    }
+    and not key.startswith("BASH_FUNC_")
 }
-UPDATE_CONTROL_PYTHON=/usr/bin/python3
-python3() { "$UPDATE_CONTROL_PYTHON" -I "$@"; }
+activation_roots = []
+for key in ("VIRTUAL_ENV", "CONDA_PREFIX"):
+    value = os.environ.get(key)
+    if value:
+        activation_roots.append((os.path.abspath(value), os.path.realpath(value)))
 
-command -v jq >/dev/null 2>&1 || { echo "update.sh requires jq (sudo apt-get install jq)"; exit 1; }
 
-if [ -e "$MANIFEST" ] || [ -L "$MANIFEST" ]; then
-    python3 - "$MANIFEST" <<'PY'
-import os, stat, sys
-info = os.lstat(sys.argv[1])
-if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-    raise SystemExit("ERROR: deployment manifest must be one regular non-aliased file")
-PY
-fi
-
-# The legacy folder migration below predates manifests and touches paper/
-# before the fresh deployment exists. Refuse an aliased parent first.
-if [ -L "$PROJECT/paper" ] || { [ -e "$PROJECT/paper" ] && [ ! -d "$PROJECT/paper" ]; }; then
-    echo "ERROR: $PROJECT/paper must be a real project directory" >&2
-    exit 1
-fi
-if [ -d "$PROJECT/paper" ] && [ "$(cd "$PROJECT/paper" && pwd -P)" != "$PROJECT/paper" ]; then
-    echo "ERROR: $PROJECT/paper resolves outside the deployment" >&2
-    exit 1
-fi
-
-# Host-authority update staging must be invisible to a concurrently running
-# sandboxed OpenCode tree. /tmp and the project root are intentionally writable
-# inside SRT, so use the policy-denied control directory on the project fs.
-UPDATE_PROCESS_LOG="$PROJECT/process_log"
-UPDATE_CONTROL_DIR="$UPDATE_PROCESS_LOG/.opencode-control"
-if [ -L "$UPDATE_PROCESS_LOG" ] || { [ -e "$UPDATE_PROCESS_LOG" ] && [ ! -d "$UPDATE_PROCESS_LOG" ]; }; then
-    echo "ERROR: $UPDATE_PROCESS_LOG must be a real project directory" >&2
-    exit 1
-fi
-mkdir -p "$UPDATE_PROCESS_LOG"
-if [ "$(cd "$UPDATE_PROCESS_LOG" && pwd -P)" != "$UPDATE_PROCESS_LOG" ]; then
-    echo "ERROR: $UPDATE_PROCESS_LOG resolves outside the deployment" >&2
-    exit 1
-fi
-if [ -L "$UPDATE_CONTROL_DIR" ] || { [ -e "$UPDATE_CONTROL_DIR" ] && [ ! -d "$UPDATE_CONTROL_DIR" ]; }; then
-    echo "ERROR: $UPDATE_CONTROL_DIR must be a real control directory" >&2
-    exit 1
-fi
-(umask 077 && mkdir -p "$UPDATE_CONTROL_DIR")
-if [ "$(cd "$UPDATE_CONTROL_DIR" && pwd -P)" != "$UPDATE_CONTROL_DIR" ]; then
-    echo "ERROR: $UPDATE_CONTROL_DIR resolves outside the deployment" >&2
-    exit 1
-fi
-
-# poppler-utils is a *runtime* dependency of the refreshed pipeline, not of this
-# script — so warn, never block. requirements.system is build-time-only and is
-# never copied into a deployment, which means an operator refreshing an existing
-# project has no other signal that the host now needs it. Without poppler the
-# Stage 5 placeholder gate silently false-passes (empty pipe → grep -c prints 0),
-# report mode cannot read a PDF-only submission, and paper-writer cannot see a
-# figure that shipped as .pdf-only from a run predating the dual-format contract.
-if ! command -v pdftotext >/dev/null 2>&1 || ! command -v pdftoppm >/dev/null 2>&1; then
-    echo "  ⚠ poppler-utils (pdftotext/pdftoppm) not found on this host."
-    echo "    Install it: brew install poppler  |  sudo apt-get install poppler-utils"
-    echo "    Without it the Stage 5 placeholder gate silently passes and PDF reads fail."
-fi
-
-# ── Resolve original deployment parameters ──
-# Every setup.sh flag that affects what gets deployed must be read here AND
-# re-passed in the SETUP_FLAGS block below — drift between the two breaks the
-# round-trip on update. Currently tracked: variant, mode, extensions, seeded,
-# manual, light, halt_on_core_bypass. When adding a new setup.sh flag, update both blocks.
-if [ -f "$MANIFEST" ]; then
-    VARIANT=$(jq -r .variant "$MANIFEST")
-    MODE=$(jq -r '.mode // ""' "$MANIFEST")
-    EXTENSIONS=()
-    while IFS= read -r _ext; do EXTENSIONS+=("$_ext"); done < <(jq -r '.extensions[]?' "$MANIFEST")
-    SEEDED=$(jq -r .flags.seeded "$MANIFEST")
-    MANUAL=$(jq -r .flags.manual "$MANIFEST")
-    LIGHT=$(jq -r .flags.light "$MANIFEST")
-    HALT_ON_CORE_BYPASS=$(jq -r '.flags.halt_on_core_bypass // false' "$MANIFEST")
-    OLD_VERSION=$(jq -r .template_version "$MANIFEST")
-    mode_str="${MODE:-(none)}"
-    echo "Found manifest: variant=$VARIANT, mode=$mode_str, extensions=[${EXTENSIONS[*]}], template=$OLD_VERSION"
-else
-    echo "No .deploy_manifest.json — pre-manifest deploy. Sniffing..."
-    # Sniff variant from CLAUDE.md
-    if grep -q "macroeconomics theory paper" "$PROJECT/CLAUDE.md" 2>/dev/null; then
-        VARIANT="macro"
-    elif grep -q "language-model cognition paper" "$PROJECT/CLAUDE.md" 2>/dev/null; then
-        VARIANT="llm_cognition"
-    elif grep -q "finance theory paper" "$PROJECT/CLAUDE.md" 2>/dev/null; then
-        VARIANT="finance"
-    else
-        VARIANT=""
-    fi
-    # Mode cannot be sniffed reliably — every empirical-first signature in a
-    # deployed project (mechanism body content, identification at Stage 1)
-    # could be retrofitted by hand or look the same across different
-    # decisions. Default to empty; user can pass --mode if their pre-manifest
-    # deploy was empirical-first.
-    MODE=""
-    EXTENSIONS=()
-    [ -f "$PROJECT/code/utils/wrds_client.py" ] && EXTENSIONS+=("empirical")
-    [ -f "$PROJECT/code/llm_client.py" ] && EXTENSIONS+=("theory_llm")
-    [ -d "$PROJECT/output/seed" ] && SEEDED=true || SEEDED=false
-    [ ! -d "$PROJECT/output/stage0" ] && [ ! -f "$PROJECT/dashboard.html" ] && MANUAL=true || MANUAL=false
-    LIGHT=false
-    # Pre-manifest deploys predate the core-bypass guard; default off. The
-    # operator can re-assert it by re-running setup with --halt-on-core-bypass.
-    HALT_ON_CORE_BYPASS=false
-    OLD_VERSION="(pre-manifest)"
-
-    if [ -z "$VARIANT" ] && [ -z "$OVERRIDE_VARIANT" ]; then
-        echo "Could not infer variant. Pass --variant finance|macro|llm_cognition."
-        exit 1
-    fi
-    echo "Inferred: variant=$VARIANT, extensions=[${EXTENSIONS[*]}], seeded=$SEEDED, manual=$MANUAL"
-fi
-
-# ── Apply explicit overrides (precedence: CLI flag > manifest > sniff) ──
-APPLIED_OVERRIDES=()
-if [ -n "$OVERRIDE_VARIANT" ] && [ "$OVERRIDE_VARIANT" != "$VARIANT" ]; then
-    APPLIED_OVERRIDES+=("variant: $VARIANT → $OVERRIDE_VARIANT")
-    VARIANT="$OVERRIDE_VARIANT"
-fi
-if [ "$OVERRIDE_MODE_SET" = "1" ] && [ "$OVERRIDE_MODE" != "$MODE" ]; then
-    old_mode_str="${MODE:-(none)}"
-    new_mode_str="${OVERRIDE_MODE:-(none)}"
-    APPLIED_OVERRIDES+=("mode: $old_mode_str → $new_mode_str")
-    MODE="$OVERRIDE_MODE"
-    # Mode change can leave a stale current_stage in pipeline_state.json that
-    # references a stage marker only valid in the prior mode (e.g., the
-    # empirical-first marker `stage_1_identification_design` has no handler
-    # under theory-first). The session-start resume path would then stall.
-    # Surface this so the operator can reset current_stage before relaunching.
-    MODE_CHANGE_ADVISORY=1
-fi
-if [ "$OVERRIDE_EXTS_SET" = "1" ]; then
-    OLD_EXT_STR="${EXTENSIONS[*]}"
-    NEW_EXT_STR="${OVERRIDE_EXTS[*]}"
-    if [ "$OLD_EXT_STR" != "$NEW_EXT_STR" ]; then
-        APPLIED_OVERRIDES+=("extensions: [$OLD_EXT_STR] → [$NEW_EXT_STR]")
-        EXTENSIONS=("${OVERRIDE_EXTS[@]}")
-    fi
-fi
-if [ -n "$OVERRIDE_SEEDED" ] && [ "$OVERRIDE_SEEDED" != "$SEEDED" ]; then
-    APPLIED_OVERRIDES+=("seeded: $SEEDED → $OVERRIDE_SEEDED")
-    SEEDED="$OVERRIDE_SEEDED"
-fi
-if [ -n "$OVERRIDE_MANUAL" ] && [ "$OVERRIDE_MANUAL" != "$MANUAL" ]; then
-    APPLIED_OVERRIDES+=("manual: $MANUAL → $OVERRIDE_MANUAL")
-    MANUAL="$OVERRIDE_MANUAL"
-fi
-if [ -n "$OVERRIDE_LIGHT" ] && [ "$OVERRIDE_LIGHT" != "$LIGHT" ]; then
-    APPLIED_OVERRIDES+=("light: $LIGHT → $OVERRIDE_LIGHT")
-    LIGHT="$OVERRIDE_LIGHT"
-fi
-if [ ${#APPLIED_OVERRIDES[@]} -gt 0 ]; then
-    echo
-    echo "Applying overrides:"
-    for o in "${APPLIED_OVERRIDES[@]}"; do echo "  $o"; done
-fi
-if [ "${MODE_CHANGE_ADVISORY:-0}" = "1" ]; then
-    echo
-    echo "  ⚠ Mode changed. Verify process_log/pipeline_state.json:current_stage is"
-    echo "    valid in the new mode before relaunching the pipeline."
-    echo "    - Empirical-first marker 'stage_1_identification_design' has no handler"
-    echo "      under theory-first; reset to 'stage_1' or 'stage_2' if present."
-    echo "    - Theory-first stage markers are all valid under empirical-first too,"
-    echo "      so converting theory-first → empirical-first usually needs no reset"
-    echo "      (unless the run is in Stage 2 mid-derivation — in which case reset"
-    echo "      to 'stage_1' to re-enter and pick up Step 4 identification design)."
-    echo "    See README.md (Modes section) and the runtime doc's halted-status"
-    echo "    handler for the full procedure."
-fi
-
-# ── One-time folder rename: referee_reports → simulated_referee_reports (issue #35) ──
-# Existing deployments have paper/referee_reports/; the template now emits
-# paper/simulated_referee_reports/. Migrate in place when only the old name exists.
-if [ -d "$PROJECT/paper/referee_reports" ] && [ ! -d "$PROJECT/paper/simulated_referee_reports" ]; then
-    if [ "$DRY_RUN" = "1" ]; then
-        echo "  (dry-run) would rename paper/referee_reports → paper/simulated_referee_reports"
-    else
-        mv "$PROJECT/paper/referee_reports" "$PROJECT/paper/simulated_referee_reports"
-        echo "  ✓ renamed paper/referee_reports → paper/simulated_referee_reports"
-    fi
-elif [ -d "$PROJECT/paper/referee_reports" ] && [ -d "$PROJECT/paper/simulated_referee_reports" ]; then
-    echo "  ⚠ Both paper/referee_reports/ and paper/simulated_referee_reports/ exist — skipping auto-rename. Inspect manually and merge if needed."
-fi
-
-# Compose the version stamp identically to setup.sh (VERSION semver + git hash,
-# e.g. "2.6.0+4be4d75"), so an update→deploy round-trip preserves the semver
-# component instead of overwriting the manifest with a bare hash.
-NEW_HASH=$(cd "$TEMPLATE_ROOT" && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
-NEW_SEMVER=$(tr -d '[:space:]' < "$TEMPLATE_ROOT/VERSION" 2>/dev/null || true)
-NEW_VERSION="${NEW_SEMVER:+${NEW_SEMVER}+}${NEW_HASH}"
-
-# ── Build setup.sh flag list ──
-# When adding a new setup.sh flag, update both this block AND the manifest-
-# read block above so update→deploy round-trips preserve the deployment.
-SETUP_FLAGS=( --variant "$VARIANT" --local )
-[ -n "$MODE" ] && SETUP_FLAGS+=( --mode "$MODE" )
-for ext in "${EXTENSIONS[@]}"; do SETUP_FLAGS+=( --ext "$ext" ); done
-[ "$SEEDED" = "true" ] && SETUP_FLAGS+=( --seed )
-[ "$MANUAL" = "true" ] && SETUP_FLAGS+=( --manual )
-[ "$LIGHT" = "true" ] && SETUP_FLAGS+=( --light )
-[ "$HALT_ON_CORE_BYPASS" = "true" ] && SETUP_FLAGS+=( --halt-on-core-bypass )
-
-# ── Deploy fresh into tmp ──
-TMP=$(mktemp -d "$UPDATE_CONTROL_DIR/update.XXXXXX")
-trap 'rm -rf "$TMP"' EXIT
-FRESH="$TMP/refresh"
-
-echo
-echo "Deploying fresh template into $FRESH ..."
-( cd "$TEMPLATE_ROOT" && bash setup.sh "$FRESH" "${SETUP_FLAGS[@]}" ) >"$TMP/deploy.log" 2>&1 || {
-    echo "Fresh deploy failed. Last 40 lines of log:"
-    tail -40 "$TMP/deploy.log"
-    exit 1
-}
-echo "  ✓ fresh deploy ok ($(wc -l < "$TMP/deploy.log") log lines)"
-
-NEW_MANIFEST="$FRESH/.deploy_manifest.json"
-if [ ! -f "$NEW_MANIFEST" ]; then
-    echo "ERROR: fresh deploy did not produce a manifest. Is setup.sh up to date?"
-    exit 1
-fi
-
-# Pre-sandbox agents could have aliased any managed parent, not just
-# `.opencode`. Validate every existing ancestor used by replacement, merging,
-# or stale sweeping before the first target mutation.
-python3 - "$PROJECT" "$NEW_MANIFEST" "$MANIFEST" <<'PY'
-import json, os, stat, sys
-from pathlib import PurePosixPath
-
-project, new_path, old_path = sys.argv[1:]
-manifests = [json.load(open(new_path, encoding="utf-8"))]
-if os.path.isfile(old_path):
-    manifests.append(json.load(open(old_path, encoding="utf-8")))
-paths = set()
-for manifest in manifests:
-    infra = manifest.get("infrastructure", {})
-    for key in ("dirs_replace", "files_replace", "files_env_merge"):
-        values = infra.get(key, [])
-        if not isinstance(values, list) or not all(isinstance(value, str) for value in values):
-            raise SystemExit(f"ERROR: invalid manifest path list: {key}")
-        paths.update(values)
-for value in paths:
-    pure = PurePosixPath(value)
-    if not value or pure.is_absolute() or any(part in {"", ".", ".."} for part in pure.parts):
-        raise SystemExit(f"ERROR: unsafe manifest path: {value!r}")
-    current = project
-    for part in pure.parts[:-1]:
-        current = os.path.join(current, part)
+def is_at_or_within_identity(candidate, ancestor):
+    current = candidate
+    while True:
         try:
-            info = os.lstat(current)
-        except FileNotFoundError:
-            break
-        if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
-            raise SystemExit(f"ERROR: managed path ancestor is not a real directory: {current}")
-        if os.path.commonpath((project, os.path.realpath(current))) != project:
-            raise SystemExit(f"ERROR: managed path ancestor escapes deployment: {current}")
-PY
+            if os.path.samefile(current, ancestor):
+                return True
+        except OSError:
+            pass
+        parent = os.path.dirname(current)
+        if parent == current:
+            return False
+        current = parent
 
-# ── Snapshot agent set BEFORE replacement (for diff) ──
-OLD_AGENTS_TMP="$TMP/old_agents.txt"
-NEW_AGENTS_TMP="$TMP/new_agents.txt"
-ls "$PROJECT/.claude/agents/" 2>/dev/null | sort > "$OLD_AGENTS_TMP" || true
-ls "$FRESH/.claude/agents/"   2>/dev/null | sort > "$NEW_AGENTS_TMP" || true
 
-# ── Apply replacements ──
-echo
-if [ "$DRY_RUN" = "1" ]; then
-    echo "=== DRY RUN — would replace ==="
-else
-    echo "=== Replacing infrastructure ==="
-fi
+def path_is_activated_or_checkout(path):
+    logical = os.path.abspath(path)
+    physical = os.path.realpath(path)
+    parts = {part.lower() for part in (*logical.split(os.sep), *physical.split(os.sep))}
+    if {".venv", "venv"} & parts:
+        return True
+    for candidate in (logical, physical):
+        if is_at_or_within_identity(candidate, checkout_root):
+            return True
+        for active_logical, active_physical in activation_roots:
+            if is_at_or_within_identity(candidate, active_logical) \
+                    or is_at_or_within_identity(candidate, active_physical):
+                return True
+    return False
 
-while IFS= read -r d; do
-    [ -d "$FRESH/$d" ] || continue
-    if [ "$DRY_RUN" = "1" ]; then
-        echo "  dir : $d"
-    else
-        rm -rf "$PROJECT/$d"
-        mkdir -p "$(dirname "$PROJECT/$d")"
-        cp -r "$FRESH/$d" "$PROJECT/$d"
-        echo "  dir ✓ $d"
-    fi
-done < <(jq -r '.infrastructure.dirs_replace[]' "$NEW_MANIFEST")
 
-while IFS= read -r f; do
-    [ -f "$FRESH/$f" ] || continue
-    # Guard against type mismatch: target exists as a directory where the
-    # manifest expects a file. cp into a dir would silently put the file
-    # *inside* the dir rather than replacing it.
-    if [ -d "$PROJECT/$f" ]; then
-        echo "  file ! $f — target is a directory; skipping (manual fix needed)"
+safe_path = []
+for raw in os.environ.get("PATH", "").split(os.pathsep):
+    if not raw:
         continue
-    fi
-    if [ "$DRY_RUN" = "1" ]; then
-        echo "  file: $f"
-    else
-        mkdir -p "$(dirname "$PROJECT/$f")"
-        # rm -f handles three cases that cp won't: regular symlinks (cp would
-        # follow and overwrite the target, corrupting wherever it points),
-        # dangling symlinks (cp errors with "not writing through dangling
-        # symlink"), and read-only files. Plain files are removed cleanly.
-        rm -f "$PROJECT/$f"
-        cp "$FRESH/$f" "$PROJECT/$f"
-        echo "  file ✓ $f"
-    fi
-done < <(jq -r '.infrastructure.files_replace[]' "$NEW_MANIFEST")
-
-# ── Stale-infrastructure sweep (issue #205) ──
-# A path recorded as infrastructure in the TARGET's existing manifest but
-# absent from the fresh manifest is infrastructure this template version no
-# longer deploys for this variant/mode/extension set (e.g. per-variant skill
-# gating dropped the ssj + nber-agenda util dirs from llm_cognition). Leaving
-# it would let old deployments diverge permanently from a fresh deploy, so
-# remove it. Only paths the old deploy's own manifest called infrastructure
-# are candidates — user content is never listed there. Pre-manifest deploys
-# have no old manifest, so there is nothing to sweep. files_env_merge (.env)
-# is deliberately not swept: it is user-merged, not replaced.
-if [ -f "$MANIFEST" ]; then
-    sweep() {
-        local kind="$1" jqlist="$2" testflag="$3" p
-        while IFS= read -r p; do
-            # Manifest paths are repo-relative by construction; refuse
-            # anything that could escape the project tree.
-            case "$p" in /*|*..*|"") continue ;; esac
-            case "$kind:$p" in
-                dir:.claude/agents|dir:.claude/skills|dir:.codex/agents|dir:.agents/skills|\
-                dir:.gemini/agents|dir:.grok/agents|dir:.opencode/agents|dir:docs|\
-                dir:code/utils/codex_math|dir:code/utils/agent_launcher|dir:code/utils/bib_verify|\
-                dir:code/utils/openalex|dir:code/utils/nber_agenda|dir:code/utils/model_heal|dir:code/utils/ssj)
-                    ;;
-                file:CLAUDE.md|file:AGENTS.md|file:GEMINI.md|file:launch.sh|\
-                file:docs/start_session_claude.md|file:docs/start_session_codex.md|file:docs/start_session_gemini.md|\
-                file:.claude/settings.json|file:.gemini/settings.json|file:.grok/sandbox.toml|\
-                file:.opencode/sandbox.json|file:.opencode/opencode_driver.py|\
-                file:.opencode/opencode_sandbox_exec.sh|file:.opencode/opencode_sandbox_exec.mjs|\
-                file:opencode.json|file:.gitignore|file:dashboard.html|file:llm_client.py|\
-                file:code/utils/setup_push_token.sh|file:code/utils/codex_preflight.sh|\
-                file:code/utils/bls_census_utils.py|file:code/utils/call_reports_utils.py|\
-                file:code/utils/chen_zimmerman_utils.py|file:code/utils/download_crsp_daily.py|\
-                file:code/utils/download_crsp_monthly.py|file:code/utils/edgar_utils.py|\
-                file:code/utils/form_5500_utils.py|file:code/utils/fred_utils.py|\
-                file:code/utils/hrs_scf_utils.py|file:code/utils/ken_french_utils.py|\
-                file:code/utils/mutual_fund_utils.py|file:code/utils/open_bond_pricing_utils.py|\
-                file:code/utils/process_crsp_daily.py|file:code/utils/process_crsp_monthly.py|\
-                file:code/utils/sec_funds_utils.py|file:code/utils/start_services.sh|\
-                file:code/utils/trace_bonds_utils.py|file:code/utils/treasury_yields_utils.py|\
-                file:code/utils/wrds_client.py|file:code/utils/wrds_server.py|file:code/utils/wrds_utils.py)
-                    ;;
-                *)
-                    echo "  stale $kind: $p (untrusted legacy path — preserved)"
-                    continue
-                    ;;
-            esac
-            # Never let an untrusted old manifest remove a current managed path
-            # or one of its ancestors/descendants.
-            if jq -e --arg p "$p" '
-                [.infrastructure.dirs_replace[]?, .infrastructure.files_replace[]?, .infrastructure.files_env_merge[]?]
-                | any(. as $q | $q == $p or ($q | startswith($p + "/")) or ($p | startswith($q + "/")))
-            ' "$NEW_MANIFEST" >/dev/null; then
-                continue
-            fi
-            [ $testflag "$PROJECT/$p" ] || continue
-            if [ "$DRY_RUN" = "1" ]; then
-                echo "  stale $kind: $p (no longer deployed — would remove)"
-            else
-                rm -rf "$PROJECT/$p"
-                echo "  stale $kind ✗ $p (no longer deployed — removed)"
-            fi
-        done < <(jq -r --slurpfile new "$NEW_MANIFEST" \
-            ".infrastructure.${jqlist}[]? | select(. as \$p | (\$new[0].infrastructure.${jqlist} // [] | index(\$p)) | not)" \
-            "$MANIFEST")
-    }
-    sweep dir dirs_replace -d
-    sweep file files_replace -f
-fi
-
-# ── Merge .env (append missing keys only; never overwrite values) ──
-echo
-echo "=== Merging .env ==="
-while IFS= read -r env_file; do
-    if [ -f "$FRESH/$env_file" ] && { [ -e "$PROJECT/$env_file" ] || [ -L "$PROJECT/$env_file" ]; }; then
-        python3 - "$FRESH/$env_file" "$PROJECT/$env_file" "$DRY_RUN" <<'PY'
-import os, stat, sys
-
-source, target, dry_run = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
-flags = os.O_RDONLY if dry_run else os.O_RDWR
-flags |= getattr(os, "O_NOFOLLOW", 0)
-fd = os.open(target, flags)
-info = os.fstat(fd)
-if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-    os.close(fd)
-    raise SystemExit(f"ERROR: environment target must be one regular non-aliased file: {target}")
-with os.fdopen(fd, "r" if dry_run else "r+", encoding="utf-8", newline="") as handle:
-    existing = handle.read()
-    additions = []
-    for line in open(source, encoding="utf-8"):
-        line = line.rstrip("\n")
-        if not line or line.startswith("#"):
-            continue
-        key = line.split("=", 1)[0]
-        if not any(row.startswith(key + "=") for row in existing.splitlines()):
-            additions.append((key, line))
-            existing += ("" if not existing or existing.endswith("\n") else "\n") + line + "\n"
-    for key, _line in additions:
-        print(f"  + {key}" + (" (would add)" if dry_run else ""))
-    if not additions:
-        print("  (no new keys)")
-    if additions and not dry_run:
-        handle.seek(0)
-        handle.write(existing)
-        handle.truncate()
-        handle.flush()
-        os.fsync(handle.fileno())
-PY
-    elif [ ! -e "$PROJECT/$env_file" ] && [ ! -L "$PROJECT/$env_file" ] && [ -f "$FRESH/$env_file" ]; then
-        echo "  ! $env_file missing in target — copying fresh"
-        if [ "$DRY_RUN" = "0" ]; then
-            cp "$FRESH/$env_file" "$PROJECT/$env_file"
-        fi
-    fi
-done < <(jq -r '.infrastructure.files_env_merge[]?' "$NEW_MANIFEST")
-
-# ── Refresh the stdin-safe dotenv guard in the venv ──
-# Counterpart of setup.sh's install step (see templates/utils/
-# pipeline_dotenv_guard.py — installed as module + .pth, not sitecustomize.py,
-# which Homebrew's stdlib copy shadows). The guard lives inside the gitignored
-# .venv, so it can't ride the manifest's dirs/files lists — refreshed here as a
-# dedicated step, like the .env merge. Skipped silently when the target has no
-# venv (pre-venv deploys) or the template copy is missing (updating from an old
-# template checkout).
-_guard_src="$ASSETS_ROOT/templates/utils/pipeline_dotenv_guard.py"
-if [ -f "$_guard_src" ] && [ -d "$PROJECT/.venv" ] && [ ! -L "$PROJECT/.venv" ]; then
-    _venv_sp="$(python3 - "$PROJECT/.venv" <<'PY'
-import glob, os, stat, sys
-root = os.path.abspath(sys.argv[1])
-if os.path.realpath(root) != root:
-    raise SystemExit(1)
-candidates = []
-for path in glob.glob(os.path.join(root, "lib", "python*", "site-packages")):
-    current = root
-    safe = True
-    for part in os.path.relpath(path, root).split(os.sep):
-        current = os.path.join(current, part)
-        info = os.lstat(current)
-        if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
-            safe = False
-            break
-    if safe and os.path.commonpath((root, os.path.realpath(path))) == root:
-        candidates.append(path)
-if candidates:
-    print(sorted(candidates)[-1])
-PY
-)"
-    if [ -n "$_venv_sp" ] && [ -d "$_venv_sp" ]; then
-        if [ "$DRY_RUN" = "1" ]; then
-            echo "  venv: would refresh _pipeline_dotenv_guard (dotenv stdin guard)"
-        else
-            rm -f "$_venv_sp/_pipeline_dotenv_guard.py" "$_venv_sp/_pipeline_dotenv_guard.pth"
-            cp "$_guard_src" "$_venv_sp/_pipeline_dotenv_guard.py"
-            printf 'import _pipeline_dotenv_guard\n' > "$_venv_sp/_pipeline_dotenv_guard.pth"
-            # Remove the shadowed first-attempt install — but only if it is
-            # OURS (the old file carries the _find_dotenv_stdin_safe wrapper).
-            # A user-created sitecustomize.py (e.g. coverage.py's documented
-            # subprocess-coverage hook) must survive the refresh.
-            if [ -f "$_venv_sp/sitecustomize.py" ] && [ ! -L "$_venv_sp/sitecustomize.py" ] \
-               && grep -q '_find_dotenv_stdin_safe' "$_venv_sp/sitecustomize.py" 2>/dev/null; then
-                rm -f "$_venv_sp/sitecustomize.py"
-            fi
-            echo "  venv ✓ _pipeline_dotenv_guard (dotenv stdin guard)"
-        fi
-    else
-        echo "  ⚠ venv present but site-packages could not be located — dotenv stdin guard not refreshed"
-    fi
-fi
-
-# ── Migrate pipeline_state.json to the loops:{} shape (issue #166) ──
-# The refreshed runtime docs reference loops.<id>.round; an in-flight deployment's
-# pipeline_state.json (never in the manifest, so preserved verbatim) may still carry
-# the legacy named counters. Fold them into a single `loops` object, preserving the
-# in-progress round values, so a resumed run's state matches the new docs. Idempotent:
-# if `loops` already exists this is a no-op.
-STATE_FILE="$PROJECT/process_log/pipeline_state.json"
-if [ -L "$PROJECT/process_log" ] || { [ -e "$PROJECT/process_log" ] && [ ! -d "$PROJECT/process_log" ]; }; then
-    echo "ERROR: $PROJECT/process_log must be a real project directory" >&2
-    exit 1
-fi
-if [ -d "$PROJECT/process_log" ] && [ "$(cd "$PROJECT/process_log" && pwd -P)" != "$PROJECT/process_log" ]; then
-    echo "ERROR: $PROJECT/process_log resolves outside the deployment" >&2
-    exit 1
-fi
-if [ "$DRY_RUN" = "0" ] && { [ -e "$STATE_FILE" ] || [ -L "$STATE_FILE" ]; }; then
-    python3 - "$STATE_FILE" <<'PYEOF'
-import json, os, stat, sys
-p = sys.argv[1]
-flags = os.O_RDWR | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
-fd = os.open(p, flags)
-info = os.fstat(fd)
-if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-    os.close(fd)
-    raise SystemExit(f"ERROR: pipeline state must be one regular non-aliased file: {p}")
-with os.fdopen(fd, "r+", encoding="utf-8") as f:
- data = json.load(f)
- f.seek(0)
- if "loops" not in data:
-    # legacy field -> (loop id, default cap)
-    base = {
-        "gate0_revise_cycles":               ("gate0_revise", 3),
-        "gate0_questions_rejected":          ("gate0_reject", 5),
-        "idea_round":                        ("idea", 5),
-        "reject_cosmetic_round":             ("reject_cosmetic", 2),
-        "downgrade_enrich_round":            ("downgrade_enrich", 2),
-        "pivot_round":                       ("pivot", 2),
-        "fix_empirics_round":                ("fix_empirics", 2),
-        "referee_round":                     ("referee", 10),
-        "bib_verify_round":                  ("bib_verify", 2),
-        "polish_round":                      ("polish", 2),
-    }
-    emp = {
-        "identification_plan_revision_round": ("identification_plan_revision", 3),
-        "headline_replication_round":        ("headline_replication", 3),
-        "data_integrity_round":              ("data_integrity", 3),
-        "method_check_round":                ("method_check", 3),
-        "claim_grounding_round":             ("claim_grounding", 3),
-        "paper_writer_pse_round":            ("paper_writer_pse", 3),
-        "claim_format_reexport_round":       ("claim_format_reexport", 2),
-    }
-    loops = {}
-    # Always seed the full base set (round from legacy value if present, else 0).
-    for legacy, (lid, cap) in base.items():
-        loops[lid] = {"round": int(data.pop(legacy, 0) or 0), "cap": cap}
-    # Seed empirical loops only if this deployment had them (any legacy empirical
-    # counter present, or the empirical version pointer exists).
-    had_emp = any(k in data for k in emp) or "stage3a_theory_version" in data
-    for legacy, (lid, cap) in emp.items():
-        v = data.pop(legacy, None)
-        if had_emp:
-            loops[lid] = {"round": int(v or 0), "cap": cap}
-    if had_emp:
-        loops["replicator_self_refire"] = {"round": 0, "cap": 3}
-    # The Jaccard companion field is deleted outright.
-    data.pop("paper_writer_pse_claim_ids", None)
-    # Insert `loops` after gate0_best_question_score if present, else at a stable spot.
-    new = {}
-    inserted = False
-    for k, v in data.items():
-        new[k] = v
-        if k == "gate0_best_question_score":
-            new["loops"] = loops
-            inserted = True
-    if not inserted:
-        new["loops"] = loops
-    json.dump(new, f, indent=2); f.write("\n"); f.truncate(); f.flush(); os.fsync(f.fileno())
-    print("  ✓ pipeline_state.json migrated to loops:{} (issue #166)")
-PYEOF
-fi
-
-# ── Bootstrap the project venv if missing ──
-# Deploys made before the .venv change (or whose .venv was deleted) have no venv,
-# but the refreshed runtime docs now tell the user/agents to
-# `source .venv/bin/activate` and expect a bare `python3` to resolve there. Create
-# it from the SAME single-sourced deps files setup.sh uses (templates/deps/*.txt +
-# each extension's deps.txt), so a refreshed legacy project matches its new docs.
-# A project that already has a .venv is left untouched — we never clobber an
-# existing environment (its interpreter paths and user-installed packages).
-VENV="$PROJECT/.venv"
-if [ ! -d "$VENV" ]; then
-    # ssj deps are variant-gated (issue #205; mirrors setup.sh's
-    # variant_wants_skill — keep the two in sync when gating more skills).
-    WANT_SSJ_DEPS=1
-    [ "$VARIANT" = "llm_cognition" ] && WANT_SSJ_DEPS=0
-    if [ "$DRY_RUN" = "1" ]; then
-        echo
-        echo "=== venv bootstrap ==="
-        _ssj_label=""
-        [ "$WANT_SSJ_DEPS" = "1" ] && _ssj_label=" + ssj"
-        echo "  would create $VENV and install core${_ssj_label} + extension deps [${EXTENSIONS[*]}]"
-    elif ! command -v uv >/dev/null 2>&1; then
-        echo
-        echo "  ⚠ .venv missing and uv not found — install uv, then re-run update.sh (or create it manually)"
-    else
-        echo
-        echo "=== Bootstrapping missing .venv ==="
-        uv venv --python 3.12 "$VENV" 2>/dev/null \
-            || uv venv --python 3.12 --clear "$VENV" 2>/dev/null \
-            || uv venv --clear "$VENV" 2>/dev/null \
-            || { rm -rf "$VENV"; echo "  ⚠ could not create $VENV (create manually: uv venv $VENV)"; }
-        if [ -d "$VENV" ]; then
-            uv pip install --python "$VENV" -r "$ASSETS_ROOT/templates/deps/core.txt" -q 2>/dev/null \
-                && echo "  ✓ core deps installed" \
-                || echo "  ⚠ core deps failed (source $VENV/bin/activate && uv pip install sympy matplotlib certifi)"
-            if [ "$WANT_SSJ_DEPS" = "1" ]; then
-                uv pip install --python "$VENV" -r "$ASSETS_ROOT/templates/deps/ssj.txt" -q 2>/dev/null \
-                    && echo "  ✓ ssj deps installed" \
-                    || echo "  ⚠ ssj deps skipped (numba build issue; non-fatal — ssj skill only)"
-            fi
-            for ext in "${EXTENSIONS[@]}"; do
-                _extdeps="$ASSETS_ROOT/extensions/$ext/deps.txt"
-                [ -f "$_extdeps" ] || continue
-                uv pip install --python "$VENV" -r "$_extdeps" -q 2>/dev/null \
-                    && echo "  ✓ $ext deps installed" \
-                    || echo "  ⚠ $ext deps failed (source $VENV/bin/activate && uv pip install -r extensions/$ext/deps.txt)"
-            done
-        fi
-    fi
-fi
-
-# ── Refresh manifest in target (preserve original deploy_date + fingerprint) ──
-if [ "$DRY_RUN" = "0" ]; then
-    manifest_tmp="$TMP/manifest.next"
-    if [ -f "$MANIFEST" ]; then
-        # Update template_version + last_updated; sync deployment selectors
-        # (mode, extensions) from the fresh deploy so that an --override on
-        # this run is reflected in the persisted manifest. Anything not
-        # listed here passes through verbatim from the existing manifest
-        # (e.g. deploy_fingerprint, deploy_date — original deploy metadata).
-        # variant cannot be overridden mid-life on a deployed project, so
-        # it's not synced; if it ever can, add `.variant = (input | .variant)`.
-        # Bind NEW_MANIFEST once via `input as $new`; each bare `input` call
-        # consumes one file from the argv list, so reusing `(input | .X)` four
-        # times would try to read four files. The slurp pattern below reads
-        # NEW_MANIFEST once and lets us pull multiple fields from it.
-        jq --arg v "$NEW_VERSION" --arg d "$(date -u +%Y-%m-%d)" \
-           'input as $new
-            | .template_version = $v
-            | .last_updated = $d
-            | .mode = $new.mode
-            | .extensions = $new.extensions
-            | .flags = $new.flags
-            | .infrastructure = $new.infrastructure' \
-           "$MANIFEST" "$NEW_MANIFEST" > "$manifest_tmp" && mv "$manifest_tmp" "$MANIFEST" || {
-               rm -f "$manifest_tmp"; exit 1;
-           }
-    else
-        # No prior manifest — adopt the fresh manifest but blank deploy_fingerprint
-        # (we don't know the original UUID; user can copy it from paper/arpipeline.sty if needed).
-        jq --arg d "$(date -u +%Y-%m-%d)" \
-           '.deploy_fingerprint = "(unknown — pre-manifest deploy)" | .last_updated = $d' \
-           "$NEW_MANIFEST" > "$manifest_tmp" && mv "$manifest_tmp" "$MANIFEST" || {
-               rm -f "$manifest_tmp"; exit 1;
-           }
-    fi
-    echo
-    echo "  ✓ manifest updated: template_version $OLD_VERSION → $NEW_VERSION"
-fi
-
-# ── Report agent diff ──
-echo
-echo "=== Agent diff ($OLD_VERSION → $NEW_VERSION) ==="
-ADDED=$(comm -13 "$OLD_AGENTS_TMP" "$NEW_AGENTS_TMP")
-REMOVED=$(comm -23 "$OLD_AGENTS_TMP" "$NEW_AGENTS_TMP")
-if [ -n "$ADDED" ]; then
-    echo "Added:"
-    echo "$ADDED" | sed 's/^/  + /'
-fi
-if [ -n "$REMOVED" ]; then
-    echo "Removed:"
-    echo "$REMOVED" | sed 's/^/  - /'
-fi
-[ -z "$ADDED" ] && [ -z "$REMOVED" ] && echo "  (no agent additions or removals)"
-
-echo
-if [ "$DRY_RUN" = "1" ]; then
-    echo "Dry run complete. No files modified."
-else
-    echo "Update complete. Review with: cd $PROJECT && git status"
-    echo "Then commit the infrastructure refresh when ready."
-fi
+    physical = os.path.realpath(os.path.abspath(raw))
+    if path_is_activated_or_checkout(raw) or not os.path.isdir(physical):
+        continue
+    if physical not in safe_path:
+        safe_path.append(physical)
+clean["PATH"] = os.pathsep.join(safe_path)
+clean["ZEROPAPER_UPDATE_LAUNCH_ROOT"] = checkout_root
+os.execve("/bin/bash", ["bash", coordinator, *sys.argv[1:]], clean)

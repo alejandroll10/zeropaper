@@ -42,7 +42,7 @@ Claude Code will handle the clone, setup, and prereq checks for you. Works on Ma
 ## How it works
 
 1. You clone this template repo once
-2. You run `setup.sh` to create a new project — each run creates an independent project folder with its own local git repo (GitHub publishing is opt-in with `--publish`)
+2. You run that checkout's `setup.sh` to create a new project — each run assembles directly from the checked-out commit into an independent project folder with its own local git repo (GitHub publishing is opt-in with `--publish`)
 3. You open the project folder in a supported runtime and say "Run the pipeline"
 4. The pipeline runs autonomously: problem discovery → idea generation → theory development → math verification → paper writing → referee simulation
 
@@ -56,6 +56,12 @@ sudo apt-get install python3 python3-pip git bubblewrap socat ripgrep
 #   macOS (Homebrew): sandbox is built-in via Seatbelt — no bubblewrap needed;
 #   ripgrep is additionally required when using OpenCode/SRT
 brew install python git ripgrep
+
+# The setup/update bootstrap and setup control plane deliberately use system
+# tools (including /usr/bin/python3), not an activated venv or its PATH.
+# Operator-installed uv/claude/gh are selected separately by safe exact path.
+# On macOS, install Command Line Tools if /usr/bin/python3 is absent:
+# xcode-select --install
 
 # uv (Python package manager)
 curl -LsSf https://astral.sh/uv/install.sh | sh
@@ -89,9 +95,32 @@ On Ubuntu 24.04+, AppArmor restricts the user namespaces required by bubblewrap 
 ```bash
 git clone https://github.com/alejandroll10/zeropaper.git
 cd zeropaper
+# Optional: select an exact released version before setup
+# git checkout vX.Y.Z
 ```
 
 ### Step 2: Create a project
+
+`setup.sh` never fetches a second copy of the template: it uses this checkout as
+its sole build source. Full deployments require committed build inputs, so commit
+template changes first; use `--assemble-only /tmp/zeropaper-check` to validate
+uncommitted development changes without provisioning or project Git setup.
+
+To refresh an existing deployment, stop its runtime and run
+`./update.sh /path/to/project` from the checkout version you want to apply.
+Supported launchers hold a shared lock on the project-directory inode; update
+requires its exclusive side and refuses to race a live runtime. Before launch,
+compatible autonomous mode and extension overrides merge their complete state
+schema and output-directory skeleton from the verified fresh assembly;
+same-layout manual/report extension refreshes have no autonomous state to
+migrate. Selector overrides persist the fresh manifest. `--seeded`, `--faithful`, and
+their `--no-*` forms also migrate `pipeline_state.json` before the first launch,
+with prepared seed content rolled back if the refresh does not complete;
+after a run has started, mode/extension/seed migration fails closed. Update never
+deletes `output/seed` content. Cross-variant, autonomous↔manual, and
+report↔autonomous layout changes require a fresh deployment rather than an
+in-place update. Processes that bypass `launch.sh` must be stopped manually;
+that cooperative-lock boundary is tracked in `LIMITATIONS.md` (#259).
 
 ```bash
 # Pure finance theory (default)
@@ -133,7 +162,7 @@ cd zeropaper
 ./setup.sh my-paper --variant finance --ext empirical --seed --light
 ```
 
-This creates `my-paper/` with everything assembled and ready — runtime instructions, agents for all five runtimes, compatible skills, and pipeline state. The folder is a standalone local git repo detached from this template. Setup does not create or push a GitHub repository unless you pass `--publish` (production setup still fetches this template from GitHub by default); use `PUBLISH_ORG=<org>` and `PUBLISH_VISIBILITY=private|public|internal` to configure that explicit publish request. Report-mode deployments cannot use `--publish` because they may contain confidential submissions.
+This creates `my-paper/` with everything assembled and ready — runtime instructions, agents for all five runtimes, compatible skills, and pipeline state. The folder is a standalone local git repo detached from this template. Setup assembles from the checkout containing `setup.sh` and does not create or push a GitHub repository unless you pass `--publish`; use `PUBLISH_ORG=<org>` and `PUBLISH_VISIBILITY=private|public|internal` to configure that explicit publish request. Report-mode deployments cannot use `--publish` because they may contain confidential submissions.
 
 You can create as many projects as you want from the same template.
 

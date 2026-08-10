@@ -6,6 +6,34 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## Checkout provenance starts after the root setup/update launcher begins
+
+**Scope:** every direct `./setup.sh` or `./update.sh` invocation, including the child assembly launched by the updater.
+
+**Failure mode:** root `setup.sh` is the trust bootstrap for source capture, and root `update.sh` is the trust bootstrap for applying a verified fresh assembly. Each necessarily begins executing before the mutable checkout can attest that entrypoint. A concurrent same-UID writer can transiently replace a launcher, let the replacement alter arguments, environment, or update application, and restore the committed file before any later validation. A deterministic setup audit reproduction injected a different `HOME` before the launcher entered the coordinator; the assembled Grok sandbox contained the injected path while `.source.dirty` remained `false`. The isolated Python launchers close ambient Bash startup-code injection, validate their coordinator before execution, and—on the setup path—hand every later input to a verified private snapshot, but no program stored in the mutable checkout can independently attest the bytes that bootstrapped itself. The deployment manifest describes setup source, not the updater implementation that applies it.
+
+**Operational boundary:** run setup from a checkout that is not writable by concurrent agents/processes during invocation. `update.sh` protects its fresh assembly and all child setup temporary state from the concurrently sandboxed project agent, but it cannot protect the separate template checkout from another host process with write authority.
+
+**What would close it:** a trust anchor outside the mutable checkout—such as an installed or signed launcher that verifies each checkout entrypoint before executing it, or OS-enforced read-only/immutable checkout access spanning launch, capture, and update application—plus regressions that transiently replace root `setup.sh` and `update.sh` and prove the operation is rejected or records the effective launcher bytes.
+
+**Tracking:** [#258](https://github.com/alejandroll10/zeropaper/issues/258).
+
+---
+
+## Update quiescence is cooperative for processes outside supported launchers
+
+**Scope:** applying `update.sh` replacements to an existing deployment while another same-UID process can mutate that project.
+
+**Failure mode:** path validation alone cannot bind a later pathname mutation. A concurrent writer can rename a validated managed parent and replace it with a symlink before replacement; a Round-11 reproduction swapped `.claude` after validation and redirected the old updater's `rm`/`cp` operations into an external directory. v2.24.0 closes this for every supported runtime: `launch.sh` keeps a shared `fcntl` lock on a parent-Bash-owned project-directory descriptor for its full process lifetime, `update.sh` acquires the exclusive side before creating any target path, and each parent runs the complete runtime/update body in a child subshell with that descriptor closed so descendants cannot unlock or leak it. A live legacy OpenCode server (which predates the lock) is refused. No pathname lock, separate holder, or reusable readiness file exists. Thus normal Claude/Codex/Gemini/Grok/OpenCode launch-vs-update concurrency fails before target mutation.
+
+**Operational boundary:** stop any process that accesses the project without going through the deployed `launch.sh` before updating. The lock is cooperative; an arbitrary same-UID script can ignore it, and the updater cannot infer every process with a file descriptor or future pathname into the project.
+
+**What would close it:** make every target mutation descriptor-relative, no-follow, and race-bound—including directory replacement, stale sweep, `.env` merge, venv bootstrap/guard refresh, and manifest replacement—or add a cross-platform OS confinement mechanism proven safe even when an allowed project inode is concurrently renamed outside its original path. Regress with a non-cooperating rename/symlink attacker that proves both external paths and project-owned user content remain unchanged.
+
+**Tracking:** [#259](https://github.com/alejandroll10/zeropaper/issues/259).
+
+---
+
 ## Codex subagent dispatch depends on a CLI wrapper, not the native spawn tool
 
 **Scope:** the codex runtime's agent dispatch — `code/utils/agent_launcher/launch_agent.sh`, the launch rules in `deploy_assets/templates/runtime/codex/session.md` and `session_manual.md`, and the per-agent `model` / `model_reasoning_effort` in `.codex/agents/*.toml`.
@@ -232,7 +260,7 @@ In all three, the residual is a *missed catch* (a genuinely illegible table can 
 
 **Failure mode:** a Grok orchestrator on an extension deployment reaches Stage 3a/3b, is instructed by the runtime doc to launch an agent that has no `.grok/agents/*.md` definition, and either errors or improvises the role inline without the agent's calibrated body.
 
-**What would close it:** add the `assemble_grok_agents.py` call (fourth call site, mirroring the base assembly in `setup.sh`) to both appliers and verify against a `--local` build that `.grok/agents/` matches the claude roster. Not done in v2.10.0 because Grok extension support was never wired and needs its own test pass; documented so the next Grok-runtime run doesn't discover it at Stage 3a.
+**What would close it:** add the `assemble_grok_agents.py` call (fourth call site, mirroring the base assembly in `setup.sh`) to both appliers and verify against a `--assemble-only` build that `.grok/agents/` matches the claude roster. Not done in v2.10.0 because Grok extension support was never wired and needs its own test pass; documented so the next Grok-runtime run doesn't discover it at Stage 3a.
 
 **Tracking:** [#182](https://github.com/alejandroll10/zeropaper/issues/182).
 

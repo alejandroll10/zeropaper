@@ -220,7 +220,7 @@ _setup_extensions_inject_bash_background_into_agents() {
     # Claude-compatible paragraph in only its generated agent bodies with the
     # foreground/checkpointing contract. Exact replacement fails loudly if the
     # expected generic block is absent, preventing silent instruction drift.
-    python3 - \
+    python3 -I - \
         "$TEMPLATE_ROOT/templates/shared/bash_background.md" \
         "$TEMPLATE_ROOT/templates/shared/bash_foreground_opencode.md" \
         "$OPENCODE_AGENTS_OUT" "$@" <<'PYEOF'
@@ -391,6 +391,9 @@ for ext in "${EXTENSIONS[@]}"; do
     case "$ext" in
         theory_llm)
             echo "Applying LLM experiment extension..."
+            infrastructure_copy_file 290 \
+                "$TEMPLATE_ROOT/extensions/theory_llm/deps.txt" \
+                ".arpipeline/update_inputs/deps/extensions/theory_llm.txt"
             if [ -n "$MODE" ]; then
                 echo "  Note: --mode $MODE does not currently propagate into the theory_llm extension agents."
                 echo "        See scripts/apply_extension_theory_llm.sh header comment for the forward-compat path."
@@ -410,7 +413,7 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$GEMINI_AGENTS_OUT" \
                 "$OPENCODE_AGENTS_OUT" \
                 "$SKILLS_OUT" \
-                "$LOCAL" \
+                "$ASSEMBLE_ONLY" \
                 "$LIGHT_MODEL" \
                 "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json"
             provision_extension_dependencies theory_llm
@@ -423,7 +426,7 @@ for ext in "${EXTENSIONS[@]}"; do
             # Inject stage instructions into runtime docs at {{EXTENSION_STAGES}} placeholder
             INJECT="$TEMPLATE_ROOT/extensions/theory_llm/stages_inject.md"
             for doc in "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT"; do
-                python3 -c "
+                python3 -I -c "
 import sys; p=sys.argv[1]; d=sys.argv[2]
 content=open(d).read(); inject=open(p).read()
 open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{{EXTENSION_STAGES}}'))
@@ -441,7 +444,7 @@ open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{
 
             # Fill theory_llm-only placeholders in shared docs / runtime docs.
             # Theory-only runs leave these placeholders to be stripped by the post-extension cleanup.
-            python3 - \
+            python3 -I - \
                 "$TEMPLATE_ROOT/extensions/theory_llm/stage2_rerun_inject.md" \
                 "$TEMPLATE_ROOT/extensions/theory_llm/stage3b_gate_inject.md" \
                 "$TEMPLATE_ROOT/extensions/theory_llm/state_fields_inject.md" \
@@ -549,6 +552,9 @@ PYEOF
             ;;
         empirical)
             echo "Applying empirical extension..."
+            infrastructure_copy_file 290 \
+                "$TEMPLATE_ROOT/extensions/empirical/deps.txt" \
+                ".arpipeline/update_inputs/deps/extensions/empirical.txt"
             LIGHT_MODEL=""
             if [ "$LIGHT" = "1" ]; then LIGHT_MODEL="sonnet"; fi
             bash "$TEMPLATE_ROOT/scripts/apply_extension_empirical.sh" \
@@ -560,7 +566,7 @@ PYEOF
                 "$OPENCODE_AGENTS_OUT" \
                 "$SKILLS_OUT" \
                 "$AGENT_DIR" \
-                "$LOCAL" \
+                "$ASSEMBLE_ONLY" \
                 "$LIGHT_MODEL" \
                 "$MODE_BODIES_OVERLAY" \
                 "$MODE_VOCAB_OVERLAY" \
@@ -575,7 +581,7 @@ PYEOF
             # Inject stage instructions into runtime docs at {{EXTENSION_STAGES}} placeholder
             INJECT="$TEMPLATE_ROOT/extensions/empirical/stages_inject.md"
             for doc in "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT"; do
-                python3 -c "
+                python3 -I -c "
 import sys; p=sys.argv[1]; d=sys.argv[2]
 content=open(d).read(); inject=open(p).read()
 open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{{EXTENSION_STAGES}}'))
@@ -593,7 +599,7 @@ open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', inject.rstrip()+'\n\n{
 
             # Fill empirical-only placeholders in shared docs / runtime docs / scorer agent body.
             # Theory-only runs leave these placeholders to be stripped by the post-extension cleanup.
-            python3 - \
+            python3 -I - \
                 "$TEMPLATE_ROOT/extensions/empirical/stage2_rerun_inject.md" \
                 "$TEMPLATE_ROOT/extensions/empirical/stage3a_gate_inject.md" \
                 "$TEMPLATE_ROOT/extensions/empirical/state_fields_inject.md" \
@@ -791,7 +797,7 @@ done
 
 # Clean up leftover {{EXTENSION_STAGES}} placeholder from runtime docs
 for doc in "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT"; do
-    python3 -c "
+    python3 -I -c "
 import sys; d=sys.argv[1]
 content=open(d).read()
 open(d,'w').write(content.replace('{{EXTENSION_STAGES}}', '').rstrip()+'\n')
@@ -804,7 +810,7 @@ done
 # content; this is a no-op for those placeholders. When an extension is off, this
 # leaves the docs and scorer body identical to the pre-edit baseline (lines
 # containing only the placeholder are removed whole).
-python3 - \
+python3 -I - \
     "$P/docs/stage_2.md" \
     "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
     "$AGENTS_OUT/scorer.md" "$CODEX_AGENTS_OUT/scorer.toml" "$GEMINI_AGENTS_OUT/scorer.md" "$GROK_AGENTS_OUT/scorer.md" "$OPENCODE_AGENTS_OUT/scorer.md" <<'PYEOF'
@@ -835,7 +841,7 @@ EMPIRICAL_ENABLED=0
 for ext in "${EXTENSIONS[@]}"; do
     [ "$ext" = "empirical" ] && EMPIRICAL_ENABLED=1
 done
-python3 - "$EMPIRICAL_ENABLED" "$AGENTS_OUT/branch-manager.md" "$CODEX_AGENTS_OUT/branch-manager.toml" "$GEMINI_AGENTS_OUT/branch-manager.md" "$GROK_AGENTS_OUT/branch-manager.md" "$OPENCODE_AGENTS_OUT/branch-manager.md" <<'PYEOF'
+python3 -I - "$EMPIRICAL_ENABLED" "$AGENTS_OUT/branch-manager.md" "$CODEX_AGENTS_OUT/branch-manager.toml" "$GEMINI_AGENTS_OUT/branch-manager.md" "$GROK_AGENTS_OUT/branch-manager.md" "$OPENCODE_AGENTS_OUT/branch-manager.md" <<'PYEOF'
 import re, sys
 emp = sys.argv[1] == "1"
 if emp:
@@ -886,7 +892,7 @@ EXT_EMPIRICAL_ON="$EMPIRICAL_ENABLED"
 # when the body's mode-specific delta is small. Vocab substitution runs at
 # assembly time (before this resolver fires), so {{KEY}} placeholders are
 # already resolved when the resolver sees the agent files.
-python3 - "$MODE" "$EXT_EMPIRICAL_ON" "$VARIANT" "$P/docs/"*.md "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
+python3 -I - "$MODE" "$EXT_EMPIRICAL_ON" "$VARIANT" "$P/docs/"*.md "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
     "$AGENTS_OUT"/*.md "$CODEX_AGENTS_OUT"/*.toml "$GEMINI_AGENTS_OUT"/*.md "$GROK_AGENTS_OUT"/*.md "$OPENCODE_AGENTS_OUT"/*.md <<'PYEOF'
 import os, re, sys
 mode = sys.argv[1]  # "", "empirical-first", "measurement-first", "report"

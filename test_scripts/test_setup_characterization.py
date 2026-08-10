@@ -1,10 +1,10 @@
 #!/usr/bin/env python3
-"""Characterize setup.sh's complete local-deployment output.
+"""Characterize setup.sh's complete assembly-only output.
 
 The setup refactor tracked by issue #255 is deliberately behavior-preserving.
 This test builds a matrix of supported deployment shapes, validates and then
-normalizes the three intentional per-deployment values (fingerprint, date, and
-git revision), and compares every resulting file, permission mode, symlink,
+normalizes the intentional per-deployment/source values (fingerprint, date, git
+revision, and source-content digest), and compares every resulting file, permission mode, symlink,
 and empty directory with a committed hash inventory.
 
 The harness runs setup.sh from an isolated source shim so a developer's
@@ -141,7 +141,7 @@ SEC_EDGAR_EMAIL=synthetic@example.invalid
 """
 
 # These commands are safe even if validation regresses: every one remains in
-# --local mode and targets the harness's temporary deployment root.  Exact
+# --assemble-only mode and targets the harness's temporary deployment root. Exact
 # diagnostics and exit codes are characterized because parser/validation
 # behavior is part of the configuration extraction planned in issue #255.
 CLI_FAILURE_CASES: dict[str, tuple[str, ...]] = {
@@ -159,13 +159,14 @@ CLI_FAILURE_CASES: dict[str, tuple[str, ...]] = {
     "macro_empirical_first": ("--variant", "macro", "--mode", "empirical-first"),
     "finance_measurement_first": ("--variant", "finance", "--mode", "measurement-first"),
     "llm_cognition_empirical": ("--variant", "llm_cognition", "--ext", "empirical"),
-    "publish_and_local": ("--variant", "finance", "--publish"),
+    "publish_and_assemble_only": ("--variant", "finance", "--publish"),
+    "legacy_local_flag": ("--local",),
     "publish_and_no_publish": ("--variant", "finance", "--publish", "--no-publish"),
 }
 
-# These must omit --local to reach publish-only validation.  Their destination
+# These must omit --assemble-only to reach publish-only validation.  Their destination
 # is created before invocation, so if a guard regresses the production path
-# still stops at its existing-target check before clone/init/publish.
+# still stops at its existing-target check before assembly/init/publish.
 PRODUCTION_CLI_FAILURE_CASES: dict[str, tuple[tuple[str, ...], dict[str, str]]] = {
     "publish_report": (
         ("--variant", "finance", "--mode", "report", "--publish"),
@@ -188,14 +189,18 @@ CLI_TEXT_SUCCESS_CASES: dict[str, tuple[str, ...]] = {
 
 
 def prepare_isolated_source(root: Path, name: str, synthetic_env: bool = False) -> Path:
-    """Create the minimal --local source tree, never copying the real .env."""
+    """Create the minimal --assemble-only source tree, never copying the real .env."""
     source = root / name
     source.mkdir()
     for name in ("setup.sh", "VERSION", "LICENSE", ".env.example"):
         candidate = REPO_ROOT / name
         if candidate.exists():
             shutil.copy2(candidate, source / name)
-    (source / "deploy_assets").symlink_to(REPO_ROOT / "deploy_assets", target_is_directory=True)
+    # Build-input symlinks are intentionally rejected by setup because
+    # consumers may dereference them outside the checkout while provenance
+    # hashes link text. Use a real isolated copy; the test temp filesystem may
+    # be on a different device, so hardlinks are not portable here.
+    shutil.copytree(REPO_ROOT / "deploy_assets", source / "deploy_assets")
     if synthetic_env:
         synthetic_path = source / ".env"
         synthetic_path.write_text(SYNTHETIC_ENV)
@@ -215,8 +220,8 @@ def fixed_umask_command(argv: list[str]) -> list[str]:
 
 def setup_command(source: Path, output: Path, args: tuple[str, ...]) -> list[str]:
     setup_argv = [
-        "bash", str(source / "setup.sh"), str(output),
-        "--local", "--no-model-probe", *args,
+        str(source / "setup.sh"), str(output),
+        "--assemble-only", "--no-model-probe", *args,
     ]
     return fixed_umask_command(setup_argv)
 
@@ -272,7 +277,7 @@ def run_production_cli_failure(
     output = deployment_root / name
     output.mkdir()
     command = fixed_umask_command([
-        "bash", str(source / "setup.sh"), str(output), "--no-model-probe", *args,
+        str(source / "setup.sh"), str(output), "--no-model-probe", *args,
     ])
     process_environment = dict(os.environ)
     # Publishing validation must not depend on the developer/runner's ambient
@@ -313,7 +318,7 @@ def run_production_cli_failure(
 def run_text_success(source: Path, log_root: Path,
                      name: str, args: tuple[str, ...]) -> dict[str, Any]:
     result = subprocess.run(
-        fixed_umask_command(["bash", str(source / "setup.sh"), *args]),
+        fixed_umask_command([str(source / "setup.sh"), *args]),
         cwd=source,
         text=True,
         stdout=subprocess.PIPE,
@@ -332,27 +337,6 @@ def run_text_success(source: Path, log_root: Path,
     ):
         normalized = normalized.replace(value, marker)
     return {"args": list(args), "returncode": result.returncode, "output": normalized}
-
-
-def run_default_project_case(source: Path, log_root: Path) -> Path:
-    args = ("--local", "--no-model-probe")
-    result = subprocess.run(
-        fixed_umask_command(["bash", str(source / "setup.sh"), *args]),
-        cwd=source,
-        text=True,
-        stdout=subprocess.PIPE,
-        stderr=subprocess.STDOUT,
-        check=False,
-    )
-    log_root.mkdir(exist_ok=True)
-    (log_root / "cli_default_local_project.log").write_text(result.stdout)
-    if result.returncode:
-        tail = "\n".join(result.stdout.splitlines()[-30:])
-        raise RuntimeError(f"default local-project case failed:\n{tail}")
-    output = source / "test_output" / "finance"
-    if not output.is_dir():
-        raise RuntimeError(f"default local project was not created at {output}")
-    return output
 
 
 def assert_identical_invocation_fingerprint_freshness(
@@ -390,17 +374,14 @@ def assert_identical_invocation_fingerprint_freshness(
         )
 
 
-def expected_provenance() -> tuple[str, str]:
+def expected_isolated_provenance() -> tuple[str, str]:
     semver = (REPO_ROOT / "VERSION").read_text().strip()
     if not re.fullmatch(r"[0-9]+\.[0-9]+\.[0-9]+", semver):
         raise RuntimeError(f"VERSION is not a plain semantic version: {semver!r}")
-    revision = subprocess.run(
-        ["git", "rev-parse", "--short", "HEAD"], cwd=REPO_ROOT,
-        text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE, check=True,
-    ).stdout.strip()
-    if not re.fullmatch(r"[0-9a-f]+", revision):
-        raise RuntimeError(f"git produced an invalid short revision: {revision!r}")
-    return semver, revision
+    # Characterization deliberately uses a regular-file source copy with no
+    # external .git or source symlinks. Production commit provenance is covered
+    # by test_setup_publish.sh; this harness validates the non-Git marker.
+    return semver, "unknown"
 
 
 def validate_and_normalize_manifest(manifest: dict[str, Any], semver: str,
@@ -430,7 +411,24 @@ def validate_and_normalize_manifest(manifest: dict[str, Any], semver: str,
             f"expected {expected_version!r}, got {manifest.get('template_version')!r}"
         )
 
+    source = manifest.get("source")
+    if not isinstance(source, dict):
+        raise RuntimeError(f"missing source provenance object: {source!r}")
+    if source.get("kind") != "checkout" or source.get("update_channel") != "checkout":
+        raise RuntimeError(f"invalid checkout source policy: {source!r}")
+    if not isinstance(source.get("dirty"), bool):
+        raise RuntimeError(f"source dirty state is not boolean: {source!r}")
+    if not re.fullmatch(r"sha256:[0-9a-f]{64}", source.get("content_digest", "")):
+        raise RuntimeError(f"invalid source content digest: {source!r}")
+    commit = source.get("commit")
+    if commit != "unknown" and not re.fullmatch(r"[0-9a-f]{40}", commit or ""):
+        raise RuntimeError(f"invalid source commit: {source!r}")
+    if source.get("repository") is not None and not isinstance(source["repository"], str):
+        raise RuntimeError(f"invalid source repository: {source!r}")
+
     normalized = dict(manifest)
+    normalized["source"] = dict(source)
+    normalized["source"]["content_digest"] = "sha256:<SOURCE_CONTENT_DIGEST>"
     normalized["template_version"] = f"{semver}+<GIT_REVISION>"
     normalized["deploy_date"] = "<DEPLOY_DATE>"
     normalized["deploy_fingerprint"] = "<DEPLOY_FINGERPRINT>"
@@ -442,6 +440,14 @@ def self_check_provenance_validation(semver: str, revision: str, today: str) -> 
         "deploy_fingerprint": "123e4567-e89b-42d3-a456-426614174000",
         "deploy_date": today,
         "template_version": f"{semver}+{revision}",
+        "source": {
+            "kind": "checkout",
+            "repository": None,
+            "commit": "unknown",
+            "dirty": True,
+            "content_digest": "sha256:" + "0" * 64,
+            "update_channel": "checkout",
+        },
     }
     validate_and_normalize_manifest(valid, semver, revision, {today})
     invalid_values = (
@@ -457,6 +463,14 @@ def self_check_provenance_validation(semver: str, revision: str, today: str) -> 
         except RuntimeError:
             continue
         raise RuntimeError(f"provenance validator accepted invalid {key}: {value!r}")
+    invalid_source = dict(valid)
+    invalid_source["source"] = {**valid["source"], "content_digest": "not-a-digest"}
+    try:
+        validate_and_normalize_manifest(invalid_source, semver, revision, {today})
+    except RuntimeError:
+        pass
+    else:
+        raise RuntimeError("provenance validator accepted invalid source digest")
 
 
 def normalized_bytes(path: Path, relative: str, manifest: dict[str, Any],
@@ -559,7 +573,7 @@ def workspace(artifacts_dir: Path | None):
 def build_snapshot(selected: list[str], jobs: int, include_cli_contracts: bool,
                    artifacts_dir: Path | None) -> dict[str, Any]:
     started_date = datetime.now(timezone.utc).date().isoformat()
-    semver, revision = expected_provenance()
+    semver, revision = expected_isolated_provenance()
     self_check_provenance_validation(semver, revision, started_date)
     with workspace(artifacts_dir) as temp_root:
         source = prepare_isolated_source(temp_root, "source")
@@ -588,11 +602,7 @@ def build_snapshot(selected: list[str], jobs: int, include_cli_contracts: bool,
                         pending.cancel()
                     raise
 
-        default_output: Path | None = None
         if include_cli_contracts:
-            default_source = prepare_isolated_source(temp_root, "source_default_project")
-            default_output = run_default_project_case(default_source, logs)
-            print("✓ built default_local_project", flush=True)
             freshness_source = prepare_isolated_source(temp_root, "source_fingerprint_freshness")
             assert_identical_invocation_fingerprint_freshness(
                 freshness_source, logs, semver, revision, started_date
@@ -607,10 +617,7 @@ def build_snapshot(selected: list[str], jobs: int, include_cli_contracts: bool,
         # checked before normalization erases the raw values.  A separate
         # sequential probe above rebuilds one identical source+destination argv
         # twice to rule out configuration- or destination-keyed UUIDs.
-        uniqueness_outputs = dict(outputs)
-        if default_output is not None:
-            uniqueness_outputs["default_local_project"] = default_output
-        assert_unique_case_fingerprints(uniqueness_outputs)
+        assert_unique_case_fingerprints(outputs)
         cases: dict[str, Any] = {}
         for name in selected:
             cases[name] = {
@@ -621,12 +628,6 @@ def build_snapshot(selected: list[str], jobs: int, include_cli_contracts: bool,
         cli_successes: dict[str, Any] = {}
         cli_failures: dict[str, Any] = {}
         if include_cli_contracts:
-            assert default_output is not None
-            cli_successes["default_local_project"] = {
-                "args": ["--local", "--no-model-probe"],
-                "resolved_project": "test_output/finance",
-                **characterize_tree(default_output, semver, revision, allowed_dates),
-            }
             for name, case_args in CLI_TEXT_SUCCESS_CASES.items():
                 cli_successes[name] = run_text_success(source, logs, name, case_args)
                 print(f"✓ accepted {name}", flush=True)
@@ -646,11 +647,12 @@ def build_snapshot(selected: list[str], jobs: int, include_cli_contracts: bool,
         if artifacts_dir is not None:
             print(f"Preserved deployments and logs in {temp_root}")
         return {
-            "schema_version": 3,
+            "schema_version": 4,
             "normalization": [
                 "validated UUIDv4 deployment fingerprint",
                 "validated current UTC deployment date",
-                "validated git revision (semantic VERSION is preserved)",
+                "validated isolated-source revision marker (semantic VERSION is preserved)",
+                "validated checkout source provenance and content digest",
                 "home directory in the generated Grok sandbox profile",
             ],
             "cases": cases,
@@ -752,7 +754,7 @@ def main() -> int:
         print(f"  expected: {sorted(expected.get('cli_failures', {}))}")
         print(f"  current:  {sorted(expected_cli_failures)}")
         return 1
-    expected_cli_successes = set(CLI_TEXT_SUCCESS_CASES) | {"default_local_project"}
+    expected_cli_successes = set(CLI_TEXT_SUCCESS_CASES)
     if not args.case and set(expected.get("cli_successes", {})) != expected_cli_successes:
         print("✗ golden CLI-success set differs from the maintained matrix")
         print(f"  expected: {sorted(expected.get('cli_successes', {}))}")

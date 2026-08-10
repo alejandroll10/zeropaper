@@ -28,9 +28,8 @@ setup_runtime_documents() {
     # Sourcing both via per-mode dirs lets future modes drop in their own
     # overrides without further setup.sh wiring.
     #
-    # Resolved against TEMPLATE_ROOT, so overlays come from the same source
-    # tree as every other build input — the clone in production, the checkout
-    # under --local.
+    # Resolved against TEMPLATE_ROOT, so overlays come from the same invoking
+    # checkout as every other build input in both full and assembly-only runs.
     MODE_BODIES_OVERLAY=""
     MODE_VOCAB_OVERLAY=""
     # Metadata twin of the body/vocab overlays: passed to every agent assembler

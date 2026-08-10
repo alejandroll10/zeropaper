@@ -10,7 +10,7 @@ trap 'rm -rf "$TMP_ROOT"' EXIT
 build_and_check() {
     local name="$1"; shift
     local out="$TMP_ROOT/$name" log="$TMP_ROOT/$name.log"
-    if ! "$ROOT/setup.sh" "$out" --local --no-model-probe "$@" > "$log" 2>&1; then
+    if ! "$ROOT/setup.sh" "$out" --assemble-only --no-model-probe "$@" > "$log" 2>&1; then
         cat "$log" >&2
         return 1
     fi
@@ -66,7 +66,7 @@ test ! -f "$TMP_ROOT/report/.opencode/agents/theory-generator.md"
 # Refresh must fail before traversing a pre-sandbox .opencode parent alias.
 mv "$TMP_ROOT/empirical/.opencode" "$TMP_ROOT/aliased-opencode-target"
 ln -s "$TMP_ROOT/aliased-opencode-target" "$TMP_ROOT/empirical/.opencode"
-if "$ROOT/update.sh" "$TMP_ROOT/empirical" > "$TMP_ROOT/update-alias.log" 2>&1; then
+if "$ROOT/update.sh" "$TMP_ROOT/empirical" --no-model-probe > "$TMP_ROOT/update-alias.log" 2>&1; then
     echo "update accepted a symlinked .opencode parent" >&2
     exit 1
 fi
@@ -76,7 +76,7 @@ rm "$TMP_ROOT/empirical/.opencode"
 mv "$TMP_ROOT/aliased-opencode-target" "$TMP_ROOT/empirical/.opencode"
 mv "$TMP_ROOT/empirical/.claude" "$TMP_ROOT/aliased-claude-target"
 ln -s "$TMP_ROOT/aliased-claude-target" "$TMP_ROOT/empirical/.claude"
-if "$ROOT/update.sh" "$TMP_ROOT/empirical" > "$TMP_ROOT/update-claude-alias.log" 2>&1; then
+if "$ROOT/update.sh" "$TMP_ROOT/empirical" --no-model-probe > "$TMP_ROOT/update-claude-alias.log" 2>&1; then
     echo "update accepted a symlinked non-OpenCode managed parent" >&2
     exit 1
 fi
@@ -107,7 +107,7 @@ d = json.load(open(p))
 d["infrastructure"]["dirs_replace"] += ["paper", ".git"]
 open(p, "w").write(json.dumps(d, indent=2) + "\n")
 PY
-PATH="$TMP_ROOT/empirical/.venv/bin:$PATH" "$ROOT/update.sh" "$TMP_ROOT/empirical" \
+PATH="$TMP_ROOT/empirical/.venv/bin:$PATH" "$ROOT/update.sh" "$TMP_ROOT/empirical" --no-model-probe \
     > "$TMP_ROOT/update-forged-stale.log" 2>&1
 test "$(cat "$TMP_ROOT/empirical/paper/user-canary")" = paper-canary
 test "$(cat "$TMP_ROOT/empirical/.git/user-canary")" = git-canary
@@ -121,7 +121,7 @@ mv "$TMP_ROOT/theory-llm/paper" "$TMP_ROOT/theory-paper-real"
 mkdir "$TMP_ROOT/external-paper"
 printf 'external-paper\n' > "$TMP_ROOT/external-paper/referee_reports"
 ln -s "$TMP_ROOT/external-paper" "$TMP_ROOT/theory-llm/paper"
-if "$ROOT/update.sh" "$TMP_ROOT/theory-llm" > "$TMP_ROOT/update-paper-alias.log" 2>&1; then
+if "$ROOT/update.sh" "$TMP_ROOT/theory-llm" --no-model-probe > "$TMP_ROOT/update-paper-alias.log" 2>&1; then
     echo "update accepted a symlinked paper parent" >&2; exit 1
 fi
 test "$(cat "$TMP_ROOT/external-paper/referee_reports")" = external-paper
@@ -129,7 +129,7 @@ test "$(cat "$TMP_ROOT/external-paper/referee_reports")" = external-paper
 printf 'external-env\n' > "$TMP_ROOT/external-env-target"
 rm "$TMP_ROOT/report/.env"
 ln -s "$TMP_ROOT/external-env-target" "$TMP_ROOT/report/.env"
-if "$ROOT/update.sh" "$TMP_ROOT/report" > "$TMP_ROOT/update-env-alias.log" 2>&1; then
+if "$ROOT/update.sh" "$TMP_ROOT/report" --no-model-probe > "$TMP_ROOT/update-env-alias.log" 2>&1; then
     echo "update accepted a symlinked environment file" >&2; exit 1
 fi
 test "$(cat "$TMP_ROOT/external-env-target")" = external-env
@@ -138,7 +138,7 @@ mkdir -p "$TMP_ROOT/report-state/process_log"
 cp "$TMP_ROOT/report/.deploy_manifest.json" "$TMP_ROOT/report-state/.deploy_manifest.json"
 printf '{"status":"running"}\n' > "$TMP_ROOT/external-state-target"
 ln -s "$TMP_ROOT/external-state-target" "$TMP_ROOT/report-state/process_log/pipeline_state.json"
-if "$ROOT/update.sh" "$TMP_ROOT/report-state" --variant finance > "$TMP_ROOT/update-state-alias.log" 2>&1; then
+if "$ROOT/update.sh" "$TMP_ROOT/report-state" --variant finance --no-model-probe > "$TMP_ROOT/update-state-alias.log" 2>&1; then
     echo "update accepted a symlinked pipeline state" >&2; exit 1
 fi
 test "$(cat "$TMP_ROOT/external-state-target")" = '{"status":"running"}'

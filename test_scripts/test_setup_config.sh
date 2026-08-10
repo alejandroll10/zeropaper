@@ -29,7 +29,7 @@ resolve_summary() (
     source "$CONFIG_MODULE"
     resolve_setup_config "$@"
     printf 'resolved|%s|%s|%s|%s|%s|%s|%s|%s|%s|%s\n' \
-        "$PROJECT_NAME" "$VARIANT" "$MODE" "$LOCAL" "$AGENT_DIR" \
+        "$PROJECT_NAME" "$VARIANT" "$MODE" "$ASSEMBLE_ONLY" "$AGENT_DIR" \
         "$INITIAL_TIER" "$DOC_SUBTITLE" "$PUBLISH_ORG" \
         "$PUBLISH_VISIBILITY" "${EXTENSIONS[*]}"
 )
@@ -40,7 +40,7 @@ assert_equal "default finance resolution" \
 
 assert_equal "empirical-first implication and descriptors" \
     $'Info: --mode empirical-first implies --ext empirical (auto-added).\nresolved|paper|finance|empirical-first|1|finance|top-3-fin|Autonomous Empirical Paper Pipeline|automated-papers-produced|private|empirical' \
-    "$(resolve_summary paper --variant finance --mode empirical-first --local)"
+    "$(resolve_summary paper --variant finance --mode empirical-first --assemble-only)"
 
 assert_equal "llm cognition implication" \
     $'Info: --variant llm_cognition implies --ext theory_llm (auto-added).\nresolved||llm_cognition||0|llm_cognition|top-ml|Autonomous Theory Paper Pipeline|automated-papers-produced|private|theory_llm' \

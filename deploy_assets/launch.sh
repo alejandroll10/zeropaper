@@ -45,6 +45,36 @@ case "$_launch_source" in */*) _launch_dir="${_launch_source%/*}" ;; *) _launch_
 ROOT="$(cd "$_launch_dir" && pwd -P)"
 cd "$ROOT"
 
+# Every supported runtime holds a shared lock on the project-root inode for its
+# full process lifetime. Bash owns descriptor 9; the short isolated-Python
+# helper applies flock to that inherited open file description and exits while
+# Bash keeps it live. Interactive branches remain child processes rather than
+# replacing this shell. No pathname lock/readiness file exists.
+if ! exec 9< .; then
+    echo "ERROR: could not open the project runtime/update lock" >&2
+    exit 1
+fi
+if ! /usr/bin/python3 -I - 9 <<'PY'
+import fcntl
+import os
+import stat
+import sys
+
+fd = int(sys.argv[1])
+info = os.fstat(fd)
+if not stat.S_ISDIR(info.st_mode):
+    raise SystemExit("invalid project root lock")
+try:
+    fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
+except BlockingIOError:
+    raise SystemExit(75)
+PY
+then
+    echo "ERROR: could not acquire the project runtime/update lock" >&2
+    exit 1
+fi
+
+_launch_runtime_main() {
 RUNTIME="${1:?Usage: ./launch.sh <claude|codex|gemini|grok|opencode> [--tmux] [--once]}"
 shift
 TMUX_WRAP=0
@@ -249,7 +279,8 @@ case "$RUNTIME" in
             LIGHT_ARGS=(--model "$_light_model")
             echo "[launch] --light: orchestrator pinned to $_light_model" >&2
         fi
-        exec claude ${LIGHT_ARGS[@]+"${LIGHT_ARGS[@]}"} --dangerously-skip-permissions
+        claude ${LIGHT_ARGS[@]+"${LIGHT_ARGS[@]}"} --dangerously-skip-permissions
+        exit
         ;;
     gemini)
         LIGHT_ARGS=()
@@ -258,7 +289,8 @@ case "$RUNTIME" in
             LIGHT_ARGS=(--model "$_light_model")
             echo "[launch] --light: orchestrator pinned to $_light_model" >&2
         fi
-        exec gemini ${LIGHT_ARGS[@]+"${LIGHT_ARGS[@]}"} --yolo
+        gemini ${LIGHT_ARGS[@]+"${LIGHT_ARGS[@]}"} --yolo
+        exit
         ;;
     grok)
         install_grok_venv_shims
@@ -267,7 +299,8 @@ case "$RUNTIME" in
         # by default, and a second client on that socket TEARS DOWN the first
         # session's in-flight turn — concurrent projects would cancel each
         # other (issue #186/#190; see README).
-        exec grok --sandbox pipeline --always-approve --leader-socket "$ROOT/.grok/leader.sock"
+        grok --sandbox pipeline --always-approve --leader-socket "$ROOT/.grok/leader.sock"
+        exit
         ;;
     codex|opencode) ;;  # falls through to the appropriate driver below
     *)
@@ -766,8 +799,9 @@ PY
         fi
     done
     if [ "$ONCE" = "1" ]; then
-        exec "$OC_SANDBOX_EXEC" "$OC_SANDBOX_SETTINGS" \
+        "$OC_SANDBOX_EXEC" "$OC_SANDBOX_SETTINGS" \
             opencode --model opencode/deepseek-v4-flash
+        exit
     fi
     OPENCODE_TURN_TIMEOUT="${OPENCODE_TURN_TIMEOUT:-3540}"
     OPENCODE_BACKGROUND_TIMEOUT="${OPENCODE_BACKGROUND_TIMEOUT:-3540}"
@@ -1762,7 +1796,8 @@ if [ -f "$ROOT/code/utils/codex_preflight.sh" ]; then
 fi
 
 if [ "$ONCE" = "1" ]; then
-    exec codex "${CODEX_ARGS[@]}"
+    codex "${CODEX_ARGS[@]}"
+    exit
 fi
 
 STATE="$ROOT/process_log/pipeline_state.json"
@@ -2131,3 +2166,11 @@ for e in p:
     fi
     sleep 3
 done
+
+}
+
+# Only this parent Bash owns descriptor 9. The complete runtime/control tree
+# executes in a child subshell with that descriptor closed, so it can neither
+# unlock the parent's open file description nor leak the lock into detached
+# descendants. The parent waits here and therefore retains LOCK_SH throughout.
+( _launch_runtime_main "$@" ) 9<&-

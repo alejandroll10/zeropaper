@@ -2,11 +2,28 @@
 # Git initialization, optional publication, and completion reporting.
 
 setup_initialize_project_git() {
-    [ "$LOCAL" = "0" ] || return 0
-    git init -q -b main
+    [ "$ASSEMBLE_ONLY" = "0" ] || return 0
+    SETUP_GIT_TEMPLATE_DIR="$(mktemp -d "$SETUP_TMP_ROOT/zeropaper-git-template.XXXXXX")"
+    _setup_git_control init -q -b main --template="$SETUP_GIT_TEMPLATE_DIR"
+    # Persist hook/attribute/fsmonitor neutrality for the later gh-driven push,
+    # which cannot inherit `_setup_git_control`'s one-command config boundary.
+    _setup_git_control config --local core.hooksPath /dev/null
+    _setup_git_control config --local core.attributesFile /dev/null
+    _setup_git_control config --local core.fsmonitor false
+    _setup_git_control config --local commit.gpgSign false
 }
 
-finalize_local_setup() {
+_setup_git_control() {
+    GIT_CONFIG_GLOBAL=/dev/null GIT_CONFIG_NOSYSTEM=1 \
+        git -c "user.name=$SETUP_GIT_USER_NAME" \
+            -c "user.email=$SETUP_GIT_USER_EMAIL" \
+            -c core.hooksPath=/dev/null \
+            -c core.attributesFile=/dev/null \
+            -c core.fsmonitor=false \
+            -c commit.gpgSign=false "$@"
+}
+
+finalize_assemble_only_setup() {
     echo ""
     echo "=== Assembled CLAUDE.md ==="
     echo "Lines: $(wc -l < "$CLAUDE_MD_OUT")"
@@ -89,7 +106,7 @@ finalize_local_setup() {
         echo "✓ All placeholders resolved"
     fi
     echo ""
-    echo "Output at: $OUT_DIR/"
+    echo "Assembly output at: $OUT_DIR/"
 }
 
 _setup_publish_project() {
@@ -100,25 +117,25 @@ _setup_publish_project() {
         PUBLISH_NAME="$(basename "$PROJECT_NAME")-${PUBLISH_SUFFIX}"
         echo "Publish requested: $PUBLISH_ORG/$PUBLISH_NAME ($PUBLISH_VISIBILITY)"
 
-        if ! command -v gh >/dev/null 2>&1; then
+        if [ -z "$SETUP_TOOL_GH" ] || [ ! -x "$SETUP_TOOL_GH" ]; then
             echo "  ⚠ GitHub CLI (gh) not found. Repo remains local."
-        elif ! gh auth status >/dev/null 2>&1; then
+        elif ! "$SETUP_TOOL_GH" auth status >/dev/null 2>&1; then
             echo "  ⚠ GitHub CLI is not authenticated. Repo remains local."
         else
             gh_user=""
             membership_state=""
-            if ! gh_user=$(gh api user --jq .login); then
+            if ! gh_user=$("$SETUP_TOOL_GH" api user --jq .login); then
                 echo "  ⚠ Could not identify the authenticated GitHub user. Repo remains local."
             elif [ -z "$gh_user" ]; then
                 echo "  ⚠ GitHub returned an empty authenticated-user login. Repo remains local."
-            elif ! membership_state=$(gh api "orgs/$PUBLISH_ORG/memberships/$gh_user" --jq .state); then
+            elif ! membership_state=$("$SETUP_TOOL_GH" api "orgs/$PUBLISH_ORG/memberships/$gh_user" --jq .state); then
                 echo "  ⚠ Could not verify active membership in $PUBLISH_ORG. Repo remains local."
             elif [ "$membership_state" != "active" ]; then
                 membership_state="${membership_state:-unknown}"
                 echo "  ⚠ GitHub membership in $PUBLISH_ORG is $membership_state, not active. Repo remains local."
             else
                 echo "Publishing to $PUBLISH_ORG/$PUBLISH_NAME ($PUBLISH_VISIBILITY)..."
-                if gh repo create "$PUBLISH_ORG/$PUBLISH_NAME" \
+                if "$SETUP_TOOL_GH" repo create "$PUBLISH_ORG/$PUBLISH_NAME" \
                        "--$PUBLISH_VISIBILITY" \
                        --source=. --remote=origin --push >/dev/null; then
                     echo "  ✓ Pushed to $PUBLISH_ORG/$PUBLISH_NAME"
@@ -205,17 +222,17 @@ _setup_print_completion() {
 finalize_production_setup() {
     # No cleanup/strip step: the project received build outputs only.
     if [ -f dashboard.html ]; then
-        DASHBOARD_SUBTITLE="Autonomous $(python3 -c "import sys; print(sys.argv[1].title())" "$PAPER_TYPE") Generator"
+        DASHBOARD_SUBTITLE="Autonomous $(python3 -I -c "import sys; print(sys.argv[1].title())" "$PAPER_TYPE") Generator"
         sed -i.bak "s|Autonomous Finance Theory Paper Generator|$DASHBOARD_SUBTITLE|" dashboard.html && rm -f dashboard.html.bak
     fi
 
-    git add -A
+    _setup_git_control add -A
     if [ "$MANUAL" = "1" ]; then
-        git commit -m "setup: initialized ${VARIANT} variant toolkit (manual mode)" -q
+        _setup_git_control commit -m "setup: initialized ${VARIANT} variant toolkit (manual mode)" -q
     elif [ "$MODE" = "report" ]; then
-        git commit -m "setup: initialized ${VARIANT} variant referee-report deployment" -q
+        _setup_git_control commit -m "setup: initialized ${VARIANT} variant referee-report deployment" -q
     else
-        git commit -m "setup: initialized ${VARIANT} variant pipeline" -q
+        _setup_git_control commit -m "setup: initialized ${VARIANT} variant pipeline" -q
     fi
 
     _setup_publish_project

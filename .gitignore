@@ -8,10 +8,10 @@ references/
 .claude/agents/
 .claude/agent-memory/
 # .claude/skills/ is deliberately NOT ignored: the meta-repo's own dev skills
-# (currently deploy-project) are tracked here. setup.sh strips them from deployed
-# projects — see the DEV_SKILLS snapshot/cleanup pair in setup.sh.
+# are tracked here. Deployments start empty and assemble their own skill trees
+# exclusively from deploy_assets/, so the dev skills never enter a project.
 
-# Local test artifacts from ./setup.sh <name> --local
+# Local test artifacts from ./setup.sh <name> --assemble-only
 demo_*/
 
 # Paper about the pipeline — lives in its own repo
@@ -44,15 +44,14 @@ Thumbs.db
 # Meta paper (separate repo)
 meta_paper/
 
-# Dev-only notes / postmortems / one-off audits. Repo working notes that must never be
-# committed — setup.sh deploys via `git clone`, so any tracked root file not on its
-# removal denylist rides into every deployed paper repo (e.g. the old victor1_postmortem.md leak).
+# Dev-only notes / postmortems / one-off audits. Repo working notes that must
+# never be committed; setup.sh's allowlisted deployment does not ship them.
 dev_notes/
 
 # API keys
 .env
 
-# Local test output from setup.sh --local
+# Local test output from setup.sh --assemble-only
 test_output/
 test_example/
 

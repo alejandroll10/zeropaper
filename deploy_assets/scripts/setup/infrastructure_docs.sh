@@ -89,7 +89,7 @@ apply_seed_overrides() {
         for _docfile in "$P/docs/"*.md; do
             grep -q "{{$_key}}" "$_docfile" || continue
             if [ -n "$_override" ]; then
-                python3 -c "
+                python3 -I -c "
 import sys, pathlib
 doc = pathlib.Path(sys.argv[1])
 override = pathlib.Path(sys.argv[2]).read_text().rstrip()
@@ -97,7 +97,7 @@ doc.write_text(doc.read_text().replace('{{' + sys.argv[3] + '}}', override))
 " "$_docfile" "$_override" "$_key"
             else
                 # Strip placeholder and any immediately surrounding blank lines.
-                python3 -c "
+                python3 -I -c "
 import sys, re, pathlib
 p = pathlib.Path(sys.argv[1])
 key = sys.argv[2]

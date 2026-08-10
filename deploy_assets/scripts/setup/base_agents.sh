@@ -322,10 +322,13 @@ setup_base_agents() {
     # would silently leave unavailable models pinned. Fail loud instead — a
     # nonzero exit means a template bug (bad JSON, python error), not a benign
     # probe miss (the resolver handles a missing claude CLI internally, exit 0).
-    if ! _model_resolver_out=$(python3 "$TEMPLATE_ROOT/scripts/resolve_model_fallbacks.py" \
+    _model_cli_args=()
+    [ -z "$SETUP_TOOL_CLAUDE" ] || _model_cli_args=(--claude-executable "$SETUP_TOOL_CLAUDE")
+    if ! _model_resolver_out=$(/usr/bin/python3 -I "$TEMPLATE_ROOT/scripts/resolve_model_fallbacks.py" \
         --fallbacks "$TEMPLATE_ROOT/templates/model_fallbacks.json" \
         --known-unavailable "fable,mythos,claude-fable-5,claude-mythos-5" \
-        "${_model_probe_flag[@]}" "${_model_extra_args[@]}" "${_model_meta_args[@]}"); then
+        "${_model_probe_flag[@]}" "${_model_extra_args[@]}" "${_model_cli_args[@]}" \
+        "${_model_meta_args[@]}"); then
         echo "Error: subagent model resolver failed — aborting rather than shipping agents pinned to an unavailable model." >&2
         exit 1
     fi

@@ -3,8 +3,8 @@
 # econ-leakage tripwires. Build-time only (test_scripts/ is removed on deploy).
 #
 # Usage: ./test_scripts/test_llm_cognition_assembly.sh
-# Runs setup.sh --local (output to test_output/llm_cognition/), so it clobbers
-# any existing test_output — same caveat as any --local build.
+# Runs setup.sh --assemble-only (output to test_output/llm_cognition/), so it clobbers
+# any existing test_output — same caveat as any --assemble-only build.
 set -u
 cd "$(dirname "$0")/.."
 
@@ -16,7 +16,7 @@ pass() { echo "✓ $1"; }
 # (--mode report is supported since v2.16.0/#204 and is tested in section 6.)
 for args in "--variant llm_cognition --ext empirical" \
             "--variant llm_cognition --mode empirical-first"; do
-    if ./setup.sh /tmp/llmcog_gate_test $args --local >/dev/null 2>&1; then
+    if ./setup.sh /tmp/llmcog_gate_test $args --assemble-only >/dev/null 2>&1; then
         fail "gate did not fire: setup.sh $args"
     else
         pass "gate fired: $args"
@@ -25,7 +25,7 @@ done
 
 # ── 2. Assembly: bare llm_cognition must build, auto-imply theory_llm, resolve all placeholders ──
 rm -rf test_output
-BUILD_LOG="$(./setup.sh --variant llm_cognition --local --no-model-probe 2>&1)"
+BUILD_LOG="$(./setup.sh test_output/llm_cognition --variant llm_cognition --assemble-only --no-model-probe 2>&1)"
 if [ $? -ne 0 ]; then
     fail "bare --variant llm_cognition build failed"
     echo "$BUILD_LOG" | tail -5
@@ -150,7 +150,7 @@ grep -q "Procedurally generate stimuli" "$B/.claude/agents/experiment-designer.m
 
 # ── 6. Report mode (#204): llm_cognition report build assembles ML-calibrated referees ──
 rm -rf test_output
-REPORT_LOG="$(./setup.sh --variant llm_cognition --mode report --local --no-model-probe 2>&1)"
+REPORT_LOG="$(./setup.sh test_output/llm_cognition --variant llm_cognition --mode report --assemble-only --no-model-probe 2>&1)"
 if [ $? -ne 0 ]; then
     fail "llm_cognition --mode report build failed"
     echo "$REPORT_LOG" | tail -5
@@ -196,13 +196,13 @@ else
 fi
 
 # ── 7. Measurement-first mode (#199): evidence-first llm_cognition build ──
-if ./setup.sh /tmp/llmcog_mf_gate --variant finance --mode measurement-first --local >/dev/null 2>&1; then
+if ./setup.sh /tmp/llmcog_mf_gate --variant finance --mode measurement-first --assemble-only >/dev/null 2>&1; then
     fail "gate did not fire: finance --mode measurement-first"
 else
     pass "gate fired: measurement-first is llm_cognition-only"
 fi
 rm -rf test_output
-MF_LOG="$(./setup.sh --variant llm_cognition --mode measurement-first --local --no-model-probe 2>&1)"
+MF_LOG="$(./setup.sh test_output/llm_cognition --variant llm_cognition --mode measurement-first --assemble-only --no-model-probe 2>&1)"
 if [ $? -ne 0 ]; then
     fail "llm_cognition --mode measurement-first build failed"
     echo "$MF_LOG" | tail -5

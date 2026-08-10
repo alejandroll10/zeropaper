@@ -58,14 +58,17 @@ fi
 # on-white grep marker) so every paper produced by this deployment
 # carries the magic prefix ARPIPELINE-FP-V1 for distribution detection.
 # ---------------------------------------------------------------------
-ARP_UUID=$(python3 -c 'import uuid; print(uuid.uuid4())' 2>/dev/null)
+ARP_UUID=$(python3 -I -c 'import uuid; print(uuid.uuid4())' 2>/dev/null)
 ARP_DATE=$(date -u +%Y-%m-%d)
 # Version stamp = human-readable semver (from the VERSION file, the single
-# source of truth) + exact build provenance (git short hash), e.g.
+# source of truth) + exact checkout provenance (git short hash), e.g.
 # "2.6.0+73b6911". VERSION is build-time only (read here, never deployed), so
 # it needs no deployment-manifest entry. If VERSION is missing or empty we fall
 # back to the bare hash — identical to the pre-versioning behavior, fail-safe.
-ARP_HASH=$(cd "$TEMPLATE_ROOT" && git rev-parse --short HEAD 2>/dev/null || echo "unknown")
+case "$SOURCE_COMMIT" in
+    unknown) ARP_HASH="unknown" ;;
+    *) ARP_HASH="${SOURCE_COMMIT:0:7}" ;;
+esac
 ARP_SEMVER=$(tr -d '[:space:]' < "$SRC_ROOT/VERSION" 2>/dev/null || true)
 if [ -n "$ARP_SEMVER" ]; then
     ARP_VERSION="${ARP_SEMVER}+${ARP_HASH}"
@@ -311,7 +314,7 @@ fi
 # theory_version), mirroring empirical-first's stage2_mechanism_version. The
 # theory_llm extension adds stage3b_theory_version separately below.
 if [ "$MODE" = "measurement-first" ] && [ -f "$P/process_log/pipeline_state.json" ]; then
-    python3 - "$P/process_log/pipeline_state.json" <<'PYMF'
+    python3 -I - "$P/process_log/pipeline_state.json" <<'PYMF'
 import json, sys
 p = sys.argv[1]
 with open(p) as f:
@@ -393,19 +396,19 @@ setup_project_environment_bootstrap() {
     # Falls back to the committed .env.example so a fresh clone still lands a
     # scaffold. Values are mutable project state: update.sh merges missing keys
     # instead of replacing this file.
-    if [ -f "$SCRIPT_DIR/.env" ]; then
-        cp "$SCRIPT_DIR/.env" "$P/.env"
+    if [ -f "$SOURCE_CHECKOUT_ROOT/.env" ]; then
+        cp "$SOURCE_CHECKOUT_ROOT/.env" "$P/.env"
         # update.sh's line reader would drop a final unterminated line.
         [ -n "$(tail -c1 "$P/.env")" ] && printf '\n' >> "$P/.env"
         echo "  ✓ .env copied from template repo"
-        if [ -f "$SCRIPT_DIR/.env.example" ]; then
+        if [ -f "$SRC_ROOT/.env.example" ]; then
             . "$TEMPLATE_ROOT/scripts/merge_env_keys.sh"
-            merge_env_missing_keys "$SCRIPT_DIR/.env.example" "$P/.env" 0
+            merge_env_missing_keys "$SRC_ROOT/.env.example" "$P/.env" 0
             [ "$MERGE_ENV_ADDED" -gt 0 ] \
                 && echo "  ✓ $MERGE_ENV_ADDED key(s) added from .env.example — fill in values if you use them"
         fi
-    elif [ -f "$SCRIPT_DIR/.env.example" ]; then
-        cp "$SCRIPT_DIR/.env.example" "$P/.env"
+    elif [ -f "$SRC_ROOT/.env.example" ]; then
+        cp "$SRC_ROOT/.env.example" "$P/.env"
         echo "  ✓ .env scaffolded from .env.example — fill in your credentials"
     fi
     [ -f "$P/.env" ] && bootstrap_env_merge 10 ".env"

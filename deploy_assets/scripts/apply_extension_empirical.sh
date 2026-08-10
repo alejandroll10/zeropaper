@@ -20,7 +20,7 @@ GEMINI_AGENTS_OUT="$5"
 OPENCODE_AGENTS_OUT="$6"
 SKILLS_OUT="$7"
 AGENT_DIR="$8"
-LOCAL="$9"
+ASSEMBLE_ONLY="$9"
 MODEL_OVERRIDE_ARG=()
 if [ -n "${10}" ]; then
     MODEL_OVERRIDE_ARG=(--model-override "${10}")

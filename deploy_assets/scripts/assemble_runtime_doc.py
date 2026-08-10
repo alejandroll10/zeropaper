@@ -123,7 +123,7 @@ def main():
         session_path.parent.mkdir(parents=True, exist_ok=True)
         session_path.write_text(runtime_session + "\n")
         # Relative path from the runtime doc to the session file (handles both
-        # in-project deploys and --local mode where output sits under OUT_DIR).
+        # in-project deploys and --assemble-only where output sits under OUT_DIR).
         rel_path = os.path.relpath(session_path.resolve(),
                                    Path(args.output).resolve().parent)
         pointer = (

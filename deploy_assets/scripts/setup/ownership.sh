@@ -149,25 +149,54 @@ bootstrap_env_merge() {
 }
 
 emit_deployment_manifest() {
-    local EXT_JSON SEEDED_BOOL MANUAL_BOOL LIGHT_BOOL HALT_ON_CORE_BYPASS_BOOL
+    local EXT_JSON SEEDED_BOOL FAITHFUL_BOOL MANUAL_BOOL LIGHT_BOOL HALT_ON_CORE_BYPASS_BOOL
 # ── Emit deployment manifest ──
 # Records what setup.sh produced as "infrastructure" — paths that update.sh
 # may overwrite when refreshing a deployed project against a newer template.
 # Anything not in this manifest is preserved on update (paper content,
 # output/, process_log/, .env values, references.bib, git history, paper/
 # arpipeline.sty fingerprint, paper/main.tex, paper/internet_appendix.tex).
-EXT_JSON=$(python3 -c 'import json,sys; print(json.dumps(sys.argv[1:]))' "${EXTENSIONS[@]}")
-# Capitalised for Python literal substitution into the heredoc below.
+EXT_JSON=$(python3 -I -c 'import json,sys; print(json.dumps(sys.argv[1:]))' "${EXTENSIONS[@]}")
+# Keep the shell values explicit; the quoted Python boundary parses them below.
 SEEDED_BOOL=$([ "$SEEDED" = "1" ] && echo True || echo False)
+FAITHFUL_BOOL=$([ "$FAITHFUL" = "1" ] && echo True || echo False)
 MANUAL_BOOL=$([ "$MANUAL" = "1" ] && echo True || echo False)
 LIGHT_BOOL=$([ "$LIGHT" = "1" ] && echo True || echo False)
 HALT_ON_CORE_BYPASS_BOOL=$([ "$HALT_ON_CORE_BYPASS" = "1" ] && echo True || echo False)
 
-python3 <<PYEMIT
+SOURCE_KIND="$SOURCE_KIND" \
+SOURCE_REPOSITORY="$SOURCE_REPOSITORY" \
+SOURCE_COMMIT="$SOURCE_COMMIT" \
+SOURCE_DIRTY="$SOURCE_DIRTY" \
+SOURCE_CONTENT_DIGEST="$SOURCE_CONTENT_DIGEST" \
+SOURCE_UPDATE_CHANNEL="$SOURCE_UPDATE_CHANNEL" \
+python3 -I - "$P" "$INFRA_DIRS_REGISTRY" "$INFRA_FILES_REGISTRY" \
+    "$BOOTSTRAP_MERGE_REGISTRY" "$EXT_JSON" "$ARP_VERSION" "$ARP_DATE" \
+    "$ARP_UUID" "$VARIANT" "$MODE" "$SEEDED_BOOL" "$FAITHFUL_BOOL" "$MANUAL_BOOL" \
+    "$LIGHT_BOOL" "$HALT_ON_CORE_BYPASS_BOOL" <<'PYEMIT'
 import json
+import os
+import sys
 from pathlib import Path
 
-project = Path("$P")
+(
+    project_value,
+    infrastructure_dirs_registry,
+    infrastructure_files_registry,
+    bootstrap_merge_registry,
+    extensions_json,
+    template_version,
+    deploy_date,
+    deploy_fingerprint,
+    variant,
+    mode,
+    seeded,
+    faithful,
+    manual,
+    light,
+    halt_on_core_bypass,
+) = sys.argv[1:]
+project = Path(project_value)
 manifest_path = project / ".deploy_manifest.json"
 
 # Producers register template-owned paths as they create them. update.sh
@@ -191,23 +220,32 @@ def owned_paths(registry_name, kind):
             result.append(rel)
     return result
 
-infrastructure_dirs = owned_paths("$INFRA_DIRS_REGISTRY", "dir")
-infrastructure_files = owned_paths("$INFRA_FILES_REGISTRY", "file")
-env_merge_files = owned_paths("$BOOTSTRAP_MERGE_REGISTRY", "file")
-extensions = $EXT_JSON
+infrastructure_dirs = owned_paths(infrastructure_dirs_registry, "dir")
+infrastructure_files = owned_paths(infrastructure_files_registry, "file")
+env_merge_files = owned_paths(bootstrap_merge_registry, "file")
+extensions = json.loads(extensions_json)
 manifest = {
     "manifest_version": 1,
-    "template_version": "$ARP_VERSION",
-    "deploy_date": "$ARP_DATE",
-    "deploy_fingerprint": "$ARP_UUID",
-    "variant": "$VARIANT",
-    "mode": "$MODE",
+    "template_version": template_version,
+    "deploy_date": deploy_date,
+    "deploy_fingerprint": deploy_fingerprint,
+    "source": {
+        "kind": os.environ["SOURCE_KIND"],
+        "repository": os.environ["SOURCE_REPOSITORY"] or None,
+        "commit": os.environ["SOURCE_COMMIT"],
+        "dirty": os.environ["SOURCE_DIRTY"] == "true",
+        "content_digest": os.environ["SOURCE_CONTENT_DIGEST"],
+        "update_channel": os.environ["SOURCE_UPDATE_CHANNEL"],
+    },
+    "variant": variant,
+    "mode": mode,
     "extensions": extensions,
     "flags": {
-        "seeded": $SEEDED_BOOL,
-        "manual": $MANUAL_BOOL,
-        "light": $LIGHT_BOOL,
-        "halt_on_core_bypass": $HALT_ON_CORE_BYPASS_BOOL,
+        "seeded": seeded == "True",
+        "faithful": faithful == "True",
+        "manual": manual == "True",
+        "light": light == "True",
+        "halt_on_core_bypass": halt_on_core_bypass == "True",
     },
     "infrastructure": {
         "dirs_replace": infrastructure_dirs,

@@ -1,6 +1,6 @@
 ---
 name: deploy-project
-description: Deploy a new research paper project from this template repo with setup.sh — every flag (--variant, --ext, --mode, --seed, --faithful, --manual, --light, --halt-on-core-bypass, --publish), their compositions and mutual exclusions, safe opt-in GitHub publishing, plus post-setup launch instructions (launch.sh, tmux, unattended runs) and WRDS server startup. Use whenever the user asks to create/set up/start/deploy a new research project, asks which setup.sh flags to pass, asks how to launch or resume a deployed pipeline, or asks about the WRDS socket server.
+description: Deploy a new research paper project from this template checkout with setup.sh — checkout-local source policy, every flag (--variant, --ext, --mode, --seed, --faithful, --manual, --light, --halt-on-core-bypass, --publish, --assemble-only), their compositions and mutual exclusions, safe opt-in GitHub publishing, plus post-setup launch instructions (launch.sh, tmux, unattended runs) and WRDS server startup. Use whenever the user asks to create/set up/start/deploy a new research project, asks which setup.sh flags to pass, asks how to launch or resume a deployed pipeline, or asks about the WRDS socket server.
 ---
 
 # Deploying a project
@@ -10,9 +10,11 @@ If a user asks to create/set up/start a new research project, run `setup.sh` for
 For editing the template repo itself — adding a variant, a mode, an agent, a skill, or a
 vocab placeholder — load the `edit-pipeline` skill instead.
 
-> **`--local` is a debug flag, never a real run.** It skips the tmp source clone (assembling straight from this checkout's `deploy_assets/`), dumps assembled output into `test_output/{variant}/` for inspection, and **exits before** the production steps (dependency install, git init, initial commit). Use it *only* to verify template assembly (placeholder resolution, agent/skill files, marker stripping) — typically against a `/tmp` target. A full, deployable run is the plain `./setup.sh <project-name> ...` form **without** `--local`. The `--local` form appears only in the template repo's own "Adding a new variant" / "Adding a new mode" procedures (the `edit-pipeline` skill), because those are assembly tests, not paper runs.
+> **Every setup uses this checkout.** `setup.sh` never fetches or clones the template repository. Check out the desired release tag or commit first, then run its `setup.sh`; a full deployment rejects changes or untracked files in `setup.sh`, `VERSION`, `LICENSE`, `.env.example`, or `deploy_assets/`. `.env` is separate operator configuration and does not dirty the template source.
 
-> **Publishing is opt-in.** A normal production setup creates and commits a standalone local repository but does not create or push a GitHub repository. (It still fetches the template source from GitHub unless `ZEROPAPER_REPO` points elsewhere.) Add `--publish` only when the operator deliberately wants setup to create and push a remote repository. `--no-publish` is an explicit spelling of the default for scripts and test runs.
+> **`--assemble-only` is the non-production fast path.** It requires an explicit destination, permits dirty development inputs, assembles and validates the complete output there, and **exits before** dependency provisioning, project Git initialization, the initial commit, or publishing. Use it for template tests and `update.sh`, not for a runnable new project.
+
+> **Publishing is opt-in.** A normal production setup creates and commits a standalone local repository but does not create or push a GitHub repository. Add `--publish` only when the operator deliberately wants setup to create and push a remote repository. `--no-publish` is an explicit spelling of the default for scripts and test runs.
 
 ```bash
 # Basic finance theory
@@ -100,7 +102,7 @@ Legacy aliases: `--variant finance_llm` is shorthand for `--variant finance --ex
 
 ### `--publish` / `--no-publish`
 
-Publishing is **off by default**. `--publish` opts a production deployment into creating and pushing a GitHub repository after the local initial commit; setup prints the exact target before calling GitHub. `--no-publish` explicitly selects the default local-only behavior and is useful in automation where the safety decision should be visible. Passing both is an error, and `--publish` is incompatible with `--local` because debug builds do not produce deployable repositories.
+Publishing is **off by default**. `--publish` opts a production deployment into creating and pushing a GitHub repository after the local initial commit; setup prints the exact target before calling GitHub. `--no-publish` explicitly selects the default local-only behavior and is useful in automation where the safety decision should be visible. Passing both is an error, and `--publish` is incompatible with `--assemble-only` because assembly-only builds do not initialize a project repository.
 
 The target defaults to `automated-papers-produced`; override it with `PUBLISH_ORG=<org>`. Visibility defaults to private and can be set with `PUBLISH_VISIBILITY=private|public|internal`. These environment variables configure an explicit `--publish` request—they do not enable publishing by themselves. An empty `PUBLISH_ORG` with `--publish` is an error; without `--publish`, including `PUBLISH_ORG=` has no effect because the deployment remains local.
 

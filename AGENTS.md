@@ -20,7 +20,7 @@ WHEN ADDING A NEW `{{KEY}}` PLACEHOLDER TO ANY AGENT BODY OR FRAGMENT (SHARED `{
 
 This is the **template repository** for the autonomous research paper pipeline. We are building and iterating on the pipeline infrastructure itself — agents, setup scripts, CLAUDE.md templates, dashboard, etc.
 
-Every build input lives under `deploy_assets/` (templates/, scripts/, extensions/, launch.sh, dashboard.html); everything outside it is dev-only tooling. Since v2.23.0 (#232) `setup.sh` assembles a deployment from `deploy_assets/` into an **empty** project directory — there is no clone-then-strip step, so a path that isn't explicitly produced simply never ships (fail-closed).
+Deployable assets live under `deploy_assets/` (templates/, scripts/, extensions/, launch.sh, dashboard.html). Root `setup.sh`, `VERSION`, `LICENSE`, and `.env.example` are also assembly inputs; other root files are dev-only tooling. Since v2.23.0 (#232) `setup.sh` assembles a deployment from these inputs into an **empty** project directory — there is no clone-then-strip step, so a path that isn't explicitly produced simply never ships (fail-closed).
 
 This file is tracked in git but **overwritten by `setup.sh`** in cloned projects. It is for our development work only. The pipeline's CLAUDE.md that end users see is assembled by `setup.sh` from `deploy_assets/templates/shared/core.md` + `deploy_assets/templates/runtime/claude/session.md` + per-variant vocab substitution. (Variant-specific scorer calibrations live in `deploy_assets/templates/agents/{variant}/vocab.json` and are substituted into the scorer agent body, not appended as a separate block.)
 
@@ -63,7 +63,7 @@ Prefer prose over fixed categories when agents report findings — a label set l
 
 One thing worth knowing without loading it, because it also applies to template-assembly testing:
 
-- **`--local` is a debug flag, never a real run.** It skips the tmp source clone (assembling from this checkout's `deploy_assets/`), dumps to `test_output/{variant}/`, and exits before dependency install / git init / initial commit.
+- **Every setup is checkout-local.** `setup.sh` never fetches the template repository; check out the desired tag/commit first. A full deployment rejects dirty build inputs. `--assemble-only <destination>` permits development state, assembles and validates there, and exits before dependency provisioning / project git init / initial commit. It has no implicit destination.
 
 ## Editing this repo
 

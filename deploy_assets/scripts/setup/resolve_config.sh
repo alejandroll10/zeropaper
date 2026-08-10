@@ -24,8 +24,9 @@ usage() {
     cat <<'EOF'
 Usage: ./setup.sh [project-name] [options]
 
-Create a standalone research-project deployment. Deployments stay local by
-default; pass --publish explicitly to create and push a GitHub repository.
+Create a standalone research-project deployment from the checkout containing
+this setup.sh. It never fetches template source. Full deployments require clean,
+committed build inputs. Publishing stays off unless --publish is explicit.
 
 Core options:
   --variant finance|macro|llm_cognition
@@ -37,7 +38,8 @@ Core options:
   --no-model-probe
   --publish                               Create and push a GitHub repository
   --no-publish                            Explicit local-only mode (default)
-  --local                                 Assembly debug mode; never publishes
+  --assemble-only                         Require project-name; assemble and validate,
+                                          skipping provisioning, project Git, publishing
   -h, --help
 
 Publishing environment:
@@ -61,7 +63,7 @@ _setup_config_parse_arguments() {
     PROJECT_NAME=""
     VARIANT="finance"
     MODE=""
-    LOCAL=0
+    ASSEMBLE_ONLY=0
     SEEDED=0
     USER_PASSED_SEED=0
     FAITHFUL=0
@@ -93,7 +95,7 @@ _setup_config_parse_arguments() {
             --no-model-probe) MODEL_PROBE=0 ;;
             --publish)     PUBLISH=1; USER_PASSED_PUBLISH=1 ;;
             --no-publish)  PUBLISH=0; USER_PASSED_NO_PUBLISH=1 ;;
-            --local)       LOCAL=1 ;;
+            --assemble-only) ASSEMBLE_ONLY=1 ;;
             -h|--help)     usage; exit 0 ;;
             --theory-llm)  _setup_config_add_extension theory_llm ;;
             -*)            echo "Unknown option: $_setup_config_arg"; exit 1 ;;
@@ -133,9 +135,14 @@ _setup_config_validate_flag_composition() {
         echo "Error: --publish and --no-publish are mutually exclusive."
         exit 1
     fi
-    if [ "$PUBLISH" = "1" ] && [ "$LOCAL" = "1" ]; then
-        echo "Error: --publish cannot be used with --local."
-        echo "  --local is assembly-only debug mode and never creates a deployable repository."
+    if [ "$ASSEMBLE_ONLY" = "1" ] && [ -z "$PROJECT_NAME" ]; then
+        echo "Error: --assemble-only requires an explicit destination."
+        echo "  Example: ./setup.sh /tmp/zeropaper-assembly --assemble-only"
+        exit 1
+    fi
+    if [ "$PUBLISH" = "1" ] && [ "$ASSEMBLE_ONLY" = "1" ]; then
+        echo "Error: --publish cannot be used with --assemble-only."
+        echo "  --assemble-only stops before project Git initialization and publishing."
         exit 1
     fi
     if [ "$PUBLISH" = "1" ] && [ "$MODE" = "report" ]; then

@@ -27,7 +27,7 @@ expect_failure() {
 # Help must expose the safe default and both explicit spellings.
 HELP_OUTPUT="$TEST_ROOT/help.log"
 "$SETUP" --help >"$HELP_OUTPUT"
-grep -Fq -- "Deployments stay local by" "$HELP_OUTPUT" || fail "help omits local default"
+grep -Fq -- "Publishing stays off" "$HELP_OUTPUT" || fail "help omits publishing default"
 grep -Fq -- "--publish" "$HELP_OUTPUT" || fail "help omits --publish"
 grep -Fq -- "--no-publish" "$HELP_OUTPUT" || fail "help omits --no-publish"
 grep -Fq -- "PUBLISH_ORG=<org>" "$HELP_OUTPUT" || fail "help omits PUBLISH_ORG"
@@ -38,8 +38,8 @@ expect_failure "--publish and --no-publish are mutually exclusive" \
     "$SETUP" parser-a --publish --no-publish
 expect_failure "--publish and --no-publish are mutually exclusive" \
     "$SETUP" parser-b --no-publish --publish
-expect_failure "--publish cannot be used with --local" \
-    "$SETUP" parser-c --publish --local
+expect_failure "--publish cannot be used with --assemble-only" \
+    "$SETUP" parser-c --publish --assemble-only
 expect_failure "--publish cannot be used with --mode report" \
     "$SETUP" parser-d --mode report --publish
 expect_failure "--publish requires a non-empty PUBLISH_ORG" \
@@ -47,8 +47,8 @@ expect_failure "--publish requires a non-empty PUBLISH_ORG" \
 expect_failure "PUBLISH_VISIBILITY must be private, public, or internal" \
     env PUBLISH_VISIBILITY=secret "$SETUP" parser-f --publish
 
-# Build a committed local template source so production-mode setup exercises
-# the real clone/assembly/commit/publish path without touching the network.
+# Build a committed local template checkout so full setup exercises the real
+# checkout-local assembly/commit/publish path without touching the network.
 TEMPLATE_REPO="$TEST_ROOT/template"
 git clone -q "$REPO_ROOT" "$TEMPLATE_REPO"
 cp "$REPO_ROOT/setup.sh" "$TEMPLATE_REPO/setup.sh"
@@ -60,15 +60,18 @@ mkdir -p "$TEMPLATE_REPO/deploy_assets/scripts/setup"
 cp "$REPO_ROOT/deploy_assets/scripts/setup/"*.sh "$TEMPLATE_REPO/deploy_assets/scripts/setup/"
 cp "$REPO_ROOT/deploy_assets/scripts/apply_extension_empirical.sh" \
     "$REPO_ROOT/deploy_assets/scripts/apply_extension_theory_llm.sh" \
+    "$REPO_ROOT/deploy_assets/scripts/resolve_model_fallbacks.py" \
     "$TEMPLATE_REPO/deploy_assets/scripts/"
 git -C "$TEMPLATE_REPO" add setup.sh VERSION deploy_assets/scripts/setup \
     deploy_assets/scripts/apply_extension_empirical.sh \
-    deploy_assets/scripts/apply_extension_theory_llm.sh
+    deploy_assets/scripts/apply_extension_theory_llm.sh \
+    deploy_assets/scripts/resolve_model_fallbacks.py
 if ! git -C "$TEMPLATE_REPO" diff --cached --quiet; then
     git -C "$TEMPLATE_REPO" \
         -c user.name='Publish Test' -c user.email='publish-test@example.invalid' \
         commit -qm 'test: stage working publication changes'
 fi
+SETUP="$TEMPLATE_REPO/setup.sh"
 
 FAKE_BIN="$TEST_ROOT/bin"
 mkdir -p "$FAKE_BIN"
@@ -135,42 +138,41 @@ exit 0
 EOF
 chmod +x "$FAKE_BIN/uv" "$FAKE_BIN/claude" "$FAKE_BIN/bwrap" "$FAKE_BIN/gh"
 
-# Bash has no PATH-level way to hide one real command while retaining the rest
-# of /usr/bin. This test-only BASH_ENV shim lets one case make `command -v gh`
-# fail without changing any other command lookup.
-BASH_ENV_FILE="$TEST_ROOT/bash_env"
-cat >"$BASH_ENV_FILE" <<'EOF'
-if [ "${TEST_FORCE_GH_MISSING:-0}" = "1" ]; then
-    command() {
-        if [ "$#" -eq 2 ] && [ "$1" = "-v" ] && [ "$2" = "gh" ]; then
-            return 1
-        fi
-        builtin command "$@"
-    }
-fi
-EOF
-
 RUN_ROOT="$TEST_ROOT/runs"
 mkdir -p "$RUN_ROOT"
 GH_LOG="$TEST_ROOT/gh.log"
 : >"$GH_LOG"
 UV_LOG="$TEST_ROOT/uv.log"
 : >"$UV_LOG"
+TEST_HOME="$TEST_ROOT/home"
+mkdir -p "$TEST_HOME"
+GLOBAL_HOOKS="$TEST_ROOT/global-hooks"
+GIT_TEMPLATE="$TEST_ROOT/git-template"
+GIT_HOOK_MARKER="$TEST_ROOT/git-hook-ran"
+mkdir -p "$GLOBAL_HOOKS" "$GIT_TEMPLATE/hooks"
+printf '%s\n' \
+    '#!/bin/bash' \
+    ': > "${TEST_GIT_HOOK_MARKER:?}"' \
+    'printf "HOOK_INJECTION\\n" >> CLAUDE.md' \
+    > "$GLOBAL_HOOKS/pre-commit"
+cp "$GLOBAL_HOOKS/pre-commit" "$GIT_TEMPLATE/hooks/pre-commit"
+chmod +x "$GLOBAL_HOOKS/pre-commit" "$GIT_TEMPLATE/hooks/pre-commit"
+printf '%s\n' \
+    '[user]' \
+    '    name = Publish Test' \
+    '    email = publish-test@example.invalid' \
+    '[core]' \
+    "    hooksPath = $GLOBAL_HOOKS" \
+    > "$TEST_HOME/.gitconfig"
 
 COMMON_ENV=(
     env
+    HOME="$TEST_HOME"
     PATH="$FAKE_BIN:$PATH"
-    BASH_ENV="$BASH_ENV_FILE"
     TEST_GH_LOG="$GH_LOG"
     TEST_UV_LOG="$UV_LOG"
-    ZEROPAPER_REPO="$TEMPLATE_REPO"
-    GIT_CONFIG_GLOBAL=/dev/null
-    GIT_CONFIG_NOSYSTEM=1
-    GIT_CONFIG_COUNT=2
-    GIT_CONFIG_KEY_0=user.name
-    GIT_CONFIG_VALUE_0='Publish Test'
-    GIT_CONFIG_KEY_1=user.email
-    GIT_CONFIG_VALUE_1='publish-test@example.invalid'
+    TEST_GIT_HOOK_MARKER="$GIT_HOOK_MARKER"
+    GIT_TEMPLATE_DIR="$GIT_TEMPLATE"
     GIT_AUTHOR_NAME='Publish Test'
     GIT_AUTHOR_EMAIL='publish-test@example.invalid'
     GIT_COMMITTER_NAME='Publish Test'
@@ -187,6 +189,19 @@ grep -Fq -- "Publishing skipped: local repository only" "$DEFAULT_LOG" \
 [ ! -s "$GH_LOG" ] || fail "default production setup invoked gh"
 git -C "$RUN_ROOT/default-project" rev-parse --verify HEAD >/dev/null \
     || fail "default production setup did not commit the local repository"
+[ ! -e "$GIT_HOOK_MARKER" ] || fail "ambient Git hook executed during production setup"
+if grep -Fq 'HOOK_INJECTION' "$RUN_ROOT/default-project/CLAUDE.md"; then
+    fail "ambient Git hook altered production output"
+fi
+template_commit="$(git -C "$TEMPLATE_REPO" rev-parse HEAD)"
+jq -e --arg commit "$template_commit" '
+    .source.kind == "checkout"
+    and .source.commit == $commit
+    and .source.dirty == false
+    and (.source.content_digest | test("^sha256:[0-9a-f]{64}$"))
+    and .source.update_channel == "checkout"
+' "$RUN_ROOT/default-project/.deploy_manifest.json" >/dev/null \
+    || fail "default production setup recorded incorrect source provenance"
 grep -Fq -- "pip install --python ./.venv -r" "$UV_LOG" \
     || fail "default production setup did not provision project dependencies"
 [ -f "$RUN_ROOT/default-project/.venv/lib/python3.12/site-packages/_pipeline_dotenv_guard.pth" ] \
@@ -194,7 +209,7 @@ grep -Fq -- "pip install --python ./.venv -r" "$UV_LOG" \
 
 # Provisioning remains ordered at its historical boundaries: core first, SSJ
 # with the finance skill, then extension dependencies in the user's extension
-# order. This production clone path verifies the coordinator/module wiring, not
+# order. This full checkout-local path verifies the coordinator/module wiring, not
 # merely the provisioning functions in isolation.
 : >"$UV_LOG"
 PROVISION_LOG="$TEST_ROOT/provision.log"
@@ -205,10 +220,10 @@ import sys
 
 lines = [line.strip() for line in open(sys.argv[1]) if line.startswith("pip install ")]
 needles = [
-    "/templates/deps/core.txt",
-    "/templates/deps/ssj.txt",
-    "/extensions/theory_llm/deps.txt",
-    "/extensions/empirical/deps.txt",
+    "/.arpipeline/update_inputs/deps/core.txt",
+    "/.arpipeline/update_inputs/deps/ssj.txt",
+    "/.arpipeline/update_inputs/deps/extensions/theory_llm.txt",
+    "/.arpipeline/update_inputs/deps/extensions/empirical.txt",
 ]
 positions = []
 for needle in needles:
@@ -221,6 +236,21 @@ if positions != sorted(positions):
     print(f"dependency order mismatch: positions={positions!r}; uv log={lines!r}", file=sys.stderr)
     raise SystemExit(1)
 PY
+
+# Full deployments use the same normalized, ancestor-validated destination for
+# checking and mutation. A `symlink/..` spelling must not regain kernel-level
+# traversal after validation and create a project in foreign storage.
+lexical_base="$RUN_ROOT/lexical-destination"
+lexical_foreign="$RUN_ROOT/lexical-foreign"
+mkdir -p "$lexical_base" "$lexical_foreign/sub"
+ln -s "$lexical_foreign/sub" "$lexical_base/linked-parent"
+"${COMMON_ENV[@]}" "$SETUP" \
+    "$lexical_base/linked-parent/../escaped-project" --no-model-probe \
+    >"$TEST_ROOT/lexical-destination.log" 2>&1
+[ -f "$lexical_base/escaped-project/.deploy_manifest.json" ] \
+    || fail "normalized full destination was not created at its validated path"
+[ ! -e "$lexical_foreign/escaped-project" ] \
+    || fail "full destination escaped through symlink/.. traversal"
 
 # Explicit publishing prints the target before mutation and reaches gh with the
 # configured org/visibility. The fake gh makes this test side-effect free.
@@ -294,7 +324,22 @@ fi
 # or repo-create call.
 : >"$GH_LOG"
 MISSING_GH_LOG="$TEST_ROOT/missing-gh.log"
-"${COMMON_ENV[@]}" TEST_FORCE_GH_MISSING=1 PUBLISH_ORG=test-org \
+# setup deliberately scrubs BASH_ENV and exported functions, so exercise a
+# genuinely gh-free PATH while retaining the other system prerequisites.
+NO_GH_BIN="$TEST_ROOT/no-gh-bin"
+mkdir "$NO_GH_BIN"
+for system_tool in /usr/bin/*; do
+    [ -x "$system_tool" ] || continue
+    tool_name="${system_tool##*/}"
+    case "$tool_name" in
+        gh|uv|claude|bwrap) continue ;;
+    esac
+    ln -s "$system_tool" "$NO_GH_BIN/$tool_name"
+done
+ln -s "$FAKE_BIN/uv" "$NO_GH_BIN/uv"
+ln -s "$FAKE_BIN/claude" "$NO_GH_BIN/claude"
+ln -s "$FAKE_BIN/bwrap" "$NO_GH_BIN/bwrap"
+"${COMMON_ENV[@]}" PATH="$NO_GH_BIN" PUBLISH_ORG=test-org \
     "$SETUP" "$RUN_ROOT/missing-gh-project" --no-model-probe --publish \
     >"$MISSING_GH_LOG" 2>&1
 grep -Fq -- "GitHub CLI (gh) not found" "$MISSING_GH_LOG" \
