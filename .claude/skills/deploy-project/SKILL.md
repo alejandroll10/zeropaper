@@ -1,6 +1,6 @@
 ---
 name: deploy-project
-description: Deploy a new research paper project from this template checkout with setup.sh — checkout-local source policy, every flag (--variant, --ext, --mode, --seed, --faithful, --manual, --light, --halt-on-core-bypass, --publish, --assemble-only), their compositions and mutual exclusions, safe opt-in GitHub publishing, plus post-setup launch instructions (launch.sh, tmux, unattended runs) and WRDS server startup. Use whenever the user asks to create/set up/start/deploy a new research project, asks which setup.sh flags to pass, asks how to launch or resume a deployed pipeline, or asks about the WRDS socket server.
+description: Deploy or update a research paper project from this template checkout with setup.sh/update.sh — checkout-local source policy, every setup flag (--variant, --ext, --mode, --seed, --faithful, --manual, --light, --halt-on-core-bypass, --publish, --assemble-only), their compositions and mutual exclusions, update quiescence, safe opt-in GitHub publishing, plus post-setup launch instructions (launch.sh, tmux, unattended runs) and WRDS server startup. Use whenever the user asks to create/set up/start/deploy/update a research project, asks which setup.sh flags to pass, asks how to launch or resume a deployed pipeline, or asks about the WRDS socket server.
 ---
 
 # Deploying a project
@@ -88,6 +88,25 @@ vocab placeholder — load the `edit-pipeline` skill instead.
 # llm_cognition-only; theory_llm auto-implied as usual.
 ./setup.sh <project-name> --variant llm_cognition --mode measurement-first
 ```
+
+## Updating an existing project
+
+Run `update.sh` from the template checkout whose version you want to apply:
+
+```bash
+./update.sh <deployed-project-path>
+./update.sh <deployed-project-path> --dry-run
+```
+
+Before updating, stop every process that may create, delete, rename, or modify files in the
+target project, and keep the project quiescent until the update finishes. On deployments whose
+installed `./launch.sh` includes the v2.24.0+ cooperative lock, `update.sh` detects and refuses
+active launcher sessions automatically. Older launchers generally do not hold that lock, so
+stop their sessions manually before updating. Processes that bypass `launch.sh`—for example
+directly started runtimes, scripts, file watchers, cron jobs, or an editor that may save
+files—also do not hold the lock and must be stopped manually. An idle editor need not be closed
+if it will not write during the update. This is the operational boundary tracked in [issue
+#259](https://github.com/alejandroll10/zeropaper/issues/259) and documented in `LIMITATIONS.md`.
 
 ## Variants, extensions, modes
 
