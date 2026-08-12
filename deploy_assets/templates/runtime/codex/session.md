@@ -5,13 +5,13 @@ Every instruction in this document is literal and mandatory. Do not skip, combin
 ### Sequential execution is non-negotiable
 
 - **One stage at a time.** Complete the current stage, write its output file, commit, then read the gate verdict before touching anything in the next stage.
-- **Never run ahead.** Do not start Stage 2 while Stage 1 artifacts are still being written. Do not start paper writing while the scorer hasn't returned ADVANCE. Each gate is a hard stop — you wait for its verdict.
+- **Never run ahead.** Do not start Stage 2 while Stage 1 artifacts are still being written. Do not start paper writing until Gate 4 has authorized Stage 5 under the configured route. Each gate is a hard stop — you wait for its verdict.
 - **Every commit listed in the instructions must happen as a separate commit.** "Commit after every file write" means literally that. Not one big commit at the end. Not two stages in one commit.
 
 ### Gates are blocking checkpoints, not formalities
 
 - A gate that says "if FAIL, return to Stage N" means you actually return. You do not proceed and note the failure for later.
-- The scorer's threshold is a hard floor, not a suggestion. If the score is below the advance threshold, the paper does not advance. Period.
+- On an unseeded run, the scorer's threshold is a hard floor, not a suggestion: a below-threshold paper does not advance through Gate 4's score route. On a seeded run, the score is diagnostic and `docs/stage_4.md` supplies the binding correctness-only route.
 - When a gate says "max N attempts," count them. Do not lose count and iterate forever.
 
 ### Adversarial agents must be adversarial
@@ -23,7 +23,7 @@ Every instruction in this document is literal and mandatory. Do not skip, combin
 ### Do not optimize for completion
 
 - Your goal is not to fill every output file. Your goal is to produce a paper that meets the stated journal standard.
-- A pipeline that abandons at Gate 4 *only after* the score has fallen into the ABANDON band (a genuinely wrong or exhausted core), having honestly applied the deepening playbook and escalation ladder first, is doing its job. Stopping at Gate 4 while the score is still in the REVISE band or above is premature — that paper needs deepening, not abandonment. And a pipeline that produces a weak paper and calls it done is a failure.
+- On an unseeded run, a pipeline that abandons at Gate 4 *only after* the score has fallen into the ABANDON band (a genuinely wrong or exhausted core), having honestly applied the deepening playbook and escalation ladder first, is doing its job. Stopping an unseeded run at Gate 4 while the score is still in the REVISE band or above is premature — that paper needs deepening, not abandonment. Seeded runs instead use Gate 4's correctness-only route because their direction is fixed. A pipeline that produces a weak paper and calls it done without applying its configured route is a failure.
 - If you notice you are rushing through gates to reach Stage 9, stop. Re-read the current stage's instructions. Execute them fully.
 
 ### You are the orchestrator, not the worker

@@ -6,7 +6,7 @@
 2. Save result to `output/stage4/self_attack_vN.md`
 3. Commit: `artifact: self-attack v{N}`
 3a. **Load-bearing premise header check (string-presence only).** Confirm `output/stage4/self_attack_vN.md` contains a `**Load-bearing premise:**` line (or one `**Load-bearing premise [piece K — label]:**` line per piece for a multi-piece contribution). This is a string check, not a judgment call — the self-attacker body owns the substantive requirement (the premise must be theory-anchored, headline-critical, and attacked exhaustively before any other category). If the header is absent, re-launch self-attacker once with: "your prior report omitted the mandatory load-bearing-premise header — re-run and state it (one line, or one line per independently-load-bearing piece) at the top of the output, then attack each named premise exhaustively under Assumption attacks before any other category." Overwrite `output/stage4/self_attack_vN.md` and commit `artifact: self-attack v{N} (premise re-fire)`. If the header is still absent after the re-fire, write a one-line note to `process_log/self_attack_premise_skip_vN.md` and proceed — do not loop more than one re-fire per version N. This is a self-attacker-side gate: a missing premise line never routes back to theory-generator.
-4. **Triage the concerns.** Launch `triager` with: input = `output/stage4/self_attack_vN.md`, output path = `output/stage4/triage_vN.md`, context = `gate-4`. Triager applies the rules (severity-≥7 defaults to `[FIX]`; downgrades require a written justification) and produces the triage file. Only `[FIX]` items feed into the theory-generator for revision; the rest are held for Stage 5 (paper-writer) or the response letter. Do not edit the triager's output — if you disagree with a classification, re-launch the triager with explicit instructions, do not silently override.
+4. **Triage the concerns.** Launch `triager` with: input = `output/stage4/self_attack_vN.md`, output path = `output/stage4/triage_vN.md`, context = `gate-4`. Triager applies the rules (severity-≥7 defaults to `[FIX]`; downgrades require a written justification) and produces the triage file. On an unseeded run, only `[FIX]` items feed into the theory-generator for revision; the rest are held for Stage 5 (paper-writer) or the response letter. A seeded run instead follows the correctness-only route injected below. Do not edit the triager's output — if you disagree with a classification, re-launch the triager with explicit instructions, do not silently override.
 5. Commit: `artifact: concern triage v{N}`
 
 ## Gate 4: Scorer Decision
@@ -53,9 +53,17 @@
 2. Save results to `output/stage4/scorer_decision_vN.md` and `output/stage4/scorer_freeform_vN.md`
 3. Commit: `artifact: scorer decisions v{N} (structured + freeform)`
 
-**Agent:** `branch-manager`
+4. Read `seeded` from `process_log/pipeline_state.json`.
+   - If `seeded == true`, **do not launch branch-manager at Gate 4**. Its strategic job is to choose among research directions, while a seeded run has already fixed that direction. Follow the injected seeded/faithful route below, then continue at step 12.
+   - If `seeded != true`, continue with the branch-manager path at step 5.
 
-4. Launch branch-manager with:
+{{SEED_OVERRIDE_STAGE_4_GATE_4}}
+
+## Unseeded score-routing path
+
+**Agent (unseeded runs only):** `branch-manager`
+
+5. Launch branch-manager with:
    - Theory draft: `output/stage2/theory_draft_vN.md`
    - Both scorer outputs: `output/stage4/scorer_decision_vN.md`, `output/stage4/scorer_freeform_vN.md`
    - Full score history from `process_log/pipeline_state.json`
@@ -71,15 +79,15 @@
    - Identification audit: `output/stage3a/identification_audit.md`; empirics audit: `output/stage3a/empirics_audit.md`
 <!-- EXT_EMPIRICAL_END -->
    - Literature map: `output/stage0/literature_map.md`
-5. Save result to `output/stage4/branch_manager_vN.md`
-6. Commit: `artifact: branch-manager report v{N}`
-7. Read the branch-manager report. The gate decision must be consistent with its recommendation. If you disagree, log the disagreement and your reasoning in the commit message — do not silently override. **Gate 4 is invalid without a fresh `output/stage4/branch_manager_vN.md` for the current version N. If the file does not exist or is from an earlier version, re-run branch-manager before any gate decision — no exceptions.** If §E recommends **Regenerate**, branch-manager writes `output/stage1/learnings_r{N}.md` with N = (current `regeneration_round` + 1); the orchestrator then runs the canonical **Regeneration entry procedure** (`docs/stage_1.md` "Regeneration entry procedure (canonical)") — increment `regeneration_round`, archive the paper + record `archived_best_score_r{N}`, reset state per that procedure (the non-loop version fields plus **every** `loops.<id>.round → 0` via the generic Audit-loop scoping rule), and re-enter Stage 1. Do not perform a partial reset here and do not re-derive a counter list — the canonical procedure zeroes every loop in full to prevent stale-budget bleed into the regenerated paper.
+6. Save result to `output/stage4/branch_manager_vN.md`
+7. Commit: `artifact: branch-manager report v{N}`
+8. Read the branch-manager report. The gate decision must be consistent with its recommendation. If you disagree, log the disagreement and your reasoning in the commit message — do not silently override. **For an unseeded run, Gate 4 is invalid without a fresh `output/stage4/branch_manager_vN.md` for the current version N. If the file does not exist or is from an earlier version, re-run branch-manager before any gate decision — no exceptions.** If §E recommends **Regenerate**, branch-manager writes `output/stage1/learnings_r{N}.md` with N = (current `regeneration_round` + 1); the orchestrator then runs the canonical **Regeneration entry procedure** (`docs/stage_1.md` "Regeneration entry procedure (canonical)") — increment `regeneration_round`, archive the paper + record `archived_best_score_r{N}`, reset state per that procedure (the non-loop version fields plus **every** `loops.<id>.round → 0` via the generic Audit-loop scoping rule), and re-enter Stage 1. Do not perform a partial reset here and do not re-derive a counter list — the canonical procedure zeroes every loop in full to prevent stale-budget bleed into the regenerated paper.
 
-8. Read the **structured scorer** output (`scorer_decision_vN.md`). It contains two sections:
+9. Read the **structured scorer** output (`scorer_decision_vN.md`). It contains two sections:
    - **Content score + content feedback**: determines the gate decision. Only substantive theory issues (new math needed, proofs to fix, mechanisms to clarify).
    - **Presentation notes**: expositional improvements (reframe abstract, soften claims, reorder sections). These do NOT affect the score or gate decision. Save them — they are forwarded to the paper-writer at Stage 5.
    Also read the **freeform scorer** output (`scorer_freeform_vN.md`) for holistic assessment; if the freeform scorer's score estimate diverges significantly (±10 points) from the structured score, note the discrepancy and factor it into the branch-manager review.
-9. Use the **content score** for state-dependent escalation. **Read `target_journal_tier` from `process_log/pipeline_state.json`** to select the correct row of the table below — this field is initialized to `{{INITIAL_TIER}}` at setup but may be updated mid-run by the Stage 6 `editor` agent (Downgrade or Upgrade recommendations, see `docs/stage_6.md` "Journal-fit handling"). Do not assume the original target tier; always read the current value. The variant's tier ladder is `{{TIER_LADDER_PROSE}}`.
+10. Use the **content score** for state-dependent escalation. **Read `target_journal_tier` from `process_log/pipeline_state.json`** to select the correct row of the table below — this field is initialized to `{{INITIAL_TIER}}` at setup but may be updated mid-run by the Stage 6 `editor` agent (Downgrade or Upgrade recommendations, see `docs/stage_6.md` "Journal-fit handling"). Do not assume the original target tier; always read the current value. The variant's tier ladder is `{{TIER_LADDER_PROSE}}`.
 
 **Scoring is absolute** — 80 means top-band quality on the absolute scale (top-5 econ quality in finance/macro; `nature`-tier landmark quality in llm_cognition) regardless of target. The advance threshold depends on the target journal tier. Default tiers (variant-specific):
 
@@ -99,7 +107,7 @@
 
 **Hard ceiling:** after 8 total scorer evaluations on the same problem, escalate one level regardless of trajectory.
 
-**Substantive vs cosmetic delta.** Branch-manager classifies the v(N)→v(N−1) diff at every Gate 4 (Section A of its report). The orchestrator uses that verdict; on COSMETIC, escalate even if the score rose.
+**Substantive vs cosmetic delta.** Branch-manager classifies the v(N)→v(N−1) diff at every unseeded Gate 4 (Section A of its report). The orchestrator uses that verdict; on COSMETIC, escalate even if the score rose.
 
 - **Substantive:** new theorem/lemma/proposition with proof, new proof of a previously-conjectured claim, removed or narrowed unverified claim, new mechanism with {{MECHANISM_QUALIFIER}} content, new comparative static derived from the model, new load-bearing extension or scope condition, empirical/numerical result that changes a calibration.
 - **Cosmetic** (treat as typos — fixable when wrong, but score-neutral): rewording the contribution sentence, reorganizing sections, sharper or narrower abstract framing, broader-interpretation paragraphs invoking larger phenomena without new results, label promotions or demotions (Lemma ↔ Theorem) without new content, restructuring the paper around an already-existing result (promoting a different result to the headline) without new math, renaming a variable or mechanism, additional defensive prose.
@@ -107,8 +115,6 @@
 
 Record all content scores in `process_log/pipeline_state.json` under `"scores"` so the trajectory can be computed: `"scores": { "v1": 60, "v2": 63, "v3": 67 }`.
 
-{{SEED_OVERRIDE_STAGE_4_GATE_4}}
-
-10. If REVISE/REWORK: pass only the **content feedback** to the theory-generator. Do NOT pass presentation notes — those are for the paper-writer.
-11. Update `process_log/pipeline_state.json` accordingly
-12. Commit: `pipeline: gate 4 — scorer {DECISION} (score: {N})`
+11. If REVISE/REWORK: pass only the **content feedback** to the theory-generator. Do NOT pass presentation notes — those are for the paper-writer.
+12. Update `process_log/pipeline_state.json` according to the route that fired. Preserve the structured scorer's content score in `scores` even when seeded mode advances independently of its aggregate decision.
+13. Commit: `pipeline: gate 4 — scorer {DECISION} (score: {N})`

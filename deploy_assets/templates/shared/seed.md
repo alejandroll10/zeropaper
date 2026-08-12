@@ -46,7 +46,7 @@ Per-gate seeded-mode overrides are injected into each stage doc at the verdict l
 - `docs/stage_2.md` — Gate 2 FAIL, Gate 3 KNOWN/INCREMENTAL.
 - `docs/stage_3_implications.md` — barren-model (all-SUPPORTED).
 - `docs/stage_3a_empirical.md` — Gate 3a-feasibility FALSIFIED (`--ext empirical`).
-- `docs/stage_4.md` — Gate 4 verdicts.
+- `docs/stage_4.md` — seeded correctness gate (aggregate score does not route; branch-manager is skipped).
 - `docs/stage_6.md` — Gate 5 Major Revision / Reject.
 - `docs/stage_puzzle_triage.md` — PIVOT / BACK-TO-IDEA / HONEST-NULL.
 
@@ -54,6 +54,6 @@ If no override block exists for the current verdict, follow the normal action bu
 
 ### Terminal abandon: always set the halt token
 
-Every seeded-mode path that ends the run by writing `output/seed/abandon_report.md` — the Gate 2 ship-honest failure, Gate 3 KNOWN after one reformulation, Gate 4 ABANDON, Gate 5 Reject at the 2-rejection threshold, and any site added later — must set `pipeline_state.json:status = "halted_seed_abandon"` **in the same step that writes the report**, leaving `current_stage` where it is. Commit the state change and the report together.
+Every seeded-mode path that ends the run by writing `output/seed/abandon_report.md` — the Gate 2 ship-honest failure, Gate 3 KNOWN after one reformulation, Gate 5 Reject at the 2-rejection threshold, and any site added later — must set `pipeline_state.json:status = "halted_seed_abandon"` **in the same step that writes the report**, leaving `current_stage` where it is. Commit the state change and the report together.
 
 The report by itself is not a stop signal. A resumed session routes on `status`, so an abandon that writes only the file is indistinguishable from a run interrupted mid-stage: the next session takes the resume path and re-enters the very stage the abandon decision was meant to end. The token is what makes the decision terminal — the session entry point treats any `halted_*` status as operator-only and will not auto-advance.

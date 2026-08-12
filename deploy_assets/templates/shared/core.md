@@ -17,7 +17,7 @@ At every stage, evaluate the current state of the paper on its merits — not on
 Concretely:
 - If a comparative static reverses during the math audit, update the result and rewrite the interpretation. Don't try to preserve the old claim.
 - If a "central result" turns out to be a special case of something broader, elevate the broader result and demote the original.
-- If the scorer finds the current theory is at a ceiling (score plateau), route by band, not reflexively to abandonment: a plateau in the **REVISE band or above** goes to the deepening playbook (the core idea works — give it mathematical/empirical depth, do not abandon it); a plateau in the **MAJOR REWORK or ABANDON band** regenerates (as does a REVISE-band plateau only when branch-manager §E explicitly recommends Regenerate and `regeneration_round == 0`). See the escalation table and `docs/stage_4.md`. Regeneration is the response to an exhausted idea, not to a still-improvable one.
+- On an unseeded run, if the scorer finds the current theory is at a ceiling (score plateau), route by band, not reflexively to abandonment: a plateau in the **REVISE band or above** goes to the deepening playbook (the core idea works — give it mathematical/empirical depth, do not abandon it); a plateau in the **MAJOR REWORK or ABANDON band** regenerates (as does a REVISE-band plateau only when branch-manager §E explicitly recommends Regenerate and `regeneration_round == 0`). See the escalation table and `docs/stage_4.md`. Regeneration is the response to an exhausted idea, not to a still-improvable one. Seeded runs use the correctness-only Gate 4 route in that document.
 - If empirical results contradict the theory, report honestly and revise the theory — don't cherry-pick supportive tests.
 
 ## Core principle: stress-test operator proposals before adopting them
@@ -64,7 +64,7 @@ We are scientists, not marketers. A precisely-bounded result is a stronger contr
 
 ## Core principle: substance over form when content is exceptional
 
-Rubric calibrations, polish checklists, and parsimony rules filter weak work — they are not absolute. When a result is genuinely exceptional but violates a guideline *by necessity of its content* (e.g., MM-style irrelevance has no "decision change"; a calibration paper has no NOVEL-tagged implications; an existence theorem has no comparative statics), `scorer{,-freeform}` and `referee{,-freeform,-mechanism}` may relax the guideline — naming it, explaining in one sentence why content earns relaxation, and stating the alternative check. Math-audit FAIL and Novelty KNOWN are never waived. The bar is exceptional content the rubric wasn't built to score; use sparingly.
+Rubric calibrations, polish checklists, and parsimony rules filter weak work — they are not absolute. When a result is genuinely exceptional but violates a guideline *by necessity of its content* (e.g., MM-style irrelevance has no "decision change"; a calibration paper has no NOVEL-tagged implications; an existence theorem has no comparative statics), `scorer{,-freeform}` and `referee{,-freeform,-mechanism}` may relax the guideline — naming it, explaining in one sentence why content earns relaxation, and stating the alternative check. Math-audit FAIL is never waived. Novelty KNOWN is never waived in unseeded quality routing; seeded runs record it honestly under their explicit overrides instead of changing direction. The bar is exceptional content the rubric wasn't built to score; use sparingly.
 
 ## Core principle: tool failure is not substantive failure
 
@@ -84,7 +84,7 @@ At every decision point, choose the action that maximizes paper quality — even
 
 Concretely:
 - If a math audit flags an unproved lemma, exhaust proof strategies (codex-math explore mode, alternative proof techniques, relaxed sufficient conditions) before demoting to a conjecture or an empirical regularity.
-- If the scorer says "needs more mathematical substance," add a genuine extension — don't reframe the same content with better words.
+- On an unseeded run, if the scorer says "needs more mathematical substance," add a genuine extension — don't reframe the same content with better words. On a seeded run, follow the correctness-only Gate 4 route instead of optimizing the fixed direction for score.
 - When referee or self-attack pressure targets **framing** (a claim's label, its scope, an abstract phrasing), the substance response is to strengthen the underlying result until the framing concern becomes moot — prove the stronger version that actually deserves the label, add the extension that fills the perceived gap, nail down the empirics that ground the claim. Under such pressure, a pure rename or softening settles the referee for one round and invites the same class of concern next round. A framing-only edit in response to pressure is acceptable only when the substance already holds and the prior label was merely inaccurate, or when new evidence (failed audit, empirical pivot, new result) has changed what the paper actually delivers. This rule is about cosmetic responses to pressure — not about prose or structural edits for clarity, or framing updates that track genuine changes in the content.
 - If a tool exists for the task (data skills, codex-math, theory-explorer), use it. Skipping available tools because they're unfamiliar is not acceptable.
 - The path of least resistance produces thin papers. Referees can tell.
@@ -157,11 +157,12 @@ Puzzle Triage                ──→ fires if empirics/experiments contradict,
                                    ├── PIVOT → rebuild theory around contradiction
                                    │            (re-run Gate 2, Gate 3, Stage 2b, Stage 3, empirics — under empirical-first Gate 2 is the mechanism-plausibility gate, Stage 2b is skipped; max 2 pivots)
                                    └── HONEST-NULL → Stage 5 with limits, or Stage 0
-Stage 4: Self-Attack          ──→ Gate 4: Scorer Decision (content-verdict-based)
-                                   ├── ADVANCE (≥ tier threshold — see docs/stage_4.md) → Stage 5
-                                   ├── REVISE  → back to Stage 2 (continue if substantive, else escalate)
-                                   ├── MAJOR REWORK → back to Stage 1 (continue if substantive, else escalate)
-                                   └── ABANDON → back to Stage 0 (max 5×)
+Stage 4: Self-Attack          ──→ Gate 4: Scorer Decision
+                                   ├── seeded: correctness challenge → owning audit; otherwise Stage 5
+                                   ├── unseeded ADVANCE (≥ tier threshold — see docs/stage_4.md) → Stage 5
+                                   ├── unseeded REVISE → back to Stage 2 (continue if substantive, else escalate)
+                                   ├── unseeded MAJOR REWORK → back to Stage 1 (continue if substantive, else escalate)
+                                   └── unseeded ABANDON → back to Stage 0 (max 5×)
 Stage 5: Paper Writing        ──→
 Stage 6: Referee Simulation   ──→ editor (aggregates 3 reports → canonical comment list +
                                                 aggregated verdict + journal-fit verdict)
@@ -426,7 +427,7 @@ If the post-pipeline edit introduces a formal proposition or lemma despite the p
 
 **Once a paper draft exists (Stage 5+), the pipeline must produce a finished paper.** Do not loop back to Stage 0 after investing in paper writing. Instead, use the deepening playbook below to strengthen the paper. A regeneration round per the escalation table is permitted post-Stage-5; it re-enters at Stage 1, not Stage 0.
 
-If the scorer plateaus in the REVISE band for the current target tier (see the `docs/stage_4.md` tier table — the Revise column for the current tier) or the referee gives Major Revision with structural concerns (result is fragile, too narrow, or shallow):
+On an unseeded run, if the scorer plateaus in the REVISE band for the current target tier (see the `docs/stage_4.md` tier table — the Revise column for the current tier), or on any run if the referee gives Major Revision with structural concerns (result is fragile, too narrow, or shallow):
 
 ### Deepening playbook
 
@@ -470,12 +471,12 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 | Gate 2 mechanism REVISE | 3 consecutive REVISEs on the same mechanism (hard cap) | Abandon this mechanism version — increment `theory_attempt` or swap sketches. **Seeded/faithful:** does not abandon — the Gate 2 seeded override (`docs/stage_2.md`) applies the ship-honest check at the same threshold. |
 | Empirics audit fails | 5 audit-fix attempts (cap from `stage_3a_empirical.md`) | Treat as theory-version failure — re-fire theory-generator (mechanism mode) with the audit notes as input |
 <!-- EMPIRICAL_FIRST_END -->
-| Scorer: **SUBSTANTIVE** diff (per branch-manager) | — | Allow one more iteration in current band — the deepening is working |
-| Scorer: **COSMETIC** diff (per branch-manager) | — | Treat as plateau — escalate. Reframing is not progress (see `stage_4.md`). |
-| Scorer: hard ceiling | 8 total evaluations on same problem | If score is in the REVISE band or above for the current target tier (see `docs/stage_4.md`): switch to deepening playbook. Otherwise (MAJOR REWORK or ABANDON band): escalate one level. |
-| Scorer plateau in the REVISE band for the current target tier | 2 consecutive substantive revisions with no real gain | Switch to deepening playbook — the core idea works, it needs mathematical depth, not reworking. |
-| Scorer plateau in the REVISE band for the current target tier, branch-manager §E = Regenerate, no prior regen on this problem (`regeneration_round == 0`), **not seeded** | — | Fire regeneration round at Stage 1 (see `docs/stage_1.md` "Regeneration round"). Increment `regeneration_round` *before* re-entering Stage 1. **Takes precedence over the deepening-playbook row above when both fire** — Regenerate is the §E verdict that supersedes the default plateau routing. **At most one regeneration per problem:** if the regenerated attempt also plateaus, this row no longer fires (`regeneration_round > 0`) and the plateau row directly above applies — switch to the deepening playbook. |
-| Theory scored ABANDON | 5 theories on same problem | Change the problem (Stage 0) |
+| Unseeded scorer: **SUBSTANTIVE** diff (per branch-manager) | — | Allow one more iteration in current band — the deepening is working |
+| Unseeded scorer: **COSMETIC** diff (per branch-manager) | — | Treat as plateau — escalate. Reframing is not progress (see `stage_4.md`). |
+| Unseeded scorer: hard ceiling | 8 total evaluations on same problem | If score is in the REVISE band or above for the current target tier (see `docs/stage_4.md`): switch to deepening playbook. Otherwise (MAJOR REWORK or ABANDON band): escalate one level. |
+| Unseeded scorer plateau in the REVISE band for the current target tier | 2 consecutive substantive revisions with no real gain | Switch to deepening playbook — the core idea works, it needs mathematical depth, not reworking. |
+| Unseeded scorer plateau in the REVISE band for the current target tier, branch-manager §E = Regenerate, no prior regen on this problem (`regeneration_round == 0`) | — | Fire regeneration round at Stage 1 (see `docs/stage_1.md` "Regeneration round"). Increment `regeneration_round` *before* re-entering Stage 1. **Takes precedence over the deepening-playbook row above when both fire** — Regenerate is the §E verdict that supersedes the default plateau routing. **At most one regeneration per problem:** if the regenerated attempt also plateaus, this row no longer fires (`regeneration_round > 0`) and the plateau row directly above applies — switch to the deepening playbook. |
+| Unseeded theory scored ABANDON | 5 theories on same problem | Change the problem (Stage 0) |
 | Problem viability fails | 5 problems | Pick the best scoring problem and proceed anyway |
 | Editor: Major Revision (aggregated verdict) | Structural concerns (fragile, narrow, shallow) | Use deepening playbook. Triage editor's canonical comment list; revise; re-run Stage 6. Be patient — keep going as long as each round surfaces any new issue. Max 10 rounds. |
 | Mechanism referee: MISATTRIBUTED unresolved | Still MISATTRIBUTED at `loops.referee.round >= 10` | Adopt the mechanism referee's identified driver as the paper's mechanism; rewrite introduction/mechanism sections and ship. **Force-adoption at round-10 resolves all outstanding locked mechanism `[FIX]` items as satisfied — no further revision cycle is required.** In seeded mode, prefer the narrow-framing path from the seed override (present what the math delivers under the seed's topic, acknowledge the mechanism-claim divergence in limitations) rather than adopting an unrelated driver. Never return to Stage 0 (never-abandon). |
@@ -484,7 +485,7 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 | Editor: Downgrade tier recommendation | — | Route to the deepen-toward-target procedure in `docs/stage_6.md` "Journal-fit handling". Do **not** lower `target_journal_tier` here — the tier moves only when `branch-manager` certifies a target-tier ceiling (`gate-5-downgrade`, step 2b). |
 | Editor: Upgrade tier recommendation | — | Update `target_journal_tier` to one rung **up** the variant ladder (`{{TIER_LADDER_PROSE}}`), recompute Gate 4 advance threshold per the new tier. This is the mechanism that undoes an earlier over-eager downgrade: restoring a paper toward its initial (highest) target is a normal outcome, not a rare one. Continue the loop targeting the higher tier; the next round's referees inherit the updated tier in their variant context. Upgrading *above* the project's initial target is the rare case (needs the editor's Rule 5 quote gate cleared in that direction — two verbatim same-direction structural-ceiling spans from two different referees). See `docs/stage_6.md` "Journal-fit handling". |
 
-Before granting another iteration in the current band, the orchestrator classifies the v(N)→v(N−1) diff as substantive or cosmetic. Branch-manager emits this verdict at every Gate 4 (Section A); when it reports COSMETIC, the orchestrator escalates rather than continue. Definitions and the cosmetic-edit catalogue live in `docs/stage_4.md`.
+Before granting another unseeded iteration in the current band, the orchestrator classifies the v(N)→v(N−1) diff as substantive or cosmetic. Branch-manager emits this verdict at every unseeded Gate 4 (Section A); when it reports COSMETIC, the orchestrator escalates rather than continue. Definitions and the cosmetic-edit catalogue live in `docs/stage_4.md`.
 
 ---
 

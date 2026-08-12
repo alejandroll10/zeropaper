@@ -284,10 +284,10 @@ Agents are either **shared** (identical across variants) or **variant-specific**
 *Routing, triage & escalation*
 - `triager` — mechanically applies triage rules to self-attack concerns, referee comments, polish findings
 - `puzzle-triager` — triages contradictions between theory predictions and empirical results. Pinned `fable`
-- `branch-manager` — strategic advisor at Gate 4 + Stage 2 audit loop (every 3rd theory version); diagnoses ceiling/alternatives. Pinned `fable`
+- `branch-manager` — strategic advisor at unseeded Gate 4 + Stage 2 audit loop (every 3rd theory version); diagnoses ceiling/alternatives. Seeded Gate 4 skips it because the research direction is fixed. Pinned `fable`
 - `last-resort` — general-purpose escalation for stubborn problems; launched at orchestrator discretion (no auto-trigger) when normal escalation is exhausted and the alternative is abandonment. Pinned `fable`, broad tool access; receives full failure history; returns `FIX-PROPOSED` (re-verified by the existing gate — never self-certifies) or `GENUINELY-STUCK`. Visible in the manual-mode catalog; pruned in `--mode report`
 - `debugger` — launched when a computational or retrieval tool (solver, regression, symbolic verifier, literature/data query, compiler) has failed; determines whether the failure is the tool or the input
-- `faithful-drift-auditor` — `--faithful` only: independent contribution-drift check at Gate 4 (before the plateau-ship decision) and Gate 5 (before ship)
+- `faithful-drift-auditor` — `--faithful` only: independent contribution-drift check at Gate 4 (before advancing to Stage 5) and Gate 5 (before ship)
 - `scribe` — documents the process after every stage transition and gate decision
 
 **Variant-specific** (different prompts per domain) — all eight are in `claude_variant_agents.json`:

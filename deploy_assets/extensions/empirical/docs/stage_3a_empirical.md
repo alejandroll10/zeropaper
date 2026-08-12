@@ -130,4 +130,4 @@ Stage 3a is not one-shot. When the theory revises after the first 3a pass — Ga
 
 **Gate 4 enforcement.** Before any Gate 4 advance, the orchestrator must verify `stage3a_theory_version == theory_version`. Stale empirics are a hard block, parallel to the `stage2b_theory_version` rule for theory-explorer.
 
-**Cap.** No hard cap on re-fires per problem — the constraint is the never-abandon rule plus the existing 10-round referee cap and the 8-evaluation hard ceiling. But re-fires that do not surface new evidence (auditor PASS with no new findings, no contradiction-check change) count toward the plateau-detection logic in Gate 4 (see `docs/stage_4.md`).
+**Cap.** No hard cap on re-fires per problem — the constraint is the never-abandon rule plus the existing 10-round referee cap and, on unseeded runs, the 8-evaluation Gate 4 hard ceiling. On unseeded runs, re-fires that do not surface new evidence (auditor PASS with no new findings, no contradiction-check change) count toward Gate 4 plateau detection (see `docs/stage_4.md`). Seeded runs use Gate 4's correctness-only route instead.

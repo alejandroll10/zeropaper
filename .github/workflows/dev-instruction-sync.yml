@@ -43,6 +43,9 @@ jobs:
       - name: Test production provisioning and publication
         run: bash test_scripts/test_setup_publish.sh
 
+      - name: Test seeded Gate 4 routing
+        run: bash test_scripts/test_seeded_gate4_assembly.sh
+
       - name: Characterize setup assembly
         run: >-
           python test_scripts/test_setup_characterization.py

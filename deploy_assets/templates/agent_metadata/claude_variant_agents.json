@@ -85,7 +85,7 @@
   },
   "scorer": {
     "name": "scorer",
-    "description": "Adversarial theory scorer. The orchestrator launches this agent at Gate 4. Aggregates all evaluation outputs and makes the advance/revise/abandon decision.",
+    "description": "Adversarial theory scorer. The orchestrator launches this agent at Gate 4. Aggregates all evaluation outputs and makes the advance/revise/abandon decision on unseeded runs; seeded runs retain its score and findings as diagnostics while routing correctness challenges through their owning audits.",
     "category": "evaluator",
     "tools": "Read, Write",
     "model": "opus",

@@ -131,7 +131,7 @@
   },
   "paper-writer": {
     "name": "paper-writer",
-    "description": "Writes and revises the LaTeX paper. Launched at (a) Stage 5 after the scorer returns ADVANCE (initial draft), (b) Stage 6 Major Revision / Reject deepen rounds (revising sections per the triager's [FIX] list and any deepen directive), (c) Stage 8 after bib-verifier returns RESOLVED/FABRICATED items (citation fixes), and (d) Stage 9 polish rounds (applying the triaged polish-agent fixes). Produces publication-ready sections.",
+    "description": "Writes and revises the LaTeX paper. Launched at (a) Stage 5 after Gate 4 authorizes Stage 5 under the configured route (initial draft), (b) Stage 6 Major Revision / Reject deepen rounds (revising sections per the triager's [FIX] list and any deepen directive), (c) Stage 8 after bib-verifier returns RESOLVED/FABRICATED items (citation fixes), and (d) Stage 9 polish rounds (applying the triaged polish-agent fixes). Produces publication-ready sections.",
     "category": "developing",
     "tools": "Read, Write, Edit, Glob, Grep",
     "model": "opus",
@@ -303,7 +303,7 @@
   },
   "branch-manager": {
     "name": "branch-manager",
-    "description": "Strategic advisor. Launched wherever the pipeline is deciding whether a path is dead: every Gate 4 after scorer(s) return, the Stage 2 audit loop every 3rd theory version, Gate 5 reject/downgrade, and after a last-resort GENUINELY-STUCK verdict (context=last-resort-stuck) before any abandonment. Diagnoses whether the current path has ceilinged, surfaces alternatives from the Round 1 sketch portfolio, and recommends continue/restructure/restart. Produces a structured report; does not make the gate decision. The agent body carries the full context list and the per-context report shape.",
+    "description": "Strategic advisor. Launched wherever the pipeline is deciding whether a path is dead: every unseeded Gate 4 after scorer(s) return, the Stage 2 audit loop every 3rd theory version, Gate 5 reject/downgrade, and after a last-resort GENUINELY-STUCK verdict (context=last-resort-stuck) before any abandonment. Diagnoses whether the current path has ceilinged, surfaces alternatives from the Round 1 sketch portfolio, and recommends continue/restructure/restart. Produces a structured report; does not make the gate decision. The agent body carries the full context list and the per-context report shape.",
     "category": "evaluator",
     "tools": "Read, Write",
     "model": "fable",
@@ -576,7 +576,7 @@
   },
   "faithful-drift-auditor": {
     "name": "faithful-drift-auditor",
-    "description": "Faithful-mode contribution-drift auditor. Launched only on --faithful runs, at Gate 4 (before the plateau-ship decision) and Gate 5 (before ship). Independently compares the paper's headline contribution and stated results against the contract's verbatim Headline: line in output/seed/mechanism_contract.md and emits DRIFT / NO-DRIFT \u2014 a verdict the orchestrator cannot author. Closes the self-referential drift check. Does not edit paper or contract files.",
+    "description": "Faithful-mode contribution-drift auditor. Launched only on --faithful runs, at Gate 4 (before advancing to Stage 5) and Gate 5 (before ship). Independently compares the current theory draft and contribution-bearing empirical/experimental results against the contract at Gate 4, and the paper against both that verified evidence and the contract at Gate 5; emits DRIFT / NO-DRIFT, a verdict the orchestrator cannot author. Closes the self-referential drift check. Does not edit paper, evidence, or contract files.",
     "category": "evaluator",
     "tools": "Read, Write, Glob, Grep",
     "model": "opus",
