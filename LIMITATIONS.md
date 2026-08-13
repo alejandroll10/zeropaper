@@ -6,20 +6,6 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## Checkout provenance starts after the root setup/update launcher begins
-
-**Scope:** every direct `./setup.sh` or `./update.sh` invocation, including the child assembly launched by the updater.
-
-**Failure mode:** root `setup.sh` is the trust bootstrap for source capture, and root `update.sh` is the trust bootstrap for applying a verified fresh assembly. Each necessarily begins executing before the mutable checkout can attest that entrypoint. A concurrent same-UID writer can transiently replace a launcher, let the replacement alter arguments, environment, or update application, and restore the committed file before any later validation. A deterministic setup audit reproduction injected a different `HOME` before the launcher entered the coordinator; the assembled Grok sandbox contained the injected path while `.source.dirty` remained `false`. The isolated Python launchers close ambient Bash startup-code injection, validate their coordinator before execution, and—on the setup path—hand every later input to a verified private snapshot, but no program stored in the mutable checkout can independently attest the bytes that bootstrapped itself. The deployment manifest describes setup source, not the updater implementation that applies it.
-
-**Operational boundary:** run setup from a checkout that is not writable by concurrent agents/processes during invocation. `update.sh` protects its fresh assembly and all child setup temporary state from the concurrently sandboxed project agent, but it cannot protect the separate template checkout from another host process with write authority.
-
-**What would close it:** a trust anchor outside the mutable checkout—such as an installed or signed launcher that verifies each checkout entrypoint before executing it, or OS-enforced read-only/immutable checkout access spanning launch, capture, and update application—plus regressions that transiently replace root `setup.sh` and `update.sh` and prove the operation is rejected or records the effective launcher bytes.
-
-**Tracking:** [#258](https://github.com/alejandroll10/zeropaper/issues/258).
-
----
-
 ## Update quiescence is cooperative for processes outside supported launchers
 
 **Scope:** applying `update.sh` replacements to an existing deployment while another same-UID process can mutate that project.
