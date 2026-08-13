@@ -25,7 +25,7 @@ Stage 10 owns the `"status": "complete"` flag. The pipeline is not done until bo
 
    Commit: `lessons: pipeline reflection`.
 
-3. **Mark complete.** Apply the completion precondition in CLAUDE.md before writing the flag — an unresolved binding row in `process_log/degradation_ledger.md` means the run has not earned a clean `complete`.
+3. **Mark complete.** First verify `output/stage5/table_legibility.md` exists, is non-empty, and records `VERDICT: PASS` from Stage 9's final-render re-audit; any other/missing verdict returns to Stage 9 step 7 and cannot be recorded as a deferrable verification. Then apply the completion precondition in CLAUDE.md before writing the flag — an unresolved binding row in `process_log/degradation_ledger.md` means the run has not earned a clean `complete`.
    - Clean: `"status": "complete"`. Final commit: `pipeline: COMPLETE — paper ready for submission`.
    - Deferrable outage outstanding (rate/credit limit with a reset horizon, cheap re-check): `"status": "complete_pending_verification"` with the entry recorded in `pending_verification`. Final commit: `pipeline: COMPLETE (pending <core> verification) — paper ready, verification owed`. Say plainly in `LESSONS_PAPER.md` which citations or checks were never verified, so the pending state is legible from the paper's own record and not only from the state file.
    - Anything else unresolved: `"status": "halted_core_bypass"`, per the precondition.

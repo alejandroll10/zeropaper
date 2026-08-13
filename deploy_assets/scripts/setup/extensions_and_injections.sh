@@ -91,7 +91,8 @@ _setup_extensions_prune_report_mode_agents \
     scorer-freeform \
     literature-scout \
     gap-scout \
-    style
+    style \
+    table-auditor
 
 if [ "$MODE" = "report" ]; then
     echo "  ✓ Pruned generative / management agents for --mode report"

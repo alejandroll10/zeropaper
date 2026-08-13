@@ -28,6 +28,14 @@ jobs:
       - name: Install the dev-sync dependency
         run: python -m pip install --disable-pip-version-check PyYAML==6.0.3
 
+      - name: Install LaTeX table-gate dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends texlive-latex-extra
+
+      - name: Test rendered-table source gate
+        run: bash test_scripts/test_table_legibility.sh
+
       - name: Test setup configuration resolution
         run: bash test_scripts/test_setup_config.sh
 

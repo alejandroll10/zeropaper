@@ -15,7 +15,11 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.24.2] — 2026-08-13 (current)
+## [2.24.3] — 2026-08-13 (current)
+
+**Table legibility is now enforced at source and verified from the final render (#253).** `arpipeline.sty` uses the document class's effective `\scriptsize` boundary, fails compilation (rather than merely printing a marker) for direct undersized native tables, and measures both dimensions plus the observed source font across plain/starred `\resizebox`, `\scalebox`, command-form `adjustbox`, and semantic-table arrays; pure rotation and resized equation arrays remain legal, while ambiguous compound transforms are left to rendered inspection. Nested table transforms and table-bearing `adjustbox` environments fail closed because re-entrant/collected bodies cannot be compatibly measured without shared-state bypasses. Image-only semantic table floats are rejected while native tables may retain icons. The error itself carries `ARPIPELINE-TABLE-LEGIBILITY-FAIL`, so `tabularx` trial typesetting cannot suppress the marker. A new independent `table-auditor` rasterizes every main-paper and populated-appendix page after Stage 5 and again after final polish, catching custom alignments, image tables misclassified as figures, raster text, clipping, and source-level escape paths; its PASS is a completion precondition and REVISE enters a capped repair/rebuild/re-audit loop. `requirements.system` and the updater warning now name this autonomous `pdftoppm` dependency explicitly. CI-enforced LaTeX fixtures cover the former bypasses and false-positive controls using the deployed package order, same-selector updates backfill the new loop state, and the assembly matrix covers the new agent across five runtimes and report-mode pruning.
+
+## [2.24.2] — 2026-08-13
 
 **WRDS utilities now resolve project credentials independently of the caller's working directory (#229).** `wrds_client.py` and `wrds_server.py` pass their deployed project's `.env` path explicitly to `python-dotenv`, including the server's operator-approved credential reload. This closes the silent `python -c` failure outside the project root without opening a WRDS connection, and the offline regression imports each shipped module from an unrelated working directory using dummy credentials. The legacy `wrds_utils.py` call site named in the original report had already disappeared when that module became a server-backed compatibility wrapper.
 

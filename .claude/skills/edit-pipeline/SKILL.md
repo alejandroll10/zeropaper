@@ -247,7 +247,7 @@ Agents are either **shared** (identical across variants) or **variant-specific**
 - **Body**: `agent_bodies/shared/{id}.md` for shared agents, `agent_bodies/shared/{id}-core.md` for variant agents. Both live in the same directory — the `-core` suffix is what marks a body as variant-specialized, and `deploy_assets/scripts/agent_body_loader.py` (`load_body`) tries `{id}-core.md` first, then `{id}.md`. `deploy_assets/templates/agents/{variant}/` holds **only** `vocab.json`; no agent bodies live there.
 - **Vocab**: *both* kinds get placeholder substitution, and since v2.9.0 both resolve against the same layered chain: `agent_bodies/shared/vocab.json` (defaults) → `agents/{variant}/vocab.json` (domain overrides) → tier vocab → mode overlay, later wins. So a `{{KEY}}` added to *any* body or fragment needs a default in the shared vocab (or in every variant vocab); variant vocabs override only where the domain wording differs. This layering is what makes shared bodies (referee-mechanism's evaluative frame, the literature agents' venue directives, the fragments) variant-aware — see the `_comment_shared_body_overrides` block in `agents/llm_cognition/vocab.json` for the full override set.
 
-**Shared** (domain-agnostic, receive variant context via injection). All 31 live in `claude_shared_agents.json`; the authoritative list is that file, and `python3 deploy_assets/scripts/list_agents_by_category.py` prints current membership by category.
+**Shared** (domain-agnostic, receive variant context via injection). All 32 live in `claude_shared_agents.json`; the authoritative list is that file, and `python3 deploy_assets/scripts/list_agents_by_category.py` prints current membership by category.
 
 *Literature & framing*
 - `literature-scout` — broad literature survey (variant context provides target journals)
@@ -267,6 +267,7 @@ Agents are either **shared** (identical across variants) or **variant-specific**
 - `referee-mechanism` — Stage 6 referee focused on whether the mechanism delivers the claimed result *for the claimed reason*
 - `editor` — aggregates the three Stage 6 referee reports into one Gate 5 routing verdict + canonical comment list
 - `report-synthesizer` — `--mode report` only: aggregates `audits/*.md` into `report/referee_report.md` with a single verdict
+- `table-auditor` — independent rendered-page evaluator at Stage 5 and after final polish; gates native/custom/image-table legibility after the source-level `arpipeline.sty` checks
 
 *Writing & polish* (all `developing`)
 - `paper-writer` — writes and revises the LaTeX paper

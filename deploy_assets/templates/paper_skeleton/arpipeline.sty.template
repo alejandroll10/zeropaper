@@ -100,58 +100,231 @@
 }
 %
 % =====================================================================
-% Layer 5 — build-time table-legibility instrumentation (issue #85)
+% Layer 5 — build-time table-legibility instrumentation (issues #85/#253)
 % ---------------------------------------------------------------------
-% A wide results table wrapped in \resizebox{\textwidth}{!}{<tabular>}
-% scales to exactly \textwidth and therefore can NEVER emit an
-% "Overfull \hbox" — so the Stage-5 build-verify overfull gate is blind
-% to it by construction, and the table can ship in microscopic,
-% unreadable font. This wraps \resizebox so that when it scales a *table*
-% (content that opens a tabular) below a legibility floor, it writes the
-% distinctive token ARPIPELINE-SHRUNK to the .log; the Stage-5 gate greps
-% for it. We measure the REALIZED scale (final box width / natural box
-% width) rather than parse the size argument ourselves — this lets
-% graphicx do its own argument parsing and correctly distinguishes a
-% shrink-down (flagged) from a harmless stretch-up (ignored, scale >= 1).
-% Figures are excluded: only content that actually opens a tabular sets
-% the flag, so a legitimately down-scaled figure is not touched. Entirely
-% no-ops if graphicx / \resizebox is not loaded. Helper macros are
-% defined here at load time (so their parameter text is not stored inside
-% the \AtBeginDocument hook); the \let/\def rewiring happens at
-% begin-document, after every package — incl. graphicx — has loaded.
+% Overfull-box checks cannot see a table deliberately shrunk to fit.  The
+% first version of this layer measured only unstarred \resizebox around
+% tabular/tabular*, leaving direct \tiny, \resizebox*, \scalebox,
+% adjustbox, array, and pre-rendered image tables as escape paths.
+%
+% The source-level gate now has two complementary checks:
+%   (1) a native tabular/longtable (plus array inside a semantic table
+%       float) below the document class's \scriptsize floor fails; and
+%   (2) \resizebox (starred or plain), \scalebox, and command-form
+%       \adjustbox are measured in both dimensions.  For adjustbox a
+%       two-axis reduction is rejected while axis exchange is left to the
+%       rendered audit, avoiding a false failure on pure rotation.  The
+%       source font observed while the
+%       natural box is typeset is combined with the realized scale, so a
+%       normal-size table scaled to 0.7x can fail even though the old fixed
+%       0.6x ratio would have passed, while a \tiny table scaled *up* to a
+%       readable effective size does not false-trip.
+%
+% A pre-rendered image used as the whole body of a semantic table float is
+% rejected: it is neither accessible nor source-measurable.  Native tables
+% may still contain images (icons/sparklines) because opening a tabular or
+% array marks the float as native.  Image tables misclassified as figures
+% and custom alignments cannot be recognized reliably from TeX tokens; the
+% independent rendered-page table-auditor is the semantic backstop.
+%
+% Every violation writes ARPIPELINE-TABLE-LEGIBILITY-FAIL and raises a
+% PackageError, so latexmk itself fails; Stage 5 also greps the marker to
+% make the reason mechanically visible.  Figures outside semantic table
+% floats remain excluded.  Rewiring happens at begin-document, after all
+% ordinary preamble packages have loaded.
 \newif\ifarp@tabseen
+\newif\ifarp@tablescaleok
+\newif\ifarp@tablefloat
+\newif\ifarp@floatnative
+\newif\ifarp@floatimage
+\newif\ifarp@nestedtransform
+\newif\ifarp@axisexchange
 \newsavebox{\arp@natbox}
 \newsavebox{\arp@resbox}
-\newcommand{\arp@legfloor}{0.6}% flag a table scaled below this fraction of its natural width
+\newdimen\arp@legfontfloor
+\newdimen\arp@tablefont
+\newdimen\arp@natheight
+\newdimen\arp@resheight
+\newcount\arp@measuredepth
+\newcount\arp@adjustboxdepth
 % (@ is already a letter inside a package — no \makeatletter needed here, and a
 %  stray \makeatother would mis-tokenize the @-commands in the hook read below.)
-\newcommand{\arp@resizebox@star}[3]{\arp@orig@resizebox*{#1}{#2}{#3}}% starred form: pass through, not measured
-\newcommand{\arp@resizebox@plain}[3]{%
-  \global\arp@tabseenfalse
-  \sbox\arp@natbox{#3}%                                   natural content (sets the flag if a tabular ran)
-  \sbox\arp@resbox{\arp@orig@resizebox{#1}{#2}{\usebox\arp@natbox}}% graphicx parses the size arg
-  \ifarp@tabseen
-    \ifdim\wd\arp@resbox<\arp@legfloor\wd\arp@natbox
-      \typeout{ARPIPELINE-SHRUNK: a table was scaled to \the\wd\arp@resbox\space from natural width \the\wd\arp@natbox\space (below the \arp@legfloor\space legibility floor) -- re-typeset it without \string\resizebox-shrinking (footnotesize/tabularx, a landscape/sidewaystable, or relegate it to the Internet Appendix).}%
+\newcommand{\arp@tablefailure}[1]{%
+  \typeout{ARPIPELINE-TABLE-LEGIBILITY-FAIL: #1}%
+  \PackageError{arpipeline}{ARPIPELINE-TABLE-LEGIBILITY-FAIL: Reader-facing table is below the legibility floor}{#1\MessageBreak Re-typeset at scriptsize or larger with wrapping columns, use a landscape page, or move the full table to the Internet Appendix.}%
+}
+\newcommand{\arp@marktable}{%
+  \global\arp@tabseentrue
+  \ifarp@tablefloat\global\arp@floatnativetrue\fi
+  \ifnum\arp@adjustboxdepth>0
+    \arp@tablefailure{A native table is inside the adjustbox environment. Re-typeset it without an opaque adjustbox transform so the effective font remains measurable.}%
+  \fi
+  \ifnum\arp@measuredepth>0
+    \ifdim\f@size pt<\arp@tablefont
+      \global\arp@tablefont=\f@size pt
+    \fi
+  \else
+    \ifdim\f@size pt<\arp@legfontfloor
+      \arp@tablefailure{A native table opened at \f@size pt; the document-class scriptsize floor is \the\arp@legfontfloor.}%
     \fi
   \fi
+}
+\newcommand{\arp@checktablescale}[2]{%
+  \ifarp@tabseen
+    \ifarp@nestedtransform
+      \arp@tablefailure{A table is inside nested box-scaling transforms. Nested transforms are not independently measurable; re-typeset the table with native wrapping or one measurable transform.}%
+    \fi
+    % required-scale = scriptsize floor / smallest source font observed.
+    \Gscale@div\arp@requiredscale\arp@legfontfloor\arp@tablefont
+    \arp@natheight=\ht\arp@natbox \advance\arp@natheight by \dp\arp@natbox
+    \arp@resheight=\ht\arp@resbox \advance\arp@resheight by \dp\arp@resbox
+    \Gscale@div\arp@xscale{\wd\arp@resbox}{\wd\arp@natbox}
+    \Gscale@div\arp@yscale\arp@resheight\arp@natheight
+    \arp@tablescaleoktrue
+    #2%
+    \ifarp@axisexchange
+      % A command-form adjustbox may rotate content, exchanging the natural
+      % axes without changing glyph size.  Reject a clear two-axis reduction
+      % here; the rendered auditor covers one-axis/compound transforms whose
+      % font effect cannot be inferred from an axis-aligned bounding box.
+      \ifdim\arp@xscale pt<\arp@requiredscale pt\relax
+        \ifdim\arp@yscale pt<\arp@requiredscale pt\relax\arp@tablescaleokfalse\fi
+      \fi
+    \else
+      \ifdim\arp@xscale pt<\arp@requiredscale pt\relax\arp@tablescaleokfalse\fi
+      \ifdim\arp@yscale pt<\arp@requiredscale pt\relax\arp@tablescaleokfalse\fi
+    \fi
+    \ifarp@tablescaleok\else
+      \arp@tablefailure{#1 reduced a table below the effective scriptsize floor (source font \the\arp@tablefont; rendered box \the\wd\arp@resbox\space x \the\arp@resheight; natural box \the\wd\arp@natbox\space x \the\arp@natheight).}%
+    \fi
+  \fi
+}
+\newcommand{\arp@measuretablebox}[4]{%
+  \global\arp@tabseenfalse
+  \global\arp@nestedtransformfalse
+  \global\arp@tablefont=\maxdimen
+  \advance\arp@measuredepth by 1
+  \sbox\arp@natbox{#1}% content executes once and records table/source-font state
+  \sbox\arp@resbox{#2}% transform the already-typeset natural box
+  \advance\arp@measuredepth by -1
+  \arp@checktablescale{#3}{#4}%
   \usebox\arp@resbox
+}
+\newcommand{\arp@resizebox@star}[3]{%
+  \ifnum\arp@measuredepth>0
+    \global\arp@nestedtransformtrue\arp@orig@resizebox*{#1}{#2}{#3}%
+  \else
+    \arp@measuretablebox{#3}{\arp@orig@resizebox*{#1}{#2}{\usebox\arp@natbox}}{\string\resizebox*}{\arp@axisexchangefalse}%
+  \fi
+}
+\newcommand{\arp@resizebox@plain}[3]{%
+  \ifnum\arp@measuredepth>0
+    \global\arp@nestedtransformtrue\arp@orig@resizebox{#1}{#2}{#3}%
+  \else
+    \arp@measuretablebox{#3}{\arp@orig@resizebox{#1}{#2}{\usebox\arp@natbox}}{\string\resizebox}{\arp@axisexchangefalse}%
+  \fi
+}
+\newcommand{\arp@scalebox@plain}[2]{%
+  \ifnum\arp@measuredepth>0
+    \global\arp@nestedtransformtrue\arp@orig@scalebox{#1}{#2}%
+  \else
+    \arp@measuretablebox{#2}{\arp@orig@scalebox{#1}{\usebox\arp@natbox}}{\string\scalebox}{\arp@axisexchangefalse}%
+  \fi
+}
+\def\arp@scalebox@optional#1[#2]#3{%
+  \ifnum\arp@measuredepth>0
+    \global\arp@nestedtransformtrue\arp@orig@scalebox{#1}[#2]{#3}%
+  \else
+    \arp@measuretablebox{#3}{\arp@orig@scalebox{#1}[#2]{\usebox\arp@natbox}}{\string\scalebox}{\arp@axisexchangefalse}%
+  \fi
+}
+\newcommand{\arp@adjustbox@command}[2]{%
+  \ifnum\arp@measuredepth>0
+    \global\arp@nestedtransformtrue\arp@orig@adjustbox{#1}{#2}%
+  \else
+    \arp@measuretablebox{#2}{\arp@orig@adjustbox{#1}{\usebox\arp@natbox}}{\string\adjustbox}{\arp@axisexchangetrue}%
+  \fi
+}
+\def\arp@adjustbox@envname{adjustbox}
+\newcommand{\arp@adjustbox@dispatch}{%
+  \ifx\@currenvir\arp@adjustbox@envname
+    \global\advance\arp@adjustboxdepth by 1
+    \expandafter\arp@orig@adjustbox
+  \else
+    \expandafter\arp@adjustbox@command
+  \fi
+}
+\newcommand{\arp@checkimagetable}{%
+  \ifarp@floatimage
+    \ifarp@floatnative\else
+      \arp@tablefailure{A semantic table float contains only pre-rendered graphics. Image tables cannot be source-measured or read accessibly; typeset the table natively.}%
+    \fi
+  \fi
 }
 \AtBeginDocument{%
   \makeatletter
-  % Mark whenever a tabular environment opens inside a measured box.
+  % Capture the class-relative boundary once.  Exactly scriptsize passes;
+  % anything smaller fails unless an enclosing measured transform scales it
+  % back up to at least this effective size.
+  \begingroup\scriptsize\global\arp@legfontfloor=\f@size pt\endgroup
+  % Mark native table-like bodies.  Array is considered table-like only inside
+  % a semantic table float.  A transformed mathematical array is an equation,
+  % not source-level evidence of a table; the rendered auditor is the semantic
+  % backstop for table-like exhibits outside a table float.
   \@ifundefined{tabular}{}{%
     \let\arp@orig@tabular\tabular
-    \def\tabular{\global\arp@tabseentrue\arp@orig@tabular}%
+    \def\tabular{\arp@marktable\arp@orig@tabular}%
   }%
   \@ifundefined{tabular*}{}{%
     \expandafter\let\expandafter\arp@orig@tabularstar\csname tabular*\endcsname
-    \expandafter\def\csname tabular*\endcsname{\global\arp@tabseentrue\arp@orig@tabularstar}%
+    \expandafter\def\csname tabular*\endcsname{\arp@marktable\arp@orig@tabularstar}%
   }%
-  % Wrap \resizebox (preserving its starred form) to measure table shrink.
+  \@ifundefined{longtable}{}{%
+    \let\arp@orig@longtable\longtable
+    \def\longtable{\arp@marktable\arp@orig@longtable}%
+  }%
+  \@ifundefined{array}{}{%
+    \let\arp@orig@array\array
+    \def\array{%
+      \ifarp@tablefloat\arp@marktable\fi
+      \arp@orig@array
+    }%
+  }%
+  % Track semantic table floats so an image used in place of native table
+  % source fails, while icons inside a real tabular remain legal.
+  \@ifundefined{table}{}{%
+    \let\arp@orig@table\table \let\arp@orig@endtable\endtable
+    \def\table{\global\arp@tablefloattrue\global\arp@floatnativefalse\global\arp@floatimagefalse\arp@orig@table}%
+    \def\endtable{\arp@checkimagetable\global\arp@tablefloatfalse\arp@orig@endtable}%
+  }%
+  \@ifundefined{table*}{}{%
+    \expandafter\let\expandafter\arp@orig@tablestar\csname table*\endcsname
+    \expandafter\let\expandafter\arp@orig@endtablestar\csname endtable*\endcsname
+    \expandafter\def\csname table*\endcsname{\global\arp@tablefloattrue\global\arp@floatnativefalse\global\arp@floatimagefalse\arp@orig@tablestar}%
+    \expandafter\def\csname endtable*\endcsname{\arp@checkimagetable\global\arp@tablefloatfalse\arp@orig@endtablestar}%
+  }%
+  \@ifundefined{includegraphics}{}{%
+    \let\arp@orig@includegraphics\includegraphics
+    \protected\def\includegraphics{\ifarp@tablefloat\global\arp@floatimagetrue\fi\arp@orig@includegraphics}%
+  }%
+  % Measure every common box-scaling route.  A nested transform around table
+  % content fails closed: re-entrant measurement would share scratch boxes and
+  % let one nested transform overwrite another's table-detection state.
   \@ifundefined{resizebox}{}{%
     \let\arp@orig@resizebox\resizebox
-    \def\resizebox{\@ifstar{\arp@resizebox@star}{\arp@resizebox@plain}}%
+    \protected\def\resizebox{\@ifstar{\arp@resizebox@star}{\arp@resizebox@plain}}%
+  }%
+  \@ifundefined{scalebox}{}{%
+    \let\arp@orig@scalebox\scalebox
+    \protected\def\scalebox#1{\@ifnextchar[{\arp@scalebox@optional{#1}}{\arp@scalebox@plain{#1}}}%
+  }%
+  \@ifundefined{adjustbox}{}{%
+    \let\arp@orig@adjustbox\adjustbox
+    \let\adjustbox\arp@adjustbox@dispatch
+    \@ifundefined{endadjustbox}{}{%
+      \let\arp@orig@endadjustbox\endadjustbox
+      \def\endadjustbox{\global\advance\arp@adjustboxdepth by -1\arp@orig@endadjustbox}%
+    }%
   }%
   \makeatother
 }

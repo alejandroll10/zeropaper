@@ -207,6 +207,24 @@ jq -e '.extensions == []' "$extension_target/.deploy_manifest.json" >/dev/null \
 schema_target="$scratch/schema-migration-project"
 env PATH=/usr/bin:/bin "$repo_root/setup.sh" "$schema_target" \
     --assemble-only --no-model-probe >"$scratch/schema-setup.log" 2>&1
+# Simulate a pre-2.24.3 autonomous deployment: the update merge must add the
+# new core rendered-table loop as well as extension-owned schema.
+python3 - "$schema_target/process_log/pipeline_state.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+with open(path) as handle:
+    state = json.load(handle)
+state["loops"].pop("table_legibility", None)
+with open(path, "w") as handle:
+    json.dump(state, handle, indent=2)
+    handle.write("\n")
+PY
+env PATH=/usr/bin:/bin "$repo_root/update.sh" "$schema_target" \
+    --no-model-probe >"$scratch/core-schema-update.log" 2>&1 \
+    || { cat "$scratch/core-schema-update.log" >&2; echo "FAIL: core schema migration failed" >&2; exit 1; }
+jq -e '.loops.table_legibility == {"round": 0, "cap": 3}' \
+    "$schema_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: same-selector update omitted new core table-legibility loop" >&2; exit 1; }
 env PATH=/usr/bin:/bin "$repo_root/update.sh" "$schema_target" \
     --ext empirical --no-model-probe >"$scratch/schema-update.log" 2>&1 \
     || { cat "$scratch/schema-update.log" >&2; echo "FAIL: extension schema migration failed" >&2; exit 1; }
@@ -214,6 +232,7 @@ jq -e '
     . as $state
     | .stage2_mechanism_version == null
     and .stage3a_theory_version == null
+    and (.loops.table_legibility == {"round": 0, "cap": 3})
     and ([
       "identification_plan_revision", "headline_replication", "replicator_self_refire",
       "data_integrity", "method_check", "claim_grounding", "paper_writer_pse",

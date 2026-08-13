@@ -249,6 +249,7 @@ cat > "$P/process_log/pipeline_state.json" <<JSONEOF
     "fix_empirics":      {"round": 0, "cap": 2},
     "referee":           {"round": 0, "cap": 10},
     "bib_verify":        {"round": 0, "cap": 2},
+    "table_legibility":  {"round": 0, "cap": 3},
     "polish":            {"round": 0, "cap": 2}
   },
   "pivot_resolved": null,
@@ -288,6 +289,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
     "fix_empirics":      {"round": 0, "cap": 2},
     "referee":           {"round": 0, "cap": 10},
     "bib_verify":        {"round": 0, "cap": 2},
+    "table_legibility":  {"round": 0, "cap": 3},
     "polish":            {"round": 0, "cap": 2}
   },
   "pivot_resolved": null,

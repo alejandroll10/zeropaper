@@ -15,6 +15,8 @@ bubblewrap  # Linux only; macOS uses Apple Seatbelt (sandbox-exec) — built in
 #       visually. Without them the fan-out halts rather than "auditing" an unread file.
 #   (4) Figure producers (empiricist, theory-explorer, experiment-designer) rasterize
 #       PDF-only figures to .png via pdftoppm so paper-writer (no Bash) can see them.
+#   (5) Stage 5 and post-polish table-auditor rasterize every shipped PDF page via
+#       pdftoppm; missing rendering is GATE-BROKEN and blocks completion.
 poppler-utils  # macOS Homebrew: brew install poppler
 # Python package manager: curl -LsSf https://astral.sh/uv/install.sh | sh
 uv

@@ -320,12 +320,13 @@ fi
 # never copied into a deployment, which means an operator refreshing an existing
 # project has no other signal that the host now needs it. Without poppler the
 # Stage 5 placeholder gate silently false-passes (empty pipe → grep -c prints 0),
-# report mode cannot read a PDF-only submission, and paper-writer cannot see a
-# figure that shipped as .pdf-only from a run predating the dual-format contract.
+# the autonomous rendered-table audit is GATE-BROKEN, report mode cannot read a
+# PDF-only submission, and paper-writer cannot see a figure that shipped as
+# .pdf-only from a run predating the dual-format contract.
 if ! command -v pdftotext >/dev/null 2>&1 || ! command -v pdftoppm >/dev/null 2>&1; then
     echo "  ⚠ poppler-utils (pdftotext/pdftoppm) not found on this host."
     echo "    Install it: brew install poppler  |  sudo apt-get install poppler-utils"
-    echo "    Without it the Stage 5 placeholder gate silently passes and PDF reads fail."
+    echo "    Without it Stage 5 PDF gates are broken and PDF reads fail."
 fi
 
 # ── Resolve original deployment parameters ──
@@ -953,8 +954,9 @@ fi
 # The refreshed runtime docs reference loops.<id>.round; an in-flight deployment's
 # pipeline_state.json (never in the manifest, so preserved verbatim) may still carry
 # the legacy named counters. Fold them into a single `loops` object, preserving the
-# in-progress round values, so a resumed run's state matches the new docs. Idempotent:
-# if `loops` already exists this is a no-op.
+# in-progress round values, so a resumed run's state matches the new docs. New core
+# loops are also added with setdefault semantics: ordinary same-selector updates do
+# not run the extension/mode schema merge, but must still satisfy refreshed core docs.
 STATE_FILE="$PROJECT/process_log/pipeline_state.json"
 if [ -L "$PROJECT/process_log" ] || { [ -e "$PROJECT/process_log" ] && [ ! -d "$PROJECT/process_log" ]; }; then
     echo "ERROR: $PROJECT/process_log must be a real project directory" >&2
@@ -976,7 +978,7 @@ if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
     raise SystemExit(f"ERROR: pipeline state must be one regular non-aliased file: {p}")
 with os.fdopen(fd, "r+", encoding="utf-8") as f:
  data = json.load(f)
- f.seek(0)
+ changed = False
  if "loops" not in data:
     # legacy field -> (loop id, default cap)
     base = {
@@ -1025,8 +1027,19 @@ with os.fdopen(fd, "r+", encoding="utf-8") as f:
             inserted = True
     if not inserted:
         new["loops"] = loops
-    json.dump(new, f, indent=2); f.write("\n"); f.truncate(); f.flush(); os.fsync(f.fileno())
+    data = new
+    changed = True
     print("  ✓ pipeline_state.json migrated to loops:{} (issue #166)")
+ loops = data.get("loops")
+ if not isinstance(loops, dict):
+    raise SystemExit(f"ERROR: pipeline state loops must be an object: {p}")
+ if "table_legibility" not in loops:
+    loops["table_legibility"] = {"round": 0, "cap": 3}
+    changed = True
+    print("  ✓ pipeline_state.json added core table_legibility loop (issue #253)")
+ if changed:
+    f.seek(0)
+    json.dump(data, f, indent=2); f.write("\n"); f.truncate(); f.flush(); os.fsync(f.fileno())
 PYEOF
 fi
 

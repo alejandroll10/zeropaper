@@ -211,6 +211,7 @@ Initial state (created by setup.sh):
     "fix_empirics":      {"round": 0, "cap": 2},
     "referee":           {"round": 0, "cap": 10},
     "bib_verify":        {"round": 0, "cap": 2},
+    "table_legibility":  {"round": 0, "cap": 3},
     "polish":            {"round": 0, "cap": 2}{{EMPIRICAL_LOOP_FIELDS}}
   },
   "pivot_resolved": null,
@@ -260,6 +261,8 @@ Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` ob
 2. **Positive non-reset** — a verdict row that explicitly asserts a counter is untouched. The puzzle-triage PROBE-NULL row is the reference case: it positively holds `loops.pivot`, `loops.fix_empirics`, `loops.data_integrity`, and `loops.headline_replication` at their current values.
 3. **Retry-regenerates-the-artifact non-reset** — a loop whose own retry *is* a regeneration of the artifact it counts, so artifact-scoped auto-reset would zero the counter on every iteration and defeat the cap. `loops.last_resort_stuck` is the reference case (see "a last resort for stubborn problems" above): it is scoped to the stuck *episode*, and resets only when the impasse clears or the loop is exited by certification.
 
+   The rendered-table gate uses the same exception: a `table-auditor` REVISE deliberately re-fires `paper-writer`, so that layout rewrite does **not** reset `loops.table_legibility`. It resets only on a rendered PASS or on a fresh Stage-5 entry caused by a substantive upstream paper revision.
+
 **Loop Registry.** The complete set of capped loops. `cap` is the value seeded into `loops.<id>.cap`; the orchestrator reads the cap from state, never hard-codes it. Empirical-extension loops (marked †) exist only under `--ext empirical`.
 
 | loop id | cap | reset scope (audited artifact) | FAIL route |
@@ -274,6 +277,7 @@ Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` ob
 | `fix_empirics` | 2 | current contradiction | escalate to RECONCILE / HONEST-NULL — `docs/stage_puzzle_triage.md` |
 | `referee` | 10 | current paper (fresh budget per Regeneration) | Stage 6 hard cap — `docs/stage_6.md` |
 | `bib_verify` | 2 | current bibliography | drop unresolvable cites — `docs/stage_8.md` |
+| `table_legibility` | 3 | current rendered-table repair episode (**retry regeneration does not reset it**) | halt for operator routing — `docs/stage_5.md` rendered-table gate |
 | `polish` | 2 | current paper polish pass | ship (terminal) — `docs/stage_9.md` |
 | `identification_plan_revision` † | 3 | current `theory_version`'s identification design | step-3 FAIL branch — `docs/stage_3a_empirical.md` |
 | `headline_replication` † | 3 | current `code/empirical.py` headline | return to Stage 2 — `docs/stage_3a_empirical.md` |

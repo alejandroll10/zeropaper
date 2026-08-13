@@ -175,6 +175,21 @@
       "model": "gemini-3-flash-preview"
     }
   },
+  "table-auditor": {
+    "name": "table-auditor",
+    "description": "Independent rendered-table legibility gate at Stage 5 and after final polish. Rasterizes every paper and Internet-Appendix page, inspects native/custom/image tables at effective print size, and writes PASS / REVISE / GATE-BROKEN to output/stage5/table_legibility.md. It never edits the paper.",
+    "category": "evaluator",
+    "tools": "Bash, Read, Write, Glob, Grep",
+    "model": "opus",
+    "effort": "medium",
+    "codex": {
+      "model": "gpt-5.6-terra",
+      "model_reasoning_effort": "medium"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
   "gap-scout": {
     "name": "gap-scout",
     "description": "Deep literature search on a pre-selected gap or theoretical implication. Launched at (a) Stage 0 after the broad scan (gap validation) and (b) Stage 3 once per derived implication (K parallel launches) to lit-check each prediction and tag it NOVEL / PUZZLE-CANDIDATE / SUPPORTED / DEAD. Surveys adjacent literatures, identifies the closest competitor, and maps open questions without pre-specifying a framework.",
