@@ -15,7 +15,11 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.24.1] — 2026-08-12 (current)
+## [2.24.2] — 2026-08-13 (current)
+
+**WRDS utilities now resolve project credentials independently of the caller's working directory (#229).** `wrds_client.py` and `wrds_server.py` pass their deployed project's `.env` path explicitly to `python-dotenv`, including the server's operator-approved credential reload. This closes the silent `python -c` failure outside the project root without opening a WRDS connection, and the offline regression imports each shipped module from an unrelated working directory using dummy credentials. The legacy `wrds_utils.py` call site named in the original report had already disappeared when that module became a server-backed compatibility wrapper.
+
+## [2.24.1] — 2026-08-12
 
 **Seeded Gate 4 no longer reopens a fixed research direction through strategic score optimization (#257).** Both `--seed` and `--faithful` still run the independent scorer pair, but their aggregate score and verdict are diagnostic: a specifically cited correctness/rigor challenge returns to its existing owning audit, and otherwise the run advances to Stage 5 while recording seed-pinned novelty, importance, surprise, fertility, scope, or format ceilings as limitations. Gate 4 skips `branch-manager`, numeric plateau waiting, deepening-for-score, and aggregate-score abandonment for seeded runs. Unseeded routing is unchanged. Faithful mode retains its independent contract-drift audit before Stage 5. The dedicated faithful Gate 4 override was deleted in favor of the shared seeded route, and a focused five-shape assembly regression guards the distinction, including faithful empirical and experimental evidence paths.
 

@@ -22,11 +22,13 @@ import subprocess
 import time
 import os
 import sys
+from pathlib import Path
 
 import pandas as pd
 from dotenv import load_dotenv
 
-load_dotenv()
+_DOTENV_PATH = Path(__file__).resolve().parents[2] / '.env'
+load_dotenv(dotenv_path=_DOTENV_PATH)
 
 HOST = '127.0.0.1'
 PORT = 23847

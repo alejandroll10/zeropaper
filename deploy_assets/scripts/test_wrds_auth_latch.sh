@@ -37,6 +37,8 @@ if ! "$PY" -c 'import sqlalchemy, dotenv, wrds' 2>/dev/null; then
     exit 1
 fi
 
+PYTHON="$PY" bash "$ROOT/scripts/test_wrds_dotenv_path.sh"
+
 PYTHONPATH="$ROOT/extensions/empirical/utils" "$PY" - <<'PY'
 import importlib.metadata
 import inspect
