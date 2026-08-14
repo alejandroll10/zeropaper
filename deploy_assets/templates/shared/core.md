@@ -200,7 +200,16 @@ Initial state (created by setup.sh):
   "theory_version": 1,
   "regeneration_round": 0,
   "gate0_best_question_score": -1,
+  "stage0_discovery_last_counted_attempt": null,
+  "stage0_discovery_episode_start_attempt": null,
+  "stage0_discovery_phase": "entry",
+  "stage0_discovery_step": null,
+  "stage0_discovery_cap_context": null,
+  "stage0_discovery_pending_scan": null,
+  "stage0_discovery_gap_serial": 0,
+  "stage0_discovery_active_gap_id": null,
   "loops": {
+    "stage0_discovery":  {"round": 0, "cap": 100},
     "gate0_revise":      {"round": 0, "cap": 3},
     "gate0_reject":      {"round": 0, "cap": 5},
     "idea":              {"round": 0, "cap": 5},
@@ -263,10 +272,13 @@ Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` ob
 
    The rendered-table gate uses the same exception: a `table-auditor` REVISE deliberately re-fires `paper-writer`, so that layout rewrite does **not** reset `loops.table_legibility`. It resets only on a rendered PASS or on a fresh Stage-5 entry caused by a substantive upstream paper revision.
 
+4. **Run-global non-reset** — `loops.stage0_discovery` is a pipeline-run budget, not an artifact audit. No entry, handoff, pivot, or Regeneration Round resets it; every instruction to reset all audit loops excludes this one counter. It increments before each physical broad-scout launch, including a retry after a crash left no atomically published final map, whether the scan later exhausts or produces a scored question. A binding check before every initial launch or retry prevents launch 101. Top-level `stage0_discovery_last_counted_attempt`, `stage0_discovery_phase`, `stage0_discovery_step`, `stage0_discovery_cap_context`, and `stage0_discovery_pending_scan` make ownership, launch permits, the reason for cap routing, and downstream work durable without repeating a completed routing decision or accepting stale canonical artifacts. Stable `stage0_discovery_gap_serial` / `stage0_discovery_active_gap_id` identities make gap archives and logs idempotently reconcilable after partial writes. `stage0_discovery_episode_start_attempt` separately scopes near-miss and broad-map archives to the current search for a scored question. **The episode-start marker** resets at Stage 1 handoff, and every downstream Stage 0 return increments `problem_attempt`, so a later episode cannot reuse stale candidates or archive names.
+
 **Loop Registry.** The complete set of capped loops. `cap` is the value seeded into `loops.<id>.cap`; the orchestrator reads the cap from state, never hard-codes it. Empirical-extension loops (marked †) exist only under `--ext empirical`.
 
 | loop id | cap | reset scope (audited artifact) | FAIL route |
 |---|---|---|---|
+| `stage0_discovery` | 100 | unseeded pipeline run (**never resets; episode artifacts are scoped separately**) | promote the current episode's strongest archived near miss through question-poser/referee — `docs/stage_0.md` Step 0b |
 | `gate0_revise` | 3 | current gap's question | treat REVISE as REJECT — `docs/stage_0.md` Step 0e |
 | `gate0_reject` | 5 | current Stage-0 pass | take best-scored question so far, advance to Stage 1 — `docs/stage_0.md` |
 | `idea` | 5 | current problem (zeros on a new problem) | pick best idea, advance to Gate 1b — `docs/stage_1.md` |
@@ -460,7 +472,7 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 | Situation | After N failures | Action |
 |-----------|-----------------|--------|
 | Idea review iterates | 5 rounds | Pick the best idea and advance to Gate 1b |
-| Idea review rejects all | 1 rejection | Return to Stage 0 for a different problem |
+| Idea review rejects all | 1 rejection | Increment `problem_attempt`, set `current_stage = "stage_0"`, and return to Stage 0 for a different problem (full routing in `docs/stage_1.md`) |
 | Gates 1b/1c parallel screening eliminates all candidates | All top-K KNOWN at 1b OR BLOCKED-IMPOSSIBLE at 1c | New Round of Stage 1 (counts toward 5-round limit). A BLOCKED-DIFFICULTY verdict does **not** eliminate — such an idea survives and gets its real attempt at Stage 2, ranked below TRACTABLE at Step 3. **Seeded/faithful:** this row does not apply — a BLOCKED seed never starts a new Round; it advances to Stage 2 carrying the blockage (Gate 1c seeded override in `docs/stage_1.md`). |
 | Gate 3 novelty INCREMENTAL | 3 rework attempts at Stage 2 | Abandon this idea, return to Stage 1 for a new one. **Seeded/faithful:** does not abandon the seed — Gate 3 seeded override in `docs/stage_2.md` supersedes this row. |
 <!-- NO_MODE_START -->
@@ -480,7 +492,7 @@ Re-run Stage 3a (empirical re-fire on the extension's new prediction) + Gate 4 o
 | Unseeded scorer: hard ceiling | 8 total evaluations on same problem | If score is in the REVISE band or above for the current target tier (see `docs/stage_4.md`): switch to deepening playbook. Otherwise (MAJOR REWORK or ABANDON band): escalate one level. |
 | Unseeded scorer plateau in the REVISE band for the current target tier | 2 consecutive substantive revisions with no real gain | Switch to deepening playbook — the core idea works, it needs mathematical depth, not reworking. |
 | Unseeded scorer plateau in the REVISE band for the current target tier, branch-manager §E = Regenerate, no prior regen on this problem (`regeneration_round == 0`) | — | Fire regeneration round at Stage 1 (see `docs/stage_1.md` "Regeneration round"). Increment `regeneration_round` *before* re-entering Stage 1. **Takes precedence over the deepening-playbook row above when both fire** — Regenerate is the §E verdict that supersedes the default plateau routing. **At most one regeneration per problem:** if the regenerated attempt also plateaus, this row no longer fires (`regeneration_round > 0`) and the plateau row directly above applies — switch to the deepening playbook. |
-| Unseeded theory scored ABANDON | 5 theories on same problem | Change the problem (Stage 0) |
+| Unseeded theory scored ABANDON | 5 theories on same problem | Increment `problem_attempt`, set `current_stage = "stage_0"`, set `stage0_discovery_phase = "entry"`, `stage0_discovery_step = null`, `stage0_discovery_cap_context = null`, and `stage0_discovery_pending_scan = null`, then change the problem through Stage 0. This creates a distinct discovery episode; never re-enter Stage 0 under the failed problem's artifact namespace. |
 | Problem viability fails | 5 problems | Pick the best scoring problem and proceed anyway |
 | Editor: Major Revision (aggregated verdict) | Structural concerns (fragile, narrow, shallow) | Use deepening playbook. Triage editor's canonical comment list; revise; re-run Stage 6. Be patient — keep going as long as each round surfaces any new issue. Max 10 rounds. |
 | Mechanism referee: MISATTRIBUTED unresolved | Still MISATTRIBUTED at `loops.referee.round >= 10` | Adopt the mechanism referee's identified driver as the paper's mechanism; rewrite introduction/mechanism sections and ship. **Force-adoption at round-10 resolves all outstanding locked mechanism `[FIX]` items as satisfied — no further revision cycle is required.** In seeded mode, prefer the narrow-framing path from the seed override (present what the math delivers under the seed's topic, acknowledge the mechanism-claim divergence in limitations) rather than adopting an unrelated driver. Never return to Stage 0 (never-abandon). |
@@ -498,7 +510,7 @@ Before granting another unseeded iteration in the current band, the orchestrator
 ```
 output/                   # Pipeline outputs by stage
 ├── seed/                 # (--seed mode only) user idea files + pipeline reports
-├── stage0/               # literature_map_broad.md, gap_selection.md, literature_map.md, problem_statement.md, question_review.md, best_question{,_review}.md (Gate-0 cap-5 fallback snapshot), gap_log.md (per-pass), domain_log.md (per-run, never cleared)
+├── stage0/               # current broad/selection/deep maps; problem_statement.md; question_review.md; best_question{,_review}.md; gap_log.md (per-pass); domain_log.md (per-run); near_miss_portfolio.md + discovery_e{E}/ versioned maps (current discovery episode)
 ├── stage1/               # idea sketches, reviews, selected_idea.md, novelty + prototype
 <!-- NO_MODE_START -->
 ├── stage2/               # theory drafts, math audits, novelty checks (versioned _v1, _v2…)

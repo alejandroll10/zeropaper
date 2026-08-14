@@ -248,6 +248,7 @@ fi
 TMP=""
 SEED_MIGRATION_PENDING=0
 SEED_MIGRATION_JOURNAL=""
+CORE_STATE_CANDIDATE=""
 _update_cleanup() {
     if [ "$SEED_MIGRATION_PENDING" = "1" ] && [ -f "$SEED_MIGRATION_JOURNAL" ]; then
         "$UPDATE_CONTROL_PYTHON" -I - "$SEED_MIGRATION_JOURNAL" <<'PY' || true
@@ -967,9 +968,11 @@ if [ -d "$PROJECT/process_log" ] && [ "$(cd "$PROJECT/process_log" && pwd -P)" !
     exit 1
 fi
 if [ "$DRY_RUN" = "0" ] && { [ -e "$STATE_FILE" ] || [ -L "$STATE_FILE" ]; }; then
-    python3 -I - "$STATE_FILE" <<'PYEOF'
-import json, os, stat, sys
-p = sys.argv[1]
+    CORE_STATE_CANDIDATE="$TMP/core-pipeline-state.next"
+    python3 -I - "$STATE_FILE" "$CORE_STATE_CANDIDATE" <<'PYEOF'
+import json, os, re, stat, sys
+from datetime import datetime, timezone
+p, candidate_path = sys.argv[1:]
 flags = os.O_RDWR | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
 fd = os.open(p, flags)
 info = os.fstat(fd)
@@ -979,6 +982,83 @@ if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
 with os.fdopen(fd, "r+", encoding="utf-8") as f:
  data = json.load(f)
  changed = False
+ legacy_exhausted_attempts = set()
+ legacy_domain_scan_count = 0
+ legacy_stage0_artifact_evidence = False
+ project_dir = os.path.dirname(os.path.dirname(p))
+ dir_flags = (
+    os.O_RDONLY
+    | os.O_NONBLOCK
+    | getattr(os, "O_DIRECTORY", 0)
+    | getattr(os, "O_NOFOLLOW", 0)
+ )
+ def open_project_dir(parent_fd, name, label):
+    try:
+        return os.open(name, dir_flags, dir_fd=parent_fd)
+    except FileNotFoundError:
+        return None
+    except OSError as exc:
+        raise SystemExit(f"ERROR: {label} must be a real directory inside the deployment: {exc}")
+ try:
+    project_fd = os.open(project_dir, dir_flags)
+ except OSError as exc:
+    raise SystemExit(f"ERROR: deployment root is not a real directory: {exc}")
+ try:
+    output_fd = open_project_dir(project_fd, "output", "output")
+ finally:
+    os.close(project_fd)
+ stage0_fd = None
+ if output_fd is not None:
+    try:
+        stage0_fd = open_project_dir(output_fd, "stage0", "output/stage0")
+    finally:
+        os.close(output_fd)
+ if stage0_fd is not None:
+    try:
+        for entry in os.scandir(stage0_fd):
+            # Fresh autonomous deployments create an empty stage0 directory.
+            # Any retained entry therefore proves the project is non-pristine,
+            # including pre-v2.18.1 maps that have no domain log or report.
+            legacy_stage0_artifact_evidence = True
+            match = re.fullmatch(r"branch_manager_discovery_p([0-9]+)\.md", entry.name)
+            if match and entry.is_file(follow_symlinks=False):
+                legacy_exhausted_attempts.add(int(match.group(1)))
+        try:
+            log_flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
+            log_fd = os.open("domain_log.md", log_flags, dir_fd=stage0_fd)
+        except FileNotFoundError:
+            log_fd = None
+        except OSError as exc:
+            raise SystemExit(f"ERROR: output/stage0/domain_log.md must be a regular project file: {exc}")
+        if log_fd is not None:
+            log_info = os.fstat(log_fd)
+            if not stat.S_ISREG(log_info.st_mode) or log_info.st_nlink != 1:
+                os.close(log_fd)
+                raise SystemExit("ERROR: output/stage0/domain_log.md must be one regular non-aliased file")
+            with os.fdopen(log_fd, "r", encoding="utf-8") as domain_log:
+                legacy_domain_scan_count = sum(1 for line in domain_log if line.strip())
+    finally:
+        os.close(stage0_fd)
+ # The retired halt itself proves the current scan exhausted even if a legacy
+ # report is absent (for example, a partially retained pre-update output tree).
+ current_problem_attempt = int(data.get("problem_attempt", 1) or 1)
+ retired_stage0_halt = data.get("status") == "halted_no_viable_question"
+ if retired_stage0_halt:
+    legacy_exhausted_attempts.add(current_problem_attempt)
+ # No pre-#252 state can prove its lifetime physical-launch count: deployments
+ # before v2.18.1 have no domain log, and later scored scans have no exhausted
+ # report. Preserve the strict ceiling by failing closed for every non-pristine
+ # legacy run. A never-started deployment is the only shape known to have spent
+ # zero permits; active legacy runs retain their artifacts and enter autonomous
+ # near-miss promotion at the cap.
+ legacy_stage0_activity = (
+    data.get("status") != "not_started"
+    or current_problem_attempt > 1
+    or legacy_domain_scan_count > 0
+    or bool(legacy_exhausted_attempts)
+    or legacy_stage0_artifact_evidence
+ )
+ legacy_scan_count = 100 if legacy_stage0_activity else 0
  if "loops" not in data:
     # legacy field -> (loop id, default cap)
     base = {
@@ -1006,6 +1086,9 @@ with os.fdopen(fd, "r+", encoding="utf-8") as f:
     # Always seed the full base set (round from legacy value if present, else 0).
     for legacy, (lid, cap) in base.items():
         loops[lid] = {"round": int(data.pop(legacy, 0) or 0), "cap": cap}
+    # Unknown active legacy history fails closed at the run-global cap; only a
+    # pristine not_started deployment can soundly receive all 100 permits.
+    loops["stage0_discovery"] = {"round": legacy_scan_count, "cap": 100}
     # Seed empirical loops only if this deployment had them (any legacy empirical
     # counter present, or the empirical version pointer exists).
     had_emp = any(k in data for k in emp) or "stage3a_theory_version" in data
@@ -1033,13 +1116,112 @@ with os.fdopen(fd, "r+", encoding="utf-8") as f:
  loops = data.get("loops")
  if not isinstance(loops, dict):
     raise SystemExit(f"ERROR: pipeline state loops must be an object: {p}")
+ if "stage0_discovery_last_counted_attempt" not in data:
+    data["stage0_discovery_last_counted_attempt"] = (
+        current_problem_attempt
+        if (
+            retired_stage0_halt
+            or (
+                legacy_stage0_activity
+                and data.get("current_stage") == "stage_0"
+            )
+            or (
+                data.get("current_stage") == "stage_0"
+                and current_problem_attempt in legacy_exhausted_attempts
+            )
+        )
+        else None
+    )
+    changed = True
+    print("  ✓ pipeline_state.json added Stage-0 scan ownership marker (issue #252)")
+ if "stage0_discovery_episode_start_attempt" not in data:
+    data["stage0_discovery_episode_start_attempt"] = (
+        current_problem_attempt
+        if (
+            retired_stage0_halt
+            or (
+                legacy_stage0_activity
+                and data.get("current_stage") == "stage_0"
+            )
+        )
+        else None
+    )
+    changed = True
+    print("  ✓ pipeline_state.json added Stage-0 episode boundary marker (issue #252)")
+ if "stage0_discovery_phase" not in data:
+    if (
+        legacy_stage0_activity
+        and (
+            retired_stage0_halt
+            or data.get("current_stage") == "stage_0"
+        )
+    ):
+        data["stage0_discovery_phase"] = "legacy_reroute"
+    elif (
+        data.get("current_stage") == "stage_0"
+        and current_problem_attempt in legacy_exhausted_attempts
+    ):
+        data["stage0_discovery_phase"] = "legacy_reroute"
+    else:
+        data["stage0_discovery_phase"] = "entry"
+    changed = True
+    print("  ✓ pipeline_state.json added Stage-0 durable phase (issue #252)")
+ if "stage0_discovery_step" not in data:
+    data["stage0_discovery_step"] = (
+        "select" if data.get("stage0_discovery_phase") == "gap_search" else None
+    )
+    changed = True
+    print("  ✓ pipeline_state.json added Stage-0 durable substep (issue #252)")
+ if "stage0_discovery_cap_context" not in data:
+    data["stage0_discovery_cap_context"] = None
+    changed = True
+    print("  ✓ pipeline_state.json added Stage-0 cap-routing context (issue #252)")
+ if "stage0_discovery_pending_scan" not in data:
+    data["stage0_discovery_pending_scan"] = None
+    changed = True
+    print("  ✓ pipeline_state.json added Stage-0 pending-scan payload (issue #252)")
+ if "stage0_discovery_gap_serial" not in data:
+    data["stage0_discovery_gap_serial"] = 0
+    changed = True
+    print("  ✓ pipeline_state.json added Stage-0 stable gap serial (issue #252)")
+ if "stage0_discovery_active_gap_id" not in data:
+    data["stage0_discovery_active_gap_id"] = None
+    changed = True
+    print("  ✓ pipeline_state.json added Stage-0 active gap identity (issue #252)")
+ if "stage0_discovery" not in loops:
+    loops["stage0_discovery"] = {"round": legacy_scan_count, "cap": 100}
+    changed = True
+    print(f"  ✓ pipeline_state.json added core stage0_discovery loop at fail-closed round {legacy_scan_count} (issue #252)")
+ # This exact halt was the retired terminal route for an exhausted Stage-0
+ # domain scan. Resume it under the bounded discovery policy; every other
+ # halted_* status remains operator-controlled.
+ if retired_stage0_halt:
+    data["status"] = "running"
+    data["current_stage"] = "stage_0"
+    history = data.setdefault("history", [])
+    if not isinstance(history, list):
+        raise SystemExit(f"ERROR: pipeline state history must be an array: {p}")
+    history.append({
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "event": "update resumed retired halted_no_viable_question under bounded Stage-0 discovery",
+    })
+    changed = True
+    print("  ✓ pipeline_state.json resumed retired Stage-0 terminal halt (issue #252)")
  if "table_legibility" not in loops:
     loops["table_legibility"] = {"round": 0, "cap": 3}
     changed = True
     print("  ✓ pipeline_state.json added core table_legibility loop (issue #253)")
  if changed:
-    f.seek(0)
-    json.dump(data, f, indent=2); f.write("\n"); f.truncate(); f.flush(); os.fsync(f.fileno())
+    candidate_fd = os.open(
+        candidate_path,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
+        stat.S_IMODE(info.st_mode),
+    )
+    with os.fdopen(candidate_fd, "w", encoding="utf-8") as candidate:
+        json.dump(data, candidate, indent=2)
+        candidate.write("\n")
+        candidate.flush()
+        os.fsync(candidate.fileno())
 PYEOF
 fi
 
@@ -1098,14 +1280,14 @@ fi
 # manifest, or process error restores the pre-commit state and removes only
 # seed paths this update created.
 if [ "$SEED_MIGRATION_PENDING" = "1" ]; then
-    python3 -I - "$SEED_MIGRATION_JOURNAL" "$SEEDED" "$FAITHFUL" <<'PY'
+    python3 -I - "$SEED_MIGRATION_JOURNAL" "$SEEDED" "$FAITHFUL" "$CORE_STATE_CANDIDATE" <<'PY'
 import json
 import os
 import secrets
 import stat
 import sys
 
-journal_path, seeded_text, faithful_text = sys.argv[1:]
+journal_path, seeded_text, faithful_text, core_candidate = sys.argv[1:]
 seeded = seeded_text == "true"
 faithful = faithful_text == "true"
 journal = json.load(open(journal_path, encoding="utf-8"))
@@ -1117,7 +1299,11 @@ if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
     raise SystemExit("ERROR: seed migration state changed before commit")
 with os.fdopen(fd, "r", encoding="utf-8") as handle:
     original_state = handle.read()
-state = json.loads(original_state)
+if core_candidate and os.path.isfile(core_candidate):
+    with open(core_candidate, encoding="utf-8") as handle:
+        state = json.load(handle)
+else:
+    state = json.loads(original_state)
 if state.get("status") != "not_started":
     raise SystemExit("ERROR: pipeline started while selector migration was being prepared")
 if journal.get("schema_change"):
@@ -1173,6 +1359,7 @@ except BaseException:
         pass
     raise
 PY
+    [ -z "$CORE_STATE_CANDIDATE" ] || rm -f "$CORE_STATE_CANDIDATE"
     echo "  ✓ committed seed state (seeded=$SEEDED, faithful=$FAITHFUL)"
 fi
 
@@ -1217,6 +1404,55 @@ if [ "$DRY_RUN" = "0" ]; then
     fi
     echo
     echo "  ✓ manifest updated: template_version $OLD_VERSION → $NEW_VERSION"
+fi
+
+# Same-selector core schema/status migration is the final stateful update step:
+# the refreshed manifest is already durable, and the candidate is published by
+# one atomic replace. A kill before the replace leaves the original state (and
+# any retired halt) intact; a kill after it leaves both manifest and state new.
+if [ "$DRY_RUN" = "0" ] && [ "$SEED_MIGRATION_PENDING" = "0" ] \
+    && [ -n "$CORE_STATE_CANDIDATE" ] && [ -f "$CORE_STATE_CANDIDATE" ]; then
+    python3 -I - "$STATE_FILE" "$CORE_STATE_CANDIDATE" <<'PY'
+import json
+import os
+import secrets
+import stat
+import sys
+
+state_path, candidate_path = sys.argv[1:]
+fd = os.open(state_path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
+info = os.fstat(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    os.close(fd)
+    raise SystemExit("ERROR: core migration state changed before commit")
+with os.fdopen(fd, "r", encoding="utf-8") as handle:
+    json.load(handle)
+with open(candidate_path, encoding="utf-8") as handle:
+    candidate = json.load(handle)
+state_tmp = os.path.join(
+    os.path.dirname(state_path), f".pipeline-state.update.{secrets.token_hex(8)}"
+)
+try:
+    state_fd = os.open(
+        state_tmp,
+        os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
+        stat.S_IMODE(info.st_mode),
+    )
+    with os.fdopen(state_fd, "w", encoding="utf-8") as handle:
+        json.dump(candidate, handle, indent=2)
+        handle.write("\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(state_tmp, state_path)
+except BaseException:
+    try:
+        if os.path.lexists(state_tmp):
+            os.unlink(state_tmp)
+    except OSError:
+        pass
+    raise
+PY
+    echo "  ✓ committed pipeline-state schema/status migration"
 fi
 
 # ── Report agent diff ──

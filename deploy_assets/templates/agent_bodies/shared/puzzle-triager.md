@@ -79,7 +79,7 @@ When the implication is tagged **PUZZLE-CANDIDATE** in `implications.md` and emp
 | **RECONCILE** | Theory-generator adds a scope-condition statement. No pivot, no full revision. |
 | **BACK-TO-IDEA** | Stage 1 with the failure note as input. Theory was not strong enough to bet on. |
 | **PIVOT** | Theory-generator runs in `pivot` strategy mode. Empirical finding becomes input. The original theory becomes a baseline; the new theory must explain why the original prediction fails. Increment `loops.pivot.round`. |
-| **HONEST-NULL** | Ship with the failed prediction documented in limitations, OR (if score collapses) return to Stage 0. Do NOT pivot a third time. |
+| **HONEST-NULL** | Ship with the failed prediction documented in limitations, OR (if score collapses) have the orchestrator increment `problem_attempt` and return to Stage 0. Do NOT pivot a third time. |
 
 ## Hard rules
 

@@ -13,7 +13,7 @@
    - `stage2b_theory_version → null`
    - `stage2_mechanism_version → null` (under `--mode empirical-first` — else `theory_version` resetting to 1 leaves a stale `stage2_mechanism_version = 1` that false-positives the Gate 4 mechanism-plausibility block and silently skips `mechanism-auditor` on the regenerated mechanism; nulling forces it to re-fire)
    - `triaged_lit_implications → []`
-   - **Every `loops.<id>.round → 0`** (leave each `loops.<id>.cap` unchanged). Regenerating the theory is a fresh artifact version for every downstream audit loop, so per the generic **Audit-loop scoping** rule (`CLAUDE.md`) all loops start clean — this single instruction replaces the old hand-threaded per-counter reset list (`referee`, `reject_cosmetic`, `fix_empirics`, `headline_replication`, `data_integrity`, `method_check`, the claim loops, …). The regenerated paper thereby gets its own full Stage 6 `referee` budget and fresh empirical-audit budgets.
+   - **Every `loops.<id>.round → 0` except `loops.stage0_discovery.round`** (leave each `loops.<id>.cap` unchanged). Regenerating the theory is a fresh artifact version for every downstream audit loop, so per the generic **Audit-loop scoping** rule (`CLAUDE.md`) those loops start clean; `stage0_discovery` is not an artifact audit but the run-global broad-scan budget and never resets. This single instruction replaces the old hand-threaded per-counter reset list (`referee`, `reject_cosmetic`, `fix_empirics`, `headline_replication`, `data_integrity`, `method_check`, the claim loops, …). The regenerated paper thereby gets its own full Stage 6 `referee` budget and fresh empirical-audit budgets without reopening broad-scan capacity.
 4. Re-enter Stage 1: pass `learnings_r{N}.md` to **both** idea-generator and idea-reviewer alongside the lit map, and take the explicit **Regeneration short-circuit** at step 2 below — do not consult the runner-up or unused-sketch priorities; the existing portfolio is by assumption exhausted.
 
 Additional constraints on a regeneration entry:
@@ -58,7 +58,7 @@ Additional constraints on a regeneration entry:
 |----------|--------|
 | **ADVANCE** | Best idea identified. Proceed to Stage 2 with the reviewer's instructions for theory development. |
 | **ITERATE** | Re-launch idea-generator with the reviewer's feedback. Max `loops.idea.cap` rounds of iteration. |
-| **REJECT ALL** | All ideas are weak. Return to Stage 0 for a different problem. |
+| **REJECT ALL** | All ideas are weak. Increment `problem_attempt`, then return to Stage 0 for a different problem. |
 
 {{SEED_OVERRIDE_STAGE_1_GATE_1_REJECT_ALL}}
 
@@ -87,7 +87,7 @@ Purpose: late-bind the final idea selection. Instead of committing to idea-revie
 
 | Case | Action |
 |------|--------|
-| M = 0 (all KNOWN) | No viable ideas from this top-K. Start a new Round of Stage 1 (counts toward the idea-round cap (`loops.idea.cap`)). If starting it would exhaust the cap, return to Stage 0 for a different problem. |
+| M = 0 (all KNOWN) | No viable ideas from this top-K. Start a new Round of Stage 1 (counts toward the idea-round cap (`loops.idea.cap`)). If starting it would exhaust the cap, increment `problem_attempt` and return to Stage 0 for a different problem. |
 | M ≥ 1 | Proceed to Step 2. |
 
 {{SEED_OVERRIDE_STAGE_1_GATE_1B}}
@@ -102,7 +102,7 @@ Purpose: late-bind the final idea selection. Instead of committing to idea-revie
 
 | Case | Action |
 |------|--------|
-| S = 0 (every candidate `BLOCKED-IMPOSSIBLE`) | Every survivor is a proven dead end. Start a new Round of Stage 1 (counts toward the idea-round cap (`loops.idea.cap`)); the propagated negative results will constrain it. If starting it would exhaust the cap, return to Stage 0 for a different problem. |
+| S = 0 (every candidate `BLOCKED-IMPOSSIBLE`) | Every survivor is a proven dead end. Start a new Round of Stage 1 (counts toward the idea-round cap (`loops.idea.cap`)); the propagated negative results will constrain it. If starting it would exhaust the cap, increment `problem_attempt` and return to Stage 0 for a different problem. |
 | S ≥ 1 | Proceed to **Step 3**. |
 
 {{SEED_OVERRIDE_STAGE_1_GATE_1C}}

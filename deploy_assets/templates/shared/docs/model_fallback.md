@@ -75,9 +75,13 @@ the one most likely to fail on arrival.
    account, which a relaunch or operator billing fix addresses). Both routes lead
    to the same immediate action:
 4. **Fall back and continue.** Relaunch the *same agent* on the next tier in its
-   chain (`fable → opus`) by forcing the model at launch. Do **not** wait for the
-   pinned tier to return — the fallback chain exists precisely so no run depends on
-   any one tier being up.
+   chain (`fable → opus`) by forcing the model at launch. **Exception: for an
+   unseeded Stage 0 `literature-scout`, do not relaunch from this doctrine.** Its
+   failed dispatch already spent the committed physical-launch permit: return
+   through Stage 0 phase `scan_charged`, commit a fresh permit, and only then launch
+   the unchanged instruction on the forced fallback tier; if the cap is binding,
+   take the no-scan route instead. Do **not** wait for the pinned tier to return —
+   the fallback chain exists precisely so no run depends on any one tier being up.
 5. **Log it — as a non-binding, non-blocking row.** Append a row to
    `process_log/degradation_ledger.md` (the same ledger `docs/core_bypass.md`
    uses as the single surfacing surface), using the full schema of that doc:
@@ -120,7 +124,10 @@ The one narrow exception is a genuinely-transient error (HTTP 5xx, throttle) on 
 tier that is otherwise up: there a short **bounded** retry-with-backoff is correct
 (cap it — e.g. 3 attempts / a few minutes — then fall back or escalate). "Bounded
 retry on a live tier" is not the same as "poll-wait for a dead tier"; only the
-former is ever open to a retry loop, and even it is capped.
+former is ever open to a retry loop, and even it is capped. For an unseeded Stage 0
+`literature-scout`, neither tier fallback nor transient retry is a direct relaunch:
+every dispatch returns through `scan_charged` and consumes a fresh permit first,
+or takes the no-scan cap route.
 
 ## Probing before an expensive rare-tier launch
 

@@ -121,7 +121,7 @@ When advancing, return a ranked top-K list with **K ≥ 3 whenever ≥3 viable a
 ### REJECT ALL when:
 - No idea scores above 2 on importance
 - Everything is either known or *proven* dead (degenerate / ill-posed / shown to yield nothing — **not** merely hard, high-variance, or open-ended)
-- In this case, recommend the orchestrator return to Stage 0 for a different problem
+- In this case, recommend the orchestrator increment `problem_attempt` and return to Stage 0 for a different problem
 
 ## Rules
 

@@ -105,7 +105,7 @@ printf 'stale\n' > "$target/.claude/agents/stale-agent.md"
 
 printf 'PROJECT_MAIN_SENTINEL\n' > "$target/paper/main.tex"
 python3 - "$target/process_log/pipeline_state.json" <<'PY'
-import json, sys
+import json, os, sys
 path = sys.argv[1]
 with open(path) as handle:
     state = json.load(handle)
@@ -207,24 +207,194 @@ jq -e '.extensions == []' "$extension_target/.deploy_manifest.json" >/dev/null \
 schema_target="$scratch/schema-migration-project"
 env PATH=/usr/bin:/bin "$repo_root/setup.sh" "$schema_target" \
     --assemble-only --no-model-probe >"$scratch/schema-setup.log" 2>&1
-# Simulate a pre-2.24.3 autonomous deployment: the update merge must add the
-# new core rendered-table loop as well as extension-owned schema.
+# Simulate an older autonomous deployment: the update merge must add both
+# newer core loops as well as extension-owned schema.
 python3 - "$schema_target/process_log/pipeline_state.json" <<'PY'
 import json, sys
 path = sys.argv[1]
 with open(path) as handle:
     state = json.load(handle)
 state["loops"].pop("table_legibility", None)
+state["loops"].pop("stage0_discovery", None)
+state.pop("stage0_discovery_last_counted_attempt", None)
+state.pop("stage0_discovery_episode_start_attempt", None)
+state.pop("stage0_discovery_phase", None)
+state.pop("stage0_discovery_step", None)
+state.pop("stage0_discovery_cap_context", None)
+state.pop("stage0_discovery_pending_scan", None)
+state.pop("stage0_discovery_gap_serial", None)
+state.pop("stage0_discovery_active_gap_id", None)
+state["status"] = "halted_no_viable_question"
+state["current_stage"] = "stage_0"
+state["problem_attempt"] = 4
 with open(path, "w") as handle:
     json.dump(state, handle, indent=2)
     handle.write("\n")
 PY
+touch "$schema_target/output/stage0/branch_manager_discovery_p2.md"
+touch "$schema_target/output/stage0/branch_manager_discovery_p4.md"
+printf '%s\n' 'asset pricing — fresh scan' 'banking — fresh scan' 'macro-finance — fresh scan' \
+    >"$schema_target/output/stage0/domain_log.md"
 env PATH=/usr/bin:/bin "$repo_root/update.sh" "$schema_target" \
     --no-model-probe >"$scratch/core-schema-update.log" 2>&1 \
     || { cat "$scratch/core-schema-update.log" >&2; echo "FAIL: core schema migration failed" >&2; exit 1; }
 jq -e '.loops.table_legibility == {"round": 0, "cap": 3}' \
     "$schema_target/process_log/pipeline_state.json" >/dev/null \
     || { echo "FAIL: same-selector update omitted new core table-legibility loop" >&2; exit 1; }
+jq -e '.loops.stage0_discovery == {"round": 100, "cap": 100}' \
+    "$schema_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: active legacy Stage-0 migration did not fail closed at the lifetime cap" >&2; exit 1; }
+jq -e '
+    .stage0_discovery_last_counted_attempt == 4
+    and .stage0_discovery_episode_start_attempt == 4
+    and .stage0_discovery_phase == "legacy_reroute"
+    and .stage0_discovery_step == null
+    and .stage0_discovery_cap_context == null
+    and .stage0_discovery_pending_scan == null
+    and .stage0_discovery_gap_serial == 0
+    and .stage0_discovery_active_gap_id == null
+' \
+    "$schema_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: same-selector update omitted Stage-0 migration markers" >&2; exit 1; }
+jq -e '
+    .status == "running"
+    and .current_stage == "stage_0"
+    and (.history[-1].event | contains("resumed retired halted_no_viable_question"))
+' "$schema_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: update did not resume the retired Stage-0 terminal halt" >&2; exit 1; }
+# The migration is token-specific: unrelated safety halts remain binding.
+python3 - "$schema_target/process_log/pipeline_state.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+with open(path) as handle:
+    state = json.load(handle)
+state["status"] = "halted_core_bypass"
+with open(path, "w") as handle:
+    json.dump(state, handle, indent=2)
+    handle.write("\n")
+PY
+env PATH=/usr/bin:/bin "$repo_root/update.sh" "$schema_target" \
+    --no-model-probe >"$scratch/unrelated-halt-update.log" 2>&1 \
+    || { cat "$scratch/unrelated-halt-update.log" >&2; echo "FAIL: unrelated-halt update failed" >&2; exit 1; }
+jq -e '.status == "halted_core_bypass" and .current_stage == "stage_0"' \
+    "$schema_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: Stage-0 migration rewrote an unrelated safety halt" >&2; exit 1; }
+# An active legacy run can be mid-scan/gap with no exhausted report. It still
+# has unknowable lifetime history and must enter legacy no-scan salvage, not be
+# mislabeled as a downstream returning-question episode.
+python3 - "$schema_target/process_log/pipeline_state.json" <<'PY'
+import json, os, sys
+path = sys.argv[1]
+with open(path) as handle:
+    state = json.load(handle)
+state["status"] = "running"
+state["current_stage"] = "stage_0"
+state["problem_attempt"] = 1
+state["loops"].pop("stage0_discovery", None)
+for key in (
+    "stage0_discovery_last_counted_attempt",
+    "stage0_discovery_episode_start_attempt",
+    "stage0_discovery_phase",
+    "stage0_discovery_step",
+    "stage0_discovery_cap_context",
+    "stage0_discovery_pending_scan",
+    "stage0_discovery_gap_serial",
+    "stage0_discovery_active_gap_id",
+):
+    state.pop(key, None)
+with open(path, "w") as handle:
+    json.dump(state, handle, indent=2)
+    handle.write("\n")
+project = os.path.dirname(os.path.dirname(path))
+for name in (
+    "branch_manager_discovery_p2.md",
+    "branch_manager_discovery_p4.md",
+    "domain_log.md",
+):
+    try:
+        os.unlink(os.path.join(project, "output", "stage0", name))
+    except FileNotFoundError:
+        pass
+PY
+env PATH=/usr/bin:/bin "$repo_root/update.sh" "$schema_target" \
+    --no-model-probe >"$scratch/active-midstage0-update.log" 2>&1 \
+    || { cat "$scratch/active-midstage0-update.log" >&2; echo "FAIL: active mid-Stage-0 update failed" >&2; exit 1; }
+jq -e '
+    .loops.stage0_discovery == {"round": 100, "cap": 100}
+    and .stage0_discovery_phase == "legacy_reroute"
+    and .stage0_discovery_last_counted_attempt == 1
+    and .stage0_discovery_cap_context == null
+' "$schema_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: active legacy Stage 0 without a report did not enter no-scan salvage" >&2; exit 1; }
+# Artifact evidence also makes a nominal not_started state non-pristine. It
+# needs a concrete episode namespace for legacy salvage.
+python3 - "$schema_target/process_log/pipeline_state.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+with open(path) as handle:
+    state = json.load(handle)
+state["status"] = "not_started"
+state["current_stage"] = "stage_0"
+state["problem_attempt"] = 1
+state["loops"].pop("stage0_discovery", None)
+for key in (
+    "stage0_discovery_last_counted_attempt",
+    "stage0_discovery_episode_start_attempt",
+    "stage0_discovery_phase",
+    "stage0_discovery_step",
+    "stage0_discovery_cap_context",
+    "stage0_discovery_pending_scan",
+    "stage0_discovery_gap_serial",
+    "stage0_discovery_active_gap_id",
+):
+    state.pop(key, None)
+with open(path, "w") as handle:
+    json.dump(state, handle, indent=2)
+    handle.write("\n")
+PY
+touch "$schema_target/output/stage0/literature_map_broad.md"
+env PATH=/usr/bin:/bin "$repo_root/update.sh" "$schema_target" \
+    --no-model-probe >"$scratch/not-started-artifact-update.log" 2>&1 \
+    || { cat "$scratch/not-started-artifact-update.log" >&2; echo "FAIL: artifact-proven legacy update failed" >&2; exit 1; }
+jq -e '
+    .loops.stage0_discovery == {"round": 100, "cap": 100}
+    and .stage0_discovery_phase == "legacy_reroute"
+    and .stage0_discovery_episode_start_attempt == 1
+    and .stage0_discovery_last_counted_attempt == 1
+' "$schema_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: artifact-proven legacy state lacks an episode namespace" >&2; exit 1; }
+# Continue this fixture's separate prelaunch selector-migration check.
+python3 - "$schema_target/process_log/pipeline_state.json" <<'PY'
+import json, os, sys
+path = sys.argv[1]
+with open(path) as handle:
+    state = json.load(handle)
+state["status"] = "not_started"
+state["problem_attempt"] = 1
+state["loops"].pop("stage0_discovery", None)
+state.pop("stage0_discovery_last_counted_attempt", None)
+state.pop("stage0_discovery_episode_start_attempt", None)
+state.pop("stage0_discovery_phase", None)
+state.pop("stage0_discovery_step", None)
+state.pop("stage0_discovery_cap_context", None)
+state.pop("stage0_discovery_pending_scan", None)
+state.pop("stage0_discovery_gap_serial", None)
+state.pop("stage0_discovery_active_gap_id", None)
+with open(path, "w") as handle:
+    json.dump(state, handle, indent=2)
+    handle.write("\n")
+project = os.path.dirname(os.path.dirname(path))
+for name in (
+    "branch_manager_discovery_p2.md",
+    "branch_manager_discovery_p4.md",
+    "domain_log.md",
+    "literature_map_broad.md",
+):
+    try:
+        os.unlink(os.path.join(project, "output", "stage0", name))
+    except FileNotFoundError:
+        pass
+PY
 env PATH=/usr/bin:/bin "$repo_root/update.sh" "$schema_target" \
     --ext empirical --no-model-probe >"$scratch/schema-update.log" 2>&1 \
     || { cat "$scratch/schema-update.log" >&2; echo "FAIL: extension schema migration failed" >&2; exit 1; }
@@ -232,6 +402,15 @@ jq -e '
     . as $state
     | .stage2_mechanism_version == null
     and .stage3a_theory_version == null
+    and .stage0_discovery_last_counted_attempt == null
+    and .stage0_discovery_episode_start_attempt == null
+    and .stage0_discovery_phase == "entry"
+    and .stage0_discovery_step == null
+    and .stage0_discovery_cap_context == null
+    and .stage0_discovery_pending_scan == null
+    and .stage0_discovery_gap_serial == 0
+    and .stage0_discovery_active_gap_id == null
+    and (.loops.stage0_discovery == {"round": 0, "cap": 100})
     and (.loops.table_legibility == {"round": 0, "cap": 3})
     and ([
       "identification_plan_revision", "headline_replication", "replicator_self_refire",
@@ -244,6 +423,25 @@ jq -e '
     || { echo "FAIL: empirical update omitted project-owned stage3a directories" >&2; exit 1; }
 jq -e '.extensions == ["empirical"]' "$schema_target/.deploy_manifest.json" >/dev/null \
     || { echo "FAIL: empirical selector was not persisted" >&2; exit 1; }
+
+# Stage-0 legacy probes traverse deployment directories by no-follow file
+# descriptors; a mutable parent symlink must fail before outside inspection.
+stage0_symlink_target="$scratch/stage0-symlink-project"
+stage0_symlink_outside="$scratch/stage0-symlink-outside"
+env PATH=/usr/bin:/bin "$repo_root/setup.sh" "$stage0_symlink_target" \
+    --assemble-only --no-model-probe >"$scratch/stage0-symlink-setup.log" 2>&1
+mkdir "$stage0_symlink_outside"
+mv "$stage0_symlink_target/output/stage0" "$stage0_symlink_target/output/stage0-real"
+ln -s "$stage0_symlink_outside" "$stage0_symlink_target/output/stage0"
+if env PATH=/usr/bin:/bin "$repo_root/update.sh" "$stage0_symlink_target" \
+    --no-model-probe >"$scratch/stage0-symlink-update.log" 2>&1; then
+    echo "FAIL: updater followed a symlinked output/stage0 migration parent" >&2; exit 1
+fi
+grep -Fq 'output/stage0 must be a real directory inside the deployment' \
+    "$scratch/stage0-symlink-update.log" \
+    || { cat "$scratch/stage0-symlink-update.log" >&2; echo "FAIL: Stage-0 symlink rejection was unclear" >&2; exit 1; }
+[ -z "$(find "$stage0_symlink_outside" -mindepth 1 -print -quit)" ] \
+    || { echo "FAIL: updater touched the outside Stage-0 symlink target" >&2; exit 1; }
 
 # Once work starts, mode/extension route changes fail before managed mutation.
 python3 - "$schema_target/process_log/pipeline_state.json" <<'PY'
