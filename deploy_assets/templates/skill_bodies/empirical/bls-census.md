@@ -9,8 +9,9 @@
   A free `CENSUS_API_KEY` is **required for every request** — the formerly
   keyless tier was retired; bare requests return an HTML "Missing Key" page,
   not JSON. Register at https://api.census.gov/data/key_signup.html.
-- **SSA OACT period life tables** — mortality / life-expectancy by exact
-  age. HTML scrape, **no key**.
+- **SSA OACT period life table** — mortality / life-expectancy by exact
+  age. The versioned 2023 table used in the 2026 Trustees Report is bundled
+  locally with source provenance; **no key or network request**.
 - Zero overlap with WRDS/CRSP; all free. Use for shift-share / Bartik
   instruments (cohort aging, local labor demand, retirement-channel
   shifters), labor-finance, household-finance, macro-cross-section work.
@@ -32,9 +33,11 @@ from utils.bls_census_utils import (
 )
 ```
 
-Every fetch is memoised to `data/bls_census/*.parquet` (CSV fallback if
-pyarrow is missing). Pass `refresh=True` to re-pull the current/open period;
-closed-period data is immutable so cache hits are safe.
+BLS/Census fetches are memoised to `data/bls_census/*.parquet` (CSV fallback
+if pyarrow is missing). Pass `refresh=True` to re-pull the current/open
+period; closed-period data is immutable so cache hits are safe. SSA is the
+exception: the default reads the checksummed bundle at
+`code/utils/ssa_oact/` and never contacts the network.
 
 ## How to use
 
@@ -147,13 +150,19 @@ series with `series_map=`.
 ```python
 tables = ssa_period_life_table()       # list of DataFrames
 life = tables[0]                       # male/female by single year of age
+life.attrs                              # source URL + table/report vintage
 ```
 
-**Documented limit:** `ssa.gov` is behind Akamai bot protection that 403s
-many datacenter/cloud IPs even with a browser User-Agent. The helper raises
-a clear `RuntimeError` naming this rather than failing opaquely; it works
-from a normal network/VPN. If you are on a blocked host, mirror the table
-CSV locally and read it directly.
+The call is offline and returns the same two-level columns as the former live
+HTML scrape. `life.attrs` records `table_year=2023`,
+`trustees_report_year=2026`, the official source URL, retrieval date, bundle
+status, and CSV checksum. Use `refresh=True` only to perform an explicit live
+upstream check from a non-datacenter network; it validates the HTML schema
+and vintage but never overwrites the immutable bundle. A custom URL preserves
+the helper's historical raw `pandas.read_html` plus URL-keyed-cache escape
+hatch; its caller-defined schema does not receive the official default
+table's validation or provenance attributes. The full refresh procedure is
+in `code/utils/ssa_oact/README.md`.
 
 ## Standard operations
 
@@ -180,3 +189,6 @@ CSV locally and read it directly.
 - **Cache aggressively.** Closed-period BLS/ACS/CPS data is immutable —
   rely on `data/bls_census/*.parquet`; pass `refresh=True` only for the
   current (open) year.
+- **Treat the bundled SSA vintage as data provenance.** Report its
+  `table_year`, `trustees_report_year`, and official `source_url` from
+  `life.attrs`. Do not live-refresh it during an ordinary pipeline run.

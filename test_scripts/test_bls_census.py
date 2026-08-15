@@ -11,8 +11,8 @@ Key handling (verified live, May 2026):
   * Census now requires a free CENSUS_API_KEY for every request. Tests 3-4
     run fully if CENSUS_API_KEY is set, else SKIP (not FAIL) after asserting
     the helper raises the correct instructive error.
-  * SSA 403s datacenter IPs (Akamai). Test 5 is best-effort: PASS on data,
-    SKIP on the documented 403/network block.
+  * SSA uses a checksummed local bundle. Test 5 is a hard offline requirement;
+    live refresh testing is separate and explicitly opt-in.
 """
 import os
 import sys
@@ -110,17 +110,19 @@ yr = h.dropna(subset=["exit_proxy"]).iloc[-1]
 print(f"  {len(h)} years; latest {int(yr['year'])}: "
       f"lfpr_55plus={yr['lfpr_55plus']:.1f} exit_proxy={yr['exit_proxy']:+.2f}")
 
-# === Test 5: ssa_period_life_table — keyless, best-effort ===
-print("\n=== Test 5: ssa_period_life_table (no key; SSA may 403 on DC IPs) ===")
+# === Test 5: ssa_period_life_table — bundled, offline ===
+print("\n=== Test 5: ssa_period_life_table (bundled; offline) ===")
 from utils.bls_census_utils import ssa_period_life_table
 
-try:
-    tables = ssa_period_life_table()
-    assert tables and not tables[0].empty, "SSA returned no usable table"
-    print(f"  OK: {len(tables)} tables; first shape {tables[0].shape}")
-except RuntimeError as e:
-    msg = str(e)
-    assert "403" in msg or "SSA" in msg, f"unexpected SSA error: {msg}"
-    print(f"  SKIP (documented limit): {msg[:120]}")
+tables = ssa_period_life_table()
+assert tables and tables[0].shape == (120, 7), \
+    f"SSA bundle has unexpected shape: {tables[0].shape if tables else None}"
+assert tables[0].attrs["bundled"] is True, "SSA default did not use bundle"
+assert tables[0].attrs["table_year"] == 2023, "unexpected SSA table vintage"
+assert tables[0].attrs["trustees_report_year"] == 2026, \
+    "unexpected SSA Trustees Report vintage"
+print(f"  OK: {len(tables)} table; shape {tables[0].shape}; "
+      f"vintage {tables[0].attrs['table_year']} "
+      f"(TR {tables[0].attrs['trustees_report_year']})")
 
 print("\nALL TESTS PASSED")

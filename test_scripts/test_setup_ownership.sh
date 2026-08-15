@@ -182,6 +182,11 @@ env PATH=/usr/bin:/bin "$repo_root/setup.sh" "$extension_target" \
 extension_deps=".arpipeline/update_inputs/deps/extensions/empirical.txt"
 [ -f "$extension_target/$extension_deps" ] \
     || { echo "FAIL: empirical update input was not deployed" >&2; exit 1; }
+[ -f "$extension_target/code/utils/ssa_oact/period_life_table_2023.csv" ] \
+    || { echo "FAIL: empirical SSA bundle was not deployed" >&2; exit 1; }
+jq -e '.infrastructure.dirs_replace | index("code/utils/ssa_oact") != null' \
+    "$extension_target/.deploy_manifest.json" >/dev/null \
+    || { echo "FAIL: empirical SSA bundle lacks replacement ownership" >&2; exit 1; }
 extension_process_log_saved="$scratch/extension-process-log.saved"
 mv "$extension_target/process_log" "$extension_process_log_saved"
 env PATH=/usr/bin:/bin "$repo_root/update.sh" "$extension_target" \
@@ -197,6 +202,8 @@ env PATH=/usr/bin:/bin "$repo_root/update.sh" "$extension_target" \
     || { cat "$scratch/extension-update.log" >&2; echo "FAIL: extension-removal update failed" >&2; exit 1; }
 [ ! -e "$extension_target/$extension_deps" ] \
     || { echo "FAIL: stale empirical update input survived extension removal" >&2; exit 1; }
+[ ! -e "$extension_target/code/utils/ssa_oact" ] \
+    || { echo "FAIL: stale empirical SSA bundle survived extension removal" >&2; exit 1; }
 [ ! -e "$extension_target/.arpipeline/update_inputs/deps/extensions" ] \
     || { echo "FAIL: empty extension dependency directory survived extension removal" >&2; exit 1; }
 jq -e '.extensions == []' "$extension_target/.deploy_manifest.json" >/dev/null \

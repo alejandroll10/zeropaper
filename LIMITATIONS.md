@@ -142,17 +142,15 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## `bls-census` SSA life tables are unreachable from datacenter/cloud hosts
+## Closed: `bls-census` SSA life tables work without network access
 
 **Scope:** the `bls-census` empirical skill (`--ext empirical`), specifically `ssa_period_life_table()`. BLS, ACS, and CPS paths of the skill are unaffected.
 
-**Failure mode:** `ssa.gov` sits behind Akamai bot protection that returns HTTP 403 to datacenter/cloud IP ranges even with a browser User-Agent. The autonomous pipeline typically runs on exactly such hosts, so `ssa_period_life_table()` will *reliably* fail in the default deployment environment — any paper whose design needs SSA mortality/retirement-age tables (cohort survival weighting, actuarial discounting) cannot source them through this skill when run autonomously. The helper fails loud (a `RuntimeError` naming the cause, not a silent empty frame) and the BLS/Census paths still work, so the failure is contained, not corrupting — but the data is genuinely unavailable on the affected hosts.
+**Original failure mode:** `ssa.gov` sits behind Akamai bot protection that returns HTTP 403 to datacenter/cloud IP ranges even with a browser User-Agent. Autonomous deployments run from those hosts, so mortality/survival-weighting and actuarial inputs were unavailable through the skill.
 
-**What would close it:** (a) route SSA fetches through a residential/allowlisted proxy or a pipeline-level fetch service whose egress IP is not Akamai-blocked; or (b) vendor the small set of SSA OACT period/cohort life tables as static CSVs into `deploy_assets/extensions/empirical/utils/` (they update ~annually and are public-domain), and have `ssa_period_life_table()` prefer the local copy, falling back to the live scrape only for refresh. Option (b) is the robust fix and removes the network dependency entirely.
+**Closed behavior:** the empirical extension ships the 2023 SSA OACT period life table used in the 2026 Trustees Report as a checksummed canonical CSV plus machine-readable provenance and a refresh procedure. `ssa_period_life_table()` reads and validates that immutable bundle by default, preserves its historical pandas return shape, and records source/vintage/checksum metadata in `DataFrame.attrs`. `refresh=True` on the official default URL makes a live request, validates the header/age/finite-value/probability-survivor schema and vintage, and never overwrites the bundle. A custom URL retains the pre-fix raw `pandas.read_html` list and URL-keyed-cache behavior; its caller-defined schema is intentionally not represented as validated SSA provenance. The ordinary test mocks network access and requires the local table; a separate opt-in live refresh test fails on any upstream vintage, schema, or value change.
 
-**Tracking:** [#248](https://github.com/alejandroll10/zeropaper/issues/248) (vendor versioned public-domain SSA tables so ordinary runs do not depend on the blocked live endpoint).
-
-**Interim behavior:** documented in the skill body (`deploy_assets/templates/skill_bodies/empirical/bls-census.md`, "SSA period life table" section + `## Rules`) and the helper docstring; `ssa_period_life_table()` raises a clear `RuntimeError` on the 403 rather than returning bad data; the skill's test treats SSA as best-effort (PASS on data, SKIP on the documented 403) so it never produces a false test failure.
+**Tracking:** [#248](https://github.com/alejandroll10/zeropaper/issues/248).
 
 ---
 

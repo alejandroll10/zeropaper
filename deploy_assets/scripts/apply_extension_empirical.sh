@@ -151,6 +151,13 @@ for _infra_src in "$EXT_ROOT/utils/"*.py "$EXT_ROOT/utils/"*.sh; do
     [ -f "$_infra_src" ] || continue
     infrastructure_copy_file 1000 "$_infra_src" "code/utils/$(basename "$_infra_src")"
 done
+infrastructure_dir 1000 "code/utils/ssa_oact"
+cp "$EXT_ROOT/utils/ssa_oact/period_life_table_2023.csv" \
+    "$PROJECT_ROOT/code/utils/ssa_oact/"
+cp "$EXT_ROOT/utils/ssa_oact/provenance.json" \
+    "$PROJECT_ROOT/code/utils/ssa_oact/"
+cp "$EXT_ROOT/utils/ssa_oact/README.md" \
+    "$PROJECT_ROOT/code/utils/ssa_oact/"
 chmod +x "$PROJECT_ROOT/code/utils/"*.sh 2>/dev/null || true
 if [ ! -f "$PROJECT_ROOT/code/utils/__init__.py" ]; then
     touch "$PROJECT_ROOT/code/utils/__init__.py"

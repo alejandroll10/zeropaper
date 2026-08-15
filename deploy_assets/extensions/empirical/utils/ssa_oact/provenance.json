@@ -1,0 +1,23 @@
+{
+  "dataset": "SSA OACT Period Life Table",
+  "table_year": 2023,
+  "trustees_report_year": 2026,
+  "source_url": "https://www.ssa.gov/oact/STATS/table4c6.html",
+  "retrieved_utc": "2026-08-15",
+  "retrieval_note": "Retrieved from the official SSA page through a read-only web proxy because direct datacenter egress returned HTTP 403; all 120 rows were cross-checked against the official page's indexed rendering.",
+  "csv_file": "period_life_table_2023.csv",
+  "csv_sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+  "rows": 120,
+  "age_min": 0,
+  "age_max": 119,
+  "columns": [
+    "age",
+    "male_death_probability",
+    "male_number_of_lives",
+    "male_life_expectancy",
+    "female_death_probability",
+    "female_number_of_lives",
+    "female_life_expectancy"
+  ],
+  "rights": "U.S. federal government work; public domain under 17 U.S.C. 105."
+}

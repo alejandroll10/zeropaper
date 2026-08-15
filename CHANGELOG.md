@@ -15,7 +15,11 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.24.5] — 2026-08-15 (current)
+## [2.24.6] — 2026-08-15 (current)
+
+**SSA life tables now work from cloud/datacenter deployments without network access (#248).** The empirical extension bundles the complete 2023 SSA OACT period life table used in the 2026 Trustees Report as a normalized public-domain CSV with source/vintage/schema metadata and a pinned SHA-256 digest. `ssa_period_life_table()` validates and reads that immutable bundle by default, preserving its former `pandas.read_html` list/MultiIndex interface while attaching provenance in `DataFrame.attrs`; `refresh=True` on the official URL validates headers, ages, finite values, probability/survivor consistency, and page vintage, and never overwrites the shipped snapshot. Custom URLs retain their historical raw multi-table return and URL-keyed cache rather than being misrepresented as validated SSA provenance. The bundle and provenance are replacement-owned deployment infrastructure—including safe removal when the empirical extension is cleared—the skill records the refresh procedure, the former limitation is closed, and offline plus opt-in-live regressions prevent ordinary tests from depending on SSA's Akamai-blocked endpoint while still detecting upstream drift.
+
+## [2.24.5] — 2026-08-15
 
 **Mode overlays now reach extension agents consistently (#249).** Both extension appliers receive the active mode's body directory, vocab overlay, and metadata slug, so theory_llm and empirical agents can replace either shared (`{id}.md`) or variant (`{id}-core.md`) bodies, inherit shared → variant → mode vocabulary, and apply mode-specific description/model/tools metadata across Claude, Codex, Gemini, and OpenCode. Modeless assembly strips metadata declarations and receives no mode-only body or vocab. A synthetic full-setup regression injects distinct body, vocab, and metadata sentinels into both extension families and verifies active-mode application plus modeless isolation in every supported extension runtime.
 

@@ -642,7 +642,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d9354948d2a0c86773c798f961e18a45741065961b7132eb343414d126d9d78a",
+          "sha256": "bd66007607dbc4b8d08b66bf9b2136ab9f6c8989e4d93f4f705da0c6c1775ff8",
           "size": 1814,
           "type": "file"
         },
@@ -1754,7 +1754,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -1880,7 +1880,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -1922,8 +1922,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -2608,8 +2608,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -3234,8 +3234,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c4d17fd1400e4840682e3c81e41d3a520d01c6b5fed4dec4a51d36c0532914db",
-          "size": 2877,
+          "sha256": "8cc6903c77c54dfa2aba784fd7bae2993355be4677821201ffe1a8b647dd2f27",
+          "size": 2906,
           "type": "file"
         },
         ".env": {
@@ -4238,8 +4238,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -4406,6 +4406,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -4680,7 +4702,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -4769,7 +4791,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -4834,7 +4857,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -4876,8 +4899,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -5562,8 +5585,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -6188,8 +6211,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "aff630f5ec0688caa3d0722427067136986b40c43ab363078f790a3872d88af3",
-          "size": 2877,
+          "sha256": "0269c653df093875027844413890edf58a68f287d2d8e9c07e45f4bf837ab8b1",
+          "size": 2906,
           "type": "file"
         },
         ".env": {
@@ -7192,8 +7215,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -7360,6 +7383,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -7634,7 +7679,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -7723,7 +7768,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -7788,7 +7834,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -8431,7 +8477,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d9354948d2a0c86773c798f961e18a45741065961b7132eb343414d126d9d78a",
+          "sha256": "bd66007607dbc4b8d08b66bf9b2136ab9f6c8989e4d93f4f705da0c6c1775ff8",
           "size": 1814,
           "type": "file"
         },
@@ -9543,7 +9589,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -9669,7 +9715,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -9714,8 +9760,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -10400,8 +10446,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -11026,8 +11072,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c4d17fd1400e4840682e3c81e41d3a520d01c6b5fed4dec4a51d36c0532914db",
-          "size": 2877,
+          "sha256": "8cc6903c77c54dfa2aba784fd7bae2993355be4677821201ffe1a8b647dd2f27",
+          "size": 2906,
           "type": "file"
         },
         ".env": {
@@ -12030,8 +12076,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -12198,6 +12244,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -12472,7 +12540,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -12561,7 +12629,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -12626,7 +12695,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -12666,8 +12735,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -13318,8 +13387,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -13916,8 +13985,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a0dd16a30437427127c9a9f387284b43a8e79bb06c04acc8a8d331e61264554d",
-          "size": 2770,
+          "sha256": "eb80ef84a2eb41de1834b2db599f8975ee836d8b472981dadadba86e35298aad",
+          "size": 2799,
           "type": "file"
         },
         ".env": {
@@ -14884,8 +14953,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -15052,6 +15121,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -15306,7 +15397,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -15394,7 +15485,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -15457,7 +15549,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -15497,8 +15589,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -16155,8 +16247,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -16759,8 +16851,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "fcd84c07385b7a3dc5b9e6e6f8a9135da5fd4350c9069448d2f09c89ffa13852",
-          "size": 2785,
+          "sha256": "74237af67ff8d72072525caf2dd670a00d5f82ad254d6a4e7e64c7f16593066c",
+          "size": 2814,
           "type": "file"
         },
         ".env": {
@@ -17739,8 +17831,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -17907,6 +17999,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -18153,7 +18267,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -18241,7 +18355,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -18304,7 +18419,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -18346,8 +18461,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -19038,8 +19153,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -19670,8 +19785,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d9510d46ef85688733a8ecb5dbcdffe09c074d2bac556b0d27a004d298ed5ddc",
-          "size": 2892,
+          "sha256": "73b2a766bee35391e7c8da0e3ae05050e670c1dfe105da91c9ea55cd7efe00f4",
+          "size": 2921,
           "type": "file"
         },
         ".env": {
@@ -20686,8 +20801,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -20854,6 +20969,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -21120,7 +21257,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -21209,7 +21346,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -21274,7 +21412,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -21921,7 +22059,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d9354948d2a0c86773c798f961e18a45741065961b7132eb343414d126d9d78a",
+          "sha256": "bd66007607dbc4b8d08b66bf9b2136ab9f6c8989e4d93f4f705da0c6c1775ff8",
           "size": 1814,
           "type": "file"
         },
@@ -23033,7 +23171,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -23159,7 +23297,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -23202,8 +23340,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -23860,8 +23998,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -24464,8 +24602,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "11b3239811be25d2b61884f543613f4b371e98b3dca3f89352804f8f0eedbe6a",
-          "size": 2766,
+          "sha256": "29382cdfb909bcbbef33794ddd113135b562dc3a47f54f824fa4ffa46fd4ed15",
+          "size": 2795,
           "type": "file"
         },
         ".env": {
@@ -25450,8 +25588,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -25618,6 +25756,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -25882,7 +26042,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -25976,7 +26136,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -26039,7 +26200,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -26686,7 +26847,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "882f31b5d3166c4e61d8a2eacd858196560ea15160354fb61bbb91e4545ca9b8",
+          "sha256": "c345e07205095b865abb349593670e2495bbd81acac5e21320f2c048a0c20e6b",
           "size": 1813,
           "type": "file"
         },
@@ -27798,7 +27959,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -27924,7 +28085,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -28637,7 +28798,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c884755e5f4d429461969df19f22da0d685fbc4467baad49d520fc045443ef35",
+          "sha256": "3da7b1f69177bfc29fd6d6f48ce859bfa9d111293df09ea7c7244d80dfa5dbd2",
           "size": 1923,
           "type": "file"
         },
@@ -29805,7 +29966,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -29935,7 +30096,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -30647,7 +30808,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c884755e5f4d429461969df19f22da0d685fbc4467baad49d520fc045443ef35",
+          "sha256": "3da7b1f69177bfc29fd6d6f48ce859bfa9d111293df09ea7c7244d80dfa5dbd2",
           "size": 1923,
           "type": "file"
         },
@@ -31815,7 +31976,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -31945,7 +32106,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -32592,7 +32753,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "3c2cfabbb7dc3c0c570e4dc6553a0365b0a0c9ff04c9f3d42c717137e95e7f2b",
+          "sha256": "7a27fde9689cdc4771a8879c6142ff3418c094ac7329c7428a5c658a8b176e08",
           "size": 1813,
           "type": "file"
         },
@@ -33704,7 +33865,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -33830,7 +33991,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -33873,8 +34034,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -34559,8 +34720,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -35185,8 +35346,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "50931f605525c78145a5d2d8cac7e7b69755c779e0cab0134c11c46ed5d89d71",
-          "size": 2852,
+          "sha256": "b5d637ac8007e7b5ab46b9534b92abe7c43212428202c8217346aa3471a76cd7",
+          "size": 2881,
           "type": "file"
         },
         ".env": {
@@ -36189,8 +36350,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -36357,6 +36518,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -36589,7 +36772,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "c6863b7566eeefbffb347914d25b21f4a0424c1f5342741e590748b962bc0be9",
+          "sha256": "5480a27e8fb985cb463fc9b489cf632303adebed632da67de20365b7b2e65964",
           "size": 15387,
           "type": "file"
         },
@@ -36648,7 +36831,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -36712,7 +36896,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -37120,7 +37304,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5fa70c12cba1cfe8d99b69a6db3fa0c6486e56b260572771456e6e7350797551",
+          "sha256": "51b693f9afb8a7dcbb2fca1f1935317e20e1009d158ed330a7c2a549fc7a27dd",
           "size": 1796,
           "type": "file"
         },
@@ -37827,7 +38011,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -37871,8 +38055,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -38353,8 +38537,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -38775,8 +38959,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "20f2990be8d142bf66b8e05ce0bacedb48d67d8fecd36e32827484ef448c6116",
-          "size": 2859,
+          "sha256": "fe4d9d6f317833a5786b341607b469c70a45699441fa1321e69d68a74a0a15fd",
+          "size": 2888,
           "type": "file"
         },
         ".env": {
@@ -39239,8 +39423,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -39407,6 +39591,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -39584,7 +39790,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -39648,7 +39855,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -39692,8 +39899,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -40174,8 +40381,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -40596,8 +40803,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0c9494b75011562186d37f53b713f14413adb8388c8f36c39a30d3a6c3c15bfe",
-          "size": 2859,
+          "sha256": "e71fe55bb575d3fec2518a7a61ac782c65eef885847b843c96fb420e726a9b31",
+          "size": 2888,
           "type": "file"
         },
         ".env": {
@@ -41060,8 +41267,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -41228,6 +41435,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -41405,7 +41634,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -41469,7 +41699,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -41511,8 +41741,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -41977,8 +42207,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -42389,8 +42619,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ab27a7221c1e4a60950b1434cecbbc54ceff94f121797906099cc89d042f2fa3",
-          "size": 2752,
+          "sha256": "4c9764b0e3c8b4c4104a1ae9944a0f51c872d957998f7bd36101225aaf7a9325",
+          "size": 2781,
           "type": "file"
         },
         ".env": {
@@ -42853,8 +43083,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -43021,6 +43251,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -43191,7 +43443,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -43253,7 +43506,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -43662,7 +43915,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b5ec066c22c885aaa1abf84fcee69658cfd04c05f10159734f0d0d8ff96bd950",
+          "sha256": "07aad8efdccaee1657983721212c2491f0f12ae4e5ee672d06b549f8ca6b2e48",
           "size": 1795,
           "type": "file"
         },
@@ -44369,7 +44622,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -44809,7 +45062,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ed172175e96aa48c3beb64d06168d5dc804f7e5b0d015ba10feaae99424d2e21",
+          "sha256": "aa081d68cc02e836ed9cd67fac92e0837e2cd9c39ac4ac3c8caa4d4b21dd9bed",
           "size": 1905,
           "type": "file"
         },
@@ -45526,7 +45779,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -46173,7 +46426,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5b2a71f67c9d23b738aa92cffa5124d26c68016d5ce301c89020023cef9bade4",
+          "sha256": "1be0365656fc28ac82e7a54a2de4c3f121d47476975d2c4e09f4de9903577140",
           "size": 1813,
           "type": "file"
         },
@@ -47295,7 +47548,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -47421,7 +47674,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -47461,8 +47714,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -48113,8 +48366,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -48711,8 +48964,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a0dd16a30437427127c9a9f387284b43a8e79bb06c04acc8a8d331e61264554d",
-          "size": 2770,
+          "sha256": "eb80ef84a2eb41de1834b2db599f8975ee836d8b472981dadadba86e35298aad",
+          "size": 2799,
           "type": "file"
         },
         ".env": {
@@ -49679,8 +49932,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -49847,6 +50100,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -50101,7 +50376,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -50189,7 +50464,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -50252,7 +50528,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -50966,7 +51242,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c884755e5f4d429461969df19f22da0d685fbc4467baad49d520fc045443ef35",
+          "sha256": "3da7b1f69177bfc29fd6d6f48ce859bfa9d111293df09ea7c7244d80dfa5dbd2",
           "size": 1923,
           "type": "file"
         },
@@ -52134,7 +52410,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -52264,7 +52540,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -52936,7 +53212,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ffb6f0ad775d800bc3a828961b1ab50e7b39d6c85f4f94036a510320da427852",
+          "sha256": "66200c0732fa859c20ba2bd29cea69c18b1e7f4243b617ee6682140f37804ae4",
           "size": 1873,
           "type": "file"
         },
@@ -54078,7 +54354,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -54206,7 +54482,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -54891,7 +55167,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8d94c99987b6837865ab495a79fd3ea2ad31ddb5d8c65a5592c96f3a21d56354",
+          "sha256": "81ebc98f16ab04975d762b626db35684662e3dc2a67ba098ed013d8588e43281",
           "size": 1871,
           "type": "file"
         },
@@ -56061,7 +56337,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -56195,7 +56471,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -56869,7 +57145,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "da6634108b304a53cbd103182fbaf3e44d2c00da1e15de5e29a1e22bc7ee7d59",
+          "sha256": "fd21e1a212a02926ec1f35e0af1539a99a7f417d8978655f9ba941dd7f4eb346",
           "size": 1871,
           "type": "file"
         },
@@ -58011,7 +58287,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -58139,7 +58415,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -58812,7 +59088,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "17aaa616a0d7f8a92a3059e5921efeb495a2404296b3c8861fb161fe06ea0eaa",
+          "sha256": "c0cd17839f643f3f565362604b89022014f80aa8e5dbc8859eaaf7583166583d",
           "size": 1848,
           "type": "file"
         },
@@ -59912,7 +60188,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "c6863b7566eeefbffb347914d25b21f4a0424c1f5342741e590748b962bc0be9",
+          "sha256": "5480a27e8fb985cb463fc9b489cf632303adebed632da67de20365b7b2e65964",
           "size": 15387,
           "type": "file"
         },
@@ -60009,7 +60285,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -60683,7 +60959,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "290dfb678d97da27c7d5193f87779fe349da95be2223db9013277df109c05739",
+          "sha256": "92354e7736b6c29e11a796ee6c0d1cec6aed5a59a038ba1b274af298166f4f95",
           "size": 1890,
           "type": "file"
         },
@@ -61817,7 +62093,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -61945,7 +62221,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -62313,7 +62589,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b3c8184515fbacbb1e5296c1f828fc6adef1dd762d477dcfdcca9da422298854",
+          "sha256": "b473227648e366e929dc855c7193ded1c451ea5972935d728fb1bc006aa6de59",
           "size": 1746,
           "type": "file"
         },
@@ -62992,7 +63268,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -63392,7 +63668,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "28d80b39a1f8654650debcc77d352291e908238b678002c09f74f5423bd03429",
+          "sha256": "5bed33f53634be1752a7c27b33cb71896ea4a0e72d076091104777c4d1178c49",
           "size": 1855,
           "type": "file"
         },
@@ -64081,7 +64357,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -64727,7 +65003,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1fb2797a60ff85f6a848db81f11d3cd9b08dfe8f221c5f3d8d606daf5a2c7f2a",
+          "sha256": "97525306b17fe97e6d241d87f4c3b14755ddfde99e3f96e636a1690ea6037947",
           "size": 1812,
           "type": "file"
         },
@@ -65839,7 +66115,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -65965,7 +66241,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -66007,8 +66283,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -66681,8 +66957,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -67295,8 +67571,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "99797beede8c49cedc8be66ebfa807f155784a20182086ea8952f031a3caf97e",
-          "size": 2875,
+          "sha256": "bf1ed9821e75a2d60bc92c1c26cbffc6cca105fc2138cf6dcf21c9822f21cbdc",
+          "size": 2904,
           "type": "file"
         },
         ".env": {
@@ -68275,8 +68551,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -68443,6 +68719,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -68717,7 +69015,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -68806,7 +69104,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -68871,7 +69170,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -68911,8 +69210,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -69551,8 +69850,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -70137,8 +70436,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bbff4154e2fb7f0d502820c6a042b3f72d8be7b0cdb4b07c265a7ffd312ee307",
-          "size": 2768,
+          "sha256": "1b2241a997e3fdafa7bbbaf5605e63ae8df2760311fec8fe0227994d0e73910f",
+          "size": 2797,
           "type": "file"
         },
         ".env": {
@@ -71081,8 +71380,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -71249,6 +71548,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -71503,7 +71824,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -71591,7 +71912,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -71654,7 +71976,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -72062,7 +72384,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1d978f817bfaf39a2c3dfae838cae04150396fd8b66ccb92e43ee2bb8011293d",
+          "sha256": "249eefdf6f2a89aa39af6dd85cf1318bb5a626bb8721a5d89e0157dfa74d13e0",
           "size": 1794,
           "type": "file"
         },
@@ -72769,7 +73091,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -72813,8 +73135,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -73295,8 +73617,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -73717,8 +74039,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ff09a88cd3824b863158db5062d4385d2039df4e1b444b9e9c161f33752eca1a",
-          "size": 2857,
+          "sha256": "72934506da0fd2cfa486c566546cb109b759677341d1cbba77fae301f913f2b2",
+          "size": 2886,
           "type": "file"
         },
         ".env": {
@@ -74181,8 +74503,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -74349,6 +74671,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -74526,7 +74870,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -74590,7 +74935,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -74632,8 +74977,8 @@
         },
         ".agents/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "4ea628e54cb86a4b48e54011302baa6a140e5bd722071b72bdd08b069ae3e589",
-          "size": 9095,
+          "sha256": "9979b35e6bb3b00aa748dc6d3bc1e3042c4a9108d2c5ad0783b094bf7b0f44f0",
+          "size": 9982,
           "type": "file"
         },
         ".agents/skills/call-reports": {
@@ -75098,8 +75443,8 @@
         },
         ".claude/skills/bls-census/SKILL.md": {
           "mode": "0644",
-          "sha256": "9a890257131eeb47bf483a946727ea4780f2540b5e37ae861c26d3befc3ad724",
-          "size": 9214,
+          "sha256": "9ba16c6b604bb593fd23c674ee95c8ffb4206228e7d19b87c8227aea6f0f322c",
+          "size": 10101,
           "type": "file"
         },
         ".claude/skills/call-reports": {
@@ -75510,8 +75855,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "10dd38a9f347984fd33e43a651e45c77039b90ed4beb11b9c2ee2a4e15be2137",
-          "size": 2750,
+          "sha256": "9c0237c96caa647ab17850242f638feaa2575121ceec254447ffb363ee0ef8c1",
+          "size": 2779,
           "type": "file"
         },
         ".env": {
@@ -75974,8 +76319,8 @@
         },
         "code/utils/bls_census_utils.py": {
           "mode": "0644",
-          "sha256": "3695f8fcf7aa11248fe0c0febd81096a3982afa2c45e66b187e2cdaa2a8f423a",
-          "size": 18537,
+          "sha256": "838616bd158997837666ea76d55daeb54be83acd7710f3d7d88de1503bdecf0a",
+          "size": 28123,
           "type": "file"
         },
         "code/utils/call_reports_utils.py": {
@@ -76142,6 +76487,28 @@
           "mode": "0755",
           "sha256": "66951544c8679fcfbc3dc5c47d2a634ccc0cf640e54849c7cf51739801e00edc",
           "size": 3751,
+          "type": "file"
+        },
+        "code/utils/ssa_oact": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        "code/utils/ssa_oact/README.md": {
+          "mode": "0644",
+          "sha256": "c63facbe09771a512fa51023b44fe0554404fdb5c9b3110ddeaed5bc1a4ab35a",
+          "size": 2593,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/period_life_table_2023.csv": {
+          "mode": "0644",
+          "sha256": "afc7c0a95fe1bb68e7fc78ab0d617f87b7b39748b0fc6475c12e742ce23b378e",
+          "size": 5334,
+          "type": "file"
+        },
+        "code/utils/ssa_oact/provenance.json": {
+          "mode": "0644",
+          "sha256": "f8485eb4e09f24c2a6be5d03858f6900a42eaf0ce6407d95d9ececf6262eb02d",
+          "size": 883,
           "type": "file"
         },
         "code/utils/ssj": {
@@ -76312,7 +76679,8 @@
             "code/utils/openalex",
             "code/utils/nber_agenda",
             "code/utils/model_heal",
-            "code/utils/ssj"
+            "code/utils/ssj",
+            "code/utils/ssa_oact"
           ],
           "files_env_merge": [
             ".env"
@@ -76374,7 +76742,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -76814,7 +77182,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "391c5356448a2feeced70f82cd7701ca710e76ad11f837f971f90c96c252a90c",
+          "sha256": "59c1eaf31ce9c2e4f5ed784cc2e6b0542a3994b8409b76d6067ed1907b8f00d1",
           "size": 1903,
           "type": "file"
         },
@@ -77531,7 +77899,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -78245,7 +78613,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "135d234ea21f58deeaffec22d47196b468fda75abd9925dd3ec698b687ed90cb",
+          "sha256": "d8e4bbd6c9ce53a15fed69ddb4c510a66f23c55669cc3956ccf66cd77d3f1fa9",
           "size": 1921,
           "type": "file"
         },
@@ -79413,7 +79781,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "834ebaa11481594b31efbb094251b1474a0f96bfa923c30d780ea391d452abd6",
+          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
           "size": 15378,
           "type": "file"
         },
@@ -79543,7 +79911,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.5+<GIT_REVISION>",
+        "template_version": "2.24.6+<GIT_REVISION>",
         "variant": "macro"
       }
     }

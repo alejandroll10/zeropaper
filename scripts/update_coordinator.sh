@@ -793,7 +793,8 @@ if [ -f "$MANIFEST" ]; then
                 dir:.claude/agents|dir:.claude/skills|dir:.codex/agents|dir:.agents/skills|\
                 dir:.gemini/agents|dir:.grok/agents|dir:.opencode/agents|dir:docs|\
                 dir:code/utils/codex_math|dir:code/utils/agent_launcher|dir:code/utils/bib_verify|\
-                dir:code/utils/openalex|dir:code/utils/nber_agenda|dir:code/utils/model_heal|dir:code/utils/ssj)
+                dir:code/utils/openalex|dir:code/utils/nber_agenda|dir:code/utils/model_heal|dir:code/utils/ssj|\
+                dir:code/utils/ssa_oact)
                     ;;
                 file:CLAUDE.md|file:AGENTS.md|file:GEMINI.md|file:launch.sh|\
                 file:docs/start_session_claude.md|file:docs/start_session_codex.md|file:docs/start_session_gemini.md|\

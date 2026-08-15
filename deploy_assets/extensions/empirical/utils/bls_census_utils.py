@@ -20,20 +20,19 @@ Sources (verified live, May 2026):
     keyless <500/day tier was retired — bare requests return an HTML
     "Missing Key" page, not JSON). Register:
     https://api.census.gov/data/key_signup.html
-  * SSA OACT period life tables — HTML scrape, no key. NOTE: ssa.gov sits
-    behind Akamai bot protection that 403s datacenter / cloud IPs even with
-    a browser User-Agent. ssa_period_life_table() works from a normal
-    network/VPN; from a blocked host it raises a clear RuntimeError rather
-    than failing opaquely. (Documented limit, not a silent failure.)
+  * SSA OACT period life table — bundled, versioned public-domain data; no
+    key or network required. Explicit refreshes parse and validate the live
+    SSA page, which may 403 datacenter/cloud IPs.
 
 Keys are read from .env (BLS_API_KEY, CENSUS_API_KEY) lazily, inside each
 function — never at import time, so the module imports with no .env.
 
-Caching: every fetch is memoised to data/bls_census/<hash>.parquet
-(parquet preferred; transparent CSV fallback if pyarrow is unavailable).
-Pass refresh=True to bypass the cache. BLS/Census data for closed periods
-is immutable, so cache hits are safe; re-pull explicitly for the current
-(open) year.
+Caching: BLS/Census fetches are memoised to
+data/bls_census/<hash>.parquet (parquet preferred; transparent CSV fallback
+if pyarrow is unavailable). Pass refresh=True to bypass those caches.
+ssa_period_life_table() instead reads its immutable bundled CSV by default;
+refresh=True checks ssa.gov, while a custom URL retains its legacy live/cache
+behavior. The unchanged default call is always offline.
 
 Convenience limits (documented, not silently dropped):
   * retirement_hazard_by_cohort is a TRANSPARENT PROXY: the year-over-year
@@ -45,12 +44,15 @@ Convenience limits (documented, not silently dropped):
     series map is overridable via the `series_map` argument.
 """
 import hashlib
+import html as html_lib
 import json
+import math
 import os
 import re
 import urllib.error
 import urllib.parse
 import urllib.request
+from io import StringIO
 
 import pandas as pd
 from dotenv import load_dotenv
@@ -62,6 +64,27 @@ _DATA_DIR = os.path.normpath(
 )
 _BLS_URL = "https://api.bls.gov/publicAPI/v2/timeseries/data/"
 _CENSUS_BASE = "https://api.census.gov/data"
+_SSA_SOURCE_URL = "https://www.ssa.gov/oact/STATS/table4c6.html"
+_SSA_BUNDLE_DIR = os.path.join(os.path.dirname(__file__), "ssa_oact")
+_SSA_PROVENANCE_FILE = os.path.join(_SSA_BUNDLE_DIR, "provenance.json")
+_SSA_CANONICAL_COLUMNS = (
+    "age",
+    "male_death_probability",
+    "male_number_of_lives",
+    "male_life_expectancy",
+    "female_death_probability",
+    "female_number_of_lives",
+    "female_life_expectancy",
+)
+_SSA_LEGACY_COLUMNS = (
+    ("Exact age", "Exact age"),
+    ("Male", "Death probability a"),
+    ("Male", "Number of lives b"),
+    ("Male", "Life expectancy"),
+    ("Female", "Death probability a"),
+    ("Female", "Number of lives b"),
+    ("Female", "Life expectancy"),
+)
 _BROWSER_UA = (
     "Mozilla/5.0 (X11; Linux x86_64) AppleWebKit/537.36 "
     "(KHTML, like Gecko) Chrome/124.0 Safari/537.36"
@@ -379,43 +402,257 @@ def retirement_hazard_by_cohort(start_year, end_year, series_map=None,
 
 
 # ──────────────────────────── SSA ───────────────────────────────
-def ssa_period_life_table(url="https://www.ssa.gov/oact/STATS/table4c6.html",
-                          refresh=False):
+def _sha256_file(path):
+    digest = hashlib.sha256()
+    with open(path, "rb") as fh:
+        for chunk in iter(lambda: fh.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return digest.hexdigest()
+
+
+def _validate_ssa_canonical(frame, context):
+    """Validate and type the stable seven-column SSA representation."""
+    if tuple(frame.columns) != _SSA_CANONICAL_COLUMNS:
+        raise RuntimeError(
+            f"SSA schema mismatch in {context}: expected "
+            f"{list(_SSA_CANONICAL_COLUMNS)}, got {list(frame.columns)}"
+        )
+
+    out = frame.copy()
+    for column in _SSA_CANONICAL_COLUMNS:
+        out[column] = pd.to_numeric(out[column], errors="coerce")
+    if out.isna().any().any():
+        bad = out.columns[out.isna().any()].tolist()
+        raise RuntimeError(f"SSA data in {context} has non-numeric/null fields: {bad}")
+    if not all(
+        out[column].map(math.isfinite).all()
+        for column in _SSA_CANONICAL_COLUMNS
+    ):
+        raise RuntimeError(f"SSA data in {context} has non-finite numeric fields")
+
+    for column in ("age", "male_number_of_lives", "female_number_of_lives"):
+        if not out[column].mod(1).eq(0).all():
+            raise RuntimeError(f"SSA data in {context} has non-integer {column}")
+        out[column] = out[column].astype(int)
+
+    expected_ages = list(range(120))
+    if out["age"].tolist() != expected_ages:
+        raise RuntimeError(
+            f"SSA data in {context} must contain exact ages 0-119 once each"
+        )
+    for sex in ("male", "female"):
+        probability = out[f"{sex}_death_probability"]
+        lives = out[f"{sex}_number_of_lives"]
+        expectancy = out[f"{sex}_life_expectancy"]
+        if not probability.between(0, 1, inclusive="both").all():
+            raise RuntimeError(f"SSA data in {context} has invalid {sex} probabilities")
+        if (
+            lives.iloc[0] != 100000
+            or lives.lt(0).any()
+            or not lives.diff().dropna().le(0).all()
+        ):
+            raise RuntimeError(
+                f"SSA data in {context} has invalid {sex} survivor counts"
+            )
+        expected_next = (lives.iloc[:-1] * (1 - probability.iloc[:-1])).round()
+        observed_next = lives.iloc[1:].reset_index(drop=True)
+        expected_next = expected_next.reset_index(drop=True)
+        if observed_next.sub(expected_next).abs().gt(1).any():
+            raise RuntimeError(
+                f"SSA data in {context} has inconsistent {sex} "
+                "probability/survivor recurrence"
+            )
+        if not expectancy.gt(0).all():
+            raise RuntimeError(
+                f"SSA data in {context} has non-positive {sex} life expectancy"
+            )
+    return out
+
+
+def _ssa_legacy_frame(canonical, provenance, bundled):
+    """Preserve the pandas.read_html shape returned before the local bundle."""
+    out = canonical.copy()
+    out.columns = pd.MultiIndex.from_tuples(_SSA_LEGACY_COLUMNS)
+    out.attrs.update({
+        "source_url": provenance["source_url"],
+        "table_year": provenance["table_year"],
+        "trustees_report_year": provenance.get("trustees_report_year"),
+        "retrieved_utc": provenance.get("retrieved_utc"),
+        "bundled": bundled,
+    })
+    if provenance.get("csv_sha256"):
+        out.attrs["csv_sha256"] = provenance["csv_sha256"]
+    return out
+
+
+def _load_bundled_ssa_period_table():
+    try:
+        with open(_SSA_PROVENANCE_FILE, encoding="utf-8") as fh:
+            provenance = json.load(fh)
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(
+            f"Cannot read bundled SSA provenance {_SSA_PROVENANCE_FILE}: {exc}"
+        ) from None
+
+    required = {
+        "source_url", "table_year", "csv_file", "csv_sha256", "rows",
+        "age_min", "age_max", "columns",
+    }
+    missing = sorted(required - set(provenance))
+    if missing:
+        raise RuntimeError(f"Bundled SSA provenance is missing fields: {missing}")
+    if provenance["source_url"] != _SSA_SOURCE_URL:
+        raise RuntimeError("Bundled SSA provenance names an unexpected source URL")
+
+    csv_name = provenance["csv_file"]
+    if os.path.basename(csv_name) != csv_name:
+        raise RuntimeError("Bundled SSA provenance contains an unsafe csv_file path")
+    csv_path = os.path.join(_SSA_BUNDLE_DIR, csv_name)
+    try:
+        actual_hash = _sha256_file(csv_path)
+    except OSError as exc:
+        raise RuntimeError(f"Cannot read bundled SSA table {csv_path}: {exc}") from None
+    if actual_hash != provenance["csv_sha256"]:
+        raise RuntimeError(
+            "Bundled SSA table checksum does not match provenance: "
+            f"expected {provenance['csv_sha256']}, got {actual_hash}"
+        )
+
+    try:
+        canonical = pd.read_csv(csv_path)
+    except (OSError, ValueError) as exc:
+        raise RuntimeError(f"Cannot parse bundled SSA table {csv_path}: {exc}") from None
+    canonical = _validate_ssa_canonical(canonical, csv_path)
+    if (
+        len(canonical) != provenance["rows"]
+        or canonical["age"].min() != provenance["age_min"]
+        or canonical["age"].max() != provenance["age_max"]
+        or list(canonical.columns) != provenance["columns"]
+    ):
+        raise RuntimeError("Bundled SSA table disagrees with its provenance metadata")
+    return canonical, provenance
+
+
+def _normalize_live_ssa_table(table, url):
+    if table.shape[1] != len(_SSA_CANONICAL_COLUMNS):
+        raise RuntimeError(
+            f"SSA upstream schema changed at {url}: expected 7 columns, "
+            f"got {table.shape[1]}"
+        )
+    labels = []
+    for column in table.columns:
+        parts = column if isinstance(column, tuple) else (column,)
+        labels.append(" ".join(str(part) for part in parts).lower())
+    expected_tokens = (
+        ("exact age",),
+        ("male", "death probability"),
+        ("male", "number of lives"),
+        ("male", "life expectancy"),
+        ("female", "death probability"),
+        ("female", "number of lives"),
+        ("female", "life expectancy"),
+    )
+    for label, tokens in zip(labels, expected_tokens):
+        if not all(token in label for token in tokens):
+            raise RuntimeError(
+                f"SSA upstream schema changed at {url}: unexpected headers "
+                f"{[str(column) for column in table.columns]}"
+            )
+
+    canonical = table.iloc[:, :len(_SSA_CANONICAL_COLUMNS)].copy()
+    canonical.columns = _SSA_CANONICAL_COLUMNS
+    for column in _SSA_CANONICAL_COLUMNS:
+        canonical[column] = (
+            canonical[column].astype(str).str.replace(",", "", regex=False).str.strip()
+        )
+    numeric_age = pd.to_numeric(canonical["age"], errors="coerce")
+    canonical = canonical.loc[numeric_age.notna()].copy()
+    canonical["age"] = numeric_age.loc[numeric_age.notna()]
+    return _validate_ssa_canonical(canonical, url)
+
+
+def _ssa_live_provenance(page, url):
+    text = html_lib.unescape(re.sub(r"<[^>]+>", " ", page))
+    text = re.sub(r"\s+", " ", text)
+    match = re.search(
+        r"Period Life Table,\s*(\d{4})"
+        r"(?:,\s*as used in the\s*(\d{4})\s*Trustees Report)?",
+        text,
+        flags=re.IGNORECASE,
+    )
+    if not match:
+        raise RuntimeError(
+            f"SSA upstream metadata changed at {url}: cannot identify table vintage"
+        )
+    return {
+        "source_url": url,
+        "table_year": int(match.group(1)),
+        "trustees_report_year": int(match.group(2)) if match.group(2) else None,
+    }
+
+
+def ssa_period_life_table(url=_SSA_SOURCE_URL, refresh=False):
     """SSA OACT period life table (mortality / life-expectancy by exact age).
 
-    No API key. ssa.gov is behind Akamai bot protection that 403s many
-    datacenter/cloud IPs even with a browser User-Agent; from such a host
-    this raises a RuntimeError naming the limitation (run from a normal
-    network or mirror the CSV locally). Documented limit — not a silent
-    failure.
+    The default call reads a checksummed, versioned CSV bundled with the
+    empirical extension and never contacts the network. ``refresh=True`` is
+    an explicit maintainer/operator check of the live SSA HTML page; the live
+    table is schema-validated but does not overwrite the immutable bundle.
+    SSA may return HTTP 403 to live refreshes from datacenter/cloud IPs.
+
+    A custom ``url`` preserves the historical raw ``pandas.read_html`` and
+    URL-keyed cache behavior; because its schema is caller-defined, it does
+    not receive the default SSA table's validation or provenance attributes.
+    Only the unchanged default URL with ``refresh=False`` selects the bundle.
 
     Returns:
-        list of DataFrames (pandas.read_html output); for table4c6 the first
-        table is the male/female period life table by single year of age.
+        For the official default URL, a one-element list containing a
+        DataFrame with the same two-level columns historically produced by
+        ``pandas.read_html``. Provenance is available in ``frame.attrs``
+        (source URL, table/report vintage, retrieval date, and bundle status).
+        A custom URL retains the legacy behavior: its first table is cached,
+        cache hits return that one table, and cache misses/refreshes return
+        the complete raw ``pandas.read_html`` list.
     """
-    base = _cache_path("ssa", {"url": url})
-    if not refresh:
-        hit = _cache_load(base)
-        if hit is not None:
-            return [hit]
+    if not refresh and url == _SSA_SOURCE_URL:
+        canonical, provenance = _load_bundled_ssa_period_table()
+        return [_ssa_legacy_frame(canonical, provenance, bundled=True)]
+
+    custom_cache_base = None
+    if url != _SSA_SOURCE_URL:
+        custom_cache_base = _cache_path("ssa", {"url": url})
+        if not refresh:
+            hit = _cache_load(custom_cache_base)
+            if hit is not None:
+                return [hit]
+
     req = urllib.request.Request(
         url, headers={"User-Agent": _BROWSER_UA, "Accept": "text/html"}
     )
     try:
-        html = urllib.request.urlopen(req, timeout=60).read().decode(
+        page = urllib.request.urlopen(req, timeout=60).read().decode(
             "utf-8", "replace"
         )
-    except urllib.error.HTTPError as e:
-        if e.code == 403:
+    except urllib.error.HTTPError as exc:
+        if exc.code == 403:
             raise RuntimeError(
                 f"SSA returned HTTP 403 for {url}. ssa.gov blocks "
-                "datacenter/cloud IPs (Akamai bot protection); "
-                "ssa_period_life_table() works from a normal network. "
-                "Documented limitation."
+                "datacenter/cloud IPs (Akamai bot protection); run the "
+                "explicit refresh check from an unblocked network."
             ) from None
-        raise RuntimeError(f"HTTP {e.code} fetching SSA table {url}") from None
-    tables = pd.read_html(html)
+        raise RuntimeError(f"HTTP {exc.code} fetching SSA table {url}") from None
+    except OSError as exc:
+        raise RuntimeError(f"Network error fetching SSA table {url}: {exc}") from None
+
+    try:
+        tables = pd.read_html(StringIO(page))
+    except ValueError as exc:
+        raise RuntimeError(f"No HTML tables parsed from {url}: {exc}") from None
     if not tables:
         raise RuntimeError(f"No HTML tables parsed from {url}")
-    _cache_save(base, tables[0])
-    return tables
+    if custom_cache_base is not None:
+        _cache_save(custom_cache_base, tables[0])
+        return tables
+    canonical = _normalize_live_ssa_table(tables[0], url)
+    provenance = _ssa_live_provenance(page, url)
+    return [_ssa_legacy_frame(canonical, provenance, bundled=False)]
