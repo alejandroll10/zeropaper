@@ -395,17 +395,8 @@ for ext in "${EXTENSIONS[@]}"; do
             infrastructure_copy_file 290 \
                 "$TEMPLATE_ROOT/extensions/theory_llm/deps.txt" \
                 ".arpipeline/update_inputs/deps/extensions/theory_llm.txt"
-            if [ -n "$MODE" ]; then
-                echo "  Note: --mode $MODE does not currently propagate into the theory_llm extension agents."
-                echo "        See scripts/apply_extension_theory_llm.sh header comment for the forward-compat path."
-            fi
             LIGHT_MODEL=""
             if [ "$LIGHT" = "1" ]; then LIGHT_MODEL="sonnet"; fi
-            # NOTE: MODE_BODIES_OVERLAY / MODE_VOCAB_OVERLAY are intentionally NOT
-            # threaded here yet — see apply_extension_theory_llm.sh header comment.
-            # If a future mode wants mode-conditional theory_llm content, add the
-            # three positionals (mirroring apply_extension_empirical.sh) and
-            # remove the warning above.
             bash "$TEMPLATE_ROOT/scripts/apply_extension_theory_llm.sh" \
                 "$TEMPLATE_ROOT" \
                 "$P" \
@@ -416,7 +407,10 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$SKILLS_OUT" \
                 "$ASSEMBLE_ONLY" \
                 "$LIGHT_MODEL" \
-                "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json"
+                "$MODE_BODIES_OVERLAY" \
+                "$MODE_VOCAB_OVERLAY" \
+                "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json" \
+                "${MODE//-/_}"
             provision_extension_dependencies theory_llm
 
             python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
@@ -571,7 +565,8 @@ PYEOF
                 "$LIGHT_MODEL" \
                 "$MODE_BODIES_OVERLAY" \
                 "$MODE_VOCAB_OVERLAY" \
-                "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json"
+                "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json" \
+                "${MODE//-/_}"
             provision_extension_dependencies empirical
 
             python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \

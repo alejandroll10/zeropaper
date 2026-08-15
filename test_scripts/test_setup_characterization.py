@@ -245,6 +245,260 @@ def run_case(source: Path, deployment_root: Path, log_root: Path,
     return output
 
 
+def assert_extension_mode_overlay_contract() -> None:
+    """Prove extension body tiers, vocab precedence, and metadata mode isolation."""
+    with tempfile.TemporaryDirectory(prefix="extension-mode-overlay-") as raw_root:
+        root = Path(raw_root)
+        source = prepare_isolated_source(root, "source")
+        deployments = root / "deployments"
+        deployments.mkdir()
+        logs = root / "logs"
+
+        metadata_path = (
+            source / "deploy_assets/extensions/theory_llm/agent_metadata/agents.json"
+        )
+        metadata = json.loads(metadata_path.read_text())
+        metadata["experiment-reviewer"]["modes"] = {
+            "measurement_first": {
+                "description": "MODE_METADATA_SENTINEL {{EXTENSION_MODE_TOKEN}}"
+            }
+        }
+        metadata_path.write_text(json.dumps(metadata, indent=2) + "\n")
+
+        shared_vocab_path = (
+            source / "deploy_assets/templates/agent_bodies/shared/vocab.json"
+        )
+        shared_vocab = json.loads(shared_vocab_path.read_text())
+        shared_vocab["EXTENSION_MODE_TOKEN"] = "SHARED_VOCAB_SENTINEL"
+        shared_vocab["EMPIRICAL_MODE_TOKEN"] = "EMPIRICAL_SHARED_SENTINEL"
+        shared_vocab_path.write_text(json.dumps(shared_vocab, indent=2) + "\n")
+
+        variant_vocab_path = (
+            source / "deploy_assets/templates/agents/llm_cognition/vocab.json"
+        )
+        variant_vocab = json.loads(variant_vocab_path.read_text())
+        variant_vocab["EXTENSION_MODE_TOKEN"] = "VARIANT_VOCAB_SENTINEL"
+        variant_vocab_path.write_text(json.dumps(variant_vocab, indent=2) + "\n")
+
+        vocab_path = (
+            source
+            / "deploy_assets/templates/agents/llm_cognition_modes/measurement_first/vocab.json"
+        )
+        vocab = json.loads(vocab_path.read_text())
+        vocab["EXTENSION_MODE_TOKEN"] = "MODE_VOCAB_SENTINEL"
+        vocab_path.write_text(json.dumps(vocab, indent=2) + "\n")
+
+        body_path = (
+            source
+            / "deploy_assets/templates/agent_bodies/shared_modes/measurement_first"
+            / "experiment-reviewer.md"
+        )
+        body_path.write_text("MODE_BODY_SENTINEL {{EXTENSION_MODE_TOKEN}}\n")
+        core_body_path = (
+            source
+            / "deploy_assets/templates/agent_bodies/shared_modes/measurement_first"
+            / "experiment-designer-core.md"
+        )
+        core_body_path.write_text(
+            "MODE_CORE_BODY_SENTINEL {{EXTENSION_MODE_TOKEN}}\n"
+        )
+        base_theory_body_path = (
+            source / "deploy_assets/extensions/theory_llm/agent_bodies/experiment-designer.md"
+        )
+        base_theory_body_path.write_text(
+            base_theory_body_path.read_text()
+            + "\nMODELLESS_THEORY_PRECEDENCE_SENTINEL {{EXTENSION_MODE_TOKEN}}\n"
+        )
+
+        modeless = run_case(
+            source,
+            deployments,
+            logs,
+            "modeless",
+            ("--variant", "llm_cognition"),
+        )
+        measurement = run_case(
+            source,
+            deployments,
+            logs,
+            "measurement_first",
+            ("--variant", "llm_cognition", "--mode", "measurement-first"),
+        )
+
+        relative_agents = (
+            ".claude/agents/experiment-reviewer.md",
+            ".codex/agents/experiment-reviewer.toml",
+            ".gemini/agents/experiment-reviewer.md",
+            ".opencode/agents/experiment-reviewer.md",
+        )
+        for relative in relative_agents:
+            active = (measurement / relative).read_text()
+            metadata_sentinel = "MODE_METADATA_SENTINEL MODE_VOCAB_SENTINEL"
+            body_sentinel = "MODE_BODY_SENTINEL MODE_VOCAB_SENTINEL"
+            if metadata_sentinel not in active:
+                raise AssertionError(f"mode metadata/vocab overlay missing from {relative}")
+            if body_sentinel not in active:
+                raise AssertionError(f"mode body/vocab overlay missing from {relative}")
+            if "SHARED_VOCAB_SENTINEL" in active:
+                raise AssertionError(f"shared vocab beat mode vocab in {relative}")
+            if "VARIANT_VOCAB_SENTINEL" in active:
+                raise AssertionError(f"variant vocab beat mode vocab in {relative}")
+            if active.index(metadata_sentinel) > active.index(body_sentinel):
+                raise AssertionError(f"mode metadata rendered after body in {relative}")
+
+            inactive = (modeless / relative).read_text()
+            if "MODE_" in inactive:
+                raise AssertionError(f"mode-only overlay leaked into modeless {relative}")
+            if "You are a methodological reviewer" not in inactive:
+                raise AssertionError(f"base extension body missing from modeless {relative}")
+
+        theory_core_agents = (
+            ".claude/agents/experiment-designer.md",
+            ".codex/agents/experiment-designer.toml",
+            ".gemini/agents/experiment-designer.md",
+            ".opencode/agents/experiment-designer.md",
+        )
+        theory_core_sentinel = "MODE_CORE_BODY_SENTINEL MODE_VOCAB_SENTINEL"
+        modeless_theory_sentinel = (
+            "MODELLESS_THEORY_PRECEDENCE_SENTINEL VARIANT_VOCAB_SENTINEL"
+        )
+        for relative in theory_core_agents:
+            active = (measurement / relative).read_text()
+            if theory_core_sentinel not in active:
+                raise AssertionError(f"theory core body/mode precedence missing from {relative}")
+            if "SHARED_VOCAB_SENTINEL" in active:
+                raise AssertionError(f"shared vocab beat theory mode vocab in {relative}")
+            if "VARIANT_VOCAB_SENTINEL" in active:
+                raise AssertionError(f"variant vocab beat theory mode vocab in {relative}")
+
+            inactive = (modeless / relative).read_text()
+            if "MODE_CORE_BODY_SENTINEL" in inactive:
+                raise AssertionError(f"theory core mode body leaked into {relative}")
+            if modeless_theory_sentinel not in inactive:
+                raise AssertionError(f"theory variant vocab did not beat shared in {relative}")
+            if "SHARED_VOCAB_SENTINEL" in inactive:
+                raise AssertionError(f"shared vocab beat theory variant vocab in {relative}")
+
+        empirical_metadata_path = (
+            source / "deploy_assets/extensions/empirical/agent_metadata/shared_agents.json"
+        )
+        empirical_metadata = json.loads(empirical_metadata_path.read_text())
+        empirical_metadata["empirics-auditor"]["modes"] = {
+            "empirical_first": {
+                "description": "EMPIRICAL_METADATA_SENTINEL {{EMPIRICAL_MODE_TOKEN}}"
+            }
+        }
+        empirical_metadata_path.write_text(json.dumps(empirical_metadata, indent=2) + "\n")
+
+        finance_vocab_path = (
+            source / "deploy_assets/templates/agents/finance/vocab.json"
+        )
+        finance_vocab = json.loads(finance_vocab_path.read_text())
+        finance_vocab["EMPIRICAL_MODE_TOKEN"] = "EMPIRICAL_VARIANT_SENTINEL"
+        finance_vocab_path.write_text(json.dumps(finance_vocab, indent=2) + "\n")
+
+        empirical_vocab_path = (
+            source
+            / "deploy_assets/templates/agents/finance_modes/empirical_first/vocab.json"
+        )
+        empirical_vocab = json.loads(empirical_vocab_path.read_text())
+        empirical_vocab["EMPIRICAL_MODE_TOKEN"] = "EMPIRICAL_VOCAB_SENTINEL"
+        empirical_vocab_path.write_text(json.dumps(empirical_vocab, indent=2) + "\n")
+
+        empirical_body_path = (
+            source
+            / "deploy_assets/templates/agent_bodies/shared_modes/empirical_first"
+            / "empirics-auditor.md"
+        )
+        empirical_body_path.write_text(
+            "EMPIRICAL_BODY_SENTINEL {{EMPIRICAL_MODE_TOKEN}}\n"
+        )
+        empirical_core_body_path = (
+            source
+            / "deploy_assets/templates/agent_bodies/shared_modes/empirical_first"
+            / "empiricist-core.md"
+        )
+        empirical_core_body_path.write_text(
+            "EMPIRICAL_CORE_BODY_SENTINEL {{EMPIRICAL_MODE_TOKEN}}\n"
+        )
+        base_empirical_body_path = (
+            source / "deploy_assets/extensions/empirical/agent_bodies/finance/empiricist.md"
+        )
+        base_empirical_body_path.write_text(
+            base_empirical_body_path.read_text()
+            + "\nMODELLESS_EMPIRICAL_PRECEDENCE_SENTINEL {{EMPIRICAL_MODE_TOKEN}}\n"
+        )
+
+        empirical_modeless = run_case(
+            source,
+            deployments,
+            logs,
+            "empirical_modeless",
+            ("--variant", "finance", "--ext", "empirical"),
+        )
+        empirical_first = run_case(
+            source,
+            deployments,
+            logs,
+            "empirical_first",
+            ("--variant", "finance", "--mode", "empirical-first"),
+        )
+
+        empirical_relative_agents = (
+            ".claude/agents/empirics-auditor.md",
+            ".codex/agents/empirics-auditor.toml",
+            ".gemini/agents/empirics-auditor.md",
+            ".opencode/agents/empirics-auditor.md",
+        )
+        for relative in empirical_relative_agents:
+            active = (empirical_first / relative).read_text()
+            metadata_sentinel = (
+                "EMPIRICAL_METADATA_SENTINEL EMPIRICAL_VOCAB_SENTINEL"
+            )
+            body_sentinel = "EMPIRICAL_BODY_SENTINEL EMPIRICAL_VOCAB_SENTINEL"
+            if metadata_sentinel not in active:
+                raise AssertionError(f"empirical mode metadata/vocab missing from {relative}")
+            if body_sentinel not in active:
+                raise AssertionError(f"empirical mode body/vocab missing from {relative}")
+            if active.index(metadata_sentinel) > active.index(body_sentinel):
+                raise AssertionError(f"empirical mode metadata rendered after body in {relative}")
+
+            inactive = (empirical_modeless / relative).read_text()
+            if "EMPIRICAL_" in inactive:
+                raise AssertionError(f"empirical mode overlay leaked into {relative}")
+            if "You are a quantitative referee auditing empirical work" not in inactive:
+                raise AssertionError(f"base empirical body missing from {relative}")
+
+        empirical_core_agents = (
+            ".claude/agents/empiricist.md",
+            ".codex/agents/empiricist.toml",
+            ".gemini/agents/empiricist.md",
+            ".opencode/agents/empiricist.md",
+        )
+        core_sentinel = "EMPIRICAL_CORE_BODY_SENTINEL EMPIRICAL_VOCAB_SENTINEL"
+        modeless_core_sentinel = (
+            "MODELLESS_EMPIRICAL_PRECEDENCE_SENTINEL EMPIRICAL_VARIANT_SENTINEL"
+        )
+        for relative in empirical_core_agents:
+            active = (empirical_first / relative).read_text()
+            if core_sentinel not in active:
+                raise AssertionError(f"empirical core body/mode precedence missing from {relative}")
+            if "EMPIRICAL_SHARED_SENTINEL" in active:
+                raise AssertionError(f"shared vocab beat mode vocab in {relative}")
+            if "EMPIRICAL_VARIANT_SENTINEL" in active:
+                raise AssertionError(f"variant vocab beat mode vocab in {relative}")
+
+            inactive = (empirical_modeless / relative).read_text()
+            if "EMPIRICAL_CORE_BODY_SENTINEL" in inactive:
+                raise AssertionError(f"empirical core mode body leaked into {relative}")
+            if "You are a quantitative researcher" not in inactive:
+                raise AssertionError(f"base empiricist body missing from {relative}")
+            if modeless_core_sentinel not in inactive:
+                raise AssertionError(f"empirical variant vocab did not beat shared in {relative}")
+            if "EMPIRICAL_SHARED_SENTINEL" in inactive:
+                raise AssertionError(f"shared vocab beat empirical variant vocab in {relative}")
+
+
 def run_cli_failure(source: Path, deployment_root: Path, log_root: Path,
                     name: str, args: tuple[str, ...]) -> dict[str, Any]:
     output = deployment_root / name
@@ -730,6 +984,9 @@ def main() -> int:
     args = parse_args()
     selected = args.case or list(CASES)
     include_cli_contracts = not args.case
+    if include_cli_contracts:
+        assert_extension_mode_overlay_contract()
+        print("✓ extension mode body/vocab/metadata overlays", flush=True)
     actual = build_snapshot(selected, args.jobs, include_cli_contracts, args.artifacts_dir)
     if args.actual:
         write_json(args.actual, actual)

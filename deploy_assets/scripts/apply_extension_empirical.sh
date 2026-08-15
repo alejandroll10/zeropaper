@@ -2,7 +2,7 @@
 set -e
 
 # Mode threading: positional $11 = MODE_BODIES_OVERLAY, $12 = MODE_VOCAB_OVERLAY,
-# $13 = base variant vocab path. The variant vocab supplies default values for
+# $13 = base variant vocab path, $14 = active underscored mode slug. The variant vocab supplies default values for
 # placeholders the extension bodies use (e.g. {{EMPIRICS_AUDITOR_MODE_BLOCK}}
 # is empty in the base vocab and populated only by the empirical-first
 # overlay). The base vocab MUST be passed even outside mode-empirical-first
@@ -28,6 +28,7 @@ fi
 EXT_MODE_BODIES_OVERLAY="${11}"
 EXT_MODE_VOCAB_OVERLAY="${12}"
 EXT_BASE_VOCAB="${13}"
+EXT_MODE="${14}"
 
 # Build vocab args: shared defaults first, then base variant vocab, then mode
 # overlay (last-write-wins) — same layering as the base assemblers in setup.sh.
@@ -37,12 +38,17 @@ EXT_SHARED_VOCAB="$TEMPLATE_ROOT/templates/agent_bodies/shared/vocab.json"
 [ -n "$EXT_BASE_VOCAB" ] && [ -f "$EXT_BASE_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_BASE_VOCAB")
 [ -n "$EXT_MODE_VOCAB_OVERLAY" ] && [ -f "$EXT_MODE_VOCAB_OVERLAY" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_MODE_VOCAB_OVERLAY")
 
-# Build shared-bodies args: mode overlay first (first-match-wins for any
-# {id}-core.md override). This dir does not currently host extension-agent
-# overrides, but threading it now means a future mode override of an
-# extension agent's body works without further apply_extension changes.
+# Build both body-tier args: a mode directory may contain `{id}.md` for a
+# shared extension agent or `{id}-core.md` for a variant extension agent.
+# Both lookups are first-match-wins, so the overlay precedes the extension's
+# base body directory in each assembler call.
 EXT_SHARED_ARGS=()
 [ -n "$EXT_MODE_BODIES_OVERLAY" ] && [ -d "$EXT_MODE_BODIES_OVERLAY" ] && EXT_SHARED_ARGS+=(--shared-bodies-dir "$EXT_MODE_BODIES_OVERLAY")
+EXT_BODIES_ARGS=()
+[ -n "$EXT_MODE_BODIES_OVERLAY" ] && [ -d "$EXT_MODE_BODIES_OVERLAY" ] && EXT_BODIES_ARGS+=(--bodies-dir "$EXT_MODE_BODIES_OVERLAY")
+
+EXT_MODE_ARGS=()
+[ -n "$EXT_MODE" ] && EXT_MODE_ARGS=(--mode "$EXT_MODE")
 
 EXT_ROOT="$TEMPLATE_ROOT/extensions/empirical"
 # shellcheck source=/dev/null
@@ -57,33 +63,41 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_claude_skills.py" \
 if [ -f "$EXT_ROOT/agent_metadata/shared_agents.json" ]; then
     python3 "$TEMPLATE_ROOT/scripts/assemble_claude_agents.py" \
         --metadata "$EXT_ROOT/agent_metadata/shared_agents.json" \
+        "${EXT_BODIES_ARGS[@]}" \
         --bodies-dir "$EXT_ROOT/agent_bodies/shared" \
         "${EXT_SHARED_ARGS[@]}" \
         "${EXT_VOCAB_ARGS[@]}" \
+        "${EXT_MODE_ARGS[@]}" \
         --output-dir "$AGENTS_OUT" \
         "${MODEL_OVERRIDE_ARG[@]}"
 
     python3 "$TEMPLATE_ROOT/scripts/assemble_codex_subagents.py" \
         --metadata "$EXT_ROOT/agent_metadata/shared_agents.json" \
+        "${EXT_BODIES_ARGS[@]}" \
         --bodies-dir "$EXT_ROOT/agent_bodies/shared" \
         "${EXT_SHARED_ARGS[@]}" \
         "${EXT_VOCAB_ARGS[@]}" \
+        "${EXT_MODE_ARGS[@]}" \
         --output-dir "$CODEX_AGENTS_OUT" \
         "${MODEL_OVERRIDE_ARG[@]}"
 
     python3 "$TEMPLATE_ROOT/scripts/assemble_gemini_agents.py" \
         --metadata "$EXT_ROOT/agent_metadata/shared_agents.json" \
+        "${EXT_BODIES_ARGS[@]}" \
         --bodies-dir "$EXT_ROOT/agent_bodies/shared" \
         "${EXT_SHARED_ARGS[@]}" \
         "${EXT_VOCAB_ARGS[@]}" \
+        "${EXT_MODE_ARGS[@]}" \
         --output-dir "$GEMINI_AGENTS_OUT" \
         "${MODEL_OVERRIDE_ARG[@]}"
 
     python3 "$TEMPLATE_ROOT/scripts/assemble_opencode_agents.py" \
         --metadata "$EXT_ROOT/agent_metadata/shared_agents.json" \
+        "${EXT_BODIES_ARGS[@]}" \
         --bodies-dir "$EXT_ROOT/agent_bodies/shared" \
         "${EXT_SHARED_ARGS[@]}" \
         "${EXT_VOCAB_ARGS[@]}" \
+        "${EXT_MODE_ARGS[@]}" \
         --output-dir "$OPENCODE_AGENTS_OUT" \
         "${MODEL_OVERRIDE_ARG[@]}"
 fi
@@ -91,33 +105,41 @@ fi
 if [ -f "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" ]; then
     python3 "$TEMPLATE_ROOT/scripts/assemble_claude_agents.py" \
         --metadata "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" \
+        "${EXT_BODIES_ARGS[@]}" \
         --bodies-dir "$EXT_ROOT/agent_bodies/${AGENT_DIR}" \
         "${EXT_SHARED_ARGS[@]}" \
         "${EXT_VOCAB_ARGS[@]}" \
+        "${EXT_MODE_ARGS[@]}" \
         --output-dir "$AGENTS_OUT" \
         "${MODEL_OVERRIDE_ARG[@]}"
 
     python3 "$TEMPLATE_ROOT/scripts/assemble_codex_subagents.py" \
         --metadata "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" \
+        "${EXT_BODIES_ARGS[@]}" \
         --bodies-dir "$EXT_ROOT/agent_bodies/${AGENT_DIR}" \
         "${EXT_SHARED_ARGS[@]}" \
         "${EXT_VOCAB_ARGS[@]}" \
+        "${EXT_MODE_ARGS[@]}" \
         --output-dir "$CODEX_AGENTS_OUT" \
         "${MODEL_OVERRIDE_ARG[@]}"
 
     python3 "$TEMPLATE_ROOT/scripts/assemble_gemini_agents.py" \
         --metadata "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" \
+        "${EXT_BODIES_ARGS[@]}" \
         --bodies-dir "$EXT_ROOT/agent_bodies/${AGENT_DIR}" \
         "${EXT_SHARED_ARGS[@]}" \
         "${EXT_VOCAB_ARGS[@]}" \
+        "${EXT_MODE_ARGS[@]}" \
         --output-dir "$GEMINI_AGENTS_OUT" \
         "${MODEL_OVERRIDE_ARG[@]}"
 
     python3 "$TEMPLATE_ROOT/scripts/assemble_opencode_agents.py" \
         --metadata "$EXT_ROOT/agent_metadata/${AGENT_DIR}_agents.json" \
+        "${EXT_BODIES_ARGS[@]}" \
         --bodies-dir "$EXT_ROOT/agent_bodies/${AGENT_DIR}" \
         "${EXT_SHARED_ARGS[@]}" \
         "${EXT_VOCAB_ARGS[@]}" \
+        "${EXT_MODE_ARGS[@]}" \
         --output-dir "$OPENCODE_AGENTS_OUT" \
         "${MODEL_OVERRIDE_ARG[@]}"
 else

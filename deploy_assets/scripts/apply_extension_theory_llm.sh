@@ -1,14 +1,10 @@
 #!/bin/bash
 set -e
 
-# NOTE on --mode interaction (forward-compat gap):
-# This script does NOT receive setup.sh's MODE_BODIES_OVERLAY or
-# MODE_VOCAB_OVERLAY. Extension agents (experiment-designer, experiment-reviewer,
-# polish-experiments) are loaded with `--bodies-dir extensions/theory_llm/agent_bodies`
-# and no `--shared-bodies-dir`, so the mode-overlay shadowing path does not reach
-# them. If a future --mode wants mode-conditional behavior in a theory_llm
-# agent, thread MODE_BODIES_OVERLAY/MODE_VOCAB_OVERLAY through here as
-# additional positionals and append them to the assemble_* calls below.
+# Mode threading uses the same trailing contract as the empirical applier:
+# mode bodies, mode vocab, base variant vocab, then the active mode slug.
+# This gives extension agents the same body/vocab/metadata overlay semantics as
+# base agents: shared defaults -> variant -> mode, later vocab layers winning.
 #
 # NOTE on per-variant metadata (forward-compat gap): the assemble_* calls below
 # hardcode agent_metadata/agents.json, while setup.sh's model-heal emitter probes
@@ -30,13 +26,25 @@ MODEL_OVERRIDE_ARG=()
 if [ -n "$9" ]; then
     MODEL_OVERRIDE_ARG=(--model-override "$9")
 fi
-# $10 = base variant vocab path (templates/agents/{variant}/vocab.json).
-# Layering mirrors the base assemblers: shared defaults first, then variant.
-EXT_BASE_VOCAB="${10}"
+# $10 = MODE_BODIES_OVERLAY, $11 = MODE_VOCAB_OVERLAY,
+# $12 = base variant vocab path, $13 = active underscored mode slug.
+EXT_MODE_BODIES_OVERLAY="${10}"
+EXT_MODE_VOCAB_OVERLAY="${11}"
+EXT_BASE_VOCAB="${12}"
+EXT_MODE="${13}"
 EXT_VOCAB_ARGS=()
 EXT_SHARED_VOCAB="$TEMPLATE_ROOT/templates/agent_bodies/shared/vocab.json"
 [ -f "$EXT_SHARED_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_SHARED_VOCAB")
 [ -n "$EXT_BASE_VOCAB" ] && [ -f "$EXT_BASE_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_BASE_VOCAB")
+[ -n "$EXT_MODE_VOCAB_OVERLAY" ] && [ -f "$EXT_MODE_VOCAB_OVERLAY" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_MODE_VOCAB_OVERLAY")
+
+EXT_SHARED_ARGS=()
+[ -n "$EXT_MODE_BODIES_OVERLAY" ] && [ -d "$EXT_MODE_BODIES_OVERLAY" ] && EXT_SHARED_ARGS+=(--shared-bodies-dir "$EXT_MODE_BODIES_OVERLAY")
+EXT_BODIES_ARGS=()
+[ -n "$EXT_MODE_BODIES_OVERLAY" ] && [ -d "$EXT_MODE_BODIES_OVERLAY" ] && EXT_BODIES_ARGS+=(--bodies-dir "$EXT_MODE_BODIES_OVERLAY")
+
+EXT_MODE_ARGS=()
+[ -n "$EXT_MODE" ] && EXT_MODE_ARGS=(--mode "$EXT_MODE")
 
 EXT_ROOT="$TEMPLATE_ROOT/extensions/theory_llm"
 
@@ -47,29 +55,41 @@ infrastructure_copy_file 1100 "$EXT_ROOT/llm_client.py" "llm_client.py"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_claude_agents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \
+    "${EXT_BODIES_ARGS[@]}" \
     --bodies-dir "$EXT_ROOT/agent_bodies" \
+    "${EXT_SHARED_ARGS[@]}" \
     "${EXT_VOCAB_ARGS[@]}" \
+    "${EXT_MODE_ARGS[@]}" \
     --output-dir "$AGENTS_OUT" \
     "${MODEL_OVERRIDE_ARG[@]}"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_codex_subagents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \
+    "${EXT_BODIES_ARGS[@]}" \
     --bodies-dir "$EXT_ROOT/agent_bodies" \
+    "${EXT_SHARED_ARGS[@]}" \
     "${EXT_VOCAB_ARGS[@]}" \
+    "${EXT_MODE_ARGS[@]}" \
     --output-dir "$CODEX_AGENTS_OUT" \
     "${MODEL_OVERRIDE_ARG[@]}"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_gemini_agents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \
+    "${EXT_BODIES_ARGS[@]}" \
     --bodies-dir "$EXT_ROOT/agent_bodies" \
+    "${EXT_SHARED_ARGS[@]}" \
     "${EXT_VOCAB_ARGS[@]}" \
+    "${EXT_MODE_ARGS[@]}" \
     --output-dir "$GEMINI_AGENTS_OUT" \
     "${MODEL_OVERRIDE_ARG[@]}"
 
 python3 "$TEMPLATE_ROOT/scripts/assemble_opencode_agents.py" \
     --metadata "$EXT_ROOT/agent_metadata/agents.json" \
+    "${EXT_BODIES_ARGS[@]}" \
     --bodies-dir "$EXT_ROOT/agent_bodies" \
+    "${EXT_SHARED_ARGS[@]}" \
     "${EXT_VOCAB_ARGS[@]}" \
+    "${EXT_MODE_ARGS[@]}" \
     --output-dir "$OPENCODE_AGENTS_OUT" \
     "${MODEL_OVERRIDE_ARG[@]}"
 
