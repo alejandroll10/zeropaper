@@ -415,6 +415,7 @@ my-paper/
 - Cannot read SSH keys or AWS credentials
 - WebSearch and WebFetch work freely (for literature search)
 - `bubblewrap` (Linux) / Seatbelt (macOS) enforces restrictions at the OS level
+- WRDS uses one exact Unix-socket allowlist entry on macOS. Linux's path-blind AF_UNIX seccomp filter stays enabled: an authenticated query-only host-loopback relay carries WRDS frames through Claude's local sandbox proxy instead of enabling all host Unix sockets.
 
 **Codex** — launched with the `zeropaper-pipeline` permission profile (codex-cli >=0.147.0): the orchestrator and every sub-agent worker are **write-confined** to the project plus `~/.codex`, broad `~/.cache`, `~/Library/Caches`, and `~/.matplotlib`, with network egress on. The narrower WRDS compatibility guard is read-only, and `~/.ssh`, `~/.aws`, and `~/.claude` are unreadable. Codex-math workers use the same filesystem posture with command network off.
 

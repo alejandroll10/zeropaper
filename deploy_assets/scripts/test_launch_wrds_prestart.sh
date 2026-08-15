@@ -111,6 +111,86 @@ if grep -Fq 'sandbox_workspace_write' <<<"$profile_args"; then
     exit 1
 fi
 
+# Claude must not disable Linux's path-blind Unix-socket seccomp filter. macOS
+# can grant the one WRDS query socket precisely; Linux uses the authenticated
+# loopback query bridge instead.
+grep -Fq '"allowUnixSockets": ["~/.local/state/zeropaper/wrds/wrds_server_23847.sock"]' \
+    "$ASSET_ROOT/templates/runtime/claude/settings.json"
+grep -Fq 'allowUnixSockets: [join(' \
+    "$ASSET_ROOT/templates/utils/opencode_sandbox_exec.mjs"
+grep -Fq '"wrds_server_23847.sock"' \
+    "$ASSET_ROOT/templates/utils/opencode_sandbox_exec.mjs"
+if grep -Fq 'allowAllUnixSockets' \
+        "$ASSET_ROOT/templates/runtime/claude/settings.json"; then
+    echo "FAIL: Claude sandbox grants every host Unix socket" >&2
+    exit 1
+fi
+if grep -Eq 'dotenv|WRDS_PASS|PGPASSWORD' \
+        "$ASSET_ROOT/extensions/empirical/utils/wrds_query_bridge.py"; then
+    echo "FAIL: query-only bridge imports or names database credentials" >&2
+    exit 1
+fi
+grep -Fq 'env -u WRDS_USER -u WRDS_PASS -u PGPASSWORD' \
+    "$ASSET_ROOT/extensions/empirical/utils/start_services.sh"
+
+# A sandbox whose AF_UNIX syscall is blocked and whose host relay died must
+# halt before any daemon/startup path can spend a login.
+SERVICE_ROOT="$TEST_ROOT/service-sandbox"
+mkdir -p "$SERVICE_ROOT/code/utils" "$SERVICE_ROOT/.venv/bin"
+cp "$ASSET_ROOT/extensions/empirical/utils/start_services.sh" \
+    "$SERVICE_ROOT/code/utils/start_services.sh"
+cat > "$SERVICE_ROOT/.env" <<'ENV'
+WRDS_USER=test-user
+WRDS_PASS=test-pass
+ENV
+cat > "$SERVICE_ROOT/.venv/bin/python3" <<'MOCK'
+#!/usr/bin/env bash
+args="$*"
+case "$args" in
+  *wrds_requires_bridge*) exit 0 ;;
+  *wrds_bridge_ping*) exit 1 ;;
+esac
+printf 'unexpected:%s\n' "$args" >> "${WRDS_SANDBOX_UNEXPECTED:?}"
+exit 1
+MOCK
+chmod +x "$SERVICE_ROOT/.venv/bin/python3"
+if (cd "$SERVICE_ROOT" && WRDS_SANDBOX_UNEXPECTED="$TEST_ROOT/unexpected-service" \
+        bash code/utils/start_services.sh) >"$TEST_ROOT/service-out" 2>"$TEST_ROOT/service-err"; then
+    echo "FAIL: sandbox-side missing bridge was treated as healthy" >&2
+    exit 1
+fi
+grep -Fq 'WRDS host query bridge is unavailable inside this sandbox' \
+    "$TEST_ROOT/service-err"
+test ! -e "$TEST_ROOT/unexpected-service"
+
+# The loopback bridge is a Linux-only workaround; macOS uses the exact socket
+# grants above and must not expose an unnecessary TCP listener.
+grep -Fq 'sys.platform.startswith("linux")' \
+    "$ASSET_ROOT/extensions/empirical/utils/start_services.sh"
+
+# Both persistent WRDS processes use Python's portable session primitive;
+# stock macOS has no external `setsid` utility. Prove the exact wrapper makes
+# its exec target a session/process-group leader without that command.
+SERVICE_SOURCE="$ASSET_ROOT/extensions/empirical/utils/start_services.sh"
+test "$(grep -Fc 'os.setsid(); os.execv(sys.argv[1], sys.argv[1:])' \
+    "$SERVICE_SOURCE")" = 2
+if grep -q 'command -v setsid' "$SERVICE_SOURCE"; then
+    echo "FAIL: WRDS persistence still depends on an external setsid command" >&2
+    exit 1
+fi
+DETACH_RECORD="$TEST_ROOT/detach-record"
+python3 -c 'import os, sys; os.setsid(); os.execv(sys.argv[1], sys.argv[1:])' \
+    "$(command -v python3)" -c \
+    'import os,sys; open(sys.argv[1], "w").write(f"{os.getpid()} {os.getpgrp()}\n")' \
+    "$DETACH_RECORD" &
+detach_wrapper_pid=$!
+wait "$detach_wrapper_pid"
+read -r detached_pid detached_pgid < "$DETACH_RECORD"
+if [ "$detached_pid" != "$detached_pgid" ]; then
+    echo "FAIL: portable WRDS detachment wrapper did not create a new session" >&2
+    exit 1
+fi
+
 FAKE_CODEX_BIN="$TEST_ROOT/fake-codex-bin"
 mkdir -p "$FAKE_CODEX_BIN"
 cat > "$FAKE_CODEX_BIN/codex" <<'FAKE'

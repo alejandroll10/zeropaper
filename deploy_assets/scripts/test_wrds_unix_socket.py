@@ -2,6 +2,7 @@
 """Offline adversarial regression for the cross-sandbox WRDS transport."""
 
 import json
+import errno
 import multiprocessing
 import os
 import socket
@@ -20,6 +21,7 @@ UTILS = ROOT / "extensions" / "empirical" / "utils"
 sys.path.insert(0, str(UTILS))
 
 import wrds_client as client  # noqa: E402
+import wrds_query_bridge as bridge  # noqa: E402
 import wrds_server as server  # noqa: E402
 
 
@@ -407,6 +409,189 @@ def main():
         assert not worker.is_alive()
         replacement.close()
 
+        # Linux Claude blocks socket(AF_UNIX) with seccomp.  Its authenticated
+        # loopback HTTP proxy can reach a host-only TCP bridge, which must
+        # require a protected capability and forward query commands only.
+        bridge_upstream, bridge_upstream_identity = server._bind_unix_server()
+        bridge_token = "a" * 64
+        bridge.STATE_DIR = str(state_dir)
+        bridge.SOCKET_FILE = server.SOCKET_FILE
+        bridge.TOKEN_FILE = str(state_dir / "bridge.token")
+        client.BRIDGE_TOKEN_FILE = bridge.TOKEN_FILE
+        bridge_publish_victim = state_dir / "bridge-publish-victim"
+        bridge_publish_victim.write_text("preserve", encoding="ascii")
+        os.symlink(bridge_publish_victim, bridge.TOKEN_FILE)
+        bridge._atomic_state_file(
+            bridge.TOKEN_FILE, (bridge_token + "\n").encode("ascii"), 0o400)
+        assert bridge_publish_victim.read_text(encoding="ascii") == "preserve"
+        assert not os.path.islink(bridge.TOKEN_FILE)
+        assert stat.S_IMODE(os.stat(bridge.TOKEN_FILE).st_mode) == 0o400
+
+        proxy_listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        proxy_listener.bind(("127.0.0.1", 0))
+        proxy_listener.listen(1)
+        proxy_port = proxy_listener.getsockname()[1]
+        expected_auth = "Basic dXNlcjpwYXNz"
+        bridge_slots = threading.BoundedSemaphore(1)
+
+        def serve_bridge_upstream():
+            server.handle_client(bridge_upstream.accept()[0], state)
+
+        def serve_authenticated_proxy():
+            conn, _ = proxy_listener.accept()
+            header = bytearray()
+            while b"\r\n\r\n" not in header:
+                header.extend(conn.recv(1024))
+            text = header.decode("ascii")
+            assert f"CONNECT 127.0.0.1:{client.BRIDGE_PORT}" in text
+            assert f"Proxy-Authorization: {expected_auth}" in text
+            conn.sendall(b"HTTP/1.1 200 Connection Established\r\n\r\n")
+            bridge._relay_client(conn, bridge_token, bridge_slots)
+
+        upstream_worker = threading.Thread(
+            target=serve_bridge_upstream, daemon=True)
+        proxy_worker = threading.Thread(
+            target=serve_authenticated_proxy, daemon=True)
+        upstream_worker.start()
+        proxy_worker.start()
+        with mock.patch.dict(os.environ, {
+                "HTTPS_PROXY": f"http://user:pass@127.0.0.1:{proxy_port}",
+                "HTTP_PROXY": "",
+        }, clear=False):
+            response = client._send_request(
+                {"cmd": "safety_hello_v5"}, timeout=5, force_bridge=True)
+        assert response["status"] == "ok"
+        upstream_worker.join(timeout=2)
+        proxy_worker.join(timeout=2)
+        assert not upstream_worker.is_alive()
+        assert not proxy_worker.is_alive()
+        proxy_listener.close()
+
+        # The client must never send its query capability through an arbitrary
+        # ambient proxy; it falls back to fixed host loopback instead.
+        with mock.patch.dict(os.environ, {
+                "HTTPS_PROXY": "http://user:secret@example.invalid:3128",
+        }, clear=False):
+            assert client._proxy_endpoint() is None
+
+        def bridge_pair_request(token, command):
+            left, right = socket.socketpair()
+            slots = threading.BoundedSemaphore(1)
+            request = json.dumps({
+                "cmd": command,
+                "safety_protocol": server.SAFETY_PROTOCOL,
+                "bridge_protocol": bridge.BRIDGE_PROTOCOL,
+                "bridge_token": token,
+            }).encode()
+            left.sendall(
+                bridge.BRIDGE_PREFACE_MAGIC + token.encode("ascii") + b"\n")
+            left.sendall(f"{len(request):8d}".encode() + request)
+            relay = threading.Thread(
+                target=bridge._relay_client,
+                args=(right, bridge_token, slots), daemon=True)
+            relay.start()
+            size = int(client._recv_exact(left, 8).decode())
+            result = json.loads(client._recv_exact(left, size))
+            left.close()
+            relay.join(timeout=2)
+            assert not relay.is_alive()
+            return result
+
+        rejected = bridge_pair_request("b" * 64, "safety_hello_v5")
+        assert rejected["status"] == "error"
+        assert "authentication failed" in rejected["msg"]
+        rejected = bridge_pair_request(bridge_token, "safe_unblock_v5")
+        assert rejected["status"] == "error"
+        assert "query protocol commands only" in rejected["msg"]
+
+        # Authentication is a fixed-size preface with a total deadline. An
+        # unauthenticated local slowloris never consumes a query worker slot,
+        # and trickling bytes cannot reset the authentication deadline.
+        slow_left, slow_right = socket.socketpair()
+        slow_slots = threading.BoundedSemaphore(1)
+        with mock.patch.object(bridge, "AUTH_PREFACE_TIMEOUT", 0.08):
+            slow_worker = threading.Thread(
+                target=bridge._relay_client,
+                args=(slow_right, bridge_token, slow_slots), daemon=True)
+            slow_worker.start()
+            for _ in range(3):
+                try:
+                    slow_left.sendall(b"x")
+                except OSError:
+                    break
+                time.sleep(0.03)
+            slow_worker.join(timeout=0.5)
+        assert not slow_worker.is_alive()
+        assert slow_slots.acquire(blocking=False)
+        slow_slots.release()
+        slow_left.close()
+
+        # Client framing remains aggressively bounded without imposing that
+        # short deadline on a legitimate long-running upstream WRDS query.
+        def serve_delayed_bridge_upstream():
+            upstream_conn, _ = bridge_upstream.accept()
+            time.sleep(0.1)
+            server.handle_client(upstream_conn, state)
+
+        delayed_worker = threading.Thread(
+            target=serve_delayed_bridge_upstream, daemon=True)
+        delayed_worker.start()
+        with mock.patch.object(bridge, "CLIENT_IO_TIMEOUT", 0.05), \
+                mock.patch.object(
+                    bridge, "UPSTREAM_RESPONSE_TIMEOUT", 0.5):
+            delayed = bridge_pair_request(
+                bridge_token, "safety_hello_v5")
+        assert delayed["status"] == "ok"
+        delayed_worker.join(timeout=2)
+        assert not delayed_worker.is_alive()
+
+        # A planted token symlink is never followed into another owned file.
+        os.unlink(bridge.TOKEN_FILE)
+        bridge_victim = state_dir / "bridge-victim"
+        bridge_victim.write_text("a" * 64 + "\n", encoding="ascii")
+        os.chmod(bridge_victim, 0o400)
+        os.symlink(bridge_victim, bridge.TOKEN_FILE)
+        try:
+            client._read_bridge_token()
+            raise AssertionError("bridge token symlink was followed")
+        except OSError:
+            pass
+        os.unlink(bridge.TOKEN_FILE)
+
+        # Seccomp's EPERM at AF_UNIX creation selects the bridge; ordinary
+        # Unix endpoint errors remain fail-closed rather than hiding outages.
+        real_socket_constructor = client.socket.socket
+        def deny_unix(family, *args, **kwargs):
+            if family == socket.AF_UNIX:
+                raise OSError(errno.EPERM, "seccomp")
+            return real_socket_constructor(family, *args, **kwargs)
+        marker = object()
+        with mock.patch.object(client.socket, "socket", side_effect=deny_unix), \
+                mock.patch.object(
+                    client, "_connect_bridge",
+                    return_value=(marker, bridge_token)) as fallback:
+            assert client._connect(5) == (marker, bridge_token)
+            fallback.assert_called_once_with(5)
+
+        for blocked_errno in client._BRIDGE_FALLBACK_ERRNOS:
+            def deny_with_errno(family, *args, _errno=blocked_errno, **kwargs):
+                if family == socket.AF_UNIX:
+                    raise OSError(_errno, "unavailable Unix transport")
+                return real_socket_constructor(family, *args, **kwargs)
+            with mock.patch.object(
+                    client.socket, "socket", side_effect=deny_with_errno):
+                assert client.wrds_requires_bridge() is True
+        unix_family = client.socket.AF_UNIX
+        del client.socket.AF_UNIX
+        try:
+            assert client.wrds_requires_bridge() is True
+        finally:
+            client.socket.AF_UNIX = unix_family
+
+        bridge_upstream.close()
+        assert server._socket_identity(
+            os.lstat(server.SOCKET_FILE)) == bridge_upstream_identity
+
         # Lifecycle commands do not exist on any wire endpoint.
         denied = request_over_socketpair(state, "safe_unblock_v5")
         assert denied["status"] == "error"
@@ -432,7 +617,7 @@ def main():
         # advertised response beyond its explicit cap.
         client_side, peer_side = socket.socketpair()
         original_connect = client._connect
-        client._connect = lambda timeout: client_side
+        client._connect = lambda timeout, force_bridge=False: (client_side, None)
         payload = json.dumps({
             "status": "ok", "msg": "fragmented",
             "safety_protocol": client.SAFETY_PROTOCOL,
@@ -463,7 +648,7 @@ def main():
         assert not fragmented.is_alive()
 
         too_large_client, too_large_peer = socket.socketpair()
-        client._connect = lambda timeout: too_large_client
+        client._connect = lambda timeout, force_bridge=False: (too_large_client, None)
         def oversized_peer():
             header = b""
             while len(header) < 8:
@@ -558,7 +743,7 @@ def main():
         assert not os.path.islink(server.PID_FILE)
         assert Path(server.PID_FILE).read_text(encoding="ascii") == str(os.getpid())
 
-    print("PASS: WRDS Unix transport singleton, cleanup, lifecycle isolation, and PID safety")
+    print("PASS: WRDS Unix/bridge transport, singleton, lifecycle isolation, and PID safety")
 
 
 if __name__ == "__main__":

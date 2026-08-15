@@ -5,6 +5,7 @@ import { readFile } from "node:fs/promises";
 import { spawn } from "node:child_process";
 import { pathToFileURL } from "node:url";
 import { join } from "node:path";
+import { homedir } from "node:os";
 
 function fail(message) {
   console.error(`ERROR: ${message}`);
@@ -82,7 +83,18 @@ try {
 const runtimeConfig = {
   // allowedDomains is deliberately absent. SRT then leaves the host network
   // namespace/profile unchanged while still emitting its filesystem policy.
-  network: { deniedDomains: [], allowLocalBinding: true },
+  network: {
+    deniedDomains: [],
+    allowLocalBinding: true,
+    // Linux ignores this and keeps its path-blind AF_UNIX seccomp denial;
+    // macOS can narrowly grant only the shared WRDS query socket.
+    ...(process.platform === "darwin" ? {
+      allowUnixSockets: [join(
+        homedir(), ".local", "state", "zeropaper", "wrds",
+        "wrds_server_23847.sock",
+      )],
+    } : {}),
+  },
   filesystem,
 };
 

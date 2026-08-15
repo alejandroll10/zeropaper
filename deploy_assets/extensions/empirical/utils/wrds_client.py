@@ -12,11 +12,13 @@ Usage:
     # List tables
     tables = wrds_list_tables("crsp")
 
-The client prefers the server's private Unix-domain socket, which remains
-reachable through a sandbox's read-only home view when it has its own network
-namespace. It exposes query operations only; host lifecycle control is never
-available over the wire. If the server is down, relaunch the runtime so its
-trusted host-side launcher can restore it.
+The client prefers the server's private Unix-domain socket. On Linux, Claude
+and OpenCode's sandbox runtime blocks AF_UNIX creation with a path-blind
+seccomp filter; there the client uses the launcher's capability-authenticated,
+query-only host-loopback bridge through the sandbox's local HTTP proxy. Host
+lifecycle control is never available over either transport. If the server or
+bridge is down, relaunch the runtime so its trusted host-side launcher can
+restore it.
 """
 import json
 import socket
@@ -25,7 +27,10 @@ import time
 import os
 import stat
 import sys
+import base64
+import errno
 from pathlib import Path
+from urllib.parse import unquote, urlsplit
 
 import pandas as pd
 from dotenv import dotenv_values, load_dotenv
@@ -34,14 +39,23 @@ _DOTENV_PATH = Path(__file__).resolve().parents[2] / '.env'
 load_dotenv(dotenv_path=_DOTENV_PATH)
 
 PORT = 23847
+BRIDGE_PORT = 23848
+BRIDGE_PROTOCOL = 'wrds-query-bridge-v1'
+BRIDGE_PREFACE_MAGIC = b'WRDS-BRIDGE-V1:'
 SOCKET_FILE = os.path.join(
     os.path.expanduser('~'), '.local', 'state', 'zeropaper', 'wrds',
     f'wrds_server_{PORT}.sock')
 LOG_FILE = os.path.join(
     os.path.dirname(SOCKET_FILE), f'wrds_server_{PORT}.log')
+BRIDGE_TOKEN_FILE = os.path.join(
+    os.path.dirname(SOCKET_FILE),
+    f'wrds_query_bridge_{BRIDGE_PORT}.token')
 # Bump with the server whenever login/recovery safety semantics change. Keep a
 # literal here: importing the deployed module cannot identify a stale process.
 SAFETY_PROTOCOL = 'wrds-auth-latch-v5'
+_BRIDGE_FALLBACK_ERRNOS = frozenset({
+    errno.EPERM, errno.EACCES, errno.EAFNOSUPPORT, errno.EPROTONOSUPPORT,
+})
 MAX_RESPONSE = 90 * 1024 * 1024
 
 
@@ -57,29 +71,146 @@ def _recv_exact(sock, size):
         received += len(chunk)
     return b''.join(chunks)
 
-def _connect(timeout):
-    """Connect to the host-wide daemon across sandbox boundaries.
+def _read_bridge_token():
+    flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0)
+    fd = os.open(BRIDGE_TOKEN_FILE, flags)
+    try:
+        info = os.fstat(fd)
+        if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or
+                (hasattr(os, 'getuid') and info.st_uid != os.getuid()) or
+                info.st_mode & 0o077):
+            raise OSError('unsafe WRDS bridge capability file')
+        token = os.read(fd, 256).decode('ascii').strip()
+        if len(token) != 64 or any(c not in '0123456789abcdef' for c in token):
+            raise OSError('invalid WRDS bridge capability')
+        return token
+    finally:
+        os.close(fd)
 
-    Network-isolated sandboxes have a private 127.0.0.1, but their approved
-    read-only home view is shared with the host.
-    """
-    if not hasattr(socket, 'AF_UNIX'):
-        raise OSError('WRDS sandbox transport requires AF_UNIX support')
-    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+
+def _proxy_endpoint():
+    """Return the trusted loopback HTTP proxy and optional Basic credential."""
+    raw = (os.environ.get('HTTPS_PROXY') or os.environ.get('https_proxy') or
+           os.environ.get('HTTP_PROXY') or os.environ.get('http_proxy'))
+    if not raw:
+        return None
+    parsed = urlsplit(raw)
+    # Never send the bridge capability through an arbitrary ambient proxy.
+    # Outside Claude's sandbox, use the fixed direct host-loopback endpoint.
+    if parsed.scheme.lower() != 'http' or parsed.hostname not in (
+            'localhost', '127.0.0.1', '::1'):
+        return None
+    try:
+        proxy_port = parsed.port
+    except ValueError as exc:
+        raise OSError('WRDS bridge proxy has an invalid port') from exc
+    if proxy_port is None:
+        raise OSError('WRDS bridge proxy has no port')
+    credential = None
+    if parsed.username is not None:
+        user = unquote(parsed.username)
+        password = unquote(parsed.password or '')
+        if '\r' in user or '\n' in user or '\r' in password or '\n' in password:
+            raise OSError('WRDS bridge proxy credential contains a newline')
+        credential = base64.b64encode(
+            f'{user}:{password}'.encode('utf-8')).decode('ascii')
+    return parsed.hostname, proxy_port, credential
+
+
+def _connect_bridge(timeout):
+    """Reach the authenticated host bridge through Claude's local proxy."""
+    token = _read_bridge_token()
+    proxy = _proxy_endpoint()
+    if proxy is None:
+        sock = socket.create_connection(('127.0.0.1', BRIDGE_PORT), timeout)
+        return sock, token
+    host, port, credential = proxy
+    sock = socket.create_connection((host, port), timeout)
     sock.settimeout(timeout)
     try:
-        sock.connect(SOCKET_FILE)
-        return sock
-    except OSError:
+        lines = [
+            f'CONNECT 127.0.0.1:{BRIDGE_PORT} HTTP/1.1',
+            f'Host: 127.0.0.1:{BRIDGE_PORT}',
+            'Proxy-Connection: Keep-Alive',
+        ]
+        if credential is not None:
+            lines.append(f'Proxy-Authorization: Basic {credential}')
+        sock.sendall(('\r\n'.join(lines) + '\r\n\r\n').encode('ascii'))
+        header = bytearray()
+        while b'\r\n\r\n' not in header:
+            chunk = sock.recv(1024)
+            if not chunk:
+                raise ConnectionError('WRDS bridge proxy closed during CONNECT')
+            header.extend(chunk)
+            if len(header) > 16384:
+                raise ConnectionError('WRDS bridge proxy response is oversized')
+        first_line = bytes(header).split(b'\r\n', 1)[0]
+        parts = first_line.split()
+        if len(parts) < 2 or parts[1] != b'200':
+            status = parts[1].decode('ascii', 'replace') if len(parts) > 1 else '?'
+            raise ConnectionError(
+                f'WRDS bridge proxy CONNECT failed with HTTP {status}')
+        return sock, token
+    except Exception:
         sock.close()
         raise
 
 
-def _send_request(request, timeout=300):
+def _new_unix_socket_or_none():
+    """Return a Unix socket, or None only when the syscall is unavailable."""
+    if not hasattr(socket, 'AF_UNIX'):
+        return None
+    try:
+        return socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    except OSError as exc:
+        if exc.errno in _BRIDGE_FALLBACK_ERRNOS:
+            return None
+        raise
+
+
+def wrds_requires_bridge():
+    """Whether this runtime cannot create the preferred Unix transport."""
+    sock = _new_unix_socket_or_none()
+    if sock is None:
+        return True
+    sock.close()
+    return False
+
+
+def _connect(timeout, force_bridge=False):
+    """Connect to the host-wide daemon across sandbox boundaries.
+
+    Network-isolated sandboxes have a private 127.0.0.1, but their approved
+    read-only home view is shared with the host. Linux SRT blocks AF_UNIX at
+    socket creation, so only that explicit syscall denial selects the
+    authenticated bridge fallback.
+    """
+    if not force_bridge:
+        sock = _new_unix_socket_or_none()
+        if sock is not None:
+            sock.settimeout(timeout)
+            try:
+                sock.connect(SOCKET_FILE)
+                return sock, None
+            except OSError:
+                sock.close()
+                raise
+    return _connect_bridge(timeout)
+
+
+def _send_request(request, timeout=300, force_bridge=False):
     """Send a request to the wrds_server and return the response."""
     request = {**request, 'safety_protocol': SAFETY_PROTOCOL}
-    sock = _connect(timeout)
+    sock, bridge_token = _connect(timeout, force_bridge=force_bridge)
     try:
+        if bridge_token is not None:
+            request = {
+                **request,
+                'bridge_protocol': BRIDGE_PROTOCOL,
+                'bridge_token': bridge_token,
+            }
+            sock.sendall(
+                BRIDGE_PREFACE_MAGIC + bridge_token.encode('ascii') + b'\n')
         data = json.dumps(request).encode()
         header = f"{len(data):8d}".encode()
         sock.sendall(header + data)
@@ -103,6 +234,18 @@ def _send_request(request, timeout=300):
         return json.loads(b''.join(chunks).decode())
     finally:
         sock.close()
+
+
+def wrds_bridge_ping():
+    """Host-side readiness check for the authenticated fallback bridge."""
+    try:
+        resp = _send_request(
+            {'cmd': 'safety_hello_v5'}, timeout=5, force_bridge=True)
+        return (resp.get('status') == 'ok' and
+                resp.get('safety_protocol') == SAFETY_PROTOCOL)
+    except (ConnectionRefusedError, OSError, WrdsSafetyBlocked,
+            ConnectionError):
+        return False
 
 class WrdsAuthBlocked(RuntimeError):
     """WRDS refused the credential. Terminal — the server has latched and will

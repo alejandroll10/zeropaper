@@ -5,7 +5,8 @@
     "mode": "auto-allow",
     "allowUnsandboxedCommands": false,
     "network": {
-      "allowLocalBinding": true
+      "allowLocalBinding": true,
+      "allowUnixSockets": ["~/.local/state/zeropaper/wrds/wrds_server_23847.sock"]
     },
     "filesystem": {
       "allowWrite": ["./", "/tmp", "$TMPDIR", "~/.codex", "~/.cache", "~/Library/Caches", "~/.matplotlib"],

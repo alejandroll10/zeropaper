@@ -29,6 +29,15 @@ fi
 
 # Start WRDS server if credentials are configured
 if [ -n "$WRDS_USER" ] && [ "$WRDS_USER" != "your-username" ] && [ -n "$WRDS_PASS" ] && [ "$WRDS_PASS" != "your-password" ]; then
+    # Inside Linux SRT, AF_UNIX creation is denied before connect. If the
+    # trusted host prestart's relay later dies, fail here rather than falling
+    # through to a sandbox-side daemon spawn (which cannot repair protected
+    # state and must never spend another login).
+    if PYTHONPATH=code "$WRDS_PY" -c "from utils.wrds_client import wrds_requires_bridge; exit(0 if wrds_requires_bridge() else 1)" 2>/dev/null && ! PYTHONPATH=code "$WRDS_PY" -c "from utils.wrds_client import wrds_bridge_ping; exit(0 if wrds_bridge_ping() else 1)" 2>/dev/null; then
+        echo "ERROR: WRDS host query bridge is unavailable inside this sandbox." >&2
+        echo "       Stop and relaunch this runtime so ./launch.sh can restore it; no login was attempted." >&2
+        exit 1
+    fi
     # Check whether the host-wide query socket already responds (possibly from
     # another project).
     if PYTHONPATH=code "$WRDS_PY" -c "from utils.wrds_client import wrds_ping; exit(0 if wrds_ping() else 1)" 2>/dev/null; then
@@ -74,9 +83,9 @@ print('1' if wrds_login_in_progress() else '0')" 2>/dev/null)" && [ "$IN_PROGRES
         # A separate session survives runtime and tmux teardown. The daemon is
         # host-wide and exposes a private Unix socket to network-isolated
         # sandboxes, so it must outlive the launcher that established it.
-        WRDS_SETSID=""
-        command -v setsid >/dev/null 2>&1 && WRDS_SETSID="setsid"
-        PGPASSWORD="$WRDS_PASS" PYTHONPATH=code nohup $WRDS_SETSID "$WRDS_PY" -u code/utils/wrds_server.py \
+        PGPASSWORD="$WRDS_PASS" PYTHONPATH=code nohup "$WRDS_PY" -c \
+            'import os, sys; os.setsid(); os.execv(sys.argv[1], sys.argv[1:])' \
+            "$WRDS_PY" -u code/utils/wrds_server.py \
             >> "$WRDS_LOG" 2>&1 &
         wrds_server_pid=$!
         # Wait for server to be ready.
@@ -182,6 +191,46 @@ print('1' if wrds_login_in_progress() else '0')" 2>/dev/null)"
             echo "       Check $WRDS_LOG (Duo not approved? bad credentials? network?)." >&2
             exit 1
         fi
+    fi
+
+    # Claude/OpenCode's Linux sandbox blocks socket(AF_UNIX) at the seccomp
+    # boundary. Publish a separately authenticated, query-only TCP relay on
+    # host loopback there; macOS instead grants the one exact Unix socket and
+    # does not need the extra listener.
+    if "$WRDS_PY" -c 'import sys; raise SystemExit(0 if sys.platform.startswith("linux") else 1)'; then
+        if PYTHONPATH=code "$WRDS_PY" -c "from utils.wrds_client import wrds_bridge_ping; exit(0 if wrds_bridge_ping() else 1)" 2>/dev/null; then
+            echo "WRDS query bridge already running"
+        else
+            WRDS_STATE_DIR="${HOME:?HOME must be set}/.local/state/zeropaper/wrds"
+            mkdir -p -m 700 "$WRDS_STATE_DIR"
+            chmod 700 "$WRDS_STATE_DIR"
+            WRDS_BRIDGE_LOG="$WRDS_STATE_DIR/wrds_query_bridge_23848.log"
+            nohup env -u WRDS_USER -u WRDS_PASS -u PGPASSWORD PYTHONPATH=code \
+                "$WRDS_PY" -c \
+                'import os, sys; os.setsid(); os.execv(sys.argv[1], sys.argv[1:])' \
+                "$WRDS_PY" -u code/utils/wrds_query_bridge.py \
+                >> "$WRDS_BRIDGE_LOG" 2>&1 &
+            wrds_bridge_pid=$!
+            bridge_ready=0
+            for _wrds_bridge_probe in 1 2 3 4 5 6 7 8 9 10; do
+                sleep 0.2
+                if PYTHONPATH=code "$WRDS_PY" -c "from utils.wrds_client import wrds_bridge_ping; exit(0 if wrds_bridge_ping() else 1)" 2>/dev/null; then
+                    bridge_ready=1
+                    break
+                fi
+                if ! kill -0 "$wrds_bridge_pid" 2>/dev/null; then
+                    break
+                fi
+            done
+            if [ "$bridge_ready" -ne 1 ]; then
+                echo "ERROR: WRDS query bridge did not become ready." >&2
+                echo "       Check $WRDS_BRIDGE_LOG; the database daemon remains untouched." >&2
+                exit 1
+            fi
+            echo "WRDS query bridge ready"
+        fi
+    else
+        echo "WRDS query bridge not required on this host"
     fi
 else
     echo "WRDS: credentials not configured (set WRDS_USER and WRDS_PASS in .env), skipping"
