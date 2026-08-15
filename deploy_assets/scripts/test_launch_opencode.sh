@@ -600,7 +600,36 @@ for _ in $(seq 1 50); do kill -0 "$failed_server_pid" 2>/dev/null || break; slee
 reset_project
 (cd "$PROJECT" && exec env MOCK_RUN_SLEEP=2 ./launch.sh opencode) &
 first_driver=$!
-for _ in $(seq 1 50); do [ -f "$PROJECT/process_log/.opencode-control/driver_lock" ] && break; sleep 0.02; done
+# File existence is not readiness: the lock keeper creates the inode before it
+# acquires flock and publishes its separate ready marker. Waiting only for the
+# pathname made this test race the first driver and occasionally let the probe
+# become the winner. Poll the kernel lock itself instead.
+driver_lock_held() {
+    /usr/bin/python3 -I - "$PROJECT/process_log/.opencode-control/driver_lock" <<'PY'
+import fcntl
+import os
+import sys
+
+try:
+    fd = os.open(sys.argv[1], os.O_RDWR)
+except FileNotFoundError:
+    raise SystemExit(1)
+try:
+    try:
+        fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+    except BlockingIOError:
+        raise SystemExit(0)
+    raise SystemExit(1)
+finally:
+    os.close(fd)
+PY
+}
+lock_ready=0
+for _ in $(seq 1 100); do
+    if driver_lock_held; then lock_ready=1; break; fi
+    sleep 0.02
+done
+[ "$lock_ready" = 1 ] || { echo "first OpenCode driver never acquired its lock" >&2; exit 1; }
 if (cd "$PROJECT" && ./launch.sh opencode); then
     echo "concurrent OpenCode driver acquired the project" >&2; exit 1
 fi
@@ -618,20 +647,43 @@ wait "$starting_driver" 2>/dev/null || true
 ! kill -0 "$starting_server" 2>/dev/null
 test -f "$PROJECT/process_log/.opencode-control/driver_lock"
 
-# Quarantine parent creation before the first attached command. A signal after
-# the server creates the session but before the CLI returns cannot permit a
-# later launcher to submit a duplicate first prompt.
+# Quarantine parent creation before the first attached command. TERM, terminal
+# Ctrl-\ (QUIT), and disconnect HUP must all run authoritative inner cleanup:
+# the server and turn are separate setsid groups outside the supervisor PGID.
+for termination_signal in TERM QUIT HUP; do
+    reset_project
+    (cd "$PROJECT" && exec env MOCK_RUN_SLEEP=5 ./launch.sh opencode) &
+    first_turn_driver=$!
+    for _ in $(seq 1 50); do [ -e "$MOCK_CREATED" ] && break; sleep 0.1; done
+    first_turn_server="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
+    first_turn_client="$(tail -1 "$MOCK_RUN_IDENTITIES" | awk '{print $1}')"
+    kill -"$termination_signal" "$first_turn_driver"
+    wait "$first_turn_driver" 2>/dev/null || true
+    ! kill -0 "$first_turn_server" 2>/dev/null
+    ! kill -0 "$first_turn_client" 2>/dev/null
+    test -s "$PROJECT/process_log/.opencode-control/unresolved_session"
+    if (cd "$PROJECT" && ./launch.sh opencode); then
+        echo "$termination_signal-interrupted first-turn quarantine allowed a duplicate parent" >&2
+        exit 1
+    fi
+    test "$(cat "$MOCK_COUNT")" = 1
+done
+
+# A second, mixed signal during the inner shell's bounded teardown must be
+# coalesced rather than re-entering the trap and abandoning detached groups.
 reset_project
 (cd "$PROJECT" && exec env MOCK_RUN_SLEEP=5 ./launch.sh opencode) &
-first_turn_driver=$!
+mixed_signal_driver=$!
 for _ in $(seq 1 50); do [ -e "$MOCK_CREATED" ] && break; sleep 0.1; done
-kill -TERM "$first_turn_driver"
-wait "$first_turn_driver" 2>/dev/null || true
-test -s "$PROJECT/process_log/.opencode-control/unresolved_session"
-if (cd "$PROJECT" && ./launch.sh opencode); then
-    echo "interrupted first-turn quarantine allowed a duplicate parent" >&2; exit 1
-fi
-test "$(cat "$MOCK_COUNT")" = 1
+mixed_signal_server="$(cat "$PROJECT/process_log/.opencode-control/server_pid")"
+mixed_signal_client="$(tail -1 "$MOCK_RUN_IDENTITIES" | awk '{print $1}')"
+mixed_signal_runtime="$(ps -o ppid= -p "$mixed_signal_client" | tr -d ' ')"
+kill -HUP "$mixed_signal_driver"
+sleep 0.05
+kill -TERM -- "-$mixed_signal_runtime" 2>/dev/null || true
+wait "$mixed_signal_driver" 2>/dev/null || true
+! kill -0 "$mixed_signal_server" 2>/dev/null
+! kill -0 "$mixed_signal_client" 2>/dev/null
 
 # A restart can recover a partial cached-server bundle: PID/start identity is
 # enough to reap the exact old process before creating a replacement.

@@ -145,11 +145,12 @@ Result saved to `output/codex_explorations/`.
 
 ## Sandbox model
 
-Codex with `--sandbox workspace-write` runs in the workspace-write sandbox:
+The shipped scripts use the `zeropaper-pipeline` Codex permission profile:
 
 - **Shell + Python available.** `cat`, `grep`, `sed`, `python3` (including `sympy`) all work.
-- **Read access everywhere** the user can read.
-- **Write access only** in `workdir`, `/tmp`, `$TMPDIR`, and `~/.codex/memories`. Writes outside those zones fail with `Read-only file system`.
+- **Read access broadly, with credential directories denied.** `~/.ssh`, `~/.aws`, and `~/.claude` are unreadable.
+- **Write access only** in the workdir, temp directories, `~/.codex`, broad `~/.cache`, `~/Library/Caches`, and `~/.matplotlib`. The narrower WRDS compatibility guard stays read-only; other writes outside those zones fail with `Read-only file system`.
+- **Command network off.** The Codex harness can still reach the model API; model-generated shell commands cannot reach the network.
 
 **Ubuntu 24.04 host gotcha.** The sandbox uses bubblewrap, which needs unprivileged user namespaces. Ubuntu 24.04's default AppArmor policy blocks this for unconfined binaries — every codex shell command then fails with `bwrap: loopback: Failed RTM_NEWADDR: Operation not permitted`. One-time fix:
 

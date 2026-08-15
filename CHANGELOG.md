@@ -15,7 +15,11 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.24.9] — 2026-08-15 (current)
+## [2.24.10] — 2026-08-15 (current)
+
+**Runtime sandboxes again expose the full user cache without weakening WRDS lifecycle safety.** Claude, Codex, Grok, and OpenCode grant broad `~/.cache` writes so unlisted and future scientific/browser tools do not fail on first use; a more-specific `~/.cache/zeropaper/wrds` rule remains read-only/deny-write, and descriptor checks reject symlinked or foreign-owner roots without rejecting ordinary group-writable package caches. Codex now uses a shared permission profile for the orchestrator and un-nested workers, ignores user config in headless sessions while the higher-precedence command-line profile safely overrides legacy sandbox keys for the interactive TUI, retains project `.git` commits and open research egress, disables command egress for codex-math, denies reads of SSH/AWS/Claude credentials, and fails clearly below codex-cli 0.147.0; this closes #254 and replaces legacy `writable_roots`, which could not carve a protected child out of broad cache access. OpenCode's driver lock now follows its actual runtime-subshell parent rather than Bash's inherited `$$`, so concurrent launches cannot attach a second prompt to the same project; the visible launcher preserves its update lock through complete process-group cleanup on termination, disconnect, and terminal quit, while a Ctrl-Z/`fg` handshake safely transfers the controlling terminal between the supervisor and runtime instead of wedging the session. Empirical Codex resume prompts explicitly state that launcher-preflighted WRDS is up, preventing a repaired run from preserving stale outage workarounds. Assembly, launcher, transport, permission-profile, worker, and characterization regressions cover the restored contract.
+
+## [2.24.9] — 2026-08-15
 
 **WRDS v5 startup now scopes Linux network-namespace inspection to deployed runtime candidates before reading protected `/proc/<pid>/ns/net` links.** Same-user system session helpers such as systemd's `(sd-pam)` intentionally hide both cwd and namespace links; v2.24.8 treated that unrelated helper as an incomplete safety scan and refused every daemon startup before login. Processes are classified across their cwd ancestry, so ordinary system helpers are excluded while both opaque children and released clients that changed to a non-project cwd remain inside the fail-closed gate when descended from a deployed runtime. The offline transport suite carries each regression.
 

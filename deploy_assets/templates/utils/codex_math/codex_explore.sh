@@ -110,12 +110,12 @@ _cm_dir="$(cd "$(dirname "$0")" && pwd)"
 . "$_cm_dir/codex_common.sh"
 codex_leaf_setup
 
-codex exec </dev/null --sandbox "$CODEX_SANDBOX_MODE" --skip-git-repo-check \
+codex exec </dev/null --skip-git-repo-check \
+    "${CODEX_SANDBOX_ARGS[@]}" \
     -c "model=\"$MODEL\"" \
     -c "model_reasoning_effort=\"$EFFORT\"" \
     -c 'model_reasoning_summary="detailed"' \
     "${CODEX_NO_SPAWN_ARGS[@]}" \
-    "${CODEX_SANDBOX_WS_ARGS[@]}" \
     -o "$TMP" \
     "$PROMPT" 2>&1 | tee "$LOG"
 

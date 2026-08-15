@@ -72,7 +72,7 @@ npm install -g @anthropic-ai/claude-code
 # Anthropic Sandbox Runtime (only required when using OpenCode)
 npm install -g @anthropic-ai/sandbox-runtime
 
-# Codex
+# Codex (>=0.147.0; required for the permission-profile sandbox)
 npm install -g @openai/codex
 
 # Gemini CLI
@@ -218,13 +218,10 @@ The driver re-prompts the same session (`codex exec resume`) until
 guard. It applies the full sandbox posture automatically, including the
 `$(pwd)/.git` writable root that pipeline `git commit`s require (codex hard-codes
 each root's top-level `.git` as read-only; listing `.git` as its own root
-sidesteps the carve-out — verified on codex-cli 0.144.1). Manual equivalent:
-
-```bash
-source .venv/bin/activate && codex --sandbox workspace-write --ask-for-approval never \
-  -c 'sandbox_workspace_write.network_access=true' \
-  -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$(pwd)/.git\"]"
-```
+sidesteps the carve-out — verified on codex-cli 0.144.1). Use the launcher rather
+than reproducing its Codex command manually: it also grants broad `~/.cache`
+compatibility while keeping the WRDS compatibility guard read-only through a
+Codex permission profile, which legacy `writable_roots` cannot express.
 
 Gemini CLI:
 
@@ -406,7 +403,7 @@ my-paper/
 
 - Preferred: `./launch.sh <claude|codex|gemini|grok|opencode>` — activates the venv and applies each runtime's correct flags (`--tmux` wraps in a detached tmux window)
 - Claude Code: `claude --dangerously-skip-permissions`
-- Codex: `./launch.sh codex` runs the headless driver loop (codex has no autowake; an interactive TUI stalls at every turn-end). Manual posture: `codex --sandbox workspace-write --ask-for-approval never -c 'sandbox_workspace_write.network_access=true' -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$(pwd)/.git\"]"` (write-confined to the project; run from the project root — the `$(pwd)/.git` root is required for pipeline commits; see Safety)
+- Codex: `./launch.sh codex` runs the headless driver loop (codex has no autowake; an interactive TUI stalls at every turn-end). The launcher owns the permission profile, broad-cache/WRDS carve-out, open network, and project `.git` write contract; do not reproduce the command manually.
 - Gemini CLI: `gemini --yolo`
 - OpenCode: set `OPENCODE_API_KEY` in `.env`. `./launch.sh opencode` runs a resumable non-interactive driver on `opencode/deepseek-v4-flash`; `./launch.sh opencode --once` opens the TUI. Both forms fail closed unless Anthropic Sandbox Runtime is installed, and wrap the OpenCode execution owner so native Bash/task descendants inherit its OS filesystem boundary. The autonomous driver maintains an authenticated localhost OpenCode server so native experimental background `task` children survive individual client turns, inject completion into the parent, and autowake it; versions whose task schema lacks `background` use foreground calls. OpenCode reuses `.claude/skills` through its native `skill` tool and generated `.opencode/agents` through native tasks.
 - All runtimes read the same pipeline state and produce identical artifacts — you can switch runtimes mid-pipeline.
@@ -419,13 +416,13 @@ my-paper/
 - WebSearch and WebFetch work freely (for literature search)
 - `bubblewrap` (Linux) / Seatbelt (macOS) enforces restrictions at the OS level
 
-**Codex** — launched under `--sandbox workspace-write` (see Runtime notes): the orchestrator and every sub-agent worker are **write-confined** to the project plus a few cache roots (`~/.codex`, `~/.cache`, `~/Library/Caches`, `~/.matplotlib`), with network egress on. Writes/deletes outside the project are blocked. Unlike Claude, codex's native sandbox confines only *writes* — it does **not** block *reads* of `~/.ssh`/`~/.aws` (documented gap, `LIMITATIONS.md` / #186). Codex-math workers run the same posture with network off.
+**Codex** — launched with the `zeropaper-pipeline` permission profile (codex-cli >=0.147.0): the orchestrator and every sub-agent worker are **write-confined** to the project plus `~/.codex`, broad `~/.cache`, `~/Library/Caches`, and `~/.matplotlib`, with network egress on. The narrower WRDS compatibility guard is read-only, and `~/.ssh`, `~/.aws`, and `~/.claude` are unreadable. Codex-math workers use the same filesystem posture with command network off.
 
-**Grok** — launched under `grok --sandbox pipeline --always-approve --leader-socket "$(pwd)/.grok/leader.sock"` (a per-project `.grok/sandbox.toml` profile extending grok's built-in `workspace`): writes/deletes outside the project are blocked, network egress and WRDS loopback stay on, and the caches (`~/.codex`, `~/.cache`, `~/Library/Caches`, `~/.matplotlib`) remain writable. Grok's kernel `deny` list blocks reads *and* writes, so it goes one better than codex — `~/.ssh`/`~/.aws` are also unreadable. Enforced by Seatbelt (macOS) / Landlock (Linux) at the OS level. The **per-project `--leader-socket`** is required whenever you run more than one grok project on a host (the recommended one-tmux-window-per-project layout): every grok client shares `~/.grok/leader.sock` by default, and a second client connecting to that socket **tears down the first session's in-flight turn**. Pointing each project at its own `.grok/leader.sock` isolates the leaders so concurrent projects don't cancel each other — `./launch.sh grok` passes it automatically.
+**Grok** — launched under `grok --sandbox pipeline --always-approve --leader-socket "$(pwd)/.grok/leader.sock"` (a per-project `.grok/sandbox.toml` profile extending grok's built-in `workspace`): writes/deletes outside the project are blocked, network egress and WRDS loopback stay on, and the caches (`~/.codex`, `~/.cache`, `~/Library/Caches`, `~/.matplotlib`) remain writable. Grok's kernel `deny` list also makes `~/.ssh`/`~/.aws` unreadable. Enforced by Seatbelt (macOS) / Landlock (Linux) at the OS level. The **per-project `--leader-socket`** is required whenever you run more than one grok project on a host (the recommended one-tmux-window-per-project layout): every grok client shares `~/.grok/leader.sock` by default, and a second client connecting to that socket **tears down the first session's in-flight turn**. Pointing each project at its own `.grok/leader.sock` isolates the leaders so concurrent projects don't cancel each other — `./launch.sh grok` passes it automatically.
 
 Two further grok-sandbox consequences (issue #190) — the launcher fixes the first and warns about the second (whose fix is a one-time opt-in script): **(1) venv PATH demotion** — grok's bash tool rebuilds PATH with the macOS defaults ahead of inherited entries, so the activated `.venv` lands below `/usr/bin` and bare `python3` resolves to the system interpreter (no `sympy`, no `wrds`). `./launch.sh grok` installs transparent `VIRTUAL_ENV`-keyed shims (`python3`/`python`/`pip3`/`pip`) into `~/.local/bin`, which grok keeps ahead of `/usr/bin`; the shims are inert outside grok (no active venv → they exec the next real binary on PATH) and are never installed over a pre-existing non-shim file. **(2) `git push` cannot use the macOS keychain** — the `osxkeychain` helper needs `mach-lookup com.apple.SecurityServer`, which grok's sandbox schema (filesystem+network only) cannot grant, so pushes to an HTTPS remote fail on auth while local commits succeed. To enable pushes, run `bash code/utils/setup_push_token.sh` once per project: it stores a **fine-grained PAT scoped to that project's backup repo** in `.git/push-credentials` (untracked, 0600) and switches the repo to a local credential store — the narrowest blast radius (a compromised agent can reach only that one repo's token, never the keychain). Without it, runs proceed normally but stay local-only.
 
-**Gemini** — currently launches unconfined (`--yolo`); filesystem-confinement parity is tracked in #186.
+**Gemini** — currently launches unconfined (`--yolo`); filesystem-confinement parity is tracked in #187.
 
 **OpenCode** — `./launch.sh opencode` wraps the persistent server and every attached client in Anthropic Sandbox Runtime; `--once` wraps the whole TUI. Seatbelt (macOS) / bubblewrap (Linux) confines the descendant trees to project, project-scoped OpenCode state, and approved cache/runtime writes, and denies reads and writes under `~/.ssh` and `~/.aws`. The SRT policy, adapter, launcher, OpenCode config, project `.env`/deployment manifest, host driver, and host control state are immutable from inside the sandbox; the host driver also uses an isolated Python and a PATH with every sandbox-writable directory removed, and runs Git-based progress inspection inside SRT. Network egress remains unrestricted because literature, package, and data hosts cannot be known in advance. The adapter fails closed if SRT or its policy is missing or invalid. Bare `opencode` bypasses this boundary; always use the launcher. See `LIMITATIONS.md` for the external-runtime and global cache/Codex-state caveats.
 

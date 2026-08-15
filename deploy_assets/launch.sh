@@ -45,16 +45,72 @@ case "$_launch_source" in */*) _launch_dir="${_launch_source%/*}" ;; *) _launch_
 ROOT="$(cd "$_launch_dir" && pwd -P)"
 cd "$ROOT"
 
+_launch_is_internal=0
+_launch_internal_supervisor_pid=""
+if [ "${ZEROPAPER_LAUNCH_INTERNAL:-}" = "1" ]; then
+    # The lock-owning parent passes its already-open project descriptor as the
+    # internal-child capability. Validate identity, close it immediately so no
+    # runtime descendant can retain the flock, and remove the marker from the
+    # runtime environment before any CLI starts.
+    /usr/bin/python3 -I -c '
+import os, stat, sys
+fd = int(sys.argv[1])
+left, right = os.fstat(fd), os.stat(sys.argv[2])
+raise SystemExit(0 if stat.S_ISDIR(left.st_mode) and
+                 (left.st_dev, left.st_ino) == (right.st_dev, right.st_ino)
+                 else 1)
+' 8 "$ROOT" || { echo "ERROR: invalid internal launcher project descriptor" >&2; exit 1; }
+    _launch_internal_supervisor_pid="${ZEROPAPER_LAUNCH_SUPERVISOR_PID:-}"
+    case "$_launch_internal_supervisor_pid" in
+        ''|*[!0-9]*) echo "ERROR: invalid internal launcher supervisor identity" >&2; exit 1 ;;
+    esac
+    # Reacquire the shared lock on a private descriptor owned only by a tiny
+    # direct-child keeper. This makes forged internal entry no bypass: it still
+    # fails under an updater's LOCK_EX and, if admitted, keeps LOCK_SH for the
+    # complete runtime-shell lifetime without leaking it into CLI descendants.
+    _launch_internal_ready=""
+    read -r _launch_internal_ready < <(/usr/bin/python3 -I -c '
+import fcntl, os, sys, time
+try:
+    os.close(8)  # drop the outer parent open-file-description in this helper
+except OSError:
+    pass
+try:
+    os.close(7)  # guardian liveness/arming writer belongs to trusted shells
+except OSError:
+    pass
+os.setsid()  # remain runnable while terminal Ctrl-Z stops the runtime group
+fd = os.open(sys.argv[1], os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+try:
+    fcntl.flock(fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
+except BlockingIOError:
+    raise SystemExit(75)
+parent = os.getppid()
+print("locked", flush=True)
+while os.getppid() == parent:
+    time.sleep(0.1)
+' "$ROOT")
+    _launch_internal_keeper=$!
+    [ "$_launch_internal_ready" = "locked" ] \
+        && kill -0 "$_launch_internal_keeper" 2>/dev/null || {
+        echo "ERROR: could not reacquire the internal project runtime/update lock" >&2
+        exit 1
+    }
+    exec 8<&-
+    unset ZEROPAPER_LAUNCH_INTERNAL ZEROPAPER_LAUNCH_SUPERVISOR_PID
+    _launch_is_internal=1
+fi
+
 # Every supported runtime holds a shared lock on the project-root inode for its
 # full process lifetime. Bash owns descriptor 9; the short isolated-Python
 # helper applies flock to that inherited open file description and exits while
 # Bash keeps it live. Interactive branches remain child processes rather than
 # replacing this shell. No pathname lock/readiness file exists.
-if ! exec 9< .; then
+if [ "$_launch_is_internal" = "0" ] && ! exec 9< .; then
     echo "ERROR: could not open the project runtime/update lock" >&2
     exit 1
 fi
-if ! /usr/bin/python3 -I - 9 <<'PY'
+if [ "$_launch_is_internal" = "0" ] && ! /usr/bin/python3 -I - 9 <<'PY'
 import fcntl
 import os
 import stat
@@ -72,6 +128,31 @@ PY
 then
     echo "ERROR: could not acquire the project runtime/update lock" >&2
     exit 1
+fi
+
+# A --tmux handoff keeps its original shared lock until this nested launcher has
+# acquired its own. Publish through one parent-created regular file only after
+# flock succeeds; failure paths in the tmux command publish `failed` instead.
+if [ "$_launch_is_internal" = "0" ] && [ -n "${ZEROPAPER_LAUNCH_READY_FILE:-}" ]; then
+    /usr/bin/python3 -I -c '
+import os, stat, sys
+path = sys.argv[1]
+flags = (os.O_WRONLY | os.O_CREAT | os.O_EXCL |
+         getattr(os, "O_NOFOLLOW", 0))
+fd = os.open(path, flags, 0o600)
+info = os.fstat(fd)
+if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or
+        info.st_uid != os.geteuid()):
+    os.close(fd)
+    raise SystemExit("unsafe launcher readiness file")
+os.write(fd, b"acquired\n")
+os.fsync(fd)
+os.close(fd)
+' "$ZEROPAPER_LAUNCH_READY_FILE" || {
+        echo "ERROR: could not publish nested launcher lock readiness" >&2
+        exit 1
+    }
+    unset ZEROPAPER_LAUNCH_READY_FILE
 fi
 
 _launch_runtime_main() {
@@ -135,14 +216,35 @@ fi
 # Re-wrap into tmux first, so everything below runs inside the window.
 if [ "$TMUX_WRAP" = "1" ]; then
     _win="pipeline-$RUNTIME-${ROOT##*/}"
+    _tmux_ready_dir="$(mktemp -d "${TMPDIR:-/tmp}/zeropaper-launch-ready.XXXXXX")"
+    chmod 700 "$_tmux_ready_dir"
+    _tmux_ready="$_tmux_ready_dir/acquired"
     # `|| true`: the && chain returns 1 when ONCE=0, and an assignment's exit
     # status is its command substitution's — without the guard, set -e kills
     # the script right here, silently, on every plain `--tmux` launch.
-    _cmd="cd $(printf '%q' "$ROOT") && ./launch.sh $(printf '%q' "$RUNTIME")$( [ "$ONCE" = "1" ] && printf ' --once' || true )"
+    _cmd="cd $(printf '%q' "$ROOT") && ZEROPAPER_LAUNCH_READY_FILE=$(printf '%q' "$_tmux_ready") ./launch.sh $(printf '%q' "$RUNTIME")$( [ "$ONCE" = "1" ] && printf ' --once' || true )"
     if [ -n "${TMUX:-}" ]; then
         tmux new-window -n "$_win" "$_cmd"
     else
         tmux new-session -d -s "$_win" "$_cmd"
+    fi
+    _tmux_status=""
+    _tmux_attempt=0
+    while [ "$_tmux_attempt" -lt 1000 ]; do
+        _tmux_attempt=$((_tmux_attempt + 1))
+        if [ -s "$_tmux_ready" ]; then
+            _tmux_status="$(cat "$_tmux_ready")"
+            break
+        fi
+        sleep 0.01
+    done
+    rm -f "$_tmux_ready"
+    rmdir "$_tmux_ready_dir" 2>/dev/null || true
+    [ "$_tmux_status" = "acquired" ] || {
+        echo "ERROR: tmux runtime failed to acquire the project lock" >&2
+        exit 1
+    }
+    if [ -z "${TMUX:-}" ]; then
         echo "Launched in tmux session '$_win' — attach with: tmux attach -t $_win"
     fi
     exit 0
@@ -165,6 +267,19 @@ elif [ -f "$ROOT/.venv/bin/activate" ]; then
     source "$ROOT/.venv/bin/activate"
 else
     echo "WARNING: no .venv in this project — python deps may be missing (create with: uv venv .venv)" >&2
+fi
+
+# Validate permission-profile support before any empirical service may spend a
+# login. The CLI SessionFlags layer below has higher precedence than legacy
+# sandbox keys in project/user config, including for the interactive TUI.
+if [ "$RUNTIME" = "codex" ]; then
+    [ -f "$ROOT/code/utils/codex_preflight.sh" ] || {
+        echo "ERROR: missing code/utils/codex_preflight.sh — run update.sh to refresh this deployment" >&2
+        exit 1
+    }
+    # shellcheck source=/dev/null
+    . "$ROOT/code/utils/codex_preflight.sh"
+    codex_permission_profile_preflight
 fi
 
 # Start host-wide empirical services before entering a runtime's network
@@ -894,8 +1009,6 @@ PY
     OC_SERVER_START=""
     OC_SERVER_URL=""
     OPENCODE_SERVER_PASSWORD=""
-    OC_DRIVER_PID="$$"
-    OC_DRIVER_START="$(ps -o lstart= -p "$$" 2>/dev/null || true)"
     OC_LOCK_HELD=0
     OC_LOCK_KEEPER_PID=""
     OC_SERVER_REUSED=0
@@ -923,7 +1036,6 @@ PY
     }
     oc_acquire_lock() {
         local owner_pid owner_start ready attempt
-        [ -n "$OC_DRIVER_START" ] || { echo "ERROR: cannot establish OpenCode driver process identity" >&2; return 1; }
         # Migrate a stale directory-format lock from the pre-2.21 driver.
         if [ -d "$OC_DRIVER_LOCK" ]; then
             owner_pid="$(cat "$OC_DRIVER_LOCK/pid" 2>/dev/null || true)"
@@ -936,9 +1048,11 @@ PY
             rmdir "$OC_DRIVER_LOCK" 2>/dev/null || { echo "ERROR: cannot recover stale OpenCode driver lock" >&2; return 1; }
         fi
         ready="$(mktemp "$OC_CONTROL_DIR/lock-ready.XXXXXX")"
-        "$OC_CONTROL_PYTHON" -I "$OC_HELPER" lock-hold --path "$OC_DRIVER_LOCK" --parent "$OC_DRIVER_PID" --ready "$ready" &
+        "$OC_CONTROL_PYTHON" -I "$OC_HELPER" lock-hold --path "$OC_DRIVER_LOCK" --ready "$ready" &
         OC_LOCK_KEEPER_PID=$!
-        for attempt in $(seq 1 100); do
+        attempt=0
+        while [ "$attempt" -lt 100 ]; do
+            attempt=$((attempt + 1))
             if [ -s "$ready" ]; then
                 rm -f "$ready"
                 OC_LOCK_HELD=1
@@ -1125,7 +1239,9 @@ PY
         printf '%s\n' "$OPENCODE_SERVER_PASSWORD" > "$password_tmp"
         chmod 600 "$password_tmp"
         mv "$password_tmp" "$OC_SERVER_PASSWORD_FILE"
-        for attempt in $(seq 1 100); do
+        attempt=0
+        while [ "$attempt" -lt 100 ]; do
+            attempt=$((attempt + 1))
             url="$(sed -nE 's#.*(http://(127\.0\.0\.1|localhost):[0-9]+).*#\1#p' "$OC_SERVER_LOG" | tail -1)"
             if [ -n "$url" ]; then
                 OC_SERVER_URL="$url"
@@ -1431,10 +1547,20 @@ PY
     OC_WATCHDOG_PID=""
     oc_kill_turn_group() { # $1 = TERM or KILL
         [ -n "$OC_ACTIVE_PGID" ] || return 0
-        kill -"$1" -- "-$OC_ACTIVE_PGID" 2>/dev/null || true
+        if kill -0 -- "-$OC_ACTIVE_PGID" 2>/dev/null; then
+            kill -"$1" -- "-$OC_ACTIVE_PGID" 2>/dev/null || true
+        else
+            # The Python wrapper may not have completed setsid yet. Its PID is
+            # unreaped and therefore identity-stable; signal that direct child
+            # so it cannot detach after cleanup has already checked the group.
+            kill -"$1" "$OC_ACTIVE_PGID" 2>/dev/null || true
+        fi
     }
     oc_turn_group_alive() {
-        [ -n "$OC_ACTIVE_PGID" ] && kill -0 -- "-$OC_ACTIVE_PGID" 2>/dev/null
+        [ -n "$OC_ACTIVE_PGID" ] && {
+            kill -0 -- "-$OC_ACTIVE_PGID" 2>/dev/null \
+                || kill -0 "$OC_ACTIVE_PGID" 2>/dev/null
+        }
     }
     oc_turn_cleanup() {
         if [ -n "$OC_WATCHDOG_PID" ]; then
@@ -1461,7 +1587,20 @@ PY
         oc_release_lock
     }
     trap oc_exit_cleanup EXIT
-    trap 'oc_signal_cleanup; trap - EXIT; exit 130' INT TERM
+    oc_exit_signal() {
+        local exit_code="$1"
+        # Cleanup includes bounded waits and API shutdown. Coalesce a second or
+        # mixed terminal/disconnect signal so it cannot re-enter this function
+        # and exit before the detached turn/server groups are gone.
+        trap '' HUP INT QUIT TERM
+        oc_signal_cleanup
+        trap - EXIT
+        exit "$exit_code"
+    }
+    trap 'oc_exit_signal 130' INT
+    trap 'oc_exit_signal 143' TERM
+    trap 'oc_exit_signal 129' HUP
+    trap 'oc_exit_signal 131' QUIT
     oc_acquire_lock
     if [ -s "$OC_UNRESOLVED_SESSION_FILE" ]; then
         echo "ERROR: unresolved OpenCode parent session; inspect $OC_UNRESOLVED_SESSION_FILE before launching again" >&2
@@ -1476,7 +1615,7 @@ PY
         # The attached CLI gets its own process group, separate from the server
         # and its native background jobs. A turn timeout can therefore reap a
         # wedged client without destroying unrelated children or autowake.
-        "$OC_CONTROL_PYTHON" -I -c 'import os,sys; os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
+        "$OC_CONTROL_PYTHON" -I -c 'import os,signal,sys; signal.signal(signal.SIGINT, signal.SIG_DFL); signal.signal(signal.SIGQUIT, signal.SIG_DFL); signal.signal(signal.SIGTERM, signal.SIG_DFL); os.setsid(); os.execvp(sys.argv[1], sys.argv[1:])' \
             "$@" </dev/null > "$oc_events" 2>&1 &
         oc_pid=$!
         OC_ACTIVE_PGID="$oc_pid"
@@ -1841,19 +1980,23 @@ raise SystemExit(1)' "$oc_events"; then
 fi
 
 # ── codex ───────────────────────────────────────────────────────────────────
-# Sandbox posture: workspace-write mirroring the Claude deploy (open egress,
-# cache roots writable) plus $ROOT/.git as its own writable root — codex marks
-# each root's top-level .git read-only with no toggle, and listing .git as its
-# own root is the verified workaround; without it every pipeline `git commit`
-# dies on index.lock. Expressed as -c config keys (not -s/-C flags) because
-# `codex exec resume` accepts only the config form.
+# Sandbox posture: a named permission profile mirrors the Claude deploy (open
+# egress and broad ~/.cache compatibility) while carving the WRDS compatibility
+# guard back to read-only. Legacy writable_roots cannot express that narrower
+# exception. $ROOT/.git is a separate workspace root because Codex otherwise
+# makes each workspace's top-level .git read-only and `git commit` dies on
+# index.lock. The profile is expressed as -c keys because exec resume accepts
+# them on every turn.
+codex_permission_profile_args "$ROOT" true
 CODEX_ARGS=(
     --skip-git-repo-check
-    -c 'sandbox_mode="workspace-write"'
     -c 'approval_policy="never"'
-    -c 'sandbox_workspace_write.network_access=true'
-    -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache/uv\",\"~/.cache/pip\",\"~/.cache/matplotlib\",\"~/.cache/fontconfig\",\"~/.cache/gdown\",\"~/.cache/huggingface\",\"~/.cache/torch\",\"~/.cache/ms-playwright\",\"~/Library/Caches\",\"~/.matplotlib\",\"$ROOT/.git\"]"
+    "${CODEX_PERMISSION_PROFILE_ARGS[@]}"
 )
+# Headless sessions ignore user config so a legacy global sandbox_mode cannot
+# silently select the old broad-root system over this more-specific profile.
+# Authentication and session storage still use CODEX_HOME.
+CODEX_EXEC_ONLY_ARGS=(--ignore-user-config)
 
 # --light: pin the orchestrator to the same tier the subagents were assembled
 # on (see light_orchestrator_model above). Config form, not --model, because
@@ -1865,13 +2008,9 @@ if [ -n "$_light_model" ]; then
     echo "[launch] --light: orchestrator pinned to $_light_model" >&2
 fi
 
-# Proxy-auth version floor (issue #213): codex ≤0.144.x is a silent total
-# outage behind an authenticated proxy. Warn-only; guarded so a pre-preflight
-# deploy (or a refresh not yet run) never blocks the launch.
-if [ -f "$ROOT/code/utils/codex_preflight.sh" ]; then
-    . "$ROOT/code/utils/codex_preflight.sh"
-    codex_proxy_auth_preflight
-fi
+# Proxy-auth version floor (issue #213): preserve the dedicated diagnostic even
+# though the permission-profile floor is now newer than the affected clients.
+codex_proxy_auth_preflight
 
 if [ "$ONCE" = "1" ]; then
     codex "${CODEX_ARGS[@]}"
@@ -1921,6 +2060,11 @@ find_sid() {
 
 FIRST_PROMPT='Run the pipeline. You are running unattended — never stop to ask the user anything; make every decision from the pipeline documents.'
 CONT_PROMPT='Continue the pipeline from process_log/pipeline_state.json. You are running unattended — never stop to ask the user anything. If process_log/agent_runs/ contains a .<agent>.running sentinel, a detached worker from a previous turn may still be executing: poll the output file recorded in the sentinel and collect it (do NOT relaunch that agent) before doing anything else.'
+if [ -f "$ROOT/code/utils/start_services.sh" ]; then
+    _service_notice=' The launcher has confirmed that the shared WRDS connection is up. Treat any earlier sandbox-network outage as stale and use the shipped WRDS client normally.'
+    FIRST_PROMPT+="$_service_notice"
+    CONT_PROMPT+="$_service_notice"
+fi
 
 LOG="$ROOT/process_log/driver.log"
 MAX_TURNS="${MAX_TURNS:-300}"
@@ -2165,12 +2309,12 @@ for e in p:
     t0=$SECONDS
     set +e
     if [ -z "$SID" ]; then
-        run_turn codex exec "${CODEX_ARGS[@]}" -- "$FIRST_PROMPT"
+        run_turn codex exec "${CODEX_EXEC_ONLY_ARGS[@]}" "${CODEX_ARGS[@]}" -- "$FIRST_PROMPT"
         SID="$(find_sid || true)"
         [ -z "$SID" ] && { echo "[driver] ERROR: no session recorded for this project after first turn" | tee -a "$LOG"; exit 1; }
         printf '%s\n' "$SID" > "$SID_CACHE"
     else
-        run_turn codex exec resume "$SID" "${CODEX_ARGS[@]}" -- "$CONT_PROMPT"
+        run_turn codex exec resume "$SID" "${CODEX_EXEC_ONLY_ARGS[@]}" "${CODEX_ARGS[@]}" -- "$CONT_PROMPT"
     fi
     set -e
     # Absorb the post-turn worker wait into the turn's duration signal BEFORE
@@ -2247,8 +2391,430 @@ done
 
 }
 
+if [ "$_launch_is_internal" = "1" ]; then
+    trap - HUP INT QUIT TERM
+    _launch_runtime_main "$@"
+    exit
+fi
+
 # Only this parent Bash owns descriptor 9. The complete runtime/control tree
 # executes in a child subshell with that descriptor closed, so it can neither
 # unlock the parent's open file description nor leak the lock into detached
-# descendants. The parent waits here and therefore retains LOCK_SH throughout.
-( _launch_runtime_main "$@" ) 9<&-
+# descendants. Keep stdin explicit: Bash otherwise gives asynchronous commands
+# /dev/null when job control is off, which would break interactive runtimes.
+#
+# The parent also forwards termination and waits for cleanup. Without this
+# handshake, killing the visible launch.sh PID could orphan the runtime
+# subshell (and an OpenCode server/driver lock) while prematurely releasing the
+# project update lock held here.
+_launch_requested_runtime="${1:-}"
+_launch_child_pid=""
+_launch_parent_pgid="$(/bin/ps -o pgid= -p "$$" | tr -d ' ')"
+_launch_tty_transferred=0
+_launch_transfer_tty() {
+    /usr/bin/python3 -I -c '
+import os, signal, sys
+signal.signal(signal.SIGTTOU, signal.SIG_IGN)
+os.tcsetpgrp(0, int(sys.argv[1]))
+' "$_launch_child_pid" 2>/dev/null || return 1
+    _launch_tty_transferred=1
+}
+_launch_restore_tty() {
+    [ "$_launch_tty_transferred" = "1" ] || return 0
+    /usr/bin/python3 -I -c '
+import os, signal, sys
+signal.signal(signal.SIGTTOU, signal.SIG_IGN)
+try:
+    os.tcsetpgrp(0, int(sys.argv[1]))
+except OSError:
+    pass
+' "$_launch_parent_pgid" 2>/dev/null || true
+    _launch_tty_transferred=0
+}
+_launch_supervisor_is_foreground() {
+    /usr/bin/python3 -I -c '
+import os, sys
+raise SystemExit(0 if os.tcgetpgrp(0) == int(sys.argv[1]) else 1)
+' "$_launch_parent_pgid" 2>/dev/null
+}
+_launch_suspend_event=0
+_launch_resume_failed=0
+_launch_handle_suspend() {
+    # The internal runtime shell sends USR1 when its foreground group receives
+    # terminal Ctrl-Z. This event interrupts wait(1), so no lifetime polling is
+    # needed. Freeze the full runtime group, restore the invoking job's TTY,
+    # and stop this supervisor. `fg` continues us; we then hand the TTY back.
+    trap '' USR1
+    if [ "$_launch_tty_transferred" = "1" ] \
+            && [ -n "$_launch_child_pid" ] \
+            && kill -0 "$_launch_child_pid" 2>/dev/null; then
+        kill -STOP -- "-$_launch_child_pid" 2>/dev/null || true
+        _launch_restore_tty
+        kill -STOP "$$"
+        # `bg` also sends SIGCONT, but deliberately leaves the invoking shell
+        # in the foreground. Do not steal its terminal. Stop this job again,
+        # just as a background terminal reader would via SIGTTIN, until `fg`
+        # transfers foreground ownership to the supervisor PGID.
+        while ! _launch_supervisor_is_foreground; do
+            kill -STOP "$$"
+        done
+        if kill -0 "$_launch_child_pid" 2>/dev/null; then
+            if ! _launch_transfer_tty; then
+                kill -KILL -- "-$_launch_child_pid" 2>/dev/null || true
+                kill -CONT -- "-$_launch_child_pid" 2>/dev/null || true
+                _launch_resume_failed=1
+            else
+                kill -CONT -- "-$_launch_child_pid" 2>/dev/null || true
+            fi
+        fi
+    fi
+    _launch_suspend_event=1
+    trap _launch_handle_suspend USR1
+}
+_launch_cleanup_group() {
+    local signal="${1:-TERM}" attempt grace minimum_grace kill_grace abort_timeout
+    [ -n "$_launch_child_pid" ] || return 0
+    kill -0 -- "-$_launch_child_pid" 2>/dev/null || return 0
+    kill -"$signal" -- "-$_launch_child_pid" 2>/dev/null || true
+    # A signal can arrive while the exec wrapper is deliberately stopped for
+    # publication/TTY handoff. Resume it so INT/TERM and runtime cleanup traps
+    # can actually run instead of consuming the entire grace period stopped.
+    kill -CONT -- "-$_launch_child_pid" 2>/dev/null || true
+    grace="${LAUNCH_SIGNAL_GRACE:-10}"
+    case "$grace" in ''|*[!0-9]*) grace=10 ;; esac
+    if [ "$_launch_requested_runtime" = "opencode" ]; then
+        # OpenCode's runtime trap must first stop an active setsid turn, confirm
+        # abort-tree quiescence, and terminate its separate setsid server. Do
+        # not SIGKILL the outer shell before that authoritative cleanup can
+        # finish; these are the inner routine's own bounded waits plus margin.
+        kill_grace="${OPENCODE_KILL_GRACE:-10}"
+        abort_timeout="${OPENCODE_ABORT_TIMEOUT:-30}"
+        case "$kill_grace" in ''|*[!0-9]*) kill_grace=10 ;; esac
+        case "$abort_timeout" in ''|*[!0-9]*) abort_timeout=30 ;; esac
+        minimum_grace=$((kill_grace * 2 + abort_timeout + 20))
+        [ "$grace" -ge "$minimum_grace" ] || grace="$minimum_grace"
+    fi
+    attempt=0
+    while [ "$attempt" -lt $((grace * 10)) ]; do
+        attempt=$((attempt + 1))
+        # The guardian's bound notifier deliberately keeps the PGID alive.
+        # Wait for the authoritative runtime leader, not group emptiness.
+        kill -0 "$_launch_child_pid" 2>/dev/null || return 0
+        sleep 0.1
+    done
+    if [ -n "${_launch_guard_pid:-}" ] && kill -0 "$_launch_guard_pid" 2>/dev/null; then
+        _launch_guard_close
+        return 0
+    fi
+    # Guardian failure is detected fail-closed while the known runtime group
+    # is still present; only this fallback signals it numerically.
+    kill -KILL -- "-$_launch_child_pid" 2>/dev/null || true
+    # Killed processes can remain briefly visible until their own parents reap
+    # them. They cannot write after SIGKILL, so a bounded confirmation is
+    # sufficient before the lock owner returns.
+    attempt=0
+    while [ "$attempt" -lt 50 ]; do
+        attempt=$((attempt + 1))
+        kill -0 -- "-$_launch_child_pid" 2>/dev/null || return 0
+        sleep 0.02
+    done
+}
+_launch_forward_signal() {
+    local signal="$1" exit_code="$2"
+    # Coalesce a second Ctrl-C/TERM instead of letting the lock-owning parent
+    # take the default action halfway through cleanup.
+    trap '' HUP INT QUIT TERM
+    if [ -n "$_launch_child_pid" ] && kill -0 "$_launch_child_pid" 2>/dev/null; then
+        _launch_cleanup_group "$signal"
+    fi
+    [ -z "$_launch_child_pid" ] || wait "$_launch_child_pid" 2>/dev/null || true
+    _launch_guard_close
+    _launch_restore_tty
+    exit "$exit_code"
+}
+# Defer (do not discard) operator signals across the fork→PID/publication
+# handshake. The child stops itself after setpgid, so no runtime code can
+# escape; once the group identity is published, any pending request is routed
+# through the ordinary bounded cleanup path.
+_launch_pending_signal=""
+trap '_launch_pending_signal=HUP' HUP
+trap '_launch_pending_signal=INT' INT
+trap '_launch_pending_signal=QUIT' QUIT
+trap '_launch_pending_signal=TERM' TERM
+# A detached guardian inherits descriptor 9 and an anonymous pipe whose only
+# writer is this supervisor. If the supervisor is killed without running traps
+# (including `kill -KILL %job` while Ctrl-Z-suspended), pipe EOF wakes the
+# guardian, which kills the stopped runtime PGID before releasing its copy of
+# the project lock. The guardian self-stops after setsid so startup can prove it
+# escaped the supervisor/job-control group before any runtime exists.
+_launch_guard_pid=""
+_launch_guard_close() {
+    trap - EXIT
+    printf 'clean\n' >&7 2>/dev/null || true
+    exec 7>&-
+    [ -z "$_launch_guard_pid" ] || wait "$_launch_guard_pid" 2>/dev/null || true
+    _launch_guard_pid=""
+}
+exec 7> >(/usr/bin/python3 -I -c '
+import os, select, signal, sys, time
+os.setsid()
+for signum in (signal.SIGHUP, signal.SIGINT, signal.SIGQUIT, signal.SIGTERM):
+    signal.signal(signum, signal.SIG_IGN)
+os.kill(os.getpid(), signal.SIGSTOP)
+line = sys.stdin.readline().strip()
+if not line:
+    raise SystemExit(0)
+try:
+    runtime_pgid = int(line)
+except ValueError:
+    raise SystemExit(1)
+# The internal shell publishes a persistent same-PGID notifier before any CLI
+# starts. It ignores catchable termination signals and therefore stabilizes the
+# group identity even after the leader exits, until this guardian kills it.
+anchor_line = sys.stdin.readline().strip()
+try:
+    anchor_pid = int(anchor_line)
+except ValueError:
+    raise SystemExit(1)
+try:
+    if os.getpgid(anchor_pid) != runtime_pgid:
+        raise SystemExit(1)
+except ProcessLookupError:
+    raise SystemExit(1)
+
+identity_kind = None
+identity_fd = None
+kqueue = None
+try:
+    if hasattr(os, "pidfd_open"):
+        try:
+            identity_fd = os.pidfd_open(anchor_pid)
+        except OSError:
+            identity_fd = None
+        else:
+            identity_kind = "pidfd"
+    if identity_kind is None and sys.platform.startswith("linux"):
+        # Python 3.8 lacks os.pidfd_open. An open proc-directory descriptor is
+        # also the fallback when an older kernel/seccomp profile rejects the
+        # syscall: it is tied to this process instance, and after exit opening
+        # `stat` relative to it cannot follow a reused numeric PID.
+        identity_fd = os.open(f"/proc/{anchor_pid}",
+                              os.O_RDONLY | os.O_DIRECTORY |
+                              getattr(os, "O_NOFOLLOW", 0))
+        identity_kind = "procfd"
+    if identity_kind is None and hasattr(select, "kqueue"):
+        kqueue = select.kqueue()
+        event = select.kevent(anchor_pid, filter=select.KQ_FILTER_PROC,
+                              flags=select.KQ_EV_ADD,
+                              fflags=select.KQ_NOTE_EXIT)
+        kqueue.control([event], 0, 0)
+        identity_kind = "kqueue"
+    if identity_kind is None:
+        raise SystemExit(1)
+except (OSError, ProcessLookupError):
+    raise SystemExit(1)
+# The shell waits for this acknowledgement before closing its arming writer or
+# starting agent-controlled code.
+os.kill(runtime_pgid, signal.SIGUSR2)
+completion = sys.stdin.read()
+# Both clean completion and bare EOF terminate the residual runtime group. On
+# clean completion the leader has already exited or completed its authoritative
+# teardown; on bare EOF this is supervisor-death recovery. In both cases the
+# live bound anchor makes killpg identity-safe.
+alive = False
+if identity_kind == "pidfd":
+    alive = not bool(select.select([identity_fd], [], [], 0)[0])
+elif identity_kind == "procfd":
+    try:
+        stat_fd = os.open("stat", os.O_RDONLY, dir_fd=identity_fd)
+    except OSError:
+        alive = False
+    else:
+        os.close(stat_fd)
+        alive = True
+elif identity_kind == "kqueue":
+    alive = not bool(kqueue.control(None, 1, 0))
+if not alive:
+    raise SystemExit(0)
+try:
+    os.killpg(runtime_pgid, signal.SIGKILL)
+except ProcessLookupError:
+    pass
+for _ in range(50):
+    if identity_kind == "pidfd":
+        if select.select([identity_fd], [], [], 0)[0]:
+            break
+    elif identity_kind == "procfd":
+        try:
+            stat_fd = os.open("stat", os.O_RDONLY, dir_fd=identity_fd)
+        except OSError:
+            break
+        else:
+            os.close(stat_fd)
+    elif kqueue.control(None, 1, 0):
+        break
+    time.sleep(0.02)
+')
+_launch_guard_pid=$!
+_launch_guard_attempt=0
+while [ "$_launch_guard_attempt" -lt 100 ]; do
+    _launch_guard_attempt=$((_launch_guard_attempt + 1))
+    _launch_guard_pgid="$(/bin/ps -o pgid= -p "$_launch_guard_pid" 2>/dev/null | tr -d ' ')"
+    _launch_guard_state="$(/bin/ps -o stat= -p "$_launch_guard_pid" 2>/dev/null | tr -d ' ')"
+    if [ "$_launch_guard_pgid" = "$_launch_guard_pid" ]; then
+        case "$_launch_guard_state" in *T*) break ;; esac
+    fi
+    kill -0 "$_launch_guard_pid" 2>/dev/null || break
+    sleep 0.01
+done
+case "${_launch_guard_state:-}" in *T*) _launch_guard_stopped=1 ;; *) _launch_guard_stopped=0 ;; esac
+if [ "${_launch_guard_pgid:-}" != "$_launch_guard_pid" ] || [ "$_launch_guard_stopped" != "1" ]; then
+    kill -KILL "$_launch_guard_pid" 2>/dev/null || true
+    kill -CONT "$_launch_guard_pid" 2>/dev/null || true
+    exec 7>&-
+    wait "$_launch_guard_pid" 2>/dev/null || true
+    echo "ERROR: could not establish isolated runtime lock guardian" >&2
+    exit 1
+fi
+trap _launch_guard_close EXIT
+kill -CONT "$_launch_guard_pid" 2>/dev/null || {
+    echo "ERROR: could not continue isolated runtime lock guardian" >&2
+    exit 1
+}
+# A separate process group gives the runtime one stable shutdown identity. A
+# tiny trusted Python exec wrapper establishes it before Bash or a CLI can
+# spawn; the new Bash re-reads this trusted script through a descriptor-gated
+# internal entrypoint and receives no startup-hook environment. Non-job-control
+# Bash otherwise makes an ordinary async subshell inherit ignored INT/QUIT.
+/usr/bin/python3 -I -c '
+import os, signal, sys, time
+os.setpgid(0, 0)
+for signum in (signal.SIGHUP, signal.SIGINT, signal.SIGQUIT, signal.SIGTERM):
+    signal.signal(signum, signal.SIG_DFL)
+# Build and publish the persistent same-PGID anchor entirely child-side before
+# this wrapper stops. Thus supervisor SIGKILL in any fork/publication window
+# still leaves a runnable writer that completes guardian arming, closes fd7,
+# and lets bare EOF trigger identity-safe group cleanup.
+supervisor = int(sys.argv[2])
+armed = False
+def arm(_signum, _frame):
+    global armed
+    armed = True
+signal.signal(signal.SIGUSR2, arm)
+anchor_pid = os.fork()
+if anchor_pid == 0:
+    for fd in (7, 8):
+        try:
+            os.close(fd)
+        except OSError:
+            pass
+    def notify(_signum, _frame):
+        try:
+            os.kill(supervisor, signal.SIGUSR1)
+        except ProcessLookupError:
+            pass
+    signal.signal(signal.SIGTSTP, notify)
+    for signum in (signal.SIGHUP, signal.SIGINT, signal.SIGQUIT, signal.SIGTERM):
+        signal.signal(signum, signal.SIG_IGN)
+    while True:
+        signal.pause()
+published = False
+try:
+    os.write(7, (str(os.getpid()) + "\n" + str(anchor_pid) + "\n").encode())
+    published = True
+    deadline = time.monotonic() + 2
+    while not armed and time.monotonic() < deadline:
+        time.sleep(0.01)
+except OSError:
+    pass
+finally:
+    os.close(7)
+if not published or not armed:
+    os.kill(anchor_pid, signal.SIGKILL)
+    raise SystemExit(75)
+signal.signal(signal.SIGUSR2, signal.SIG_DFL)
+os.kill(os.getpid(), signal.SIGSTOP)  # Parent transfers any TTY before SIGCONT.
+env = os.environ.copy()
+for key in ("BASH_ENV", "ENV", "BASHOPTS", "SHELLOPTS", "CDPATH", "GLOBIGNORE"):
+    env.pop(key, None)
+env["ZEROPAPER_LAUNCH_INTERNAL"] = "1"
+env["ZEROPAPER_LAUNCH_SUPERVISOR_PID"] = sys.argv[2]
+argv = ["bash", "--noprofile", "--norc", sys.argv[1], *sys.argv[3:]]
+os.execve("/bin/bash", argv, env)
+' "$ROOT/launch.sh" "$$" "$@" 8<&9 9<&- <&0 &
+_launch_child_pid=$!
+# Confirm the wrapper established and stopped the promised group before
+# transferring a TTY or accepting an operator signal.
+_launch_group_attempt=0
+while [ "$_launch_group_attempt" -lt 100 ]; do
+    _launch_group_attempt=$((_launch_group_attempt + 1))
+    _launch_group_now="$(/bin/ps -o pgid= -p "$_launch_child_pid" 2>/dev/null | tr -d ' ')"
+    _launch_group_state="$(/bin/ps -o stat= -p "$_launch_child_pid" 2>/dev/null | tr -d ' ')"
+    if [ "$_launch_group_now" = "$_launch_child_pid" ]; then
+        case "$_launch_group_state" in *T*) break ;; esac
+    fi
+    kill -0 "$_launch_child_pid" 2>/dev/null || break
+    sleep 0.01
+done
+case "${_launch_group_state:-}" in *T*) _launch_group_stopped=1 ;; *) _launch_group_stopped=0 ;; esac
+if [ "${_launch_group_now:-}" != "$_launch_child_pid" ] || [ "$_launch_group_stopped" != "1" ]; then
+    # The wrapper may already be stopped even when ps output was incomplete or
+    # surprising. Never wait indefinitely for a stopped, unpublished child.
+    kill -KILL -- "-$_launch_child_pid" 2>/dev/null || kill -KILL "$_launch_child_pid" 2>/dev/null || true
+    kill -CONT -- "-$_launch_child_pid" 2>/dev/null || kill -CONT "$_launch_child_pid" 2>/dev/null || true
+    wait "$_launch_child_pid" 2>/dev/null || true
+    echo "ERROR: could not establish isolated runtime process group" >&2
+    exit 1
+fi
+if [ -t 0 ]; then
+    if ! _launch_transfer_tty; then
+        kill -KILL -- "-$_launch_child_pid" 2>/dev/null || true
+        kill -CONT -- "-$_launch_child_pid" 2>/dev/null || true
+        wait "$_launch_child_pid" 2>/dev/null || true
+        echo "ERROR: could not transfer the controlling terminal to the runtime" >&2
+        exit 1
+    fi
+fi
+trap '_launch_forward_signal HUP 129' HUP
+trap '_launch_forward_signal INT 130' INT
+trap '_launch_forward_signal QUIT 131' QUIT
+trap '_launch_forward_signal TERM 143' TERM
+trap _launch_handle_suspend USR1
+kill -CONT -- "-$_launch_child_pid" 2>/dev/null || {
+    _launch_restore_tty
+    wait "$_launch_child_pid" 2>/dev/null || true
+    echo "ERROR: could not continue isolated runtime process group" >&2
+    exit 1
+}
+case "$_launch_pending_signal" in
+    HUP) _launch_forward_signal HUP 129 ;;
+    INT) _launch_forward_signal INT 130 ;;
+    QUIT) _launch_forward_signal QUIT 131 ;;
+    TERM) _launch_forward_signal TERM 143 ;;
+esac
+# USR1 from the runtime's TSTP trap interrupts Bash wait with status 138. The
+# handler performs the complete stop/fg/continue handshake; then wait again on
+# the same identity. There is no polling or per-runtime helper churn.
+while :; do
+    _launch_suspend_event=0
+    if wait "$_launch_child_pid"; then
+        _launch_child_rc=0
+    else
+        _launch_child_rc=$?
+    fi
+    if [ "$_launch_suspend_event" = "1" ] \
+            && kill -0 "$_launch_child_pid" 2>/dev/null; then
+        continue
+    fi
+    break
+done
+[ "$_launch_resume_failed" = "0" ] || _launch_child_rc=1
+# With a controlling TTY, Ctrl-C goes directly to the foreground runtime group,
+# not this lock-owning parent. The leader may exit while an ignoring or
+# shutdown-spawned member remains. Verify and drain the group after *every*
+# leader exit before restoring the TTY or releasing descriptor 9.
+_launch_cleanup_group TERM
+_launch_guard_close
+_launch_restore_tty
+trap - HUP INT QUIT TERM USR1
+exit "$_launch_child_rc"

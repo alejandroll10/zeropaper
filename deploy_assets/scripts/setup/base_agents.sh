@@ -368,8 +368,7 @@ setup_base_agents() {
     # `extends = "workspace"` already gives read-everywhere / write-{CWD,
     # ~/.grok,temp} / network-on; we add the pipeline's out-of-project cache+state dirs
     # as read_write and kernel-deny the credential dirs. Grok's `deny` blocks READS as
-    # well as writes, so this also closes the secret-read gap the codex runtime had to
-    # defer (codex workspace-write is write-confinement only). Writes to ~/.claude,
+    # well as writes. Writes to ~/.claude,
     # /etc, /root need no explicit denyWrite: the workspace base already blocks every
     # write outside {CWD, ~/.grok, temp}, and they stay readable (unlike a `deny`).
     #
@@ -395,14 +394,7 @@ extends = "workspace"
 # Out-of-project caches/state the pipeline legitimately writes.
 read_write = [
   "$HOME/.codex",
-  "$HOME/.cache/uv",
-  "$HOME/.cache/pip",
-  "$HOME/.cache/matplotlib",
-  "$HOME/.cache/fontconfig",
-  "$HOME/.cache/gdown",
-  "$HOME/.cache/huggingface",
-  "$HOME/.cache/torch",
-  "$HOME/.cache/ms-playwright",
+  "$HOME/.cache",
   "$HOME/Library/Caches",
   "$HOME/.matplotlib",
 ]

@@ -321,6 +321,12 @@ def cmd_abort_tree(args) -> int:
 
 
 def cmd_lock_hold(args) -> int:
+    # The launcher runs its runtime body in a Bash subshell. Bash's `$$` keeps
+    # the outer shell PID there (not the subshell's OS PID), so accepting a PID
+    # from shell caused this helper to see a parent mismatch and release flock
+    # immediately. Bind to the kernel-reported direct parent instead; reparenting
+    # on launcher exit is then the release signal and cannot suffer PID reuse.
+    parent = os.getppid()
     with open(args.path, "a+", encoding="utf-8") as handle:
         try:
             fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
@@ -328,11 +334,11 @@ def cmd_lock_hold(args) -> int:
             return 3
         handle.seek(0)
         handle.truncate()
-        handle.write(f"{args.parent}\n")
+        handle.write(f"{parent}\n")
         handle.flush()
         with open(args.ready, "w", encoding="utf-8") as ready:
             ready.write("ready\n")
-        while os.getppid() == args.parent:
+        while os.getppid() == parent:
             time.sleep(0.2)
     return 0
 
@@ -423,7 +429,6 @@ def build_parser() -> argparse.ArgumentParser:
 
     lock = sub.add_parser("lock-hold")
     lock.add_argument("--path", required=True)
-    lock.add_argument("--parent", type=int, required=True)
     lock.add_argument("--ready", required=True)
     lock.set_defaults(func=cmd_lock_hold)
 

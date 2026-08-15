@@ -55,7 +55,7 @@ function ensure(parts) {
     if (!fs.existsSync(current)) fs.mkdirSync(current, {mode: 0o700});
     const info = fs.lstatSync(current);
     if (!info.isDirectory() || info.isSymbolicLink() ||
-        (expectedUid !== null && info.uid !== expectedUid) || (info.mode & 0o022)) {
+        (expectedUid !== null && info.uid !== expectedUid)) {
       throw new Error(`unsafe OpenCode sandbox writable root: ${current}`);
     }
     const fd = fs.openSync(current,
@@ -68,9 +68,7 @@ function ensure(parts) {
   }
 }
 for (const parts of [
-  [".codex"], [".matplotlib"], ["Library", "Caches"],
-  ...["uv", "pip", "matplotlib", "fontconfig", "gdown", "huggingface",
-      "torch", "ms-playwright", "opencode"].map(name => [".cache", name]),
+  [".codex"], [".cache"], [".matplotlib"], ["Library", "Caches"],
 ]) ensure(parts);
 JS
 project_root="$(pwd -P)"

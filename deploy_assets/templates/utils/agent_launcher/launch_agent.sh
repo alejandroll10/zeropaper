@@ -92,10 +92,13 @@ SCRIPT_DIR="$(cd "$(dirname "${BASH_SOURCE[0]}")" && pwd)"
 # orchestrator startup — codex can auto-update or be rolled back mid-run, so
 # the launch.sh preflight's verdict may be stale by the time a worker spawns.
 # Guarded so a deploy predating the preflight never blocks a dispatch.
-if [ -f "$SCRIPT_DIR/../codex_preflight.sh" ]; then
-    . "$SCRIPT_DIR/../codex_preflight.sh"
-    codex_proxy_auth_preflight
-fi
+[ -f "$SCRIPT_DIR/../codex_preflight.sh" ] || {
+    echo "ERROR: missing codex_preflight.sh — run update.sh to refresh this deployment" >&2
+    exit 1
+}
+. "$SCRIPT_DIR/../codex_preflight.sh"
+codex_permission_profile_preflight
+codex_proxy_auth_preflight
 # code/utils/agent_launcher/ -> project root is three levels up.
 PROJECT_ROOT="$(cd "$SCRIPT_DIR/../../.." && pwd)"
 AGENTS_DIR="$PROJECT_ROOT/.codex/agents"
@@ -234,23 +237,17 @@ if [ -n "${CODEX_SANDBOX:-}" ] && [ "$SANDBOX" != "danger-full-access" ]; then
     SANDBOX="danger-full-access"
 fi
 
-# Under workspace-write, mirror the Claude deploy's filesystem/network posture
-# (.claude/settings.json allowWrite + open egress): workspace-write defaults to
-# writable [workdir, /tmp, $TMPDIR] with network OFF, but pipeline workers write
-# codex-math session state to ~/.codex and uv/matplotlib caches, and need egress
-# (OpenAlex and the web; WRDS now uses a filesystem socket). Without these a
-# worker silently cannot reach web sources or write its caches. codex expands ~ inside writable_roots
-# (verified). These keys are no-ops unless the active sandbox is workspace-write,
-# so they are harmless under --sandbox read-only / danger-full-access. Writes
-# outside this set (e.g. rm in $HOME) stay blocked — the anti-destruction point.
+# Under workspace-write, mirror the Claude deploy's filesystem/network posture:
+# broad ~/.cache compatibility, writable Codex state, open egress, and a
+# read-only carve-out for the WRDS compatibility guard. Legacy writable_roots
+# cannot express that narrower exception, so un-nested write-capable workers
+# use the shared Codex permission profile. Read-only and nested
+# danger-full-access workers keep their explicit legacy modes.
 #
 # INTENTIONAL DIVERGENCE: templates/utils/codex_math/codex_common.sh has a
-# counterpart array (CODEX_SANDBOX_WS_ARGS) that deliberately sets
-# network_access=FALSE — codex-math workers are self-contained proof/numerics
-# tasks with zero egress need (least-privilege). The writable_roots half is
-# identical; the network half is not. Do NOT unify these two without reading why
-# they differ (see that file's comment) — matching them would re-grant egress to
-# the one call site that has no use for it.
+# counterpart profile deliberately sets network=FALSE — codex-math workers are
+# self-contained proof/numerics tasks with zero egress need. Do NOT unify these
+# two without reading why they differ.
 # $PROJECT_ROOT/.git is included for the same reason the orchestrator's launch
 # command carries it: codex hard-codes each root's top-level .git read-only, so
 # a worker that commits (scribe) would die on index.lock without it. Only
@@ -258,20 +255,14 @@ fi
 # danger-full-access under the caller's outer sandbox — see the guard above);
 # it makes the un-nested path behave the same. codex_common.sh's counterpart
 # array deliberately omits it — codex-math workers never touch git.
-# KNOWN EDGE (accepted): $PROJECT_ROOT is interpolated into a TOML array
-# literal, so a project path containing a double quote or backslash would break
-# this -c value's TOML parse — and unlike developer_instructions (where the
-# raw-literal fallback is a string, the expected type) an array key has no
-# graceful fallback. The same interpolation ships in the documented launch
-# command (README/CLAUDE.md/setup.sh). Deploy paths are machine-generated and
-# never carry those characters; do not name a project with `"` or `\`.
-SANDBOX_WS_ARGS=(
-    -c 'sandbox_workspace_write.network_access=true'
-    -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache/uv\",\"~/.cache/pip\",\"~/.cache/matplotlib\",\"~/.cache/fontconfig\",\"~/.cache/gdown\",\"~/.cache/huggingface\",\"~/.cache/torch\",\"~/.cache/ms-playwright\",\"~/Library/Caches\",\"~/.matplotlib\",\"$PROJECT_ROOT/.git\"]"
-)
-
+CODEX_WORKER_SANDBOX_ARGS=(--ignore-user-config)
+CODEX_WORKER_PROFILE_ARGS=()
 if [ "$SANDBOX" = "workspace-write" ]; then
+    codex_permission_profile_args "$PROJECT_ROOT" true
+    CODEX_WORKER_PROFILE_ARGS=("${CODEX_PERMISSION_PROFILE_ARGS[@]}")
     "$LAUNCHER_PY" -I "$SCRIPT_DIR/../sandbox_cache_roots.py"
+else
+    CODEX_WORKER_SANDBOX_ARGS+=(--sandbox "$SANDBOX")
 fi
 
 if [ -z "$OUTPUT" ]; then
@@ -377,10 +368,10 @@ _worker_cmd=(
     --skip-git-repo-check
     -C "$PROJECT_ROOT"
     -m "$MODEL"
-    -s "$SANDBOX"
+    "${CODEX_WORKER_SANDBOX_ARGS[@]}"
     -c "model_reasoning_effort=\"$EFFORT\""
     -c 'project_doc_max_bytes=0'
-    "${SANDBOX_WS_ARGS[@]}"
+    "${CODEX_WORKER_PROFILE_ARGS[@]}"
     -c "developer_instructions=$INSTRUCTIONS"
     ${_catalog_args[@]+"${_catalog_args[@]}"}
     ${ADDDIR_ARGS[@]+"${ADDDIR_ARGS[@]}"}

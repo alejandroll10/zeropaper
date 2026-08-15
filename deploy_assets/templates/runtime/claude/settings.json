@@ -8,7 +8,7 @@
       "allowLocalBinding": true
     },
     "filesystem": {
-      "allowWrite": ["./", "/tmp", "$TMPDIR", "~/.codex", "~/.cache/uv", "~/.cache/pip", "~/.cache/matplotlib", "~/.cache/fontconfig", "~/.cache/gdown", "~/.cache/huggingface", "~/.cache/torch", "~/.cache/ms-playwright", "~/Library/Caches", "~/.matplotlib"],
+      "allowWrite": ["./", "/tmp", "$TMPDIR", "~/.codex", "~/.cache", "~/Library/Caches", "~/.matplotlib"],
       "denyWrite": ["~/.cache/zeropaper/wrds", "~/.ssh", "~/.aws", "~/.claude", "/etc", "/root"],
       "denyRead": ["~/.ssh", "~/.aws"]
     }

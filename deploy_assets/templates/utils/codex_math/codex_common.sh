@@ -18,14 +18,13 @@
 
 CODEX_LEAF_DIRECTIVE="You are a single leaf worker running one codex-math task. Do NOT spawn, delegate to, launch, or hand off to other agents or sub-agents (no spawn_agent, no launch_agent.sh, no nested codex exec). Complete the task yourself and return the result."
 
-# Sandbox posture for codex-math leaf workers. The writable-roots half mirrors
+# Sandbox posture for codex-math leaf workers. The filesystem half mirrors
 # code/utils/agent_launcher/launch_agent.sh (and the deployed Claude
-# .claude/settings.json allowWrite set): workspace-write defaults writable to
-# [workdir, /tmp, $TMPDIR], and codex-math shells out to python/sympy/matplotlib
-# (font/uv caches under ~/.cache, ~/.matplotlib, ~/Library/Caches) and writes its
-# own session state under ~/.codex, so those roots must be writable. codex
-# expands ~ inside writable_roots (verified). Writes outside this set (e.g. rm in
-# $HOME) stay blocked — the anti-destruction property.
+# .claude/settings.json allowWrite set): codex-math shells out to
+# python/sympy/matplotlib and writes package-specific paths under broad
+# ~/.cache, plus ~/.matplotlib, ~/Library/Caches, and its own ~/.codex session
+# state. The shared permission profile grants those roots while keeping the
+# narrower WRDS compatibility guard read-only.
 #
 # DELIBERATE DIVERGENCE from launch_agent.sh: network stays OFF here. That
 # launcher enables egress because general pipeline agents call OpenAlex / web
@@ -34,16 +33,11 @@ CODEX_LEAF_DIRECTIVE="You are a single leaf worker running one codex-math task. 
 # least-privilege we do not grant the sandboxed shell tool a network capability
 # it has no task-relevant use for (a hallucinated "let me check online" shell-out
 # then fails closed rather than reaching out). Setting it explicitly to false
-# (not just relying on the default) also overrides any network_access=true a
-# user's global ~/.codex/config.toml might carry. Note this does NOT affect
+# also avoids inheriting a user's broader command-network policy. This does NOT affect
 # codex's own model-API traffic — the sandbox gates model-generated shell
 # commands, not the codex harness's outbound API call, so the worker still runs.
-# These keys are no-ops unless the active sandbox is workspace-write.
-# Pass "${CODEX_SANDBOX_WS_ARGS[@]}" into each `codex exec`.
-CODEX_SANDBOX_WS_ARGS=(
-    -c 'sandbox_workspace_write.network_access=false'
-    -c 'sandbox_workspace_write.writable_roots=["~/.codex","~/.cache/uv","~/.cache/pip","~/.cache/matplotlib","~/.cache/fontconfig","~/.cache/gdown","~/.cache/huggingface","~/.cache/torch","~/.cache/ms-playwright","~/Library/Caches","~/.matplotlib"]'
-)
+# `codex_leaf_setup` populates this for each `codex exec`.
+CODEX_SANDBOX_ARGS=()
 
 # Sandbox MODE for codex-math leaf workers: workspace-write normally. When these
 # scripts are invoked from inside a codex sandbox (CODEX_SANDBOX is set in the
@@ -100,10 +94,18 @@ codex_leaf_setup() {
     _cp_dir="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
     if [ -f "$_cp_dir/codex_preflight.sh" ]; then
         . "$_cp_dir/codex_preflight.sh"
+        codex_permission_profile_preflight
         codex_proxy_auth_preflight
+    else
+        echo "[codex-math] ERROR: missing codex_preflight.sh — run update.sh" >&2
+        return 1
     fi
     if [ "$CODEX_SANDBOX_MODE" = "workspace-write" ]; then
         /usr/bin/python3 -I "$_cp_dir/sandbox_cache_roots.py"
+        codex_permission_profile_args "" false
+        CODEX_SANDBOX_ARGS=(--ignore-user-config "${CODEX_PERMISSION_PROFILE_ARGS[@]}")
+    else
+        CODEX_SANDBOX_ARGS=(--ignore-user-config --sandbox "$CODEX_SANDBOX_MODE")
     fi
     # The literal-/tmp fallback is for Linux, where /tmp is a real directory.
     # On macOS an unset TMPDIR would hit the /tmp→/private/tmp symlink issue

@@ -16,12 +16,11 @@ def checked_open(path, label):
         raise SystemExit(f"ERROR: unsafe sandbox {label} {path}: {exc}")
     info = os.fstat(fd)
     if (not stat.S_ISDIR(info.st_mode) or
-            (hasattr(os, "getuid") and info.st_uid != os.getuid()) or
-            info.st_mode & 0o022):
+            (hasattr(os, "getuid") and info.st_uid != os.getuid())):
         os.close(fd)
         raise SystemExit(
-            f"ERROR: sandbox {label} must be an owner-only-writable real "
-            f"directory: {path}")
+            f"ERROR: sandbox {label} must be a same-owner real directory: "
+            f"{path}")
     return fd
 
 
@@ -37,11 +36,10 @@ def ensure(parent_fd, parent_path, name):
         raise SystemExit(f"ERROR: unsafe sandbox writable root {path}: {exc}")
     info = os.fstat(fd)
     if (not stat.S_ISDIR(info.st_mode) or
-            (hasattr(os, "getuid") and info.st_uid != os.getuid()) or
-            info.st_mode & 0o022):
+            (hasattr(os, "getuid") and info.st_uid != os.getuid())):
         os.close(fd)
         raise SystemExit(
-            f"ERROR: sandbox writable root failed owner/type/mode checks: {path}")
+            f"ERROR: sandbox writable root failed owner/type checks: {path}")
     return fd, path
 
 
@@ -61,14 +59,8 @@ def main():
             os.close(caches_fd)
         finally:
             os.close(library_fd)
-        cache_fd, cache_path = ensure(home_fd, home, ".cache")
-        try:
-            for name in ("uv", "pip", "matplotlib", "fontconfig", "gdown",
-                         "huggingface", "torch", "ms-playwright"):
-                child_fd, _ = ensure(cache_fd, cache_path, name)
-                os.close(child_fd)
-        finally:
-            os.close(cache_fd)
+        cache_fd, _ = ensure(home_fd, home, ".cache")
+        os.close(cache_fd)
     finally:
         os.close(home_fd)
 
