@@ -112,20 +112,6 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## Headline-replicator re-fire is gated on an unverifiable "material change" judgment
-
-**Scope:** Stage 3a step 7 (the `empirics-auditor` FAIL re-fire path) under `--ext empirical`.
-
-**Failure mode:** When `empirics-auditor` returns FAIL and the empiricist re-runs to address the audit, `stage_3a_empirical.md` step 7 instructs the orchestrator to re-fire `headline-replicator` (step 6.5) "on any empiricist re-fire from this step that materially changes `code/empirical.py` or `empirical_analysis.md` headline content." There is no mechanism for the orchestrator to determine "material" without diff-reading both files before and after the empiricist re-fire and making a judgment call. Two adverse failure modes follow: (a) a code change that *should* trigger replicator re-fire is mis-classified as a methodology-prose-only edit, the replicator does not fire, and a fresh deterministic merge bug introduced by the audit-fix sneaks past the gate (exactly the bug class issue #42 was designed to catch); (b) a methodology-prose-only edit is mis-classified as material and the replicator fires unnecessarily, burning replication budget. (b) is harmless work; (a) is a silent correctness regression.
-
-**What would close it:** record a content hash of `code/empirical.py` plus the `## Headline claims` section of `empirical_analysis.md` (extracted by regex) in `pipeline_state.json` at every `headline-replicator` PASS. On empirics-auditor re-fire, compare the post-empiricist hash against the recorded one — any difference triggers replicator re-fire. This makes "material change" mechanically decidable, with the failure mode collapsing from "subjective judgment" to "hash mismatch = always re-fire" (conservative — over-fires the replicator on cosmetic code changes, but never silently skips on substantive ones). Implementation: extend the replicator's `empirics_verify_result.json` schema to include the input hashes, and add a hash-comparison step at the top of step 7's FAIL re-fire branch.
-
-**Tracking:** [#247](https://github.com/alejandroll10/zeropaper/issues/247). Until it closes, the orchestrator's conservative default (when in doubt, re-fire the replicator) keeps the failure mode at (b) cost, not (a) risk.
-
-**Interim behavior:** documented in `deploy_assets/extensions/empirical/docs/stage_3a_empirical.md` step 7; orchestrator is instructed to err on the side of re-firing the replicator.
-
----
-
 ## Macro empirical work has no identification gate
 
 **Scope:** the `macro` variant, and any future `macro_empirical` variant or macro `--ext empirical` flow.

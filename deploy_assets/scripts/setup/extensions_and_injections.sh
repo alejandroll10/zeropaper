@@ -666,14 +666,22 @@ state_path = os.path.join(os.path.dirname(stage2_md), "..", "process_log", "pipe
 state_path = os.path.normpath(state_path)
 if os.path.exists(state_path):
     with open(state_path) as f: data = json.load(f)
-    # Two empirical version-pointer fields, inserted after stage2b_theory_version to
-    # preserve key order. Null/no-op in theory-first --ext empirical runs.
+    # Empirical version/path pointers, inserted after stage2b_theory_version to
+    # preserve key order. Only the mechanism pointer is null/no-op in ordinary
+    # theory-first --ext empirical runs.
     if "stage3a_theory_version" not in data:
         new = {}
         for k, v in data.items():
             new[k] = v
             if k == "stage2b_theory_version":
                 new["stage3a_theory_version"] = None
+        data = new
+    if "stage3a_analysis_path" not in data:
+        new = {}
+        for k, v in data.items():
+            new[k] = v
+            if k == "stage3a_theory_version":
+                new["stage3a_analysis_path"] = None
         data = new
     if "stage2_mechanism_version" not in data:
         new = {}

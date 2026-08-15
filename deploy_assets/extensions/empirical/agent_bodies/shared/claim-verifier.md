@@ -137,9 +137,9 @@ Save to `output/stage5/claim_verification.md`:
 - **If ENUMERATOR-DRIFT: YES** — re-fire `claim-enumerator` first. Skip the bullets below until the verifier re-runs on a fresh enumeration.
 - **GROUNDER-ERROR ({E_g} failures)**: re-fire `claim-grounder` with the failure list below. `loops.claim_grounding.round` increments to {N+1}.
 - **PAPER-SIDE-ERROR ({E_p} failures)**: re-fire `paper-writer` with the failure list below; paper-writer follows Stage 5 step 5 marker-scan procedure (drop the claim, or re-fire `empiricist` per Stage 3a re-fire). On re-write, step 5a restarts from `claim-enumerator`; `loops.claim_grounding.round` and `loops.claim_format_reexport.round` both reset to 0 (the claim set has changed).
-- **VERIFIER-LIMITATION ({E_v} failures)**: re-fire `empiricist` to re-export the cited value(s) as JSON (Stage 3a re-fire), then re-run `claim-grounder` and the verifier. Do **NOT** route these to paper-writer and do **NOT** drop the claims — the numbers exist, only in a format the verifier cannot parse. The orchestrator bounds this loop with `loops.claim_format_reexport.round` (see Stage 5 step 5a).
+- **VERIFIER-LIMITATION ({E_v} failures)**: follow Stage 5 step 5a's JSON-only re-export route—not the headline-bearing Stage 3a re-fire. The empiricist writes versioned JSON while the current headline `ANALYSIS_PATH` stays fixed; the orchestrator validates/re-fires headline replication if hashed code changed, requires the standard `empirics-auditor` PASS on the re-export/code/current analysis, and requires a post-auditor `check-all: UNCHANGED` before re-running `claim-grounder` and this verifier. Do **NOT** route these to paper-writer and do **NOT** drop the claims — the numbers exist, only in a format the verifier cannot parse. The orchestrator bounds this loop with `loops.claim_format_reexport.round`.
 
-(If both GROUNDER-ERROR and PAPER-SIDE-ERROR are present and ENUMERATOR-DRIFT is NO, the orchestrator handles GROUNDER-ERROR first per Stage 5 step 5a; the verifier re-runs on grounder PASS, and any remaining PAPER-SIDE-ERROR routes to paper-writer.)
+(For mixed classes with ENUMERATOR-DRIFT = NO, the orchestrator serializes the routes per Stage 5 step 5a: GROUNDER-ERROR first, then VERIFIER-LIMITATION through the current per-analysis replication result and all-analysis freshness gate, then any remaining PAPER-SIDE-ERROR. Never recommend concurrent empiricist/paper-writer repair branches: both can mutate the complete hashed code surface and invalidate every per-analysis result until that gate reconverges.)
 
 ## Failures
 
@@ -255,11 +255,11 @@ Schema notes:
 - **Quote the failure detail. Do not paraphrase.** The grounder and paper-writer act on the failure descriptions you produce. Vague tags like `"field issue"` or `"some claims off"` waste a re-fire round. Each failure row must contain enough information that the downstream agent can act without re-reading the source.
 - **You do not edit the source map.** When you find a grounder typo where the right field is obvious, do NOT rewrite the citation. Report the closest match, route to GROUNDER-ERROR, and let the grounder fix it on re-fire. This preserves the grounder as the single author of the citation contract.
 - **You do not patch the paper.** PAPER-SIDE-ERROR failures route to paper-writer; you do not edit `paper/sections/*.tex` yourself.
-- **The empirics-auditor at Stage 3a is not part of this loop.** It audits code reproducibility, not paper claims. Do not route verifier failures back to it.
+- **The empirics-auditor does not adjudicate paper-claim failures.** GROUNDER-ERROR and PAPER-SIDE-ERROR never route to it for judgment. The narrow VERIFIER-LIMITATION exception is procedural: after the empiricist re-exports JSON, Stage 5 requires the standard empirics-auditor PASS on that generated output/code/current analysis before claim grounding resumes. Report the format failure; do not ask the auditor to decide whether the paper claim is sourced.
 
 ## Re-fire behavior
 
-When the orchestrator re-fires you (after `claim-grounder` REVISE on prior GROUNDER-ERROR, or after `paper-writer` REVISE + re-enumeration + re-grounding on prior PAPER-SIDE-ERROR):
+When the orchestrator re-fires you (after `claim-grounder` REVISE on prior GROUNDER-ERROR, after the empiricist JSON re-export + replication guard + empirics audit + re-grounding on prior VERIFIER-LIMITATION, or after `paper-writer` REVISE + re-enumeration + re-grounding on prior PAPER-SIDE-ERROR):
 
 1. Read the new `paper_source_map.json` (and a fresh `paper_claims.json` if the enumerator also re-ran).
 2. Run all four gates from scratch. Do NOT trust your previous report — claims you previously passed may now fail (a paper-writer edit that fixed one value can break a neighboring citation).

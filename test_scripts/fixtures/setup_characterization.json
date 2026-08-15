@@ -642,7 +642,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bd66007607dbc4b8d08b66bf9b2136ab9f6c8989e4d93f4f705da0c6c1775ff8",
+          "sha256": "7fa145095bcd7fbddd498d56824e629e70cb0aca4c461216a7f2a33853758cef",
           "size": 1814,
           "type": "file"
         },
@@ -1632,8 +1632,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "fee7ab5700907d9e7120760fe25af001903e88626ff18250d4e2749c84075f6a",
-          "size": 13934,
+          "sha256": "db9fbeb61ea4f4414e25783e92886379e8bc9a8d11a0a2b9e11929278283d799",
+          "size": 14700,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -1754,7 +1754,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -1880,7 +1880,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -2296,20 +2296,20 @@
         },
         ".claude/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "14ca1a90def4b01a9cf01a5a2591b6a7255072b2ef59c0f7dd058fc95865bcb8",
-          "size": 37262,
+          "sha256": "cb8921dfa382b0d0dee3b29cfe60edfb822ce9e6ee4c7ba0a014f175c8146908",
+          "size": 38204,
           "type": "file"
         },
         ".claude/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "7c10cff3f5169316e6fde48415bf37eba90d205b755ce75ad1a3a7cab034a9cb",
-          "size": 11032,
+          "sha256": "04362ffdfe5fb910d98fe8ea8793641c4e473e8ea7f2ca51645e65dbf724822e",
+          "size": 11580,
           "type": "file"
         },
         ".claude/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "8a643319f890bb1c3502fd5e35d6403e1342464219b6c5e6dd31b7a0b3fd9b8a",
-          "size": 14777,
+          "sha256": "8a7036cb159087b0b9e3ef97691cff54564f5e46e88c6c357b615846ba6a6b02",
+          "size": 15366,
           "type": "file"
         },
         ".claude/agents/debugger.md": {
@@ -2326,14 +2326,14 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "e9f667a3091196f29e104b2f335f6d57e34e4087458753ced9b6f06c35efce6c",
-          "size": 19251,
+          "sha256": "1f4d396b64874a4c56ea07b528a03009072eef97d1b6879fbba03b9b9319066a",
+          "size": 20243,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2e2532a46eafe01490bead3ab345fcd5dbf94ec24f66a1bbcafbe247292ab085",
-          "size": 17829,
+          "sha256": "13d8b1414de03badc9a1a4072e1482ea8fe753135a4e1123ffb621505c5584f2",
+          "size": 19378,
           "type": "file"
         },
         ".claude/agents/experiment-designer.md": {
@@ -2356,8 +2356,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "4b19c07ac760ca9087531d24c0190153bc0516fad88a12e16fcf24be31ea159c",
-          "size": 16061,
+          "sha256": "9e92c46dbd0d7da1491de9419513a6959c8ccc9508812c65dea47ed406e7cfe0",
+          "size": 19560,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -2422,8 +2422,8 @@
         },
         ".claude/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "5a8429803bd62906f553c59c1b1f4daae3c2b537ce92cc4f9d272f8c11f91e02",
-          "size": 25511,
+          "sha256": "847a1332bf414a20e6baa132362ca3a839e00a67176a70bac9feb66541e09c83",
+          "size": 25653,
           "type": "file"
         },
         ".claude/agents/novelty-checker.md": {
@@ -2946,20 +2946,20 @@
         },
         ".codex/agents/claim-verifier.toml": {
           "mode": "0644",
-          "sha256": "c9c7ce3a95d576f66e2c4ccb6da08f82aeaaa48a8ceb2e548354b8a4b860b924",
-          "size": 37288,
+          "sha256": "4f27c1c7394a5ca8ee2673ef822941b368fc7d683458364e4dee2b645fca8b12",
+          "size": 38230,
           "type": "file"
         },
         ".codex/agents/data-integrity-auditor.toml": {
           "mode": "0644",
-          "sha256": "c59f59c2dd0cad330fc548051c5cab613b6199d8cd632d1abd3726642f586843",
-          "size": 11057,
+          "sha256": "92a939d4240edf19e9aaf0a52bb0c23b8642ab987da8f03ac5c484797b9d3eea",
+          "size": 11605,
           "type": "file"
         },
         ".codex/agents/data-selection-auditor.toml": {
           "mode": "0644",
-          "sha256": "9f78cab7fa6452bb855ffb615475bf2af280b2667f2b2eb271400df9d48ae45f",
-          "size": 14802,
+          "sha256": "af64413ba84730ab0f108502fa3b0e9848b545c2899ae3580762a29d60143150",
+          "size": 15391,
           "type": "file"
         },
         ".codex/agents/debugger.toml": {
@@ -2976,14 +2976,14 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "4b57986dbc2aea3e46415a70e7be4bd32cbbfbc907d2e45a928b4e8ff6732d2f",
-          "size": 19191,
+          "sha256": "a1d98991a337471aceed5d23bb28420bec6c0744f0bb91aba12cf3d5b0ab1955",
+          "size": 20183,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "607b885fa2d28a4496e007c1bc7efef7c5e4fd760194912e96ff0958351d526d",
-          "size": 17855,
+          "sha256": "a27fde9c6b417ef68b1a4a46e88e175582f055cd60542474c73ded6bd07f00ec",
+          "size": 19404,
           "type": "file"
         },
         ".codex/agents/experiment-designer.toml": {
@@ -3006,8 +3006,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "7d140a1ea5375454ed94ce433a696495ca4f78ccbc9db7d3029aebb6fe9e2f11",
-          "size": 16086,
+          "sha256": "4cbc7736c4a9223750ace04d164a61f89d2841b3ca2471c2fcb65c568ead31ef",
+          "size": 19585,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -3072,8 +3072,8 @@
         },
         ".codex/agents/method-checker.toml": {
           "mode": "0644",
-          "sha256": "f487a4481747ba778f647eb33c8679e69ca96b0abbf29f2824d079ee3076226c",
-          "size": 25516,
+          "sha256": "cb839a201f83ec8edc0ba86ccf51c63c92bc251710448265bd8cd0eedb2ecd26",
+          "size": 25658,
           "type": "file"
         },
         ".codex/agents/novelty-checker.toml": {
@@ -3234,8 +3234,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8cc6903c77c54dfa2aba784fd7bae2993355be4677821201ffe1a8b647dd2f27",
-          "size": 2906,
+          "sha256": "33b42a012b423b159ab7483b8de24586a5cfdaab96bd81fc9d8e99542df6f931",
+          "size": 2954,
           "type": "file"
         },
         ".env": {
@@ -3278,20 +3278,20 @@
         },
         ".gemini/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "43d4856b31d1b6ec631ccd5e81c10c16f36fd41415179e764e6369d52b609022",
-          "size": 37338,
+          "sha256": "92c5cec09bca9c77f47a047fcfef826c04a0dcec3993c8974b00770adc7d5fd9",
+          "size": 38280,
           "type": "file"
         },
         ".gemini/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "b7163d4a1122e6f83adb91ba8feaca6560b18822e15cf69e588bdb951174a29c",
-          "size": 11108,
+          "sha256": "6f2ef393e68f4f0f2cd358f11aafc1f19582701957a710b846a20095fb1ad548",
+          "size": 11656,
           "type": "file"
         },
         ".gemini/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "a201a12c58c5653b9e78d46d9e1fc22eb53e6e42ba3daa73823422f578850925",
-          "size": 14853,
+          "sha256": "beffb85d9a1e257c50a5ce5f059a6568ca276d8a74d0c15b2c640bc966a88598",
+          "size": 15442,
           "type": "file"
         },
         ".gemini/agents/debugger.md": {
@@ -3308,14 +3308,14 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ca61daa775692e7061b45af2483cba9b218d8b5f45069a03c783a81c40b27895",
-          "size": 19218,
+          "sha256": "82fdc96206c39b7d5f12d885723892a87c70d3934a57810f9bc919bf506253ab",
+          "size": 20210,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9eb30b6230f0035f81dfa276eded2cf6efe9b00d6afe214dc963d3fe9e19d816",
-          "size": 17907,
+          "sha256": "4a67b827378b6e5717264b54cdd941a70ce486ccf80718282da19a9f29f4ed58",
+          "size": 19456,
           "type": "file"
         },
         ".gemini/agents/experiment-designer.md": {
@@ -3338,8 +3338,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "0558a70acd01c351e096db9d2fb20b2b8927acf0bbbffa671b012824b76c28d5",
-          "size": 16137,
+          "sha256": "af80baaec71e2ab7e7540576b8a4709ca97e82a145fd5ed29b552b4bafb524d0",
+          "size": 19636,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -3404,8 +3404,8 @@
         },
         ".gemini/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "19f432dca5420b7ee4ddc4654e5269c996ef51a421b8b755f4ce1c581e3e031a",
-          "size": 25602,
+          "sha256": "afdee0240f091ec0f1efc13c62fc4047a42a686cf69063ccad39bbca069152c9",
+          "size": 25744,
           "type": "file"
         },
         ".gemini/agents/novelty-checker.md": {
@@ -3852,20 +3852,20 @@
         },
         ".opencode/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "c25cd624b3cffc5954b9cc5978cae6020317c6babce15c23c5422b566a3656ba",
-          "size": 37445,
+          "sha256": "9aa9a8598151e57a9f98c700458ef0870ada3498217c815f37bcf98f26163bea",
+          "size": 38387,
           "type": "file"
         },
         ".opencode/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "64ee29f1893be2ec04f2efa4070a4fd0053e7b7ce398eaf3b74a7a5f0a15960a",
-          "size": 11207,
+          "sha256": "ff89a15c125a4dcc5d55715d6f0d81f9aea981efe22c63b7460a0f40c8ddaabe",
+          "size": 11755,
           "type": "file"
         },
         ".opencode/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "77ce83c160e69b3a3f245bb09a5053713777dca4d0c8acb807092f6f844e4598",
-          "size": 14952,
+          "sha256": "4e5c4f3cf5f0ab4b74c2d2a661d27442cfb2fd39155430db8f4293ceee3b8550",
+          "size": 15541,
           "type": "file"
         },
         ".opencode/agents/debugger.md": {
@@ -3882,14 +3882,14 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f0d363f710eae42cc922481d960c7afa7516dc8945fec143813e3a6649b24056",
-          "size": 19518,
+          "sha256": "430db36b31cbe7d902aa1c14c24153c4432a6f4fa697e5d752f8892a6a1038fc",
+          "size": 20510,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "7690687ebf705976d2ffb0e5cf8fb79cc2719fce209b5eb31dea9930a022a903",
-          "size": 18012,
+          "sha256": "23f7ac9344391ae1dd6de1707da10c52d4097265eb10c0bbd828a2beb9f90cb0",
+          "size": 19561,
           "type": "file"
         },
         ".opencode/agents/experiment-designer.md": {
@@ -3912,8 +3912,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "b3dfcc1da031ffaff24385fc376b0250639b1b819b9b25d6a8eddda104bdfc7a",
-          "size": 16239,
+          "sha256": "ed431ce2b8acc7505bda5df343a55232195af0a0a8d07405b9d945c865361042",
+          "size": 19738,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -3978,8 +3978,8 @@
         },
         ".opencode/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "d06b7a9d03ea8048498ad6e87e0bb5455f735e3999c17c14d5d8f71b942655b6",
-          "size": 25675,
+          "sha256": "db11a92590392debad6c1d35b0350dad93aff8bca9a168079248d0773c5d4d8d",
+          "size": 25817,
           "type": "file"
         },
         ".opencode/agents/novelty-checker.md": {
@@ -4164,20 +4164,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "659afe18b3e4b702ee7b278b3a378d0f1735600852e6088f1199eee8e4a423b9",
-          "size": 69689,
+          "sha256": "37a69b4056f82212e8f3b2e1011ce00a2c1faa93deaeccf466b8e977d6a3facf",
+          "size": 76280,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "6e4c24d14a51d81a260f941ffd5959c4300ce1a8d0f4f03ce0bb71dbcbb50e53",
-          "size": 58511,
+          "sha256": "3d59a0ccde51d3ede2e121b49ef62ebf1b7c288c1a37e59bb75123a3faf445b8",
+          "size": 65102,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "2c66defcb959661b9be7c923b296c83d144f244ecfc58bed938cde0fdc98f782",
-          "size": 63683,
+          "sha256": "9fc3d294ac8bfa8b71ec410734f7716d534760916e1425ad94aea91bcc916218",
+          "size": 70274,
           "type": "file"
         },
         "code": {
@@ -4310,6 +4310,12 @@
           "mode": "0644",
           "sha256": "2ea582286dccd2e775e36cd1584cbfd046c192da76a82917faeaa64e52988c69",
           "size": 5318,
+          "type": "file"
+        },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -4540,8 +4546,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "9bd6c68114fdea45c7f0498c866acffaed8891ce8fc4f9a2040259f26bd4454a",
-          "size": 36887,
+          "sha256": "1fe11b5ba3c811529f48ec0d2b3af32f8f385574135ccf1bb1d6f1ff41527457",
+          "size": 41239,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -4558,8 +4564,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "58a036a7d00d132ddb1f20d293854cac1468599a74280f6552c6cd96c9f3866f",
-          "size": 23119,
+          "sha256": "e1b3270023653830729266bd3d398ee081fc42c53ca3d318e5ae4eacd15f8674",
+          "size": 25923,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -4702,7 +4708,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -4748,8 +4754,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "dd212d0156b187796d82e3dc289b98af2b144520428dde1ebb1d7def05a02925",
-          "size": 2346,
+          "sha256": "6d8892be78b446be6a58ee3bc119903c5c73b5f9f4a6d64bfa7f018ce811a040",
+          "size": 2379,
           "type": "file"
         },
         "process_log/sessions": {
@@ -4829,6 +4835,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -4857,7 +4864,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -5273,20 +5280,20 @@
         },
         ".claude/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "14ca1a90def4b01a9cf01a5a2591b6a7255072b2ef59c0f7dd058fc95865bcb8",
-          "size": 37262,
+          "sha256": "cb8921dfa382b0d0dee3b29cfe60edfb822ce9e6ee4c7ba0a014f175c8146908",
+          "size": 38204,
           "type": "file"
         },
         ".claude/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "7c10cff3f5169316e6fde48415bf37eba90d205b755ce75ad1a3a7cab034a9cb",
-          "size": 11032,
+          "sha256": "04362ffdfe5fb910d98fe8ea8793641c4e473e8ea7f2ca51645e65dbf724822e",
+          "size": 11580,
           "type": "file"
         },
         ".claude/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "8a643319f890bb1c3502fd5e35d6403e1342464219b6c5e6dd31b7a0b3fd9b8a",
-          "size": 14777,
+          "sha256": "8a7036cb159087b0b9e3ef97691cff54564f5e46e88c6c357b615846ba6a6b02",
+          "size": 15366,
           "type": "file"
         },
         ".claude/agents/debugger.md": {
@@ -5303,14 +5310,14 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "e9f667a3091196f29e104b2f335f6d57e34e4087458753ced9b6f06c35efce6c",
-          "size": 19251,
+          "sha256": "1f4d396b64874a4c56ea07b528a03009072eef97d1b6879fbba03b9b9319066a",
+          "size": 20243,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2e2532a46eafe01490bead3ab345fcd5dbf94ec24f66a1bbcafbe247292ab085",
-          "size": 17829,
+          "sha256": "13d8b1414de03badc9a1a4072e1482ea8fe753135a4e1123ffb621505c5584f2",
+          "size": 19378,
           "type": "file"
         },
         ".claude/agents/experiment-designer.md": {
@@ -5333,8 +5340,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "4b19c07ac760ca9087531d24c0190153bc0516fad88a12e16fcf24be31ea159c",
-          "size": 16061,
+          "sha256": "9e92c46dbd0d7da1491de9419513a6959c8ccc9508812c65dea47ed406e7cfe0",
+          "size": 19560,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -5399,8 +5406,8 @@
         },
         ".claude/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "5a8429803bd62906f553c59c1b1f4daae3c2b537ce92cc4f9d272f8c11f91e02",
-          "size": 25511,
+          "sha256": "847a1332bf414a20e6baa132362ca3a839e00a67176a70bac9feb66541e09c83",
+          "size": 25653,
           "type": "file"
         },
         ".claude/agents/novelty-checker.md": {
@@ -5923,20 +5930,20 @@
         },
         ".codex/agents/claim-verifier.toml": {
           "mode": "0644",
-          "sha256": "c9c7ce3a95d576f66e2c4ccb6da08f82aeaaa48a8ceb2e548354b8a4b860b924",
-          "size": 37288,
+          "sha256": "4f27c1c7394a5ca8ee2673ef822941b368fc7d683458364e4dee2b645fca8b12",
+          "size": 38230,
           "type": "file"
         },
         ".codex/agents/data-integrity-auditor.toml": {
           "mode": "0644",
-          "sha256": "c59f59c2dd0cad330fc548051c5cab613b6199d8cd632d1abd3726642f586843",
-          "size": 11057,
+          "sha256": "92a939d4240edf19e9aaf0a52bb0c23b8642ab987da8f03ac5c484797b9d3eea",
+          "size": 11605,
           "type": "file"
         },
         ".codex/agents/data-selection-auditor.toml": {
           "mode": "0644",
-          "sha256": "9f78cab7fa6452bb855ffb615475bf2af280b2667f2b2eb271400df9d48ae45f",
-          "size": 14802,
+          "sha256": "af64413ba84730ab0f108502fa3b0e9848b545c2899ae3580762a29d60143150",
+          "size": 15391,
           "type": "file"
         },
         ".codex/agents/debugger.toml": {
@@ -5953,14 +5960,14 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "4b57986dbc2aea3e46415a70e7be4bd32cbbfbc907d2e45a928b4e8ff6732d2f",
-          "size": 19191,
+          "sha256": "a1d98991a337471aceed5d23bb28420bec6c0744f0bb91aba12cf3d5b0ab1955",
+          "size": 20183,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "607b885fa2d28a4496e007c1bc7efef7c5e4fd760194912e96ff0958351d526d",
-          "size": 17855,
+          "sha256": "a27fde9c6b417ef68b1a4a46e88e175582f055cd60542474c73ded6bd07f00ec",
+          "size": 19404,
           "type": "file"
         },
         ".codex/agents/experiment-designer.toml": {
@@ -5983,8 +5990,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "7d140a1ea5375454ed94ce433a696495ca4f78ccbc9db7d3029aebb6fe9e2f11",
-          "size": 16086,
+          "sha256": "4cbc7736c4a9223750ace04d164a61f89d2841b3ca2471c2fcb65c568ead31ef",
+          "size": 19585,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -6049,8 +6056,8 @@
         },
         ".codex/agents/method-checker.toml": {
           "mode": "0644",
-          "sha256": "f487a4481747ba778f647eb33c8679e69ca96b0abbf29f2824d079ee3076226c",
-          "size": 25516,
+          "sha256": "cb839a201f83ec8edc0ba86ccf51c63c92bc251710448265bd8cd0eedb2ecd26",
+          "size": 25658,
           "type": "file"
         },
         ".codex/agents/novelty-checker.toml": {
@@ -6211,8 +6218,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0269c653df093875027844413890edf58a68f287d2d8e9c07e45f4bf837ab8b1",
-          "size": 2906,
+          "sha256": "267252b30358f59277bbcb6ee420f702db16b42788e30c81656304c22c21a523",
+          "size": 2954,
           "type": "file"
         },
         ".env": {
@@ -6255,20 +6262,20 @@
         },
         ".gemini/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "43d4856b31d1b6ec631ccd5e81c10c16f36fd41415179e764e6369d52b609022",
-          "size": 37338,
+          "sha256": "92c5cec09bca9c77f47a047fcfef826c04a0dcec3993c8974b00770adc7d5fd9",
+          "size": 38280,
           "type": "file"
         },
         ".gemini/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "b7163d4a1122e6f83adb91ba8feaca6560b18822e15cf69e588bdb951174a29c",
-          "size": 11108,
+          "sha256": "6f2ef393e68f4f0f2cd358f11aafc1f19582701957a710b846a20095fb1ad548",
+          "size": 11656,
           "type": "file"
         },
         ".gemini/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "a201a12c58c5653b9e78d46d9e1fc22eb53e6e42ba3daa73823422f578850925",
-          "size": 14853,
+          "sha256": "beffb85d9a1e257c50a5ce5f059a6568ca276d8a74d0c15b2c640bc966a88598",
+          "size": 15442,
           "type": "file"
         },
         ".gemini/agents/debugger.md": {
@@ -6285,14 +6292,14 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ca61daa775692e7061b45af2483cba9b218d8b5f45069a03c783a81c40b27895",
-          "size": 19218,
+          "sha256": "82fdc96206c39b7d5f12d885723892a87c70d3934a57810f9bc919bf506253ab",
+          "size": 20210,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9eb30b6230f0035f81dfa276eded2cf6efe9b00d6afe214dc963d3fe9e19d816",
-          "size": 17907,
+          "sha256": "4a67b827378b6e5717264b54cdd941a70ce486ccf80718282da19a9f29f4ed58",
+          "size": 19456,
           "type": "file"
         },
         ".gemini/agents/experiment-designer.md": {
@@ -6315,8 +6322,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "0558a70acd01c351e096db9d2fb20b2b8927acf0bbbffa671b012824b76c28d5",
-          "size": 16137,
+          "sha256": "af80baaec71e2ab7e7540576b8a4709ca97e82a145fd5ed29b552b4bafb524d0",
+          "size": 19636,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -6381,8 +6388,8 @@
         },
         ".gemini/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "19f432dca5420b7ee4ddc4654e5269c996ef51a421b8b755f4ce1c581e3e031a",
-          "size": 25602,
+          "sha256": "afdee0240f091ec0f1efc13c62fc4047a42a686cf69063ccad39bbca069152c9",
+          "size": 25744,
           "type": "file"
         },
         ".gemini/agents/novelty-checker.md": {
@@ -6829,20 +6836,20 @@
         },
         ".opencode/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "c25cd624b3cffc5954b9cc5978cae6020317c6babce15c23c5422b566a3656ba",
-          "size": 37445,
+          "sha256": "9aa9a8598151e57a9f98c700458ef0870ada3498217c815f37bcf98f26163bea",
+          "size": 38387,
           "type": "file"
         },
         ".opencode/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "64ee29f1893be2ec04f2efa4070a4fd0053e7b7ce398eaf3b74a7a5f0a15960a",
-          "size": 11207,
+          "sha256": "ff89a15c125a4dcc5d55715d6f0d81f9aea981efe22c63b7460a0f40c8ddaabe",
+          "size": 11755,
           "type": "file"
         },
         ".opencode/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "77ce83c160e69b3a3f245bb09a5053713777dca4d0c8acb807092f6f844e4598",
-          "size": 14952,
+          "sha256": "4e5c4f3cf5f0ab4b74c2d2a661d27442cfb2fd39155430db8f4293ceee3b8550",
+          "size": 15541,
           "type": "file"
         },
         ".opencode/agents/debugger.md": {
@@ -6859,14 +6866,14 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f0d363f710eae42cc922481d960c7afa7516dc8945fec143813e3a6649b24056",
-          "size": 19518,
+          "sha256": "430db36b31cbe7d902aa1c14c24153c4432a6f4fa697e5d752f8892a6a1038fc",
+          "size": 20510,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "7690687ebf705976d2ffb0e5cf8fb79cc2719fce209b5eb31dea9930a022a903",
-          "size": 18012,
+          "sha256": "23f7ac9344391ae1dd6de1707da10c52d4097265eb10c0bbd828a2beb9f90cb0",
+          "size": 19561,
           "type": "file"
         },
         ".opencode/agents/experiment-designer.md": {
@@ -6889,8 +6896,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "b3dfcc1da031ffaff24385fc376b0250639b1b819b9b25d6a8eddda104bdfc7a",
-          "size": 16239,
+          "sha256": "ed431ce2b8acc7505bda5df343a55232195af0a0a8d07405b9d945c865361042",
+          "size": 19738,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -6955,8 +6962,8 @@
         },
         ".opencode/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "d06b7a9d03ea8048498ad6e87e0bb5455f735e3999c17c14d5d8f71b942655b6",
-          "size": 25675,
+          "sha256": "db11a92590392debad6c1d35b0350dad93aff8bca9a168079248d0773c5d4d8d",
+          "size": 25817,
           "type": "file"
         },
         ".opencode/agents/novelty-checker.md": {
@@ -7141,20 +7148,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "ee130d9c085a2a2b2f7310bea3f2b34b0eac72da8cc4f5535517b75c86d7b93a",
-          "size": 69689,
+          "sha256": "998f61965df0de8505921c3a3dcfa394257c854a8e555126135abd276bb78236",
+          "size": 76280,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "9fbe081df7c2401f5d47c57376b800628ce66ab70b237779cd1908abd1422dde",
-          "size": 58511,
+          "sha256": "9208ae2f61f01f9d2101fb2907480495e553591f32fd4b0a4a497764686118b5",
+          "size": 65102,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "d0377de5ff1ee8d189b9ad7897a8e5b4e2a38b06811abde32a06c50593885e46",
-          "size": 63683,
+          "sha256": "44b3df143a7d6c97892dd73f2c491de11ec5813d161d352d34b372ce7fc3de8e",
+          "size": 70274,
           "type": "file"
         },
         "code": {
@@ -7287,6 +7294,12 @@
           "mode": "0644",
           "sha256": "2ea582286dccd2e775e36cd1584cbfd046c192da76a82917faeaa64e52988c69",
           "size": 5318,
+          "type": "file"
+        },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -7517,8 +7530,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "9bd6c68114fdea45c7f0498c866acffaed8891ce8fc4f9a2040259f26bd4454a",
-          "size": 36887,
+          "sha256": "1fe11b5ba3c811529f48ec0d2b3af32f8f385574135ccf1bb1d6f1ff41527457",
+          "size": 41239,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -7535,8 +7548,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "58a036a7d00d132ddb1f20d293854cac1468599a74280f6552c6cd96c9f3866f",
-          "size": 23119,
+          "sha256": "e1b3270023653830729266bd3d398ee081fc42c53ca3d318e5ae4eacd15f8674",
+          "size": 25923,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -7679,7 +7692,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -7725,8 +7738,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "61c494f6efe86b20cd335e8e7e92ac769c6da52d574a082e8f8d5db3fddc3003",
-          "size": 2346,
+          "sha256": "3c1cf8f66698ccd8a801047a59e19a2605462a016e8760c7bc46aef97c3a1644",
+          "size": 2379,
           "type": "file"
         },
         "process_log/sessions": {
@@ -7806,6 +7819,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -7834,7 +7848,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -8477,7 +8491,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bd66007607dbc4b8d08b66bf9b2136ab9f6c8989e4d93f4f705da0c6c1775ff8",
+          "sha256": "7fa145095bcd7fbddd498d56824e629e70cb0aca4c461216a7f2a33853758cef",
           "size": 1814,
           "type": "file"
         },
@@ -9467,8 +9481,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "fee7ab5700907d9e7120760fe25af001903e88626ff18250d4e2749c84075f6a",
-          "size": 13934,
+          "sha256": "db9fbeb61ea4f4414e25783e92886379e8bc9a8d11a0a2b9e11929278283d799",
+          "size": 14700,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -9589,7 +9603,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -9715,7 +9729,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -10134,20 +10148,20 @@
         },
         ".claude/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "14ca1a90def4b01a9cf01a5a2591b6a7255072b2ef59c0f7dd058fc95865bcb8",
-          "size": 37262,
+          "sha256": "cb8921dfa382b0d0dee3b29cfe60edfb822ce9e6ee4c7ba0a014f175c8146908",
+          "size": 38204,
           "type": "file"
         },
         ".claude/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "7c10cff3f5169316e6fde48415bf37eba90d205b755ce75ad1a3a7cab034a9cb",
-          "size": 11032,
+          "sha256": "04362ffdfe5fb910d98fe8ea8793641c4e473e8ea7f2ca51645e65dbf724822e",
+          "size": 11580,
           "type": "file"
         },
         ".claude/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "8a643319f890bb1c3502fd5e35d6403e1342464219b6c5e6dd31b7a0b3fd9b8a",
-          "size": 14777,
+          "sha256": "8a7036cb159087b0b9e3ef97691cff54564f5e46e88c6c357b615846ba6a6b02",
+          "size": 15366,
           "type": "file"
         },
         ".claude/agents/debugger.md": {
@@ -10164,14 +10178,14 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "e9f667a3091196f29e104b2f335f6d57e34e4087458753ced9b6f06c35efce6c",
-          "size": 19251,
+          "sha256": "1f4d396b64874a4c56ea07b528a03009072eef97d1b6879fbba03b9b9319066a",
+          "size": 20243,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2e2532a46eafe01490bead3ab345fcd5dbf94ec24f66a1bbcafbe247292ab085",
-          "size": 17829,
+          "sha256": "13d8b1414de03badc9a1a4072e1482ea8fe753135a4e1123ffb621505c5584f2",
+          "size": 19378,
           "type": "file"
         },
         ".claude/agents/experiment-designer.md": {
@@ -10194,8 +10208,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "4b19c07ac760ca9087531d24c0190153bc0516fad88a12e16fcf24be31ea159c",
-          "size": 16061,
+          "sha256": "9e92c46dbd0d7da1491de9419513a6959c8ccc9508812c65dea47ed406e7cfe0",
+          "size": 19560,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -10260,8 +10274,8 @@
         },
         ".claude/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "5a8429803bd62906f553c59c1b1f4daae3c2b537ce92cc4f9d272f8c11f91e02",
-          "size": 25511,
+          "sha256": "847a1332bf414a20e6baa132362ca3a839e00a67176a70bac9feb66541e09c83",
+          "size": 25653,
           "type": "file"
         },
         ".claude/agents/novelty-checker.md": {
@@ -10784,20 +10798,20 @@
         },
         ".codex/agents/claim-verifier.toml": {
           "mode": "0644",
-          "sha256": "c9c7ce3a95d576f66e2c4ccb6da08f82aeaaa48a8ceb2e548354b8a4b860b924",
-          "size": 37288,
+          "sha256": "4f27c1c7394a5ca8ee2673ef822941b368fc7d683458364e4dee2b645fca8b12",
+          "size": 38230,
           "type": "file"
         },
         ".codex/agents/data-integrity-auditor.toml": {
           "mode": "0644",
-          "sha256": "c59f59c2dd0cad330fc548051c5cab613b6199d8cd632d1abd3726642f586843",
-          "size": 11057,
+          "sha256": "92a939d4240edf19e9aaf0a52bb0c23b8642ab987da8f03ac5c484797b9d3eea",
+          "size": 11605,
           "type": "file"
         },
         ".codex/agents/data-selection-auditor.toml": {
           "mode": "0644",
-          "sha256": "9f78cab7fa6452bb855ffb615475bf2af280b2667f2b2eb271400df9d48ae45f",
-          "size": 14802,
+          "sha256": "af64413ba84730ab0f108502fa3b0e9848b545c2899ae3580762a29d60143150",
+          "size": 15391,
           "type": "file"
         },
         ".codex/agents/debugger.toml": {
@@ -10814,14 +10828,14 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "4b57986dbc2aea3e46415a70e7be4bd32cbbfbc907d2e45a928b4e8ff6732d2f",
-          "size": 19191,
+          "sha256": "a1d98991a337471aceed5d23bb28420bec6c0744f0bb91aba12cf3d5b0ab1955",
+          "size": 20183,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "607b885fa2d28a4496e007c1bc7efef7c5e4fd760194912e96ff0958351d526d",
-          "size": 17855,
+          "sha256": "a27fde9c6b417ef68b1a4a46e88e175582f055cd60542474c73ded6bd07f00ec",
+          "size": 19404,
           "type": "file"
         },
         ".codex/agents/experiment-designer.toml": {
@@ -10844,8 +10858,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "7d140a1ea5375454ed94ce433a696495ca4f78ccbc9db7d3029aebb6fe9e2f11",
-          "size": 16086,
+          "sha256": "4cbc7736c4a9223750ace04d164a61f89d2841b3ca2471c2fcb65c568ead31ef",
+          "size": 19585,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -10910,8 +10924,8 @@
         },
         ".codex/agents/method-checker.toml": {
           "mode": "0644",
-          "sha256": "f487a4481747ba778f647eb33c8679e69ca96b0abbf29f2824d079ee3076226c",
-          "size": 25516,
+          "sha256": "cb839a201f83ec8edc0ba86ccf51c63c92bc251710448265bd8cd0eedb2ecd26",
+          "size": 25658,
           "type": "file"
         },
         ".codex/agents/novelty-checker.toml": {
@@ -11072,8 +11086,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8cc6903c77c54dfa2aba784fd7bae2993355be4677821201ffe1a8b647dd2f27",
-          "size": 2906,
+          "sha256": "33b42a012b423b159ab7483b8de24586a5cfdaab96bd81fc9d8e99542df6f931",
+          "size": 2954,
           "type": "file"
         },
         ".env": {
@@ -11116,20 +11130,20 @@
         },
         ".gemini/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "43d4856b31d1b6ec631ccd5e81c10c16f36fd41415179e764e6369d52b609022",
-          "size": 37338,
+          "sha256": "92c5cec09bca9c77f47a047fcfef826c04a0dcec3993c8974b00770adc7d5fd9",
+          "size": 38280,
           "type": "file"
         },
         ".gemini/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "b7163d4a1122e6f83adb91ba8feaca6560b18822e15cf69e588bdb951174a29c",
-          "size": 11108,
+          "sha256": "6f2ef393e68f4f0f2cd358f11aafc1f19582701957a710b846a20095fb1ad548",
+          "size": 11656,
           "type": "file"
         },
         ".gemini/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "a201a12c58c5653b9e78d46d9e1fc22eb53e6e42ba3daa73823422f578850925",
-          "size": 14853,
+          "sha256": "beffb85d9a1e257c50a5ce5f059a6568ca276d8a74d0c15b2c640bc966a88598",
+          "size": 15442,
           "type": "file"
         },
         ".gemini/agents/debugger.md": {
@@ -11146,14 +11160,14 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ca61daa775692e7061b45af2483cba9b218d8b5f45069a03c783a81c40b27895",
-          "size": 19218,
+          "sha256": "82fdc96206c39b7d5f12d885723892a87c70d3934a57810f9bc919bf506253ab",
+          "size": 20210,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9eb30b6230f0035f81dfa276eded2cf6efe9b00d6afe214dc963d3fe9e19d816",
-          "size": 17907,
+          "sha256": "4a67b827378b6e5717264b54cdd941a70ce486ccf80718282da19a9f29f4ed58",
+          "size": 19456,
           "type": "file"
         },
         ".gemini/agents/experiment-designer.md": {
@@ -11176,8 +11190,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "0558a70acd01c351e096db9d2fb20b2b8927acf0bbbffa671b012824b76c28d5",
-          "size": 16137,
+          "sha256": "af80baaec71e2ab7e7540576b8a4709ca97e82a145fd5ed29b552b4bafb524d0",
+          "size": 19636,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -11242,8 +11256,8 @@
         },
         ".gemini/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "19f432dca5420b7ee4ddc4654e5269c996ef51a421b8b755f4ce1c581e3e031a",
-          "size": 25602,
+          "sha256": "afdee0240f091ec0f1efc13c62fc4047a42a686cf69063ccad39bbca069152c9",
+          "size": 25744,
           "type": "file"
         },
         ".gemini/agents/novelty-checker.md": {
@@ -11690,20 +11704,20 @@
         },
         ".opencode/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "c25cd624b3cffc5954b9cc5978cae6020317c6babce15c23c5422b566a3656ba",
-          "size": 37445,
+          "sha256": "9aa9a8598151e57a9f98c700458ef0870ada3498217c815f37bcf98f26163bea",
+          "size": 38387,
           "type": "file"
         },
         ".opencode/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "64ee29f1893be2ec04f2efa4070a4fd0053e7b7ce398eaf3b74a7a5f0a15960a",
-          "size": 11207,
+          "sha256": "ff89a15c125a4dcc5d55715d6f0d81f9aea981efe22c63b7460a0f40c8ddaabe",
+          "size": 11755,
           "type": "file"
         },
         ".opencode/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "77ce83c160e69b3a3f245bb09a5053713777dca4d0c8acb807092f6f844e4598",
-          "size": 14952,
+          "sha256": "4e5c4f3cf5f0ab4b74c2d2a661d27442cfb2fd39155430db8f4293ceee3b8550",
+          "size": 15541,
           "type": "file"
         },
         ".opencode/agents/debugger.md": {
@@ -11720,14 +11734,14 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f0d363f710eae42cc922481d960c7afa7516dc8945fec143813e3a6649b24056",
-          "size": 19518,
+          "sha256": "430db36b31cbe7d902aa1c14c24153c4432a6f4fa697e5d752f8892a6a1038fc",
+          "size": 20510,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "7690687ebf705976d2ffb0e5cf8fb79cc2719fce209b5eb31dea9930a022a903",
-          "size": 18012,
+          "sha256": "23f7ac9344391ae1dd6de1707da10c52d4097265eb10c0bbd828a2beb9f90cb0",
+          "size": 19561,
           "type": "file"
         },
         ".opencode/agents/experiment-designer.md": {
@@ -11750,8 +11764,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "b3dfcc1da031ffaff24385fc376b0250639b1b819b9b25d6a8eddda104bdfc7a",
-          "size": 16239,
+          "sha256": "ed431ce2b8acc7505bda5df343a55232195af0a0a8d07405b9d945c865361042",
+          "size": 19738,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -11816,8 +11830,8 @@
         },
         ".opencode/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "d06b7a9d03ea8048498ad6e87e0bb5455f735e3999c17c14d5d8f71b942655b6",
-          "size": 25675,
+          "sha256": "db11a92590392debad6c1d35b0350dad93aff8bca9a168079248d0773c5d4d8d",
+          "size": 25817,
           "type": "file"
         },
         ".opencode/agents/novelty-checker.md": {
@@ -12002,20 +12016,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "659afe18b3e4b702ee7b278b3a378d0f1735600852e6088f1199eee8e4a423b9",
-          "size": 69689,
+          "sha256": "37a69b4056f82212e8f3b2e1011ce00a2c1faa93deaeccf466b8e977d6a3facf",
+          "size": 76280,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "6e4c24d14a51d81a260f941ffd5959c4300ce1a8d0f4f03ce0bb71dbcbb50e53",
-          "size": 58511,
+          "sha256": "3d59a0ccde51d3ede2e121b49ef62ebf1b7c288c1a37e59bb75123a3faf445b8",
+          "size": 65102,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "2c66defcb959661b9be7c923b296c83d144f244ecfc58bed938cde0fdc98f782",
-          "size": 63683,
+          "sha256": "9fc3d294ac8bfa8b71ec410734f7716d534760916e1425ad94aea91bcc916218",
+          "size": 70274,
           "type": "file"
         },
         "code": {
@@ -12148,6 +12162,12 @@
           "mode": "0644",
           "sha256": "2ea582286dccd2e775e36cd1584cbfd046c192da76a82917faeaa64e52988c69",
           "size": 5318,
+          "type": "file"
+        },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -12378,8 +12398,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "9bd6c68114fdea45c7f0498c866acffaed8891ce8fc4f9a2040259f26bd4454a",
-          "size": 36887,
+          "sha256": "1fe11b5ba3c811529f48ec0d2b3af32f8f385574135ccf1bb1d6f1ff41527457",
+          "size": 41239,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -12396,8 +12416,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "58a036a7d00d132ddb1f20d293854cac1468599a74280f6552c6cd96c9f3866f",
-          "size": 23119,
+          "sha256": "e1b3270023653830729266bd3d398ee081fc42c53ca3d318e5ae4eacd15f8674",
+          "size": 25923,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -12540,7 +12560,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -12586,8 +12606,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "dd212d0156b187796d82e3dc289b98af2b144520428dde1ebb1d7def05a02925",
-          "size": 2346,
+          "sha256": "6d8892be78b446be6a58ee3bc119903c5c73b5f9f4a6d64bfa7f018ce811a040",
+          "size": 2379,
           "type": "file"
         },
         "process_log/sessions": {
@@ -12667,6 +12687,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -12695,7 +12716,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -13093,20 +13114,20 @@
         },
         ".claude/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "14ca1a90def4b01a9cf01a5a2591b6a7255072b2ef59c0f7dd058fc95865bcb8",
-          "size": 37262,
+          "sha256": "cb8921dfa382b0d0dee3b29cfe60edfb822ce9e6ee4c7ba0a014f175c8146908",
+          "size": 38204,
           "type": "file"
         },
         ".claude/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "7c10cff3f5169316e6fde48415bf37eba90d205b755ce75ad1a3a7cab034a9cb",
-          "size": 11032,
+          "sha256": "04362ffdfe5fb910d98fe8ea8793641c4e473e8ea7f2ca51645e65dbf724822e",
+          "size": 11580,
           "type": "file"
         },
         ".claude/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "8a643319f890bb1c3502fd5e35d6403e1342464219b6c5e6dd31b7a0b3fd9b8a",
-          "size": 14777,
+          "sha256": "8a7036cb159087b0b9e3ef97691cff54564f5e46e88c6c357b615846ba6a6b02",
+          "size": 15366,
           "type": "file"
         },
         ".claude/agents/debugger.md": {
@@ -13123,14 +13144,14 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "e9f667a3091196f29e104b2f335f6d57e34e4087458753ced9b6f06c35efce6c",
-          "size": 19251,
+          "sha256": "1f4d396b64874a4c56ea07b528a03009072eef97d1b6879fbba03b9b9319066a",
+          "size": 20243,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2e2532a46eafe01490bead3ab345fcd5dbf94ec24f66a1bbcafbe247292ab085",
-          "size": 17829,
+          "sha256": "13d8b1414de03badc9a1a4072e1482ea8fe753135a4e1123ffb621505c5584f2",
+          "size": 19378,
           "type": "file"
         },
         ".claude/agents/gap-scout.md": {
@@ -13141,8 +13162,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "4b19c07ac760ca9087531d24c0190153bc0516fad88a12e16fcf24be31ea159c",
-          "size": 16061,
+          "sha256": "9e92c46dbd0d7da1491de9419513a6959c8ccc9508812c65dea47ed406e7cfe0",
+          "size": 19560,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -13207,8 +13228,8 @@
         },
         ".claude/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "5a8429803bd62906f553c59c1b1f4daae3c2b537ce92cc4f9d272f8c11f91e02",
-          "size": 25511,
+          "sha256": "847a1332bf414a20e6baa132362ca3a839e00a67176a70bac9feb66541e09c83",
+          "size": 25653,
           "type": "file"
         },
         ".claude/agents/novelty-checker.md": {
@@ -13715,20 +13736,20 @@
         },
         ".codex/agents/claim-verifier.toml": {
           "mode": "0644",
-          "sha256": "c9c7ce3a95d576f66e2c4ccb6da08f82aeaaa48a8ceb2e548354b8a4b860b924",
-          "size": 37288,
+          "sha256": "4f27c1c7394a5ca8ee2673ef822941b368fc7d683458364e4dee2b645fca8b12",
+          "size": 38230,
           "type": "file"
         },
         ".codex/agents/data-integrity-auditor.toml": {
           "mode": "0644",
-          "sha256": "c59f59c2dd0cad330fc548051c5cab613b6199d8cd632d1abd3726642f586843",
-          "size": 11057,
+          "sha256": "92a939d4240edf19e9aaf0a52bb0c23b8642ab987da8f03ac5c484797b9d3eea",
+          "size": 11605,
           "type": "file"
         },
         ".codex/agents/data-selection-auditor.toml": {
           "mode": "0644",
-          "sha256": "9f78cab7fa6452bb855ffb615475bf2af280b2667f2b2eb271400df9d48ae45f",
-          "size": 14802,
+          "sha256": "af64413ba84730ab0f108502fa3b0e9848b545c2899ae3580762a29d60143150",
+          "size": 15391,
           "type": "file"
         },
         ".codex/agents/debugger.toml": {
@@ -13745,14 +13766,14 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "4b57986dbc2aea3e46415a70e7be4bd32cbbfbc907d2e45a928b4e8ff6732d2f",
-          "size": 19191,
+          "sha256": "a1d98991a337471aceed5d23bb28420bec6c0744f0bb91aba12cf3d5b0ab1955",
+          "size": 20183,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "607b885fa2d28a4496e007c1bc7efef7c5e4fd760194912e96ff0958351d526d",
-          "size": 17855,
+          "sha256": "a27fde9c6b417ef68b1a4a46e88e175582f055cd60542474c73ded6bd07f00ec",
+          "size": 19404,
           "type": "file"
         },
         ".codex/agents/gap-scout.toml": {
@@ -13763,8 +13784,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "7d140a1ea5375454ed94ce433a696495ca4f78ccbc9db7d3029aebb6fe9e2f11",
-          "size": 16086,
+          "sha256": "4cbc7736c4a9223750ace04d164a61f89d2841b3ca2471c2fcb65c568ead31ef",
+          "size": 19585,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -13829,8 +13850,8 @@
         },
         ".codex/agents/method-checker.toml": {
           "mode": "0644",
-          "sha256": "f487a4481747ba778f647eb33c8679e69ca96b0abbf29f2824d079ee3076226c",
-          "size": 25516,
+          "sha256": "cb839a201f83ec8edc0ba86ccf51c63c92bc251710448265bd8cd0eedb2ecd26",
+          "size": 25658,
           "type": "file"
         },
         ".codex/agents/novelty-checker.toml": {
@@ -13985,8 +14006,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "eb80ef84a2eb41de1834b2db599f8975ee836d8b472981dadadba86e35298aad",
-          "size": 2799,
+          "sha256": "b309f96f38efc244b456785349b6130583a87054671416d3923f498dae50060b",
+          "size": 2847,
           "type": "file"
         },
         ".env": {
@@ -14029,20 +14050,20 @@
         },
         ".gemini/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "43d4856b31d1b6ec631ccd5e81c10c16f36fd41415179e764e6369d52b609022",
-          "size": 37338,
+          "sha256": "92c5cec09bca9c77f47a047fcfef826c04a0dcec3993c8974b00770adc7d5fd9",
+          "size": 38280,
           "type": "file"
         },
         ".gemini/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "b7163d4a1122e6f83adb91ba8feaca6560b18822e15cf69e588bdb951174a29c",
-          "size": 11108,
+          "sha256": "6f2ef393e68f4f0f2cd358f11aafc1f19582701957a710b846a20095fb1ad548",
+          "size": 11656,
           "type": "file"
         },
         ".gemini/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "a201a12c58c5653b9e78d46d9e1fc22eb53e6e42ba3daa73823422f578850925",
-          "size": 14853,
+          "sha256": "beffb85d9a1e257c50a5ce5f059a6568ca276d8a74d0c15b2c640bc966a88598",
+          "size": 15442,
           "type": "file"
         },
         ".gemini/agents/debugger.md": {
@@ -14059,14 +14080,14 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ca61daa775692e7061b45af2483cba9b218d8b5f45069a03c783a81c40b27895",
-          "size": 19218,
+          "sha256": "82fdc96206c39b7d5f12d885723892a87c70d3934a57810f9bc919bf506253ab",
+          "size": 20210,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9eb30b6230f0035f81dfa276eded2cf6efe9b00d6afe214dc963d3fe9e19d816",
-          "size": 17907,
+          "sha256": "4a67b827378b6e5717264b54cdd941a70ce486ccf80718282da19a9f29f4ed58",
+          "size": 19456,
           "type": "file"
         },
         ".gemini/agents/gap-scout.md": {
@@ -14077,8 +14098,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "0558a70acd01c351e096db9d2fb20b2b8927acf0bbbffa671b012824b76c28d5",
-          "size": 16137,
+          "sha256": "af80baaec71e2ab7e7540576b8a4709ca97e82a145fd5ed29b552b4bafb524d0",
+          "size": 19636,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -14143,8 +14164,8 @@
         },
         ".gemini/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "19f432dca5420b7ee4ddc4654e5269c996ef51a421b8b755f4ce1c581e3e031a",
-          "size": 25602,
+          "sha256": "afdee0240f091ec0f1efc13c62fc4047a42a686cf69063ccad39bbca069152c9",
+          "size": 25744,
           "type": "file"
         },
         ".gemini/agents/novelty-checker.md": {
@@ -14585,20 +14606,20 @@
         },
         ".opencode/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "c25cd624b3cffc5954b9cc5978cae6020317c6babce15c23c5422b566a3656ba",
-          "size": 37445,
+          "sha256": "9aa9a8598151e57a9f98c700458ef0870ada3498217c815f37bcf98f26163bea",
+          "size": 38387,
           "type": "file"
         },
         ".opencode/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "64ee29f1893be2ec04f2efa4070a4fd0053e7b7ce398eaf3b74a7a5f0a15960a",
-          "size": 11207,
+          "sha256": "ff89a15c125a4dcc5d55715d6f0d81f9aea981efe22c63b7460a0f40c8ddaabe",
+          "size": 11755,
           "type": "file"
         },
         ".opencode/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "77ce83c160e69b3a3f245bb09a5053713777dca4d0c8acb807092f6f844e4598",
-          "size": 14952,
+          "sha256": "4e5c4f3cf5f0ab4b74c2d2a661d27442cfb2fd39155430db8f4293ceee3b8550",
+          "size": 15541,
           "type": "file"
         },
         ".opencode/agents/debugger.md": {
@@ -14615,14 +14636,14 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f0d363f710eae42cc922481d960c7afa7516dc8945fec143813e3a6649b24056",
-          "size": 19518,
+          "sha256": "430db36b31cbe7d902aa1c14c24153c4432a6f4fa697e5d752f8892a6a1038fc",
+          "size": 20510,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "7690687ebf705976d2ffb0e5cf8fb79cc2719fce209b5eb31dea9930a022a903",
-          "size": 18012,
+          "sha256": "23f7ac9344391ae1dd6de1707da10c52d4097265eb10c0bbd828a2beb9f90cb0",
+          "size": 19561,
           "type": "file"
         },
         ".opencode/agents/gap-scout.md": {
@@ -14633,8 +14654,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "b3dfcc1da031ffaff24385fc376b0250639b1b819b9b25d6a8eddda104bdfc7a",
-          "size": 16239,
+          "sha256": "ed431ce2b8acc7505bda5df343a55232195af0a0a8d07405b9d945c865361042",
+          "size": 19738,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -14699,8 +14720,8 @@
         },
         ".opencode/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "d06b7a9d03ea8048498ad6e87e0bb5455f735e3999c17c14d5d8f71b942655b6",
-          "size": 25675,
+          "sha256": "db11a92590392debad6c1d35b0350dad93aff8bca9a168079248d0773c5d4d8d",
+          "size": 25817,
           "type": "file"
         },
         ".opencode/agents/novelty-checker.md": {
@@ -14879,20 +14900,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "717382fe965cbfa60eda39add1f62c34d7ab9fd2c209cd4e925c32a21b3ea706",
-          "size": 69157,
+          "sha256": "161646a5bf24d2044a4ef091b4dd3c0f5ee65e43f82a3d0a169841aa03e41140",
+          "size": 75748,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "45e50423064003b35298f2049c548083bbadb977955f089970d9ed601a4403fc",
-          "size": 57979,
+          "sha256": "c75261ef12ea58b70f18db6f506bb07b14da5988c60526ca5004ced2f54144bf",
+          "size": 64570,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "fe9cca52705cb3b28d42592005a924e1f1db08ce12340cc6e71b3135febdbb73",
-          "size": 63151,
+          "sha256": "a42d7bb8ae5d3a92fca302a07567d662f2e1c167dcfea82d05a0a6323696f410",
+          "size": 69742,
           "type": "file"
         },
         "code": {
@@ -15025,6 +15046,12 @@
           "mode": "0644",
           "sha256": "2ea582286dccd2e775e36cd1584cbfd046c192da76a82917faeaa64e52988c69",
           "size": 5318,
+          "type": "file"
+        },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -15255,8 +15282,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "9bd6c68114fdea45c7f0498c866acffaed8891ce8fc4f9a2040259f26bd4454a",
-          "size": 36887,
+          "sha256": "1fe11b5ba3c811529f48ec0d2b3af32f8f385574135ccf1bb1d6f1ff41527457",
+          "size": 41239,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -15267,8 +15294,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "58a036a7d00d132ddb1f20d293854cac1468599a74280f6552c6cd96c9f3866f",
-          "size": 23119,
+          "sha256": "e1b3270023653830729266bd3d398ee081fc42c53ca3d318e5ae4eacd15f8674",
+          "size": 25923,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -15397,7 +15424,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -15443,8 +15470,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "be16920d7b04420e1fa0ba35e6ad6749ba23145cc981cf9f7c01446533f84004",
-          "size": 2312,
+          "sha256": "76d34a4795049a855619449dc5cb605a944445df2f95abea758d716d6ff3bf34",
+          "size": 2345,
           "type": "file"
         },
         "process_log/sessions": {
@@ -15522,6 +15549,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -15549,7 +15577,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -15947,20 +15975,20 @@
         },
         ".claude/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "14ca1a90def4b01a9cf01a5a2591b6a7255072b2ef59c0f7dd058fc95865bcb8",
-          "size": 37262,
+          "sha256": "cb8921dfa382b0d0dee3b29cfe60edfb822ce9e6ee4c7ba0a014f175c8146908",
+          "size": 38204,
           "type": "file"
         },
         ".claude/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "7c10cff3f5169316e6fde48415bf37eba90d205b755ce75ad1a3a7cab034a9cb",
-          "size": 11032,
+          "sha256": "04362ffdfe5fb910d98fe8ea8793641c4e473e8ea7f2ca51645e65dbf724822e",
+          "size": 11580,
           "type": "file"
         },
         ".claude/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "8a643319f890bb1c3502fd5e35d6403e1342464219b6c5e6dd31b7a0b3fd9b8a",
-          "size": 14777,
+          "sha256": "8a7036cb159087b0b9e3ef97691cff54564f5e46e88c6c357b615846ba6a6b02",
+          "size": 15366,
           "type": "file"
         },
         ".claude/agents/debugger.md": {
@@ -15977,14 +16005,14 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "e9f667a3091196f29e104b2f335f6d57e34e4087458753ced9b6f06c35efce6c",
-          "size": 19251,
+          "sha256": "1f4d396b64874a4c56ea07b528a03009072eef97d1b6879fbba03b9b9319066a",
+          "size": 20243,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "8d62b9ad269bd79c999b1a86cd9b0fdd1239cd29316e38111bfb733302e4c476",
-          "size": 20651,
+          "sha256": "6cf6e52f391034ee42bb23c6a2c330c318110cf1551952dd83996708a1a90a0a",
+          "size": 22200,
           "type": "file"
         },
         ".claude/agents/gap-scout.md": {
@@ -15995,8 +16023,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "4b19c07ac760ca9087531d24c0190153bc0516fad88a12e16fcf24be31ea159c",
-          "size": 16061,
+          "sha256": "9e92c46dbd0d7da1491de9419513a6959c8ccc9508812c65dea47ed406e7cfe0",
+          "size": 19560,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -16067,8 +16095,8 @@
         },
         ".claude/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "5a8429803bd62906f553c59c1b1f4daae3c2b537ce92cc4f9d272f8c11f91e02",
-          "size": 25511,
+          "sha256": "847a1332bf414a20e6baa132362ca3a839e00a67176a70bac9feb66541e09c83",
+          "size": 25653,
           "type": "file"
         },
         ".claude/agents/novelty-checker.md": {
@@ -16575,20 +16603,20 @@
         },
         ".codex/agents/claim-verifier.toml": {
           "mode": "0644",
-          "sha256": "c9c7ce3a95d576f66e2c4ccb6da08f82aeaaa48a8ceb2e548354b8a4b860b924",
-          "size": 37288,
+          "sha256": "4f27c1c7394a5ca8ee2673ef822941b368fc7d683458364e4dee2b645fca8b12",
+          "size": 38230,
           "type": "file"
         },
         ".codex/agents/data-integrity-auditor.toml": {
           "mode": "0644",
-          "sha256": "c59f59c2dd0cad330fc548051c5cab613b6199d8cd632d1abd3726642f586843",
-          "size": 11057,
+          "sha256": "92a939d4240edf19e9aaf0a52bb0c23b8642ab987da8f03ac5c484797b9d3eea",
+          "size": 11605,
           "type": "file"
         },
         ".codex/agents/data-selection-auditor.toml": {
           "mode": "0644",
-          "sha256": "9f78cab7fa6452bb855ffb615475bf2af280b2667f2b2eb271400df9d48ae45f",
-          "size": 14802,
+          "sha256": "af64413ba84730ab0f108502fa3b0e9848b545c2899ae3580762a29d60143150",
+          "size": 15391,
           "type": "file"
         },
         ".codex/agents/debugger.toml": {
@@ -16605,14 +16633,14 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "4b57986dbc2aea3e46415a70e7be4bd32cbbfbc907d2e45a928b4e8ff6732d2f",
-          "size": 19191,
+          "sha256": "a1d98991a337471aceed5d23bb28420bec6c0744f0bb91aba12cf3d5b0ab1955",
+          "size": 20183,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "f25d4870e55aff9f10bad37a3ca1e0f5f3fc7e3e08c37f550f4f975ec6cea867",
-          "size": 20677,
+          "sha256": "653752b0f03da0c0905210e2f092c953dca2e8adf4e88384f7c4ceb6df164760",
+          "size": 22226,
           "type": "file"
         },
         ".codex/agents/gap-scout.toml": {
@@ -16623,8 +16651,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "7d140a1ea5375454ed94ce433a696495ca4f78ccbc9db7d3029aebb6fe9e2f11",
-          "size": 16086,
+          "sha256": "4cbc7736c4a9223750ace04d164a61f89d2841b3ca2471c2fcb65c568ead31ef",
+          "size": 19585,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -16695,8 +16723,8 @@
         },
         ".codex/agents/method-checker.toml": {
           "mode": "0644",
-          "sha256": "f487a4481747ba778f647eb33c8679e69ca96b0abbf29f2824d079ee3076226c",
-          "size": 25516,
+          "sha256": "cb839a201f83ec8edc0ba86ccf51c63c92bc251710448265bd8cd0eedb2ecd26",
+          "size": 25658,
           "type": "file"
         },
         ".codex/agents/novelty-checker.toml": {
@@ -16851,8 +16879,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "74237af67ff8d72072525caf2dd670a00d5f82ad254d6a4e7e64c7f16593066c",
-          "size": 2814,
+          "sha256": "810cc8ce10f5a0344078c8f696796d32c9d46c0159746b4030c51b608f77f0f5",
+          "size": 2862,
           "type": "file"
         },
         ".env": {
@@ -16895,20 +16923,20 @@
         },
         ".gemini/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "43d4856b31d1b6ec631ccd5e81c10c16f36fd41415179e764e6369d52b609022",
-          "size": 37338,
+          "sha256": "92c5cec09bca9c77f47a047fcfef826c04a0dcec3993c8974b00770adc7d5fd9",
+          "size": 38280,
           "type": "file"
         },
         ".gemini/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "b7163d4a1122e6f83adb91ba8feaca6560b18822e15cf69e588bdb951174a29c",
-          "size": 11108,
+          "sha256": "6f2ef393e68f4f0f2cd358f11aafc1f19582701957a710b846a20095fb1ad548",
+          "size": 11656,
           "type": "file"
         },
         ".gemini/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "a201a12c58c5653b9e78d46d9e1fc22eb53e6e42ba3daa73823422f578850925",
-          "size": 14853,
+          "sha256": "beffb85d9a1e257c50a5ce5f059a6568ca276d8a74d0c15b2c640bc966a88598",
+          "size": 15442,
           "type": "file"
         },
         ".gemini/agents/debugger.md": {
@@ -16925,14 +16953,14 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ca61daa775692e7061b45af2483cba9b218d8b5f45069a03c783a81c40b27895",
-          "size": 19218,
+          "sha256": "82fdc96206c39b7d5f12d885723892a87c70d3934a57810f9bc919bf506253ab",
+          "size": 20210,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6d341d8933a7f35da0004d6c2d2555d73e04e83ca9ff1dc4863588a8456615f5",
-          "size": 20729,
+          "sha256": "26001f148712f6b60ad1ae707252b2ff8feea126a49d9dfd0716df4c78773b7c",
+          "size": 22278,
           "type": "file"
         },
         ".gemini/agents/gap-scout.md": {
@@ -16943,8 +16971,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "0558a70acd01c351e096db9d2fb20b2b8927acf0bbbffa671b012824b76c28d5",
-          "size": 16137,
+          "sha256": "af80baaec71e2ab7e7540576b8a4709ca97e82a145fd5ed29b552b4bafb524d0",
+          "size": 19636,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -17015,8 +17043,8 @@
         },
         ".gemini/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "19f432dca5420b7ee4ddc4654e5269c996ef51a421b8b755f4ce1c581e3e031a",
-          "size": 25602,
+          "sha256": "afdee0240f091ec0f1efc13c62fc4047a42a686cf69063ccad39bbca069152c9",
+          "size": 25744,
           "type": "file"
         },
         ".gemini/agents/novelty-checker.md": {
@@ -17457,20 +17485,20 @@
         },
         ".opencode/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "c25cd624b3cffc5954b9cc5978cae6020317c6babce15c23c5422b566a3656ba",
-          "size": 37445,
+          "sha256": "9aa9a8598151e57a9f98c700458ef0870ada3498217c815f37bcf98f26163bea",
+          "size": 38387,
           "type": "file"
         },
         ".opencode/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "64ee29f1893be2ec04f2efa4070a4fd0053e7b7ce398eaf3b74a7a5f0a15960a",
-          "size": 11207,
+          "sha256": "ff89a15c125a4dcc5d55715d6f0d81f9aea981efe22c63b7460a0f40c8ddaabe",
+          "size": 11755,
           "type": "file"
         },
         ".opencode/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "77ce83c160e69b3a3f245bb09a5053713777dca4d0c8acb807092f6f844e4598",
-          "size": 14952,
+          "sha256": "4e5c4f3cf5f0ab4b74c2d2a661d27442cfb2fd39155430db8f4293ceee3b8550",
+          "size": 15541,
           "type": "file"
         },
         ".opencode/agents/debugger.md": {
@@ -17487,14 +17515,14 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f0d363f710eae42cc922481d960c7afa7516dc8945fec143813e3a6649b24056",
-          "size": 19518,
+          "sha256": "430db36b31cbe7d902aa1c14c24153c4432a6f4fa697e5d752f8892a6a1038fc",
+          "size": 20510,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "3f9fdcddd1af09320749909bcbf5e2aaa8a129e16643327ac40ca13622ce76bc",
-          "size": 20834,
+          "sha256": "e3ff8408f55838ca68d1f2190bc4f7f3049c48b84e3b91ed2269d8f724114c8f",
+          "size": 22383,
           "type": "file"
         },
         ".opencode/agents/gap-scout.md": {
@@ -17505,8 +17533,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "b3dfcc1da031ffaff24385fc376b0250639b1b819b9b25d6a8eddda104bdfc7a",
-          "size": 16239,
+          "sha256": "ed431ce2b8acc7505bda5df343a55232195af0a0a8d07405b9d945c865361042",
+          "size": 19738,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -17577,8 +17605,8 @@
         },
         ".opencode/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "d06b7a9d03ea8048498ad6e87e0bb5455f735e3999c17c14d5d8f71b942655b6",
-          "size": 25675,
+          "sha256": "db11a92590392debad6c1d35b0350dad93aff8bca9a168079248d0773c5d4d8d",
+          "size": 25817,
           "type": "file"
         },
         ".opencode/agents/novelty-checker.md": {
@@ -17757,20 +17785,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "dfd52440ab2efbb8cf4cee878e414a7d1a25e3119f0ec195260b264864a41a28",
-          "size": 74297,
+          "sha256": "41f6b135d49c28ae3492cf41ba51e0b6146ca1a5dcc6a461083e6566c759411d",
+          "size": 78351,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "d16380240b0f0dfa52f3c61ab0e9fa687926a0ed98000fd14120bf426992dabd",
-          "size": 63119,
+          "sha256": "d22d2ca4b2b3486bfabc57c4ef274d8f4a21d7fc0e6ad61aee163aa3c2d945ce",
+          "size": 67173,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "62288cc6ba5e6f035970cdf4de9849bc690f31dd4cb54565e2682766eca29b4f",
-          "size": 68291,
+          "sha256": "72ddb58899f5073614faa98c1bd314c248e09a583486490c8390d4f1047741c1",
+          "size": 72345,
           "type": "file"
         },
         "code": {
@@ -17903,6 +17931,12 @@
           "mode": "0644",
           "sha256": "2ea582286dccd2e775e36cd1584cbfd046c192da76a82917faeaa64e52988c69",
           "size": 5318,
+          "type": "file"
+        },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -18133,8 +18167,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "e4d552a001fa11ea4340eee3864398d52f39c84fad7a7ae91952770ae7896013",
-          "size": 40315,
+          "sha256": "89267e1f2ab351d1253dd86dc162291e664666fecce7b43319a6399affaef078",
+          "size": 44667,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -18145,8 +18179,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "34f329b70e72cc901b098c554aa4c03ba56516653393e954ae8f199d37e1c3e2",
-          "size": 23832,
+          "sha256": "f5407fb790aaf06d45d5c4924dfa0e8953b2ee6d2cb5e09c5e0b53e28e30e9e2",
+          "size": 26636,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -18267,7 +18301,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -18313,8 +18347,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "be16920d7b04420e1fa0ba35e6ad6749ba23145cc981cf9f7c01446533f84004",
-          "size": 2312,
+          "sha256": "76d34a4795049a855619449dc5cb605a944445df2f95abea758d716d6ff3bf34",
+          "size": 2345,
           "type": "file"
         },
         "process_log/sessions": {
@@ -18392,6 +18426,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -18419,7 +18454,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -18835,20 +18870,20 @@
         },
         ".claude/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "14ca1a90def4b01a9cf01a5a2591b6a7255072b2ef59c0f7dd058fc95865bcb8",
-          "size": 37262,
+          "sha256": "cb8921dfa382b0d0dee3b29cfe60edfb822ce9e6ee4c7ba0a014f175c8146908",
+          "size": 38204,
           "type": "file"
         },
         ".claude/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "7c10cff3f5169316e6fde48415bf37eba90d205b755ce75ad1a3a7cab034a9cb",
-          "size": 11032,
+          "sha256": "04362ffdfe5fb910d98fe8ea8793641c4e473e8ea7f2ca51645e65dbf724822e",
+          "size": 11580,
           "type": "file"
         },
         ".claude/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "8a643319f890bb1c3502fd5e35d6403e1342464219b6c5e6dd31b7a0b3fd9b8a",
-          "size": 14777,
+          "sha256": "8a7036cb159087b0b9e3ef97691cff54564f5e46e88c6c357b615846ba6a6b02",
+          "size": 15366,
           "type": "file"
         },
         ".claude/agents/debugger.md": {
@@ -18865,14 +18900,14 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "e9f667a3091196f29e104b2f335f6d57e34e4087458753ced9b6f06c35efce6c",
-          "size": 19251,
+          "sha256": "1f4d396b64874a4c56ea07b528a03009072eef97d1b6879fbba03b9b9319066a",
+          "size": 20243,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "8d62b9ad269bd79c999b1a86cd9b0fdd1239cd29316e38111bfb733302e4c476",
-          "size": 20651,
+          "sha256": "6cf6e52f391034ee42bb23c6a2c330c318110cf1551952dd83996708a1a90a0a",
+          "size": 22200,
           "type": "file"
         },
         ".claude/agents/experiment-designer.md": {
@@ -18895,8 +18930,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "4b19c07ac760ca9087531d24c0190153bc0516fad88a12e16fcf24be31ea159c",
-          "size": 16061,
+          "sha256": "9e92c46dbd0d7da1491de9419513a6959c8ccc9508812c65dea47ed406e7cfe0",
+          "size": 19560,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -18967,8 +19002,8 @@
         },
         ".claude/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "5a8429803bd62906f553c59c1b1f4daae3c2b537ce92cc4f9d272f8c11f91e02",
-          "size": 25511,
+          "sha256": "847a1332bf414a20e6baa132362ca3a839e00a67176a70bac9feb66541e09c83",
+          "size": 25653,
           "type": "file"
         },
         ".claude/agents/novelty-checker.md": {
@@ -19491,20 +19526,20 @@
         },
         ".codex/agents/claim-verifier.toml": {
           "mode": "0644",
-          "sha256": "c9c7ce3a95d576f66e2c4ccb6da08f82aeaaa48a8ceb2e548354b8a4b860b924",
-          "size": 37288,
+          "sha256": "4f27c1c7394a5ca8ee2673ef822941b368fc7d683458364e4dee2b645fca8b12",
+          "size": 38230,
           "type": "file"
         },
         ".codex/agents/data-integrity-auditor.toml": {
           "mode": "0644",
-          "sha256": "c59f59c2dd0cad330fc548051c5cab613b6199d8cd632d1abd3726642f586843",
-          "size": 11057,
+          "sha256": "92a939d4240edf19e9aaf0a52bb0c23b8642ab987da8f03ac5c484797b9d3eea",
+          "size": 11605,
           "type": "file"
         },
         ".codex/agents/data-selection-auditor.toml": {
           "mode": "0644",
-          "sha256": "9f78cab7fa6452bb855ffb615475bf2af280b2667f2b2eb271400df9d48ae45f",
-          "size": 14802,
+          "sha256": "af64413ba84730ab0f108502fa3b0e9848b545c2899ae3580762a29d60143150",
+          "size": 15391,
           "type": "file"
         },
         ".codex/agents/debugger.toml": {
@@ -19521,14 +19556,14 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "4b57986dbc2aea3e46415a70e7be4bd32cbbfbc907d2e45a928b4e8ff6732d2f",
-          "size": 19191,
+          "sha256": "a1d98991a337471aceed5d23bb28420bec6c0744f0bb91aba12cf3d5b0ab1955",
+          "size": 20183,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "f25d4870e55aff9f10bad37a3ca1e0f5f3fc7e3e08c37f550f4f975ec6cea867",
-          "size": 20677,
+          "sha256": "653752b0f03da0c0905210e2f092c953dca2e8adf4e88384f7c4ceb6df164760",
+          "size": 22226,
           "type": "file"
         },
         ".codex/agents/experiment-designer.toml": {
@@ -19551,8 +19586,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "7d140a1ea5375454ed94ce433a696495ca4f78ccbc9db7d3029aebb6fe9e2f11",
-          "size": 16086,
+          "sha256": "4cbc7736c4a9223750ace04d164a61f89d2841b3ca2471c2fcb65c568ead31ef",
+          "size": 19585,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -19623,8 +19658,8 @@
         },
         ".codex/agents/method-checker.toml": {
           "mode": "0644",
-          "sha256": "f487a4481747ba778f647eb33c8679e69ca96b0abbf29f2824d079ee3076226c",
-          "size": 25516,
+          "sha256": "cb839a201f83ec8edc0ba86ccf51c63c92bc251710448265bd8cd0eedb2ecd26",
+          "size": 25658,
           "type": "file"
         },
         ".codex/agents/novelty-checker.toml": {
@@ -19785,8 +19820,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "73b2a766bee35391e7c8da0e3ae05050e670c1dfe105da91c9ea55cd7efe00f4",
-          "size": 2921,
+          "sha256": "07afcc99be9427579736722dba9f940040c94b4524a60de45e58a2eb0e0374d7",
+          "size": 2969,
           "type": "file"
         },
         ".env": {
@@ -19829,20 +19864,20 @@
         },
         ".gemini/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "43d4856b31d1b6ec631ccd5e81c10c16f36fd41415179e764e6369d52b609022",
-          "size": 37338,
+          "sha256": "92c5cec09bca9c77f47a047fcfef826c04a0dcec3993c8974b00770adc7d5fd9",
+          "size": 38280,
           "type": "file"
         },
         ".gemini/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "b7163d4a1122e6f83adb91ba8feaca6560b18822e15cf69e588bdb951174a29c",
-          "size": 11108,
+          "sha256": "6f2ef393e68f4f0f2cd358f11aafc1f19582701957a710b846a20095fb1ad548",
+          "size": 11656,
           "type": "file"
         },
         ".gemini/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "a201a12c58c5653b9e78d46d9e1fc22eb53e6e42ba3daa73823422f578850925",
-          "size": 14853,
+          "sha256": "beffb85d9a1e257c50a5ce5f059a6568ca276d8a74d0c15b2c640bc966a88598",
+          "size": 15442,
           "type": "file"
         },
         ".gemini/agents/debugger.md": {
@@ -19859,14 +19894,14 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ca61daa775692e7061b45af2483cba9b218d8b5f45069a03c783a81c40b27895",
-          "size": 19218,
+          "sha256": "82fdc96206c39b7d5f12d885723892a87c70d3934a57810f9bc919bf506253ab",
+          "size": 20210,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6d341d8933a7f35da0004d6c2d2555d73e04e83ca9ff1dc4863588a8456615f5",
-          "size": 20729,
+          "sha256": "26001f148712f6b60ad1ae707252b2ff8feea126a49d9dfd0716df4c78773b7c",
+          "size": 22278,
           "type": "file"
         },
         ".gemini/agents/experiment-designer.md": {
@@ -19889,8 +19924,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "0558a70acd01c351e096db9d2fb20b2b8927acf0bbbffa671b012824b76c28d5",
-          "size": 16137,
+          "sha256": "af80baaec71e2ab7e7540576b8a4709ca97e82a145fd5ed29b552b4bafb524d0",
+          "size": 19636,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -19961,8 +19996,8 @@
         },
         ".gemini/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "19f432dca5420b7ee4ddc4654e5269c996ef51a421b8b755f4ce1c581e3e031a",
-          "size": 25602,
+          "sha256": "afdee0240f091ec0f1efc13c62fc4047a42a686cf69063ccad39bbca069152c9",
+          "size": 25744,
           "type": "file"
         },
         ".gemini/agents/novelty-checker.md": {
@@ -20409,20 +20444,20 @@
         },
         ".opencode/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "c25cd624b3cffc5954b9cc5978cae6020317c6babce15c23c5422b566a3656ba",
-          "size": 37445,
+          "sha256": "9aa9a8598151e57a9f98c700458ef0870ada3498217c815f37bcf98f26163bea",
+          "size": 38387,
           "type": "file"
         },
         ".opencode/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "64ee29f1893be2ec04f2efa4070a4fd0053e7b7ce398eaf3b74a7a5f0a15960a",
-          "size": 11207,
+          "sha256": "ff89a15c125a4dcc5d55715d6f0d81f9aea981efe22c63b7460a0f40c8ddaabe",
+          "size": 11755,
           "type": "file"
         },
         ".opencode/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "77ce83c160e69b3a3f245bb09a5053713777dca4d0c8acb807092f6f844e4598",
-          "size": 14952,
+          "sha256": "4e5c4f3cf5f0ab4b74c2d2a661d27442cfb2fd39155430db8f4293ceee3b8550",
+          "size": 15541,
           "type": "file"
         },
         ".opencode/agents/debugger.md": {
@@ -20439,14 +20474,14 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f0d363f710eae42cc922481d960c7afa7516dc8945fec143813e3a6649b24056",
-          "size": 19518,
+          "sha256": "430db36b31cbe7d902aa1c14c24153c4432a6f4fa697e5d752f8892a6a1038fc",
+          "size": 20510,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "3f9fdcddd1af09320749909bcbf5e2aaa8a129e16643327ac40ca13622ce76bc",
-          "size": 20834,
+          "sha256": "e3ff8408f55838ca68d1f2190bc4f7f3049c48b84e3b91ed2269d8f724114c8f",
+          "size": 22383,
           "type": "file"
         },
         ".opencode/agents/experiment-designer.md": {
@@ -20469,8 +20504,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "b3dfcc1da031ffaff24385fc376b0250639b1b819b9b25d6a8eddda104bdfc7a",
-          "size": 16239,
+          "sha256": "ed431ce2b8acc7505bda5df343a55232195af0a0a8d07405b9d945c865361042",
+          "size": 19738,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -20541,8 +20576,8 @@
         },
         ".opencode/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "d06b7a9d03ea8048498ad6e87e0bb5455f735e3999c17c14d5d8f71b942655b6",
-          "size": 25675,
+          "sha256": "db11a92590392debad6c1d35b0350dad93aff8bca9a168079248d0773c5d4d8d",
+          "size": 25817,
           "type": "file"
         },
         ".opencode/agents/novelty-checker.md": {
@@ -20727,20 +20762,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "1c185c1ee3faa991c87be89663ed924b9b51b3acd471404f479c1a0eeacc135c",
-          "size": 74829,
+          "sha256": "562bca2c709ca426286b9886355b82f04f14ad84c6e0ffb2dfd5be72c236837b",
+          "size": 78883,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "104b16a12ee38327b9ec2ac40115c7e2508bf617d30763c3563587b14f2f3a09",
-          "size": 63651,
+          "sha256": "ec1c32d0e96a600366a040b3111c45164daeb24235356d5dca21b6d81388fc9f",
+          "size": 67705,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "a700a58cb8955d00be6dea7ce9678131b7c57019ace64e341f535eeb549634ec",
-          "size": 68823,
+          "sha256": "71fe60cb7af7ca34bd74a71430d81e098f48ab15f271fab7fcd2b007cec39fe0",
+          "size": 72877,
           "type": "file"
         },
         "code": {
@@ -20873,6 +20908,12 @@
           "mode": "0644",
           "sha256": "2ea582286dccd2e775e36cd1584cbfd046c192da76a82917faeaa64e52988c69",
           "size": 5318,
+          "type": "file"
+        },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -21103,8 +21144,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "e4d552a001fa11ea4340eee3864398d52f39c84fad7a7ae91952770ae7896013",
-          "size": 40315,
+          "sha256": "89267e1f2ab351d1253dd86dc162291e664666fecce7b43319a6399affaef078",
+          "size": 44667,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -21121,8 +21162,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "34f329b70e72cc901b098c554aa4c03ba56516653393e954ae8f199d37e1c3e2",
-          "size": 23832,
+          "sha256": "f5407fb790aaf06d45d5c4924dfa0e8953b2ee6d2cb5e09c5e0b53e28e30e9e2",
+          "size": 26636,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -21257,7 +21298,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -21303,8 +21344,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "61c494f6efe86b20cd335e8e7e92ac769c6da52d574a082e8f8d5db3fddc3003",
-          "size": 2346,
+          "sha256": "3c1cf8f66698ccd8a801047a59e19a2605462a016e8760c7bc46aef97c3a1644",
+          "size": 2379,
           "type": "file"
         },
         "process_log/sessions": {
@@ -21384,6 +21425,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -21412,7 +21454,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -22059,7 +22101,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bd66007607dbc4b8d08b66bf9b2136ab9f6c8989e4d93f4f705da0c6c1775ff8",
+          "sha256": "7fa145095bcd7fbddd498d56824e629e70cb0aca4c461216a7f2a33853758cef",
           "size": 1814,
           "type": "file"
         },
@@ -23049,8 +23091,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "fee7ab5700907d9e7120760fe25af001903e88626ff18250d4e2749c84075f6a",
-          "size": 13934,
+          "sha256": "db9fbeb61ea4f4414e25783e92886379e8bc9a8d11a0a2b9e11929278283d799",
+          "size": 14700,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -23171,7 +23213,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -23297,7 +23339,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -23698,20 +23740,20 @@
         },
         ".claude/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "14ca1a90def4b01a9cf01a5a2591b6a7255072b2ef59c0f7dd058fc95865bcb8",
-          "size": 37262,
+          "sha256": "cb8921dfa382b0d0dee3b29cfe60edfb822ce9e6ee4c7ba0a014f175c8146908",
+          "size": 38204,
           "type": "file"
         },
         ".claude/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "7c10cff3f5169316e6fde48415bf37eba90d205b755ce75ad1a3a7cab034a9cb",
-          "size": 11032,
+          "sha256": "04362ffdfe5fb910d98fe8ea8793641c4e473e8ea7f2ca51645e65dbf724822e",
+          "size": 11580,
           "type": "file"
         },
         ".claude/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "8a643319f890bb1c3502fd5e35d6403e1342464219b6c5e6dd31b7a0b3fd9b8a",
-          "size": 14777,
+          "sha256": "8a7036cb159087b0b9e3ef97691cff54564f5e46e88c6c357b615846ba6a6b02",
+          "size": 15366,
           "type": "file"
         },
         ".claude/agents/debugger.md": {
@@ -23728,14 +23770,14 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "bc5025bb22a90a072b7ca8da3bd60360833cdb78e93b6cd69082659340dd2b86",
-          "size": 21559,
+          "sha256": "b2787d19047b51491f24f02fcbbd263f6f7657fa4a1a630b7e424020f54b87ee",
+          "size": 22551,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "cd070c646410e49a43c036a14e6703ec4f78d30a3f905b01a66789b2c8b9eaca",
-          "size": 17831,
+          "sha256": "abebbd20c6aac52410c435360bf4bfb9417647e5cb9e486041362d2c223e7d9d",
+          "size": 19380,
           "type": "file"
         },
         ".claude/agents/faithful-drift-auditor.md": {
@@ -23752,8 +23794,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "4b19c07ac760ca9087531d24c0190153bc0516fad88a12e16fcf24be31ea159c",
-          "size": 16061,
+          "sha256": "9e92c46dbd0d7da1491de9419513a6959c8ccc9508812c65dea47ed406e7cfe0",
+          "size": 19560,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -23818,8 +23860,8 @@
         },
         ".claude/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "5a8429803bd62906f553c59c1b1f4daae3c2b537ce92cc4f9d272f8c11f91e02",
-          "size": 25511,
+          "sha256": "847a1332bf414a20e6baa132362ca3a839e00a67176a70bac9feb66541e09c83",
+          "size": 25653,
           "type": "file"
         },
         ".claude/agents/novelty-checker.md": {
@@ -24326,20 +24368,20 @@
         },
         ".codex/agents/claim-verifier.toml": {
           "mode": "0644",
-          "sha256": "abd91e97e828e599b98994231735a818029d22c8879643bad5d31bd396f08890",
-          "size": 37254,
+          "sha256": "66bd110631270c3da8d3495698de504009e9c980acd2a211176c2f56070bbb7f",
+          "size": 38196,
           "type": "file"
         },
         ".codex/agents/data-integrity-auditor.toml": {
           "mode": "0644",
-          "sha256": "7d4a22c3d26aa6bb540961041a897dee81f5f8926d5f6c146f3dd28ac4937277",
-          "size": 11023,
+          "sha256": "e14ff9f7f39168b0c1fbec696f315f208bea6386e4abc0f9b67bf2b2148349d4",
+          "size": 11571,
           "type": "file"
         },
         ".codex/agents/data-selection-auditor.toml": {
           "mode": "0644",
-          "sha256": "8d46733d53072639fb92f1aa65c25174fe3274ff0542a3cb7a8e8438f87d7d5b",
-          "size": 14768,
+          "sha256": "68b47e84e6c3e69320fa5580b83976f3d15afe78a7928a925924be2393fbe8bf",
+          "size": 15357,
           "type": "file"
         },
         ".codex/agents/debugger.toml": {
@@ -24356,14 +24398,14 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "c03d910276e297d12cf6a1570ad44e2e4fa185b1b024fa1a5c56af3ed9c3e861",
-          "size": 21478,
+          "sha256": "03ed81ace7196a92a55d78b062a66d195c63e0ac2b3916f36cf6d6e3ddbfcd5c",
+          "size": 22470,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "1a63f06fe6cc7c722f9355dec02958baf9cd8dd550c3705a712d405dcdb75946",
-          "size": 17822,
+          "sha256": "d41385edc2a76b40b38bd66ac6848cf26082b7391f885861fd729de2b3b750fd",
+          "size": 19371,
           "type": "file"
         },
         ".codex/agents/faithful-drift-auditor.toml": {
@@ -24380,8 +24422,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "13874e9c25a1e27e3bb8d49f7c7fecf95dd191d73d7083de8c06d3c387083ab5",
-          "size": 16052,
+          "sha256": "2682fec2b455c85292809a3f9ae051dba9d10d674c04787525a0615612f07543",
+          "size": 19551,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -24446,8 +24488,8 @@
         },
         ".codex/agents/method-checker.toml": {
           "mode": "0644",
-          "sha256": "c43fb8c718d830b4407bbec30ce4c1993cd878e4828f5a701017caef6caab968",
-          "size": 25482,
+          "sha256": "c7909449498fa6bb7ea36e32f691a7e56ff9d1d80996bed4f74ef13ac7dbf982",
+          "size": 25624,
           "type": "file"
         },
         ".codex/agents/novelty-checker.toml": {
@@ -24602,8 +24644,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "29382cdfb909bcbbef33794ddd113135b562dc3a47f54f824fa4ffa46fd4ed15",
-          "size": 2795,
+          "sha256": "82fcfa9f1d9599286e56b14ee8116150a79c49a4c98c95ff557ec8aa3aa3241c",
+          "size": 2843,
           "type": "file"
         },
         ".env": {
@@ -24646,20 +24688,20 @@
         },
         ".gemini/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "9a9b6c3622b0e322a99aeee1616530edbe0f93b07b6fe09540bed0fe1efaa9da",
-          "size": 37344,
+          "sha256": "50ce12446a50c41b72c78c4019a83b1e2ad06254fd153a55b4dff9f867d759a0",
+          "size": 38286,
           "type": "file"
         },
         ".gemini/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "330db76598e745e5cac863a2eefbc91e37874a8c1e623a5cb469c8b75fc684f0",
-          "size": 11114,
+          "sha256": "5bb9e396002d3a5fee2c6159ecf73fa9d95caa7514619f9e30104ff8c6f05f91",
+          "size": 11662,
           "type": "file"
         },
         ".gemini/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "fb504b8acb25b989d3555e2f5265fd7e7127e23af4fbc9c40f23b28bf2faa0d4",
-          "size": 14859,
+          "sha256": "d00aaef00f6ae0c9a8d303cf3df89d141227347b710927a5a43ba02ed0a93789",
+          "size": 15448,
           "type": "file"
         },
         ".gemini/agents/debugger.md": {
@@ -24676,14 +24718,14 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "a7b840ecb23b20c4d5cc6372fe4b16a7c00e6b7a97b846b4c1a7752f734c99ce",
-          "size": 21545,
+          "sha256": "b4bbb5c1a2fd7948e89a0712d6e4f7afa8e20d773a1abc5458aa9c046f9cdd1d",
+          "size": 22537,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "3e03db830412fcdb6c7f98f9055f8f32e85f6d75f96715161fcd21ef9d23a58e",
-          "size": 17913,
+          "sha256": "3258fe067dbbf9eccfd5e23a2ae358b0e9e56d3bfaefc4489375e9fafbfb4927",
+          "size": 19462,
           "type": "file"
         },
         ".gemini/agents/faithful-drift-auditor.md": {
@@ -24700,8 +24742,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "3a92c3a740b11d2e8ab05095e5db46f22bb9b28f56d635f082e4358cd201fca0",
-          "size": 16143,
+          "sha256": "00577c330981e6aa79701d814631b23a3e68c1e4f81c83ff8d540a5ee1872a8e",
+          "size": 19642,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -24766,8 +24808,8 @@
         },
         ".gemini/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "20ad4fa7958eefef9d9bb3da03fa48b8e8dd4d72ca73e2f68eca3e745f87c0cd",
-          "size": 25608,
+          "sha256": "a042fd19c894d8cc8e8ec66f935ca01c872d42379aeea8df872062f89fa3ea20",
+          "size": 25750,
           "type": "file"
         },
         ".gemini/agents/novelty-checker.md": {
@@ -25214,20 +25256,20 @@
         },
         ".opencode/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "c25cd624b3cffc5954b9cc5978cae6020317c6babce15c23c5422b566a3656ba",
-          "size": 37445,
+          "sha256": "9aa9a8598151e57a9f98c700458ef0870ada3498217c815f37bcf98f26163bea",
+          "size": 38387,
           "type": "file"
         },
         ".opencode/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "64ee29f1893be2ec04f2efa4070a4fd0053e7b7ce398eaf3b74a7a5f0a15960a",
-          "size": 11207,
+          "sha256": "ff89a15c125a4dcc5d55715d6f0d81f9aea981efe22c63b7460a0f40c8ddaabe",
+          "size": 11755,
           "type": "file"
         },
         ".opencode/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "77ce83c160e69b3a3f245bb09a5053713777dca4d0c8acb807092f6f844e4598",
-          "size": 14952,
+          "sha256": "4e5c4f3cf5f0ab4b74c2d2a661d27442cfb2fd39155430db8f4293ceee3b8550",
+          "size": 15541,
           "type": "file"
         },
         ".opencode/agents/debugger.md": {
@@ -25244,14 +25286,14 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "93a087a7090a7452cd2e5259ddcb5ceeba2c1f32deba94d3eac2090f988b3e60",
-          "size": 21839,
+          "sha256": "4db7d25fb0b95402e77908bb1cf55c5f28bc9dfe64f3d05107daf1a779bc7105",
+          "size": 22831,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "7690687ebf705976d2ffb0e5cf8fb79cc2719fce209b5eb31dea9930a022a903",
-          "size": 18012,
+          "sha256": "23f7ac9344391ae1dd6de1707da10c52d4097265eb10c0bbd828a2beb9f90cb0",
+          "size": 19561,
           "type": "file"
         },
         ".opencode/agents/faithful-drift-auditor.md": {
@@ -25268,8 +25310,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "b3dfcc1da031ffaff24385fc376b0250639b1b819b9b25d6a8eddda104bdfc7a",
-          "size": 16239,
+          "sha256": "ed431ce2b8acc7505bda5df343a55232195af0a0a8d07405b9d945c865361042",
+          "size": 19738,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -25334,8 +25376,8 @@
         },
         ".opencode/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "d06b7a9d03ea8048498ad6e87e0bb5455f735e3999c17c14d5d8f71b942655b6",
-          "size": 25675,
+          "sha256": "db11a92590392debad6c1d35b0350dad93aff8bca9a168079248d0773c5d4d8d",
+          "size": 25817,
           "type": "file"
         },
         ".opencode/agents/novelty-checker.md": {
@@ -25514,20 +25556,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "5838d392d1b1e46e6b73caba21fa45c92b7d6a354d9f01b7a5e54c76d2dec411",
-          "size": 93180,
+          "sha256": "72334c33b206bc69aeef18f9adf91c9ed694e55396a2580ac7da287bc911859d",
+          "size": 99771,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "39b4be075f3254d5584d2df2d63defc51c830bff9e68c571a7f951bd86468d62",
-          "size": 82002,
+          "sha256": "61b777508032b1d314abc3d56c669695086b2f955df4644935487adfde92271b",
+          "size": 88593,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "3b1ce055bb91de7819c06ab36ecc501b0b56effbdb1a5f33b088b5ddde090fac",
-          "size": 87174,
+          "sha256": "d3487b2b14c2f5c2d44db22a1c761da7941f9653eabb75b31cdbf0f97d0c134d",
+          "size": 93765,
           "type": "file"
         },
         "code": {
@@ -25660,6 +25702,12 @@
           "mode": "0644",
           "sha256": "2ea582286dccd2e775e36cd1584cbfd046c192da76a82917faeaa64e52988c69",
           "size": 5318,
+          "type": "file"
+        },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -25890,8 +25938,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "0d43bda07a2e7053d0817407d9eccea8e235dec0f7a7a030c7a17359a8e6fc13",
-          "size": 37853,
+          "sha256": "6d4a4967b0c6d2842d8557c8761bd5cd3ff9234a8b54e1ab7f7c02ea153bdcbf",
+          "size": 42205,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -25902,8 +25950,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "58a036a7d00d132ddb1f20d293854cac1468599a74280f6552c6cd96c9f3866f",
-          "size": 23119,
+          "sha256": "e1b3270023653830729266bd3d398ee081fc42c53ca3d318e5ae4eacd15f8674",
+          "size": 25923,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -26042,7 +26090,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -26088,8 +26136,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "73d8d6f3264063beb7d7a8936b8a5db90a447780ca1c3b870f06eae8d1e20235",
-          "size": 2313,
+          "sha256": "8df9c64e82b3bc98531f99692de1b6b7c033448fabc74d6b123020579c2014c7",
+          "size": 2346,
           "type": "file"
         },
         "process_log/pivot_log.md": {
@@ -26173,6 +26221,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -26200,7 +26249,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -26847,7 +26896,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c345e07205095b865abb349593670e2495bbd81acac5e21320f2c048a0c20e6b",
+          "sha256": "512bcf8c88d299a9958aa869bf52fb26a31f7a19d9a5251757041b2b99ba53d0",
           "size": 1813,
           "type": "file"
         },
@@ -27837,8 +27886,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "fee7ab5700907d9e7120760fe25af001903e88626ff18250d4e2749c84075f6a",
-          "size": 13934,
+          "sha256": "db9fbeb61ea4f4414e25783e92886379e8bc9a8d11a0a2b9e11929278283d799",
+          "size": 14700,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -27959,7 +28008,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -28085,7 +28134,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -28798,7 +28847,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "3da7b1f69177bfc29fd6d6f48ce859bfa9d111293df09ea7c7244d80dfa5dbd2",
+          "sha256": "1d05268c9c49c3e578d88da8b541f7000295b7518d90d5d7a197efc7855cab43",
           "size": 1923,
           "type": "file"
         },
@@ -29830,8 +29879,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "fee7ab5700907d9e7120760fe25af001903e88626ff18250d4e2749c84075f6a",
-          "size": 13934,
+          "sha256": "db9fbeb61ea4f4414e25783e92886379e8bc9a8d11a0a2b9e11929278283d799",
+          "size": 14700,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -29966,7 +30015,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -30096,7 +30145,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -30808,7 +30857,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "3da7b1f69177bfc29fd6d6f48ce859bfa9d111293df09ea7c7244d80dfa5dbd2",
+          "sha256": "1d05268c9c49c3e578d88da8b541f7000295b7518d90d5d7a197efc7855cab43",
           "size": 1923,
           "type": "file"
         },
@@ -31840,8 +31889,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "fee7ab5700907d9e7120760fe25af001903e88626ff18250d4e2749c84075f6a",
-          "size": 13934,
+          "sha256": "db9fbeb61ea4f4414e25783e92886379e8bc9a8d11a0a2b9e11929278283d799",
+          "size": 14700,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -31976,7 +32025,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -32106,7 +32155,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -32753,7 +32802,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7a27fde9689cdc4771a8879c6142ff3418c094ac7329c7428a5c658a8b176e08",
+          "sha256": "65058c5676cbf34e4b3cb5d5766e0accde04d4bd03ad3d2747c1596947aef082",
           "size": 1813,
           "type": "file"
         },
@@ -33743,8 +33792,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "fee7ab5700907d9e7120760fe25af001903e88626ff18250d4e2749c84075f6a",
-          "size": 13934,
+          "sha256": "db9fbeb61ea4f4414e25783e92886379e8bc9a8d11a0a2b9e11929278283d799",
+          "size": 14700,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -33865,7 +33914,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -33991,7 +34040,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -34408,20 +34457,20 @@
         },
         ".claude/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "14ca1a90def4b01a9cf01a5a2591b6a7255072b2ef59c0f7dd058fc95865bcb8",
-          "size": 37262,
+          "sha256": "cb8921dfa382b0d0dee3b29cfe60edfb822ce9e6ee4c7ba0a014f175c8146908",
+          "size": 38204,
           "type": "file"
         },
         ".claude/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "7c10cff3f5169316e6fde48415bf37eba90d205b755ce75ad1a3a7cab034a9cb",
-          "size": 11032,
+          "sha256": "04362ffdfe5fb910d98fe8ea8793641c4e473e8ea7f2ca51645e65dbf724822e",
+          "size": 11580,
           "type": "file"
         },
         ".claude/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "8a643319f890bb1c3502fd5e35d6403e1342464219b6c5e6dd31b7a0b3fd9b8a",
-          "size": 14777,
+          "sha256": "8a7036cb159087b0b9e3ef97691cff54564f5e46e88c6c357b615846ba6a6b02",
+          "size": 15366,
           "type": "file"
         },
         ".claude/agents/debugger.md": {
@@ -34438,14 +34487,14 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "e9f667a3091196f29e104b2f335f6d57e34e4087458753ced9b6f06c35efce6c",
-          "size": 19251,
+          "sha256": "1f4d396b64874a4c56ea07b528a03009072eef97d1b6879fbba03b9b9319066a",
+          "size": 20243,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2e2532a46eafe01490bead3ab345fcd5dbf94ec24f66a1bbcafbe247292ab085",
-          "size": 17829,
+          "sha256": "13d8b1414de03badc9a1a4072e1482ea8fe753135a4e1123ffb621505c5584f2",
+          "size": 19378,
           "type": "file"
         },
         ".claude/agents/experiment-designer.md": {
@@ -34468,8 +34517,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "4b19c07ac760ca9087531d24c0190153bc0516fad88a12e16fcf24be31ea159c",
-          "size": 16061,
+          "sha256": "9e92c46dbd0d7da1491de9419513a6959c8ccc9508812c65dea47ed406e7cfe0",
+          "size": 19560,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -34534,8 +34583,8 @@
         },
         ".claude/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "5a8429803bd62906f553c59c1b1f4daae3c2b537ce92cc4f9d272f8c11f91e02",
-          "size": 25511,
+          "sha256": "847a1332bf414a20e6baa132362ca3a839e00a67176a70bac9feb66541e09c83",
+          "size": 25653,
           "type": "file"
         },
         ".claude/agents/novelty-checker.md": {
@@ -35058,20 +35107,20 @@
         },
         ".codex/agents/claim-verifier.toml": {
           "mode": "0644",
-          "sha256": "c9c7ce3a95d576f66e2c4ccb6da08f82aeaaa48a8ceb2e548354b8a4b860b924",
-          "size": 37288,
+          "sha256": "4f27c1c7394a5ca8ee2673ef822941b368fc7d683458364e4dee2b645fca8b12",
+          "size": 38230,
           "type": "file"
         },
         ".codex/agents/data-integrity-auditor.toml": {
           "mode": "0644",
-          "sha256": "c59f59c2dd0cad330fc548051c5cab613b6199d8cd632d1abd3726642f586843",
-          "size": 11057,
+          "sha256": "92a939d4240edf19e9aaf0a52bb0c23b8642ab987da8f03ac5c484797b9d3eea",
+          "size": 11605,
           "type": "file"
         },
         ".codex/agents/data-selection-auditor.toml": {
           "mode": "0644",
-          "sha256": "9f78cab7fa6452bb855ffb615475bf2af280b2667f2b2eb271400df9d48ae45f",
-          "size": 14802,
+          "sha256": "af64413ba84730ab0f108502fa3b0e9848b545c2899ae3580762a29d60143150",
+          "size": 15391,
           "type": "file"
         },
         ".codex/agents/debugger.toml": {
@@ -35088,14 +35137,14 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "4b57986dbc2aea3e46415a70e7be4bd32cbbfbc907d2e45a928b4e8ff6732d2f",
-          "size": 19191,
+          "sha256": "a1d98991a337471aceed5d23bb28420bec6c0744f0bb91aba12cf3d5b0ab1955",
+          "size": 20183,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "607b885fa2d28a4496e007c1bc7efef7c5e4fd760194912e96ff0958351d526d",
-          "size": 17855,
+          "sha256": "a27fde9c6b417ef68b1a4a46e88e175582f055cd60542474c73ded6bd07f00ec",
+          "size": 19404,
           "type": "file"
         },
         ".codex/agents/experiment-designer.toml": {
@@ -35118,8 +35167,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "7d140a1ea5375454ed94ce433a696495ca4f78ccbc9db7d3029aebb6fe9e2f11",
-          "size": 16086,
+          "sha256": "4cbc7736c4a9223750ace04d164a61f89d2841b3ca2471c2fcb65c568ead31ef",
+          "size": 19585,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -35184,8 +35233,8 @@
         },
         ".codex/agents/method-checker.toml": {
           "mode": "0644",
-          "sha256": "f487a4481747ba778f647eb33c8679e69ca96b0abbf29f2824d079ee3076226c",
-          "size": 25516,
+          "sha256": "cb839a201f83ec8edc0ba86ccf51c63c92bc251710448265bd8cd0eedb2ecd26",
+          "size": 25658,
           "type": "file"
         },
         ".codex/agents/novelty-checker.toml": {
@@ -35346,8 +35395,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b5d637ac8007e7b5ab46b9534b92abe7c43212428202c8217346aa3471a76cd7",
-          "size": 2881,
+          "sha256": "1a83320f92b1d94ee7203f0de91e000ad52af278f1c7eb40a2f97d7a0c09a1de",
+          "size": 2929,
           "type": "file"
         },
         ".env": {
@@ -35390,20 +35439,20 @@
         },
         ".gemini/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "43d4856b31d1b6ec631ccd5e81c10c16f36fd41415179e764e6369d52b609022",
-          "size": 37338,
+          "sha256": "92c5cec09bca9c77f47a047fcfef826c04a0dcec3993c8974b00770adc7d5fd9",
+          "size": 38280,
           "type": "file"
         },
         ".gemini/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "b7163d4a1122e6f83adb91ba8feaca6560b18822e15cf69e588bdb951174a29c",
-          "size": 11108,
+          "sha256": "6f2ef393e68f4f0f2cd358f11aafc1f19582701957a710b846a20095fb1ad548",
+          "size": 11656,
           "type": "file"
         },
         ".gemini/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "a201a12c58c5653b9e78d46d9e1fc22eb53e6e42ba3daa73823422f578850925",
-          "size": 14853,
+          "sha256": "beffb85d9a1e257c50a5ce5f059a6568ca276d8a74d0c15b2c640bc966a88598",
+          "size": 15442,
           "type": "file"
         },
         ".gemini/agents/debugger.md": {
@@ -35420,14 +35469,14 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ca61daa775692e7061b45af2483cba9b218d8b5f45069a03c783a81c40b27895",
-          "size": 19218,
+          "sha256": "82fdc96206c39b7d5f12d885723892a87c70d3934a57810f9bc919bf506253ab",
+          "size": 20210,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9eb30b6230f0035f81dfa276eded2cf6efe9b00d6afe214dc963d3fe9e19d816",
-          "size": 17907,
+          "sha256": "4a67b827378b6e5717264b54cdd941a70ce486ccf80718282da19a9f29f4ed58",
+          "size": 19456,
           "type": "file"
         },
         ".gemini/agents/experiment-designer.md": {
@@ -35450,8 +35499,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "0558a70acd01c351e096db9d2fb20b2b8927acf0bbbffa671b012824b76c28d5",
-          "size": 16137,
+          "sha256": "af80baaec71e2ab7e7540576b8a4709ca97e82a145fd5ed29b552b4bafb524d0",
+          "size": 19636,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -35516,8 +35565,8 @@
         },
         ".gemini/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "19f432dca5420b7ee4ddc4654e5269c996ef51a421b8b755f4ce1c581e3e031a",
-          "size": 25602,
+          "sha256": "afdee0240f091ec0f1efc13c62fc4047a42a686cf69063ccad39bbca069152c9",
+          "size": 25744,
           "type": "file"
         },
         ".gemini/agents/novelty-checker.md": {
@@ -35964,20 +36013,20 @@
         },
         ".opencode/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "c25cd624b3cffc5954b9cc5978cae6020317c6babce15c23c5422b566a3656ba",
-          "size": 37445,
+          "sha256": "9aa9a8598151e57a9f98c700458ef0870ada3498217c815f37bcf98f26163bea",
+          "size": 38387,
           "type": "file"
         },
         ".opencode/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "64ee29f1893be2ec04f2efa4070a4fd0053e7b7ce398eaf3b74a7a5f0a15960a",
-          "size": 11207,
+          "sha256": "ff89a15c125a4dcc5d55715d6f0d81f9aea981efe22c63b7460a0f40c8ddaabe",
+          "size": 11755,
           "type": "file"
         },
         ".opencode/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "77ce83c160e69b3a3f245bb09a5053713777dca4d0c8acb807092f6f844e4598",
-          "size": 14952,
+          "sha256": "4e5c4f3cf5f0ab4b74c2d2a661d27442cfb2fd39155430db8f4293ceee3b8550",
+          "size": 15541,
           "type": "file"
         },
         ".opencode/agents/debugger.md": {
@@ -35994,14 +36043,14 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f0d363f710eae42cc922481d960c7afa7516dc8945fec143813e3a6649b24056",
-          "size": 19518,
+          "sha256": "430db36b31cbe7d902aa1c14c24153c4432a6f4fa697e5d752f8892a6a1038fc",
+          "size": 20510,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "7690687ebf705976d2ffb0e5cf8fb79cc2719fce209b5eb31dea9930a022a903",
-          "size": 18012,
+          "sha256": "23f7ac9344391ae1dd6de1707da10c52d4097265eb10c0bbd828a2beb9f90cb0",
+          "size": 19561,
           "type": "file"
         },
         ".opencode/agents/experiment-designer.md": {
@@ -36024,8 +36073,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "b3dfcc1da031ffaff24385fc376b0250639b1b819b9b25d6a8eddda104bdfc7a",
-          "size": 16239,
+          "sha256": "ed431ce2b8acc7505bda5df343a55232195af0a0a8d07405b9d945c865361042",
+          "size": 19738,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -36090,8 +36139,8 @@
         },
         ".opencode/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "d06b7a9d03ea8048498ad6e87e0bb5455f735e3999c17c14d5d8f71b942655b6",
-          "size": 25675,
+          "sha256": "db11a92590392debad6c1d35b0350dad93aff8bca9a168079248d0773c5d4d8d",
+          "size": 25817,
           "type": "file"
         },
         ".opencode/agents/novelty-checker.md": {
@@ -36276,19 +36325,19 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "b912682e1738a18f2bc870751d68aac4b7f6ee6ea8cf2d2005574dc5f32d89f1",
+          "sha256": "3e74b313cb2e73b7952f1c328d291ce1cbe21a5e9ac9e5c9d045ad16176fc0ac",
           "size": 11886,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "1e83d1b6c0cfede367bdb85d36ede6e684ccdaf4568713c4d150862ed55a6adc",
+          "sha256": "32c592a93a9dfe01936ebebe5dbfa82d71947ca294b5ca90a0aefd61ce6cc468",
           "size": 12030,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "f082c05773d07f424fa41ec527ac1b7134b64ca3d85bf46223401fde37405729",
+          "sha256": "b2746400ef571e77ab2fe391af6ec822b6b6bfb6605740977541d4f29d1a75f9",
           "size": 12030,
           "type": "file"
         },
@@ -36422,6 +36471,12 @@
           "mode": "0644",
           "sha256": "2ea582286dccd2e775e36cd1584cbfd046c192da76a82917faeaa64e52988c69",
           "size": 5318,
+          "type": "file"
+        },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -36646,8 +36701,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "9bd6c68114fdea45c7f0498c866acffaed8891ce8fc4f9a2040259f26bd4454a",
-          "size": 36887,
+          "sha256": "1fe11b5ba3c811529f48ec0d2b3af32f8f385574135ccf1bb1d6f1ff41527457",
+          "size": 41239,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -36664,8 +36719,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "58a036a7d00d132ddb1f20d293854cac1468599a74280f6552c6cd96c9f3866f",
-          "size": 23119,
+          "sha256": "e1b3270023653830729266bd3d398ee081fc42c53ca3d318e5ae4eacd15f8674",
+          "size": 25923,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -36772,7 +36827,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "5480a27e8fb985cb463fc9b489cf632303adebed632da67de20365b7b2e65964",
+          "sha256": "dc76e87a900d30526d7624132b7c82a606dc44b3e5282e5bc5bf1cc8223d5b93",
           "size": 15387,
           "type": "file"
         },
@@ -36868,6 +36923,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -36896,7 +36952,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -37304,7 +37360,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "51b693f9afb8a7dcbb2fca1f1935317e20e1009d158ed330a7c2a549fc7a27dd",
+          "sha256": "484988f4f5f6f2412dd27d21eaf1d152d8b7f3c863012eec11654c9748a964ab",
           "size": 1796,
           "type": "file"
         },
@@ -38011,7 +38067,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -38959,8 +39015,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "fe4d9d6f317833a5786b341607b469c70a45699441fa1321e69d68a74a0a15fd",
-          "size": 2888,
+          "sha256": "6e8fca95dc6209249b7102832d3940253291ac7c13f4f2493b4ae92277a4e019",
+          "size": 2936,
           "type": "file"
         },
         ".env": {
@@ -39497,6 +39553,12 @@
           "size": 5318,
           "type": "file"
         },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
+          "type": "file"
+        },
         "code/utils/form_5500_utils.py": {
           "mode": "0644",
           "sha256": "197395098b7d23abb7ce77d6de81e33944f38914e127e2f1201ca748f16cfa21",
@@ -39827,6 +39889,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -39855,7 +39918,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -40803,8 +40866,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e71fe55bb575d3fec2518a7a61ac782c65eef885847b843c96fb420e726a9b31",
-          "size": 2888,
+          "sha256": "2eaebb62331ce71bea46a7e8fd54b289d7e4b98e08c3d98db8323d3c617bdb2d",
+          "size": 2936,
           "type": "file"
         },
         ".env": {
@@ -41341,6 +41404,12 @@
           "size": 5318,
           "type": "file"
         },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
+          "type": "file"
+        },
         "code/utils/form_5500_utils.py": {
           "mode": "0644",
           "sha256": "197395098b7d23abb7ce77d6de81e33944f38914e127e2f1201ca748f16cfa21",
@@ -41671,6 +41740,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -41699,7 +41769,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -42619,8 +42689,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "4c9764b0e3c8b4c4104a1ae9944a0f51c872d957998f7bd36101225aaf7a9325",
-          "size": 2781,
+          "sha256": "9b2d22ba018a34b8d700dcda05e0a799ec8433593de4a2cb654e2180c9179a5e",
+          "size": 2829,
           "type": "file"
         },
         ".env": {
@@ -43157,6 +43227,12 @@
           "size": 5318,
           "type": "file"
         },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
+          "type": "file"
+        },
         "code/utils/form_5500_utils.py": {
           "mode": "0644",
           "sha256": "197395098b7d23abb7ce77d6de81e33944f38914e127e2f1201ca748f16cfa21",
@@ -43479,6 +43555,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -43506,7 +43583,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -43915,7 +43992,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "07aad8efdccaee1657983721212c2491f0f12ae4e5ee672d06b549f8ca6b2e48",
+          "sha256": "4ed7bad37eb78d65bbc78eaedb8414be393eed844d43a0273477cdfa8183eaf4",
           "size": 1795,
           "type": "file"
         },
@@ -44622,7 +44699,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -45062,7 +45139,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "aa081d68cc02e836ed9cd67fac92e0837e2cd9c39ac4ac3c8caa4d4b21dd9bed",
+          "sha256": "2418299c47847c43f359836a3d5d40ae22b97376e9fbbe6d1ba9aa39b5159c50",
           "size": 1905,
           "type": "file"
         },
@@ -45779,7 +45856,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -46426,7 +46503,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1be0365656fc28ac82e7a54a2de4c3f121d47476975d2c4e09f4de9903577140",
+          "sha256": "aeab50b31da8ace456bdaa22415b0e4296a6a972398ed65e145c936521845ef3",
           "size": 1813,
           "type": "file"
         },
@@ -47416,8 +47493,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "fee7ab5700907d9e7120760fe25af001903e88626ff18250d4e2749c84075f6a",
-          "size": 13934,
+          "sha256": "db9fbeb61ea4f4414e25783e92886379e8bc9a8d11a0a2b9e11929278283d799",
+          "size": 14700,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -47548,7 +47625,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -47674,7 +47751,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -48072,20 +48149,20 @@
         },
         ".claude/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "14ca1a90def4b01a9cf01a5a2591b6a7255072b2ef59c0f7dd058fc95865bcb8",
-          "size": 37262,
+          "sha256": "cb8921dfa382b0d0dee3b29cfe60edfb822ce9e6ee4c7ba0a014f175c8146908",
+          "size": 38204,
           "type": "file"
         },
         ".claude/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "7c10cff3f5169316e6fde48415bf37eba90d205b755ce75ad1a3a7cab034a9cb",
-          "size": 11032,
+          "sha256": "04362ffdfe5fb910d98fe8ea8793641c4e473e8ea7f2ca51645e65dbf724822e",
+          "size": 11580,
           "type": "file"
         },
         ".claude/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "8a643319f890bb1c3502fd5e35d6403e1342464219b6c5e6dd31b7a0b3fd9b8a",
-          "size": 14777,
+          "sha256": "8a7036cb159087b0b9e3ef97691cff54564f5e46e88c6c357b615846ba6a6b02",
+          "size": 15366,
           "type": "file"
         },
         ".claude/agents/debugger.md": {
@@ -48102,14 +48179,14 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "e9f667a3091196f29e104b2f335f6d57e34e4087458753ced9b6f06c35efce6c",
-          "size": 19251,
+          "sha256": "1f4d396b64874a4c56ea07b528a03009072eef97d1b6879fbba03b9b9319066a",
+          "size": 20243,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2e2532a46eafe01490bead3ab345fcd5dbf94ec24f66a1bbcafbe247292ab085",
-          "size": 17829,
+          "sha256": "13d8b1414de03badc9a1a4072e1482ea8fe753135a4e1123ffb621505c5584f2",
+          "size": 19378,
           "type": "file"
         },
         ".claude/agents/gap-scout.md": {
@@ -48120,8 +48197,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "4b19c07ac760ca9087531d24c0190153bc0516fad88a12e16fcf24be31ea159c",
-          "size": 16061,
+          "sha256": "9e92c46dbd0d7da1491de9419513a6959c8ccc9508812c65dea47ed406e7cfe0",
+          "size": 19560,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -48186,8 +48263,8 @@
         },
         ".claude/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "5a8429803bd62906f553c59c1b1f4daae3c2b537ce92cc4f9d272f8c11f91e02",
-          "size": 25511,
+          "sha256": "847a1332bf414a20e6baa132362ca3a839e00a67176a70bac9feb66541e09c83",
+          "size": 25653,
           "type": "file"
         },
         ".claude/agents/novelty-checker.md": {
@@ -48694,20 +48771,20 @@
         },
         ".codex/agents/claim-verifier.toml": {
           "mode": "0644",
-          "sha256": "c9c7ce3a95d576f66e2c4ccb6da08f82aeaaa48a8ceb2e548354b8a4b860b924",
-          "size": 37288,
+          "sha256": "4f27c1c7394a5ca8ee2673ef822941b368fc7d683458364e4dee2b645fca8b12",
+          "size": 38230,
           "type": "file"
         },
         ".codex/agents/data-integrity-auditor.toml": {
           "mode": "0644",
-          "sha256": "c59f59c2dd0cad330fc548051c5cab613b6199d8cd632d1abd3726642f586843",
-          "size": 11057,
+          "sha256": "92a939d4240edf19e9aaf0a52bb0c23b8642ab987da8f03ac5c484797b9d3eea",
+          "size": 11605,
           "type": "file"
         },
         ".codex/agents/data-selection-auditor.toml": {
           "mode": "0644",
-          "sha256": "9f78cab7fa6452bb855ffb615475bf2af280b2667f2b2eb271400df9d48ae45f",
-          "size": 14802,
+          "sha256": "af64413ba84730ab0f108502fa3b0e9848b545c2899ae3580762a29d60143150",
+          "size": 15391,
           "type": "file"
         },
         ".codex/agents/debugger.toml": {
@@ -48724,14 +48801,14 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "4b57986dbc2aea3e46415a70e7be4bd32cbbfbc907d2e45a928b4e8ff6732d2f",
-          "size": 19191,
+          "sha256": "a1d98991a337471aceed5d23bb28420bec6c0744f0bb91aba12cf3d5b0ab1955",
+          "size": 20183,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "607b885fa2d28a4496e007c1bc7efef7c5e4fd760194912e96ff0958351d526d",
-          "size": 17855,
+          "sha256": "a27fde9c6b417ef68b1a4a46e88e175582f055cd60542474c73ded6bd07f00ec",
+          "size": 19404,
           "type": "file"
         },
         ".codex/agents/gap-scout.toml": {
@@ -48742,8 +48819,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "7d140a1ea5375454ed94ce433a696495ca4f78ccbc9db7d3029aebb6fe9e2f11",
-          "size": 16086,
+          "sha256": "4cbc7736c4a9223750ace04d164a61f89d2841b3ca2471c2fcb65c568ead31ef",
+          "size": 19585,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -48808,8 +48885,8 @@
         },
         ".codex/agents/method-checker.toml": {
           "mode": "0644",
-          "sha256": "f487a4481747ba778f647eb33c8679e69ca96b0abbf29f2824d079ee3076226c",
-          "size": 25516,
+          "sha256": "cb839a201f83ec8edc0ba86ccf51c63c92bc251710448265bd8cd0eedb2ecd26",
+          "size": 25658,
           "type": "file"
         },
         ".codex/agents/novelty-checker.toml": {
@@ -48964,8 +49041,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "eb80ef84a2eb41de1834b2db599f8975ee836d8b472981dadadba86e35298aad",
-          "size": 2799,
+          "sha256": "b309f96f38efc244b456785349b6130583a87054671416d3923f498dae50060b",
+          "size": 2847,
           "type": "file"
         },
         ".env": {
@@ -49008,20 +49085,20 @@
         },
         ".gemini/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "43d4856b31d1b6ec631ccd5e81c10c16f36fd41415179e764e6369d52b609022",
-          "size": 37338,
+          "sha256": "92c5cec09bca9c77f47a047fcfef826c04a0dcec3993c8974b00770adc7d5fd9",
+          "size": 38280,
           "type": "file"
         },
         ".gemini/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "b7163d4a1122e6f83adb91ba8feaca6560b18822e15cf69e588bdb951174a29c",
-          "size": 11108,
+          "sha256": "6f2ef393e68f4f0f2cd358f11aafc1f19582701957a710b846a20095fb1ad548",
+          "size": 11656,
           "type": "file"
         },
         ".gemini/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "a201a12c58c5653b9e78d46d9e1fc22eb53e6e42ba3daa73823422f578850925",
-          "size": 14853,
+          "sha256": "beffb85d9a1e257c50a5ce5f059a6568ca276d8a74d0c15b2c640bc966a88598",
+          "size": 15442,
           "type": "file"
         },
         ".gemini/agents/debugger.md": {
@@ -49038,14 +49115,14 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ca61daa775692e7061b45af2483cba9b218d8b5f45069a03c783a81c40b27895",
-          "size": 19218,
+          "sha256": "82fdc96206c39b7d5f12d885723892a87c70d3934a57810f9bc919bf506253ab",
+          "size": 20210,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9eb30b6230f0035f81dfa276eded2cf6efe9b00d6afe214dc963d3fe9e19d816",
-          "size": 17907,
+          "sha256": "4a67b827378b6e5717264b54cdd941a70ce486ccf80718282da19a9f29f4ed58",
+          "size": 19456,
           "type": "file"
         },
         ".gemini/agents/gap-scout.md": {
@@ -49056,8 +49133,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "0558a70acd01c351e096db9d2fb20b2b8927acf0bbbffa671b012824b76c28d5",
-          "size": 16137,
+          "sha256": "af80baaec71e2ab7e7540576b8a4709ca97e82a145fd5ed29b552b4bafb524d0",
+          "size": 19636,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -49122,8 +49199,8 @@
         },
         ".gemini/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "19f432dca5420b7ee4ddc4654e5269c996ef51a421b8b755f4ce1c581e3e031a",
-          "size": 25602,
+          "sha256": "afdee0240f091ec0f1efc13c62fc4047a42a686cf69063ccad39bbca069152c9",
+          "size": 25744,
           "type": "file"
         },
         ".gemini/agents/novelty-checker.md": {
@@ -49564,20 +49641,20 @@
         },
         ".opencode/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "c25cd624b3cffc5954b9cc5978cae6020317c6babce15c23c5422b566a3656ba",
-          "size": 37445,
+          "sha256": "9aa9a8598151e57a9f98c700458ef0870ada3498217c815f37bcf98f26163bea",
+          "size": 38387,
           "type": "file"
         },
         ".opencode/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "64ee29f1893be2ec04f2efa4070a4fd0053e7b7ce398eaf3b74a7a5f0a15960a",
-          "size": 11207,
+          "sha256": "ff89a15c125a4dcc5d55715d6f0d81f9aea981efe22c63b7460a0f40c8ddaabe",
+          "size": 11755,
           "type": "file"
         },
         ".opencode/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "77ce83c160e69b3a3f245bb09a5053713777dca4d0c8acb807092f6f844e4598",
-          "size": 14952,
+          "sha256": "4e5c4f3cf5f0ab4b74c2d2a661d27442cfb2fd39155430db8f4293ceee3b8550",
+          "size": 15541,
           "type": "file"
         },
         ".opencode/agents/debugger.md": {
@@ -49594,14 +49671,14 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f0d363f710eae42cc922481d960c7afa7516dc8945fec143813e3a6649b24056",
-          "size": 19518,
+          "sha256": "430db36b31cbe7d902aa1c14c24153c4432a6f4fa697e5d752f8892a6a1038fc",
+          "size": 20510,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "7690687ebf705976d2ffb0e5cf8fb79cc2719fce209b5eb31dea9930a022a903",
-          "size": 18012,
+          "sha256": "23f7ac9344391ae1dd6de1707da10c52d4097265eb10c0bbd828a2beb9f90cb0",
+          "size": 19561,
           "type": "file"
         },
         ".opencode/agents/gap-scout.md": {
@@ -49612,8 +49689,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "b3dfcc1da031ffaff24385fc376b0250639b1b819b9b25d6a8eddda104bdfc7a",
-          "size": 16239,
+          "sha256": "ed431ce2b8acc7505bda5df343a55232195af0a0a8d07405b9d945c865361042",
+          "size": 19738,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -49678,8 +49755,8 @@
         },
         ".opencode/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "d06b7a9d03ea8048498ad6e87e0bb5455f735e3999c17c14d5d8f71b942655b6",
-          "size": 25675,
+          "sha256": "db11a92590392debad6c1d35b0350dad93aff8bca9a168079248d0773c5d4d8d",
+          "size": 25817,
           "type": "file"
         },
         ".opencode/agents/novelty-checker.md": {
@@ -49858,20 +49935,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "717382fe965cbfa60eda39add1f62c34d7ab9fd2c209cd4e925c32a21b3ea706",
-          "size": 69157,
+          "sha256": "161646a5bf24d2044a4ef091b4dd3c0f5ee65e43f82a3d0a169841aa03e41140",
+          "size": 75748,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "45e50423064003b35298f2049c548083bbadb977955f089970d9ed601a4403fc",
-          "size": 57979,
+          "sha256": "c75261ef12ea58b70f18db6f506bb07b14da5988c60526ca5004ced2f54144bf",
+          "size": 64570,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "fe9cca52705cb3b28d42592005a924e1f1db08ce12340cc6e71b3135febdbb73",
-          "size": 63151,
+          "sha256": "a42d7bb8ae5d3a92fca302a07567d662f2e1c167dcfea82d05a0a6323696f410",
+          "size": 69742,
           "type": "file"
         },
         "code": {
@@ -50004,6 +50081,12 @@
           "mode": "0644",
           "sha256": "2ea582286dccd2e775e36cd1584cbfd046c192da76a82917faeaa64e52988c69",
           "size": 5318,
+          "type": "file"
+        },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -50234,8 +50317,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "9bd6c68114fdea45c7f0498c866acffaed8891ce8fc4f9a2040259f26bd4454a",
-          "size": 36887,
+          "sha256": "1fe11b5ba3c811529f48ec0d2b3af32f8f385574135ccf1bb1d6f1ff41527457",
+          "size": 41239,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -50246,8 +50329,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "58a036a7d00d132ddb1f20d293854cac1468599a74280f6552c6cd96c9f3866f",
-          "size": 23119,
+          "sha256": "e1b3270023653830729266bd3d398ee081fc42c53ca3d318e5ae4eacd15f8674",
+          "size": 25923,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -50376,7 +50459,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -50422,8 +50505,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "be16920d7b04420e1fa0ba35e6ad6749ba23145cc981cf9f7c01446533f84004",
-          "size": 2312,
+          "sha256": "76d34a4795049a855619449dc5cb605a944445df2f95abea758d716d6ff3bf34",
+          "size": 2345,
           "type": "file"
         },
         "process_log/sessions": {
@@ -50501,6 +50584,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -50528,7 +50612,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -51242,7 +51326,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "3da7b1f69177bfc29fd6d6f48ce859bfa9d111293df09ea7c7244d80dfa5dbd2",
+          "sha256": "1d05268c9c49c3e578d88da8b541f7000295b7518d90d5d7a197efc7855cab43",
           "size": 1923,
           "type": "file"
         },
@@ -52274,8 +52358,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "fee7ab5700907d9e7120760fe25af001903e88626ff18250d4e2749c84075f6a",
-          "size": 13934,
+          "sha256": "db9fbeb61ea4f4414e25783e92886379e8bc9a8d11a0a2b9e11929278283d799",
+          "size": 14700,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -52410,7 +52494,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -52540,7 +52624,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -53212,7 +53296,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "66200c0732fa859c20ba2bd29cea69c18b1e7f4243b617ee6682140f37804ae4",
+          "sha256": "e083b995b30c3f6ac4bd0bddd01e55601ba2a36096082326c7cbf0424145c857",
           "size": 1873,
           "type": "file"
         },
@@ -54218,8 +54302,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "b54c9923ceb2daa1dc1eec104d717a9dcc4d357ae7d7802c91d8f5c27676fe95",
-          "size": 14490,
+          "sha256": "dbf2c68ce60a3cf2ba48c9992383c5ebecca9a39cdb8da021acfad44489a4a78",
+          "size": 15256,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -54354,7 +54438,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -54482,7 +54566,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -55167,7 +55251,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "81ebc98f16ab04975d762b626db35684662e3dc2a67ba098ed013d8588e43281",
+          "sha256": "02b3e86085723bf1fd592c9c4b1ab749f88fbb966e584a6b37414b7991f47a12",
           "size": 1871,
           "type": "file"
         },
@@ -56191,8 +56275,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "b54c9923ceb2daa1dc1eec104d717a9dcc4d357ae7d7802c91d8f5c27676fe95",
-          "size": 14490,
+          "sha256": "dbf2c68ce60a3cf2ba48c9992383c5ebecca9a39cdb8da021acfad44489a4a78",
+          "size": 15256,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -56337,7 +56421,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -56471,7 +56555,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -57145,7 +57229,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "fd21e1a212a02926ec1f35e0af1539a99a7f417d8978655f9ba941dd7f4eb346",
+          "sha256": "447921d7263e652ca83097c5bbe0dfc057b33f30e82b4ba4e673f2083d83ca69",
           "size": 1871,
           "type": "file"
         },
@@ -58151,8 +58235,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "b54c9923ceb2daa1dc1eec104d717a9dcc4d357ae7d7802c91d8f5c27676fe95",
-          "size": 14490,
+          "sha256": "dbf2c68ce60a3cf2ba48c9992383c5ebecca9a39cdb8da021acfad44489a4a78",
+          "size": 15256,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -58287,7 +58371,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -58415,7 +58499,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -59088,7 +59172,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c0cd17839f643f3f565362604b89022014f80aa8e5dbc8859eaaf7583166583d",
+          "sha256": "9b9b1f93d48263192966c179375e62c6e79841d8182d648f84693071fb09ae8a",
           "size": 1848,
           "type": "file"
         },
@@ -60088,8 +60172,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "b54c9923ceb2daa1dc1eec104d717a9dcc4d357ae7d7802c91d8f5c27676fe95",
-          "size": 14490,
+          "sha256": "dbf2c68ce60a3cf2ba48c9992383c5ebecca9a39cdb8da021acfad44489a4a78",
+          "size": 15256,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -60188,7 +60272,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "5480a27e8fb985cb463fc9b489cf632303adebed632da67de20365b7b2e65964",
+          "sha256": "dc76e87a900d30526d7624132b7c82a606dc44b3e5282e5bc5bf1cc8223d5b93",
           "size": 15387,
           "type": "file"
         },
@@ -60285,7 +60369,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -60959,7 +61043,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "92354e7736b6c29e11a796ee6c0d1cec6aed5a59a038ba1b274af298166f4f95",
+          "sha256": "b30d13333e988876e9e636b7a661a16f0d11ee3d0aaed632a07a3e710965d0bf",
           "size": 1890,
           "type": "file"
         },
@@ -61965,8 +62049,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "b54c9923ceb2daa1dc1eec104d717a9dcc4d357ae7d7802c91d8f5c27676fe95",
-          "size": 14490,
+          "sha256": "dbf2c68ce60a3cf2ba48c9992383c5ebecca9a39cdb8da021acfad44489a4a78",
+          "size": 15256,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -62093,7 +62177,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -62221,7 +62305,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -62589,7 +62673,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b473227648e366e929dc855c7193ded1c451ea5972935d728fb1bc006aa6de59",
+          "sha256": "27755b968ebc93b1af4351c6637a0d8784fba16773e2799181aa5e0fad511a76",
           "size": 1746,
           "type": "file"
         },
@@ -63268,7 +63352,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -63668,7 +63752,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5bed33f53634be1752a7c27b33cb71896ea4a0e72d076091104777c4d1178c49",
+          "sha256": "f6876a5418470f1821352ce5247b7bc9b804bac6402e515007e5af4967403a8b",
           "size": 1855,
           "type": "file"
         },
@@ -64357,7 +64441,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -65003,7 +65087,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "97525306b17fe97e6d241d87f4c3b14755ddfde99e3f96e636a1690ea6037947",
+          "sha256": "ad7202ca7807062d4bbbf656d59b6aa5b6bb3514fa73f4f197e02d54838dbbab",
           "size": 1812,
           "type": "file"
         },
@@ -65993,8 +66077,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "fee7ab5700907d9e7120760fe25af001903e88626ff18250d4e2749c84075f6a",
-          "size": 13934,
+          "sha256": "db9fbeb61ea4f4414e25783e92886379e8bc9a8d11a0a2b9e11929278283d799",
+          "size": 14700,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -66115,7 +66199,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -66241,7 +66325,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -66657,20 +66741,20 @@
         },
         ".claude/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "14ca1a90def4b01a9cf01a5a2591b6a7255072b2ef59c0f7dd058fc95865bcb8",
-          "size": 37262,
+          "sha256": "cb8921dfa382b0d0dee3b29cfe60edfb822ce9e6ee4c7ba0a014f175c8146908",
+          "size": 38204,
           "type": "file"
         },
         ".claude/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "7c10cff3f5169316e6fde48415bf37eba90d205b755ce75ad1a3a7cab034a9cb",
-          "size": 11032,
+          "sha256": "04362ffdfe5fb910d98fe8ea8793641c4e473e8ea7f2ca51645e65dbf724822e",
+          "size": 11580,
           "type": "file"
         },
         ".claude/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "8a643319f890bb1c3502fd5e35d6403e1342464219b6c5e6dd31b7a0b3fd9b8a",
-          "size": 14777,
+          "sha256": "8a7036cb159087b0b9e3ef97691cff54564f5e46e88c6c357b615846ba6a6b02",
+          "size": 15366,
           "type": "file"
         },
         ".claude/agents/debugger.md": {
@@ -66687,14 +66771,14 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "e812ec861748bc011cc758b049ea946be458cb94000a6e1891df3e37a75802b6",
-          "size": 20464,
+          "sha256": "0460d4456e37e9b24fa56507fb879c17227a32da43b336a31cee5da77a4e263f",
+          "size": 21393,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2e2532a46eafe01490bead3ab345fcd5dbf94ec24f66a1bbcafbe247292ab085",
-          "size": 17829,
+          "sha256": "13d8b1414de03badc9a1a4072e1482ea8fe753135a4e1123ffb621505c5584f2",
+          "size": 19378,
           "type": "file"
         },
         ".claude/agents/experiment-designer.md": {
@@ -66717,8 +66801,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "4b19c07ac760ca9087531d24c0190153bc0516fad88a12e16fcf24be31ea159c",
-          "size": 16061,
+          "sha256": "9e92c46dbd0d7da1491de9419513a6959c8ccc9508812c65dea47ed406e7cfe0",
+          "size": 19560,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -66771,8 +66855,8 @@
         },
         ".claude/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "5a8429803bd62906f553c59c1b1f4daae3c2b537ce92cc4f9d272f8c11f91e02",
-          "size": 25511,
+          "sha256": "847a1332bf414a20e6baa132362ca3a839e00a67176a70bac9feb66541e09c83",
+          "size": 25653,
           "type": "file"
         },
         ".claude/agents/novelty-checker.md": {
@@ -67295,20 +67379,20 @@
         },
         ".codex/agents/claim-verifier.toml": {
           "mode": "0644",
-          "sha256": "c9c7ce3a95d576f66e2c4ccb6da08f82aeaaa48a8ceb2e548354b8a4b860b924",
-          "size": 37288,
+          "sha256": "4f27c1c7394a5ca8ee2673ef822941b368fc7d683458364e4dee2b645fca8b12",
+          "size": 38230,
           "type": "file"
         },
         ".codex/agents/data-integrity-auditor.toml": {
           "mode": "0644",
-          "sha256": "c59f59c2dd0cad330fc548051c5cab613b6199d8cd632d1abd3726642f586843",
-          "size": 11057,
+          "sha256": "92a939d4240edf19e9aaf0a52bb0c23b8642ab987da8f03ac5c484797b9d3eea",
+          "size": 11605,
           "type": "file"
         },
         ".codex/agents/data-selection-auditor.toml": {
           "mode": "0644",
-          "sha256": "9f78cab7fa6452bb855ffb615475bf2af280b2667f2b2eb271400df9d48ae45f",
-          "size": 14802,
+          "sha256": "af64413ba84730ab0f108502fa3b0e9848b545c2899ae3580762a29d60143150",
+          "size": 15391,
           "type": "file"
         },
         ".codex/agents/debugger.toml": {
@@ -67325,14 +67409,14 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "f5228df8f2146f4a76e02df97d841219a725439118209e02cd2792a58c5570e9",
-          "size": 20469,
+          "sha256": "c02b5deb59e7b3267b15dbc88d05ebfc67e21c02dbf5066f6f1098efb9d404c5",
+          "size": 21398,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "607b885fa2d28a4496e007c1bc7efef7c5e4fd760194912e96ff0958351d526d",
-          "size": 17855,
+          "sha256": "a27fde9c6b417ef68b1a4a46e88e175582f055cd60542474c73ded6bd07f00ec",
+          "size": 19404,
           "type": "file"
         },
         ".codex/agents/experiment-designer.toml": {
@@ -67355,8 +67439,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "7d140a1ea5375454ed94ce433a696495ca4f78ccbc9db7d3029aebb6fe9e2f11",
-          "size": 16086,
+          "sha256": "4cbc7736c4a9223750ace04d164a61f89d2841b3ca2471c2fcb65c568ead31ef",
+          "size": 19585,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -67409,8 +67493,8 @@
         },
         ".codex/agents/method-checker.toml": {
           "mode": "0644",
-          "sha256": "f487a4481747ba778f647eb33c8679e69ca96b0abbf29f2824d079ee3076226c",
-          "size": 25516,
+          "sha256": "cb839a201f83ec8edc0ba86ccf51c63c92bc251710448265bd8cd0eedb2ecd26",
+          "size": 25658,
           "type": "file"
         },
         ".codex/agents/novelty-checker.toml": {
@@ -67571,8 +67655,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bf1ed9821e75a2d60bc92c1c26cbffc6cca105fc2138cf6dcf21c9822f21cbdc",
-          "size": 2904,
+          "sha256": "c11166d45afcf74c41c282df9c5a94511dc5765aa52e1113fc5c16a25926f3fb",
+          "size": 2952,
           "type": "file"
         },
         ".env": {
@@ -67615,20 +67699,20 @@
         },
         ".gemini/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "43d4856b31d1b6ec631ccd5e81c10c16f36fd41415179e764e6369d52b609022",
-          "size": 37338,
+          "sha256": "92c5cec09bca9c77f47a047fcfef826c04a0dcec3993c8974b00770adc7d5fd9",
+          "size": 38280,
           "type": "file"
         },
         ".gemini/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "b7163d4a1122e6f83adb91ba8feaca6560b18822e15cf69e588bdb951174a29c",
-          "size": 11108,
+          "sha256": "6f2ef393e68f4f0f2cd358f11aafc1f19582701957a710b846a20095fb1ad548",
+          "size": 11656,
           "type": "file"
         },
         ".gemini/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "a201a12c58c5653b9e78d46d9e1fc22eb53e6e42ba3daa73823422f578850925",
-          "size": 14853,
+          "sha256": "beffb85d9a1e257c50a5ce5f059a6568ca276d8a74d0c15b2c640bc966a88598",
+          "size": 15442,
           "type": "file"
         },
         ".gemini/agents/debugger.md": {
@@ -67645,14 +67729,14 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f22e8ecf9a63bb5bf94beb0d0c7a8797ed52a8bdeb6aae0f5d7584d5e81444d5",
-          "size": 20496,
+          "sha256": "98f82eb02f0450174c5cb2badea621497ec209c2858a5e177884271fb4d18805",
+          "size": 21425,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9eb30b6230f0035f81dfa276eded2cf6efe9b00d6afe214dc963d3fe9e19d816",
-          "size": 17907,
+          "sha256": "4a67b827378b6e5717264b54cdd941a70ce486ccf80718282da19a9f29f4ed58",
+          "size": 19456,
           "type": "file"
         },
         ".gemini/agents/experiment-designer.md": {
@@ -67675,8 +67759,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "0558a70acd01c351e096db9d2fb20b2b8927acf0bbbffa671b012824b76c28d5",
-          "size": 16137,
+          "sha256": "af80baaec71e2ab7e7540576b8a4709ca97e82a145fd5ed29b552b4bafb524d0",
+          "size": 19636,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -67729,8 +67813,8 @@
         },
         ".gemini/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "19f432dca5420b7ee4ddc4654e5269c996ef51a421b8b755f4ce1c581e3e031a",
-          "size": 25602,
+          "sha256": "afdee0240f091ec0f1efc13c62fc4047a42a686cf69063ccad39bbca069152c9",
+          "size": 25744,
           "type": "file"
         },
         ".gemini/agents/novelty-checker.md": {
@@ -68177,20 +68261,20 @@
         },
         ".opencode/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "c25cd624b3cffc5954b9cc5978cae6020317c6babce15c23c5422b566a3656ba",
-          "size": 37445,
+          "sha256": "9aa9a8598151e57a9f98c700458ef0870ada3498217c815f37bcf98f26163bea",
+          "size": 38387,
           "type": "file"
         },
         ".opencode/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "64ee29f1893be2ec04f2efa4070a4fd0053e7b7ce398eaf3b74a7a5f0a15960a",
-          "size": 11207,
+          "sha256": "ff89a15c125a4dcc5d55715d6f0d81f9aea981efe22c63b7460a0f40c8ddaabe",
+          "size": 11755,
           "type": "file"
         },
         ".opencode/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "77ce83c160e69b3a3f245bb09a5053713777dca4d0c8acb807092f6f844e4598",
-          "size": 14952,
+          "sha256": "4e5c4f3cf5f0ab4b74c2d2a661d27442cfb2fd39155430db8f4293ceee3b8550",
+          "size": 15541,
           "type": "file"
         },
         ".opencode/agents/debugger.md": {
@@ -68207,14 +68291,14 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "2a2aed6ca4b68fe19929bfd5289dad965864a2f565df4e7fa0c3ca6d54316805",
-          "size": 20698,
+          "sha256": "da4f2170372f88d25e3bb23e667cadcdd24a0f881d65c2bf8d29a76ac09efe09",
+          "size": 21627,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "7690687ebf705976d2ffb0e5cf8fb79cc2719fce209b5eb31dea9930a022a903",
-          "size": 18012,
+          "sha256": "23f7ac9344391ae1dd6de1707da10c52d4097265eb10c0bbd828a2beb9f90cb0",
+          "size": 19561,
           "type": "file"
         },
         ".opencode/agents/experiment-designer.md": {
@@ -68237,8 +68321,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "b3dfcc1da031ffaff24385fc376b0250639b1b819b9b25d6a8eddda104bdfc7a",
-          "size": 16239,
+          "sha256": "ed431ce2b8acc7505bda5df343a55232195af0a0a8d07405b9d945c865361042",
+          "size": 19738,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -68291,8 +68375,8 @@
         },
         ".opencode/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "d06b7a9d03ea8048498ad6e87e0bb5455f735e3999c17c14d5d8f71b942655b6",
-          "size": 25675,
+          "sha256": "db11a92590392debad6c1d35b0350dad93aff8bca9a168079248d0773c5d4d8d",
+          "size": 25817,
           "type": "file"
         },
         ".opencode/agents/novelty-checker.md": {
@@ -68477,20 +68561,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "3d7e4dbaf37a8a7d69d0fd93849d8479a854b3d54139346bd4bfed8793547e49",
-          "size": 69718,
+          "sha256": "564ae00a632e62a01a45e4002bf0ece0bae34c1a84ee3a6bc61582d11f73ed1f",
+          "size": 76309,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "8cedaf079238c60049f574ce698d01b61b70bdae2fb26b4923d29078bf0f80ea",
-          "size": 58540,
+          "sha256": "26b02a821b01f9968c9fa71b71344be0042af381ce21ed452db365bcc631f9a2",
+          "size": 65131,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "acdf4ec7c6d68e145521deb80e7ff1765ae15fe4b3b201c1fc0186bf0861d45a",
-          "size": 63712,
+          "sha256": "a30b764cd2f4b55a3e91bc031e6288628eb9f21b7762450534a74c127eaeeee1",
+          "size": 70303,
           "type": "file"
         },
         "code": {
@@ -68623,6 +68707,12 @@
           "mode": "0644",
           "sha256": "2ea582286dccd2e775e36cd1584cbfd046c192da76a82917faeaa64e52988c69",
           "size": 5318,
+          "type": "file"
+        },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -68853,8 +68943,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "9bd6c68114fdea45c7f0498c866acffaed8891ce8fc4f9a2040259f26bd4454a",
-          "size": 36887,
+          "sha256": "1fe11b5ba3c811529f48ec0d2b3af32f8f385574135ccf1bb1d6f1ff41527457",
+          "size": 41239,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -68871,8 +68961,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "58a036a7d00d132ddb1f20d293854cac1468599a74280f6552c6cd96c9f3866f",
-          "size": 23119,
+          "sha256": "e1b3270023653830729266bd3d398ee081fc42c53ca3d318e5ae4eacd15f8674",
+          "size": 25923,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -69015,7 +69105,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -69061,8 +69151,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "4217f4b50d3e04b904e2e8e61fa9bd143044c4af733c37590d49a865166ea81f",
-          "size": 2338,
+          "sha256": "0357ada989096ed88f9f0a0f6d0dec0e9d8d65b9accc7d49efc0e08e67c1c40e",
+          "size": 2371,
           "type": "file"
         },
         "process_log/sessions": {
@@ -69142,6 +69232,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -69170,7 +69261,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -69568,20 +69659,20 @@
         },
         ".claude/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "14ca1a90def4b01a9cf01a5a2591b6a7255072b2ef59c0f7dd058fc95865bcb8",
-          "size": 37262,
+          "sha256": "cb8921dfa382b0d0dee3b29cfe60edfb822ce9e6ee4c7ba0a014f175c8146908",
+          "size": 38204,
           "type": "file"
         },
         ".claude/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "7c10cff3f5169316e6fde48415bf37eba90d205b755ce75ad1a3a7cab034a9cb",
-          "size": 11032,
+          "sha256": "04362ffdfe5fb910d98fe8ea8793641c4e473e8ea7f2ca51645e65dbf724822e",
+          "size": 11580,
           "type": "file"
         },
         ".claude/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "8a643319f890bb1c3502fd5e35d6403e1342464219b6c5e6dd31b7a0b3fd9b8a",
-          "size": 14777,
+          "sha256": "8a7036cb159087b0b9e3ef97691cff54564f5e46e88c6c357b615846ba6a6b02",
+          "size": 15366,
           "type": "file"
         },
         ".claude/agents/debugger.md": {
@@ -69598,14 +69689,14 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "e812ec861748bc011cc758b049ea946be458cb94000a6e1891df3e37a75802b6",
-          "size": 20464,
+          "sha256": "0460d4456e37e9b24fa56507fb879c17227a32da43b336a31cee5da77a4e263f",
+          "size": 21393,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2e2532a46eafe01490bead3ab345fcd5dbf94ec24f66a1bbcafbe247292ab085",
-          "size": 17829,
+          "sha256": "13d8b1414de03badc9a1a4072e1482ea8fe753135a4e1123ffb621505c5584f2",
+          "size": 19378,
           "type": "file"
         },
         ".claude/agents/gap-scout.md": {
@@ -69616,8 +69707,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "4b19c07ac760ca9087531d24c0190153bc0516fad88a12e16fcf24be31ea159c",
-          "size": 16061,
+          "sha256": "9e92c46dbd0d7da1491de9419513a6959c8ccc9508812c65dea47ed406e7cfe0",
+          "size": 19560,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -69670,8 +69761,8 @@
         },
         ".claude/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "5a8429803bd62906f553c59c1b1f4daae3c2b537ce92cc4f9d272f8c11f91e02",
-          "size": 25511,
+          "sha256": "847a1332bf414a20e6baa132362ca3a839e00a67176a70bac9feb66541e09c83",
+          "size": 25653,
           "type": "file"
         },
         ".claude/agents/novelty-checker.md": {
@@ -70178,20 +70269,20 @@
         },
         ".codex/agents/claim-verifier.toml": {
           "mode": "0644",
-          "sha256": "c9c7ce3a95d576f66e2c4ccb6da08f82aeaaa48a8ceb2e548354b8a4b860b924",
-          "size": 37288,
+          "sha256": "4f27c1c7394a5ca8ee2673ef822941b368fc7d683458364e4dee2b645fca8b12",
+          "size": 38230,
           "type": "file"
         },
         ".codex/agents/data-integrity-auditor.toml": {
           "mode": "0644",
-          "sha256": "c59f59c2dd0cad330fc548051c5cab613b6199d8cd632d1abd3726642f586843",
-          "size": 11057,
+          "sha256": "92a939d4240edf19e9aaf0a52bb0c23b8642ab987da8f03ac5c484797b9d3eea",
+          "size": 11605,
           "type": "file"
         },
         ".codex/agents/data-selection-auditor.toml": {
           "mode": "0644",
-          "sha256": "9f78cab7fa6452bb855ffb615475bf2af280b2667f2b2eb271400df9d48ae45f",
-          "size": 14802,
+          "sha256": "af64413ba84730ab0f108502fa3b0e9848b545c2899ae3580762a29d60143150",
+          "size": 15391,
           "type": "file"
         },
         ".codex/agents/debugger.toml": {
@@ -70208,14 +70299,14 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "f5228df8f2146f4a76e02df97d841219a725439118209e02cd2792a58c5570e9",
-          "size": 20469,
+          "sha256": "c02b5deb59e7b3267b15dbc88d05ebfc67e21c02dbf5066f6f1098efb9d404c5",
+          "size": 21398,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "607b885fa2d28a4496e007c1bc7efef7c5e4fd760194912e96ff0958351d526d",
-          "size": 17855,
+          "sha256": "a27fde9c6b417ef68b1a4a46e88e175582f055cd60542474c73ded6bd07f00ec",
+          "size": 19404,
           "type": "file"
         },
         ".codex/agents/gap-scout.toml": {
@@ -70226,8 +70317,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "7d140a1ea5375454ed94ce433a696495ca4f78ccbc9db7d3029aebb6fe9e2f11",
-          "size": 16086,
+          "sha256": "4cbc7736c4a9223750ace04d164a61f89d2841b3ca2471c2fcb65c568ead31ef",
+          "size": 19585,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -70280,8 +70371,8 @@
         },
         ".codex/agents/method-checker.toml": {
           "mode": "0644",
-          "sha256": "f487a4481747ba778f647eb33c8679e69ca96b0abbf29f2824d079ee3076226c",
-          "size": 25516,
+          "sha256": "cb839a201f83ec8edc0ba86ccf51c63c92bc251710448265bd8cd0eedb2ecd26",
+          "size": 25658,
           "type": "file"
         },
         ".codex/agents/novelty-checker.toml": {
@@ -70436,8 +70527,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1b2241a997e3fdafa7bbbaf5605e63ae8df2760311fec8fe0227994d0e73910f",
-          "size": 2797,
+          "sha256": "baa289ad9945de4d6dcd83e7b75ef45b615d9bdfcef71d95c0ac3a0c1c50398f",
+          "size": 2845,
           "type": "file"
         },
         ".env": {
@@ -70480,20 +70571,20 @@
         },
         ".gemini/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "43d4856b31d1b6ec631ccd5e81c10c16f36fd41415179e764e6369d52b609022",
-          "size": 37338,
+          "sha256": "92c5cec09bca9c77f47a047fcfef826c04a0dcec3993c8974b00770adc7d5fd9",
+          "size": 38280,
           "type": "file"
         },
         ".gemini/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "b7163d4a1122e6f83adb91ba8feaca6560b18822e15cf69e588bdb951174a29c",
-          "size": 11108,
+          "sha256": "6f2ef393e68f4f0f2cd358f11aafc1f19582701957a710b846a20095fb1ad548",
+          "size": 11656,
           "type": "file"
         },
         ".gemini/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "a201a12c58c5653b9e78d46d9e1fc22eb53e6e42ba3daa73823422f578850925",
-          "size": 14853,
+          "sha256": "beffb85d9a1e257c50a5ce5f059a6568ca276d8a74d0c15b2c640bc966a88598",
+          "size": 15442,
           "type": "file"
         },
         ".gemini/agents/debugger.md": {
@@ -70510,14 +70601,14 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f22e8ecf9a63bb5bf94beb0d0c7a8797ed52a8bdeb6aae0f5d7584d5e81444d5",
-          "size": 20496,
+          "sha256": "98f82eb02f0450174c5cb2badea621497ec209c2858a5e177884271fb4d18805",
+          "size": 21425,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9eb30b6230f0035f81dfa276eded2cf6efe9b00d6afe214dc963d3fe9e19d816",
-          "size": 17907,
+          "sha256": "4a67b827378b6e5717264b54cdd941a70ce486ccf80718282da19a9f29f4ed58",
+          "size": 19456,
           "type": "file"
         },
         ".gemini/agents/gap-scout.md": {
@@ -70528,8 +70619,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "0558a70acd01c351e096db9d2fb20b2b8927acf0bbbffa671b012824b76c28d5",
-          "size": 16137,
+          "sha256": "af80baaec71e2ab7e7540576b8a4709ca97e82a145fd5ed29b552b4bafb524d0",
+          "size": 19636,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -70582,8 +70673,8 @@
         },
         ".gemini/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "19f432dca5420b7ee4ddc4654e5269c996ef51a421b8b755f4ce1c581e3e031a",
-          "size": 25602,
+          "sha256": "afdee0240f091ec0f1efc13c62fc4047a42a686cf69063ccad39bbca069152c9",
+          "size": 25744,
           "type": "file"
         },
         ".gemini/agents/novelty-checker.md": {
@@ -71024,20 +71115,20 @@
         },
         ".opencode/agents/claim-verifier.md": {
           "mode": "0644",
-          "sha256": "c25cd624b3cffc5954b9cc5978cae6020317c6babce15c23c5422b566a3656ba",
-          "size": 37445,
+          "sha256": "9aa9a8598151e57a9f98c700458ef0870ada3498217c815f37bcf98f26163bea",
+          "size": 38387,
           "type": "file"
         },
         ".opencode/agents/data-integrity-auditor.md": {
           "mode": "0644",
-          "sha256": "64ee29f1893be2ec04f2efa4070a4fd0053e7b7ce398eaf3b74a7a5f0a15960a",
-          "size": 11207,
+          "sha256": "ff89a15c125a4dcc5d55715d6f0d81f9aea981efe22c63b7460a0f40c8ddaabe",
+          "size": 11755,
           "type": "file"
         },
         ".opencode/agents/data-selection-auditor.md": {
           "mode": "0644",
-          "sha256": "77ce83c160e69b3a3f245bb09a5053713777dca4d0c8acb807092f6f844e4598",
-          "size": 14952,
+          "sha256": "4e5c4f3cf5f0ab4b74c2d2a661d27442cfb2fd39155430db8f4293ceee3b8550",
+          "size": 15541,
           "type": "file"
         },
         ".opencode/agents/debugger.md": {
@@ -71054,14 +71145,14 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "2a2aed6ca4b68fe19929bfd5289dad965864a2f565df4e7fa0c3ca6d54316805",
-          "size": 20698,
+          "sha256": "da4f2170372f88d25e3bb23e667cadcdd24a0f881d65c2bf8d29a76ac09efe09",
+          "size": 21627,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "7690687ebf705976d2ffb0e5cf8fb79cc2719fce209b5eb31dea9930a022a903",
-          "size": 18012,
+          "sha256": "23f7ac9344391ae1dd6de1707da10c52d4097265eb10c0bbd828a2beb9f90cb0",
+          "size": 19561,
           "type": "file"
         },
         ".opencode/agents/gap-scout.md": {
@@ -71072,8 +71163,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "b3dfcc1da031ffaff24385fc376b0250639b1b819b9b25d6a8eddda104bdfc7a",
-          "size": 16239,
+          "sha256": "ed431ce2b8acc7505bda5df343a55232195af0a0a8d07405b9d945c865361042",
+          "size": 19738,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -71126,8 +71217,8 @@
         },
         ".opencode/agents/method-checker.md": {
           "mode": "0644",
-          "sha256": "d06b7a9d03ea8048498ad6e87e0bb5455f735e3999c17c14d5d8f71b942655b6",
-          "size": 25675,
+          "sha256": "db11a92590392debad6c1d35b0350dad93aff8bca9a168079248d0773c5d4d8d",
+          "size": 25817,
           "type": "file"
         },
         ".opencode/agents/novelty-checker.md": {
@@ -71306,20 +71397,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "e600a2c2865674dc7c1d79d2a218f5bbd88bda691a3c4a45dbefa1bfda5c3f19",
-          "size": 69186,
+          "sha256": "d67628cc18bd1e0f8e112a95663956833e50ae9bec2be1974362edec5612e85a",
+          "size": 75777,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "6ab7218c5a96a960c526c1beb71518d84b7f532640453c89c435477f4bb1105a",
-          "size": 58008,
+          "sha256": "5a21ebb5775c3a903093d59967a6fd2960eb11de8cc46bc0813bc6bda85e9ed6",
+          "size": 64599,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "14a61c50ab321a0a4b9da56af1a7e2b20e51585f852e218d249fc3fafc4bb3f1",
-          "size": 63180,
+          "sha256": "41069e968de907e338200b8d1ec7395ff931afc26556e1fd511c4fc1e686a221",
+          "size": 69771,
           "type": "file"
         },
         "code": {
@@ -71452,6 +71543,12 @@
           "mode": "0644",
           "sha256": "2ea582286dccd2e775e36cd1584cbfd046c192da76a82917faeaa64e52988c69",
           "size": 5318,
+          "type": "file"
+        },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -71682,8 +71779,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "9bd6c68114fdea45c7f0498c866acffaed8891ce8fc4f9a2040259f26bd4454a",
-          "size": 36887,
+          "sha256": "1fe11b5ba3c811529f48ec0d2b3af32f8f385574135ccf1bb1d6f1ff41527457",
+          "size": 41239,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -71694,8 +71791,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "58a036a7d00d132ddb1f20d293854cac1468599a74280f6552c6cd96c9f3866f",
-          "size": 23119,
+          "sha256": "e1b3270023653830729266bd3d398ee081fc42c53ca3d318e5ae4eacd15f8674",
+          "size": 25923,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -71824,7 +71921,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -71870,8 +71967,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "174efcf74e73f2b0bcdcb3f6ab24f812e199bee55d3c12b9cb25ff41858e7969",
-          "size": 2304,
+          "sha256": "b8aff05fa0f10465e150f77fb1df28a6c468d721d53d5f9ddfbfe410ba83ce99",
+          "size": 2337,
           "type": "file"
         },
         "process_log/sessions": {
@@ -71949,6 +72046,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -71976,7 +72074,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -72384,7 +72482,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "249eefdf6f2a89aa39af6dd85cf1318bb5a626bb8721a5d89e0157dfa74d13e0",
+          "sha256": "a917abcc7ee89dfc5491055fa0e1487b7c1189ac090c67d24e72dc7b20287fc8",
           "size": 1794,
           "type": "file"
         },
@@ -73091,7 +73189,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -74039,8 +74137,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "72934506da0fd2cfa486c566546cb109b759677341d1cbba77fae301f913f2b2",
-          "size": 2886,
+          "sha256": "24668b8ad2b85290ee7675fb077059e1c0ba72588d288a813ccc5ca93af26890",
+          "size": 2934,
           "type": "file"
         },
         ".env": {
@@ -74577,6 +74675,12 @@
           "size": 5318,
           "type": "file"
         },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
+          "type": "file"
+        },
         "code/utils/form_5500_utils.py": {
           "mode": "0644",
           "sha256": "197395098b7d23abb7ce77d6de81e33944f38914e127e2f1201ca748f16cfa21",
@@ -74907,6 +75011,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -74935,7 +75040,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -75855,8 +75960,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9c0237c96caa647ab17850242f638feaa2575121ceec254447ffb363ee0ef8c1",
-          "size": 2779,
+          "sha256": "160cd9f6149ef75ba91c66b670a8090c41bfc45a1acdb3ff58fc3623a85ae2e2",
+          "size": 2827,
           "type": "file"
         },
         ".env": {
@@ -76393,6 +76498,12 @@
           "size": 5318,
           "type": "file"
         },
+        "code/utils/empirical_input_manifest.py": {
+          "mode": "0644",
+          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
+          "size": 35844,
+          "type": "file"
+        },
         "code/utils/form_5500_utils.py": {
           "mode": "0644",
           "sha256": "197395098b7d23abb7ce77d6de81e33944f38914e127e2f1201ca748f16cfa21",
@@ -76715,6 +76826,7 @@
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
+            "code/utils/empirical_input_manifest.py",
             "code/utils/form_5500_utils.py",
             "code/utils/fred_utils.py",
             "code/utils/hrs_scf_utils.py",
@@ -76742,7 +76854,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -77182,7 +77294,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "59c1eaf31ce9c2e4f5ed784cc2e6b0542a3994b8409b76d6067ed1907b8f00d1",
+          "sha256": "481d80da6dd1390af0d99e4d292c72d707a535d91917563ca5696281fe892c31",
           "size": 1903,
           "type": "file"
         },
@@ -77899,7 +78011,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -78613,7 +78725,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d8e4bbd6c9ce53a15fed69ddb4c510a66f23c55669cc3956ccf66cd77d3f1fa9",
+          "sha256": "b24c96fd0df2719afefc7acf4c66c94f996b04afe2539c88e06ed883a35e9499",
           "size": 1921,
           "type": "file"
         },
@@ -79645,8 +79757,8 @@
         },
         "docs/stage_5.md": {
           "mode": "0644",
-          "sha256": "fee7ab5700907d9e7120760fe25af001903e88626ff18250d4e2749c84075f6a",
-          "size": 13934,
+          "sha256": "db9fbeb61ea4f4414e25783e92886379e8bc9a8d11a0a2b9e11929278283d799",
+          "size": 14700,
           "type": "file"
         },
         "docs/stage_6.md": {
@@ -79781,7 +79893,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "53ac4e374a034b4f62c44d1a9d8850a3660215ad14b0e4467349c88c64397f48",
+          "sha256": "2d07031d1ff6a1b17eff61c683c68357edc689ded043a8470841d37249f93e8a",
           "size": 15378,
           "type": "file"
         },
@@ -79911,7 +80023,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.6+<GIT_REVISION>",
+        "template_version": "2.24.7+<GIT_REVISION>",
         "variant": "macro"
       }
     }

@@ -5,8 +5,8 @@ The pipeline's existing verification standard — `empirics-auditor` reproducing
 ## What you receive
 
 - `output/stage3a/empirical_plan.md` — the analysis plan (variables, sources, transforms)
-- `output/stage3a/empirical_analysis.md` — the executed analysis report
-- `code/empirical.py` and any `code/tmp/*.py` — the code that built the cache
+- `ANALYSIS_PATH` — the exact canonical or versioned analysis report named by the launch prompt. Use that file throughout this firing; never silently fall back to `output/stage3a/empirical_analysis.md` when a versioned path was supplied.
+- `code/empirical.py`, every `code/empirical_post_v*.py`, and any helpers / `code/tmp/*.py` — the complete code surface that can build or mutate a cache. Inspect all post-version entrypoints, especially the one producing `ANALYSIS_PATH`.
 - `output/data_inventory.md` — the data sources and vintages this run uses
 - The cached parquets / CSVs the analysis depends on (paths visible in the code)
 
@@ -33,11 +33,11 @@ Each finding gets a **severity 1–10** and a **named failure mode** so downstre
 - **`crosswalk-incomplete`** — when mapping between vendor coding schemes (PERMNO↔GVKEY, NAICS vintage migrations, SIC↔NAICS, CUSIP↔ISIN, RSSD↔FDIC cert), verify the crosswalk covers all relevant codes and that the mapping cardinality is what the code assumes (1:1, 1:many, many:1). Report unmapped IDs as a percentage of the population.
 - **`cache-stale-vs-source`** — compare cache mtime against the source's last-update timestamp (FRED's `realtime_end`, FFIEC's posting-date, WRDS's vintage, FDIC's snapshot date). Flag stale caches (>90 days for fast-moving series, >1 year for annual). Vintage drift between the cache and the documented vintage is a finding even if the data is "correct" for the older vintage.
 - **`cache-contention`** — identify cached files written by multiple scripts with potentially incompatible inputs (e.g., a shared `crsp_monthly.parquet` written by one script with `1963-2024` and another with `1990-2024`). `grep` the codebase for write paths; report any cache file with >1 writer that does not have a deterministic schema contract.
-- **`doc-vs-code-vintage-mismatch`** — cross-reference the data vintage claimed in `empirical_plan.md` / `empirical_analysis.md` against the cutoffs in code (`CENSOR_DATE`, end-date literals, `cutoff=` kwargs). Mismatches mean the prose is wrong, the code is wrong, or both. Severity 7+ if the mismatch is >1 quarter.
+- **`doc-vs-code-vintage-mismatch`** — cross-reference the data vintage claimed in `empirical_plan.md` / `ANALYSIS_PATH` against the cutoffs in code (`CENSOR_DATE`, end-date literals, `cutoff=` kwargs). Mismatches mean the prose is wrong, the code is wrong, or both. Severity 7+ if the mismatch is >1 quarter.
 
 ## Output format
 
-Save to `output/stage3a/data_integrity_audit.md`:
+Save to the exact `AUDIT_OUTPUT_PATH` named by the launch prompt. The default Stage 3a path is `output/stage3a/data_integrity_audit.md`; post-pipeline verification supplies a versioned path under `output/post_pipeline/`. Never overwrite the default when an override was supplied:
 
 ```markdown
 # Data Integrity Audit (content) — round {N}

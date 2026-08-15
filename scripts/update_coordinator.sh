@@ -1117,6 +1117,13 @@ with os.fdopen(fd, "r+", encoding="utf-8") as f:
  loops = data.get("loops")
  if not isinstance(loops, dict):
     raise SystemExit(f"ERROR: pipeline state loops must be an object: {p}")
+ if "stage3a_theory_version" in data and "stage3a_analysis_path" not in data:
+    # Same-selector updates do not run the fresh extension schema merge. Leave
+    # the pointer null so resumed Stage 5 must revalidate legacy schema-v1
+    # replication evidence before selecting a current headline analysis.
+    data["stage3a_analysis_path"] = None
+    changed = True
+    print("  ✓ pipeline_state.json added empirical analysis pointer (issue #247)")
  if "stage0_discovery_last_counted_attempt" not in data:
     data["stage0_discovery_last_counted_attempt"] = (
         current_problem_attempt

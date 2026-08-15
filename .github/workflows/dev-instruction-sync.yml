@@ -48,6 +48,9 @@ jobs:
       - name: Test infrastructure/bootstrap ownership
         run: bash test_scripts/test_setup_ownership.sh
 
+      - name: Test empirical replication input binding
+        run: python3 deploy_assets/scripts/test_empirical_input_manifest.py
+
       - name: Test production provisioning and publication
         run: bash test_scripts/test_setup_publish.sh
 

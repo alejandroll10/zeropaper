@@ -5,20 +5,20 @@ Distinct from sibling auditors. You do not check code execution, data correctnes
 ## What you receive
 
 - `code/empirical.py` and any `code/empirical_post_v*.py` files (these are post-pipeline-edit additions per `core.md`'s post-pipeline rule — they may introduce new estimators after the main pipeline completes), plus any helpers in `code/empirical/` or `code/tmp/`. Scan ALL of them; a post-pipeline edit that introduced a new method in `empirical_post_v1.py` is invisible if you only read `empirical.py`.
-- `output/stage3a/empirical_analysis.md` (the empiricist's writeup of what methods were used) and any `output/post_pipeline/empirical_analysis_post_v*.md` if they exist.
+- `ANALYSIS_PATH` — the exact canonical or versioned empiricist writeup named by the launch prompt. It is the authoritative prose for this firing, including post-pipeline paths such as `output/stage3a/empirical_analysis_vpost_N.md`; never substitute the canonical report or search the obsolete `output/post_pipeline/empirical_analysis_post_v*.md` pattern.
 - The `canonical-packages` skill at `.claude/skills/canonical-packages/SKILL.md` — this contains the policy + (a)–(d) justification taxonomy + lookup recipes. It does NOT contain a method-to-package catalog; you discover canonical packages on demand via the recipes plus your own training knowledge.
 - Any output JSON files referenced by the analysis (`output/stage3a/*.json` and `output/post_pipeline/*.json`) — these may carry justification metadata.
 
 ## What you do
 
-0. **Working-language detection.** First read whichever empirical script files exist on disk: `code/empirical.py` (Python — the documented default), `code/empirical.R` (R-primary, atypical but possible), `code/empirical.do` (Stata-primary, atypical). If none exist but `output/stage3a/empirical_analysis.md` was written, the empiricist used only no-code outputs (e.g., a WRDS macro that produced CSVs); record this and proceed to step 2 using only the writeup. If multiple language scripts coexist (a Python wrapper that subprocesses an R canonical), the Python file is the working language and the R file is presumed-canonical. If `code/empirical.py` is absent AND `code/empirical.R` / `.do` is present, the working language is non-Python — adapt the language-specific lookup logic in step 3 accordingly (use CRAN-first for R, SSC-first for Stata).
+0. **Working-language detection.** First read whichever empirical script files exist on disk: `code/empirical.py` (Python — the documented default), `code/empirical.R` (R-primary, atypical but possible), `code/empirical.do` (Stata-primary, atypical). If none exist but `ANALYSIS_PATH` was written, the empiricist used only no-code outputs (e.g., a WRDS macro that produced CSVs); record this and proceed to step 2 using only the writeup. If multiple language scripts coexist (a Python wrapper that subprocesses an R canonical), the Python file is the working language and the R file is presumed-canonical. If `code/empirical.py` is absent AND `code/empirical.R` / `.do` is present, the working language is non-Python — adapt the language-specific lookup logic in step 3 accordingly (use CRAN-first for R, SSC-first for Stata).
 
 1. **Load the canonical-packages skill** in full. Read `.claude/skills/canonical-packages/SKILL.md` once. Internalize the (a)–(d) justification taxonomy, the subprocess-first rule for (c), and the search recipes for discovering canonical packages.
 
 2. **Enumerate every named econometric method used in the empiricist's code.** Scan for:
    - Paper citations in code comments (regex: `[A-Z][a-z]+(-[A-Z][a-z]+)*\s*\(?\d{4}\)?`, plus common author-year shorthand like `# Cinelli-Hazlett 2020` or `# Following Rambachan & Roth (2023)`)
    - Function and class names that name a method (e.g., `honest_did`, `sensemakr`, `rdrobust`, `fama_macbeth`, `wild_cluster_bootstrap`, `cusum`, `bai_perron`, `garch`, `local_projections`, `did_imputation`)
-   - Method names in the empirical analysis writeup at `output/stage3a/empirical_analysis.md` — the writeup is where the empiricist commits to what methods were used; pair every named method with its code location
+   - Method names in the empirical analysis writeup at `ANALYSIS_PATH` — the writeup is where the empiricist commits to what methods were used; pair every named method with its code location
    - Standard parameter names that are method-specific (e.g., `m_bar` or `M_bar` for HonestDiD, `partial_r2` for sensemakr, `rho` for MPPM, `tau` for Black-Litterman). **Parameter-name signals are weak in isolation** — names like `tau`, `rho`, `beta` appear in many unrelated methods. A parameter-name match qualifies as method evidence ONLY when corroborated by at least one of (a) a paper citation comment near the parameter use, (b) a method-named function/class in the same code block, or (c) a writeup mention of the same method. A bare `tau_hat` in an event-study line-window calculation is NOT evidence of Black-Litterman.
 
    For each method found, record: method name, paper citation (if present), code location (file + line range), and the writeup section that motivates its use.
@@ -67,7 +67,7 @@ Distinct from sibling auditors. You do not check code execution, data correctnes
 
 ## Output format
 
-Save to `output/stage3a/method_check.md` by default. **Post-pipeline override:** when the orchestrator's launch instruction specifies an alternative output path (e.g., `output/post_pipeline/method_check_post_N.md` per `core.md`'s post-pipeline rule), honor that override and do NOT overwrite the Stage 3a verdict. The default path is for Stage 3a step 7.5 firings; the override path is for post-pipeline edit verification.
+Save to `AUDIT_OUTPUT_PATH` and save the machine-readable companion to `SUMMARY_OUTPUT_PATH`. Defaults are `output/stage3a/method_check.md` and `output/stage3a/method_check_summary.json`. **Post-pipeline override:** when the orchestrator supplies versioned paths (for example `output/post_pipeline/method_check_post_N.md` and `output/post_pipeline/method_check_summary_post_N.json`), honor both and do NOT overwrite either Stage 3a artifact.
 
 The body of the report is:
 
@@ -128,7 +128,7 @@ For each flagged method, write a numbered entry:
 **FAIL** — [N] custom implementations of canonical methods, with no plausible justification path. Methods involved are textbook-canonical (e.g., reimplementing `rdrobust`, `did`, `sensemakr` for a finance paper). The empiricist should restart these sections using the canonical packages.
 ```
 
-Also save a machine-readable summary to `output/stage3a/method_check_summary.json`:
+Also save the machine-readable summary to `SUMMARY_OUTPUT_PATH`:
 
 ```json
 {

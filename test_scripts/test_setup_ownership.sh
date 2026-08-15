@@ -187,6 +187,22 @@ extension_deps=".arpipeline/update_inputs/deps/extensions/empirical.txt"
 jq -e '.infrastructure.dirs_replace | index("code/utils/ssa_oact") != null' \
     "$extension_target/.deploy_manifest.json" >/dev/null \
     || { echo "FAIL: empirical SSA bundle lacks replacement ownership" >&2; exit 1; }
+python3 - "$extension_target/process_log/pipeline_state.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+with open(path) as handle:
+    state = json.load(handle)
+state.pop("stage3a_analysis_path", None)
+with open(path, "w") as handle:
+    json.dump(state, handle, indent=2)
+    handle.write("\n")
+PY
+env PATH=/usr/bin:/bin "$repo_root/update.sh" "$extension_target" \
+    --no-model-probe >"$scratch/extension-same-selector-update.log" 2>&1 \
+    || { cat "$scratch/extension-same-selector-update.log" >&2; echo "FAIL: empirical same-selector update failed" >&2; exit 1; }
+jq -e '.stage3a_analysis_path == null and has("stage3a_analysis_path")' \
+    "$extension_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: empirical same-selector update omitted stage3a_analysis_path migration" >&2; exit 1; }
 extension_process_log_saved="$scratch/extension-process-log.saved"
 mv "$extension_target/process_log" "$extension_process_log_saved"
 env PATH=/usr/bin:/bin "$repo_root/update.sh" "$extension_target" \
