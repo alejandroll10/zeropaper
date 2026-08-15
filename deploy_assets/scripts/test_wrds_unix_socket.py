@@ -12,6 +12,7 @@ import tempfile
 import time
 import threading
 from pathlib import Path
+from unittest import mock
 
 
 ROOT = Path(__file__).resolve().parents[1]
@@ -241,6 +242,66 @@ def main():
         finally:
             mention_process.terminate()
             mention_process.wait(timeout=5)
+
+        # A same-user system session helper can deliberately hide its cwd and
+        # ns/net link. Classify it through the first readable ancestor before
+        # namespace inspection: a systemd-style root cwd is irrelevant, while
+        # an opaque child of a deployed launcher remains a candidate.
+        fake_proc = Path(temp) / "fake-proc"
+        opaque_entry = fake_proc / "3205"
+        parent_entry = fake_proc / "3204"
+        opaque_entry.mkdir(parents=True)
+        parent_entry.mkdir()
+        (opaque_entry / "status").write_text(
+            "Name:\t(sd-pam)\nPPid:\t3204\n", encoding="utf-8")
+
+        def opaque_readlink(path):
+            if Path(path) == opaque_entry / "cwd":
+                raise PermissionError("ptrace-protected session helper")
+            if Path(path) == parent_entry / "cwd":
+                return "/"
+            raise AssertionError(f"unexpected readlink: {path}")
+
+        with mock.patch.object(server.os, "readlink",
+                               side_effect=opaque_readlink):
+            assert not server._process_is_deployed_wrds_runtime(
+                opaque_entry, fake_proc)
+
+        deployed_parent = Path(temp) / "opaque-deployment"
+        (deployed_parent / "code" / "utils").mkdir(parents=True)
+        (deployed_parent / ".deploy_manifest.json").write_text(
+            "{}\n", encoding="utf-8")
+        (deployed_parent / "code" / "utils" / "wrds_client.py").write_text(
+            "# marker\n", encoding="utf-8")
+
+        def deployed_parent_readlink(path):
+            if Path(path) == opaque_entry / "cwd":
+                raise PermissionError("opaque sandbox child")
+            if Path(path) == parent_entry / "cwd":
+                return str(deployed_parent)
+            raise AssertionError(f"unexpected readlink: {path}")
+
+        with mock.patch.object(server.os, "readlink",
+                               side_effect=deployed_parent_readlink):
+            assert server._process_is_deployed_wrds_runtime(
+                opaque_entry, fake_proc)
+
+        changed_cwd_entry = fake_proc / "3305"
+        changed_cwd_entry.mkdir()
+        (changed_cwd_entry / "status").write_text(
+            "Name:\tpython\nPPid:\t3204\n", encoding="utf-8")
+
+        def changed_cwd_readlink(path):
+            if Path(path) == changed_cwd_entry / "cwd":
+                return "/tmp"
+            if Path(path) == parent_entry / "cwd":
+                return str(deployed_parent)
+            raise AssertionError(f"unexpected readlink: {path}")
+
+        with mock.patch.object(server.os, "readlink",
+                               side_effect=changed_cwd_readlink):
+            assert server._process_is_deployed_wrds_runtime(
+                changed_cwd_entry, fake_proc)
 
         # First-upgrade quiescence covers a released client paused after its
         # latch read but before Popen, when no wrds_server.py exists to scan.

@@ -1618,6 +1618,66 @@ def _legacy_server_pids():
     return sorted(found)
 
 
+def _cwd_is_deployed_wrds_runtime(cwd):
+    """Whether ``cwd`` is inside an assembled deployment with WRDS support."""
+    cwd = Path(cwd)
+    for candidate in (cwd, *cwd.parents):
+        if ((candidate / '.deploy_manifest.json').is_file() and
+                (candidate / 'code' / 'utils' / 'wrds_client.py').is_file()):
+            return True
+    return False
+
+
+def _process_is_deployed_wrds_runtime(entry, proc_root):
+    """Classify a process before inspecting its protected namespace links.
+
+    Linux session helpers such as systemd's same-UID ``(sd-pam)`` deliberately
+    deny both ``cwd`` and namespace reads even to their owner.  They are not a
+    released pipeline runtime and must not make every v5 daemon unstartable.
+    Walk the parent chain until a deployment cwd is found or PID 1 is reached:
+    a released client can change to /tmp while still resolving wrds_server.py
+    from its deployed ``__file__``. Opaque children are handled by the same
+    ancestry walk, so one descended from a deployed launcher remains inside
+    the fail-closed gate.
+    """
+    current = entry
+    seen = set()
+    for _ in range(64):
+        try:
+            pid = int(current.name)
+        except ValueError:
+            return False
+        if pid in seen or pid <= 1:
+            return False
+        seen.add(pid)
+        try:
+            cwd = os.readlink(current / 'cwd')
+        except (FileNotFoundError, ProcessLookupError):
+            return False
+        except PermissionError:
+            cwd = None
+        except OSError as e:
+            raise WrdsLatchError(
+                f'cannot inspect same-user process cwd {pid}: {e}') from e
+        if cwd is not None and _cwd_is_deployed_wrds_runtime(cwd):
+            return True
+        try:
+            status_text = (current / 'status').read_text(
+                encoding='utf-8', errors='replace')
+            parent_line = next(
+                line for line in status_text.splitlines()
+                if line.startswith('PPid:'))
+            parent_pid = int(parent_line.split(':', 1)[1].strip())
+        except (FileNotFoundError, ProcessLookupError):
+            return False
+        except (OSError, StopIteration, ValueError) as e:
+            raise WrdsLatchError(
+                f'cannot classify same-user process ancestry {pid}: {e}') from e
+        current = proc_root / str(parent_pid)
+    raise WrdsLatchError(
+        f'cannot classify same-user process ancestry from {entry.name}')
+
+
 def _foreign_network_namespace_pids():
     """Find live same-UID processes outside this Linux network namespace.
 
@@ -1639,26 +1699,17 @@ def _foreign_network_namespace_pids():
         raise WrdsLatchError(
             f'cannot enumerate network namespaces for WRDS upgrade safety: {e}') from e
     own_identity = (own.st_dev, own.st_ino)
-    def is_deployed_wrds_runtime(entry):
-        try:
-            cwd = Path(os.readlink(entry / 'cwd'))
-        except (FileNotFoundError, ProcessLookupError):
-            return False
-        except OSError as e:
-            raise WrdsLatchError(
-                f'cannot inspect same-user process cwd {entry.name}: {e}') from e
-        for candidate in (cwd, *cwd.parents):
-            if ((candidate / '.deploy_manifest.json').is_file() and
-                    (candidate / 'code' / 'utils' / 'wrds_client.py').is_file()):
-                return True
-        return False
-
     found = []
     for entry in entries:
         if not entry.name.isdigit() or int(entry.name) == os.getpid():
             continue
         try:
             if (hasattr(os, 'getuid') and entry.stat().st_uid != os.getuid()):
+                continue
+            # Scope the upgrade gate before touching namespace links. Common
+            # same-user system helpers intentionally deny ns/net reads; only a
+            # deployed runtime can carry the released delayed-Popen race.
+            if not _process_is_deployed_wrds_runtime(entry, proc_root):
                 continue
             candidate = os.stat(entry / 'ns' / 'net')
         except (FileNotFoundError, ProcessLookupError):
@@ -1669,8 +1720,7 @@ def _foreign_network_namespace_pids():
         except OSError as e:
             raise WrdsLatchError(
                 f'network-namespace discovery failed at {entry}: {e}') from e
-        if ((candidate.st_dev, candidate.st_ino) != own_identity and
-                is_deployed_wrds_runtime(entry)):
+        if (candidate.st_dev, candidate.st_ino) != own_identity:
             found.append(int(entry.name))
     return sorted(found)
 
