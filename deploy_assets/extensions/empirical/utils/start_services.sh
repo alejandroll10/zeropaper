@@ -29,7 +29,8 @@ fi
 
 # Start WRDS server if credentials are configured
 if [ -n "$WRDS_USER" ] && [ "$WRDS_USER" != "your-username" ] && [ -n "$WRDS_PASS" ] && [ "$WRDS_PASS" != "your-password" ]; then
-    # Check if ANY wrds server is already responding on the port (could be from another project)
+    # Check whether the host-wide query socket already responds (possibly from
+    # another project).
     if PYTHONPATH=code "$WRDS_PY" -c "from utils.wrds_client import wrds_ping; exit(0 if wrds_ping() else 1)" 2>/dev/null; then
         echo "WRDS server already running (reusing existing connection)"
     elif LATCHED="$(PYTHONPATH=code "$WRDS_PY" -c "
@@ -63,12 +64,20 @@ print('1' if wrds_login_in_progress() else '0')" 2>/dev/null)" && [ "$IN_PROGRES
         # Otherwise the backgrounded server holds this script's stdout open; when start_services.sh is
         # invoked through a pipe (e.g. `... | tail`), the reader never sees EOF and the caller hangs
         # indefinitely even though the script itself has finished.
-        mkdir -p process_log
+        WRDS_STATE_DIR="${HOME:?HOME must be set}/.local/state/zeropaper/wrds"
+        mkdir -p -m 700 "$WRDS_STATE_DIR"
+        chmod 700 "$WRDS_STATE_DIR"
+        WRDS_LOG="$WRDS_STATE_DIR/wrds_server_23847.log"
         # nohup/& here is deliberate: this is fixed infrastructure starting a persistent,
         # host-shared daemon meant to outlive the calling session — not an agent-improvised
         # job the harness should track (cf. templates/shared/bash_background.md).
-        PGPASSWORD="$WRDS_PASS" PYTHONPATH=code nohup "$WRDS_PY" code/utils/wrds_server.py \
-            >> process_log/wrds_server.log 2>&1 &
+        # A separate session survives runtime and tmux teardown. The daemon is
+        # host-wide and exposes a private Unix socket to network-isolated
+        # sandboxes, so it must outlive the launcher that established it.
+        WRDS_SETSID=""
+        command -v setsid >/dev/null 2>&1 && WRDS_SETSID="setsid"
+        PGPASSWORD="$WRDS_PASS" PYTHONPATH=code nohup $WRDS_SETSID "$WRDS_PY" -u code/utils/wrds_server.py \
+            >> "$WRDS_LOG" 2>&1 &
         wrds_server_pid=$!
         # Wait for server to be ready.
         #
@@ -103,14 +112,6 @@ print(wrds_auth_error() or '')" 2>/dev/null)"
                 else
                     wrds_server_rc=$?
                 fi
-                # A zero exit means this child lost the host-singleton PID/port
-                # race. Join the winner's readiness loop instead of surfacing a
-                # false failure that an outer supervisor may retry.
-                if [ "$wrds_server_rc" -eq 0 ]; then
-                    echo "WRDS starter lost singleton race; waiting for existing server..."
-                    wrds_server_pid=""
-                    continue
-                fi
                 # The winner may have armed its marker between this loop's
                 # earlier status checks and the losing child exit.
                 peer_in_progress="$(PYTHONPATH=code "$WRDS_PY" -c "
@@ -121,8 +122,46 @@ print('1' if wrds_login_in_progress() else '0')" 2>/dev/null)"
                     wrds_server_pid=""
                     continue
                 fi
+                if [ "$wrds_server_rc" -eq 4 ]; then
+                    echo "ERROR: a pre-v5 WRDS daemon is still active; no replacement was started." >&2
+                    echo "       Stop the legacy daemon from the host, then relaunch. See $WRDS_LOG." >&2
+                    exit 1
+                fi
+                if [ "$wrds_server_rc" -eq 5 ]; then
+                    echo "ERROR: WRDS released-client compatibility state is unavailable." >&2
+                    echo "       Repair the cache-state path shown in $WRDS_LOG; no login was attempted." >&2
+                    exit 1
+                fi
+                if [ "$wrds_server_rc" -eq 3 ]; then
+                    # Allow a concurrently scheduled winner a short bounded
+                    # window to publish its endpoint or write-ahead login
+                    # marker. Duo itself may take minutes, but reaching one of
+                    # these two states should not.
+                    for _wrds_peer_probe in 1 2 3 4 5; do
+                        if PYTHONPATH=code "$WRDS_PY" -c "from utils.wrds_client import wrds_ping; exit(0 if wrds_ping() else 1)" 2>/dev/null; then
+                            echo "WRDS server ready (concurrent starter won)"
+                            ready=1
+                            break
+                        fi
+                        peer_in_progress="$(PYTHONPATH=code "$WRDS_PY" -c "
+from utils.wrds_client import wrds_login_in_progress
+print('1' if wrds_login_in_progress() else '0')" 2>/dev/null)"
+                        [ "$peer_in_progress" = "1" ] && break
+                        sleep 1
+                    done
+                    [ "$ready" -eq 1 ] && break
+                    if [ "$peer_in_progress" = "1" ]; then
+                        echo "WRDS peer login detected; joining its readiness wait..."
+                        wrds_server_pid=""
+                        continue
+                    fi
+                    echo "ERROR: WRDS singleton is locked but has no query endpoint or live login attempt." >&2
+                    echo "       The owning daemon may be wedged; inspect the PID in ~/.local/state/zeropaper/wrds/wrds_server_23847.lock." >&2
+                    echo "       Not waiting 120s and not starting a replacement." >&2
+                    exit 1
+                fi
                 echo "ERROR: WRDS server exited (code $wrds_server_rc) before becoming ready." >&2
-                echo "       Check process_log/wrds_server.log; not starting another process." >&2
+                echo "       Check $WRDS_LOG; not starting another process." >&2
                 exit 1
             fi
         done
@@ -140,7 +179,7 @@ print('1' if wrds_login_in_progress() else '0')" 2>/dev/null)"
         # a silent false-success would let the pipeline start Stage 0 against a dead server.
         if [ "$ready" -ne 1 ]; then
             echo "ERROR: WRDS server did not become ready within 120s." >&2
-            echo "       Check process_log/wrds_server.log (Duo not approved? bad credentials? network?)." >&2
+            echo "       Check $WRDS_LOG (Duo not approved? bad credentials? network?)." >&2
             exit 1
         fi
     fi

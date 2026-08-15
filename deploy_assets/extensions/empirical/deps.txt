@@ -9,8 +9,9 @@
 # sandbox.toml read_write) fails with PermissionError on first use — silently
 # absent from any test that skips that code path. Prefer pointing the library
 # inside the project via env var/API (the EDGAR_LOCAL_DATA_DIR pattern, #210)
-# over widening three sandbox configs. ~/.cache and ~/.matplotlib are already
-# writable in all confining runtimes; audited 2026-07-31: wrds (interactive-
+# over widening three sandbox configs. Declared ~/.cache subdirectories and
+# ~/.matplotlib are already writable in all confining runtimes; audited
+# 2026-07-31: wrds (interactive-
 # only .pgpass), gdown (~/.cache/gdown, allowed), openassetpricing (in-memory
 # BytesIO), fredapi/pandas-datareader/requests (no persistent cache).
 pandas

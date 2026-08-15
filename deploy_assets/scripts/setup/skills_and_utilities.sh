@@ -134,6 +134,12 @@ setup_skills_and_utilities() {
     infrastructure_copy_file 240 "$TEMPLATE_ROOT/templates/utils/setup_push_token.sh" "code/utils/setup_push_token.sh"
     chmod +x "$P/code/utils/setup_push_token.sh"
 
+    # Shared no-follow validator for every Codex/Claude/Grok external writable
+    # root. The launcher and direct, un-nested Codex worker entrypoints all use
+    # the same deployed implementation before handing paths to a sandbox.
+    infrastructure_copy_file 245 "$TEMPLATE_ROOT/templates/utils/sandbox_cache_roots.py" "code/utils/sandbox_cache_roots.py"
+    chmod +x "$P/code/utils/sandbox_cache_roots.py"
+
     # Copy the codex CLI preflight (proxy-auth version-floor warning, issue #213).
     # Sourced by launch.sh's codex branch and codex_math/codex_common.sh.
     infrastructure_copy_file 250 "$TEMPLATE_ROOT/templates/utils/codex_preflight.sh" "code/utils/codex_preflight.sh"

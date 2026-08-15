@@ -1,6 +1,6 @@
 """Test mutual-funds skill — direct WRDS query + key helpers.
 
-Requires the persistent WRDS server running on 127.0.0.1:23847.
+Requires the persistent WRDS server on its host-wide Unix socket.
 Uses small queries (LIMIT, single year) to keep test fast.
 """
 import sys
@@ -8,7 +8,7 @@ import sys
 # === Test 0: WRDS server reachable ===
 print("=== Test 0: WRDS server ping ===")
 from utils.wrds_client import wrds_ping
-assert wrds_ping(), "WRDS server not running on 127.0.0.1:23847"
+assert wrds_ping(), "WRDS host daemon is unavailable"
 print("  ping OK")
 
 # === Test 1: a few CRSP MFDB tables exist ===

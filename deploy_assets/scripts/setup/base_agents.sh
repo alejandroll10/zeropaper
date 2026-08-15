@@ -395,12 +395,20 @@ extends = "workspace"
 # Out-of-project caches/state the pipeline legitimately writes.
 read_write = [
   "$HOME/.codex",
-  "$HOME/.cache",
+  "$HOME/.cache/uv",
+  "$HOME/.cache/pip",
+  "$HOME/.cache/matplotlib",
+  "$HOME/.cache/fontconfig",
+  "$HOME/.cache/gdown",
+  "$HOME/.cache/huggingface",
+  "$HOME/.cache/torch",
+  "$HOME/.cache/ms-playwright",
   "$HOME/Library/Caches",
   "$HOME/.matplotlib",
 ]
 # Credential dirs: kernel read+write deny (blocks cat/grep/subagents, not just writes).
 deny = [
+  "$HOME/.cache/zeropaper/wrds",
   "$HOME/.ssh",
   "$HOME/.aws",
 ]

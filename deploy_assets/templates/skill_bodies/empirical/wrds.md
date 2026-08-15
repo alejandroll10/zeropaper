@@ -5,16 +5,16 @@
 
 ## Connection
 
-A persistent WRDS server runs in the background (started at pipeline launch). Duo 2FA fires once at the start of the session — after that, all queries go through instantly. Just use the client:
+A persistent, host-wide WRDS server runs in the background (started by `launch.sh` before runtime sandbox entry). It serves a query-only private Unix socket under `~/.local/state/zeropaper/wrds` through the sandbox's read-only home view, so network-isolated commands and subagents all reuse the same database connection without being able to replace its endpoint or invoke lifecycle control. Duo 2FA fires once at the start of the server session — after that, all queries go through instantly. Just use the client:
 
 ### How to query (use this in all scripts)
 
 ```python
 import sys; sys.path.insert(0, 'code')
-from utils.wrds_client import wrds_query, wrds_ping, wrds_start
+from utils.wrds_client import wrds_query, wrds_ping
 
-# Ensure server is running (no-op if already started)
-wrds_start()
+# launch.sh already established the host daemon; a failed check is terminal
+assert wrds_ping(), "WRDS host daemon is unavailable — halt and escalate"
 
 # Run queries — no Duo, no connection management
 df = wrds_query("SELECT * FROM crsp.msf LIMIT 5")
@@ -244,7 +244,7 @@ df = wrds_query("""
 
 ## Rules
 - **Use only the persistent client.** Never instantiate `wrds.Connection()` in a pipeline script; direct connections bypass the shared latch, and a library call that looks singular may retry internally. Never put WRDS startup or queries under a generic retry decorator, shell retry loop, supervisor restart policy, or fallback process. A `WrdsSafetyBlocked`/protocol-mismatch error is also terminal for agents: an operator must replace the stale daemon with the deployed version; do not restart it yourself.
-- **A credential rejection is terminal — never retry it, and never work around it.** WRDS locks the account after enough failed logins, and a locked account takes the whole empirical pipeline down for everyone on this host. The server distinguishes the two failure modes for you: a dropped socket recovers silently, but a refused credential *latches* and every later call fails fast with `[auth error]` (client side: `WrdsAuthBlocked`, or `wrds_auth_error()` returns a message; `start_services.sh` exits 2). When you see that, **halt and escalate to the operator** — report it as a blocked core per `docs/core_bypass.md` and record it in `process_log/degradation_ledger.md`. Do not re-run `wrds_start()`, do not restart the server, do not loop on `wrds_ping()`, and do not try alternate credentials. **Never call `wrds_unblock()` or `python code/utils/wrds_client.py unblock`** — that is the operator's approval gate, and calling it in a loop is precisely what recreates the lockout. Clearing the latch is an operator action: they fix `WRDS_PASS` in `.env`, then approve one retry, which reloads `.env` and reconnects in place. A second rejection re-latches, so each approval costs exactly one login attempt.
+- **A credential rejection is terminal — never retry it, and never work around it.** WRDS locks the account after enough failed logins, and a locked account takes the whole empirical pipeline down for everyone on this host. The server distinguishes the two failure modes for you: a dropped socket recovers silently, but a refused credential *latches* and every later call fails fast with `[auth error]` (client side: `WrdsAuthBlocked`, or `wrds_auth_error()` returns a message; `start_services.sh` exits 2). When you see that, **halt and escalate to the operator** — report it as a blocked core per `docs/core_bypass.md` and record it in `process_log/degradation_ledger.md`. Do not re-run `wrds_start()`, do not restart the server, do not loop on `wrds_ping()`, and do not try alternate credentials. **Never call `wrds_unblock()` or `python code/utils/wrds_client.py unblock`** — that is the operator's approval gate. Lifecycle commands do not exist on the query socket. The operator stops the daemon on the host, fixes `WRDS_PASS`, then runs the unblock CLI once; the server holds the singleton while clearing the latch and reconnecting. A second rejection re-latches, so each approval costs exactly one login attempt.
 - **Credentials only in `.env`.** Never hardcode username/password.
 - **Filter aggressively.** Specify date ranges, shrcd, exchcd, indfmt/datafmt/popsrc/consol filters.
 - **Cache large downloads.** Save to `data/*.parquet` and check before re-querying.

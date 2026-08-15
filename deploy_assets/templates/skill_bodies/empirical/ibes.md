@@ -25,12 +25,12 @@ below.
 
 ## How to use
 Use the persistent WRDS server via the `wrds` skill's client (`wrds_query` /
-`wrds_start`) — do **not** open a second `wrds.Connection`. The example below uses
+`wrds_ping`) — do **not** open a second `wrds.Connection`. The example below uses
 the adjusted summary for brevity; for published EPS-level work pull the unadjusted
 twin (`statsumu_epsus`/`detu_epsus`) and re-adjust with CRSP `cfacshr` per gotcha #2.
 ```python
-from utils.wrds_client import wrds_query, wrds_start
-wrds_start()                                          # idempotent; Duo 2FA once/session
+from utils.wrds_client import wrds_query, wrds_ping
+assert wrds_ping(), "host WRDS daemon unavailable"  # launcher handles Duo before sandboxing
 
 # Consensus (Summary) — one row per ticker/horizon/statistical-period
 cons = wrds_query("""

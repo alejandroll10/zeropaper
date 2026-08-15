@@ -51,13 +51,17 @@ import wrds_client as C
 import wrds_utils as U
 from unittest import mock
 
-# Production latch state is durable under ~/.cache so it survives logout and
-# reboot. Point this process at scratch storage without exposing a deploy-time
-# environment override that automated code could use to bypass the latch.
+# Production latch state is durable under host-owned ~/.local/state so it
+# survives logout/reboot without becoming sandbox-writable. Point this process
+# at scratch storage without a deploy-time bypass.
 S.AUTH_BLOCK_FILE = os.path.join(os.environ['XDG_RUNTIME_DIR'],
                                  'wrds-auth-latch-test', 'authblock')
+S.CACHE_AUTH_BLOCK_FILE = os.path.join(os.environ['XDG_RUNTIME_DIR'],
+                                       'wrds-auth-latch-test', 'cache-authblock')
 S.LEGACY_AUTH_BLOCK_FILE = os.path.join(os.environ['XDG_RUNTIME_DIR'],
                                         '.wrds_server_23847.authblock.test')
+C.LOG_FILE = os.path.join(os.environ['XDG_RUNTIME_DIR'],
+                          'wrds-auth-latch-test', 'server.log')
 
 FAILURES = []
 
@@ -71,6 +75,10 @@ PAM = sa_exc.OperationalError(
     "s", {}, Exception('FATAL:  PAM authentication failed for user "someuser"'))
 DROP = sa_exc.OperationalError(
     "s", {}, Exception("server closed the connection unexpectedly"))
+class QueryCanceled(Exception):
+    pgcode = '57014'
+TIMEOUT = sa_exc.OperationalError(
+    "s", {}, QueryCanceled("canceling statement due to statement timeout"))
 
 try:
     raise EOFError("EOF when reading a line")
@@ -103,10 +111,11 @@ class FakeDB:
         pass
 
 
-def fake_connect():             # Tier 3 / startup / unblock == one login
+def fake_connect(attempt_prearmed=False):  # Tier 3 / startup / unblock == one login
     logins["n"] += 1
     if not fixed["ok"]:
         raise PAM
+    S._clear_auth_block(preserve_compat=True)
     return FakeDB()
 
 
@@ -123,6 +132,24 @@ S._safe_raw_sql = fake_raw
 print("\n[1] classification — auth must not be mistaken for a recoverable drop")
 check("_is_auth_error(PAM)", S._is_auth_error(PAM), True)
 check("_is_conn_error(PAM)", S._is_conn_error(PAM), False)
+check("_is_query_cancel_error(TIMEOUT)", S._is_query_cancel_error(TIMEOUT), True)
+check("_is_conn_error(TIMEOUT)", S._is_conn_error(TIMEOUT), False)
+timeout_calls = {'n': 0}
+def timeout_query(db):
+    timeout_calls['n'] += 1
+    raise TIMEOUT
+timeout_state = S.WrdsState(FakeDB())
+with mock.patch.object(timeout_state, '_recover') as timeout_recover, \
+     mock.patch.object(S, '_write_auth_block') as timeout_latch:
+    try:
+        timeout_state.run(timeout_query)
+    except sa_exc.OperationalError:
+        pass
+check("statement timeout query executes once", timeout_calls['n'], 1)
+check("statement timeout never enters reconnect", timeout_recover.call_count, 0)
+check("statement timeout never writes auth latch", timeout_latch.call_count, 0)
+check("statement timeout leaves in-memory auth latch clear",
+      timeout_state.auth_blocked(), False)
 check("_is_auth_error(EOFError)", S._is_auth_error(EOFError("EOF when reading a line")), True)
 check("_is_auth_error(wrapped EOF)", S._is_auth_error(WRAPPED_EOF), True)
 check("_is_conn_error(socket drop)", S._is_conn_error(DROP), True)
@@ -159,6 +186,20 @@ check("legacy latch copied to durable storage",
 check("legacy copy retained for old daemon",
       os.path.exists(S.LEGACY_AUTH_BLOCK_FILE), True)
 check("migration spends no login", logins["n"], 0)
+
+print("\n[4b] the released cache latch migrates without spending a login")
+S._clear_auth_block()
+os.makedirs(os.path.dirname(S.CACHE_AUTH_BLOCK_FILE), exist_ok=True)
+with open(S.CACHE_AUTH_BLOCK_FILE, 'w', encoding='utf-8') as f:
+    f.write('v2-v4 cache credential rejection')
+os.chmod(S.CACHE_AUTH_BLOCK_FILE, 0o600)
+check("cache-only latch is read", S._read_auth_block(),
+      'v2-v4 cache credential rejection')
+check("cache latch copied to protected state",
+      os.path.exists(S.AUTH_BLOCK_FILE), True)
+check("cache copy retained for old daemon",
+      os.path.exists(S.CACHE_AUTH_BLOCK_FILE), True)
+check("cache migration spends no login", logins["n"], 0)
 
 print("\n[5] operator approves, credential still broken -> one attempt, re-latch")
 logins["n"] = 0
@@ -215,12 +256,12 @@ auth_response = {'status': 'error', 'msg': 'latched', 'error_kind': 'auth',
 hello_response = {'status': 'ok', 'msg': 'hello',
                   'safety_protocol': C.SAFETY_PROTOCOL}
 C._send_request = lambda request, **kwargs: (
-    hello_response if request.get('cmd') == 'safety_hello_v2' else auth_response)
+    hello_response if request.get('cmd') == 'safety_hello_v5' else auth_response)
 for label, call in (
     ('query', lambda: C.wrds_query('SELECT 1')),
     ('list_tables', lambda: C.wrds_list_tables('crsp')),
     ('list_libraries', C.wrds_list_libraries),
-    ('get_table', lambda: C.wrds_get_table('crsp', 'msf')),
+    ('get_table', lambda: C.wrds_get_table('crsp', 'msf', rows=1)),
     ('describe', lambda: C.wrds_describe('crsp', 'msf')),
 ):
     try:
@@ -255,9 +296,8 @@ except C.WrdsSafetyBlocked:
 else:
     legacy_query_refused = False
 check("legacy daemon cannot execute updated-client query", legacy_query_refused, True)
-C.wrds_shutdown()
 check("legacy daemon receives only DB-free hello",
-      set(legacy_commands), {'safety_hello_v2'})
+      set(legacy_commands), {'safety_hello_v5'})
 
 with mock.patch.object(C, 'wrds_ping', return_value=False), \
      mock.patch.object(C, 'wrds_auth_error', return_value=None), \
@@ -268,6 +308,20 @@ with mock.patch.object(C, 'wrds_ping', return_value=False), \
 check("concurrent starter joins existing wait", peer_result, True)
 check("concurrent starter waits once", peer_wait.call_count, 1)
 check("concurrent starter spawns no losing child", peer_spawn.call_count, 0)
+
+with mock.patch.object(C, 'wrds_ping', return_value=False), \
+     mock.patch.object(C, 'wrds_auth_error', return_value=None), \
+     mock.patch.object(C, 'wrds_login_in_progress', return_value=False), \
+     mock.patch.object(C.subprocess, 'Popen') as absent_spawn:
+    try:
+        C.wrds_start()
+    except RuntimeError as e:
+        absent_detail = str(e)
+    else:
+        absent_detail = ''
+check("sandbox-side absent daemon is host-repair error",
+      'host daemon is down' in absent_detail, True)
+check("sandbox-side absent daemon never spawns", absent_spawn.call_count, 0)
 
 class LosingStarter:
     returncode = 0
@@ -416,9 +470,17 @@ check("failed startup leaves write-ahead marker",
       failed_marker.startswith(S.LOGIN_ATTEMPT_PREFIX), True)
 C._server_module = lambda: S
 check("live startup marker lets readiness wait", C._persisted_auth_block(), None)
-with mock.patch.object(S.os, 'kill', side_effect=ProcessLookupError()):
+with mock.patch.object(S, '_process_start_token', return_value='different-birth'):
     dead_marker = C._persisted_auth_block()
 check("dead startup marker blocks restart", dead_marker, failed_marker)
+pid_only_marker = (
+    f"{S.LOGIN_ATTEMPT_PREFIX}{os.getpid()}\n"
+    "legacy marker without a process birth token"
+)
+S._write_auth_block(pid_only_marker)
+check("legacy PID-only attempt is terminal, not live",
+      C._persisted_auth_block(), pid_only_marker)
+S._write_auth_block(failed_marker)
 
 print("\n[10a.1] a live-server timeout can never clear the durable latch")
 with mock.patch.object(C, '_send_request', side_effect=TimeoutError('live timeout')), \
@@ -431,6 +493,101 @@ with mock.patch.object(C, '_send_request', side_effect=TimeoutError('live timeou
         timeout_propagated = False
 check("live timeout propagates", timeout_propagated, True)
 check("live timeout does not clear latch", timeout_clear.call_count, 0)
+with mock.patch.object(C, '_safety_hello',
+                       side_effect=C.WrdsSafetyBlocked('legacy daemon')), \
+     mock.patch.object(C.subprocess, 'Popen') as mismatch_spawn, \
+     mock.patch.object(S, '_clear_auth_block') as mismatch_clear:
+    mismatch_ok, mismatch_detail = C.wrds_unblock()
+check("live protocol mismatch refuses unblock", mismatch_ok, False)
+check("live protocol mismatch requires host stop",
+      'stop it from the host' in mismatch_detail, True)
+check("live protocol mismatch spawns no replacement", mismatch_spawn.call_count, 0)
+check("live protocol mismatch does not clear latch", mismatch_clear.call_count, 0)
+operator_env = os.path.join(os.environ['XDG_RUNTIME_DIR'], 'operator.env')
+with open(operator_env, 'w', encoding='utf-8') as env_handle:
+    env_handle.write('WRDS_USER=fixed-file-user\nWRDS_PASS=fixed-file-secret\n')
+with mock.patch.object(C, '_DOTENV_PATH', operator_env), \
+     mock.patch.dict(os.environ, {'WRDS_USER': 'stale-shell-user',
+                                  'WRDS_PASS': 'stale-shell-secret',
+                                  'PGPASSWORD': 'stale-shell-secret'}), \
+     mock.patch.object(C, '_safety_hello', side_effect=ConnectionRefusedError()), \
+     mock.patch.object(S, '_read_auth_block', return_value='blocked'), \
+     mock.patch.object(C, '_wait_for_ready', return_value=True), \
+     mock.patch.object(C.subprocess, 'Popen') as logged_spawn:
+    logged_spawn.return_value = object()
+    logged_ok, _ = C.wrds_unblock()
+logged_kwargs = logged_spawn.call_args.kwargs
+check("operator-unblock starts successfully with durable logging", logged_ok, True)
+check("operator-unblock does not use stdout PIPE",
+      logged_kwargs['stdout'] != C.subprocess.PIPE, True)
+check("operator-unblock merges stderr into durable log",
+      logged_kwargs['stderr'], C.subprocess.STDOUT)
+check("operator-unblock overrides stale exported WRDS_PASS",
+      logged_kwargs['env']['WRDS_PASS'], 'fixed-file-secret')
+check("operator-unblock overrides stale exported WRDS_USER",
+      logged_kwargs['env']['WRDS_USER'], 'fixed-file-user')
+check("operator-unblock derives PGPASSWORD from corrected .env",
+      logged_kwargs['env']['PGPASSWORD'], 'fixed-file-secret')
+
+print("\n[10a.2] operator approval is never cleared before fallible setup")
+S._write_auth_block('terminal operator latch')
+listener = mock.Mock()
+common_main_patches = (
+    mock.patch.object(S, '_acquire_instance_lock', return_value=('lock',)),
+    mock.patch.object(S, '_refuse_live_legacy_processes'),
+    mock.patch.object(S, '_bind_legacy_refusal_listener', return_value=listener),
+    mock.patch.object(S.threading, 'Thread', return_value=mock.Mock()),
+    mock.patch.object(S, '_read_auth_block', return_value='terminal operator latch'),
+    mock.patch.object(S, '_write_compat_guard', return_value=('compat',)),
+    mock.patch.object(S, '_remove_lock_if_identity'),
+)
+with common_main_patches[0], common_main_patches[1], common_main_patches[2], \
+     common_main_patches[3], common_main_patches[4], common_main_patches[5], \
+     common_main_patches[6], \
+     mock.patch.object(S, '_verify_compat_guard'), \
+     mock.patch.object(S, '_bind_unix_server', side_effect=OSError('bind failed')), \
+     mock.patch.object(S, '_begin_login_attempt') as bind_begin, \
+     mock.patch.object(S, '_clear_auth_block') as bind_clear:
+    try:
+        S.main(operator_unblock=True)
+    except SystemExit:
+        pass
+check("UDS failure occurs before approved-attempt transition",
+      bind_begin.call_count, 0)
+check("UDS failure never clears terminal latch", bind_clear.call_count, 0)
+
+unix_listener = mock.Mock()
+with mock.patch.object(S, '_acquire_instance_lock', return_value=('lock',)), \
+     mock.patch.object(S, '_refuse_live_legacy_processes'), \
+     mock.patch.object(S, '_bind_legacy_refusal_listener', return_value=listener), \
+     mock.patch.object(S.threading, 'Thread', return_value=mock.Mock()), \
+     mock.patch.object(S, '_read_auth_block', return_value='terminal operator latch'), \
+     mock.patch.object(S, '_write_compat_guard', return_value=('compat',)), \
+     mock.patch.object(S, '_verify_compat_guard'), \
+     mock.patch.object(S, '_remove_lock_if_identity'), \
+     mock.patch.object(S, '_bind_unix_server',
+                       return_value=(unix_listener, ('socket',))), \
+     mock.patch.object(S, '_write_pid_file',
+                       side_effect=S.WrdsLatchError('pid failed')), \
+     mock.patch.object(S, '_begin_login_attempt') as pid_begin, \
+     mock.patch.object(S, '_clear_auth_block') as pid_clear:
+    try:
+        S.main(operator_unblock=True)
+    except SystemExit:
+        pass
+check("PID failure occurs before approved-attempt transition",
+      pid_begin.call_count, 0)
+check("PID failure never clears terminal latch", pid_clear.call_count, 0)
+
+# Once setup is complete, approval replaces the terminal record atomically;
+# there is no absent-latch intermediate state.
+S._write_auth_block('terminal operator latch')
+approved_marker = S._begin_login_attempt(replace_blocked=True)
+check("operator approval atomically publishes live attempt",
+      S._read_auth_block(), approved_marker)
+check("approved attempt carries process birth identity",
+      S._live_login_attempt(approved_marker), True)
+S._clear_auth_block()
 
 print("\n[10b] ambiguous reconnect failure also stops automatic polling")
 S._clear_auth_block()
@@ -451,15 +608,17 @@ S._clear_auth_block()
 production_latch = S._auth_block_path()
 check("production latch survives runtime-dir cleanup",
       production_latch.startswith(os.environ['XDG_RUNTIME_DIR']), False)
-check("production latch uses durable per-user cache",
-      os.path.join('.cache', 'zeropaper', 'wrds') in production_latch, True)
+check("production latch uses host-owned durable per-user state",
+      os.path.join('.local', 'state', 'zeropaper', 'wrds') in production_latch, True)
 S._write_auth_block('blocked')
 check("latch mode", oct(os.stat(S.AUTH_BLOCK_FILE).st_mode & 0o777), '0o600')
 check("atomic latch readable", S._read_auth_block(), 'blocked')
 with mock.patch.object(S.os, 'open', side_effect=PermissionError('denied')):
     C._server_module = lambda: S
-    unreadable = C._persisted_auth_block()
-check("unreadable latch blocks startup", bool(unreadable), True)
+    unreadable_kind, unreadable = C._persisted_auth_state()
+check("unreadable latch remains fail-closed but distinct from auth",
+      unreadable_kind, 'unavailable')
+check("unreadable latch reports host repair", 'host repair' in unreadable, True)
 
 S._clear_auth_block()
 with open(S.AUTH_BLOCK_FILE, 'w', encoding='utf-8'):
@@ -487,6 +646,22 @@ else:
 check("latch symlink refused", refused_symlink, True)
 os.unlink(S.AUTH_BLOCK_FILE)
 os.unlink(target)
+
+alias_root = os.path.join(os.environ['XDG_RUNTIME_DIR'], 'state-alias-root')
+writable_cache = os.path.join(os.environ['XDG_RUNTIME_DIR'], 'writable-cache')
+os.mkdir(alias_root)
+os.mkdir(writable_cache)
+os.symlink(writable_cache, os.path.join(alias_root, 'state'))
+S.AUTH_BLOCK_FILE = os.path.join(
+    alias_root, 'state', 'zeropaper', 'wrds', 'authblock')
+try:
+    S._prepare_auth_block_dir()
+except S.WrdsLatchError:
+    refused_ancestor_symlink = True
+else:
+    refused_ancestor_symlink = False
+check("state ancestor symlink into writable cache refused",
+      refused_ancestor_symlink, True)
 
 st5 = S.WrdsState(FakeDB())
 with mock.patch.object(

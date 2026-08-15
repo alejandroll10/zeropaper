@@ -20,7 +20,7 @@ Only a session that is about to *do* pipeline work runs this — it is reached f
 
 A resumed session (operator closed Claude Code and relaunched with "continue") starts with none of the previous session's process state — the data connections are dead and the hourly self-loop is gone — so preflight is not a fresh-start-only step. In order:
 
-1. If `code/utils/start_services.sh` exists, run it (WRDS requires Duo auth — wait for it). Not optional on resume: the liveness the last session established did not survive the restart.
+1. If `code/utils/start_services.sh` exists, run it. `launch.sh` establishes the host-wide WRDS daemon before sandbox entry; this in-session command is a health/reuse check only. Protected singleton/latch state is intentionally read-only inside the runtime, so if the daemon died after launch this command cannot restart it: halt and ask the operator to stop/relaunch the runtime (or run the service script on the host). Do not retry from the sandbox. Not optional on resume: the liveness the last session established may not have survived the restart.
 2. Set up the **hourly self-check loop** (below) if it is not already running. Do this before continuing a stage, not after — a session that resumes into a long Stage 2 without the loop has no stall guard for as long as that stage runs.
 3. Establish or re-verify the data inventory (below): write it if `output/data_inventory.md` does not exist, otherwise confirm each ✓ source still responds and correct any row that no longer does, committing only if a row changed.
 

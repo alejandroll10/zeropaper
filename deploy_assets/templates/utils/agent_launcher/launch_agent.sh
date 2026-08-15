@@ -238,8 +238,8 @@ fi
 # (.claude/settings.json allowWrite + open egress): workspace-write defaults to
 # writable [workdir, /tmp, $TMPDIR] with network OFF, but pipeline workers write
 # codex-math session state to ~/.codex and uv/matplotlib caches, and need egress
-# (WRDS 127.0.0.1:23847, OpenAlex, web). Without these a worker silently cannot
-# reach WRDS/OpenAlex or write its caches. codex expands ~ inside writable_roots
+# (OpenAlex and the web; WRDS now uses a filesystem socket). Without these a
+# worker silently cannot reach web sources or write its caches. codex expands ~ inside writable_roots
 # (verified). These keys are no-ops unless the active sandbox is workspace-write,
 # so they are harmless under --sandbox read-only / danger-full-access. Writes
 # outside this set (e.g. rm in $HOME) stay blocked — the anti-destruction point.
@@ -267,8 +267,12 @@ fi
 # never carry those characters; do not name a project with `"` or `\`.
 SANDBOX_WS_ARGS=(
     -c 'sandbox_workspace_write.network_access=true'
-    -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$PROJECT_ROOT/.git\"]"
+    -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache/uv\",\"~/.cache/pip\",\"~/.cache/matplotlib\",\"~/.cache/fontconfig\",\"~/.cache/gdown\",\"~/.cache/huggingface\",\"~/.cache/torch\",\"~/.cache/ms-playwright\",\"~/Library/Caches\",\"~/.matplotlib\",\"$PROJECT_ROOT/.git\"]"
 )
+
+if [ "$SANDBOX" = "workspace-write" ]; then
+    "$LAUNCHER_PY" -I "$SCRIPT_DIR/../sandbox_cache_roots.py"
+fi
 
 if [ -z "$OUTPUT" ]; then
     _stamp="$(date -u +%Y%m%dT%H%M%SZ)"

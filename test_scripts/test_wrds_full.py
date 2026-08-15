@@ -4,7 +4,7 @@ Uses the persistent WRDS server (utils.wrds_client). Does NOT open a fresh
 wrds.Connection (which would trigger another Duo prompt).
 """
 from utils.wrds_client import wrds_query, wrds_ping
-assert wrds_ping(), "WRDS server not running on 127.0.0.1:23847"
+assert wrds_ping(), "WRDS host daemon is unavailable"
 
 # ---------- Test 1: CRSP monthly returns with market cap ----------
 print("=== Test 1: CRSP monthly returns (2020-2024, 1000 rows) ===")

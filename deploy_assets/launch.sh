@@ -87,6 +87,23 @@ while [ $# -gt 0 ]; do
     esac
 done
 
+# Reject before any service/cache side effect. In particular, a typo must not
+# start WRDS and spend a Duo/login attempt before the runtime is diagnosed.
+case "$RUNTIME" in
+    claude|codex|gemini|grok|opencode) ;;
+    *) echo "ERROR: unknown runtime '$RUNTIME' (claude|codex|gemini|grok|opencode)" >&2; exit 2 ;;
+esac
+
+# The Codex driver is meaningful only for an autonomous deployment. Reject a
+# stateless report/manual invocation before WRDS prestart: the service must not
+# spend a Duo/login attempt for a command that is guaranteed to exit later.
+if [ "$RUNTIME" = "codex" ] && [ "$ONCE" != "1" ] && \
+        { [ ! -f "$ROOT/process_log/pipeline_state.json" ] || \
+          [ -L "$ROOT/process_log/pipeline_state.json" ]; }; then
+    echo "ERROR: no regular process_log/pipeline_state.json — report/manual Codex sessions require: ./launch.sh codex --once" >&2
+    exit 1
+fi
+
 # Capture the caller environment for sandboxed OpenCode children, then remove
 # project/temp/cache paths before even the optional tmux re-exec. This closes
 # the pre-branch shebang/dirname/tmux trust gap for an activated project venv.
@@ -149,6 +166,67 @@ elif [ -f "$ROOT/.venv/bin/activate" ]; then
 else
     echo "WARNING: no .venv in this project — python deps may be missing (create with: uv venv .venv)" >&2
 fi
+
+# Start host-wide empirical services before entering a runtime's network
+# sandbox. Loopback inside Claude/Codex is a different network namespace, so a
+# daemon spawned later by an agent command either disappears with that command
+# or is unreachable from the next one. The WRDS client crosses back to this
+# singleton over its private Unix socket under host-owned ~/.local/state.
+#
+# Preserve the session contract: completed and halted runs do not spend a WRDS
+# login merely because somebody opened the runtime. OpenCode's unsandboxed
+# control plane must not execute project-writable venv code (#261), and Gemini
+# remains wholly unconfined (#187), so neither may establish/protect this host
+# service automatically.
+prestart_project_services() {
+    case "$RUNTIME" in opencode|gemini) return 0 ;; esac
+    [ -f "$ROOT/code/utils/start_services.sh" ] || return 0
+    local service_action
+    service_action="$(/usr/bin/python3 -I - \
+        "$ROOT/process_log/pipeline_state.json" \
+        "$ROOT/.deploy_manifest.json" <<'PY' 2>/dev/null || true
+import json, sys
+from pathlib import Path
+
+state_path, manifest_path = map(Path, sys.argv[1:])
+try:
+    if state_path.is_file() and not state_path.is_symlink():
+        status = json.loads(state_path.read_text(encoding='utf-8')).get('status')
+        print('start' if status in {'not_started', 'running'} else 'skip')
+    elif manifest_path.is_file() and not manifest_path.is_symlink():
+        manifest = json.loads(manifest_path.read_text(encoding='utf-8'))
+        flags = manifest.get('flags') or {}
+        # Manual toolkits and one-shot report deployments intentionally have
+        # no pipeline_state.json, but empirical tools are available there.
+        print('start' if (manifest.get('mode') == 'report' or
+                          flags.get('manual') is True) else 'skip')
+    else:
+        print('skip')
+except Exception:
+    print('skip')
+PY
+)"
+    case "$service_action" in
+        start)
+            echo "[launch] Establishing host-wide data services before sandbox entry…" >&2
+            bash "$ROOT/code/utils/start_services.sh"
+            ;;
+    esac
+}
+
+prestart_project_services
+
+# Claude's bwrap backend, Codex's Landlock policy, and Grok's profile resolve
+# writable roots at sandbox creation time. Materialize and descriptor-validate
+# every external root first. A pre-v5 broad-cache sandbox could have planted a
+# cache symlink to protected WRDS state; following it here would silently grant
+# that target to the new sandbox.
+prepare_runtime_cache_roots() {
+    case "$RUNTIME" in claude|codex|grok) ;; *) return 0 ;; esac
+    /usr/bin/python3 -I "$ROOT/code/utils/sandbox_cache_roots.py"
+}
+
+prepare_runtime_cache_roots
 
 # ── grok helpers ─────────────────────────────────────────────────────────────
 # grok's bash tool rebuilds PATH with its own dirs (~/.grok/bin, ~/.local/bin)
@@ -1774,7 +1852,7 @@ CODEX_ARGS=(
     -c 'sandbox_mode="workspace-write"'
     -c 'approval_policy="never"'
     -c 'sandbox_workspace_write.network_access=true'
-    -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$ROOT/.git\"]"
+    -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache/uv\",\"~/.cache/pip\",\"~/.cache/matplotlib\",\"~/.cache/fontconfig\",\"~/.cache/gdown\",\"~/.cache/huggingface\",\"~/.cache/torch\",\"~/.cache/ms-playwright\",\"~/Library/Caches\",\"~/.matplotlib\",\"$ROOT/.git\"]"
 )
 
 # --light: pin the orchestrator to the same tier the subagents were assembled

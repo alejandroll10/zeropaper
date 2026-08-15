@@ -1,0 +1,504 @@
+#!/usr/bin/env python3
+"""Offline adversarial regression for the cross-sandbox WRDS transport."""
+
+import json
+import multiprocessing
+import os
+import socket
+import stat
+import subprocess
+import sys
+import tempfile
+import time
+import threading
+from pathlib import Path
+
+
+ROOT = Path(__file__).resolve().parents[1]
+UTILS = ROOT / "extensions" / "empirical" / "utils"
+sys.path.insert(0, str(UTILS))
+
+import wrds_client as client  # noqa: E402
+import wrds_server as server  # noqa: E402
+
+
+class HealthyState:
+    def healthcheck(self):
+        return True, "SELECT 1 ok"
+
+    def auth_blocked(self):
+        return False
+
+    def unblock(self):
+        return True, "operator retry accepted"
+
+
+def compete_for_lock(state_dir, start, release, results):
+    """Spawn-safe contender used to prove exclusive atomic publication."""
+    base = Path(state_dir)
+    server.AUTH_BLOCK_FILE = str(base / "authblock")
+    server.CACHE_AUTH_BLOCK_FILE = str(base / "cache-authblock")
+    server.LEGACY_AUTH_BLOCK_FILE = str(base / "legacy-authblock")
+    server.SOCKET_FILE = str(base / "server.sock")
+    server.LOCK_FILE = str(base / "server.lock")
+    server.PID_FILE = str(base / "server.pid")
+    start.wait(timeout=10)
+    try:
+        identity = server._acquire_instance_lock()
+    except server.WrdsInstanceBusy:
+        results.put("busy")
+        return
+    results.put("acquired")
+    release.wait(timeout=10)
+    server._remove_lock_if_identity(identity)
+
+
+def request_over_socketpair(state, cmd):
+    left, right = socket.socketpair()
+    payload = json.dumps({"cmd": cmd,
+                          "safety_protocol": server.SAFETY_PROTOCOL}).encode()
+    left.sendall(f"{len(payload):8d}".encode() + payload)
+    worker = threading.Thread(
+        target=server.handle_client,
+        args=(right, state),
+        daemon=True,
+    )
+    worker.start()
+    size = int(left.recv(8).decode().strip())
+    chunks = []
+    while sum(map(len, chunks)) < size:
+        chunks.append(left.recv(size - sum(map(len, chunks))))
+    left.close()
+    worker.join(timeout=2)
+    assert not worker.is_alive()
+    return json.loads(b"".join(chunks).decode())
+
+
+def main():
+    if not hasattr(socket, "AF_UNIX"):
+        print("SKIP: platform has no AF_UNIX")
+        return
+
+    with tempfile.TemporaryDirectory(prefix="wrds-unix-test-") as temp:
+        state_dir = Path(temp) / "private"
+        cache_dir = Path(temp) / "cache"
+        cache_dir.mkdir(mode=0o700)
+        os.chmod(cache_dir, 0o700)
+        server.AUTH_BLOCK_FILE = str(state_dir / "authblock")
+        server.CACHE_AUTH_BLOCK_FILE = str(cache_dir / "cache-authblock")
+        server.LEGACY_AUTH_BLOCK_FILE = str(state_dir / "legacy-authblock")
+        server.SOCKET_FILE = str(state_dir / "server.sock")
+        server.LOCK_FILE = str(state_dir / "server.lock")
+        server.PID_FILE = str(state_dir / "server.pid")
+        client.SOCKET_FILE = server.SOCKET_FILE
+        # Atomic creation, not advisory flock, is authoritative across network
+        # namespaces. A read-only observer cannot hold or recreate it.
+        lock = server._acquire_instance_lock()
+        try:
+            assert stat.S_IMODE(os.lstat(server.LOCK_FILE).st_mode) == 0o400
+            try:
+                fd = os.open(server.LOCK_FILE, os.O_RDWR)
+            except PermissionError:
+                pass
+            else:
+                os.close(fd)
+                raise AssertionError("v4-style O_RDWR open could rewrite v5 marker")
+            try:
+                server._acquire_instance_lock()
+                raise AssertionError("second singleton lock unexpectedly succeeded")
+            except server.WrdsInstanceBusy:
+                pass
+        finally:
+            assert server._remove_lock_if_identity(lock)
+
+        # The intermediate v4 flock marker was plain `<pid>\n`: a live or
+        # recycled PID remains fail-closed, while a provably dead owner
+        # migrates through normal stale cleanup.
+        Path(server.LOCK_FILE).write_text(str(os.getpid()) + "\n",
+                                          encoding="ascii")
+        os.chmod(server.LOCK_FILE, 0o600)
+        try:
+            server._acquire_instance_lock()
+            raise AssertionError("live legacy lock owner was replaced")
+        except server.WrdsInstanceBusy:
+            pass
+        Path(server.LOCK_FILE).write_text("999999999\n", encoding="ascii")
+        os.chmod(server.LOCK_FILE, 0o600)
+        migrated = server._acquire_instance_lock()
+        assert server._remove_lock_if_identity(migrated)
+
+        context = multiprocessing.get_context("spawn")
+        start = context.Event()
+        release = context.Event()
+        results = context.Queue()
+        contenders = [context.Process(
+            target=compete_for_lock,
+            args=(str(state_dir), start, release, results),
+        ) for _ in range(2)]
+        for contender in contenders:
+            contender.start()
+        start.set()
+        outcomes = sorted(results.get(timeout=10) for _ in contenders)
+        assert outcomes == ["acquired", "busy"], outcomes
+        release.set()
+        for contender in contenders:
+            contender.join(timeout=10)
+            assert contender.exitcode == 0, contender.exitcode
+
+        os.chmod(state_dir, 0o500)
+        try:
+            try:
+                server._acquire_instance_lock()
+                raise AssertionError("read-only state unexpectedly created lock")
+            except server.WrdsLatchError:
+                pass
+        finally:
+            os.chmod(state_dir, 0o700)
+
+        # A released TCP listener is rejected, while SO_REUSEADDR permits an
+        # immediate upgrade after a stopped accepted connection left TIME_WAIT.
+        legacy_tcp = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        legacy_tcp.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        legacy_tcp.bind(("127.0.0.1", 0))
+        legacy_tcp.listen(1)
+        old_port = server.PORT
+        server.PORT = legacy_tcp.getsockname()[1]
+        try:
+            try:
+                server._bind_legacy_refusal_listener()
+                raise AssertionError("live legacy TCP daemon was ignored")
+            except server.WrdsInstanceBusy:
+                pass
+        finally:
+            legacy_tcp.close()
+
+        timewait_listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        timewait_listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+        timewait_listener.bind(("127.0.0.1", server.PORT))
+        timewait_listener.listen(1)
+        timewait_client = socket.create_connection(("127.0.0.1", server.PORT))
+        accepted = timewait_listener.accept()[0]
+        accepted.close()
+        timewait_client.close()
+        timewait_listener.close()
+
+        tcp_guard = server._bind_legacy_refusal_listener()
+        try:
+            refusal_worker = threading.Thread(
+                target=server._legacy_refusal_loop,
+                args=(tcp_guard,), daemon=True)
+            refusal_worker.start()
+            old_client = socket.create_connection(("127.0.0.1", server.PORT))
+            request = json.dumps({"cmd": "safety_hello_v2"}).encode()
+            old_client.sendall(f"{len(request):8d}".encode() + request)
+            response_size = int(old_client.recv(8).decode().strip())
+            response = json.loads(old_client.recv(response_size).decode())
+            old_client.close()
+            assert response["error_kind"] == "safety"
+            assert response["safety_protocol"] == server.SAFETY_PROTOCOL
+
+            competitor = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+            competitor.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+            try:
+                try:
+                    competitor.bind(("127.0.0.1", server.PORT))
+                    competitor.listen(1)
+                    raise AssertionError("legacy TCP port reservation was stolen")
+                except OSError:
+                    pass
+            finally:
+                competitor.close()
+        finally:
+            tcp_guard.close()
+            server.PORT = old_port
+
+        # Process discovery is transport-independent, so an old daemon in a
+        # different network namespace is still visible before v5 connects.
+        legacy_dir = Path(temp) / "legacy-process"
+        legacy_dir.mkdir()
+        legacy_script = legacy_dir / "wrds_server.py"
+        legacy_script.write_text("import time; time.sleep(30)\n", encoding="utf-8")
+        legacy_process = subprocess.Popen([sys.executable, str(legacy_script)])
+        try:
+            for _ in range(50):
+                if legacy_process.pid in server._legacy_server_pids():
+                    break
+                time.sleep(0.02)
+            assert legacy_process.pid in server._legacy_server_pids()
+        finally:
+            legacy_process.terminate()
+            legacy_process.wait(timeout=5)
+
+        # Merely mentioning that filename as data (or opening it in an editor)
+        # is not a daemon launch and must not block an upgrade.
+        mention_process = subprocess.Popen([
+            sys.executable, "-c", "import time; time.sleep(30)",
+            str(legacy_script),
+        ])
+        try:
+            time.sleep(0.05)
+            assert mention_process.pid not in server._legacy_server_pids()
+        finally:
+            mention_process.terminate()
+            mention_process.wait(timeout=5)
+
+        # First-upgrade quiescence covers a released client paused after its
+        # latch read but before Popen, when no wrds_server.py exists to scan.
+        original_foreign_scan = server._foreign_network_namespace_pids
+        server._foreign_network_namespace_pids = lambda: [424242]
+        try:
+            try:
+                server._refuse_live_legacy_processes()
+                raise AssertionError("live foreign sandbox was ignored")
+            except server.WrdsInstanceBusy:
+                pass
+        finally:
+            server._foreign_network_namespace_pids = original_foreign_scan
+
+        # The exact durable cache latch released v2/v3 starters already read
+        # stays armed for v5's lifetime. V5 recognizes its own marker, and a
+        # dead marker is identity-safely retired on the next v5 start.
+        compat_identity = server._write_compat_guard()
+        compat_message = Path(server.CACHE_AUTH_BLOCK_FILE).read_text(
+            encoding="utf-8")
+        assert compat_message.startswith(server.COMPAT_ACTIVE_PREFIX)
+        assert stat.S_IMODE(os.stat(server.CACHE_AUTH_BLOCK_FILE).st_mode) == 0o400
+        assert stat.S_IMODE(cache_dir.stat().st_mode) == 0o500
+        try:
+            os.unlink(server.CACHE_AUTH_BLOCK_FILE)
+            raise AssertionError("active compatibility guard was cache-writable")
+        except PermissionError:
+            pass
+        try:
+            fd = os.open(server.CACHE_AUTH_BLOCK_FILE, os.O_WRONLY)
+        except PermissionError:
+            pass
+        else:
+            os.close(fd)
+            raise AssertionError("active compatibility guard was directly writable")
+        assert server._read_auth_block() is None
+        server._clear_auth_block(preserve_compat=True)
+        assert Path(server.CACHE_AUTH_BLOCK_FILE).exists()
+        assert server._remove_compat_guard(compat_identity)
+        assert stat.S_IMODE(cache_dir.stat().st_mode) == 0o700
+
+        # A released daemon's concurrent write-ahead marker wins publication,
+        # is never overwritten, and is copied into protected v5 latch state.
+        old_attempt = "WRDS_LOGIN_ATTEMPT_IN_PROGRESS pid=999999999\nold attempt"
+        Path(server.CACHE_AUTH_BLOCK_FILE).write_text(old_attempt, encoding="utf-8")
+        os.chmod(server.CACHE_AUTH_BLOCK_FILE, 0o600)
+        retained_identity = server._write_compat_guard()
+        assert Path(server.CACHE_AUTH_BLOCK_FILE).read_text(
+            encoding="utf-8") == old_attempt
+        assert stat.S_IMODE(os.stat(server.CACHE_AUTH_BLOCK_FILE).st_mode) == 0o400
+        try:
+            server._verify_compat_guard()
+            raise AssertionError("released auth attempt was treated as v5 guard")
+        except server.WrdsInstanceBusy:
+            pass
+        assert Path(server.AUTH_BLOCK_FILE).read_text(encoding="utf-8") == old_attempt
+        server._clear_auth_block(preserve_compat=True)
+        assert server._read_auth_block() is None
+        adopted = server._adopted_legacy_guard()
+        assert adopted == old_attempt
+        server._verify_compat_guard(adopted)
+        assert server._remove_compat_guard(retained_identity)
+
+        Path(server.CACHE_AUTH_BLOCK_FILE).write_text(
+            f"{server.COMPAT_ACTIVE_PREFIX}999999999 start=dead\n",
+            encoding="utf-8")
+        os.chmod(server.CACHE_AUTH_BLOCK_FILE, 0o600)
+        assert server._read_auth_block() is None
+        assert Path(server.CACHE_AUTH_BLOCK_FILE).exists()
+        replacement_identity = server._write_compat_guard()
+        assert Path(server.CACHE_AUTH_BLOCK_FILE).read_text(
+            encoding="utf-8").startswith(server.COMPAT_ACTIVE_PREFIX)
+        assert server._remove_compat_guard(replacement_identity)
+
+        # A live socket is never unlinked or replaced.
+        listener, identity = server._bind_unix_server()
+        try:
+            try:
+                server._bind_unix_server()
+                raise AssertionError("live Unix socket was replaced")
+            except server.WrdsInstanceBusy:
+                pass
+            assert server._socket_identity(os.lstat(server.SOCKET_FILE)) == identity
+        finally:
+            listener.close()
+
+        # Once its listener is gone, that exact stale socket is replaced.
+        replacement, replacement_identity = server._bind_unix_server()
+        mode = stat.S_IMODE(os.lstat(server.SOCKET_FILE).st_mode)
+        assert mode == 0o600, oct(mode)
+
+        state = HealthyState()
+
+        def serve_ping():
+            # wrds_ping performs a DB-free hello and then safe_ping.
+            for _ in range(2):
+                server.handle_client(replacement.accept()[0], state)
+
+        worker = threading.Thread(target=serve_ping, daemon=True)
+        worker.start()
+        assert client.wrds_ping() is True
+        worker.join(timeout=2)
+        assert not worker.is_alive()
+        replacement.close()
+
+        # Lifecycle commands do not exist on any wire endpoint.
+        denied = request_over_socketpair(state, "safe_unblock_v5")
+        assert denied["status"] == "error"
+        assert "unknown command" in denied["msg"]
+        denied = request_over_socketpair(state, "safe_shutdown_v5")
+        assert denied["status"] == "error"
+
+        # Oversized and incomplete frames are bounded and rejected promptly.
+        left, right = socket.socketpair()
+        oversized = threading.Thread(
+            target=server.handle_client, args=(right, state), daemon=True)
+        oversized.start()
+        left.sendall(f"{server.MAX_MSG + 1:8d}".encode())
+        response_size = int(left.recv(8).decode().strip())
+        response = json.loads(left.recv(response_size).decode())
+        assert response["status"] == "error"
+        assert "frame" in response["msg"]
+        left.close()
+        oversized.join(timeout=2)
+        assert not oversized.is_alive()
+
+        # Client framing tolerates fragmented headers/bodies and rejects an
+        # advertised response beyond its explicit cap.
+        client_side, peer_side = socket.socketpair()
+        original_connect = client._connect
+        client._connect = lambda timeout: client_side
+        payload = json.dumps({
+            "status": "ok", "msg": "fragmented",
+            "safety_protocol": client.SAFETY_PROTOCOL,
+        }).encode()
+        def fragmented_peer():
+            header = b""
+            while len(header) < 8:
+                header += peer_side.recv(8 - len(header))
+            request_size = int(header.decode().strip())
+            remaining = request_size
+            while remaining:
+                part = peer_side.recv(remaining)
+                remaining -= len(part)
+            response_header = f"{len(payload):8d}".encode()
+            for byte in response_header:
+                peer_side.sendall(bytes([byte]))
+            for offset in range(0, len(payload), 3):
+                peer_side.sendall(payload[offset:offset + 3])
+            peer_side.close()
+        fragmented = threading.Thread(target=fragmented_peer, daemon=True)
+        fragmented.start()
+        try:
+            response = client._send_request({"cmd": "safety_hello_v5"})
+            assert response["msg"] == "fragmented"
+        finally:
+            client._connect = original_connect
+        fragmented.join(timeout=2)
+        assert not fragmented.is_alive()
+
+        too_large_client, too_large_peer = socket.socketpair()
+        client._connect = lambda timeout: too_large_client
+        def oversized_peer():
+            header = b""
+            while len(header) < 8:
+                header += too_large_peer.recv(8 - len(header))
+            request_size = int(header.decode().strip())
+            remaining = request_size
+            while remaining:
+                part = too_large_peer.recv(remaining)
+                remaining -= len(part)
+            too_large_peer.sendall(f"{client.MAX_RESPONSE + 1:8d}".encode())
+            too_large_peer.close()
+        oversized_response = threading.Thread(target=oversized_peer, daemon=True)
+        oversized_response.start()
+        try:
+            try:
+                client._send_request({"cmd": "safety_hello_v5"})
+                raise AssertionError("oversized server response was accepted")
+            except ConnectionError:
+                pass
+        finally:
+            client._connect = original_connect
+        oversized_response.join(timeout=2)
+        assert not oversized_response.is_alive()
+
+        old_memory_cap = server.MAX_RESULT_MEMORY
+        server.MAX_RESULT_MEMORY = 1
+        try:
+            try:
+                server._bounded_chunks(iter([client.pd.DataFrame({"x": [1]})]))
+                raise AssertionError("oversized query result was materialized")
+            except ValueError:
+                pass
+        finally:
+            server.MAX_RESULT_MEMORY = old_memory_cap
+
+        class DeadlineConnection:
+            def __init__(self):
+                self.statements = []
+            def execute(self, statement):
+                self.statements.append(str(statement))
+        class BoundedQueryDB:
+            def __init__(self):
+                self.connection = DeadlineConnection()
+            def raw_sql(self, sql, chunksize=None, return_iter=False):
+                assert chunksize == 50_000 and return_iter is True
+                return iter([client.pd.DataFrame({"x": [1, 2]})])
+        bounded_db = BoundedQueryDB()
+        bounded_df = server._bounded_query(bounded_db, "SELECT 1", 999999)
+        assert len(bounded_df) == 2
+        assert str(server.QUERY_TIMEOUT_SECONDS * 1000) in \
+            bounded_db.connection.statements[0]
+        try:
+            client.wrds_get_table("crsp", "msf")
+            raise AssertionError("unbounded get_table call was accepted")
+        except ValueError:
+            pass
+
+        old_response_cap = server.MAX_RESPONSE
+        server.MAX_RESPONSE = 128
+        capped_client, capped_server = socket.socketpair()
+        try:
+            server.send_response(capped_server, {
+                "status": "ok", "data": "x" * 1000,
+            })
+            capped_size = int(client._recv_exact(capped_client, 8).decode())
+            capped = json.loads(client._recv_exact(capped_client, capped_size))
+            assert capped["status"] == "error"
+            assert "transport limit" in capped["msg"]
+        finally:
+            server.MAX_RESPONSE = old_response_cap
+            capped_client.close()
+            capped_server.close()
+
+        # Cleanup must not unlink a successor inode.
+        os.unlink(server.SOCKET_FILE)
+        successor = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        successor.bind(server.SOCKET_FILE)
+        try:
+            assert not server._unlink_socket_if_identity(replacement_identity)
+            assert Path(server.SOCKET_FILE).exists()
+        finally:
+            successor.close()
+            os.unlink(server.SOCKET_FILE)
+
+        # Atomic PID publication replaces a planted symlink itself rather than
+        # truncating its target.
+        victim = state_dir / "victim"
+        victim.write_text("do not overwrite", encoding="utf-8")
+        os.symlink(victim, server.PID_FILE)
+        server._write_pid_file()
+        assert victim.read_text(encoding="utf-8") == "do not overwrite"
+        assert not os.path.islink(server.PID_FILE)
+        assert Path(server.PID_FILE).read_text(encoding="ascii") == str(os.getpid())
+
+    print("PASS: WRDS Unix transport singleton, cleanup, lifecycle isolation, and PID safety")
+
+
+if __name__ == "__main__":
+    main()

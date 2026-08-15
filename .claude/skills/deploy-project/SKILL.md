@@ -182,30 +182,32 @@ Setup creates a standalone local git repository with assembled CLAUDE.md, AGENTS
 
 1. `cd <project-name>`
 2. Edit `.env` with any required API keys (FRED, WRDS, etc.)
-3. Launch a runtime with the deployed launcher: `./launch.sh claude` / `./launch.sh codex` / `./launch.sh gemini` / `./launch.sh grok` (add `--tmux` to wrap in a detached tmux window). The script activates the project venv (`.venv/`, created by `setup.sh`, gitignored — bare `python3` resolves to it and every agent Bash subshell inherits it) and applies each runtime's correct flags. **`./launch.sh codex` is a headless driver loop, not a TUI**: codex has no autowake (verified: a parent whose turn ended is never woken by a completing child, native `spawn_agent` included), so an interactive codex session stalls at every turn-end; the driver re-prompts via `codex exec resume` until `pipeline_state.json` says `complete`/`halted_*`, making turn-ends harmless. `./launch.sh codex --once` gives a plain interactive TUI when you want one. Manual equivalent of the codex sandbox posture (run from the project root; the `$(pwd)/.git` writable root is load-bearing — codex hard-codes each root's top-level `.git` read-only, so without it every pipeline `git commit` dies on `index.lock`): `codex --sandbox workspace-write --ask-for-approval never -c 'sandbox_workspace_write.network_access=true' -c "sandbox_workspace_write.writable_roots=[\"~/.codex\",\"~/.cache\",\"~/Library/Caches\",\"~/.matplotlib\",\"$(pwd)/.git\"]"`.
+3. Launch a runtime with the deployed launcher: `./launch.sh claude` / `./launch.sh codex` / `./launch.sh gemini` / `./launch.sh grok` (add `--tmux` to wrap in a detached tmux window). For stateless `--mode report` and `--manual` deployments, use `./launch.sh codex --once`; the Codex driver requires the autonomous pipeline's `pipeline_state.json`. The script activates the project venv (`.venv/`, created by `setup.sh`, gitignored — bare `python3` resolves to it and every agent Bash subshell inherits it) and applies each runtime's correct flags. **`./launch.sh codex` is a headless driver loop, not a TUI**: codex has no autowake (verified: a parent whose turn ended is never woken by a completing child, native `spawn_agent` included), so an interactive codex session stalls at every turn-end; the driver re-prompts via `codex exec resume` until `pipeline_state.json` says `complete`/`halted_*`, making turn-ends harmless. `./launch.sh codex --once` gives a plain interactive TUI when you want one. Do not reproduce the Codex command manually: the launcher also validates/materializes the narrowed cache roots, preserves `.git` writes, and establishes WRDS before sandbox entry; omitting any of those is not an equivalent safety posture.
 4. Say "Run the pipeline." (interactive runtimes; the codex driver sends it itself)
 
 ### Long unattended runs
 
 **codex** is already headless-safe via the driver loop — `./launch.sh codex --tmux` is the complete unattended form.
 
-For **Claude**, launch each project in its own **interactive** `tmux` window (e.g. `tmux new-window -c <project-name> 'source .venv/bin/activate && claude --dangerously-skip-permissions'`, then send "Run the pipeline." to it) so it keeps driving the orchestrator turn-after-turn and survives detach — do **not** use headless `claude -p "Run the pipeline."`, which terminates at the ~600s background-task wait ceiling while a subagent is still running. The orchestrator resumes from `process_log/pipeline_state.json` + committed `output/` artifacts, so a fresh interactive session picks up where an interrupted run left off.
+For **Claude**, use `./launch.sh claude --tmux`, then attach/send "Run the pipeline." in that interactive window. This preserves the launcher-owned WRDS prestart and cache-root validation while surviving detach. Do **not** invoke Claude directly and do **not** use headless `claude -p "Run the pipeline."`, which terminates at the ~600s background-task wait ceiling while a subagent is still running. The orchestrator resumes from `process_log/pipeline_state.json` + committed `output/` artifacts, so a fresh interactive session picks up where an interrupted run left off.
 
 ## WRDS server (only with `--ext empirical`)
 
-The empirical extension talks to WRDS through a long-running local socket server (port 23847) so the Duo 2FA push happens once per session, not per query. The pipeline's data-inventory step starts it automatically (`deploy_assets/templates/runtime/claude/session.md` runs `code/utils/start_services.sh` before Stage 0), but you can also start it manually:
+The empirical extension talks to WRDS through one long-running host-wide server so the Duo 2FA push happens once per server session, not per query. `launch.sh` starts it before Claude/Codex/Grok enter their network sandboxes (including report/manual deployments, which intentionally have no pipeline state); clients use its private query-only `~/.local/state/zeropaper/wrds/wrds_server_23847.sock` transport through the read-only home view. No lifecycle command is exposed on the wire. OpenCode can reuse an existing daemon but cannot establish one automatically (#261); unconfined Gemini is excluded (#187). The pipeline's data-inventory step also runs the idempotent `code/utils/start_services.sh` health check before Stage 0, and you can run that check manually on the host:
 
 ```bash
 cd <project-name>
 bash code/utils/start_services.sh   # idempotent; reuses an existing server if one is up
 ```
 
-The server is per-host, not per-project — once it's running, every project that has the WRDS skill reuses it. If you are working in the template repo itself (no `.env`, no `code/utils/`), `cd` into any existing deployed empirical project on this host and run `bash code/utils/start_services.sh` from there; the resulting server will serve the template's future deployments too.
+The server is per-host, not per-project — once it is running, every project that has the WRDS skill reuses it, including commands in isolated network namespaces. If you are working in the template repo itself (no `.env`, no `code/utils/`), `cd` into any existing deployed empirical project on this host and run `bash code/utils/start_services.sh` from there; the resulting server will serve the template's future deployments too.
+
+For the first upgrade from a pre-v5 deployment, stop every older empirical runtime/tmux window before starting the new daemon. A released client can otherwise already be paused after its legacy latch check inside another network namespace. V5 checks for deployed foreign namespaces and refuses the login until they are quiescent; relaunch them only after the v5 host daemon is healthy.
 
 To check if it's already running on this machine:
 
 ```bash
-lsof -iTCP:23847 -sTCP:LISTEN                                           # is anything listening? (Linux: ss -tlnp | grep 23847)
+test -S ~/.local/state/zeropaper/wrds/wrds_server_23847.sock           # cross-sandbox endpoint exists
 PYTHONPATH=code python3 -c "from utils.wrds_client import wrds_ping; print(wrds_ping())"
 ```
 

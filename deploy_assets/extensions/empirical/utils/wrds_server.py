@@ -1,7 +1,8 @@
 """Persistent WRDS connection server.
 
 Connects to WRDS once (triggers Duo 2FA once), then serves queries
-over a local TCP socket. Scripts send SQL queries and get back
+over a private Unix-domain socket.
+Scripts send SQL queries and get back
 JSON-encoded DataFrames.
 
 Usage:
@@ -20,10 +21,11 @@ Usage:
         # Stop and diagnose; never bypass the server with a direct login.
         raise RuntimeError("WRDS server unavailable")
 
-The server is per-host (one process per machine on the fixed port). Its
-PID file is therefore host-global ($XDG_RUNTIME_DIR or the system temp
-dir, named .wrds_server_<port>.pid), not next to this file — see
-_pid_file_path().
+The server is per-host (one process per machine on the fixed port). Its lock,
+PID file, Unix socket, and durable authentication latch therefore live together
+under ~/.local/state/zeropaper/wrds, not next to this file. Runtime sandboxes
+can connect to the socket through their read-only view of the home directory,
+but cannot replace the endpoint or mutate operator-only lifecycle state.
 
 Connection recovery
 --------------------
@@ -48,17 +50,32 @@ import signal
 import importlib.metadata
 import inspect
 import hashlib
+import errno
+import subprocess
+import shlex
 from pathlib import Path
 from dotenv import load_dotenv
 
 _DOTENV_PATH = Path(__file__).resolve().parents[2] / '.env'
 load_dotenv(dotenv_path=_DOTENV_PATH)
 
-HOST = '127.0.0.1'
 PORT = 23847  # arbitrary high port
 # Bump whenever daemon-side login/recovery safety semantics change. This must
 # remain a literal independent of wrds_client's copy so stale daemons mismatch.
-SAFETY_PROTOCOL = 'wrds-auth-latch-v2'
+SAFETY_PROTOCOL = 'wrds-auth-latch-v5'
+
+
+def _state_dir():
+    """Host-owned state shared read-only with runtime sandboxes.
+
+    Do not use ``~/.cache`` here: it is an intentional sandbox writable root.
+    A same-UID agent could otherwise replace the query endpoint, erase the
+    retry latch, or plant a PID-file symlink for the host-side launcher to
+    follow.  ``~/.local/state`` is visible for AF_UNIX connect but is outside
+    every supported runtime's writable roots.
+    """
+    return os.path.join(os.path.expanduser('~'), '.local', 'state',
+                        'zeropaper', 'wrds')
 
 def _pid_file_path():
     """Host-global PID path, keyed by port.
@@ -70,11 +87,17 @@ def _pid_file_path():
     server, and running the server from the template repo polluted the
     source tree. A single host path fixes both: the restart-guard works
     across every project sharing the one server, and no repo is touched.
-    Prefer $XDG_RUNTIME_DIR (per-user, tmpfs, auto-cleaned on logout);
-    fall back to the system temp dir.
+    Keep it beside the durable latch/socket in host-owned state.
     """
-    base = os.environ.get('XDG_RUNTIME_DIR') or tempfile.gettempdir()
-    return os.path.join(base, f'.wrds_server_{PORT}.pid')
+    return os.path.join(_state_dir(), f'wrds_server_{PORT}.pid')
+
+
+def _runtime_dir():
+    """Return a writable runtime directory even inside read-only sandboxes."""
+    base = os.environ.get('XDG_RUNTIME_DIR')
+    if base and os.access(base, os.W_OK | os.X_OK):
+        return base
+    return tempfile.gettempdir()
 
 def _auth_block_path():
     """Host-global credential-rejection latch, keyed by port.
@@ -90,24 +113,41 @@ def _auth_block_path():
     Unlike the PID file, this state MUST survive logout and reboot: every new
     pipeline session starts services automatically, so runtime/temp storage
     would silently reset the retry budget. Keep the operator gate in the
-    user's durable cache directory. It clears only after a verified login
+    user's durable state directory. It clears only after a verified login
     approved through ``unblock``; ordinary lifecycle events never clear it.
     """
-    base = os.path.join(os.path.expanduser('~'), '.cache', 'zeropaper', 'wrds')
-    return os.path.join(base, f'wrds_server_{PORT}.authblock')
+    return os.path.join(_state_dir(), f'wrds_server_{PORT}.authblock')
 
 
 PID_FILE = _pid_file_path()
 AUTH_BLOCK_FILE = _auth_block_path()
+SOCKET_FILE = os.path.join(
+    os.path.dirname(AUTH_BLOCK_FILE), f'wrds_server_{PORT}.sock')
+LOCK_FILE = os.path.join(
+    os.path.dirname(AUTH_BLOCK_FILE), f'wrds_server_{PORT}.lock')
+CACHE_AUTH_BLOCK_FILE = os.path.join(
+    os.path.expanduser('~'), '.cache', 'zeropaper', 'wrds',
+    f'wrds_server_{PORT}.authblock')
 LEGACY_AUTH_BLOCK_FILE = os.path.join(
-    os.environ.get('XDG_RUNTIME_DIR') or tempfile.gettempdir(),
-    f'.wrds_server_{PORT}.authblock')
+    _runtime_dir(), f'.wrds_server_{PORT}.authblock')
 MAX_MSG = 10 * 1024 * 1024  # 10MB max message size
+MAX_RESPONSE = 90 * 1024 * 1024
+MAX_RESULT_MEMORY = 48 * 1024 * 1024
+MAX_RESULT_ROWS = 1_000_000
+MAX_GET_TABLE_ROWS = 100_000
+QUERY_TIMEOUT_SECONDS = 300
+CLIENT_IO_TIMEOUT = 15
+MAX_CLIENT_THREADS = 32
 LOGIN_ATTEMPT_PREFIX = 'WRDS_LOGIN_ATTEMPT_IN_PROGRESS pid='
+COMPAT_ACTIVE_PREFIX = 'WRDS_V5_DAEMON_ACTIVE pid='
 
 
 class WrdsLatchError(RuntimeError):
     """The persistent retry latch cannot be read or written safely."""
+
+
+class WrdsInstanceBusy(RuntimeError):
+    """Another process owns the host-global WRDS singleton lock."""
 
 
 class WrdsImplicitReconnectError(ConnectionError):
@@ -115,14 +155,32 @@ class WrdsImplicitReconnectError(ConnectionError):
 
 
 def _prepare_auth_block_dir():
-    """Create and validate the private durable latch directory."""
+    """Create and validate the host-owned WRDS state directory.
+
+    Walk from the filesystem root with directory descriptors and ``O_NOFOLLOW``
+    at every component.  Checking only the final ``wrds`` directory is not
+    sufficient: a pre-existing ``~/.local/state`` symlink could redirect all
+    supposedly protected lifecycle state into a sandbox-writable cache root.
+    """
     parent = os.path.dirname(AUTH_BLOCK_FILE)
+    parent = os.path.abspath(parent)
+    parts = [part for part in parent.split(os.sep) if part]
+    flags = (os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0) |
+             getattr(os, 'O_NOFOLLOW', 0))
+    fd = None
     try:
-        os.makedirs(parent, mode=0o700, exist_ok=True)
-        flags = (os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0) |
-                 getattr(os, 'O_NOFOLLOW', 0))
-        fd = os.open(parent, flags)
+        fd = os.open(os.sep, flags)
+        for part in parts:
+            try:
+                next_fd = os.open(part, flags, dir_fd=fd)
+            except FileNotFoundError:
+                os.mkdir(part, mode=0o700, dir_fd=fd)
+                next_fd = os.open(part, flags, dir_fd=fd)
+            os.close(fd)
+            fd = next_fd
     except OSError as e:
+        if fd is not None:
+            os.close(fd)
         raise WrdsLatchError(
             f"cannot safely access WRDS retry-latch directory {parent}: {e}"
         ) from e
@@ -142,6 +200,187 @@ def _prepare_auth_block_dir():
             )
     finally:
         os.close(fd)
+
+
+def _acquire_instance_lock():
+    """Atomically create the cross-namespace singleton marker.
+
+    This is deliberately an O_EXCL directory mutation, not ``flock``: Linux
+    permits an exclusive flock through an O_RDONLY descriptor, so a sandbox
+    with a read-only view could otherwise hold the daemon's restart mutex.
+    """
+    _prepare_auth_block_dir()
+    start_token = _process_start_token(os.getpid())
+    if not start_token:
+        raise WrdsLatchError(
+            "cannot establish this process's birth identity for the WRDS "
+            "singleton marker")
+    marker = json.dumps({"pid": os.getpid(), "start": start_token}) + "\n"
+    for _ in range(8):
+        tmp_path = None
+        try:
+            # Publish only a complete record. O_EXCL followed by write has an
+            # empty-file window in which a concurrent starter can misclassify
+            # the live owner as stale. A same-directory hard link is atomic:
+            # readers see either no marker or the fully written inode.
+            parent = os.path.dirname(LOCK_FILE)
+            fd, tmp_path = tempfile.mkstemp(
+                prefix=os.path.basename(LOCK_FILE) + '.', dir=parent)
+            # Read-only after publication: intermediate v4 opens this pathname
+            # O_RDWR before taking flock. Mode 0400 makes that legacy writer
+            # fail before it can truncate v5's authoritative JSON inode.
+            os.fchmod(fd, 0o400)
+            with os.fdopen(fd, 'w', encoding='utf-8') as handle:
+                handle.write(marker)
+                handle.flush()
+                os.fsync(handle.fileno())
+            os.link(tmp_path, LOCK_FILE, follow_symlinks=False)
+            os.unlink(tmp_path)
+            tmp_path = None
+            return _lock_identity(os.lstat(LOCK_FILE))
+        except FileExistsError:
+            existing, identity = _read_instance_lock()
+            if _lock_owner_live(existing):
+                raise WrdsInstanceBusy(
+                    "another WRDS server owns the host-global singleton marker")
+            if not _remove_lock_if_identity(identity):
+                continue
+            continue
+        except OSError as e:
+            raise WrdsLatchError(
+                f"cannot safely create WRDS singleton marker {LOCK_FILE}: {e}"
+            ) from e
+        finally:
+            if tmp_path is not None:
+                try:
+                    os.unlink(tmp_path)
+                except OSError:
+                    pass
+    raise WrdsLatchError("WRDS singleton marker changed repeatedly during cleanup")
+
+
+def _process_start_token(pid):
+    """Stable per-process birth token used to reject recycled PIDs."""
+    try:
+        raw_stat = Path(f"/proc/{pid}/stat").read_text(encoding='ascii')
+        # `comm` is parenthesized and may itself contain spaces. Fields after
+        # its final ')' begin at proc-stat field 3; starttime is field 22.
+        fields_after_comm = raw_stat.rsplit(')', 1)[1].split()
+        start_ticks = fields_after_comm[19]
+        boot_id = Path('/proc/sys/kernel/random/boot_id').read_text(
+            encoding='ascii').strip()
+        return f"proc:{boot_id}:{start_ticks}"
+    except (OSError, IndexError):
+        try:
+            value = subprocess.run(
+                ['/bin/ps', '-o', 'lstart=', '-p', str(pid)],
+                capture_output=True, text=True, timeout=5, check=False,
+            ).stdout.strip()
+        except Exception:
+            value = ''
+        return f"ps:{value}" if value else None
+
+
+def _lock_identity(info):
+    return (info.st_dev, info.st_ino, info.st_ctime_ns)
+
+
+def _read_instance_lock():
+    flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0)
+    try:
+        fd = os.open(LOCK_FILE, flags)
+    except FileNotFoundError:
+        # A concurrent stale-owner cleanup may have removed the pathname after
+        # our link attempt observed EEXIST. Let the acquisition loop retry.
+        return None, None
+    except OSError as e:
+        raise WrdsLatchError(f"cannot safely read WRDS singleton marker: {e}") from e
+    try:
+        info = os.fstat(fd)
+        if (not stat.S_ISREG(info.st_mode) or info.st_nlink not in (1, 2) or
+                (hasattr(os, 'getuid') and info.st_uid != os.getuid()) or
+                info.st_mode & 0o022):
+            raise WrdsLatchError("WRDS singleton marker failed owner/type/mode checks")
+        with os.fdopen(fd, encoding='utf-8') as handle:
+            fd = -1
+            raw = handle.read()
+            try:
+                marker = json.loads(raw)
+            except (json.JSONDecodeError, UnicodeError) as e:
+                # The intermediate v4 bridge used a persistent flock file
+                # containing only `<pid>\n`. Recognize exactly that format so
+                # a dead owner upgrades automatically; an ambiguous live or
+                # recycled PID remains fail-closed.
+                legacy = raw.strip()
+                if not legacy.isascii() or not legacy.isdigit():
+                    raise WrdsLatchError(
+                        f"invalid WRDS singleton marker: {e}") from e
+                marker = {"pid": int(legacy), "start": None, "legacy": True}
+            if not isinstance(marker, dict):
+                legacy = raw.strip()
+                if legacy.isascii() and legacy.isdigit():
+                    marker = {"pid": int(legacy), "start": None,
+                              "legacy": True}
+                else:
+                    raise WrdsLatchError(
+                        "WRDS singleton marker is not an owner record")
+        return marker, _lock_identity(info)
+    finally:
+        if fd != -1:
+            os.close(fd)
+
+
+def _lock_owner_live(marker):
+    try:
+        pid = int(marker['pid'])
+        recorded = marker['start']
+    except (KeyError, TypeError, ValueError):
+        return False
+    if marker.get('legacy') is True:
+        try:
+            os.kill(pid, 0)
+            return True
+        except ProcessLookupError:
+            return False
+        except OSError:
+            return True
+    return bool(recorded and _process_start_token(pid) == recorded)
+
+
+def _remove_lock_if_identity(identity):
+    try:
+        info = os.lstat(LOCK_FILE)
+        if _lock_identity(info) != identity:
+            return False
+        os.unlink(LOCK_FILE)
+        return True
+    except OSError:
+        return False
+
+
+def _write_pid_file():
+    """Atomically publish this PID without ever following a planted symlink."""
+    _prepare_auth_block_dir()
+    parent = os.path.dirname(PID_FILE)
+    tmp_path = None
+    try:
+        fd, tmp_path = tempfile.mkstemp(
+            prefix=os.path.basename(PID_FILE) + '.', dir=parent)
+        os.fchmod(fd, 0o600)
+        with os.fdopen(fd, 'w', encoding='ascii') as handle:
+            handle.write(str(os.getpid()))
+            handle.flush()
+            os.fsync(handle.fileno())
+        os.replace(tmp_path, PID_FILE)
+        tmp_path = None
+    except OSError as e:
+        raise WrdsLatchError(f"cannot safely publish WRDS PID file: {e}") from e
+    finally:
+        if tmp_path is not None:
+            try:
+                os.unlink(tmp_path)
+            except OSError:
+                pass
 
 
 def _read_latch_file(path):
@@ -184,20 +423,41 @@ def _read_latch_file(path):
 
 
 def _read_auth_block():
-    """Read/migrate the durable latch, failing closed on legacy state."""
+    """Read/migrate every released durable latch without spending a login."""
     _prepare_auth_block_dir()
     message = _read_latch_file(AUTH_BLOCK_FILE)
     if message is not None:
         return message
 
-    # v2.22.1 stored its latch beside the runtime PID file. During an upgrade,
-    # ignoring that known rejection would spend a fresh login. Copy it into
-    # durable storage atomically, but leave the legacy copy until a verified or
-    # operator-approved clear so an older daemon also remains blocked.
-    legacy = _read_latch_file(LEGACY_AUTH_BLOCK_FILE)
-    if legacy is not None:
-        _write_auth_block(legacy)
-        return legacy
+    # v2.22.2-v2.24.7 used ~/.cache; v2.22.1 used runtime/temp. Ignoring either
+    # known rejection during an upgrade would spend a fresh credential attempt.
+    # Copy forward atomically and retain every old copy until verified/operator
+    # clear so a concurrently invoked older daemon remains blocked too.
+    for prior_path in (CACHE_AUTH_BLOCK_FILE, LEGACY_AUTH_BLOCK_FILE):
+        if prior_path == CACHE_AUTH_BLOCK_FILE:
+            legacy = _read_latch_file(prior_path)
+            if legacy is None:
+                continue
+            if legacy.startswith(COMPAT_ACTIVE_PREFIX):
+                # Keep a dead guard in place for _write_compat_guard() to
+                # adopt without replacement. Removing it here would open a window
+                # in which a released cross-namespace starter sees no latch.
+                # Never use this sandbox-writable compatibility record as v5
+                # authority; the protected marker + process scan own that job.
+                continue
+            if _compat_guard_directory_locked():
+                # V5 may deliberately retain an older terminal message as the
+                # no-gap released-client guard during an operator-approved
+                # retry. A mode-0500 compatibility directory plus absence of
+                # protected auth state means that retry later verified and
+                # cleared the authoritative latch. If v5 died earlier, its
+                # protected write-ahead/terminal record would still be above.
+                continue
+        else:
+            legacy = _read_latch_file(prior_path)
+        if legacy is not None:
+            _write_auth_block(legacy)
+            return legacy
     return None
 
 
@@ -236,10 +496,16 @@ def _write_auth_block(msg):
                 pass
 
 
-def _clear_auth_block():
+def _clear_auth_block(preserve_compat=False):
     """Remove the latch after verified success or operator-approved unblock."""
     removed_parents = set()
-    for path in (AUTH_BLOCK_FILE, LEGACY_AUTH_BLOCK_FILE):
+    for path in (AUTH_BLOCK_FILE, CACHE_AUTH_BLOCK_FILE,
+                 LEGACY_AUTH_BLOCK_FILE):
+        if preserve_compat and path == CACHE_AUTH_BLOCK_FILE:
+            # Compatibility state is sandbox-writable by necessity because
+            # released clients read it there. Never trust/read it on the v5
+            # success path; simply retain the guard published before login.
+            continue
         try:
             os.remove(path)
             removed_parents.add(os.path.dirname(path))
@@ -262,7 +528,7 @@ def _clear_auth_block():
             ) from e
 
 
-def _begin_login_attempt():
+def _begin_login_attempt(replace_blocked=False):
     """Write the durable guard that must precede every credentialed login.
 
     It is deliberately indistinguishable from a terminal latch after this
@@ -271,13 +537,20 @@ def _begin_login_attempt():
     Duo without interpreting the marker as a rejection.
     """
     existing = _read_auth_block()
-    if existing:
+    if existing and not replace_blocked:
         raise WrdsLatchError(
             "refusing WRDS login because a retry latch already exists: "
             f"{existing}"
         )
+    if replace_blocked and not existing:
+        raise WrdsLatchError(
+            "operator retry requires an existing terminal WRDS latch")
+    birth = _process_start_token(os.getpid())
+    if not birth:
+        raise WrdsLatchError(
+            "cannot establish process birth identity before WRDS login")
     marker = (
-        f"{LOGIN_ATTEMPT_PREFIX}{os.getpid()}\n"
+        f"{LOGIN_ATTEMPT_PREFIX}{os.getpid()} start={birth}\n"
         "A WRDS login began but has not been confirmed successful. If the "
         "owning process is no longer alive, do not retry automatically; an "
         "operator must inspect the prior attempt and approve unblock."
@@ -292,11 +565,35 @@ def _live_login_attempt(message):
     if not first_line.startswith(LOGIN_ATTEMPT_PREFIX):
         return False
     try:
-        pid = int(first_line[len(LOGIN_ATTEMPT_PREFIX):])
-        os.kill(pid, 0)
-    except (OSError, ValueError):
+        identity = first_line[len(LOGIN_ATTEMPT_PREFIX):]
+        pid_text, separator, recorded = identity.partition(' start=')
+        if not separator or not recorded:
+            # Released PID-only markers cannot prove identity after PID reuse
+            # or reboot and therefore remain terminal until operator review.
+            return False
+        pid = int(pid_text)
+    except ValueError:
         return False
-    return True
+    return _process_start_token(pid) == recorded
+
+
+def _marker_owner(message, prefix):
+    first_line = str(message).splitlines()[0]
+    if not first_line.startswith(prefix):
+        return None, None
+    identity = first_line[len(prefix):]
+    pid_text, separator, recorded = identity.partition(' start=')
+    if not separator or not recorded:
+        return None, None
+    try:
+        return int(pid_text), recorded
+    except ValueError:
+        return None, None
+
+
+def _live_compat_guard(message):
+    pid, recorded = _marker_owner(message, COMPAT_ACTIVE_PREFIX)
+    return bool(pid and recorded and _process_start_token(pid) == recorded)
 
 
 def _verify_auth_block_storage():
@@ -384,8 +681,9 @@ def _auth_guidance(exc):
         "NOT retrying — repeated attempts lock the WRDS account. "
         "OPERATOR: fix WRDS_PASS in .env (reset it at wrds-www.wharton.upenn.edu "
         "if it expired), then approve exactly one retry with "
-        "`python code/utils/wrds_client.py unblock` — the server reloads .env "
-        "and reconnects in place, no restart needed. A second rejection re-latches."
+        "`python code/utils/wrds_client.py unblock` after stopping this daemon "
+        "from the host. The new process reloads .env while holding the singleton; "
+        "a second rejection re-latches."
     )
 
 
@@ -435,7 +733,7 @@ def _is_conn_error(exc):
     as opposed to a query error (syntax/permission/missing table).
 
     Auth rejections are excluded: they are terminal, not recoverable."""
-    if _is_auth_error(exc):
+    if _is_auth_error(exc) or _is_query_cancel_error(exc):
         return False
     pending = [exc]
     seen = set()
@@ -464,7 +762,76 @@ def _is_conn_error(exc):
     return False
 
 
-def _safe_raw_sql(db, sql):
+def _is_query_cancel_error(exc):
+    """True for PostgreSQL statement cancellation/statement-timeout errors.
+
+    SQLAlchemy wraps psycopg2 ``QueryCanceled`` in ``OperationalError``.  An
+    OperationalError is normally a candidate for connection recovery, but a
+    server-enforced statement timeout is a query-level failure: retrying the
+    same SQL only doubles its work and a second cancellation must never be
+    mistaken for a failed credential-bearing reconnect.
+    """
+    pending = [exc]
+    seen = set()
+    needles = (
+        'canceling statement due to statement timeout',
+        'cancelling statement due to statement timeout',
+        'statement timeout',
+        'query canceled',
+        'query cancelled',
+    )
+    while pending:
+        current = pending.pop()
+        if current is None or id(current) in seen:
+            continue
+        seen.add(id(current))
+        if getattr(current, 'pgcode', None) == '57014':
+            return True
+        if type(current).__name__.lower() in (
+                'querycanceled', 'querycancelederror',
+                'querycancelled', 'querycancellederror'):
+            return True
+        if any(needle in str(current).lower() for needle in needles):
+            return True
+        for attr in ('__cause__', '__context__', 'orig'):
+            nested = getattr(current, attr, None)
+            if isinstance(nested, BaseException):
+                pending.append(nested)
+    return False
+
+
+def _bounded_chunks(chunks):
+    """Materialize a query only while its row/deep-memory budget is bounded."""
+    import pandas as pd
+    collected = []
+    rows = 0
+    memory = 0
+    try:
+        for chunk in chunks:
+            rows += len(chunk)
+            memory += int(chunk.memory_usage(index=True, deep=True).sum())
+            if rows > MAX_RESULT_ROWS or memory > MAX_RESULT_MEMORY:
+                raise ValueError(
+                    "WRDS query result exceeds the shared-daemon limit; add "
+                    "date/entity filters and cache bounded pulls separately")
+            collected.append(chunk)
+    finally:
+        close = getattr(chunks, 'close', None)
+        if close is not None:
+            close()
+    return (pd.concat(collected) if collected else pd.DataFrame())
+
+
+def _validate_dataframe_budget(frame):
+    memory = int(frame.memory_usage(index=True, deep=True).sum())
+    if len(frame) > MAX_RESULT_ROWS or memory > MAX_RESULT_MEMORY:
+        raise ValueError(
+            "WRDS result exceeds the shared-daemon limit; add date/entity "
+            "filters and cache bounded pulls separately")
+    return frame
+
+
+def _safe_raw_sql(db, sql, bounded=False):
     """Run a SQL query, falling back to a manual sqlalchemy path if wrds.raw_sql trips
     the sqlalchemy 2.x immutabledict bug.
 
@@ -477,6 +844,9 @@ def _safe_raw_sql(db, sql):
     """
     import pandas as pd
     try:
+        if bounded:
+            return _bounded_chunks(db.raw_sql(
+                sql, chunksize=50_000, return_iter=True))
         return db.raw_sql(sql)
     except TypeError as e:
         if 'immutabledict' not in str(e):
@@ -495,8 +865,43 @@ def _safe_raw_sql(db, sql):
     from sqlalchemy import text
     result = db.connection.execute(text(sql))
     cols = list(result.keys())
-    rows = [tuple(r) for r in result.fetchall()]
-    return pd.DataFrame(rows, columns=cols)
+    if not bounded:
+        rows = [tuple(r) for r in result.fetchall()]
+        return pd.DataFrame(rows, columns=cols)
+
+    def fallback_chunks():
+        while True:
+            rows = result.fetchmany(50_000)
+            if not rows:
+                return
+            yield pd.DataFrame([tuple(row) for row in rows], columns=cols)
+    return _bounded_chunks(fallback_chunks())
+
+
+def _set_query_deadline(db, timeout_seconds=QUERY_TIMEOUT_SECONDS):
+    """Apply a bounded PostgreSQL deadline to the current transaction."""
+    try:
+        timeout_seconds = int(timeout_seconds)
+    except (TypeError, ValueError) as e:
+        raise ValueError('invalid WRDS query timeout') from e
+    timeout_seconds = max(1, min(timeout_seconds, QUERY_TIMEOUT_SECONDS))
+    from sqlalchemy import text
+    # Integer interpolation only. SET LOCAL shares the transaction used by the
+    # following read and PostgreSQL cancels it server-side even if the client
+    # disappears or its local socket timeout fires.
+    db.connection.execute(text(
+        f'SET LOCAL statement_timeout = {timeout_seconds * 1000}'))
+
+
+def _bounded_query(db, sql, timeout_seconds):
+    """Run one sandbox query with a PostgreSQL deadline and result cap."""
+    _set_query_deadline(db, timeout_seconds)
+    return _safe_raw_sql(db, sql, bounded=True)
+
+
+def _bounded_db_call(db, fn):
+    _set_query_deadline(db)
+    return fn(db)
 
 
 def _connect_once(db):
@@ -598,7 +1003,7 @@ def _install_reconnect_guard(db):
     db._wrds_reconnect_guard = refuse_implicit_connect
 
 
-def connect_wrds():
+def connect_wrds(attempt_prearmed=False):
     """Establish WRDS connection (triggers Duo 2FA on first connect)."""
     import wrds
     # Keep PGPASSWORD for libpq compatibility, while also passing the password
@@ -611,7 +1016,8 @@ def connect_wrds():
         # Write-ahead, not after-the-fact: if this process dies anywhere in
         # Connection construction, Duo, engine setup, or the verification
         # query, a restart sees the marker and refuses another login.
-        _begin_login_attempt()
+        if not attempt_prearmed:
+            _begin_login_attempt()
         db = wrds.Connection(
             wrds_username=os.getenv('WRDS_USER'),
             wrds_password=wrds_pass,
@@ -621,7 +1027,7 @@ def connect_wrds():
         _install_reconnect_guard(db)
         db.load_library_list()
         _safe_raw_sql(db, 'SELECT 1')
-        _clear_auth_block()
+        _clear_auth_block(preserve_compat=True)
     except Exception as e:
         # Any failed credential-bearing connection attempt is terminal until
         # an operator approves another. Known auth failures get precise
@@ -753,7 +1159,7 @@ class WrdsState:
             import sqlalchemy as sa
             db.insp = sa.inspect(db.connection)
             if self._healthy(db):
-                _clear_auth_block()
+                _clear_auth_block(preserve_compat=True)
                 return 'pool_rebuilt'
             raise RuntimeError('connection remained unhealthy after one reconnect')
         except Exception as e:
@@ -836,15 +1242,15 @@ class WrdsState:
             # Cleared only for the duration of this single attempt.
             self.auth_failed = None
             try:
-                # Removing the terminal latch is the operator's approval. The
-                # connection routine immediately replaces it with a durable
-                # in-progress marker before touching credentials.
-                _clear_auth_block()
+                # Atomically replace the terminal latch with the durable live
+                # attempt. There is never a clear window that an automated
+                # start could interpret as permission for another login.
+                _begin_login_attempt(replace_blocked=True)
                 try:
                     self.db.close()
                 except Exception:
                     pass
-                self.db = connect_wrds()
+                self.db = connect_wrds(attempt_prearmed=True)
                 if not self._healthy(self.db):
                     raise RuntimeError('connection unhealthy after reconnect')
                 print("[wrds_server] unblocked — credential accepted", flush=True)
@@ -877,13 +1283,27 @@ class WrdsState:
 
 
 def handle_client(conn, state):
-    """Handle a single client query."""
+    """Handle one query request; lifecycle control is never on the wire."""
     try:
+        # A same-UID sandbox may connect, but must not be able to pin a daemon
+        # thread forever with a partial frame or allocate from a forged size.
+        conn.settimeout(CLIENT_IO_TIMEOUT)
         # Receive the full message (length-prefixed)
-        raw_len = conn.recv(8)
+        raw_len = b''
+        while len(raw_len) < 8:
+            chunk = conn.recv(8 - len(raw_len))
+            if not chunk:
+                return
+            raw_len += chunk
         if not raw_len:
             return
-        msg_len = int(raw_len.decode().strip())
+        try:
+            msg_len = int(raw_len.decode('ascii').strip())
+        except (UnicodeError, ValueError) as e:
+            raise ValueError('invalid WRDS request frame length') from e
+        if msg_len <= 0 or msg_len > MAX_MSG:
+            raise ValueError(
+                f'WRDS request frame must be 1..{MAX_MSG} bytes')
 
         chunks = []
         received = 0
@@ -893,6 +1313,9 @@ def handle_client(conn, state):
                 break
             chunks.append(chunk)
             received += len(chunk)
+
+        if received != msg_len:
+            raise ValueError('incomplete WRDS request frame')
 
         request = json.loads(b''.join(chunks).decode())
         cmd = request.get('cmd', 'query')
@@ -914,11 +1337,11 @@ def handle_client(conn, state):
             send_response(conn, response)
             return
 
-        if cmd == 'safety_hello_v2':
+        if cmd == 'safety_hello_v5':
             # Deliberately DB-free. Updated clients send this before `ping` so
             # probing a legacy daemon cannot invoke its vulnerable healthcheck.
             response = {'status': 'ok', 'msg': 'safety protocol confirmed'}
-        elif cmd == 'safe_ping_v2':
+        elif cmd == 'safe_ping_v5':
             ok, detail = state.healthcheck()
             if ok:
                 response = {'status': 'ok', 'msg': 'wrds_server alive',
@@ -933,9 +1356,11 @@ def handle_client(conn, state):
                 response = {'status': 'error',
                             'msg': f'connection unhealthy: {detail}',
                             'error_kind': 'connection'}
-        elif cmd == 'safe_query_v2':
+        elif cmd == 'safe_query_v5':
             sql = request['sql']
-            df, recovered = state.run(lambda db: _safe_raw_sql(db, sql))
+            query_timeout = request.get('timeout', QUERY_TIMEOUT_SECONDS)
+            df, recovered = state.run(
+                lambda db: _bounded_query(db, sql, query_timeout))
             # Convert to JSON-serializable format
             response = {
                 'status': 'ok',
@@ -944,57 +1369,54 @@ def handle_client(conn, state):
                 'shape': list(df.shape),
                 'recovered': recovered,
             }
-        elif cmd == 'safe_list_tables_v2':
+        elif cmd == 'safe_list_tables_v5':
             lib = request['library']
             tables, recovered = state.run(
-                lambda db: db.list_tables(library=lib))
+                lambda db: _bounded_db_call(
+                    db, lambda active: active.list_tables(library=lib)))
             response = {'status': 'ok', 'tables': tables,
                         'recovered': recovered}
-        elif cmd == 'safe_list_libraries_v2':
-            libraries, recovered = state.run(lambda db: db.list_libraries())
+        elif cmd == 'safe_list_libraries_v5':
+            libraries, recovered = state.run(
+                lambda db: _bounded_db_call(
+                    db, lambda active: active.list_libraries()))
             response = {'status': 'ok', 'libraries': libraries,
                         'recovered': recovered}
-        elif cmd == 'safe_get_table_v2':
+        elif cmd == 'safe_get_table_v5':
             kwargs = request.get('kwargs') or {}
-            df, recovered = state.run(lambda db: db.get_table(
-                request['library'], request['table'], **kwargs))
+            requested_rows = kwargs.get('obs')
+            if requested_rows is None:
+                requested_rows = kwargs.get('rows')
+            try:
+                requested_rows = int(requested_rows)
+            except (TypeError, ValueError) as e:
+                raise ValueError(
+                    'WRDS get_table requires an explicit positive row limit') from e
+            if not 1 <= requested_rows <= MAX_GET_TABLE_ROWS:
+                raise ValueError(
+                    f'WRDS get_table row limit must be 1..{MAX_GET_TABLE_ROWS}; '
+                    'use filtered wrds_query pulls for larger extracts')
+            df, recovered = state.run(
+                lambda db: _bounded_db_call(
+                    db, lambda active: active.get_table(
+                        request['library'], request['table'], **kwargs)))
+            df = _validate_dataframe_budget(df)
             response = {
                 'status': 'ok',
                 'data': df.to_json(orient='split', date_format='iso'),
                 'recovered': recovered,
             }
-        elif cmd == 'safe_describe_v2':
+        elif cmd == 'safe_describe_v5':
             lib = request['library']
             table = request['table']
             desc, recovered = state.run(
-                lambda db: db.describe_table(lib, table))
+                lambda db: _bounded_db_call(
+                    db, lambda active: active.describe_table(lib, table)))
             response = {
                 'status': 'ok',
                 'data': desc.to_json(orient='split', date_format='iso'),
                 'recovered': recovered,
             }
-        elif cmd == 'safe_unblock_v2':
-            # Operator-only. No automated caller may issue this — see the
-            # auth-latch note above and the WRDS skill's escalation rule.
-            ok, detail = state.unblock()
-            if ok:
-                response = {'status': 'ok', 'msg': detail}
-            else:
-                response = {'status': 'error', 'msg': detail,
-                            'error_kind': 'auth'}
-        elif cmd == 'safe_shutdown_v2':
-            response = {'status': 'ok', 'msg': 'shutting down'}
-            send_response(conn, response)
-            conn.close()
-            # Signal the main process instead of os._exit(0) so the
-            # registered cleanup() runs: closes the WRDS connection and
-            # removes the (now host-global) pid file. Falls back to a hard
-            # exit if signalling fails for any reason.
-            try:
-                os.kill(os.getpid(), signal.SIGTERM)
-                return
-            except Exception:
-                os._exit(0)
         else:
             response = {'status': 'error', 'msg': f'unknown command: {cmd}'}
 
@@ -1021,20 +1443,507 @@ def send_response(conn, response):
     """Send length-prefixed JSON response."""
     response = {**response, 'safety_protocol': SAFETY_PROTOCOL}
     data = json.dumps(response, default=str).encode()
+    if len(data) > MAX_RESPONSE:
+        data = json.dumps({
+            'status': 'error',
+            'error_kind': 'query',
+            'msg': ('WRDS response exceeds the shared-daemon transport limit; '
+                    'use a narrower query and cache bounded pulls'),
+            'safety_protocol': SAFETY_PROTOCOL,
+        }).encode()
     header = f"{len(data):8d}".encode()
     conn.sendall(header + data)
 
-def main():
-    # Cheap pre-check: a recorded, still-alive PID means a server is up.
-    if os.path.exists(PID_FILE):
+
+def _bind_unix_server():
+    """Bind cross-sandbox transport after the caller owns ``LOCK_FILE``.
+
+    A live socket is never unlinked. The atomic singleton marker serializes
+    stale cleanup, and inode identity keeps shutdown from deleting a
+    successor's endpoint after an external operator repair.
+    """
+    if not hasattr(socket, 'AF_UNIX'):
+        raise WrdsLatchError('WRDS sandbox transport requires AF_UNIX support')
+    _prepare_auth_block_dir()
+    try:
+        info = os.lstat(SOCKET_FILE)
+    except FileNotFoundError:
+        info = None
+    if info is not None:
+        if not stat.S_ISSOCK(info.st_mode):
+            raise WrdsLatchError(
+                f"WRDS socket path is not a socket: {SOCKET_FILE}")
+        if hasattr(os, 'getuid') and info.st_uid != os.getuid():
+            raise WrdsLatchError(
+                f"WRDS socket is not owned by this user: {SOCKET_FILE}")
+        probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        probe.settimeout(0.25)
         try:
-            with open(PID_FILE) as f:
-                old_pid = int(f.read().strip())
-            os.kill(old_pid, 0)  # Check if process exists
-            print(f"[wrds_server] Already running (PID {old_pid})")
+            probe.connect(SOCKET_FILE)
+        except OSError as e:
+            if e.errno not in (errno.ECONNREFUSED, errno.ENOENT):
+                raise WrdsLatchError(
+                    f"cannot prove existing WRDS socket is stale: {e}"
+                ) from e
+        else:
+            raise WrdsInstanceBusy(
+                "a live WRDS Unix socket exists without the current lock; "
+                "stop and upgrade that daemon explicitly"
+            )
+        finally:
+            probe.close()
+        try:
+            current = os.lstat(SOCKET_FILE)
+        except FileNotFoundError:
+            current = None
+        if current is not None:
+            if _socket_identity(current) != _socket_identity(info):
+                raise WrdsLatchError(
+                    "WRDS socket changed during stale cleanup; refusing to unlink")
+            os.unlink(SOCKET_FILE)
+
+    listener = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    old_umask = os.umask(0o177)
+    try:
+        listener.bind(SOCKET_FILE)
+    except Exception:
+        listener.close()
+        raise
+    finally:
+        os.umask(old_umask)
+    os.chmod(SOCKET_FILE, 0o600)
+    listener.listen(5)
+    info = os.lstat(SOCKET_FILE)
+    return listener, _socket_identity(info)
+
+
+def _socket_identity(info):
+    """Identity robust to immediate inode-number reuse after replacement."""
+    return (info.st_dev, info.st_ino, info.st_ctime_ns)
+
+
+def _unlink_socket_if_identity(identity):
+    """Remove only the exact socket inode created by this daemon."""
+    if identity is None:
+        return False
+    try:
+        info = os.lstat(SOCKET_FILE)
+        if _socket_identity(info) != identity:
+            return False
+        os.unlink(SOCKET_FILE)
+        return True
+    except (FileNotFoundError, OSError):
+        return False
+
+
+def _legacy_server_pids():
+    """Find same-user WRDS server scripts independent of network namespace."""
+    def is_server_argv(args):
+        """Recognize the released Python launch shape, not arbitrary mentions."""
+        if len(args) < 2:
+            return False
+        interpreter = os.path.basename(args[0]).lower()
+        if not (interpreter.startswith('python') or
+                interpreter.startswith('pypy')):
+            return False
+        index = 1
+        # Released launchers may use unbuffered/isolated Python switches before
+        # the script. -c and -m are intentionally not skipped: a filename in
+        # their program arguments is not an executed server script.
+        no_arg_switches = {
+            '-b', '-bb', '-B', '-d', '-E', '-I', '-O', '-OO', '-q', '-s',
+            '-S', '-u', '-v', '-x', '-Xdev',
+        }
+        while index < len(args) and args[index] in no_arg_switches:
+            index += 1
+        return (index < len(args) and
+                os.path.basename(args[index]) == 'wrds_server.py')
+
+    found = []
+    proc_root = Path('/proc')
+    if proc_root.is_dir():
+        try:
+            entries = list(proc_root.iterdir())
+        except OSError as e:
+            raise WrdsLatchError(
+                f'cannot enumerate processes for legacy WRDS safety: {e}') from e
+        for entry in entries:
+            if not entry.name.isdigit() or int(entry.name) == os.getpid():
+                continue
+            try:
+                if (hasattr(os, 'getuid') and
+                        entry.stat().st_uid != os.getuid()):
+                    continue
+                args = [a.decode(errors='replace') for a in
+                        (entry / 'cmdline').read_bytes().split(b'\0') if a]
+            except (FileNotFoundError, ProcessLookupError):
+                # The process exited between directory enumeration and read.
+                continue
+            except PermissionError as e:
+                raise WrdsLatchError(
+                    f'cannot inspect same-user process {entry.name}: {e}') from e
+            except OSError as e:
+                raise WrdsLatchError(
+                    f'process discovery failed at {entry}: {e}') from e
+            if is_server_argv(args):
+                found.append(int(entry.name))
+        return sorted(found)
+
+    # macOS/other fallback. Exact token parsing avoids matching an editor or
+    # grep whose free-form command merely mentions the filename.
+    try:
+        result = subprocess.run(
+            ['/bin/ps', '-axo', 'pid=,uid=,command='], capture_output=True,
+            text=True, timeout=5, check=False)
+    except Exception as e:
+        raise WrdsLatchError(
+            f'cannot enumerate processes for legacy WRDS safety: {e}') from e
+    if result.returncode != 0:
+        raise WrdsLatchError(
+            'process enumeration failed for legacy WRDS safety: ' +
+            (result.stderr.strip() or f'ps exit {result.returncode}'))
+    for line in result.stdout.splitlines():
+        pieces = line.strip().split(None, 2)
+        if len(pieces) != 3:
+            continue
+        try:
+            pid, uid = map(int, pieces[:2])
+            args = shlex.split(pieces[2])
+        except (ValueError, TypeError):
+            continue
+        if (pid != os.getpid() and
+                (not hasattr(os, 'getuid') or uid == os.getuid()) and
+                is_server_argv(args)):
+            found.append(pid)
+    return sorted(found)
+
+
+def _foreign_network_namespace_pids():
+    """Find live same-UID processes outside this Linux network namespace.
+
+    A released sandbox client checks the cache latch before it spawns its v2
+    server. It can therefore be paused after that check while no server process
+    exists yet. Requiring the first v5 upgrade to occur with every old network
+    namespace quiescent closes that delayed-Popen race; processes created after
+    guard publication necessarily observe the guard before their own spawn.
+    Host-namespace released servers remain excluded by the reserved TCP port.
+    """
+    proc_root = Path('/proc')
+    self_ns = proc_root / 'self' / 'ns' / 'net'
+    if not self_ns.exists():
+        return []  # macOS/other platforms have one host loopback namespace.
+    try:
+        own = os.stat(self_ns)
+        entries = list(proc_root.iterdir())
+    except OSError as e:
+        raise WrdsLatchError(
+            f'cannot enumerate network namespaces for WRDS upgrade safety: {e}') from e
+    own_identity = (own.st_dev, own.st_ino)
+    def is_deployed_wrds_runtime(entry):
+        try:
+            cwd = Path(os.readlink(entry / 'cwd'))
+        except (FileNotFoundError, ProcessLookupError):
+            return False
+        except OSError as e:
+            raise WrdsLatchError(
+                f'cannot inspect same-user process cwd {entry.name}: {e}') from e
+        for candidate in (cwd, *cwd.parents):
+            if ((candidate / '.deploy_manifest.json').is_file() and
+                    (candidate / 'code' / 'utils' / 'wrds_client.py').is_file()):
+                return True
+        return False
+
+    found = []
+    for entry in entries:
+        if not entry.name.isdigit() or int(entry.name) == os.getpid():
+            continue
+        try:
+            if (hasattr(os, 'getuid') and entry.stat().st_uid != os.getuid()):
+                continue
+            candidate = os.stat(entry / 'ns' / 'net')
+        except (FileNotFoundError, ProcessLookupError):
+            continue
+        except PermissionError as e:
+            raise WrdsLatchError(
+                f'cannot inspect same-user network namespace {entry.name}: {e}') from e
+        except OSError as e:
+            raise WrdsLatchError(
+                f'network-namespace discovery failed at {entry}: {e}') from e
+        if ((candidate.st_dev, candidate.st_ino) != own_identity and
+                is_deployed_wrds_runtime(entry)):
+            found.append(int(entry.name))
+    return sorted(found)
+
+
+def _refuse_live_legacy_processes():
+    pids = _legacy_server_pids()
+    if pids:
+        raise WrdsInstanceBusy(
+            "pre-v5 WRDS server process(es) still live across namespaces: " +
+            ', '.join(map(str, pids)))
+    namespace_pids = _foreign_network_namespace_pids()
+    if namespace_pids:
+        raise WrdsInstanceBusy(
+            "foreign network namespace(s) are still active during the first "
+            "v5 upgrade; stop old sandbox runs before starting WRDS: " +
+            ', '.join(map(str, namespace_pids)))
+
+
+def _bind_legacy_refusal_listener():
+    """Reserve released v2 TCP transport and answer only upgrade refusals."""
+    listener = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+    listener.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
+    try:
+        listener.bind(('127.0.0.1', PORT))
+        listener.listen(5)
+    except OSError as e:
+        listener.close()
+        raise WrdsInstanceBusy(
+            f"legacy WRDS TCP port 127.0.0.1:{PORT} is already owned; "
+            "stop the pre-v5 daemon before upgrading") from e
+    return listener
+
+
+def _legacy_refusal_loop(listener):
+    """Never dispatch TCP commands; only tell released clients to upgrade."""
+    while True:
+        try:
+            conn, _ = listener.accept()
+        except OSError:
             return
-        except (OSError, ValueError):
-            pass  # Old process is dead / pid file junk — continue
+        try:
+            conn.settimeout(1)
+            raw_len = conn.recv(8)
+            if raw_len:
+                response = {
+                    'status': 'error',
+                    'error_kind': 'safety',
+                    'msg': ('WRDS TCP transport is retired. Stop this old '
+                            'runtime and relaunch an updated deployment.'),
+                }
+                send_response(conn, response)
+        except Exception:
+            pass
+        finally:
+            conn.close()
+
+
+def _open_compat_dir(create):
+    """Open the old cache directory by descriptor without following symlinks."""
+    flags = (os.O_RDONLY | getattr(os, 'O_DIRECTORY', 0) |
+             getattr(os, 'O_NOFOLLOW', 0))
+    parent = os.path.abspath(os.path.dirname(CACHE_AUTH_BLOCK_FILE))
+    try:
+        fd = os.open(os.path.sep, flags)
+        for component in Path(parent).parts[1:]:
+            if create:
+                try:
+                    os.mkdir(component, 0o700, dir_fd=fd)
+                except FileExistsError:
+                    pass
+            next_fd = os.open(component, flags, dir_fd=fd)
+            os.close(fd)
+            fd = next_fd
+        info = os.fstat(fd)
+        if (not stat.S_ISDIR(info.st_mode) or
+                (hasattr(os, 'getuid') and info.st_uid != os.getuid()) or
+                info.st_mode & 0o022):
+            raise OSError('legacy compatibility directory failed owner/type checks')
+        return fd
+    except Exception:
+        if 'fd' in locals():
+            try:
+                os.close(fd)
+            except OSError:
+                pass
+        raise
+
+
+def _compat_guard_directory_locked():
+    """True only for the v5-owned read/execute-only compatibility directory."""
+    dir_fd = None
+    try:
+        dir_fd = _open_compat_dir(create=False)
+        return stat.S_IMODE(os.fstat(dir_fd).st_mode) == 0o500
+    except OSError:
+        return False
+    finally:
+        if dir_fd is not None:
+            os.close(dir_fd)
+
+
+def _write_compat_guard():
+    """Publish, without replacement, the latch released starters honor.
+
+    The cache pathname is legacy API surface, not v5 authority. Publication is
+    no-clobber so an older process's concurrent write-ahead login marker can
+    never be erased. While the daemon owns the guard, the final directory is
+    mode 0500: ordinary cache cleanup and released code cannot unlink it.
+    """
+    birth = _process_start_token(os.getpid())
+    if not birth:
+        raise WrdsLatchError('cannot identify compatibility-guard owner')
+    message = (f"{COMPAT_ACTIVE_PREFIX}{os.getpid()} start={birth}\n"
+               "A v5 host daemon is active; released clients must not start "
+               "another WRDS session.")
+    basename = os.path.basename(CACHE_AUTH_BLOCK_FILE)
+    dir_fd = None
+    tmp_name = f'.{basename}.{os.getpid()}.{threading.get_ident()}.tmp'
+    try:
+        dir_fd = _open_compat_dir(create=True)
+        os.fchmod(dir_fd, 0o700)
+        try:
+            fd = os.open(tmp_name, os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                         0o600, dir_fd=dir_fd)
+        except FileExistsError:
+            os.unlink(tmp_name, dir_fd=dir_fd)
+            fd = os.open(tmp_name, os.O_WRONLY | os.O_CREAT | os.O_EXCL,
+                         0o600, dir_fd=dir_fd)
+        with os.fdopen(fd, 'w', encoding='utf-8') as handle:
+            handle.write(message)
+            handle.flush()
+            os.fsync(handle.fileno())
+        try:
+            os.link(tmp_name, basename, src_dir_fd=dir_fd,
+                    dst_dir_fd=dir_fd, follow_symlinks=False)
+        except FileExistsError:
+            # Never replace: this may be a released daemon's write-ahead auth
+            # record. The post-publication verifier distinguishes a retained
+            # compatibility marker from real legacy auth state.
+            pass
+        os.unlink(tmp_name, dir_fd=dir_fd)
+        tmp_name = None
+        os.fsync(dir_fd)
+        info = os.stat(basename, dir_fd=dir_fd, follow_symlinks=False)
+        guard_fd = os.open(
+            basename, os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0), dir_fd=dir_fd)
+        try:
+            guard_info = os.fstat(guard_fd)
+            if (not stat.S_ISREG(guard_info.st_mode) or
+                    (hasattr(os, 'getuid') and
+                     guard_info.st_uid != os.getuid()) or
+                    guard_info.st_mode & 0o022):
+                raise OSError(
+                    'released-client compatibility guard failed owner/type checks')
+            # Directory mode 0500 blocks unlink/replace; file mode 0400 also
+            # blocks an already-resolved same-UID cache writer from truncating
+            # the marker in place. Updated sandboxes deny this path as a
+            # second, kernel-enforced boundary.
+            os.fchmod(guard_fd, 0o400)
+            info = os.fstat(guard_fd)
+        finally:
+            os.close(guard_fd)
+        parent_info = os.fstat(dir_fd)
+        current_parent = os.stat(os.path.dirname(CACHE_AUTH_BLOCK_FILE),
+                                 follow_symlinks=False)
+        if ((parent_info.st_dev, parent_info.st_ino) !=
+                (current_parent.st_dev, current_parent.st_ino)):
+            raise OSError('legacy compatibility directory changed during publish')
+        os.fchmod(dir_fd, 0o500)
+        return _lock_identity(info)
+    except OSError as e:
+        raise WrdsLatchError(
+            f"cannot publish released-client compatibility guard: {e}") from e
+    finally:
+        if dir_fd is not None:
+            if tmp_name is not None:
+                try:
+                    os.unlink(tmp_name, dir_fd=dir_fd)
+                except OSError:
+                    pass
+            try:
+                os.stat(basename, dir_fd=dir_fd, follow_symlinks=False)
+                os.fchmod(dir_fd, 0o500)
+            except OSError:
+                pass
+            os.close(dir_fd)
+
+
+def _remove_compat_guard(identity):
+    if identity is None:
+        return False
+    dir_fd = None
+    try:
+        dir_fd = _open_compat_dir(create=False)
+        os.fchmod(dir_fd, 0o700)
+        basename = os.path.basename(CACHE_AUTH_BLOCK_FILE)
+        info = os.stat(basename, dir_fd=dir_fd, follow_symlinks=False)
+        if _lock_identity(info) != identity:
+            os.fchmod(dir_fd, 0o500)
+            return False
+        os.unlink(basename, dir_fd=dir_fd)
+        os.fsync(dir_fd)
+        return True
+    except OSError:
+        return False
+    finally:
+        if dir_fd is not None:
+            os.close(dir_fd)
+
+
+def _verify_compat_guard(accepted_legacy_message=None):
+    """Fail closed if a released starter won the publication race."""
+    message = _read_latch_file(CACHE_AUTH_BLOCK_FILE)
+    if message is None:
+        raise WrdsLatchError(
+            'released-client compatibility guard disappeared after publication')
+    if message.startswith(COMPAT_ACTIVE_PREFIX):
+        return
+    if (accepted_legacy_message is not None and
+            message == accepted_legacy_message):
+        # Operator retry: the exact terminal record already copied into
+        # protected state doubles as the no-gap guard for released clients.
+        return
+    # Preserve the old process's write-ahead state in protected v5 storage
+    # before refusing our own login. Do not clear or overwrite the cache copy.
+    _write_auth_block(message)
+    raise WrdsInstanceBusy(
+        'a released WRDS starter published authentication state concurrently')
+
+
+def _adopted_legacy_guard():
+    """Return a crash-surviving, already-resolved old guard, if present."""
+    if not _compat_guard_directory_locked():
+        return None
+    message = _read_latch_file(CACHE_AUTH_BLOCK_FILE)
+    if message and not message.startswith(COMPAT_ACTIVE_PREFIX):
+        # Protected auth state was checked first and is clear. The only v5 path
+        # that leaves this terminal-looking cache record under mode 0500/0400
+        # is a verified operator retry retaining it as the old-client guard.
+        return message
+    return None
+
+
+def main(operator_unblock=False):
+    # Filesystem creation, not loopback TCP, is the authoritative singleton:
+    # each sandbox has its own network namespace but all see this host-owned
+    # state directory.  Never trust a PID file as a liveness oracle.
+    try:
+        instance_lock = _acquire_instance_lock()
+    except WrdsInstanceBusy as e:
+        print(f"[wrds_server] Already starting/running: {e}")
+        sys.exit(3)
+    except WrdsLatchError as e:
+        print(f"[wrds_server] SINGLETON LOCK UNAVAILABLE — refusing to connect: {e}",
+              flush=True)
+        sys.exit(2)
+
+    try:
+        _refuse_live_legacy_processes()
+        legacy_tcp_listener = _bind_legacy_refusal_listener()
+    except WrdsInstanceBusy as e:
+        _remove_lock_if_identity(instance_lock)
+        print(f"[wrds_server] LEGACY DAEMON DETECTED — refusing to connect: {e}",
+              flush=True)
+        sys.exit(4)
+    except WrdsLatchError as e:
+        _remove_lock_if_identity(instance_lock)
+        print(f"[wrds_server] PROCESS SAFETY CHECK FAILED — refusing to connect: {e}",
+              flush=True)
+        sys.exit(2)
+    legacy_thread = threading.Thread(
+        target=_legacy_refusal_loop, args=(legacy_tcp_listener,), daemon=True)
+    legacy_thread.start()
 
     # Persisted credential latch. Checked before binding or connecting: a
     # restart must NOT be a free way around the operator gate, or the automated
@@ -1045,42 +1954,100 @@ def main():
         if not blocked:
             _verify_auth_block_storage()
     except WrdsLatchError as e:
+        legacy_tcp_listener.close()
+        _remove_lock_if_identity(instance_lock)
         print(f"[wrds_server] RETRY LATCH UNAVAILABLE — refusing to connect: {e}",
               flush=True)
         sys.exit(2)
-    if blocked:
+    operator_retry = bool(blocked and operator_unblock)
+    if blocked and not operator_retry:
+        legacy_tcp_listener.close()
+        _remove_lock_if_identity(instance_lock)
         print(f"[wrds_server] AUTH BLOCKED — refusing to start. {blocked}",
               flush=True)
         sys.exit(2)
 
-    # Bind FIRST, before the expensive WRDS connect + Duo. The port is the
-    # authoritative per-host singleton guard: if another server is already
-    # listening (e.g. started by a different project, with a stale/missing
-    # pid file), bind() fails with EADDRINUSE and we exit cleanly WITHOUT
-    # touching the pid file the live server owns. Note SO_REUSEADDR does not
-    # let a second process steal an actively-listened socket, so this is a
-    # true mutual-exclusion check.
-    server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    server.setsockopt(socket.SOL_SOCKET, socket.SO_REUSEADDR, 1)
     try:
-        server.bind((HOST, PORT))
-    except OSError as e:
-        print(f"[wrds_server] Port {PORT} already in use ({e}); "
-              f"another server is running. Exiting.")
-        server.close()
-        return
-    server.listen(5)
+        adopted_legacy_guard = (
+            _adopted_legacy_guard() if not blocked else None)
+    except WrdsLatchError as e:
+        legacy_tcp_listener.close()
+        _remove_lock_if_identity(instance_lock)
+        print(f"[wrds_server] LEGACY COMPATIBILITY STATE UNAVAILABLE: {e}",
+              flush=True)
+        sys.exit(5)
 
-    # We own the port — record our PID (overwrites a stale one).
-    with open(PID_FILE, 'w') as f:
-        f.write(str(os.getpid()))
+    # Released v2/v3 starters already consult this cache latch before binding
+    # their namespace-local transports. Publish it after any real old latch was
+    # copied into protected state, then rescan processes to close the
+    # scan-to-publish race. It remains for this daemon's full lifetime.
+    try:
+        compat_identity = _write_compat_guard()
+    except WrdsLatchError as e:
+        legacy_tcp_listener.close()
+        _remove_lock_if_identity(instance_lock)
+        print(f"[wrds_server] LEGACY COMPATIBILITY STATE UNAVAILABLE: {e}",
+              flush=True)
+        sys.exit(5)
+    try:
+        _refuse_live_legacy_processes()
+        accepted_guard = (blocked if operator_retry else adopted_legacy_guard)
+        _verify_compat_guard(accepted_guard)
+    except WrdsInstanceBusy as e:
+        legacy_tcp_listener.close()
+        _remove_lock_if_identity(instance_lock)
+        print(f"[wrds_server] LEGACY DAEMON DETECTED — refusing to connect: {e}",
+              flush=True)
+        sys.exit(4)
+    except WrdsLatchError as e:
+        legacy_tcp_listener.close()
+        _remove_lock_if_identity(instance_lock)
+        print(f"[wrds_server] LEGACY COMPATIBILITY STATE UNAVAILABLE: {e}",
+              flush=True)
+        sys.exit(5)
+
+    # Bind transport before the expensive WRDS connect + Duo. A single private
+    # Unix endpoint is global across network namespaces and, unlike loopback
+    # TCP, carries filesystem owner permissions and exposes no admin commands.
+    try:
+        unix_server, unix_identity = _bind_unix_server()
+    except (OSError, WrdsLatchError, WrdsInstanceBusy) as e:
+        legacy_tcp_listener.close()
+        _remove_lock_if_identity(instance_lock)
+        print(f"[wrds_server] Cannot establish sandbox transport: {e}",
+              flush=True)
+        sys.exit(1)
+    try:
+        _write_pid_file()
+    except WrdsLatchError as e:
+        print(f"[wrds_server] PID STATE UNAVAILABLE — refusing to connect: {e}",
+              flush=True)
+        unix_server.close()
+        _unlink_socket_if_identity(unix_identity)
+        legacy_tcp_listener.close()
+        _remove_lock_if_identity(instance_lock)
+        sys.exit(2)
+
+    if operator_retry:
+        try:
+            _begin_login_attempt(replace_blocked=True)
+            print("[wrds_server] Operator approved one credential retry",
+                  flush=True)
+        except WrdsLatchError as e:
+            print(f"[wrds_server] UNBLOCK FAILED — latch remains armed: {e}",
+                  flush=True)
+            unix_server.close()
+            _unlink_socket_if_identity(unix_identity)
+            legacy_tcp_listener.close()
+            _remove_lock_if_identity(instance_lock)
+            sys.exit(2)
 
     # Connect to WRDS (triggers Duo on first connect)
     print("[wrds_server] Connecting to WRDS (check Duo notification)...")
     try:
-        state = WrdsState(connect_wrds())
+        state = WrdsState(connect_wrds(attempt_prearmed=operator_retry))
     except WrdsAuthError as e:
-        # Keep owning the port with an in-memory latch even if persistence has
+        # Keep owning the endpoint with an in-memory latch even if persistence has
         # just failed. That prevents an automated supervisor from replacing us
         # with a fresh process and spending another login. The operator can
         # still unblock this state in place after diagnosing the credential.
@@ -1095,7 +2062,8 @@ def main():
             )
         print(f"[wrds_server] AUTH BLOCKED — staying alive without retrying. "
               f"{state.auth_failed}", flush=True)
-    print(f"[wrds_server] Listening on {HOST}:{PORT}")
+    print(f"[wrds_server] Listening on {SOCKET_FILE} "
+          f"(TCP {PORT} is upgrade-refusal only)")
 
     def _remove_pid_if_ours():
         # Only remove the pid file if it still records THIS process — a
@@ -1108,27 +2076,55 @@ def main():
         except (OSError, ValueError):
             pass
 
+    def _remove_unix_socket_if_ours():
+        _unlink_socket_if_identity(unix_identity)
+
     def cleanup(signum, frame):
         print("\n[wrds_server] Shutting down...")
         try:
             state.db.close()
         except Exception:
             pass
-        server.close()
+        if unix_server is not None:
+            unix_server.close()
+        legacy_tcp_listener.close()
+        _remove_compat_guard(compat_identity)
+        _remove_unix_socket_if_ours()
         _remove_pid_if_ours()
+        _remove_lock_if_identity(instance_lock)
         sys.exit(0)
 
     signal.signal(signal.SIGINT, cleanup)
     signal.signal(signal.SIGTERM, cleanup)
 
-    while True:
-        try:
-            conn, addr = server.accept()
-            t = threading.Thread(target=handle_client, args=(conn, state))
-            t.daemon = True
-            t.start()
-        except Exception as e:
-            print(f"[wrds_server] Error: {e}")
+    def accept_loop(listener):
+        slots = threading.BoundedSemaphore(MAX_CLIENT_THREADS)
+
+        def serve_one(conn):
+            try:
+                handle_client(conn, state)
+            finally:
+                slots.release()
+
+        while True:
+            try:
+                conn, _ = listener.accept()
+                if not slots.acquire(blocking=False):
+                    conn.close()
+                    continue
+                t = threading.Thread(target=serve_one, args=(conn,))
+                t.daemon = True
+                t.start()
+            except OSError as e:
+                if e.errno in (9, 22):  # listener closed during shutdown
+                    return
+                print(f"[wrds_server] Error: {e}")
+
+    accept_loop(unix_server)
 
 if __name__ == '__main__':
-    main()
+    if len(sys.argv) > 2 or (len(sys.argv) == 2 and
+                             sys.argv[1] != '--operator-unblock'):
+        print(f"usage: {sys.argv[0]} [--operator-unblock]", file=sys.stderr)
+        sys.exit(64)
+    main(operator_unblock=(len(sys.argv) == 2))

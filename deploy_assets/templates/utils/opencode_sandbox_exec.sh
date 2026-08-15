@@ -40,21 +40,39 @@ elif [ -e "$HOME/.codex" ] && [ ! -d "$HOME/.codex" ]; then
     exit 1
 fi
 
-# SRT's Linux bwrap backend resolves filesystem paths when the sandbox starts
-# and cannot grant/deny a path that appears later. Materialize every expected
-# OpenCode/cache write root and both protected credential directories first.
-# Existing paths and permissions are left untouched.
-for runtime_dir in \
-    "$HOME/.cache" \
-    "$HOME/Library/Caches" \
-    "$HOME/.matplotlib" \
-    "$HOME/.codex"
-do
-    mkdir -p "$runtime_dir" || {
-        echo "ERROR: cannot prepare OpenCode sandbox write path: $runtime_dir" >&2
-        exit 1
+# SRT resolves policy paths at sandbox creation. Validate every component and
+# reject symlinks before granting an external writable root; broad-cache
+# deployments predating v5 could otherwise redirect one to WRDS protected state.
+node - "$HOME" <<'JS'
+const fs = require("fs");
+const path = require("path");
+const home = process.argv[2];
+const expectedUid = typeof process.getuid === "function" ? process.getuid() : null;
+function ensure(parts) {
+  let current = home;
+  for (const component of parts) {
+    current = path.join(current, component);
+    if (!fs.existsSync(current)) fs.mkdirSync(current, {mode: 0o700});
+    const info = fs.lstatSync(current);
+    if (!info.isDirectory() || info.isSymbolicLink() ||
+        (expectedUid !== null && info.uid !== expectedUid) || (info.mode & 0o022)) {
+      throw new Error(`unsafe OpenCode sandbox writable root: ${current}`);
     }
-done
+    const fd = fs.openSync(current,
+      fs.constants.O_RDONLY | fs.constants.O_DIRECTORY | (fs.constants.O_NOFOLLOW || 0));
+    const opened = fs.fstatSync(fd);
+    fs.closeSync(fd);
+    if (opened.dev !== info.dev || opened.ino !== info.ino) {
+      throw new Error(`OpenCode sandbox root changed during validation: ${current}`);
+    }
+  }
+}
+for (const parts of [
+  [".codex"], [".matplotlib"], ["Library", "Caches"],
+  ...["uv", "pip", "matplotlib", "fontconfig", "gdown", "huggingface",
+      "torch", "ms-playwright", "opencode"].map(name => [".cache", name]),
+]) ensure(parts);
+JS
 project_root="$(pwd -P)"
 project_log="$project_root/process_log"
 if [ -L "$project_log" ] || { [ -e "$project_log" ] && [ ! -d "$project_log" ]; }; then
@@ -80,7 +98,22 @@ if [ "$(cd "$project_runtime" && pwd -P)" != "$project_runtime" ]; then
     exit 1
 fi
 
+zeropaper_cache_parent="$HOME/.cache/zeropaper"
+if [ -L "$zeropaper_cache_parent" ]; then
+    echo "ERROR: OpenCode sandbox protected path must not have a symlinked parent: $zeropaper_cache_parent" >&2
+    exit 1
+elif [ ! -e "$zeropaper_cache_parent" ]; then
+    mkdir -m 700 "$zeropaper_cache_parent" || {
+        echo "ERROR: cannot prepare OpenCode sandbox protected parent: $zeropaper_cache_parent" >&2
+        exit 1
+    }
+elif [ ! -d "$zeropaper_cache_parent" ]; then
+    echo "ERROR: OpenCode sandbox protected parent is not a directory: $zeropaper_cache_parent" >&2
+    exit 1
+fi
+
 for protected_dir in \
+    "$HOME/.cache/zeropaper/wrds" \
     "$HOME/.ssh" "$HOME/.aws" "$HOME/.claude" \
     "$HOME/.codex/plugins" "$HOME/.codex/skills" "$HOME/.codex/rules" "$HOME/.codex/packages"
 do

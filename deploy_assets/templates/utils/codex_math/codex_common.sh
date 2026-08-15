@@ -28,8 +28,8 @@ CODEX_LEAF_DIRECTIVE="You are a single leaf worker running one codex-math task. 
 # $HOME) stay blocked — the anti-destruction property.
 #
 # DELIBERATE DIVERGENCE from launch_agent.sh: network stays OFF here. That
-# launcher enables egress because general pipeline agents call WRDS
-# (127.0.0.1:23847) / OpenAlex / web; codex-math workers are self-contained
+# launcher enables egress because general pipeline agents call OpenAlex / web
+# (WRDS itself now uses a filesystem socket); codex-math workers are self-contained
 # proof-verify / proof-write / numeric-explore tasks with ZERO egress need. Per
 # least-privilege we do not grant the sandboxed shell tool a network capability
 # it has no task-relevant use for (a hallucinated "let me check online" shell-out
@@ -42,7 +42,7 @@ CODEX_LEAF_DIRECTIVE="You are a single leaf worker running one codex-math task. 
 # Pass "${CODEX_SANDBOX_WS_ARGS[@]}" into each `codex exec`.
 CODEX_SANDBOX_WS_ARGS=(
     -c 'sandbox_workspace_write.network_access=false'
-    -c 'sandbox_workspace_write.writable_roots=["~/.codex","~/.cache","~/Library/Caches","~/.matplotlib"]'
+    -c 'sandbox_workspace_write.writable_roots=["~/.codex","~/.cache/uv","~/.cache/pip","~/.cache/matplotlib","~/.cache/fontconfig","~/.cache/gdown","~/.cache/huggingface","~/.cache/torch","~/.cache/ms-playwright","~/Library/Caches","~/.matplotlib"]'
 )
 
 # Sandbox MODE for codex-math leaf workers: workspace-write normally. When these
@@ -101,6 +101,9 @@ codex_leaf_setup() {
     if [ -f "$_cp_dir/codex_preflight.sh" ]; then
         . "$_cp_dir/codex_preflight.sh"
         codex_proxy_auth_preflight
+    fi
+    if [ "$CODEX_SANDBOX_MODE" = "workspace-write" ]; then
+        /usr/bin/python3 -I "$_cp_dir/sandbox_cache_roots.py"
     fi
     # The literal-/tmp fallback is for Linux, where /tmp is a real directory.
     # On macOS an unset TMPDIR would hit the /tmp→/private/tmp symlink issue

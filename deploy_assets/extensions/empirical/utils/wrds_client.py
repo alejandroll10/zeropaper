@@ -1,10 +1,10 @@
 """WRDS client — sends queries to the persistent wrds_server.
 
 Usage:
-    from utils.wrds_client import wrds_query, wrds_ping, wrds_start
+    from utils.wrds_client import wrds_query, wrds_ping
 
-    # Check if server is running, start if not
-    wrds_start()
+    # The trusted launcher starts the daemon before entering the sandbox
+    assert wrds_ping(), "host WRDS daemon unavailable"
 
     # Run a query
     df = wrds_query("SELECT * FROM crsp.msf LIMIT 5")
@@ -12,56 +12,97 @@ Usage:
     # List tables
     tables = wrds_list_tables("crsp")
 
-The client connects to the local wrds_server on port 23847.
-If the server isn't running, wrds_start() launches it in the background
-and waits for the Duo 2FA to complete.
+The client prefers the server's private Unix-domain socket, which remains
+reachable through a sandbox's read-only home view when it has its own network
+namespace. It exposes query operations only; host lifecycle control is never
+available over the wire. If the server is down, relaunch the runtime so its
+trusted host-side launcher can restore it.
 """
 import json
 import socket
 import subprocess
 import time
 import os
+import stat
 import sys
 from pathlib import Path
 
 import pandas as pd
-from dotenv import load_dotenv
+from dotenv import dotenv_values, load_dotenv
 
 _DOTENV_PATH = Path(__file__).resolve().parents[2] / '.env'
 load_dotenv(dotenv_path=_DOTENV_PATH)
 
-HOST = '127.0.0.1'
 PORT = 23847
+SOCKET_FILE = os.path.join(
+    os.path.expanduser('~'), '.local', 'state', 'zeropaper', 'wrds',
+    f'wrds_server_{PORT}.sock')
+LOG_FILE = os.path.join(
+    os.path.dirname(SOCKET_FILE), f'wrds_server_{PORT}.log')
 # Bump with the server whenever login/recovery safety semantics change. Keep a
 # literal here: importing the deployed module cannot identify a stale process.
-SAFETY_PROTOCOL = 'wrds-auth-latch-v2'
+SAFETY_PROTOCOL = 'wrds-auth-latch-v5'
+MAX_RESPONSE = 90 * 1024 * 1024
+
+
+def _recv_exact(sock, size):
+    chunks = []
+    received = 0
+    while received < size:
+        chunk = sock.recv(size - received)
+        if not chunk:
+            raise ConnectionError(
+                f'incomplete WRDS response frame ({received}/{size} bytes)')
+        chunks.append(chunk)
+        received += len(chunk)
+    return b''.join(chunks)
+
+def _connect(timeout):
+    """Connect to the host-wide daemon across sandbox boundaries.
+
+    Network-isolated sandboxes have a private 127.0.0.1, but their approved
+    read-only home view is shared with the host.
+    """
+    if not hasattr(socket, 'AF_UNIX'):
+        raise OSError('WRDS sandbox transport requires AF_UNIX support')
+    sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+    sock.settimeout(timeout)
+    try:
+        sock.connect(SOCKET_FILE)
+        return sock
+    except OSError:
+        sock.close()
+        raise
+
 
 def _send_request(request, timeout=300):
     """Send a request to the wrds_server and return the response."""
     request = {**request, 'safety_protocol': SAFETY_PROTOCOL}
-    sock = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
-    sock.settimeout(timeout)
-    sock.connect((HOST, PORT))
+    sock = _connect(timeout)
+    try:
+        data = json.dumps(request).encode()
+        header = f"{len(data):8d}".encode()
+        sock.sendall(header + data)
 
-    data = json.dumps(request).encode()
-    header = f"{len(data):8d}".encode()
-    sock.sendall(header + data)
+        # Receive response
+        raw_len = _recv_exact(sock, 8)
+        try:
+            msg_len = int(raw_len.decode('ascii').strip())
+        except (UnicodeError, ValueError) as e:
+            raise ConnectionError('invalid WRDS response frame length') from e
+        if msg_len <= 0 or msg_len > MAX_RESPONSE:
+            raise ConnectionError(
+                f'WRDS response frame must be 1..{MAX_RESPONSE} bytes')
 
-    # Receive response
-    raw_len = sock.recv(8)
-    msg_len = int(raw_len.decode().strip())
-
-    chunks = []
-    received = 0
-    while received < msg_len:
-        chunk = sock.recv(min(65536, msg_len - received))
-        if not chunk:
-            break
-        chunks.append(chunk)
-        received += len(chunk)
-
-    sock.close()
-    return json.loads(b''.join(chunks).decode())
+        chunks = []
+        received = 0
+        while received < msg_len:
+            chunk = _recv_exact(sock, min(65536, msg_len - received))
+            chunks.append(chunk)
+            received += len(chunk)
+        return json.loads(b''.join(chunks).decode())
+    finally:
+        sock.close()
 
 class WrdsAuthBlocked(RuntimeError):
     """WRDS refused the credential. Terminal — the server has latched and will
@@ -88,7 +129,7 @@ def _validate_protocol(resp):
 
 def _safety_hello():
     """DB-free handshake; legacy servers reject this as an unknown command."""
-    resp = _send_request({'cmd': 'safety_hello_v2'}, timeout=5)
+    resp = _send_request({'cmd': 'safety_hello_v5'}, timeout=5)
     _validate_protocol(resp)
     if resp.get('status') != 'ok':
         raise WrdsSafetyBlocked(resp.get('msg') or _safety_message())
@@ -97,7 +138,7 @@ def _safety_hello():
 def _ensure_safe_server(allow_auth=False):
     """Handshake before any command an old daemon could execute unsafely."""
     _safety_hello()
-    resp = _send_request({'cmd': 'safe_ping_v2'}, timeout=5)
+    resp = _send_request({'cmd': 'safe_ping_v5'}, timeout=5)
     _validate_protocol(resp)
     if resp.get('status') == 'error':
         if allow_auth and resp.get('error_kind') == 'auth':
@@ -116,7 +157,7 @@ def wrds_ping():
     """Check if wrds_server is running. Returns True/False."""
     try:
         _safety_hello()
-        resp = _send_request({'cmd': 'safe_ping_v2'}, timeout=5)
+        resp = _send_request({'cmd': 'safe_ping_v5'}, timeout=5)
         return (resp.get('status') == 'ok' and
                 resp.get('safety_protocol') == SAFETY_PROTOCOL)
     except (ConnectionRefusedError, OSError, WrdsSafetyBlocked):
@@ -133,7 +174,7 @@ def wrds_auth_error():
     """
     try:
         _safety_hello()
-        resp = _send_request({'cmd': 'safe_ping_v2'}, timeout=5)
+        resp = _send_request({'cmd': 'safe_ping_v5'}, timeout=5)
     except WrdsSafetyBlocked as e:
         return str(e)
     except (ConnectionRefusedError, OSError):
@@ -175,10 +216,11 @@ def _persisted_auth_state():
             return 'blocked', message
         return 'none', None
     except Exception as e:
-        # Unreadable latch state is not evidence that no rejection occurred.
-        # Refuse automatic startup until the operator repairs the state path.
-        return ('blocked',
-                f"WRDS retry latch is unreadable; refusing automatic start: {e}")
+        # Unreadable state remains fail-closed because this client never
+        # auto-starts. Keep it distinct from a credential rejection so a
+        # sandbox write denial is not mislabeled as an auth lockout.
+        return ('unavailable',
+                f"WRDS retry latch is unreadable; host repair required: {e}")
 
 
 def _persisted_auth_block():
@@ -204,16 +246,22 @@ def _wait_for_ready(proc=None):
             raise WrdsAuthBlocked(latched)
         if proc is not None and proc.poll() is not None:
             # Two starters can both spawn before the winner writes its marker.
-            # The loser exits on PID/port ownership; that is a cue to join the
+            # The loser exits on filesystem-lock ownership; that is a cue to join the
             # peer, not report failure to an outer supervisor that may retry.
             if proc.returncode == 0 or wrds_login_in_progress():
                 print("[wrds_client] Starter lost the singleton race; waiting "
                       "for the existing WRDS server.")
                 proc = None
                 continue
-            err = (proc.stderr.read() or b'').decode(errors='replace')
-            out = (proc.stdout.read() or b'').decode(errors='replace')
+            err_stream = getattr(proc, 'stderr', None)
+            out_stream = getattr(proc, 'stdout', None)
+            err = ((err_stream.read() or b'').decode(errors='replace')
+                   if err_stream is not None else '')
+            out = ((out_stream.read() or b'').decode(errors='replace')
+                   if out_stream is not None else '')
             detail = (out + err).strip()[-800:]
+            if not detail:
+                detail = f"see durable service log {LOG_FILE}"
             if proc.returncode == 2:
                 raise WrdsAuthBlocked(
                     "WRDS server exited on a safety/authentication gate — not "
@@ -233,10 +281,7 @@ def wrds_wait_for_existing():
     return _wait_for_ready()
 
 def wrds_start():
-    """Start the wrds_server if not already running.
-
-    This triggers Duo 2FA exactly once. Blocks until the server is ready.
-    """
+    """Verify/reuse the host-started daemon; never spawn from a sandbox."""
     if wrds_ping():
         return True
 
@@ -250,29 +295,12 @@ def wrds_start():
         print("[wrds_client] Another WRDS login is in progress; waiting for it.")
         return _wait_for_ready()
 
-    # Find the server script
-    utils_dir = os.path.dirname(os.path.abspath(__file__))
-    server_script = os.path.join(utils_dir, 'wrds_server.py')
-
-    if not os.path.exists(server_script):
-        raise FileNotFoundError(f"wrds_server.py not found at {server_script}")
-
-    print("[wrds_client] Starting WRDS server (check Duo notification)...")
-    # wrds.Connection silently drops the wrds_password kwarg, so the spawned server
-    # needs PGPASSWORD in its env for libpq to authenticate.
-    server_env = {**os.environ}
-    wrds_pass = os.getenv('WRDS_PASS')
-    if wrds_pass:
-        server_env['PGPASSWORD'] = wrds_pass
-    proc = subprocess.Popen(
-        [sys.executable, server_script],
-        stdout=subprocess.PIPE,
-        stderr=subprocess.PIPE,
-        start_new_session=True,
-        env=server_env,
+    raise RuntimeError(
+        "WRDS host daemon is down. Sandboxed code cannot safely recreate its "
+        "protected singleton/latch state. Stop this runtime and relaunch it "
+        "through ./launch.sh (or ask the operator to run "
+        "code/utils/start_services.sh on the host); do not retry here."
     )
-
-    return _wait_for_ready(proc)
 
 def _raise(prefix, resp):
     """Raise the typed client exception represented by an error response."""
@@ -298,7 +326,8 @@ def wrds_query(sql, timeout=300):
     retries once before returning an error; resp['recovered'] is True when
     that happened.
     """
-    resp = _checked_request({'cmd': 'safe_query_v2', 'sql': sql}, timeout=timeout)
+    resp = _checked_request(
+        {'cmd': 'safe_query_v5', 'sql': sql, 'timeout': timeout}, timeout=timeout)
     if resp['status'] == 'error':
         _raise("WRDS query failed", resp)
     from io import StringIO
@@ -306,21 +335,34 @@ def wrds_query(sql, timeout=300):
 
 def wrds_list_tables(library):
     """List tables in a WRDS library."""
-    resp = _checked_request({'cmd': 'safe_list_tables_v2', 'library': library})
+    resp = _checked_request({'cmd': 'safe_list_tables_v5', 'library': library})
     if resp['status'] == 'error':
         _raise("WRDS list_tables failed", resp)
     return resp['tables']
 
 def wrds_list_libraries():
     """List WRDS libraries via the persistent server."""
-    resp = _checked_request({'cmd': 'safe_list_libraries_v2'})
+    resp = _checked_request({'cmd': 'safe_list_libraries_v5'})
     if resp['status'] == 'error':
         _raise("WRDS list_libraries failed", resp)
     return resp['libraries']
 
 def wrds_get_table(library, table, rows=-1, obs=None, offset=0, columns=None,
                    coerce_float=True, index_col=None, date_cols=None):
-    """Compatibility wrapper for ``wrds.Connection.get_table``."""
+    """Compatibility wrapper for ``wrds.Connection.get_table``.
+
+    The shared daemon requires an explicit positive ``rows``/``obs`` limit no
+    larger than 100,000. Use filtered ``wrds_query`` pulls for larger extracts.
+    """
+    requested_rows = obs if obs is not None else rows
+    try:
+        requested_rows = int(requested_rows)
+    except (TypeError, ValueError) as e:
+        raise ValueError('wrds_get_table requires an explicit row limit') from e
+    if not 1 <= requested_rows <= 100_000:
+        raise ValueError(
+            'wrds_get_table row limit must be 1..100000; use filtered '
+            'wrds_query pulls for larger extracts')
     kwargs = {
         'rows': rows,
         'obs': obs,
@@ -331,7 +373,7 @@ def wrds_get_table(library, table, rows=-1, obs=None, offset=0, columns=None,
         'date_cols': date_cols,
     }
     resp = _checked_request({
-        'cmd': 'safe_get_table_v2', 'library': library, 'table': table,
+        'cmd': 'safe_get_table_v5', 'library': library, 'table': table,
         'kwargs': kwargs,
     })
     if resp['status'] == 'error':
@@ -342,7 +384,7 @@ def wrds_get_table(library, table, rows=-1, obs=None, offset=0, columns=None,
 def wrds_describe(library, table):
     """Describe a WRDS table (columns, types, row count)."""
     resp = _checked_request(
-        {'cmd': 'safe_describe_v2', 'library': library, 'table': table})
+        {'cmd': 'safe_describe_v5', 'library': library, 'table': table})
     if resp['status'] == 'error':
         _raise("WRDS describe failed", resp)
     from io import StringIO
@@ -360,40 +402,72 @@ def wrds_unblock():
 
         python code/utils/wrds_client.py unblock
     """
+    # Lifecycle operations are intentionally absent from the query socket. An
+    # operator must first stop the live daemon from the host; otherwise an
+    # autonomous agent could turn one network request into another login.
     try:
-        _ensure_safe_server(allow_auth=True)
-        resp = _send_request({'cmd': 'safe_unblock_v2'}, timeout=180)
-        _validate_protocol(resp)
-    except ConnectionRefusedError:
-        # Server down with a latch on disk: approving means clearing the latch
-        # and spending the one approved attempt on a fresh start. Without this
-        # the persisted latch would be unclearable except by hand.
-        srv = _server_module()
-        if not srv._read_auth_block():
-            return False, 'no WRDS server running, and no latch to clear'
-        srv._clear_auth_block()
-        try:
-            wrds_start()
-            return True, 'latch cleared; server started and credential accepted'
-        except WrdsAuthBlocked as e:
-            return False, str(e)
-        except Exception as e:
-            return False, f'latch cleared but server did not start: {e}'
-    if resp.get('status') == 'ok':
-        return True, resp.get('msg', 'unblocked')
-    return False, resp.get('msg', 'unblock failed')
-
-
-def wrds_shutdown():
-    """Shut down the wrds_server."""
-    try:
-        # DB-free hello + versioned lifecycle command: never let an updated
-        # client kill a stale daemon and invite an automated replacement.
         _safety_hello()
-        resp = _send_request({'cmd': 'safe_shutdown_v2'}, timeout=5)
-        _validate_protocol(resp)
-    except Exception:
+        return False, (
+            'WRDS daemon is still running. OPERATOR: stop its recorded PID '
+            'from the host, then rerun this unblock command exactly once.'
+        )
+    except WrdsSafetyBlocked as e:
+        # A protocol mismatch still proves that a process answered the socket.
+        # Never start a second credentialed daemon beside an old live one.
+        return False, (
+            'A live WRDS endpoint has an incompatible safety protocol. '
+            f'OPERATOR: stop it from the host before unblock. {e}'
+        )
+    except (ConnectionRefusedError, FileNotFoundError):
         pass
+
+    srv = _server_module()
+    if not srv._read_auth_block():
+        return False, 'no WRDS server running, and no latch to clear'
+    utils_dir = os.path.dirname(os.path.abspath(__file__))
+    server_script = os.path.join(utils_dir, 'wrds_server.py')
+    # The operator may have corrected .env while their shell still exports the
+    # rejected credential.  The approved retry must use the reviewed file, not
+    # silently inherit stale WRDS_PASS/PGPASSWORD values from that shell.
+    load_dotenv(dotenv_path=_DOTENV_PATH, override=True)
+    server_env = {**os.environ}
+    file_credentials = dotenv_values(dotenv_path=_DOTENV_PATH)
+    for credential_key in ('WRDS_USER', 'WRDS_PASS', 'PGPASSWORD'):
+        server_env.pop(credential_key, None)
+    for credential_key in ('WRDS_USER', 'WRDS_PASS'):
+        credential_value = file_credentials.get(credential_key)
+        if credential_value is not None:
+            server_env[credential_key] = credential_value
+    wrds_pass = server_env.get('WRDS_PASS')
+    if wrds_pass:
+        server_env['PGPASSWORD'] = wrds_pass
+    srv._prepare_auth_block_dir()
+    flags = (os.O_WRONLY | os.O_CREAT | os.O_APPEND |
+             getattr(os, 'O_NOFOLLOW', 0))
+    try:
+        log_fd = os.open(LOG_FILE, flags, 0o600)
+        info = os.fstat(log_fd)
+        if (not stat.S_ISREG(info.st_mode) or
+                (hasattr(os, 'getuid') and info.st_uid != os.getuid())):
+            raise OSError(f"unsafe WRDS service log: {LOG_FILE}")
+        os.fchmod(log_fd, 0o600)
+        proc = subprocess.Popen(
+            [sys.executable, server_script, '--operator-unblock'],
+            stdout=log_fd,
+            stderr=subprocess.STDOUT,
+            start_new_session=True,
+            env=server_env,
+        )
+    finally:
+        if 'log_fd' in locals():
+            os.close(log_fd)
+    try:
+        _wait_for_ready(proc)
+        return True, 'latch cleared; server started and credential accepted'
+    except WrdsAuthBlocked as e:
+        return False, str(e)
+    except Exception as e:
+        return False, f'approved retry did not start a healthy server: {e}'
 
 
 if __name__ == '__main__':

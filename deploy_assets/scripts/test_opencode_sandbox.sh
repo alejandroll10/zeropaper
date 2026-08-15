@@ -44,7 +44,9 @@ printf 'outside-canary\n' > "$FAKE_HOME/external/existing"
             test "$XDG_DATA_HOME" = "$PWD/process_log/.opencode-runtime/data"
             test "$XDG_STATE_HOME" = "$PWD/process_log/.opencode-runtime/state"
             printf "allowed\n" > project-write
-            printf "cache-allowed\n" > "$HOME/.cache/opencode-sandbox-canary"
+            printf "cache-allowed\n" > "$HOME/.cache/opencode/opencode-sandbox-canary"
+            mkdir -p "$HOME/.cache/zeropaper/wrds" 2>/dev/null || true
+            if printf "guard-tamper\n" > "$HOME/.cache/zeropaper/wrds/authblock"; then exit 33; fi
             curl -fsS --max-time 15 https://example.com >/dev/null
             ! test -r "$HOME/.ssh/secret"
             if printf "escape\n" > "$HOME/external/new"; then exit 10; fi
@@ -78,7 +80,7 @@ printf 'outside-canary\n' > "$FAKE_HOME/external/existing"
 )
 
 test "$(cat "$TEST_ROOT/project/project-write")" = "allowed"
-test "$(cat "$FAKE_HOME/.cache/opencode-sandbox-canary")" = "cache-allowed"
+test "$(cat "$FAKE_HOME/.cache/opencode/opencode-sandbox-canary")" = "cache-allowed"
 test "$(cat "$FAKE_HOME/external/existing")" = "outside-canary"
 test ! -e "$FAKE_HOME/external/new"
 test ! -e "$FAKE_HOME/external/child-new"
