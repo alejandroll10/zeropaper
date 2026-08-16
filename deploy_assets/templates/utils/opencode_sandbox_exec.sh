@@ -68,7 +68,12 @@ function ensure(parts) {
   }
 }
 for (const parts of [
-  [".codex"], [".cache"], [".matplotlib"], ["Library", "Caches"],
+  [".codex"], [".cache"], [".cache", "zeropaper"],
+  [".cache", "zeropaper", "wrds"], [".matplotlib"],
+  ["Library", "Caches"], [".local"], [".local", "state"],
+  [".local", "state", "zeropaper"],
+  [".local", "state", "zeropaper", "opencode-control"],
+  [".local", "state", "zeropaper", "wrds"],
 ]) ensure(parts);
 JS
 project_root="$(pwd -P)"
@@ -111,7 +116,9 @@ elif [ ! -d "$zeropaper_cache_parent" ]; then
 fi
 
 for protected_dir in \
+    "$HOME/.local/state/zeropaper/opencode-control" \
     "$HOME/.cache/zeropaper/wrds" \
+    "$HOME/.local/state/zeropaper/wrds" \
     "$HOME/.ssh" "$HOME/.aws" "$HOME/.claude" \
     "$HOME/.codex/plugins" "$HOME/.codex/skills" "$HOME/.codex/rules" "$HOME/.codex/packages"
 do
@@ -128,6 +135,10 @@ do
         exit 1
     fi
 done
+chmod 700 "$HOME/.local/state/zeropaper/opencode-control" || {
+    echo "ERROR: cannot protect OpenCode host control state" >&2
+    exit 1
+}
 for protected_file in "$HOME/.codex/auth.json" "$HOME/.codex/config.toml"; do
     if [ -L "$protected_file" ]; then
         echo "ERROR: OpenCode sandbox protected path must not be a symlink: $protected_file" >&2

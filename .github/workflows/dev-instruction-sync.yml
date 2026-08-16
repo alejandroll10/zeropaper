@@ -58,6 +58,8 @@ jobs:
           python3 deploy_assets/scripts/test_wrds_unix_socket.py
           bash deploy_assets/scripts/test_wrds_auth_latch.sh
           bash deploy_assets/scripts/test_launch_wrds_prestart.sh
+          bash deploy_assets/scripts/test_wrds_turn_survival.sh
+          bash deploy_assets/scripts/test_launch_wrds_opencode.sh
 
       - name: Test production provisioning and publication
         run: bash test_scripts/test_setup_publish.sh

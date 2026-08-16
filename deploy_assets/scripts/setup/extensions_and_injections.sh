@@ -567,6 +567,12 @@ PYEOF
                 "$MODE_VOCAB_OVERLAY" \
                 "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json" \
                 "${MODE//-/_}"
+            # Privileged OpenCode SRT gatekeeper: deploy under the model-immutable
+            # runtime, never beside model-writable empirical service code.
+            infrastructure_copy_file 295 \
+                "$TEMPLATE_ROOT/templates/utils/wrds_srt_service.py" \
+                ".opencode/wrds_srt_service.py"
+            chmod +x "$P/.opencode/wrds_srt_service.py"
             provision_extension_dependencies empirical
 
             python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \

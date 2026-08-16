@@ -96,6 +96,61 @@ import os, sys
 assert all(os.lstat(path).st_nlink == 1 for path in sys.argv[1:])
 PY
 
+# The launcher-only WRDS profile may write only the protected service state and
+# create the daemon's Unix endpoint. It must keep host-visible PIDs so the
+# write-ahead login-attempt owner remains authoritative across SRT.
+WRDS_WITNESS="$FAKE_HOME/.local/state/zeropaper/wrds/srt-witness"
+WRDS_HOST_CONTROL="$FAKE_HOME/.local/state/zeropaper/opencode-control/service-escape"
+(
+    cd "$TEST_ROOT/project"
+    HOME="$FAKE_HOME" ZEROPAPER_OPENCODE_WRDS_SERVICE=1 \
+        bash .opencode/opencode_sandbox_exec.sh .opencode/sandbox.json \
+        python3 - "$WRDS_WITNESS" "$WRDS_HOST_CONTROL" <<'PY'
+import os, socket, subprocess, sys, time
+path = sys.argv[1]
+host_control = sys.argv[2]
+sock_path = os.path.join(os.path.dirname(path), "srt-canary.sock")
+try:
+    with open("service-project-write", "w", encoding="ascii") as handle:
+        handle.write("escape")
+except OSError:
+    pass
+else:
+    raise SystemExit("WRDS service profile retained project writes")
+try:
+    with open(host_control, "w", encoding="ascii") as handle:
+        handle.write("escape")
+except OSError:
+    pass
+else:
+    raise SystemExit("WRDS service profile could mutate host control state")
+sock = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+sock.bind(sock_path)
+started = subprocess.run(
+    ["/bin/ps", "-o", "lstart=", "-p", str(os.getpid())],
+    capture_output=True, text=True, check=True,
+).stdout.strip()
+with open(path, "w", encoding="ascii") as handle:
+    handle.write(f"{os.getpid()}\n{started}\n")
+time.sleep(2)
+sock.close()
+os.unlink(sock_path)
+PY
+) &
+wrds_srt_wrapper=$!
+for _ in $(seq 1 100); do [ -s "$WRDS_WITNESS" ] && break; sleep 0.02; done
+[ -s "$WRDS_WITNESS" ] || { echo "ERROR: WRDS SRT witness was not written" >&2; exit 1; }
+wrds_srt_inner_pid="$(sed -n '1p' "$WRDS_WITNESS")"
+wrds_srt_inner_start="$(sed -n '2p' "$WRDS_WITNESS")"
+wrds_srt_host_start="$(ps -o lstart= -p "$wrds_srt_inner_pid" | sed 's/^[[:space:]]*//; s/[[:space:]]*$//')"
+[ "$wrds_srt_inner_start" = "$wrds_srt_host_start" ] || {
+    echo "ERROR: SRT WRDS PID namespace is not host-visible" >&2
+    exit 1
+}
+wait "$wrds_srt_wrapper"
+test ! -e "$TEST_ROOT/project/service-project-write"
+test ! -e "$WRDS_HOST_CONTROL"
+
 SYMLINK_HOME="$TEST_ROOT/symlink-home"
 mkdir -p "$SYMLINK_HOME/credential-target"
 ln -s credential-target "$SYMLINK_HOME/.ssh"

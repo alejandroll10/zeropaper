@@ -53,6 +53,8 @@ import hashlib
 import errno
 import subprocess
 import shlex
+import struct
+import time
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -62,7 +64,7 @@ load_dotenv(dotenv_path=_DOTENV_PATH)
 PORT = 23847  # arbitrary high port
 # Bump whenever daemon-side login/recovery safety semantics change. This must
 # remain a literal independent of wrds_client's copy so stale daemons mismatch.
-SAFETY_PROTOCOL = 'wrds-auth-latch-v5'
+SAFETY_PROTOCOL = 'wrds-auth-latch-v6'
 
 
 def _state_dir():
@@ -131,7 +133,7 @@ CACHE_AUTH_BLOCK_FILE = os.path.join(
 LEGACY_AUTH_BLOCK_FILE = os.path.join(
     _runtime_dir(), f'.wrds_server_{PORT}.authblock')
 MAX_MSG = 10 * 1024 * 1024  # 10MB max message size
-MAX_RESPONSE = 90 * 1024 * 1024
+MAX_RESPONSE = 512 * 1024 * 1024
 MAX_RESULT_MEMORY = 48 * 1024 * 1024
 MAX_RESULT_ROWS = 1_000_000
 MAX_GET_TABLE_ROWS = 100_000
@@ -1282,25 +1284,36 @@ class WrdsState:
         return self.auth_failed is not None
 
 
+def _recv_exact(conn, size, deadline=None):
+    chunks = []
+    received = 0
+    while received < size:
+        if deadline is not None:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError('WRDS request frame deadline exceeded')
+            conn.settimeout(remaining)
+        chunk = conn.recv(size - received)
+        if not chunk:
+            raise ConnectionError(
+                f'incomplete WRDS request frame ({received}/{size} bytes)')
+        chunks.append(chunk)
+        received += len(chunk)
+    return b''.join(chunks)
+
+
 def handle_client(conn, state):
     """Handle one query request; lifecycle control is never on the wire."""
     try:
         # A same-UID sandbox may connect, but must not be able to pin a daemon
         # thread forever with a partial frame or allocate from a forged size.
         conn.settimeout(CLIENT_IO_TIMEOUT)
-        # Receive the full message (length-prefixed)
-        raw_len = b''
-        while len(raw_len) < 8:
-            chunk = conn.recv(8 - len(raw_len))
-            if not chunk:
-                return
-            raw_len += chunk
-        if not raw_len:
-            return
-        try:
-            msg_len = int(raw_len.decode('ascii').strip())
-        except (UnicodeError, ValueError) as e:
-            raise ValueError('invalid WRDS request frame length') from e
+        # Receive the full message (unsigned 64-bit network-order length).
+        # v5's fixed-width ASCII header corrupted every frame at 100,000,000
+        # bytes; v6 can represent the explicit 512 MiB wire-safety budget.
+        request_deadline = time.monotonic() + CLIENT_IO_TIMEOUT
+        raw_len = _recv_exact(conn, 8, request_deadline)
+        msg_len = struct.unpack('!Q', raw_len)[0]
         if msg_len <= 0 or msg_len > MAX_MSG:
             raise ValueError(
                 f'WRDS request frame must be 1..{MAX_MSG} bytes')
@@ -1308,9 +1321,8 @@ def handle_client(conn, state):
         chunks = []
         received = 0
         while received < msg_len:
-            chunk = conn.recv(min(65536, msg_len - received))
-            if not chunk:
-                break
+            chunk = _recv_exact(
+                conn, min(65536, msg_len - received), request_deadline)
             chunks.append(chunk)
             received += len(chunk)
 
@@ -1337,11 +1349,11 @@ def handle_client(conn, state):
             send_response(conn, response)
             return
 
-        if cmd == 'safety_hello_v5':
+        if cmd == 'safety_hello_v6':
             # Deliberately DB-free. Updated clients send this before `ping` so
             # probing a legacy daemon cannot invoke its vulnerable healthcheck.
             response = {'status': 'ok', 'msg': 'safety protocol confirmed'}
-        elif cmd == 'safe_ping_v5':
+        elif cmd == 'safe_ping_v6':
             ok, detail = state.healthcheck()
             if ok:
                 response = {'status': 'ok', 'msg': 'wrds_server alive',
@@ -1356,7 +1368,7 @@ def handle_client(conn, state):
                 response = {'status': 'error',
                             'msg': f'connection unhealthy: {detail}',
                             'error_kind': 'connection'}
-        elif cmd == 'safe_query_v5':
+        elif cmd == 'safe_query_v6':
             sql = request['sql']
             query_timeout = request.get('timeout', QUERY_TIMEOUT_SECONDS)
             df, recovered = state.run(
@@ -1369,20 +1381,20 @@ def handle_client(conn, state):
                 'shape': list(df.shape),
                 'recovered': recovered,
             }
-        elif cmd == 'safe_list_tables_v5':
+        elif cmd == 'safe_list_tables_v6':
             lib = request['library']
             tables, recovered = state.run(
                 lambda db: _bounded_db_call(
                     db, lambda active: active.list_tables(library=lib)))
             response = {'status': 'ok', 'tables': tables,
                         'recovered': recovered}
-        elif cmd == 'safe_list_libraries_v5':
+        elif cmd == 'safe_list_libraries_v6':
             libraries, recovered = state.run(
                 lambda db: _bounded_db_call(
                     db, lambda active: active.list_libraries()))
             response = {'status': 'ok', 'libraries': libraries,
                         'recovered': recovered}
-        elif cmd == 'safe_get_table_v5':
+        elif cmd == 'safe_get_table_v6':
             kwargs = request.get('kwargs') or {}
             requested_rows = kwargs.get('obs')
             if requested_rows is None:
@@ -1406,7 +1418,7 @@ def handle_client(conn, state):
                 'data': df.to_json(orient='split', date_format='iso'),
                 'recovered': recovered,
             }
-        elif cmd == 'safe_describe_v5':
+        elif cmd == 'safe_describe_v6':
             lib = request['library']
             table = request['table']
             desc, recovered = state.run(
@@ -1440,19 +1452,19 @@ def handle_client(conn, state):
         conn.close()
 
 def send_response(conn, response):
-    """Send length-prefixed JSON response."""
+    """Send a binary-length-prefixed JSON response."""
     response = {**response, 'safety_protocol': SAFETY_PROTOCOL}
     data = json.dumps(response, default=str).encode()
     if len(data) > MAX_RESPONSE:
         data = json.dumps({
             'status': 'error',
             'error_kind': 'query',
-            'msg': ('WRDS response exceeds the shared-daemon transport limit; '
-                    'use a narrower query and cache bounded pulls'),
+            'msg': ('WRDS response exceeds the 512 MiB wire-safety bound; '
+                    'use documented deterministic windowed pulls'),
             'safety_protocol': SAFETY_PROTOCOL,
         }).encode()
-    header = f"{len(data):8d}".encode()
-    conn.sendall(header + data)
+    conn.sendall(struct.pack('!Q', len(data)))
+    conn.sendall(data)
 
 
 def _bind_unix_server():
@@ -1729,13 +1741,13 @@ def _refuse_live_legacy_processes():
     pids = _legacy_server_pids()
     if pids:
         raise WrdsInstanceBusy(
-            "pre-v5 WRDS server process(es) still live across namespaces: " +
+            "older WRDS server process(es) still live across namespaces: " +
             ', '.join(map(str, pids)))
     namespace_pids = _foreign_network_namespace_pids()
     if namespace_pids:
         raise WrdsInstanceBusy(
             "foreign network namespace(s) are still active during the first "
-            "v5 upgrade; stop old sandbox runs before starting WRDS: " +
+            "WRDS protocol upgrade; stop old sandbox runs before starting WRDS: " +
             ', '.join(map(str, namespace_pids)))
 
 
@@ -1750,12 +1762,17 @@ def _bind_legacy_refusal_listener():
         listener.close()
         raise WrdsInstanceBusy(
             f"legacy WRDS TCP port 127.0.0.1:{PORT} is already owned; "
-            "stop the pre-v5 daemon before upgrading") from e
+            "stop the older daemon before upgrading") from e
     return listener
 
 
 def _legacy_refusal_loop(listener):
-    """Never dispatch TCP commands; only tell released clients to upgrade."""
+    """Never dispatch TCP commands; only tell released clients to upgrade.
+
+    This retired endpoint deliberately retains the old ASCII header so a v2-v5
+    client can decode the refusal. The live Unix/query-bridge endpoints use
+    v6's binary header exclusively.
+    """
     while True:
         try:
             conn, _ = listener.accept()
@@ -1771,7 +1788,11 @@ def _legacy_refusal_loop(listener):
                     'msg': ('WRDS TCP transport is retired. Stop this old '
                             'runtime and relaunch an updated deployment.'),
                 }
-                send_response(conn, response)
+                payload = json.dumps({
+                    **response, 'safety_protocol': SAFETY_PROTOCOL,
+                }).encode()
+                conn.sendall(f'{len(payload):8d}'.encode('ascii'))
+                conn.sendall(payload)
         except Exception:
             pass
         finally:

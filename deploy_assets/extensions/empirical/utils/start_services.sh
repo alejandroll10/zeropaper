@@ -132,7 +132,7 @@ print('1' if wrds_login_in_progress() else '0')" 2>/dev/null)"
                     continue
                 fi
                 if [ "$wrds_server_rc" -eq 4 ]; then
-                    echo "ERROR: a pre-v5 WRDS daemon is still active; no replacement was started." >&2
+                    echo "ERROR: an older WRDS daemon is still active; no replacement was started." >&2
                     echo "       Stop the legacy daemon from the host, then relaunch. See $WRDS_LOG." >&2
                     exit 1
                 fi

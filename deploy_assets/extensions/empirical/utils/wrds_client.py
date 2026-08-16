@@ -29,6 +29,7 @@ import stat
 import sys
 import base64
 import errno
+import struct
 from pathlib import Path
 from urllib.parse import unquote, urlsplit
 
@@ -40,8 +41,8 @@ load_dotenv(dotenv_path=_DOTENV_PATH)
 
 PORT = 23847
 BRIDGE_PORT = 23848
-BRIDGE_PROTOCOL = 'wrds-query-bridge-v1'
-BRIDGE_PREFACE_MAGIC = b'WRDS-BRIDGE-V1:'
+BRIDGE_PROTOCOL = 'wrds-query-bridge-v2'
+BRIDGE_PREFACE_MAGIC = b'WRDS-BRIDGE-V2:'
 SOCKET_FILE = os.path.join(
     os.path.expanduser('~'), '.local', 'state', 'zeropaper', 'wrds',
     f'wrds_server_{PORT}.sock')
@@ -52,17 +53,22 @@ BRIDGE_TOKEN_FILE = os.path.join(
     f'wrds_query_bridge_{BRIDGE_PORT}.token')
 # Bump with the server whenever login/recovery safety semantics change. Keep a
 # literal here: importing the deployed module cannot identify a stale process.
-SAFETY_PROTOCOL = 'wrds-auth-latch-v5'
+SAFETY_PROTOCOL = 'wrds-auth-latch-v6'
 _BRIDGE_FALLBACK_ERRNOS = frozenset({
     errno.EPERM, errno.EACCES, errno.EAFNOSUPPORT, errno.EPROTONOSUPPORT,
 })
-MAX_RESPONSE = 90 * 1024 * 1024
+MAX_RESPONSE = 512 * 1024 * 1024
 
 
-def _recv_exact(sock, size):
+def _recv_exact(sock, size, deadline=None):
     chunks = []
     received = 0
     while received < size:
+        if deadline is not None:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError('WRDS response frame deadline exceeded')
+            sock.settimeout(remaining)
         chunk = sock.recv(size - received)
         if not chunk:
             raise ConnectionError(
@@ -212,15 +218,13 @@ def _send_request(request, timeout=300, force_bridge=False):
             sock.sendall(
                 BRIDGE_PREFACE_MAGIC + bridge_token.encode('ascii') + b'\n')
         data = json.dumps(request).encode()
-        header = f"{len(data):8d}".encode()
-        sock.sendall(header + data)
+        sock.sendall(struct.pack('!Q', len(data)))
+        sock.sendall(data)
 
         # Receive response
-        raw_len = _recv_exact(sock, 8)
-        try:
-            msg_len = int(raw_len.decode('ascii').strip())
-        except (UnicodeError, ValueError) as e:
-            raise ConnectionError('invalid WRDS response frame length') from e
+        response_deadline = time.monotonic() + timeout
+        raw_len = _recv_exact(sock, 8, response_deadline)
+        msg_len = struct.unpack('!Q', raw_len)[0]
         if msg_len <= 0 or msg_len > MAX_RESPONSE:
             raise ConnectionError(
                 f'WRDS response frame must be 1..{MAX_RESPONSE} bytes')
@@ -228,7 +232,8 @@ def _send_request(request, timeout=300, force_bridge=False):
         chunks = []
         received = 0
         while received < msg_len:
-            chunk = _recv_exact(sock, min(65536, msg_len - received))
+            chunk = _recv_exact(
+                sock, min(65536, msg_len - received), response_deadline)
             chunks.append(chunk)
             received += len(chunk)
         return json.loads(b''.join(chunks).decode())
@@ -240,7 +245,7 @@ def wrds_bridge_ping():
     """Host-side readiness check for the authenticated fallback bridge."""
     try:
         resp = _send_request(
-            {'cmd': 'safety_hello_v5'}, timeout=5, force_bridge=True)
+            {'cmd': 'safety_hello_v6'}, timeout=5, force_bridge=True)
         return (resp.get('status') == 'ok' and
                 resp.get('safety_protocol') == SAFETY_PROTOCOL)
     except (ConnectionRefusedError, OSError, WrdsSafetyBlocked,
@@ -272,7 +277,7 @@ def _validate_protocol(resp):
 
 def _safety_hello():
     """DB-free handshake; legacy servers reject this as an unknown command."""
-    resp = _send_request({'cmd': 'safety_hello_v5'}, timeout=5)
+    resp = _send_request({'cmd': 'safety_hello_v6'}, timeout=5)
     _validate_protocol(resp)
     if resp.get('status') != 'ok':
         raise WrdsSafetyBlocked(resp.get('msg') or _safety_message())
@@ -281,7 +286,7 @@ def _safety_hello():
 def _ensure_safe_server(allow_auth=False):
     """Handshake before any command an old daemon could execute unsafely."""
     _safety_hello()
-    resp = _send_request({'cmd': 'safe_ping_v5'}, timeout=5)
+    resp = _send_request({'cmd': 'safe_ping_v6'}, timeout=5)
     _validate_protocol(resp)
     if resp.get('status') == 'error':
         if allow_auth and resp.get('error_kind') == 'auth':
@@ -300,7 +305,7 @@ def wrds_ping():
     """Check if wrds_server is running. Returns True/False."""
     try:
         _safety_hello()
-        resp = _send_request({'cmd': 'safe_ping_v5'}, timeout=5)
+        resp = _send_request({'cmd': 'safe_ping_v6'}, timeout=5)
         return (resp.get('status') == 'ok' and
                 resp.get('safety_protocol') == SAFETY_PROTOCOL)
     except (ConnectionRefusedError, OSError, WrdsSafetyBlocked):
@@ -317,7 +322,7 @@ def wrds_auth_error():
     """
     try:
         _safety_hello()
-        resp = _send_request({'cmd': 'safe_ping_v5'}, timeout=5)
+        resp = _send_request({'cmd': 'safe_ping_v6'}, timeout=5)
     except WrdsSafetyBlocked as e:
         return str(e)
     except (ConnectionRefusedError, OSError):
@@ -470,7 +475,7 @@ def wrds_query(sql, timeout=300):
     that happened.
     """
     resp = _checked_request(
-        {'cmd': 'safe_query_v5', 'sql': sql, 'timeout': timeout}, timeout=timeout)
+        {'cmd': 'safe_query_v6', 'sql': sql, 'timeout': timeout}, timeout=timeout)
     if resp['status'] == 'error':
         _raise("WRDS query failed", resp)
     from io import StringIO
@@ -478,14 +483,14 @@ def wrds_query(sql, timeout=300):
 
 def wrds_list_tables(library):
     """List tables in a WRDS library."""
-    resp = _checked_request({'cmd': 'safe_list_tables_v5', 'library': library})
+    resp = _checked_request({'cmd': 'safe_list_tables_v6', 'library': library})
     if resp['status'] == 'error':
         _raise("WRDS list_tables failed", resp)
     return resp['tables']
 
 def wrds_list_libraries():
     """List WRDS libraries via the persistent server."""
-    resp = _checked_request({'cmd': 'safe_list_libraries_v5'})
+    resp = _checked_request({'cmd': 'safe_list_libraries_v6'})
     if resp['status'] == 'error':
         _raise("WRDS list_libraries failed", resp)
     return resp['libraries']
@@ -516,7 +521,7 @@ def wrds_get_table(library, table, rows=-1, obs=None, offset=0, columns=None,
         'date_cols': date_cols,
     }
     resp = _checked_request({
-        'cmd': 'safe_get_table_v5', 'library': library, 'table': table,
+        'cmd': 'safe_get_table_v6', 'library': library, 'table': table,
         'kwargs': kwargs,
     })
     if resp['status'] == 'error':
@@ -527,7 +532,7 @@ def wrds_get_table(library, table, rows=-1, obs=None, offset=0, columns=None,
 def wrds_describe(library, table):
     """Describe a WRDS table (columns, types, row count)."""
     resp = _checked_request(
-        {'cmd': 'safe_describe_v5', 'library': library, 'table': table})
+        {'cmd': 'safe_describe_v6', 'library': library, 'table': table})
     if resp['status'] == 'error':
         _raise("WRDS describe failed", resp)
     from io import StringIO

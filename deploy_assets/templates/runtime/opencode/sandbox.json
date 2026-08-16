@@ -14,6 +14,8 @@
     ],
     "denyWrite": [
       "~/.cache/zeropaper/wrds",
+      "~/.local/state/zeropaper/wrds",
+      "~/.local/state/zeropaper/opencode-control",
       ".opencode",
       "process_log/.opencode-control",
       ".env",

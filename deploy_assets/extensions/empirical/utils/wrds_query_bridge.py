@@ -8,7 +8,7 @@ second loopback port.  A rotating 256-bit capability in host-owned WRDS state
 prevents other local OS users from using the TCP listener.
 
 The bridge has no database credentials and implements no lifecycle commands.
-It accepts only the v5 query command set, strips its own authentication fields,
+It accepts only the v6 query command set, strips its own authentication fields,
 and relays the original bounded frame to the existing Unix-domain daemon.
 """
 
@@ -20,6 +20,7 @@ import secrets
 import signal
 import socket
 import stat
+import struct
 import subprocess
 import threading
 import time
@@ -27,16 +28,16 @@ from pathlib import Path
 
 SERVER_PORT = 23847
 BRIDGE_PORT = 23848
-BRIDGE_PROTOCOL = "wrds-query-bridge-v1"
-BRIDGE_PREFACE_MAGIC = b"WRDS-BRIDGE-V1:"
-SAFETY_PROTOCOL = "wrds-auth-latch-v5"
+BRIDGE_PROTOCOL = "wrds-query-bridge-v2"
+BRIDGE_PREFACE_MAGIC = b"WRDS-BRIDGE-V2:"
+SAFETY_PROTOCOL = "wrds-auth-latch-v6"
 STATE_DIR = os.path.join(
     os.path.expanduser("~"), ".local", "state", "zeropaper", "wrds")
 SOCKET_FILE = os.path.join(STATE_DIR, f"wrds_server_{SERVER_PORT}.sock")
 TOKEN_FILE = os.path.join(STATE_DIR, f"wrds_query_bridge_{BRIDGE_PORT}.token")
 PID_FILE = os.path.join(STATE_DIR, f"wrds_query_bridge_{BRIDGE_PORT}.pid")
 MAX_MSG = 10 * 1024 * 1024
-MAX_RESPONSE = 90 * 1024 * 1024
+MAX_RESPONSE = 512 * 1024 * 1024
 CLIENT_IO_TIMEOUT = 15
 AUTH_PREFACE_TIMEOUT = 1
 # A WRDS statement may legitimately run for the daemon's full five-minute
@@ -46,13 +47,13 @@ UPSTREAM_RESPONSE_TIMEOUT = 315
 MAX_CLIENT_THREADS = 32
 MAX_AUTH_THREADS = 64
 ALLOWED_COMMANDS = frozenset({
-    "safety_hello_v5",
-    "safe_ping_v5",
-    "safe_query_v5",
-    "safe_list_tables_v5",
-    "safe_list_libraries_v5",
-    "safe_get_table_v5",
-    "safe_describe_v5",
+    "safety_hello_v6",
+    "safe_ping_v6",
+    "safe_query_v6",
+    "safe_list_tables_v6",
+    "safe_list_libraries_v6",
+    "safe_get_table_v6",
+    "safe_describe_v6",
 })
 
 
@@ -100,10 +101,15 @@ def _process_start_token(pid):
         return f"ps:{value}" if value else None
 
 
-def _recv_exact(conn, size):
+def _recv_exact(conn, size, deadline=None):
     chunks = []
     received = 0
     while received < size:
+        if deadline is not None:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError("WRDS bridge frame deadline exceeded")
+            conn.settimeout(remaining)
         chunk = conn.recv(size - received)
         if not chunk:
             raise ConnectionError(
@@ -131,19 +137,19 @@ def _recv_exact_before(conn, size, timeout):
     return b"".join(chunks)
 
 
-def _recv_frame(conn, maximum):
-    raw_len = _recv_exact(conn, 8)
-    try:
-        size = int(raw_len.decode("ascii").strip())
-    except (UnicodeError, ValueError) as exc:
-        raise ValueError("invalid WRDS bridge frame length") from exc
-    if size <= 0 or size > maximum:
+def _recv_frame(conn, maximum, deadline=None):
+    raw_len = _recv_exact(conn, 8, deadline)
+    size = struct.unpack("!Q", raw_len)[0]
+    if size <= 0:
+        raise ValueError("WRDS bridge frame must not be empty")
+    if maximum is not None and size > maximum:
         raise ValueError(f"WRDS bridge frame must be 1..{maximum} bytes")
-    return _recv_exact(conn, size)
+    return _recv_exact(conn, size, deadline)
 
 
 def _send_frame(conn, payload):
-    conn.sendall(f"{len(payload):8d}".encode("ascii") + payload)
+    conn.sendall(struct.pack("!Q", len(payload)))
+    conn.sendall(payload)
 
 
 def _atomic_state_file(path, payload, mode):
@@ -225,7 +231,8 @@ def _relay_client(conn, token, query_slots, auth_slots=None):
             return
         query_slot_acquired = True
         conn.settimeout(CLIENT_IO_TIMEOUT)
-        raw_request = _recv_frame(conn, MAX_MSG)
+        raw_request = _recv_frame(
+            conn, MAX_MSG, time.monotonic() + CLIENT_IO_TIMEOUT)
         request = json.loads(raw_request.decode("utf-8"))
         if not isinstance(request, dict):
             raise ValueError("WRDS bridge request must be an object")
@@ -252,7 +259,9 @@ def _relay_client(conn, token, query_slots, auth_slots=None):
             upstream.connect(SOCKET_FILE)
             encoded = json.dumps(request).encode("utf-8")
             _send_frame(upstream, encoded)
-            response = _recv_frame(upstream, MAX_RESPONSE)
+            response = _recv_frame(
+                upstream, MAX_RESPONSE,
+                time.monotonic() + UPSTREAM_RESPONSE_TIMEOUT)
         finally:
             upstream.close()
         _send_frame(conn, response)

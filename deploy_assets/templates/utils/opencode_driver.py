@@ -329,7 +329,10 @@ def cmd_lock_hold(args) -> int:
     parent = os.getppid()
     with open(args.path, "a+", encoding="utf-8") as handle:
         try:
-            fcntl.flock(handle.fileno(), fcntl.LOCK_EX | fcntl.LOCK_NB)
+            operation = fcntl.LOCK_EX
+            if not args.wait:
+                operation |= fcntl.LOCK_NB
+            fcntl.flock(handle.fileno(), operation)
         except BlockingIOError:
             return 3
         handle.seek(0)
@@ -430,6 +433,7 @@ def build_parser() -> argparse.ArgumentParser:
     lock = sub.add_parser("lock-hold")
     lock.add_argument("--path", required=True)
     lock.add_argument("--ready", required=True)
+    lock.add_argument("--wait", action="store_true")
     lock.set_defaults(func=cmd_lock_hold)
 
     worktree = sub.add_parser("worktree-hash")

@@ -289,15 +289,13 @@ fi
 # singleton over its private Unix socket under host-owned ~/.local/state.
 #
 # Preserve the session contract: completed and halted runs do not spend a WRDS
-# login merely because somebody opened the runtime. OpenCode's unsandboxed
-# control plane must not execute project-writable venv code (#261), and Gemini
-# remains wholly unconfined (#187), so neither may establish/protect this host
-# service automatically.
-prestart_project_services() {
-    case "$RUNTIME" in opencode|gemini) return 0 ;; esac
-    [ -f "$ROOT/code/utils/start_services.sh" ] || return 0
-    local service_action
-    service_action="$(/usr/bin/python3 -I - \
+# login merely because somebody opened the runtime. OpenCode establishes the
+# same service later through a long-lived SRT wrapper, so its unsandboxed
+# control plane never executes the project venv/code. Gemini remains wholly
+# unconfined (#187) and may not establish/protect the host service.
+project_services_action() {
+    [ -f "$ROOT/code/utils/start_services.sh" ] || { printf 'skip\n'; return 0; }
+    /usr/bin/python3 -I - \
         "$ROOT/process_log/pipeline_state.json" \
         "$ROOT/.deploy_manifest.json" <<'PY' 2>/dev/null || true
 import json, sys
@@ -320,7 +318,12 @@ try:
 except Exception:
     print('skip')
 PY
-)"
+}
+
+prestart_project_services() {
+    case "$RUNTIME" in opencode|gemini) return 0 ;; esac
+    local service_action
+    service_action="$(project_services_action)"
     case "$service_action" in
         start)
             echo "[launch] Establishing host-wide data services before sandbox entry…" >&2
@@ -662,11 +665,16 @@ PY
     OC_SANDBOX_EXEC="$OC_RUNTIME_DIR/opencode_sandbox_exec.sh"
     OC_SANDBOX_RUNNER="$OC_RUNTIME_DIR/opencode_sandbox_exec.mjs"
     OC_HELPER="$OC_RUNTIME_DIR/opencode_driver.py"
+    OC_WRDS_SUPERVISOR="$OC_RUNTIME_DIR/wrds_srt_service.py"
     # These files are executed by the unsandboxed control plane or establish
     # its sandbox policy. Reject ancestor/leaf symlinks, special files, and
     # alternate hard-link aliases before opening any of them.
-    python3 - "$OC_RUNTIME_DIR" "$OC_SANDBOX_SETTINGS" "$OC_SANDBOX_EXEC" \
-        "$OC_SANDBOX_RUNNER" "$OC_HELPER" "$ROOT/launch.sh" "$ROOT/opencode.json" <<'PY'
+    _oc_protected_leaves=(
+        "$OC_SANDBOX_SETTINGS" "$OC_SANDBOX_EXEC" "$OC_SANDBOX_RUNNER"
+        "$OC_HELPER" "$ROOT/launch.sh" "$ROOT/opencode.json"
+    )
+    [ -e "$OC_WRDS_SUPERVISOR" ] && _oc_protected_leaves+=("$OC_WRDS_SUPERVISOR")
+    python3 - "$OC_RUNTIME_DIR" "${_oc_protected_leaves[@]}" <<'PY'
 import os, stat, sys
 
 runtime, *leaves = sys.argv[1:]
@@ -786,6 +794,12 @@ PY
     OC_SERVER_STARTING_FILE="$OC_CONTROL_DIR/server_starting"
     OC_SERVER_URL_FILE="$OC_CONTROL_DIR/server_url"
     OC_SERVER_PASSWORD_FILE="$OC_CONTROL_DIR/server_password"
+    OC_WRDS_CONTROL_DIR="${HOME:?HOME must be set}/.local/state/zeropaper/opencode-control"
+    OC_WRDS_SERVICE_LOG="$OC_WRDS_CONTROL_DIR/wrds_service.log"
+    OC_WRDS_SERVICE_IDENTITY_FILE="$OC_WRDS_CONTROL_DIR/wrds_service_identity"
+    OC_WRDS_SERVICE_STARTING_FILE="$OC_WRDS_CONTROL_DIR/wrds_service_starting"
+    OC_WRDS_SERVICE_APPROVAL_FILE="$OC_WRDS_CONTROL_DIR/wrds_service_approval"
+    OC_WRDS_GLOBAL_LOCK="$OC_WRDS_CONTROL_DIR/wrds_service_lock"
     OC_DRIVER_LOCK="$OC_CONTROL_DIR/driver_lock"
     OC_PENDING_CHILDREN_FILE="$OC_CONTROL_DIR/background_children"
     OC_PENDING_PARENT_FILE="$OC_CONTROL_DIR/background_parent"
@@ -991,6 +1005,277 @@ PY
             exit 1
         fi
     done
+    OC_WRDS_SERVICE_PID=""
+    OC_WRDS_SERVICE_START=""
+    OC_WRDS_LOCK_KEEPER_PID=""
+    oc_wrds_service_health() {
+        [ -x "$ROOT/.venv/bin/python3" ] || return 1
+        "$OC_SANDBOX_EXEC" "$OC_SANDBOX_SETTINGS" \
+            "$ROOT/.venv/bin/python3" -I -c \
+            'import sys; sys.path.insert(0, "code"); from utils.wrds_client import wrds_bridge_ping, wrds_ping; raise SystemExit(0 if wrds_ping() and (not sys.platform.startswith("linux") or wrds_bridge_ping()) else 1)' \
+            >/dev/null 2>&1
+    }
+    oc_wrds_service_group_alive() {
+        [[ "$OC_WRDS_SERVICE_PID" =~ ^[0-9]+$ ]] && \
+            kill -0 -- "-$OC_WRDS_SERVICE_PID" 2>/dev/null
+    }
+    oc_wrds_service_process_matches() {
+        local now pgid command
+        [[ "$OC_WRDS_SERVICE_PID" =~ ^[0-9]+$ ]] || return 1
+        kill -0 "$OC_WRDS_SERVICE_PID" 2>/dev/null || return 1
+        now="$(ps -o lstart= -p "$OC_WRDS_SERVICE_PID" 2>/dev/null || true)"
+        [ -n "$OC_WRDS_SERVICE_START" ] && [ "$now" = "$OC_WRDS_SERVICE_START" ] || return 1
+        pgid="$(ps -o pgid= -p "$OC_WRDS_SERVICE_PID" 2>/dev/null | tr -d ' ' || true)"
+        [ "$pgid" = "$OC_WRDS_SERVICE_PID" ] || return 1
+        command="$(ps -o command= -p "$OC_WRDS_SERVICE_PID" 2>/dev/null || true)"
+        case "$command" in
+            *wrds_srt_service.py*zeropaper-wrds-srt-service-v6*) return 0 ;;
+            *) return 1 ;;
+        esac
+    }
+    oc_wrds_service_load_identity() {
+        [ -s "$OC_WRDS_SERVICE_IDENTITY_FILE" ] || return 1
+        OC_WRDS_SERVICE_PID="$(sed -n '1p' "$OC_WRDS_SERVICE_IDENTITY_FILE")"
+        OC_WRDS_SERVICE_START="$(sed -n '2p' "$OC_WRDS_SERVICE_IDENTITY_FILE")"
+        oc_wrds_service_process_matches
+    }
+    oc_wrds_service_clear_dead_state() {
+        rm -f "$OC_WRDS_SERVICE_IDENTITY_FILE" "$OC_WRDS_SERVICE_STARTING_FILE" \
+            "$OC_WRDS_SERVICE_APPROVAL_FILE"
+        OC_WRDS_SERVICE_PID=""
+        OC_WRDS_SERVICE_START=""
+    }
+    oc_wrds_service_acquire_lock() {
+        local ready attempt=0
+        ready="$(mktemp "$OC_CONTROL_DIR/wrds-lock-ready.XXXXXX")"
+        "$OC_CONTROL_PYTHON" -I "$OC_HELPER" lock-hold \
+            --path "$OC_WRDS_GLOBAL_LOCK" --ready "$ready" --wait &
+        OC_WRDS_LOCK_KEEPER_PID=$!
+        while [ "$attempt" -lt 1500 ]; do
+            attempt=$((attempt + 1))
+            if [ -s "$ready" ]; then
+                rm -f "$ready"
+                return 0
+            fi
+            kill -0 "$OC_WRDS_LOCK_KEEPER_PID" 2>/dev/null || break
+            sleep 0.1
+        done
+        rm -f "$ready"
+        kill "$OC_WRDS_LOCK_KEEPER_PID" 2>/dev/null || true
+        wait "$OC_WRDS_LOCK_KEEPER_PID" 2>/dev/null || true
+        OC_WRDS_LOCK_KEEPER_PID=""
+        echo "ERROR: timed out waiting for the host-wide OpenCode WRDS startup lock" >&2
+        return 1
+    }
+    oc_wrds_service_release_lock() {
+        [ -n "$OC_WRDS_LOCK_KEEPER_PID" ] || return 0
+        kill "$OC_WRDS_LOCK_KEEPER_PID" 2>/dev/null || true
+        wait "$OC_WRDS_LOCK_KEEPER_PID" 2>/dev/null || true
+        OC_WRDS_LOCK_KEEPER_PID=""
+    }
+    oc_wrds_control_state_safe() {
+        "$OC_CONTROL_PYTHON" -I - "$OC_WRDS_CONTROL_DIR" \
+            "$OC_WRDS_SERVICE_LOG" "$OC_WRDS_SERVICE_IDENTITY_FILE" \
+            "$OC_WRDS_SERVICE_STARTING_FILE" "$OC_WRDS_SERVICE_APPROVAL_FILE" \
+            "$OC_WRDS_GLOBAL_LOCK" <<'PY'
+import os, stat, sys
+
+root, *leaves = sys.argv[1:]
+info = os.lstat(root)
+if (stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode) or
+        os.path.realpath(root) != os.path.abspath(root) or
+        (hasattr(os, "getuid") and info.st_uid != os.getuid()) or
+        info.st_mode & 0o077):
+    raise SystemExit(1)
+for path in leaves:
+    try:
+        leaf = os.lstat(path)
+    except FileNotFoundError:
+        continue
+    if (not stat.S_ISREG(leaf.st_mode) or leaf.st_nlink != 1 or
+            (hasattr(os, "getuid") and leaf.st_uid != os.getuid())):
+        raise SystemExit(1)
+PY
+    }
+    oc_wrds_service_wait_healthy() {
+        local attempt=0
+        while [ "$attempt" -lt 1250 ]; do
+            attempt=$((attempt + 1))
+            if grep -q '^WRDS_SRT_SERVICE_READY$' "$OC_WRDS_SERVICE_LOG"; then
+                if oc_wrds_service_health; then
+                    echo "[opencode-driver] WRDS SRT service ready" | tee -a "$OC_LOG"
+                    return 0
+                fi
+                echo "ERROR: WRDS SRT service reported ready but its endpoints are unreachable; preserving its identity" >&2
+                return 1
+            fi
+            oc_wrds_service_process_matches || return 1
+            sleep 0.1
+        done
+        echo "ERROR: WRDS SRT service is still starting; preserving its identity and login attempt" >&2
+        return 1
+    }
+    oc_wrds_service_approve_pid_namespace() {
+        local line inner_pid inner_start host_start inner_pgid
+        line="$(sed -n 's/^WRDS_SRT_IDENTITY //p' "$OC_WRDS_SERVICE_LOG" | tail -1)"
+        inner_pid="${line%% *}"
+        inner_start="${line#* }"
+        [[ "$inner_pid" =~ ^[0-9]+$ ]] || return 1
+        [ -n "$inner_start" ] && [ "$inner_start" != "$line" ] || return 1
+        host_start="$(ps -o lstart= -p "$inner_pid" 2>/dev/null | sed 's/^[[:space:]]*//; s/[[:space:]]*$//' || true)"
+        [ -n "$host_start" ] && [ "$host_start" = "$inner_start" ] || return 1
+        inner_pgid="$(ps -o pgid= -p "$inner_pid" 2>/dev/null | tr -d ' ' || true)"
+        [ "$inner_pgid" = "$OC_WRDS_SERVICE_PID" ] || return 1
+        "$OC_CONTROL_PYTHON" -I - "$OC_WRDS_SERVICE_APPROVAL_FILE" <<'PY'
+import os, stat, sys
+path = sys.argv[1]
+flags = os.O_WRONLY | getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(path, flags)
+info = os.fstat(fd)
+if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1 or
+        (hasattr(os, "getuid") and info.st_uid != os.getuid()) or
+        info.st_mode & 0o077):
+    os.close(fd)
+    raise SystemExit(1)
+os.ftruncate(fd, 0)
+os.write(fd, b"approved\n")
+os.fsync(fd)
+os.close(fd)
+PY
+    }
+    oc_wrds_service_start() {
+        local identity_tmp approval_tmp starting_tmp attempt=0
+        : > "$OC_WRDS_SERVICE_LOG"
+        approval_tmp="$(mktemp "$OC_WRDS_CONTROL_DIR/wrds-service-approval.XXXXXX")"
+        chmod 600 "$approval_tmp"
+        mv "$approval_tmp" "$OC_WRDS_SERVICE_APPROVAL_FILE"
+        starting_tmp="$(mktemp "$OC_WRDS_CONTROL_DIR/wrds-service-starting.XXXXXX")"
+        printf 'pending\n' > "$starting_tmp"
+        chmod 600 "$starting_tmp"
+        mv "$starting_tmp" "$OC_WRDS_SERVICE_STARTING_FILE"
+        {
+            ZEROPAPER_OPENCODE_WRDS_SERVICE=1 \
+            "$OC_CONTROL_PYTHON" -I -c \
+                'import os,sys; os.setsid(); os.execv(sys.argv[1], sys.argv[1:])' \
+                "$OC_SANDBOX_EXEC" "$OC_SANDBOX_SETTINGS" \
+                "$OC_CONTROL_PYTHON" -I .opencode/wrds_srt_service.py \
+                zeropaper-wrds-srt-service-v6 "$OC_WRDS_SERVICE_APPROVAL_FILE" \
+                </dev/null >> "$OC_WRDS_SERVICE_LOG" 2>&1 &
+            OC_WRDS_SERVICE_PID=$!
+        }
+        starting_tmp="$(mktemp "$OC_WRDS_CONTROL_DIR/wrds-service-starting.XXXXXX")"
+        printf '%s\n' "$OC_WRDS_SERVICE_PID" > "$starting_tmp"
+        chmod 600 "$starting_tmp"
+        mv "$starting_tmp" "$OC_WRDS_SERVICE_STARTING_FILE"
+        OC_WRDS_SERVICE_START="$(ps -o lstart= -p "$OC_WRDS_SERVICE_PID" 2>/dev/null || true)"
+        [ -n "$OC_WRDS_SERVICE_START" ] || {
+            echo "ERROR: OpenCode WRDS SRT wrapper failed to start" >&2
+            return 1
+        }
+        identity_tmp="$(mktemp "$OC_WRDS_CONTROL_DIR/wrds-service-identity.XXXXXX")"
+        printf '%s\n%s\n' "$OC_WRDS_SERVICE_PID" "$OC_WRDS_SERVICE_START" > "$identity_tmp"
+        chmod 600 "$identity_tmp"
+        mv "$identity_tmp" "$OC_WRDS_SERVICE_IDENTITY_FILE"
+
+        while [ "$attempt" -lt 150 ]; do
+            attempt=$((attempt + 1))
+            if grep -q '^WRDS_SRT_SERVICE_SKIPPED credentials-not-configured$' \
+                    "$OC_WRDS_SERVICE_LOG"; then
+                wait "$OC_WRDS_SERVICE_PID" 2>/dev/null || true
+                oc_wrds_service_clear_dead_state
+                return 10
+            fi
+            if grep -q '^WRDS_SRT_IDENTITY ' "$OC_WRDS_SERVICE_LOG"; then
+                if ! oc_wrds_service_process_matches || \
+                        ! oc_wrds_service_approve_pid_namespace; then
+                    echo "ERROR: SRT hides WRDS service PIDs from the host; no login was attempted" >&2
+                    return 1
+                fi
+                # The supervisor already holds this inode open. Unlink the
+                # approved gate before it can become a replayable project path.
+                rm -f "$OC_WRDS_SERVICE_APPROVAL_FILE"
+                rm -f "$OC_WRDS_SERVICE_STARTING_FILE"
+                return 0
+            fi
+            oc_wrds_service_process_matches || break
+            sleep 0.1
+        done
+        if grep -q '^WRDS_SRT_SERVICE_SKIPPED credentials-not-configured$' \
+                "$OC_WRDS_SERVICE_LOG"; then
+            wait "$OC_WRDS_SERVICE_PID" 2>/dev/null || true
+            oc_wrds_service_clear_dead_state
+            return 10
+        fi
+        echo "ERROR: WRDS SRT service did not publish a host-visible identity; no login was approved" >&2
+        return 1
+    }
+    oc_prepare_wrds_service_locked() {
+        local starting_pid service_start_rc
+        if oc_wrds_service_load_identity; then
+            echo "[opencode-driver] joining existing WRDS SRT service startup" | tee -a "$OC_LOG"
+            oc_wrds_service_wait_healthy
+            return
+        fi
+        if [ -e "$OC_WRDS_SERVICE_STARTING_FILE" ]; then
+            starting_pid="$(cat "$OC_WRDS_SERVICE_STARTING_FILE" 2>/dev/null || true)"
+            if [[ "$starting_pid" =~ ^[0-9]+$ ]] && kill -0 "$starting_pid" 2>/dev/null; then
+                echo "ERROR: an incompletely recorded WRDS SRT wrapper may still be alive; refusing replacement" >&2
+                return 1
+            fi
+        fi
+        if oc_wrds_service_group_alive; then
+            echo "ERROR: WRDS SRT leader identity is stale but its process group remains; refusing replacement" >&2
+            return 1
+        fi
+        oc_wrds_service_clear_dead_state
+        echo "[opencode-driver] establishing host-wide WRDS inside Sandbox Runtime…" | tee -a "$OC_LOG"
+        if oc_wrds_service_start; then
+            :
+        else
+            service_start_rc=$?
+            if [ "$service_start_rc" -eq 10 ]; then
+                echo "[opencode-driver] WRDS credentials are not configured; skipping host service" | tee -a "$OC_LOG"
+                return 0
+            fi
+            return 1
+        fi
+        oc_wrds_service_wait_healthy
+    }
+
+    oc_prepare_wrds_service() {
+        local action prepare_rc
+        action="$(project_services_action)"
+        [ "$action" = "start" ] || return 0
+        [ -x "$ROOT/.venv/bin/python3" ] || {
+            echo "ERROR: OpenCode empirical service requires the project .venv" >&2
+            return 1
+        }
+        # The fast path is lock-free. A missing/unhealthy endpoint enters one
+        # host-wide lock, then rechecks so concurrent projects cannot create
+        # duplicate privileged supervisors or cross-approve shared state.
+        if oc_wrds_service_health; then
+            echo "[opencode-driver] reusing host-wide WRDS service" | tee -a "$OC_LOG"
+            return 0
+        fi
+        oc_wrds_control_state_safe || {
+            echo "ERROR: unsafe host-wide OpenCode WRDS control state" >&2
+            return 1
+        }
+        oc_wrds_service_acquire_lock || return 1
+        if oc_wrds_service_health; then
+            echo "[opencode-driver] reusing host-wide WRDS service after serialized startup" | tee -a "$OC_LOG"
+            prepare_rc=0
+        elif oc_prepare_wrds_service_locked; then
+            prepare_rc=0
+        else
+            prepare_rc=$?
+        fi
+        oc_wrds_service_release_lock
+        return "$prepare_rc"
+    }
+
+    oc_prepare_wrds_service
+
     if [ "$ONCE" = "1" ]; then
         "$OC_SANDBOX_EXEC" "$OC_SANDBOX_SETTINGS" \
             opencode --model opencode/deepseek-v4-flash

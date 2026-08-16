@@ -642,8 +642,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "3fbbc3dbc13aec432ae24a9f2a5241f523bcedbadc147296dcde959a9f4d1890",
-          "size": 1858,
+          "sha256": "19ffc75f88527969de8a2c5f64f6a97cccf9f01b2e41b57d54e47ce3a5fbd150",
+          "size": 1857,
           "type": "file"
         },
         ".env": {
@@ -1380,26 +1380,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -1692,8 +1692,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -1760,8 +1760,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -1887,7 +1887,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -2219,8 +2219,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -2915,8 +2915,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -3241,8 +3241,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8080757cff2ee692a2e2d4620dc2d7b33afad8e929b0794a3b15f34bdc728f3a",
-          "size": 3039,
+          "sha256": "814c18d0fd65f905d5efd809dbc383a8f9e0043755e82dd17ceae82c9c8769c2",
+          "size": 3077,
           "type": "file"
         },
         ".env": {
@@ -4147,26 +4147,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -4467,7 +4473,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -4485,20 +4491,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -4565,8 +4571,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "c62f5db1dfb456010af0a4a9e52ce2bf2ef96967a33ce3a27632e53d0ab73122",
-          "size": 41245,
+          "sha256": "04c7c06212dd38cc5a7d3d14e2cad227b6028aeaeb4a4d3dff3b637a120aa625",
+          "size": 41538,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -4637,8 +4643,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -4727,8 +4733,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -4848,6 +4854,7 @@
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/extensions/theory_llm.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -4885,7 +4892,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -5217,8 +5224,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -5913,8 +5920,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -6239,8 +6246,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "72825bd4e8f1dd37222fc941a437170788e5efdc00ea440d9e6bef03743624cf",
-          "size": 3039,
+          "sha256": "8c5a584064d4b36e8ebd5c1a92f887052e2aa4c76edc446598fd958996ba64c3",
+          "size": 3077,
           "type": "file"
         },
         ".env": {
@@ -7145,26 +7152,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -7465,7 +7478,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -7483,20 +7496,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -7563,8 +7576,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "c62f5db1dfb456010af0a4a9e52ce2bf2ef96967a33ce3a27632e53d0ab73122",
-          "size": 41245,
+          "sha256": "04c7c06212dd38cc5a7d3d14e2cad227b6028aeaeb4a4d3dff3b637a120aa625",
+          "size": 41538,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -7635,8 +7648,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -7725,8 +7738,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -7846,6 +7859,7 @@
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/extensions/theory_llm.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -7883,7 +7897,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -8526,8 +8540,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "3fbbc3dbc13aec432ae24a9f2a5241f523bcedbadc147296dcde959a9f4d1890",
-          "size": 1858,
+          "sha256": "19ffc75f88527969de8a2c5f64f6a97cccf9f01b2e41b57d54e47ce3a5fbd150",
+          "size": 1857,
           "type": "file"
         },
         ".env": {
@@ -9264,26 +9278,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -9576,8 +9590,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -9644,8 +9658,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -9771,7 +9785,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -10106,8 +10120,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -10802,8 +10816,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -11128,8 +11142,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8080757cff2ee692a2e2d4620dc2d7b33afad8e929b0794a3b15f34bdc728f3a",
-          "size": 3039,
+          "sha256": "814c18d0fd65f905d5efd809dbc383a8f9e0043755e82dd17ceae82c9c8769c2",
+          "size": 3077,
           "type": "file"
         },
         ".env": {
@@ -12034,26 +12048,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -12354,7 +12374,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -12372,20 +12392,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -12452,8 +12472,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "c62f5db1dfb456010af0a4a9e52ce2bf2ef96967a33ce3a27632e53d0ab73122",
-          "size": 41245,
+          "sha256": "04c7c06212dd38cc5a7d3d14e2cad227b6028aeaeb4a4d3dff3b637a120aa625",
+          "size": 41538,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -12524,8 +12544,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -12614,8 +12634,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -12735,6 +12755,7 @@
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/extensions/theory_llm.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -12772,7 +12793,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -13092,8 +13113,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -13754,8 +13775,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -14062,8 +14083,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7a01a6211c7f442230e677d442653597076cea2637c6ef8b481e94f2fb5d9e6b",
-          "size": 2932,
+          "sha256": "0feda8de047d85a820eaf120d330387ba49c9ff38ca65beb77f20c81870ce3f6",
+          "size": 2970,
           "type": "file"
         },
         ".env": {
@@ -14932,26 +14953,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -15252,7 +15279,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -15270,20 +15297,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -15350,8 +15377,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "c62f5db1dfb456010af0a4a9e52ce2bf2ef96967a33ce3a27632e53d0ab73122",
-          "size": 41245,
+          "sha256": "04c7c06212dd38cc5a7d3d14e2cad227b6028aeaeb4a4d3dff3b637a120aa625",
+          "size": 41538,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -15416,8 +15443,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -15492,8 +15519,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -15611,6 +15638,7 @@
             ".arpipeline/update_inputs/deps/core.txt",
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -15647,7 +15675,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -15967,8 +15995,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -16635,8 +16663,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -16949,8 +16977,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "81c9bfd991b0e47aa0b67308d0def8a38850166ea0b84a3f61ad072182ac1544",
-          "size": 2947,
+          "sha256": "adbab98e1683047028b51055e3ff9d1b0fbc7ff7d221a63efb688d63874b5008",
+          "size": 2985,
           "type": "file"
         },
         ".env": {
@@ -17831,26 +17859,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -18151,7 +18185,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -18169,20 +18203,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -18249,8 +18283,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "3b751e32758b58f2bed57d6756ebf97e8b57f093bf46845d9dedf6f35e6a1bb7",
-          "size": 44673,
+          "sha256": "66ad23026e387286a14560a7face513e0188c73a02a5daf8cb11995fe29a2602",
+          "size": 44966,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -18315,8 +18349,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -18383,8 +18417,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -18502,6 +18536,7 @@
             ".arpipeline/update_inputs/deps/core.txt",
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -18538,7 +18573,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -18870,8 +18905,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -19572,8 +19607,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -19904,8 +19939,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "220fd8eec9ba904a643b2d7ae07c681b50e96dd8e9ff0478a71948eaf78b52a7",
-          "size": 3054,
+          "sha256": "cece9abadc73f48b5b9018b69c39bf79348919dfa711b140e7d542a0a3162e8a",
+          "size": 3092,
           "type": "file"
         },
         ".env": {
@@ -20822,26 +20857,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -21142,7 +21183,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -21160,20 +21201,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -21240,8 +21281,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "3b751e32758b58f2bed57d6756ebf97e8b57f093bf46845d9dedf6f35e6a1bb7",
-          "size": 44673,
+          "sha256": "66ad23026e387286a14560a7face513e0188c73a02a5daf8cb11995fe29a2602",
+          "size": 44966,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -21312,8 +21353,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -21394,8 +21435,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -21515,6 +21556,7 @@
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/extensions/theory_llm.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -21552,7 +21594,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -22199,8 +22241,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "3fbbc3dbc13aec432ae24a9f2a5241f523bcedbadc147296dcde959a9f4d1890",
-          "size": 1858,
+          "sha256": "19ffc75f88527969de8a2c5f64f6a97cccf9f01b2e41b57d54e47ce3a5fbd150",
+          "size": 1857,
           "type": "file"
         },
         ".env": {
@@ -22937,26 +22979,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -23249,8 +23291,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -23317,8 +23359,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -23444,7 +23486,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -23767,8 +23809,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -24435,8 +24477,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -24749,8 +24791,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "eba699036a466e728b5a712aeb1e4defcfe930e924430923a0f87298fc733572",
-          "size": 2928,
+          "sha256": "d7b07ee18e90d23a3570edcb2ce13f9f3c2dea7a93929a75fa4713ae7b3f4c2e",
+          "size": 2966,
           "type": "file"
         },
         ".env": {
@@ -25637,26 +25679,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -25957,7 +26005,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -25975,20 +26023,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -26055,8 +26103,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "dfe3270917b4bcc5d6421cf655311efde79aea4e6b59c6d041aa12d35d182e1c",
-          "size": 42211,
+          "sha256": "b40a410a4d88e2bd1aa4afcb532a94d9b74c48da9e37d6b20a2a8d124a818c69",
+          "size": 42504,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -26121,8 +26169,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -26207,8 +26255,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -26332,6 +26380,7 @@
             ".arpipeline/update_inputs/deps/core.txt",
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -26368,7 +26417,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -27015,8 +27064,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6b5cc52b92a13b5c340b86661d4f9d7cf0276a91c1f1ed6b5551c9b1d3bf886b",
-          "size": 1857,
+          "sha256": "6ce1575e02ac60bf03c8fe52a2ed96269dc68f05bf74e1b0bb854f4c1e2110b9",
+          "size": 1856,
           "type": "file"
         },
         ".env": {
@@ -27753,26 +27802,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -28065,8 +28114,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -28133,8 +28182,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -28260,7 +28309,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -28973,8 +29022,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "356679be25c6725ba121777a29e2c630023d9428b9a2f2f2bc57434ddb3a920c",
-          "size": 1967,
+          "sha256": "a01e73170c2f317314d5907ec756531d3c79fbc6df02065988c542263a9f5829",
+          "size": 1966,
           "type": "file"
         },
         ".env": {
@@ -29747,26 +29796,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -30065,8 +30114,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -30147,8 +30196,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -30278,7 +30327,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -30990,8 +31039,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "356679be25c6725ba121777a29e2c630023d9428b9a2f2f2bc57434ddb3a920c",
-          "size": 1967,
+          "sha256": "a01e73170c2f317314d5907ec756531d3c79fbc6df02065988c542263a9f5829",
+          "size": 1966,
           "type": "file"
         },
         ".env": {
@@ -31764,26 +31813,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -32082,8 +32131,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -32164,8 +32213,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -32295,7 +32344,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -32942,8 +32991,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "18a75656c177f2fe196302f5cb8db4859102e2d9584da79f317399c38a565bd3",
-          "size": 1857,
+          "sha256": "e1be87f3459f9e8ad6218b95e6c3249c1c4b16be6e644b018b618a608b264939",
+          "size": 1856,
           "type": "file"
         },
         ".env": {
@@ -33680,26 +33729,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -33992,8 +34041,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -34060,8 +34109,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -34187,7 +34236,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -34520,8 +34569,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -35216,8 +35265,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -35542,8 +35591,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "25a0d06c429071a02b522aaeeedd6d096dddd28587174882a15424d7d6b0f27f",
-          "size": 3014,
+          "sha256": "5fbb6d9885e51053b432316a4264bad343689e52509268a10b50251361edf6cd",
+          "size": 3052,
           "type": "file"
         },
         ".env": {
@@ -36448,26 +36497,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -36768,7 +36823,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -36786,20 +36841,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -36860,8 +36915,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "c62f5db1dfb456010af0a4a9e52ce2bf2ef96967a33ce3a27632e53d0ab73122",
-          "size": 41245,
+          "sha256": "04c7c06212dd38cc5a7d3d14e2cad227b6028aeaeb4a4d3dff3b637a120aa625",
+          "size": 41538,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -36932,8 +36987,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -36986,8 +37041,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ef774454817c7dacc69f53acb377e740fd916af118bb594dde4656743b49f5df",
-          "size": 15389,
+          "sha256": "6c37531c8a7a0c355a12d84231d9f27b732f63f400d18fcd4f1732208310d22d",
+          "size": 15387,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -37076,6 +37131,7 @@
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/extensions/theory_llm.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -37113,7 +37169,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -37521,8 +37577,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2c13c2421167620672d360cc883c076e0d05d5a7c3303552c9294b48f8e5f994",
-          "size": 1840,
+          "sha256": "da9407ef91a5257aeef3713d7a86c161bf4cbc7d257a8791bbfcc50b7b0a74ae",
+          "size": 1839,
           "type": "file"
         },
         ".env": {
@@ -37899,26 +37955,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -38111,8 +38167,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -38235,7 +38291,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -38569,8 +38625,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -39061,8 +39117,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -39183,8 +39239,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "eac9430f563039db0cca150426d4950b86f5edf4c8ac3669a22563236e2d51c5",
-          "size": 3021,
+          "sha256": "73013b2d119c2e5d47207d98802d5af10ae98a08c7d01cc068408932e4c63e7e",
+          "size": 3059,
           "type": "file"
         },
         ".env": {
@@ -39561,26 +39617,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -39869,7 +39931,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -39887,20 +39949,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -39939,8 +40001,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -40063,6 +40125,7 @@
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/extensions/theory_llm.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -40100,7 +40163,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -40434,8 +40497,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -40926,8 +40989,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -41048,8 +41111,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0994794d28add6730c349ca0d34e377db494352b8dc68b92d69ca6c969a9478c",
-          "size": 3021,
+          "sha256": "e0d4f45ff0464e1dff70c6c555da25cb4211c40a270a5669ebebfd3f80bad30e",
+          "size": 3059,
           "type": "file"
         },
         ".env": {
@@ -41426,26 +41489,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -41734,7 +41803,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -41752,20 +41821,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -41804,8 +41873,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -41928,6 +41997,7 @@
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/extensions/theory_llm.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -41965,7 +42035,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -42287,8 +42357,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -42763,8 +42833,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -42885,8 +42955,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d9140a15fe85bfea92f37ebd4315d6127208ba93ab3e11b875136f9cdeaf094c",
-          "size": 2914,
+          "sha256": "baca42c5c22fe2df6a9de3369e2d63551df06b9d7e7226e5a4bd86c6775792eb",
+          "size": 2952,
           "type": "file"
         },
         ".env": {
@@ -43263,26 +43333,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -43571,7 +43647,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -43589,20 +43665,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -43641,8 +43717,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -43757,6 +43833,7 @@
             ".arpipeline/update_inputs/deps/core.txt",
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -43793,7 +43870,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -44202,8 +44279,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a245c87c95b8e49ad66eeffa90d47dc85617a6f0fda9b35e89cb387f3d0d52b3",
-          "size": 1839,
+          "sha256": "5ec214ca28658fc77f6f6d1b7623c37d377b7d616b66d6e8be9d8b7928b9a30a",
+          "size": 1838,
           "type": "file"
         },
         ".env": {
@@ -44580,26 +44657,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -44792,8 +44869,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -44916,7 +44993,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -45356,8 +45433,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1da2c05275667f67cbb5332f75f437bccee7e46f271e7e94103394d405b68791",
-          "size": 1949,
+          "sha256": "c80c52ac29966a26bdb17c4d35e52a3245341612bd78e9905f5365707151850b",
+          "size": 1948,
           "type": "file"
         },
         ".env": {
@@ -45734,26 +45811,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -45946,8 +46023,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -46080,7 +46157,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -46727,8 +46804,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9098046d070ae358f1e20ebdbb91144168d1a8134082e3ca3fcc496232c910f5",
-          "size": 1857,
+          "sha256": "ddc486f77e89d83fcaa7ae6b60b07f3c93831b6c6112492b23073a20d357c9ec",
+          "size": 1856,
           "type": "file"
         },
         ".env": {
@@ -47465,26 +47542,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -47777,8 +47854,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -47855,8 +47932,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -47982,7 +48059,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -48302,8 +48379,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -48964,8 +49041,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -49272,8 +49349,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7a01a6211c7f442230e677d442653597076cea2637c6ef8b481e94f2fb5d9e6b",
-          "size": 2932,
+          "sha256": "0feda8de047d85a820eaf120d330387ba49c9ff38ca65beb77f20c81870ce3f6",
+          "size": 2970,
           "type": "file"
         },
         ".env": {
@@ -50142,26 +50219,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -50462,7 +50545,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -50480,20 +50563,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -50560,8 +50643,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "c62f5db1dfb456010af0a4a9e52ce2bf2ef96967a33ce3a27632e53d0ab73122",
-          "size": 41245,
+          "sha256": "04c7c06212dd38cc5a7d3d14e2cad227b6028aeaeb4a4d3dff3b637a120aa625",
+          "size": 41538,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -50626,8 +50709,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -50702,8 +50785,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -50821,6 +50904,7 @@
             ".arpipeline/update_inputs/deps/core.txt",
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -50857,7 +50941,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -51571,8 +51655,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "356679be25c6725ba121777a29e2c630023d9428b9a2f2f2bc57434ddb3a920c",
-          "size": 1967,
+          "sha256": "a01e73170c2f317314d5907ec756531d3c79fbc6df02065988c542263a9f5829",
+          "size": 1966,
           "type": "file"
         },
         ".env": {
@@ -52345,26 +52429,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -52663,8 +52747,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -52745,8 +52829,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -52876,7 +52960,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -53548,8 +53632,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a661145c8267f140d68d673e56e419453d891d672f214b4a3c51cf9716973f5d",
-          "size": 1917,
+          "sha256": "3d2317e8669c7fcbc0d4e6345d347bd0ea15a5727ee4c631bb653da37c45c4ea",
+          "size": 1916,
           "type": "file"
         },
         ".env": {
@@ -54322,26 +54406,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -54614,8 +54698,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -54696,8 +54780,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -54825,7 +54909,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -55510,8 +55594,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "56426017342cdf2bb87f193f9445dac2fa1aefdc0562e117eee3d5520af9221e",
-          "size": 1915,
+          "sha256": "645cc42b73d7d903fac49ad7633aaf49ede708f6b4f31f8f9dcc91f2deb53757",
+          "size": 1914,
           "type": "file"
         },
         ".env": {
@@ -56302,26 +56386,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -56594,8 +56678,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -56686,8 +56770,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -56821,7 +56905,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -57495,8 +57579,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "29fc06a13c7b15f48652ca834de0620be36f5d0601780a9271ffbec3b6ecb502",
-          "size": 1915,
+          "sha256": "399280cd5a3d2e6c82caa8ec3a8ecbb5b415acca94901c444d7ceafbcc44154c",
+          "size": 1914,
           "type": "file"
         },
         ".env": {
@@ -58269,26 +58353,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -58561,8 +58645,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -58643,8 +58727,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -58772,7 +58856,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -59445,8 +59529,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "49cfef571e8b760fc2d780c3bb170704d30159fb806e3382ea35f48993594d13",
-          "size": 1892,
+          "sha256": "dd8bec4f61ad388225b8e476c14b66da01fb6527ec34aedc8a9d37be16ded034",
+          "size": 1891,
           "type": "file"
         },
         ".env": {
@@ -60219,26 +60303,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -60505,8 +60589,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -60551,8 +60635,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ef774454817c7dacc69f53acb377e740fd916af118bb594dde4656743b49f5df",
-          "size": 15389,
+          "sha256": "6c37531c8a7a0c355a12d84231d9f27b732f63f400d18fcd4f1732208310d22d",
+          "size": 15387,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -60649,7 +60733,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -61323,8 +61407,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "cb813c7438c5d7c2a55c65e19f80c38a3b465a436707c129f7ae65409ef30bb8",
-          "size": 1934,
+          "sha256": "48c028b9eb87e2dec2b7a953493aba3efc0bd3fad8901d9611d5951886b96c5f",
+          "size": 1933,
           "type": "file"
         },
         ".env": {
@@ -62097,26 +62181,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -62389,8 +62473,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -62463,8 +62547,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -62592,7 +62676,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -62960,8 +63044,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "14b038deaad53d571c05ee0a903ab7dc96440ad1bd29020324c44dec21f69ed3",
-          "size": 1790,
+          "sha256": "01086a776d415592fbfb3fbd9e8e2c5027711c6f7ae53e0f216e754e52a83831",
+          "size": 1789,
           "type": "file"
         },
         ".env": {
@@ -63338,26 +63422,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -63524,8 +63608,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -63646,7 +63730,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -64046,8 +64130,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "3676dd80ddb0893720318dd824a448c065db369382cf3faa5f9492071cdae349",
-          "size": 1899,
+          "sha256": "9460154cf6cc70fbc8d2b3d5ed968beae75f9f94e98534a01016b085ddf5858d",
+          "size": 1898,
           "type": "file"
         },
         ".env": {
@@ -64424,26 +64508,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -64610,8 +64694,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -64742,7 +64826,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -65388,8 +65472,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bbcebd02de4f32b6ddf3119b06238ea8df345d323481a21edba830934903a7aa",
-          "size": 1856,
+          "sha256": "38ab29e52df8341fd5778b87e68a3e8019616548b9021921c877f3dda085cc71",
+          "size": 1855,
           "type": "file"
         },
         ".env": {
@@ -66126,26 +66210,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -66438,8 +66522,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -66506,8 +66590,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -66633,7 +66717,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -66965,8 +67049,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -67649,8 +67733,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -67963,8 +68047,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a4f91eb4032c1a64d99260ee5785a1aff82f024b88eab0c251ea5ad7cdbfb82d",
-          "size": 3037,
+          "sha256": "bdaab03c1bc4605706e087d4848e05f0d10ddc75f4e1b63bca8fd669fe64c81a",
+          "size": 3075,
           "type": "file"
         },
         ".env": {
@@ -68845,26 +68929,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -69165,7 +69255,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -69183,20 +69273,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -69263,8 +69353,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "c62f5db1dfb456010af0a4a9e52ce2bf2ef96967a33ce3a27632e53d0ab73122",
-          "size": 41245,
+          "sha256": "04c7c06212dd38cc5a7d3d14e2cad227b6028aeaeb4a4d3dff3b637a120aa625",
+          "size": 41538,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -69335,8 +69425,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -69425,8 +69515,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -69546,6 +69636,7 @@
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/extensions/theory_llm.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -69583,7 +69674,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -69903,8 +69994,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -70553,8 +70644,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -70849,8 +70940,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c711cfa850ece5bf126f5eebbf98e4908ed90f58195498097847a5d5709fcbcf",
-          "size": 2930,
+          "sha256": "2e51a246bdee27852bbfe708241e82ef0b9fc9d71f3620499aab2af9a74371ba",
+          "size": 2968,
           "type": "file"
         },
         ".env": {
@@ -71695,26 +71786,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -72015,7 +72112,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -72033,20 +72130,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -72113,8 +72210,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "c62f5db1dfb456010af0a4a9e52ce2bf2ef96967a33ce3a27632e53d0ab73122",
-          "size": 41245,
+          "sha256": "04c7c06212dd38cc5a7d3d14e2cad227b6028aeaeb4a4d3dff3b637a120aa625",
+          "size": 41538,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -72179,8 +72276,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -72255,8 +72352,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -72374,6 +72471,7 @@
             ".arpipeline/update_inputs/deps/core.txt",
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -72410,7 +72508,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -72818,8 +72916,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8f0d6f29053a98c5020dd4b66c903c0e2b44c72193d683e894d680886b7405f4",
-          "size": 1838,
+          "sha256": "b2d3eb46fdc235cc3f81533c3b84960609230477dfe4e70645d6afafa77c542e",
+          "size": 1837,
           "type": "file"
         },
         ".env": {
@@ -73196,26 +73294,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -73408,8 +73506,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -73532,7 +73630,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -73866,8 +73964,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -74358,8 +74456,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -74480,8 +74578,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f9d7606dbc3fda2405c5bcd5647bf0c5e044b30821776eb6ec4f95ccb8ec10f0",
-          "size": 3019,
+          "sha256": "1e198abf2adde9e1e9be0b19e5f888a567a6fa398671bf12a79279c41f6f972b",
+          "size": 3057,
           "type": "file"
         },
         ".env": {
@@ -74858,26 +74956,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -75166,7 +75270,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -75184,20 +75288,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -75236,8 +75340,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -75360,6 +75464,7 @@
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/extensions/theory_llm.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -75397,7 +75502,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -75719,8 +75824,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "b3f7b0ff8a0843f3446d2b1eb91bc775529e38ddee1d6cacd5f7b6466aa94bc3",
-          "size": 14198,
+          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
+          "size": 15035,
           "type": "file"
         },
         ".arpipeline": {
@@ -76195,8 +76300,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "8f1f25121f3683534773372f65660ac8dfc05317832feb96792959dad1498084",
-          "size": 14302,
+          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
+          "size": 15139,
           "type": "file"
         },
         ".codex": {
@@ -76317,8 +76422,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a04dfee96576f23dc8d1c7860c775f615104f889c003434bcfa0c13d99e7fb71",
-          "size": 2912,
+          "sha256": "fd030846d4c3b548f1b76737329146262c0f19052f86941c32fd5281160bb77e",
+          "size": 2950,
           "type": "file"
         },
         ".env": {
@@ -76695,26 +76800,32 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
+          "type": "file"
+        },
+        ".opencode/wrds_srt_service.py": {
+          "mode": "0755",
+          "sha256": "eacccc065e454d5c131977c8d5531802b9c211064f67703d9e95a5fa6908a35d",
+          "size": 4641,
           "type": "file"
         },
         "AGENTS.md": {
@@ -77003,7 +77114,7 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "5b8a2d899a662de040622527963c5a4516222bb6365b6a04c918438e6f726a0e",
+          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
           "size": 13370,
           "type": "file"
         },
@@ -77021,20 +77132,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "e769c40230a0e6c92ec7f85d4c62591ee2604db2c0bbeb100e8b853034074411",
-          "size": 24756,
+          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
+          "size": 24976,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "1ded34eafcfb93a9073c33bba6f6fd9f1db9e811950f63f4bc84e8956afc23ff",
-          "size": 12109,
+          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
+          "size": 12503,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "d5806155df84ccc0e6e8a38cd1ddc9ce74780d1a870de7e6ab08e3d4ca812f2a",
-          "size": 88919,
+          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
+          "size": 89872,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -77073,8 +77184,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "opencode.json": {
@@ -77189,6 +77300,7 @@
             ".arpipeline/update_inputs/deps/core.txt",
             ".arpipeline/update_inputs/deps/extensions/empirical.txt",
             ".arpipeline/update_inputs/deps/ssj.txt",
+            ".opencode/wrds_srt_service.py",
             "code/utils/__init__.py",
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
@@ -77225,7 +77337,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -77665,8 +77777,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f50e9093f8f5eca5388bd58bef2525a2ececd9a941fb67763ba43f9da96b4b40",
-          "size": 1947,
+          "sha256": "595af456943e00d0a6fc66bae761944c775ba50afa6dd2510a12341f93d292e4",
+          "size": 1946,
           "type": "file"
         },
         ".env": {
@@ -78043,26 +78155,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -78255,8 +78367,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -78389,7 +78501,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -79103,8 +79215,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "61f930157744194bdebbef0c5fa5aa5b57446b8dd76c7dac17c197d2e09a6fdc",
-          "size": 1965,
+          "sha256": "b2f8d7e4b3ff815f5b2d59f1b3aa8f73a85edce1a2769bffe79cb110b16963b5",
+          "size": 1964,
           "type": "file"
         },
         ".env": {
@@ -79877,26 +79989,26 @@
         },
         ".opencode/opencode_driver.py": {
           "mode": "0755",
-          "sha256": "b70c90dbd0c36420fee9ebc5c16b5e4844cf3f4eb559756c48647c2a7759427d",
-          "size": 18625,
+          "sha256": "a7ab2b27c89f5e986b1648cedef438c4c5310b6fe74df83391130801c2f8534d",
+          "size": 18769,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.mjs": {
           "mode": "0755",
-          "sha256": "63f23c27fb315fd232c1c44df529b8d30a0727e91b5f21162c0b96d5f51ebbf6",
-          "size": 5689,
+          "sha256": "5e21ed2291d050964a439996d5447860166ed30d8cd660d0976bc8b8aafff025",
+          "size": 6519,
           "type": "file"
         },
         ".opencode/opencode_sandbox_exec.sh": {
           "mode": "0755",
-          "sha256": "56b06c1504ae6ee614c6abde4d4f4ac9cc4df3304f1f064493f619e5b5f915b0",
-          "size": 6834,
+          "sha256": "8df3f98ff8c01437a90b663422711d7f7a1a619739c3f04e0073bb500080a3a5",
+          "size": 7302,
           "type": "file"
         },
         ".opencode/sandbox.json": {
           "mode": "0644",
-          "sha256": "47ff36e3b15aa8a5fcdf595a066da0c8364d1e847a1bbcfef86a9b9e97835dca",
-          "size": 746,
+          "sha256": "159fa8de5e88d2d2a35356f5c2902756c47e70fc3bf0b8219f49325706699643",
+          "size": 836,
           "type": "file"
         },
         "AGENTS.md": {
@@ -80195,8 +80307,8 @@
         },
         "launch.sh": {
           "mode": "0755",
-          "sha256": "da4a32217d17f74d8cd27df17c9955ae00cca916f391049d2c300aad66e3e47e",
-          "size": 135307,
+          "sha256": "231489e467c55a2e2ab181af3d7ae20b724b7ed1e7df86d1c79a3626a1f5891b",
+          "size": 148088,
           "type": "file"
         },
         "llm_client.py": {
@@ -80277,8 +80389,8 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "70a9dc40a069753942a50420b249616f4bd9fb9269cc49687726af64811a6778",
-          "size": 15380,
+          "sha256": "c870570145eb80f8e53b47c53abe135a4ea571b158ce9318a32d8889f2fddc3f",
+          "size": 15378,
           "type": "file"
         },
         "paper/internet_appendix.tex": {
@@ -80408,7 +80520,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.24.11+<GIT_REVISION>",
+        "template_version": "2.25.0+<GIT_REVISION>",
         "variant": "macro"
       }
     }

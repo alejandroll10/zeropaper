@@ -6,6 +6,11 @@ ASSET_ROOT="$(cd "$(dirname "$0")/.." && pwd)"
 TEST_ROOT="$(mktemp -d "${TMPDIR:-/tmp}/zeropaper-wrds-launch-test.XXXXXX")"
 trap 'rm -rf "$TEST_ROOT"' EXIT
 
+awk '/^project_services_action\(\) \{/,/^\}/' "$ASSET_ROOT/launch.sh" \
+    > "$TEST_ROOT/service-action.sh"
+# shellcheck source=/dev/null
+source "$TEST_ROOT/service-action.sh"
+
 awk '/^prestart_project_services\(\) \{/,/^\}/' "$ASSET_ROOT/launch.sh" \
     > "$TEST_ROOT/prestart.sh"
 # shellcheck source=/dev/null
@@ -190,6 +195,73 @@ if [ "$detached_pid" != "$detached_pgid" ]; then
     echo "FAIL: portable WRDS detachment wrapper did not create a new session" >&2
     exit 1
 fi
+
+# The OpenCode supervisor cannot touch credentials or service code before the
+# trusted control plane confirms that its SRT PID is host-visible. Once the
+# one-shot gate opens it starts exactly once, publishes readiness, and remains
+# alive until explicitly terminated.
+SRT_SERVICE_ROOT="$TEST_ROOT/srt-service"
+mkdir -p "$SRT_SERVICE_ROOT/code/utils" "$SRT_SERVICE_ROOT/process_log/.opencode-control"
+mkdir -p "$SRT_SERVICE_ROOT/.opencode"
+cp "$ASSET_ROOT/templates/utils/wrds_srt_service.py" \
+    "$SRT_SERVICE_ROOT/.opencode/wrds_srt_service.py"
+printf 'WRDS_USER=test-user\nWRDS_PASS=test-pass\n' > "$SRT_SERVICE_ROOT/.env"
+cat > "$SRT_SERVICE_ROOT/code/utils/start_services.sh" <<'MOCK'
+#!/usr/bin/env bash
+printf 'called\n' >> "${WRDS_SRT_START_CALLS:?}"
+MOCK
+cat > "$SRT_SERVICE_ROOT/code/utils/wrds_client.py" <<'PY'
+def wrds_ping(): return True
+def wrds_bridge_ping(): return True
+PY
+chmod +x "$SRT_SERVICE_ROOT/code/utils/start_services.sh"
+SRT_APPROVAL="$SRT_SERVICE_ROOT/process_log/.opencode-control/wrds_service_approval"
+: > "$SRT_APPROVAL"
+chmod 600 "$SRT_APPROVAL"
+(cd "$SRT_SERVICE_ROOT" && SANDBOX_RUNTIME=1 WRDS_SRT_START_CALLS="$TEST_ROOT/srt-start-calls" \
+    python3 -I .opencode/wrds_srt_service.py zeropaper-wrds-srt-service-v6 \
+        "$SRT_APPROVAL") >"$TEST_ROOT/srt-service-log" 2>&1 &
+srt_service_pid=$!
+for _attempt in {1..200}; do
+    grep -q '^WRDS_SRT_IDENTITY ' "$TEST_ROOT/srt-service-log" 2>/dev/null && break
+    kill -0 "$srt_service_pid" 2>/dev/null || break
+    sleep 0.02
+done
+grep -q '^WRDS_SRT_IDENTITY ' "$TEST_ROOT/srt-service-log"
+test ! -e "$TEST_ROOT/srt-start-calls"
+printf 'approved\n' > "$SRT_APPROVAL"
+for _attempt in {1..200}; do
+    grep -q '^WRDS_SRT_SERVICE_READY$' "$TEST_ROOT/srt-service-log" 2>/dev/null && break
+    kill -0 "$srt_service_pid" 2>/dev/null || break
+    sleep 0.02
+done
+grep -q '^WRDS_SRT_SERVICE_READY$' "$TEST_ROOT/srt-service-log"
+test "$(wc -l < "$TEST_ROOT/srt-start-calls" | tr -d ' ')" = 1
+kill -TERM "$srt_service_pid"
+wait "$srt_service_pid"
+
+# The stage doctrine binds its halt to the second authoritative service probe,
+# not the initial observation or auth-diagnosis proxy.
+STAGE3A="$ASSET_ROOT/extensions/empirical/docs/stage_3a_empirical.md"
+grep -Fq 'immediately run the exact `wrds_ping()` command above one final time' "$STAGE3A"
+grep -Fq 'Only if the final ping also returns False' "$STAGE3A"
+grep -Fq 'PYTHONPATH=code .venv/bin/python3' "$STAGE3A"
+
+# OpenCode's first-start path is long-lived, service-profiled, identity-bound,
+# and executed through SRT; the unsandboxed control plane never invokes the
+# project venv directly.
+grep -Fq 'ZEROPAPER_OPENCODE_WRDS_SERVICE=1' "$ASSET_ROOT/launch.sh"
+grep -Fq 'oc_wrds_service_approve_pid_namespace' "$ASSET_ROOT/launch.sh"
+grep -Fq 'zeropaper-wrds-srt-service-v6' "$ASSET_ROOT/launch.sh"
+grep -Fq '"$OC_CONTROL_PYTHON" -I .opencode/wrds_srt_service.py' \
+    "$ASSET_ROOT/launch.sh"
+if grep -Fq '"$ROOT/.venv/bin/python3" -I code/utils/wrds_srt_service.py' \
+    "$ASSET_ROOT/launch.sh"; then
+    echo "FAIL: privileged WRDS profile still invokes the model-writable venv" >&2
+    exit 1
+fi
+grep -Fq 'allowAllUnixSockets: true' \
+    "$ASSET_ROOT/templates/utils/opencode_sandbox_exec.mjs"
 
 FAKE_CODEX_BIN="$TEST_ROOT/fake-codex-bin"
 mkdir -p "$FAKE_CODEX_BIN"

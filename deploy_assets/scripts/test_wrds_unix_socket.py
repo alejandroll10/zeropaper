@@ -7,6 +7,7 @@ import multiprocessing
 import os
 import socket
 import stat
+import struct
 import subprocess
 import sys
 import tempfile
@@ -60,14 +61,14 @@ def request_over_socketpair(state, cmd):
     left, right = socket.socketpair()
     payload = json.dumps({"cmd": cmd,
                           "safety_protocol": server.SAFETY_PROTOCOL}).encode()
-    left.sendall(f"{len(payload):8d}".encode() + payload)
+    left.sendall(struct.pack("!Q", len(payload)) + payload)
     worker = threading.Thread(
         target=server.handle_client,
         args=(right, state),
         daemon=True,
     )
     worker.start()
-    size = int(left.recv(8).decode().strip())
+    size = struct.unpack("!Q", client._recv_exact(left, 8))[0]
     chunks = []
     while sum(map(len, chunks)) < size:
         chunks.append(left.recv(size - sum(map(len, chunks))))
@@ -459,7 +460,7 @@ def main():
                 "HTTP_PROXY": "",
         }, clear=False):
             response = client._send_request(
-                {"cmd": "safety_hello_v5"}, timeout=5, force_bridge=True)
+                {"cmd": "safety_hello_v6"}, timeout=5, force_bridge=True)
         assert response["status"] == "ok"
         upstream_worker.join(timeout=2)
         proxy_worker.join(timeout=2)
@@ -485,22 +486,22 @@ def main():
             }).encode()
             left.sendall(
                 bridge.BRIDGE_PREFACE_MAGIC + token.encode("ascii") + b"\n")
-            left.sendall(f"{len(request):8d}".encode() + request)
+            left.sendall(struct.pack("!Q", len(request)) + request)
             relay = threading.Thread(
                 target=bridge._relay_client,
                 args=(right, bridge_token, slots), daemon=True)
             relay.start()
-            size = int(client._recv_exact(left, 8).decode())
+            size = struct.unpack("!Q", client._recv_exact(left, 8))[0]
             result = json.loads(client._recv_exact(left, size))
             left.close()
             relay.join(timeout=2)
             assert not relay.is_alive()
             return result
 
-        rejected = bridge_pair_request("b" * 64, "safety_hello_v5")
+        rejected = bridge_pair_request("b" * 64, "safety_hello_v6")
         assert rejected["status"] == "error"
         assert "authentication failed" in rejected["msg"]
-        rejected = bridge_pair_request(bridge_token, "safe_unblock_v5")
+        rejected = bridge_pair_request(bridge_token, "safe_unblock_v6")
         assert rejected["status"] == "error"
         assert "query protocol commands only" in rejected["msg"]
 
@@ -540,7 +541,7 @@ def main():
                 mock.patch.object(
                     bridge, "UPSTREAM_RESPONSE_TIMEOUT", 0.5):
             delayed = bridge_pair_request(
-                bridge_token, "safety_hello_v5")
+                bridge_token, "safety_hello_v6")
         assert delayed["status"] == "ok"
         delayed_worker.join(timeout=2)
         assert not delayed_worker.is_alive()
@@ -593,10 +594,10 @@ def main():
             os.lstat(server.SOCKET_FILE)) == bridge_upstream_identity
 
         # Lifecycle commands do not exist on any wire endpoint.
-        denied = request_over_socketpair(state, "safe_unblock_v5")
+        denied = request_over_socketpair(state, "safe_unblock_v6")
         assert denied["status"] == "error"
         assert "unknown command" in denied["msg"]
-        denied = request_over_socketpair(state, "safe_shutdown_v5")
+        denied = request_over_socketpair(state, "safe_shutdown_v6")
         assert denied["status"] == "error"
 
         # Oversized and incomplete frames are bounded and rejected promptly.
@@ -604,8 +605,8 @@ def main():
         oversized = threading.Thread(
             target=server.handle_client, args=(right, state), daemon=True)
         oversized.start()
-        left.sendall(f"{server.MAX_MSG + 1:8d}".encode())
-        response_size = int(left.recv(8).decode().strip())
+        left.sendall(struct.pack("!Q", server.MAX_MSG + 1))
+        response_size = struct.unpack("!Q", client._recv_exact(left, 8))[0]
         response = json.loads(left.recv(response_size).decode())
         assert response["status"] == "error"
         assert "frame" in response["msg"]
@@ -613,8 +614,9 @@ def main():
         oversized.join(timeout=2)
         assert not oversized.is_alive()
 
-        # Client framing tolerates fragmented headers/bodies and rejects an
-        # advertised response beyond its explicit cap.
+        # Client framing tolerates fragmented headers/bodies. The uint64
+        # prefix accepts the first formerly-corrupt nine-digit length rather
+        # than imposing v5's accidental 90 MiB ceiling.
         client_side, peer_side = socket.socketpair()
         original_connect = client._connect
         client._connect = lambda timeout, force_bridge=False: (client_side, None)
@@ -626,12 +628,12 @@ def main():
             header = b""
             while len(header) < 8:
                 header += peer_side.recv(8 - len(header))
-            request_size = int(header.decode().strip())
+            request_size = struct.unpack("!Q", header)[0]
             remaining = request_size
             while remaining:
                 part = peer_side.recv(remaining)
                 remaining -= len(part)
-            response_header = f"{len(payload):8d}".encode()
+            response_header = struct.pack("!Q", len(payload))
             for byte in response_header:
                 peer_side.sendall(bytes([byte]))
             for offset in range(0, len(payload), 3):
@@ -640,38 +642,64 @@ def main():
         fragmented = threading.Thread(target=fragmented_peer, daemon=True)
         fragmented.start()
         try:
-            response = client._send_request({"cmd": "safety_hello_v5"})
+            response = client._send_request({"cmd": "safety_hello_v6"})
             assert response["msg"] == "fragmented"
         finally:
             client._connect = original_connect
         fragmented.join(timeout=2)
         assert not fragmented.is_alive()
 
-        too_large_client, too_large_peer = socket.socketpair()
-        client._connect = lambda timeout, force_bridge=False: (too_large_client, None)
-        def oversized_peer():
+        large_frame_client, large_frame_peer = socket.socketpair()
+        client._connect = lambda timeout, force_bridge=False: (large_frame_client, None)
+        def formerly_oversized_peer():
             header = b""
             while len(header) < 8:
-                header += too_large_peer.recv(8 - len(header))
-            request_size = int(header.decode().strip())
+                header += large_frame_peer.recv(8 - len(header))
+            request_size = struct.unpack("!Q", header)[0]
             remaining = request_size
             while remaining:
-                part = too_large_peer.recv(remaining)
+                part = large_frame_peer.recv(remaining)
                 remaining -= len(part)
-            too_large_peer.sendall(f"{client.MAX_RESPONSE + 1:8d}".encode())
-            too_large_peer.close()
-        oversized_response = threading.Thread(target=oversized_peer, daemon=True)
-        oversized_response.start()
+            large_frame_peer.sendall(struct.pack("!Q", 100_000_000))
+            large_frame_peer.sendall(b"{}")
+            large_frame_peer.close()
+        formerly_oversized = threading.Thread(
+            target=formerly_oversized_peer, daemon=True)
+        formerly_oversized.start()
+        assert struct.unpack("!Q", struct.pack("!Q", 100_000_000))[0] == \
+            100_000_000
         try:
             try:
-                client._send_request({"cmd": "safety_hello_v5"})
-                raise AssertionError("oversized server response was accepted")
-            except ConnectionError:
-                pass
+                client._send_request({"cmd": "safety_hello_v6"})
+                raise AssertionError("incomplete large frame was accepted")
+            except ConnectionError as exc:
+                assert "incomplete WRDS response frame" in str(exc)
         finally:
             client._connect = original_connect
-        oversized_response.join(timeout=2)
-        assert not oversized_response.is_alive()
+        formerly_oversized.join(timeout=2)
+        assert not formerly_oversized.is_alive()
+
+        bounded_client, bounded_peer = socket.socketpair()
+        client._connect = lambda timeout, force_bridge=False: (bounded_client, None)
+        def over_bound_peer():
+            request_size = struct.unpack(
+                "!Q", client._recv_exact(bounded_peer, 8))[0]
+            client._recv_exact(bounded_peer, request_size)
+            bounded_peer.sendall(struct.pack("!Q", client.MAX_RESPONSE + 1))
+            bounded_peer.close()
+        over_bound = threading.Thread(target=over_bound_peer, daemon=True)
+        over_bound.start()
+        try:
+            try:
+                client._send_request({"cmd": "safety_hello_v6"})
+                raise AssertionError("response above wire-safety bound was accepted")
+            except ConnectionError as exc:
+                assert "frame must be" in str(exc)
+        finally:
+            client._connect = original_connect
+        over_bound.join(timeout=2)
+        assert not over_bound.is_alive()
+        assert client.MAX_RESPONSE == bridge.MAX_RESPONSE == server.MAX_RESPONSE
 
         old_memory_cap = server.MAX_RESULT_MEMORY
         server.MAX_RESULT_MEMORY = 1
@@ -706,19 +734,35 @@ def main():
         except ValueError:
             pass
 
-        old_response_cap = server.MAX_RESPONSE
-        server.MAX_RESPONSE = 128
+        response_client, response_server = socket.socketpair()
+        try:
+            server.send_response(response_server, {
+                "status": "ok", "data": "x" * 1000,
+            })
+            response_size = struct.unpack(
+                "!Q", client._recv_exact(response_client, 8))[0]
+            response = json.loads(client._recv_exact(
+                response_client, response_size))
+            assert response["status"] == "ok"
+            assert len(response["data"]) == 1000
+        finally:
+            response_client.close()
+            response_server.close()
+
+        old_wire_cap = server.MAX_RESPONSE
+        server.MAX_RESPONSE = 512
         capped_client, capped_server = socket.socketpair()
         try:
             server.send_response(capped_server, {
                 "status": "ok", "data": "x" * 1000,
             })
-            capped_size = int(client._recv_exact(capped_client, 8).decode())
+            capped_size = struct.unpack(
+                "!Q", client._recv_exact(capped_client, 8))[0]
             capped = json.loads(client._recv_exact(capped_client, capped_size))
             assert capped["status"] == "error"
-            assert "transport limit" in capped["msg"]
+            assert "wire-safety bound" in capped["msg"]
         finally:
-            server.MAX_RESPONSE = old_response_cap
+            server.MAX_RESPONSE = old_wire_cap
             capped_client.close()
             capped_server.close()
 

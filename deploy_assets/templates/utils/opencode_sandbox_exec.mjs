@@ -17,6 +17,13 @@ if (process.argv.length < 5) {
 }
 
 const [, , policyPath, packagePath, ...commandArgs] = process.argv;
+const wrdsService = process.env.ZEROPAPER_OPENCODE_WRDS_SERVICE === "1";
+if (
+  process.env.ZEROPAPER_OPENCODE_WRDS_SERVICE !== undefined &&
+  !["", "0", "1"].includes(process.env.ZEROPAPER_OPENCODE_WRDS_SERVICE)
+) {
+  fail("invalid OpenCode WRDS service profile selector");
+}
 let policy;
 try {
   policy = JSON.parse(await readFile(policyPath, "utf8"));
@@ -80,6 +87,15 @@ try {
   fail(`cannot load Anthropic Sandbox Runtime library: ${error.message}`);
 }
 
+const wrdsState = join(homedir(), ".local", "state", "zeropaper", "wrds");
+const wrdsCacheState = join(homedir(), ".cache", "zeropaper", "wrds");
+const serviceFilesystem = wrdsService ? {
+  ...filesystem,
+  allowWrite: ["/tmp", wrdsState, wrdsCacheState],
+  denyWrite: filesystem.denyWrite.filter((item) =>
+    !["~/.local/state/zeropaper/wrds", "~/.cache/zeropaper/wrds"].includes(item)),
+} : filesystem;
+
 const runtimeConfig = {
   // allowedDomains is deliberately absent. SRT then leaves the host network
   // namespace/profile unchanged while still emitting its filesystem policy.
@@ -93,9 +109,9 @@ const runtimeConfig = {
         homedir(), ".local", "state", "zeropaper", "wrds",
         "wrds_server_23847.sock",
       )],
-    } : {}),
+    } : wrdsService ? { allowAllUnixSockets: true } : {}),
   },
-  filesystem,
+  filesystem: serviceFilesystem,
 };
 
 const quote = (arg) => `'${arg.replaceAll("'", "'\\''")}'`;
@@ -117,6 +133,7 @@ const childEnv = {
   PATH: process.env.ZEROPAPER_OPENCODE_CHILD_PATH || wrapped.env.PATH,
   XDG_DATA_HOME: join(process.cwd(), "process_log", ".opencode-runtime", "data"),
   XDG_STATE_HOME: join(process.cwd(), "process_log", ".opencode-runtime", "state"),
+  PYTHONDONTWRITEBYTECODE: "1",
 };
 if (process.env.ZEROPAPER_OPENCODE_CHILD_VIRTUAL_ENV) {
   childEnv.VIRTUAL_ENV = process.env.ZEROPAPER_OPENCODE_CHILD_VIRTUAL_ENV;
@@ -125,6 +142,7 @@ if (process.env.ZEROPAPER_OPENCODE_CHILD_VIRTUAL_ENV) {
 }
 delete childEnv.ZEROPAPER_OPENCODE_CHILD_PATH;
 delete childEnv.ZEROPAPER_OPENCODE_CHILD_VIRTUAL_ENV;
+delete childEnv.ZEROPAPER_OPENCODE_WRDS_SERVICE;
 
 const child = spawn(wrapped.argv[0], wrapped.argv.slice(1), {
   cwd: process.cwd(),

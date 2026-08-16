@@ -22,6 +22,14 @@ df = wrds_query("SELECT * FROM crsp.msf LIMIT 5")
 
 The server handles connection persistence, threading, and cleanup. Each script just calls `wrds_query(sql)`.
 
+The v6 transport uses an unsigned 64-bit binary length prefix, so the former
+90 MiB response-frame ceiling no longer exists. A deliberate 512 MiB wire
+safety bound and total frame deadlines reject malformed or slow-drip peers.
+Query execution remains more tightly bounded: one `wrds_query()` may
+materialize at most 1,000,000 rows and 48 MiB in the server, and
+`wrds_get_table()` requires an explicit limit of at most 100,000 rows. These
+are explicit safety budgets, not fixed-width framing failures.
+
 ## Pre-built download templates
 
 Standard CRSP/Compustat downloads are available as ready-to-run scripts in `code/utils/`. Use these instead of writing downloads from scratch:
@@ -238,6 +246,7 @@ df = wrds_query("""
 ## Performance tips
 - **Always filter on date.** CRSP daily has ~100M rows. Never `SELECT *` without a WHERE clause.
 - **Use LIMIT when exploring.** Add `LIMIT 1000` to test queries before running the full version.
+- **Window pulls that exceed a query budget.** Split by non-overlapping date or stable identifier ranges, cache each window separately, verify that boundaries neither overlap nor gap, then concatenate/scan the partitions locally. Do not respond to a row/materialization-budget error by removing filters or bypassing the shared client.
 - **Download once, cache locally.** For large pulls, save to `data/` as parquet: `df.to_parquet('data/crsp_monthly.parquet')`. Check for cached files before re-querying.
 - **Stream large local parquets — don't eager-load.** When reloading a cached pull (CRSP daily ~100M rows, TAQ, 13F/`s34` holdings), never `pd.read_parquet(<whole file>)`; use `polars.scan_parquet(path).select([...]).filter(...).collect()` (column projection + predicate pushdown) so you filter before materializing and never hold the full table in RAM.
 - **Use SQL aggregation** when possible — faster than downloading raw data and aggregating in pandas.
