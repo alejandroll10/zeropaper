@@ -173,8 +173,13 @@ _setup_print_completion() {
     echo "Claude:"
     echo "  source .venv/bin/activate && claude --dangerously-skip-permissions"
     echo ""
-    echo "Codex (headless driver loop — codex has no autowake, so this is the autonomous form):"
-    echo "  ./launch.sh codex          # add --tmux for a detached window; --once for a plain TUI"
+    if [ "$MANUAL" = "1" ] || [ "$MODE" = "report" ]; then
+        echo "Codex (manual/report deployments have no autonomous pipeline-state driver):"
+        echo "  ./launch.sh codex --once   # interactive TUI; native subagents complete inside their spawning turn"
+    else
+        echo "Codex (headless driver loop; native subagents complete inside their spawning turn):"
+        echo "  ./launch.sh codex          # add --tmux for a detached window; --once for a plain TUI"
+    fi
     echo ""
     echo "Gemini:"
     echo "  source .venv/bin/activate && gemini --yolo"
@@ -197,6 +202,7 @@ _setup_print_completion() {
         echo "Drop the submission to be refereed in submission/ (PDF or LaTeX source bundle), then say: \"run\""
         echo "  - core_report.md fans out the audit agents in parallel"
         echo "  - report-synthesizer aggregates them into report/referee_report.md"
+        echo "  - report-reviewer must return a versioned CLEAN gate before completion"
         echo "  - one-shot; for a revised submission re-run setup.sh on a fresh folder"
     else
         echo "Then say: \"Run the pipeline.\""

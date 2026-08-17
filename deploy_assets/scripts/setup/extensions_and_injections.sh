@@ -12,11 +12,12 @@ local agent _line VARIANT_BLOCK
 local -a _core_bypass_agents _core_developing_agents _core_bash_agents
 local -a _core_heavy_agents _report_pipeline_native_audit_agents
 # ── Prune agents not used in --mode report ──
-# Report mode only invokes the audit fan-out + report-synthesizer. Generative,
+# Report mode only invokes the audit fan-out + report-synthesizer + report-reviewer. Generative,
 # pipeline-management, scoring, broad-survey, and writing-style agents have no
 # job here. Removing them at assembly time prevents accidental invocation and
 # keeps the deployed .claude/agents/ catalog focused. Audit, polish-*, referee*,
-# bib-verifier, novelty-checker, self-attacker, debugger, report-synthesizer
+# bib-verifier, novelty-checker, self-attacker, debugger, report-synthesizer,
+# report-reviewer
 # stay; extension generative agents (empiricist, identification-designer,
 # experiment-designer) are pruned per-extension below by the same function.
 # Delete assembled agent output files across all five runtimes. The
@@ -47,9 +48,9 @@ _setup_extensions_prune_non_empirical_first_agents() {
     _setup_extensions_prune_agents "$@"
 }
 
-# Inverse of _setup_extensions_prune_report_mode_agents (#164): report-synthesizer is invoked ONLY
-# under --mode report (it aggregates audits/*.md into report/referee_report.md).
-# It lives in shared agent metadata, so it assembles into every build; delete it
+# Inverse of _setup_extensions_prune_report_mode_agents (#164): report-synthesizer and
+# report-reviewer are invoked ONLY under --mode report (synthesis, then its independent gate).
+# They live in shared agent metadata, so they assemble into every build; delete them
 # in every non-report build so it never sits in the orchestrator's
 # available-agents list where it can never fire (and can't be improvised into,
 # e.g., a Stage-6 aggregation the `editor` agent owns).
@@ -102,7 +103,7 @@ fi
 # Symmetric to _setup_extensions_prune_report_mode_agents: these ship from shared metadata but can
 # only ever fire in one mode/flag. Removing them keeps the deployed
 # .claude/agents/ catalog to agents this build can actually invoke.
-_setup_extensions_prune_non_report_mode_agents report-synthesizer
+_setup_extensions_prune_non_report_mode_agents report-synthesizer report-reviewer
 _setup_extensions_prune_non_faithful_agents faithful-drift-auditor
 
 # ── Inject variant context into agents ──
@@ -113,7 +114,7 @@ VARIANT_BLOCK="
 - **Domain:** ${DOMAIN_AREAS}
 "
 
-for agent in literature-scout gap-scout novelty-checker theory-explorer implications-deriver referee referee-freeform referee-mechanism scorer scorer-freeform editor branch-manager last-resort paper-writer style report-synthesizer; do
+for agent in literature-scout gap-scout novelty-checker theory-explorer implications-deriver referee referee-freeform referee-mechanism scorer scorer-freeform editor branch-manager last-resort paper-writer style report-synthesizer report-reviewer; do
     if [ -f "$AGENTS_OUT/$agent.md" ]; then
         echo "$VARIANT_BLOCK" >> "$AGENTS_OUT/$agent.md"
     fi
@@ -350,8 +351,8 @@ echo "  ✓ Efficiency mandate injected into compute-heavy core agents"
 # don't exist, PDF-only submissions degrade with an explicit note, and
 # submission/ is read-only. Excluded on purpose: the referee trio and
 # polish-identification (report-native body overlays in
-# templates/agent_bodies/shared_modes/report/), report-synthesizer (report-native
-# shared body), and debugger (reactive tool-failure diagnosis, not a
+# templates/agent_bodies/shared_modes/report/), report-synthesizer and
+# report-reviewer (report-native shared bodies), and debugger (reactive tool-failure diagnosis, not a
 # submission-facing audit). Keep this list in sync with the Step 2 fan-out table
 # in templates/shared/core_report.md.
 _setup_extensions_inject_report_mode_into_agents() {

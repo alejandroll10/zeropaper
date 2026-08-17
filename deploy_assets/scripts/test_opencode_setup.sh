@@ -61,6 +61,7 @@ test -f "$TMP_ROOT/theory-llm/.opencode/agents/experiment-designer.md"
 
 build_and_check report --variant finance --mode report
 test -f "$TMP_ROOT/report/.opencode/agents/report-synthesizer.md"
+test -f "$TMP_ROOT/report/.opencode/agents/report-reviewer.md"
 test ! -f "$TMP_ROOT/report/.opencode/agents/theory-generator.md"
 
 # Refresh must fail before traversing a pre-sandbox .opencode parent alias.

@@ -1,6 +1,8 @@
 ## Self-review after the report drafts
 
-AFTER THE SYNTHESIZER PRODUCES `report/referee_report.md`, LAUNCH A FRESH SUBAGENT TO REVIEW THE REPORT AGAINST `audits/*.md` AND `submission/`. IT CHECKS THREE THINGS: (1) IS EVERY MAJOR CONCERN TRACEABLE TO AN AUDIT FILE OR EXPLICITLY MARKED AS A SYNTHESIZER NOTE? (2) DO THE STRENGTHS ACCURATELY REFLECT WHAT THE PAPER DELIVERS? (3) IS THE VERDICT CONSISTENT WITH THE WEIGHT OF CONCERNS RAISED? IF ANY OF THE THREE FAIL, FIX AND RE-REVIEW. ITERATE UNTIL CLEAN.
+AFTER THE SYNTHESIZER PRODUCES `report/referee_report.md`, LAUNCH THE REGISTERED `report-reviewer` ROLE WITH A FRESH TASK IDENTITY AND FRESH CONTEXT. FOR ROUND N, REQUIRE THE EXACT ARTIFACT `process_log/report_self_review_r{N}.md`; ITS FIRST NON-EMPTY LINE MUST BE `CLEAN` OR `FIX`. THE REVIEWER CHECKS THREE THINGS: (1) IS EVERY MAJOR CONCERN TRACEABLE TO AN AUDIT FILE OR EXPLICITLY MARKED AS A SYNTHESIZER NOTE? (2) DO THE STRENGTHS ACCURATELY REFLECT WHAT THE PAPER DELIVERS? (3) IS THE VERDICT CONSISTENT WITH THE WEIGHT OF CONCERNS RAISED?
+
+On Codex, spawn it with exact `agent_type="report-reviewer"`, a unique task name such as `report_reviewer_rN`, and `fork_turns="none"`; keep the parent turn alive until terminal, then validate that exact review file and verdict line. After each terminal review, stage exactly `report/referee_report.md`, `report/notes.md`, and that round's review artifact and commit them together as the durable round receipt. On `FIX`, launch a fresh `report-synthesizer` task with the exact review artifact named in its prompt, require it to repair the two report files only, increment N, and launch a fresh reviewer. Treat a task-owned uncommitted report/review diff after interruption as incomplete and regenerate it from the last committed round. Iterate until a committed `CLEAN` round; never accept a transient child message in place of the artifact.
 
 The review is on the *report*, not on the submission — we never edit the submission.
 
@@ -8,11 +10,11 @@ The review is on the *report*, not on the submission — we never edit the submi
 
 When the user says "start" or "run", check `submission/`. If empty, point them at `submission/README.md` and stop. Otherwise:
 
-1. Run Step 1 (Triage) inline — read `submission/`, write `process_log/triage.md`.
-2. Launch the Step 2 audit fan-out in parallel. On Codex, every `launch_agent.sh` call is fire-and-forget; fan them all out, then end your turn. On OpenCode, dispatch every audit with native `task(background: true)` when that field exists in the task schema, then end the turn and let completion autowake the session; if the field is absent, use parallel foreground task calls. On Grok, use parallel native foreground `task` calls.
-3. On a later turn, poll each audit's output file by checking ONCE (`ls`/`cat`) and moving on — never a blocking `sleep`-loop in one command (it would hit codex's ~10s silent-exec cap). The file appears only when that worker finishes; a file containing a `WORKER FAILED (rc=N)` banner means that audit failed (read the log tail, relaunch it deliberately). Do NOT relaunch an agent whose `.<agent>.running` sentinel is still present — that is a live worker, not a stalled one.
-4. Once all audits have written to `audits/`, launch `report-synthesizer`.
-5. Run the self-review pass above.
+1. Run Step 1 (Triage) inline — read `submission/`, write `process_log/triage.md`. On Codex, initialize `process_log/audit_log.md` with the planned-audit block and submission hash described below, then stage and commit **triage plus that ledger together as the run baseline before spawning any audit**.
+2. Launch the Step 2 audit fan-out in parallel. On Codex, use bounded waves of native `.codex/agents/` roles with fresh contexts: honor any smaller capacity reported by the tool, otherwise keep at most three children live because the four-slot session includes this parent. Fill free child slots, wait for a terminal child, validate its exact audit, append its matching audit-log row, then stage and commit **that audit plus `process_log/audit_log.md` together** before refilling. While another child is live, stage only those two exact paths—never use a broad add or include a live child's path. On OpenCode, dispatch every audit with native `task(background: true)` when that field exists in the task schema, then end the turn and let completion autowake the session; if the field is absent, use parallel foreground task calls. On Grok, use parallel native foreground `task` calls.
+3. On Codex, a wait timeout means wait again; never end the parent turn with a requested child pending or running, because headless `codex exec` interrupts live children when the primary turn ends. The committed triage/ledger baseline defines the run; each atomic post-terminal audit-plus-ledger commit is its durable completion receipt. After an interrupted client/process, inspect git status and the commits after that baseline: an audit is complete only when one commit contains both its exact artifact and its matching ledger row. Treat every uncommitted audit/ledger diff or unmatched audit/row as incomplete; re-launch the owning role to rewrite/repair the audit, rebuild the ledger from the baseline plus committed receipts, validate both, and commit the pair before synthesis. Reconcile and deliberately retry errored, interrupted, shutdown, or missing children rather than treating their partial files as reports.
+4. Once all audits have written to `audits/`, launch `report-synthesizer` with its exact registered role.
+5. Run the versioned `report-reviewer` protocol above until a committed `CLEAN` round.
 
 Each subagent invocation must include a self-contained prompt — the agent does not see this conversation. Point it at the specific `submission/` paths it should read and the `audits/<name>.md` path it should write.
 
@@ -26,6 +28,8 @@ find submission/ -type f | sort | xargs shasum -a 256 | shasum -a 256
 ```
 
 Then, after each audit agent completes, append a row to the same log recording the agent name, the timestamp, and the output path. All audits in one run share the launch-time hash. The synthesizer reads this log and halts unless every `planned_audits:` entry has produced its output file. If you re-launched a hung background agent, log both invocations (the first as "abandoned").
+
+**Codex override:** the shared report-core paragraph about polling file growth and re-launching a "hung background" agent does not apply to Codex. Native status is authoritative: keep the parent turn alive, never duplicate a pending/running child, and retry only after terminal error/interruption or interrupted-run reconciliation above.
 
 ### Use the subagents
 

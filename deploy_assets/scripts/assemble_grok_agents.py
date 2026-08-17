@@ -119,8 +119,8 @@ def render_agent(metadata, body, model_override=None):
 
     # Evaluator independence: keep the orchestrator's AGENTS.md and parent
     # conversation out of an evaluator's context so its verdict is uncorrupted.
-    # This is the native-frontmatter equivalent of the codex launch_agent.sh
-    # shim (which suppresses AGENTS.md by running an isolated `codex exec`).
+    # This is Grok's native-frontmatter equivalent of Codex roles setting
+    # project_doc_max_bytes=0 for a clean evaluator context.
     lines.append(f'agents_md: {"false" if is_evaluator else "true"}')
     lines.append("prompt_mode: full")
 

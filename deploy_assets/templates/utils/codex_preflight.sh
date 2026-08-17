@@ -1,13 +1,28 @@
 # Codex CLI preflight checks. Sourced (not executed) by launch.sh's codex
-# branch, by code/utils/agent_launcher/launch_agent.sh at every worker
-# dispatch, and by code/utils/codex_math/codex_common.sh — one implementation
-# for the codex-runtime orchestrator, its dispatched workers, and the
-# Claude-runtime codex-math co-processor.
+# branch and by code/utils/codex_math/codex_common.sh — one implementation
+# for the codex-runtime orchestrator (whose native children share its process)
+# and the Claude-runtime codex-math co-processor.
+
+# codex_toml_basic_string <value>
+#
+# Emit one TOML basic-string literal for command-line config keys/values.
+# JSON escaping is almost identical, except JSON permits a raw DEL character
+# that TOML rejects. Non-UTF-8 filesystem paths arrive as surrogateescape code
+# points; Codex/TOML cannot represent them, so fail loudly instead of emitting
+# an invalid or lossy project identity.
+codex_toml_basic_string() {
+    /usr/bin/python3 -I -c 'import json,sys
+value=sys.argv[1]
+if any(0xD800 <= ord(char) <= 0xDFFF for char in value):
+    print("ERROR: Codex config cannot represent a non-UTF-8 filesystem path", file=sys.stderr)
+    raise SystemExit(2)
+sys.stdout.write(json.dumps(value, ensure_ascii=False).replace("\x7f", "\\u007f"))' "$1"
+}
 
 # codex_permission_profile_args <project-root-or-empty> <network:true|false>
 #
 # Populate CODEX_PERMISSION_PROFILE_ARGS with the one sandbox contract shared
-# by the Codex orchestrator and its leaf workers. The broad ~/.cache grant is
+# by the Codex orchestrator and its native leaf roles. The broad ~/.cache grant is
 # intentional: scientific and browser dependencies use package-specific cache
 # paths that cannot be enumerated reliably. The narrower WRDS cache directory
 # is read-only so released-client compatibility state cannot be cleared or
@@ -28,9 +43,7 @@ codex_permission_profile_args() {
         -c "permissions.zeropaper-pipeline.network.enabled=$network"
     )
     if [ -n "$project_root" ]; then
-        git_root_key=$(/usr/bin/python3 -I -c \
-            'import json,sys; print(json.dumps(sys.argv[1]))' \
-            "$project_root/.git") || return 1
+        git_root_key=$(codex_toml_basic_string "$project_root/.git") || return 1
         CODEX_PERMISSION_PROFILE_ARGS+=(
             -c "permissions.zeropaper-pipeline.workspace_roots={$git_root_key=true}"
         )

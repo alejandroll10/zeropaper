@@ -53,6 +53,15 @@ jobs:
       - name: Test empirical replication input binding
         run: python3 deploy_assets/scripts/test_empirical_input_manifest.py
 
+      - name: Test Codex native subagent assembly
+        run: python3 deploy_assets/scripts/test_assemble_codex_subagents.py
+
+      - name: Test Codex driver timeout and cohort cleanup
+        run: bash deploy_assets/scripts/test_codex_driver_watchdog.sh
+
+      - name: Run Codex native live canary when explicitly enabled
+        run: bash deploy_assets/scripts/test_codex_native_live.sh
+
       - name: Test WRDS cross-sandbox transport and login latch
         run: |
           python3 deploy_assets/scripts/test_wrds_unix_socket.py

@@ -52,16 +52,6 @@ setup_skills_and_utilities() {
     cp "$TEMPLATE_ROOT/templates/utils/codex_math/"*.sh "$P/code/utils/codex_math/"
     chmod +x "$P/code/utils/codex_math/"*.sh
 
-    # Copy the codex subagent launcher. codex's built-in spawn_agent (v0.144.1)
-    # cannot select a role from .codex/agents/*.toml nor set per-agent model/effort,
-    # and defaults to inheriting the caller's full context — so the codex
-    # orchestrator launches agents via this wrapper instead (see
-    # templates/runtime/codex/session.md and CLAUDE.md's "codex tier" note). Harmless
-    # on the claude/gemini runtimes, which use native subagents.
-    infrastructure_dir 100 "code/utils/agent_launcher"
-    cp "$TEMPLATE_ROOT/templates/utils/agent_launcher/launch_agent.sh" "$P/code/utils/agent_launcher/"
-    chmod +x "$P/code/utils/agent_launcher/launch_agent.sh"
-
     # Create codex output directories
     mkdir -p "$P/output/codex_audits" "$P/output/codex_proofs" "$P/output/codex_explorations"
 

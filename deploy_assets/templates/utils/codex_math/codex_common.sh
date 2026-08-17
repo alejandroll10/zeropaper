@@ -5,7 +5,8 @@
 # task — it has no reason to fan out, and a spawned child (runaway depth/cost,
 # and an opaque extra worker) is never what the caller wants.
 #
-# Mechanism mirrors code/utils/agent_launcher/launch_agent.sh (belt + suspenders):
+# This standalone `codex exec` path cannot use the project role's
+# `[agents] enabled=false`, so it retains its own belt-and-suspenders mechanism:
 #   1. No-spawn model catalog (physical): codex ties the native multi-agent tool
 #      (spawn_agent + "you're in a team" framing) to each model's
 #      `multi_agent_version` in the catalog — a feature flag can't turn it off
@@ -16,18 +17,18 @@
 #   2. Leaf directive (text, via the developer channel): belt to that suspenders,
 #      and the fallback when the catalog can't be built (offline/auth).
 
-CODEX_LEAF_DIRECTIVE="You are a single leaf worker running one codex-math task. Do NOT spawn, delegate to, launch, or hand off to other agents or sub-agents (no spawn_agent, no launch_agent.sh, no nested codex exec). Complete the task yourself and return the result."
+CODEX_LEAF_DIRECTIVE="You are a single leaf worker running one codex-math task. Do NOT spawn, delegate to, launch, or hand off to other agents or sub-agents (no spawn_agent, no nested codex exec). Complete the task yourself and return the result."
 
-# Sandbox posture for codex-math leaf workers. The filesystem half mirrors
-# code/utils/agent_launcher/launch_agent.sh (and the deployed Claude
-# .claude/settings.json allowWrite set): codex-math shells out to
+# Sandbox posture for codex-math leaf workers. The filesystem half mirrors the
+# Codex orchestrator profile (and the deployed Claude .claude/settings.json
+# allowWrite set): codex-math shells out to
 # python/sympy/matplotlib and writes package-specific paths under broad
 # ~/.cache, plus ~/.matplotlib, ~/Library/Caches, and its own ~/.codex session
 # state. The shared permission profile grants those roots while keeping the
 # narrower WRDS compatibility guard read-only.
 #
-# DELIBERATE DIVERGENCE from launch_agent.sh: network stays OFF here. That
-# launcher enables egress because general pipeline agents call OpenAlex / web
+# DELIBERATE DIVERGENCE from the Codex orchestrator profile: network stays OFF
+# here. Native pipeline roles inherit egress because they call OpenAlex / web
 # (WRDS itself now uses a filesystem socket); codex-math workers are self-contained
 # proof-verify / proof-write / numeric-explore tasks with ZERO egress need. Per
 # least-privilege we do not grant the sandboxed shell tool a network capability
@@ -47,8 +48,8 @@ CODEX_SANDBOX_ARGS=()
 # fails with `sandbox_apply: Operation not permitted` while plain exec commands
 # silently run under the OUTER sandbox only (codex skips re-sandboxing when it
 # detects it is already sandboxed). Reproduced 2026-07-12 on codex-cli 0.144.1;
-# same defect and fix as code/utils/agent_launcher/launch_agent.sh. When nested
-# we therefore run the worker sandbox-less and let the caller's outer sandbox
+# this standalone helper therefore runs the nested worker sandbox-less and lets
+# the caller's outer sandbox
 # confine it — the same boundary that was actually in force anyway. Caveat: the
 # network_access=false posture above is only *enforced* un-nested; nested,
 # egress is whatever the outer sandbox grants. That is not a regression — it

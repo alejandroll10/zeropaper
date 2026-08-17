@@ -316,6 +316,22 @@
     },
     "pipeline_only": true
   },
+  "report-reviewer": {
+    "name": "report-reviewer",
+    "description": "Independent final quality gate for --mode report. Reviews report/referee_report.md and report/notes.md against the completed audits, submission, triage, and audit ledger; writes one versioned process_log/report_self_review_r{N}.md artifact whose first line is CLEAN or FIX. Checks concern traceability, accurate strengths, and verdict-weight consistency. Never edits the report, submission, audits, or ledger and never substitutes its own referee judgment for the completed audits.",
+    "category": "evaluator",
+    "tools": "Read, Write, Glob, Grep",
+    "model": "sonnet",
+    "effort": "high",
+    "codex": {
+      "model": "gpt-5.6-luna",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    },
+    "pipeline_only": true
+  },
   "branch-manager": {
     "name": "branch-manager",
     "description": "Strategic advisor. Launched wherever the pipeline is deciding whether a path is dead: every unseeded Gate 4 after scorer(s) return, the Stage 2 audit loop every 3rd theory version, Gate 5 reject/downgrade, and after a last-resort GENUINELY-STUCK verdict (context=last-resort-stuck) before any abandonment. Diagnoses whether the current path has ceilinged, surfaces alternatives from the Round 1 sketch portfolio, and recommends continue/restructure/restart. Produces a structured report; does not make the gate decision. The agent body carries the full context list and the per-context report shape.",

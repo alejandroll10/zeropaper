@@ -211,9 +211,11 @@ cd my-paper
 ./launch.sh codex --once # plain interactive TUI, if you want a single session
 ```
 
-`./launch.sh codex` is a **driver loop**, not a TUI: codex has no autowake, so an
-interactive codex session stalls whenever the model ends its turn between stages.
-The driver re-prompts the same session (`codex exec resume`) until
+`./launch.sh codex` is a **driver loop**, not a TUI: native-child completion wakes
+an active waiting parent, but a finalized top-level Codex turn is inert until a
+new prompt. Each native cohort therefore finishes inside its spawning turn, while
+the driver re-prompts ordinary stage-to-stage turn ends in the same session
+(`codex exec resume`) until
 `pipeline_state.json` reports `complete` or `halted_*`, with a stuck-model cost
 guard. It applies the full sandbox posture automatically, including the
 `$(pwd)/.git` writable root that pipeline `git commit`s require (codex hard-codes
@@ -403,7 +405,7 @@ my-paper/
 
 - Preferred: `./launch.sh <claude|codex|gemini|grok|opencode>` — activates the venv and applies each runtime's correct flags (`--tmux` wraps in a detached tmux window)
 - Claude Code: `claude --dangerously-skip-permissions`
-- Codex: `./launch.sh codex` runs the headless driver loop (codex has no autowake; an interactive TUI stalls at every turn-end). The launcher owns the permission profile, broad-cache/WRDS carve-out, open network, and project `.git` write contract; do not reproduce the command manually.
+- Codex: `./launch.sh codex` runs the headless driver loop. Native children wake an active waiting parent, but a finalized top-level turn is inert; the driver resumes it across stage-to-stage turn ends. The launcher owns the permission profile, broad-cache/WRDS carve-out, open network, and project `.git` write contract; do not reproduce the command manually.
 - Gemini CLI: `gemini --yolo`
 - OpenCode: set `OPENCODE_API_KEY` in `.env`. `./launch.sh opencode` runs a resumable non-interactive driver on `opencode/deepseek-v4-flash`; `./launch.sh opencode --once` opens the TUI. Both forms fail closed unless Anthropic Sandbox Runtime is installed, and wrap the OpenCode execution owner so native Bash/task descendants inherit its OS filesystem boundary. The autonomous driver maintains an authenticated localhost OpenCode server so native experimental background `task` children survive individual client turns, inject completion into the parent, and autowake it; versions whose task schema lacks `background` use foreground calls. OpenCode reuses `.claude/skills` through its native `skill` tool and generated `.opencode/agents` through native tasks.
 - All runtimes read the same pipeline state and produce identical artifacts — you can switch runtimes mid-pipeline.

@@ -44,8 +44,8 @@ def render_agent(metadata, body, model_override=None):
         # through the tier table and drop model_reasoning_effort, mirroring how
         # assemble_claude_agents.py drops `effort`: the pinned levels are tuned
         # for the agent's ideal tier, and leaving `high` on a Luna worker would
-        # defeat the cost-reduction intent of --light. launch_agent.sh falls
-        # back to `medium` when the field is absent.
+        # defeat the cost-reduction intent of --light. Codex supplies the
+        # selected model's default effort when the field is absent.
         codex = {
             **{k: v for k, v in codex.items() if k != "model_reasoning_effort"},
             "model": MODEL_MAP.get(model_override, model_override),
@@ -58,6 +58,26 @@ def render_agent(metadata, body, model_override=None):
         )
     if "sandbox_mode" in codex:
         lines.append(f'sandbox_mode = {toml_string(codex["sandbox_mode"])}')
+    # Native role dispatch must remain independent of the orchestrator. A
+    # clean spawn omits the parent's conversation, while this setting omits
+    # the project's AGENTS.md (which tells the parent that it is the
+    # orchestrator). Disable both multi-agent selectors: Codex 0.147 checks
+    # features.multi_agent_v2 before agents.enabled, so the latter alone is
+    # overridden by a parent CLI or ordinary user-config V2 flag. The role
+    # layer has session-flag precedence and pins both selectors off for the
+    # child in that normal stack. Higher legacy managed/MDM layers and separate
+    # enterprise feature requirements remain the documented #240 edge.
+    lines.append("project_doc_max_bytes = 0")
+    lines.extend(
+        [
+            "",
+            "[features.multi_agent_v2]",
+            "enabled = false",
+            "",
+            "[agents]",
+            "enabled = false",
+        ]
+    )
     return "\n".join(lines) + "\n"
 
 

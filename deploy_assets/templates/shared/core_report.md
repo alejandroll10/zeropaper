@@ -48,6 +48,8 @@ Step 2: Audit fan-out  ──→ launch all enabled audit agents in parallel
                             against submission/ paths
 Step 3: Synthesis      ──→ report-synthesizer reads audits/*.md,
                             writes report/referee_report.md
+Step 4: Report gate    ──→ report-reviewer writes a versioned CLEAN/FIX
+                            process_log/report_self_review_r{N}.md
 ```
 
 ### Step 1: Triage
@@ -85,7 +87,7 @@ Launch in parallel against the submission. The orchestrator passes each agent th
 | `referee-freeform` | Free-form editorial read | `audits/referee_freeform.md` | no |
 | `referee-mechanism` | Does the claimed mechanism deliver the claimed result? | `audits/referee_mechanism.md` | no |
 
-Background-launched agents (web-dependent) can hang — poll their output file every few minutes; if empty or not growing after a few checks, re-launch with the same prompt.
+Background-launched agents (web-dependent) can hang. Follow the active runtime session's completion protocol; where that runtime explicitly uses file-based background monitoring, poll the output every few minutes and re-launch only after that protocol establishes the prior attempt is no longer live. Codex native roles never use file growth as liveness and carry a runtime-specific override below.
 
 **Extension composition is install-only in v1.** `--ext empirical` and `--ext theory_llm` compose with `--mode report` to install their *skills* (WRDS / FRED / Census / SEC data helpers, OpenAlex, LLM-experiment client) so the audit agents can spot-check external data or call an external LLM if needed — but the *audit agents* those extensions ship (`empirics-auditor`, `identification-auditor`, `data-integrity-auditor`, `data-selection-auditor`, `method-checker`, `claim-enumerator` / `claim-grounder` / `claim-verifier`, `experiment-reviewer`) are **not** added to the report-mode fan-out and are pruned at assembly time. Those agents were designed against the pipeline's *own* empiricist output (`output/stage3a/empirical_analysis.md`, `code/empirical.py`, etc.) and would need substantial rewrites to operate on an external submission. The base referees (`referee`, `referee-freeform`, `referee-mechanism`) already evaluate empirical submissions holistically — they raise identification, magnitude, and robustness concerns at the editorial level. Full code-level adversarial auditing of external empirical submissions is a v2 feature.
 
@@ -131,7 +133,8 @@ report/
 └── notes.md              # Synthesizer's working notes (false-positive triage, etc.)
 process_log/
 ├── triage.md             # Step 1 output
-└── audit_log.md          # Which agents ran, on what input hash, when
+├── audit_log.md          # Which agents ran, on what input hash, when
+└── report_self_review_r{N}.md  # Versioned synthesis-gate verdicts
 {{AGENT_DIR}}/            # Subagent definitions (do not edit at runtime)
 {{SKILL_DIR}}/            # Skill definitions
 docs/                     # Reference docs on the pipeline's audit conventions

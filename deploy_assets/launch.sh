@@ -12,28 +12,22 @@
 #   ./launch.sh opencode --once     # interactive OpenCode TUI
 #   ./launch.sh <runtime> --tmux    # same, wrapped in a detached tmux window
 #
-# WHY THE CODEX DRIVER EXISTS: codex has no autowake. When the orchestrator
-# model ends its turn, the session is inert until a new message arrives — with
-# native spawn_agent AND with the pipeline's launcher alike (verified
-# empirically on codex-cli 0.144.1: a parent that ended its turn was never
-# woken by its completing child). An interactive codex TUI is therefore only
-# pseudo-autonomous: any turn-end between stages stalls the pipeline until a
-# human types. The driver makes turn-ends harmless instead of forbidden: it
-# runs each turn headlessly (`codex exec`, then `codex exec resume <session>`
-# — same session, full context) and immediately re-prompts whenever a turn
-# ends, until pipeline_state.json reports complete or halted_*. Workers
-# launched by code/utils/agent_launcher/launch_agent.sh are detached into
-# their own process sessions, so a turn ending mid-launch does not kill them;
-# the resumed turn reconnects via the sentinel + output-file protocol.
+# WHY THE CODEX DRIVER EXISTS: a completed primary turn is inert until a new
+# message arrives. The orchestrator therefore contains every native subagent
+# cohort inside the turn that spawned it (spawn -> wait -> validate), while the
+# driver makes ordinary stage-to-stage turn ends autonomous: it runs each turn
+# headlessly (`codex exec`, then `codex exec resume <session>` — same session,
+# full context) and immediately re-prompts until pipeline_state.json reports
+# complete or halted_*. Ending a primary turn with a live native child is
+# forbidden because `codex exec` shuts down its in-process agent server and
+# interrupts that child.
 #
 # Cost guard (two ceilings; details at the guard itself): the driver aborts on
-# 5 consecutive sub-60s CYCLES that also commit NOTHING (a stuck/refusing model),
-# or on a much longer run of sub-60s cycles even with commits (a coarse token-burn
-# backstop against a churn-committing retry loop). A cycle is the turn PLUS the
-# post-turn wait for any detached worker it launched — so a quick turn that hands
-# off real work is judged by its worker's runtime, not its own. Both ceilings
-# reset on any cycle that does real work; a committing progress turn never trips
-# the first.
+# 5 consecutive sub-60s turns that also commit NOTHING (a stuck/refusing model),
+# or on a much longer run of sub-60s turns even with commits (a coarse token-burn
+# backstop against a churn-committing retry loop). Native child runtime is part
+# of its parent turn because the parent must wait for completion before
+# returning, so no separate worker-duration accounting is needed.
 set -euo pipefail
 
 # pwd -P (physical): codex records its cwd via getcwd(), which resolves
@@ -2276,12 +2270,25 @@ codex_permission_profile_args "$ROOT" true
 CODEX_ARGS=(
     --skip-git-repo-check
     -c 'approval_policy="never"'
+    # Keep the parent on the one native-agent schema the runtime instructions
+    # use. This defeats an ordinary user `[agents] enabled=false` in --once and
+    # keeps --light Luna on V2; each child role later pins V2 and V1 off in its
+    # own SessionFlags layer and therefore remains a leaf.
+    -c 'features.multi_agent_v2=true'
     "${CODEX_PERMISSION_PROFILE_ARGS[@]}"
 )
 # Headless sessions ignore user config so a legacy global sandbox_mode cannot
 # silently select the old broad-root system over this more-specific profile.
 # Authentication and session storage still use CODEX_HOME.
 CODEX_EXEC_ONLY_ARGS=(--ignore-user-config)
+
+# --ignore-user-config intentionally drops ambient trust state. Native custom
+# roles are project-scoped, so restore trust for exactly this physical project
+# on the command line; without it Codex silently omits `.codex/agents/` and an
+# `agent_type=scorer` dispatch fails as unknown. The shared encoder handles the
+# JSON/TOML DEL difference and fails loudly on unrepresentable path bytes.
+_codex_trusted_root="$(codex_toml_basic_string "$ROOT")" || exit 1
+CODEX_ARGS+=(-c "projects={${_codex_trusted_root}={trust_level=\"trusted\"}}")
 
 # --light: pin the orchestrator to the same tier the subagents were assembled
 # on (see light_orchestrator_model above). Config form, not --model, because
@@ -2323,28 +2330,62 @@ status() {
 # (process_log/ existence is guaranteed: the driver hard-exits above when
 # process_log/pipeline_state.json is missing.)
 SID_CACHE="$ROOT/process_log/.codex_session_id"
+CODEX_STATE_HOME="${CODEX_HOME:-$HOME/.codex}"
 
 sid_exists() {
-    ls "$HOME"/.codex/sessions/*/*/*/rollout-*"$1".jsonl >/dev/null 2>&1
+    /usr/bin/python3 -I - "$CODEX_STATE_HOME" "$1" <<'PY'
+from pathlib import Path
+import sys
+
+state_home, sid = Path(sys.argv[1]), sys.argv[2]
+try:
+    found = any(
+        path.name.endswith(f"-{sid}.jsonl")
+        for path in state_home.glob("sessions/*/*/*/rollout-*.jsonl")
+    )
+except OSError:
+    found = False
+raise SystemExit(0 if found else 1)
+PY
 }
 
 find_sid() {
-    local f sid
+    local sid
     if [ -s "$SID_CACHE" ]; then
         sid="$(cat "$SID_CACHE")"
         if sid_exists "$sid"; then echo "$sid"; return 0; fi
     fi
-    for f in $(ls -t "$HOME"/.codex/sessions/*/*/*/rollout-*.jsonl 2>/dev/null | head -50); do
-        if head -1 "$f" | grep -qF "\"cwd\":\"$ROOT\""; then
-            head -1 "$f" | python3 -c 'import json,sys; print(json.load(sys.stdin)["payload"]["session_id"])'
-            return 0
-        fi
-    done
-    return 1
+    # Parse metadata instead of matching its serialized JSON: cwd may contain
+    # quotes, backslashes, or controls, and CODEX_HOME may contain whitespace.
+    /usr/bin/python3 -I - "$CODEX_STATE_HOME" "$ROOT" <<'PY'
+import json
+from pathlib import Path
+import sys
+
+state_home, root = Path(sys.argv[1]), sys.argv[2]
+candidates = []
+for path in state_home.glob("sessions/*/*/*/rollout-*.jsonl"):
+    try:
+        candidates.append((path.stat().st_mtime_ns, path))
+    except OSError:
+        pass
+for _, path in sorted(candidates, key=lambda item: item[0], reverse=True)[:50]:
+    try:
+        with path.open(encoding="utf-8") as handle:
+            payload = json.loads(handle.readline(1 << 20)).get("payload", {})
+    except (OSError, UnicodeError, json.JSONDecodeError):
+        continue
+    if payload.get("cwd") == root:
+        sid = payload.get("session_id") or payload.get("id")
+        if isinstance(sid, str) and sid:
+            print(sid)
+            raise SystemExit(0)
+raise SystemExit(1)
+PY
 }
 
 FIRST_PROMPT='Run the pipeline. You are running unattended — never stop to ask the user anything; make every decision from the pipeline documents.'
-CONT_PROMPT='Continue the pipeline from process_log/pipeline_state.json. You are running unattended — never stop to ask the user anything. If process_log/agent_runs/ contains a .<agent>.running sentinel, a detached worker from a previous turn may still be executing: poll the output file recorded in the sentinel and collect it (do NOT relaunch that agent) before doing anything else.'
+CONT_PROMPT='Continue the pipeline from process_log/pipeline_state.json. You are running unattended — never stop to ask the user anything. If the prior turn was aborted or interrupted, reconcile the current stage against its required artifacts and git status. A task-owned uncommitted diff is incomplete even when its file exists: re-launch its owning agent to rewrite or repair it, validate it, and then follow the current stage exact commit/routing sequence. Keep every native subagent cohort inside one parent turn: spawn, wait to terminal status, validate its artifact, preserve the stage-defined commit boundary, then and only then finish the turn.'
 if [ -f "$ROOT/code/utils/start_services.sh" ]; then
     _service_notice=' The launcher has confirmed that the shared WRDS connection is up. Treat any earlier sandbox-network outage as stale and use the shipped WRDS client normally.'
     FIRST_PROMPT+="$_service_notice"
@@ -2355,170 +2396,389 @@ LOG="$ROOT/process_log/driver.log"
 MAX_TURNS="${MAX_TURNS:-300}"
 # Per-turn wall-clock cap (the "ping codex every 59 minutes" guarantee): a
 # turn still running at the cap is killed and the session resumed on the next
-# loop iteration. This bounds the damage of a hung turn (network stall, model
-# wedged mid-turn — nothing else can recover those, since codex accepts no
-# mid-turn input). Killing a healthy long turn is safe by construction:
-# detached workers survive, state lives in files/commits, and the resumed
-# turn re-reads both. 59 min, not 60 — the user-visible promise is "the
-# session is re-prompted at least hourly".
+# loop iteration. This bounds the damage of a hung turn or native child. The
+# in-process children are interrupted with their parent, so recovery relies on
+# the pipeline's durable state/artifact protocol: a routed child output has a
+# stage-defined durable commit boundary, while task-owned uncommitted diffs are
+# retried rather than accepted after resume. 59 min, not 60 — the
+# user-visible promise is "the session is re-prompted at least hourly".
 TURN_TIMEOUT="${TURN_TIMEOUT:-3540}"
+case "$TURN_TIMEOUT" in
+    ''|*[!0-9]*|0)
+        echo "ERROR: TURN_TIMEOUT must be a positive integer (got '$TURN_TIMEOUT')" >&2
+        exit 2
+        ;;
+esac
 
-# Run one codex turn with the watchdog. Args: the full codex command.
-# Uses process substitution (not a pipe) so $! is the codex pid.
+# Run one codex turn with the watchdog. Args: the full codex command. A tiny
+# Python exec shim creates a new process group and a same-group anchor.
+# The anchor prevents PGID reuse and remains until the watcher removes the
+# group after every normal, failed, timed-out, or parent-aborted turn. A first
+# stop occurs before setpgid(), while the wrapper is still covered by the outer
+# runtime guardian; only after this parent arms the watcher may the wrapper
+# create the nested group. A second stop lets the parent verify that boundary
+# before any Codex-controlled code starts. This gives timeout cleanup a stable
+# identity for the complete turn cohort (including tool-command descendants)
+# without signaling the driver or relying on a non-portable setsid(1) binary.
 run_turn() {
-    local cpid cstart wpid rc
-    "$@" </dev/null > >(tee -a "$LOG") 2>&1 &
+    local cpid wpid rc cpg cstate wpg attempt
+    /usr/bin/python3 -I -c '
+import os, signal, sys
+for signum in (signal.SIGHUP, signal.SIGINT, signal.SIGQUIT, signal.SIGTERM):
+    signal.signal(signum, signal.SIG_DFL)
+# Phase 1: no escaped process group exists until the Bash parent has armed its
+# watcher. If that parent dies here, the outer launch guardian owns this pid.
+os.kill(os.getpid(), signal.SIGSTOP)
+os.setpgid(0, 0)
+anchor = os.fork()
+if anchor == 0:
+    for signum in (signal.SIGHUP, signal.SIGINT, signal.SIGQUIT, signal.SIGTERM):
+        signal.signal(signum, signal.SIG_IGN)
+    while True:
+        signal.pause()
+# Phase 2: publish a verifiable, anchor-backed PGID before agent-controlled
+# code. The watcher is already armed and contains this group plus discovered
+# descendant-owned tool groups if the parent dies.
+os.kill(os.getpid(), signal.SIGSTOP)
+os.execvp(sys.argv[1], sys.argv[1:])
+' "$@" </dev/null > >(tee -a "$LOG") 2>&1 &
     cpid=$!
-    # Identity anchor for the watchdog: pid + process start time. If the
-    # driver is SIGKILLed, the orphaned watchdog sleeps out its timer and
-    # would otherwise TERM a possibly-REUSED pid belonging to an unrelated
-    # process; a start-time mismatch (or empty = gone) means "not our codex,
-    # don't touch". Name-matching (ps -o comm=) is NOT reliable here — comm
-    # shows the interpreter for script wrappers.
-    cstart="$(ps -o lstart= -p "$cpid" 2>/dev/null)"
-    (
-        sleep "$TURN_TIMEOUT"
-        if [ -n "$cstart" ] && [ "$(ps -o lstart= -p "$cpid" 2>/dev/null)" = "$cstart" ]; then
-            echo "[driver] turn exceeded TURN_TIMEOUT=${TURN_TIMEOUT}s — killing it and resuming (detached workers are unaffected)" | tee -a "$LOG"
-            kill -TERM "$cpid" 2>/dev/null
-            sleep 10
-            if [ "$(ps -o lstart= -p "$cpid" 2>/dev/null)" = "$cstart" ]; then
-                kill -KILL "$cpid" 2>/dev/null
-            fi
-        fi
-    ) &
+    attempt=0; cpg=""; cstate=""
+    while [ "$attempt" -lt 200 ]; do
+        attempt=$((attempt + 1))
+        cpg="$(/bin/ps -o pgid= -p "$cpid" 2>/dev/null | tr -d ' ')"
+        cstate="$(/bin/ps -o stat= -p "$cpid" 2>/dev/null | tr -d ' ')"
+        case "$cstate" in *T*) break ;; esac
+        kill -0 "$cpid" 2>/dev/null || break
+        sleep 0.01
+    done
+    case "$cstate" in *T*) ;; *)
+        kill -KILL "$cpid" 2>/dev/null || true
+        kill -CONT "$cpid" 2>/dev/null || true
+        wait "$cpid" 2>/dev/null || true
+        echo "[driver] ERROR: could not establish the Codex turn pre-group guard" | tee -a "$LOG"
+        return 75
+        ;;
+    esac
+    if [ "$cpg" = "$cpid" ]; then
+        kill -KILL -- "-$cpid" 2>/dev/null || kill -KILL "$cpid" 2>/dev/null || true
+        kill -CONT -- "-$cpid" 2>/dev/null || kill -CONT "$cpid" 2>/dev/null || true
+        wait "$cpid" 2>/dev/null || true
+        echo "[driver] ERROR: Codex turn escaped before its watcher was armed" | tee -a "$LOG"
+        return 75
+    fi
+    # The watchdog reads a private control/liveness pipe whose only writer is
+    # this parent and which the already-started Codex/tee processes never
+    # inherited. The parent sends one post-group arm byte, then only closes it.
+    # EOF means the parent died or finished waiting, so the watcher cleans the
+    # anchored group rather than signaling a bare PID. While the pipe is open,
+    # this Bash is alive until this function closes it. EOF always removes the
+    # anchor-backed group: after an ordinary Codex exit that is normal residual
+    # cleanup; after a driver crash it is orphan recovery. Thus no numeric PID/start-time
+    # identity guess and no parent-side cleanup window is involved.
+    exec 6> >(/usr/bin/python3 -I -c '
+import errno, fcntl, os, select, signal, stat, subprocess, sys
+pid, timeout, root = int(sys.argv[1]), int(sys.argv[2]), sys.argv[3]
+# Escape the outer runtime group: its independent guardian uses SIGKILL after
+# visible-supervisor death, while this watcher must survive long enough to
+# observe parent-pipe EOF and reap the nested turn group. This trusted process
+# has no descendants and exits on EOF or after the bounded timeout path.
+lock_fd = os.open(root, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+if not stat.S_ISDIR(os.fstat(lock_fd).st_mode):
+    raise SystemExit(75)
+# Acquire before publishing the isolated watcher PGID. The visible launcher
+# still holds LOCK_SH, so an updater cannot win this handoff. This independent
+# shared lock remains through nested-group teardown even if SIGKILL destroys
+# the visible supervisor and the original runtime guardian.
+fcntl.flock(lock_fd, fcntl.LOCK_SH | fcntl.LOCK_NB)
+os.setpgid(0, 0)
+for signum in (signal.SIGHUP, signal.SIGINT, signal.SIGQUIT, signal.SIGTERM):
+    signal.signal(signum, signal.SIG_IGN)
+
+def fail_closed(message):
+    print(f"[driver] ERROR: {message}; holding the project lock", flush=True)
+    while True:
+        select.select([], [], [], 3600)
+
+def process_table():
+    try:
+        result = subprocess.run(
+            ["/bin/ps", "-axo", "pid=,ppid=,pgid=,stat="],
+            check=True, capture_output=True, text=True, timeout=5,
+        )
+    except Exception as exc:
+        fail_closed(f"cannot inspect the Codex descendant tree: {exc}")
+    rows = {}
+    for line in result.stdout.splitlines():
+        fields = line.split(None, 3)
+        if len(fields) != 4:
+            continue
+        try:
+            proc_pid, ppid, pgid = map(int, fields[:3])
+        except ValueError:
+            continue
+        rows[proc_pid] = (ppid, pgid, fields[3])
+    return rows
+
+def turn_members(rows):
+    # Include every root-group anchor/member, close over descendants, and adopt
+    # only process groups whose leader is itself in that descendant closure.
+    # This captures Codex setsid() tool groups without expanding through a
+    # trusted process-substitution `tee` that remains in the outer runtime group.
+    candidates = {proc_pid for proc_pid, (_, pgid, _) in rows.items()
+                  if proc_pid == pid or pgid == pid}
+    owned_groups = {pid}
+    while True:
+        descendants = candidates | {
+            proc_pid for proc_pid, (ppid, pgid, _) in rows.items()
+            if ppid in candidates
+        }
+        groups = owned_groups | {
+            pgid for proc_pid, (_, pgid, _) in rows.items()
+            if proc_pid in descendants and pgid in descendants
+        }
+        expanded = descendants | {
+            proc_pid for proc_pid, (_, pgid, _) in rows.items()
+            if pgid in groups
+        }
+        if expanded == candidates and groups == owned_groups:
+            managed = {proc_pid for proc_pid in candidates
+                       if proc_pid in rows and rows[proc_pid][1] in owned_groups}
+            return managed, owned_groups
+        candidates, owned_groups = expanded, groups
+
+def freeze_turn_tree():
+    try:
+        os.killpg(pid, signal.SIGSTOP)
+    except ProcessLookupError:
+        return {}, set()
+    previous = None
+    while True:
+        rows = process_table()
+        members, _ = turn_members(rows)
+        live = {proc_pid for proc_pid in members
+                if proc_pid in rows and not rows[proc_pid][2].startswith("Z")}
+        groups = {rows[proc_pid][1] for proc_pid in live}
+        unsafe_groups = {group for group in groups
+                         if group <= 1 or group == os.getpgrp()}
+        if unsafe_groups:
+            details = {proc_pid: rows[proc_pid] for proc_pid in live}
+            fail_closed(f"unsafe groups {sorted(unsafe_groups)} in descendant tree {details}")
+        # Stop groups first to close fork races, then each observed member.
+        for group in groups:
+            try:
+                os.killpg(group, signal.SIGSTOP)
+            except ProcessLookupError:
+                pass
+        for proc_pid in live:
+            try:
+                os.kill(proc_pid, signal.SIGSTOP)
+            except ProcessLookupError:
+                pass
+        select.select([], [], [], 0.02)
+        check_rows = process_table()
+        check_members, _ = turn_members(check_rows)
+        signature = frozenset(
+            (proc_pid, check_rows[proc_pid][0], check_rows[proc_pid][1])
+            for proc_pid in check_members
+            if proc_pid in check_rows and
+               not check_rows[proc_pid][2].startswith("Z")
+        )
+        if signature == previous:
+            return check_rows, {item[0] for item in signature}
+        previous = signature
+
+def bind_identities(rows, members):
+    bindings = []
+    kqueue = None
+    for proc_pid in members:
+        if proc_pid not in rows or rows[proc_pid][2].startswith("Z"):
+            continue
+        if hasattr(os, "pidfd_open"):
+            try:
+                bindings.append(("pidfd", os.pidfd_open(proc_pid), proc_pid))
+            except ProcessLookupError:
+                continue
+            except OSError:
+                # Older kernels/seccomp can reject pidfd_open even when this
+                # Python exposes it; fall through to the bound /proc handle.
+                pass
+            else:
+                continue
+        if sys.platform.startswith("linux"):
+            try:
+                proc_fd = os.open(f"/proc/{proc_pid}",
+                                  os.O_RDONLY | os.O_DIRECTORY |
+                                  getattr(os, "O_NOFOLLOW", 0))
+            except ProcessLookupError:
+                continue
+            except OSError as exc:
+                fail_closed(f"cannot bind descendant {proc_pid}: {exc}")
+            else:
+                bindings.append(("procfd", proc_fd, proc_pid))
+        elif hasattr(select, "kqueue"):
+            if kqueue is None:
+                kqueue = select.kqueue()
+            try:
+                event = select.kevent(proc_pid, filter=select.KQ_FILTER_PROC,
+                                      flags=select.KQ_EV_ADD,
+                                      fflags=select.KQ_NOTE_EXIT)
+                kqueue.control([event], 0, 0)
+            except ProcessLookupError:
+                continue
+            except OSError as exc:
+                if exc.errno == errno.ESRCH:
+                    continue
+                fail_closed(f"cannot bind descendant {proc_pid}: {exc}")
+            else:
+                bindings.append(("kqueue", kqueue, proc_pid))
+        else:
+            fail_closed("no kernel-bound process identity API is available")
+    return bindings
+
+def wait_identities(bindings):
+    pending = list(bindings)
+    while pending:
+        next_pending = []
+        kqueue_seen = {}
+        for kind, handle, proc_pid in pending:
+            if kind == "pidfd":
+                if not select.select([handle], [], [], 0)[0]:
+                    next_pending.append((kind, handle, proc_pid))
+            elif kind == "procfd":
+                try:
+                    stat_fd = os.open("stat", os.O_RDONLY, dir_fd=handle)
+                except OSError:
+                    pass
+                else:
+                    os.close(stat_fd)
+                    next_pending.append((kind, handle, proc_pid))
+            else:
+                exited = kqueue_seen.get(handle)
+                if exited is None:
+                    exited = {event.ident for event in handle.control(None, 1024, 0)}
+                    kqueue_seen[handle] = exited
+                if proc_pid not in exited:
+                    next_pending.append((kind, handle, proc_pid))
+        pending = next_pending
+        if pending:
+            select.select([], [], [], 0.02)
+    for kind, handle, _ in bindings:
+        if kind in {"pidfd", "procfd"}:
+            os.close(handle)
+
+def terminate_turn_tree():
+    rows, members = freeze_turn_tree()
+    if not members:
+        return
+    bindings = bind_identities(rows, members)
+    # Only a successfully bound live member may pin a discovered numeric PGID.
+    # The root PGID is separately safe because its persistent anchor is the
+    # identity from which this snapshot was taken.
+    bound_pids = {proc_pid for _, _, proc_pid in bindings}
+    groups = {pid}
+    groups.update(rows[proc_pid][1] for proc_pid in bound_pids
+                  if proc_pid in rows and not rows[proc_pid][2].startswith("Z"))
+    for group in groups:
+        try:
+            os.killpg(group, signal.SIGKILL)
+        except ProcessLookupError:
+            pass
+    # Kernel-bound identities keep LOCK_SH until every stopped writer has
+    # actually exited. D-state descendants intentionally hold recovery closed.
+    wait_identities(bindings)
+
+def parent_closed(delay):
+    ready, _, _ = select.select([0], [], [], delay)
+    if not ready:
+        return False
+    os.read(0, 1)  # EOF (the one arm byte was consumed before this function)
+    return True
+
+def wait_until_armed():
+    # The timeout clock starts only after Bash has verified the nested,
+    # anchor-backed group. Before then EOF means the parent/outer guardian owns
+    # any still-outer wrapper; if the transition already occurred, the tree
+    # terminator removes it. No Codex-controlled code has started yet.
+    while True:
+        ready, _, _ = select.select([0], [], [])
+        if not ready:
+            continue
+        data = os.read(0, 1)
+        if not data:
+            terminate_turn_tree()
+            raise SystemExit(0)
+        if data == b"G":
+            return
+
+wait_until_armed()
+if parent_closed(timeout):
+    terminate_turn_tree()
+    raise SystemExit(0)
+message = (f"[driver] turn exceeded TURN_TIMEOUT={timeout}s — "
+           "stopping the bound descendant tree and resuming from durable state")
+print(message, flush=True)
+terminate_turn_tree()
+' "$cpid" "$TURN_TIMEOUT" "$ROOT")
     wpid=$!
+    # Do not release the turn wrapper from its outer-group stop until the
+    # watcher has demonstrably escaped that group. Otherwise a visible-launcher
+    # SIGKILL in this small arm window could remove the only process capable of
+    # reaping the soon-to-be nested turn group.
+    attempt=0; wpg=""
+    while [ "$attempt" -lt 200 ]; do
+        attempt=$((attempt + 1))
+        wpg="$(/bin/ps -o pgid= -p "$wpid" 2>/dev/null | tr -d ' ')"
+        [ "$wpg" = "$wpid" ] && break
+        kill -0 "$wpid" 2>/dev/null || break
+        sleep 0.01
+    done
+    if [ "$wpg" != "$wpid" ]; then
+        exec 6>&-
+        kill -KILL "$cpid" 2>/dev/null || true
+        kill -CONT "$cpid" 2>/dev/null || true
+        wait "$wpid" 2>/dev/null || true
+        wait "$cpid" 2>/dev/null || true
+        echo "[driver] ERROR: could not establish isolated Codex turn watcher" | tee -a "$LOG"
+        return 75
+    fi
+    # Allow the wrapper to create its group and anchor, then require its second
+    # stop before any Codex code is allowed to run.
+    kill -CONT "$cpid" 2>/dev/null || true
+    attempt=0; cpg=""; cstate=""
+    while [ "$attempt" -lt 200 ]; do
+        attempt=$((attempt + 1))
+        cpg="$(/bin/ps -o pgid= -p "$cpid" 2>/dev/null | tr -d ' ')"
+        cstate="$(/bin/ps -o stat= -p "$cpid" 2>/dev/null | tr -d ' ')"
+        if [ "$cpg" = "$cpid" ]; then
+            case "$cstate" in *T*) break ;; esac
+        fi
+        kill -0 "$cpid" 2>/dev/null || break
+        sleep 0.01
+    done
+    case "$cstate" in *T*) ;; *) cpg="" ;; esac
+    if [ "$cpg" != "$cpid" ]; then
+        exec 6>&-
+        kill -KILL -- "-$cpid" 2>/dev/null || kill -KILL "$cpid" 2>/dev/null || true
+        kill -CONT -- "-$cpid" 2>/dev/null || kill -CONT "$cpid" 2>/dev/null || true
+        # Reap the group leader before joining the watcher: its group-gone
+        # proof deliberately includes zombies and would otherwise wait on the
+        # very child this Bash still owns.
+        wait "$cpid" 2>/dev/null || true
+        wait "$wpid" 2>/dev/null || true
+        echo "[driver] ERROR: could not establish anchored Codex turn process group" | tee -a "$LOG"
+        return 75
+    fi
+    # Publish the verified identity transition before any Codex-controlled
+    # code runs. This also starts the watcher wall clock; setup time cannot
+    # consume a tiny TURN_TIMEOUT and leave the released turn unwatched.
+    printf G >&6
+    kill -CONT -- "-$cpid" 2>/dev/null || kill -CONT "$cpid" 2>/dev/null || true
     wait "$cpid"
     rc=$?
-    kill "$wpid" 2>/dev/null
+    exec 6>&-
     wait "$wpid" 2>/dev/null
     return "$rc"
-}
-
-# Wake-on-worker-finish: if the previous turn ended while a detached worker
-# (launch_agent.sh) was still in flight, do NOT re-prompt immediately — a
-# resumed turn would have nothing to do but babysit the sentinel, and a model
-# that keeps ending such turns would trip the fast-turn guard. Wait until
-# every live sentinel clears (the worker's wrapper removes it on completion),
-# where "live" is decided by probing the recorded wrapper pid — NOT by whether
-# the output file has content, which is false for every worker that streams
-# its report incrementally. WORKER_WAIT_MAX caps the wait so a
-# truly wedged worker can't park the driver forever; on cap the orchestrator
-# is resumed anyway and its prompt tells it how to handle a live sentinel.
-# Outcome globals for the fast-cycle guard: WAITED = seconds this call
-# blocked; WAIT_CAPPED = 1 when it gave up at WORKER_WAIT_MAX with a sentinel
-# still live. A wait that ENDED because the worker finished is evidence of
-# real work and counts toward the cycle's duration; a wait that ended because
-# we gave up on a wedged worker is not — crediting a cap-timeout as work
-# would let a hung worker reset the stuck-guard forever.
-wait_for_workers() {
-    local waited=0 cap="${WORKER_WAIT_MAX:-14400}" s out pending wait_start=$SECONDS
-    local w_pid w_lstart w_dead w_now out_f out_mtime out_now out_age
-    WAITED=0; WAIT_CAPPED=0
-    while :; do
-        pending=0
-        for s in "$ROOT"/process_log/agent_runs/.*.running; do
-            [ -e "$s" ] || continue
-            # || true on every read of "$s": the wrapper can rm the sentinel
-            # between our [ -e ] test and the read; a failed assignment under
-            # set -e would kill the whole driver on that poll race.
-            out="$(sed -n 's/.*output=//p' "$s" 2>/dev/null | head -1 || true)"
-            w_pid="$(sed -n 's/.*wrapper_pid=\([0-9][0-9]*\).*/\1/p' "$s" 2>/dev/null | head -1 || true)"
-            w_lstart="$(sed -n 's/.*wrapper_lstart=\(.*\)$/\1/p' "$s" 2>/dev/null | head -1 || true)"
-            # LIVENESS DECIDES; output content only breaks ties. A live
-            # wrapper means the worker is still running EVEN IF its output
-            # file already holds bytes: several agents (the novelty-checker
-            # most visibly) STREAM their report as they go, so "non-empty" is
-            # not "finished". Judging by file content first — as this did
-            # before — silently unblocked the wait on every such worker: the
-            # driver re-prompted instantly, the orchestrator saw the live
-            # sentinel and correctly refused to relaunch or route a partial
-            # report, and the resulting ~15s no-op turns tripped the
-            # fast-cycle guard. Two long runs died that way with their worker
-            # healthy and minutes from done.
-            # kill -0 is the primary probe (signal-based — works even though
-            # macOS ps/pgrep need sysmond and return NOTHING from inside
-            # sandboxes, which is also why the recorded lstart may be empty:
-            # the launcher runs inside the orchestrator's sandbox). lstart is
-            # only a secondary pid-reuse guard when both sides captured it.
-            if [ -n "$w_pid" ]; then
-                w_dead=""
-                if ! kill -0 "$w_pid" 2>/dev/null; then
-                    w_dead=1
-                elif [ -n "$w_lstart" ]; then
-                    w_now="$(ps -o lstart= -p "$w_pid" 2>/dev/null || true)"
-                    [ -n "$w_now" ] && [ "$w_now" != "$w_lstart" ] && w_dead=1  # pid reused
-                fi
-                if [ -z "$w_dead" ]; then
-                    pending=1
-                    continue
-                fi
-                # Wrapper is gone — exited before rm'ing the sentinel, killed,
-                # or its pid now belongs to something else. Either way the
-                # recorded worker is no longer running, so the sentinel now
-                # lies, and leaving it parks the ORCHESTRATOR too — its prompt
-                # reads a live sentinel as poll-don't-relaunch, so it will
-                # neither route a finished report nor relaunch a lost worker.
-                # Clear it; the next turn routes on the output file's presence.
-                if [ -n "$out" ] && { [ -s "$out" ] || [ -s "$ROOT/$out" ]; }; then
-                    echo "[driver] sentinel $(basename "$s") outlived its worker and the output exists — clearing it so the orchestrator can route the result" | tee -a "$LOG"
-                else
-                    echo "[driver] sentinel $(basename "$s") references a dead worker with no output — clearing the orphan" | tee -a "$LOG"
-                fi
-                rm -f "$s"
-                continue
-            fi
-            # Old-format sentinel (no wrapper_pid): no liveness probe exists,
-            # so the file is all we have. Require non-empty AND untouched for
-            # WORKER_STALE_MTIME before calling it finished — an incrementally
-            # written report keeps its mtime moving, so mtime distinguishes
-            # "still streaming" from "done" where mere non-emptiness cannot.
-            if [ -n "$out" ]; then
-                out_f=""
-                [ -s "$out" ] && out_f="$out"
-                [ -z "$out_f" ] && [ -s "$ROOT/$out" ] && out_f="$ROOT/$out"
-                if [ -n "$out_f" ]; then
-                    # BSD (macOS) then GNU. Both probes are digit-validated
-                    # rather than trusted: GNU `stat -f` is filesystem mode
-                    # with a DIFFERENT format-sequence set, and an unknown
-                    # sequence there can echo back literally instead of
-                    # failing — feeding "%m" into $(( )) would be a fatal
-                    # arithmetic syntax error under set -e, killing a driver
-                    # that should merely have kept waiting. Same reason `date`
-                    # is captured with || true and validated: every command
-                    # substitution in this loop must degrade to "keep
-                    # waiting", never to a dead driver.
-                    out_mtime="$(stat -f %m "$out_f" 2>/dev/null || true)"
-                    case "$out_mtime" in ''|*[!0-9]*) out_mtime="$(stat -c %Y "$out_f" 2>/dev/null || true)" ;; esac
-                    case "$out_mtime" in ''|*[!0-9]*) out_mtime="" ;; esac
-                    out_now="$(date +%s 2>/dev/null || true)"
-                    case "$out_now" in ''|*[!0-9]*) out_now="" ;; esac
-                    if [ -n "$out_mtime" ] && [ -n "$out_now" ]; then
-                        out_age=$(( out_now - out_mtime ))
-                        if [ "$out_age" -ge "${WORKER_STALE_MTIME:-600}" ]; then
-                            continue  # output complete and idle: worker is done, sentinel stale
-                        fi
-                    fi
-                fi
-            fi
-            pending=1
-        done
-        # WAITED is wall-clock (not the nominal tick counter `waited`): the
-        # loop body itself costs time per tick, and over the 4h default cap
-        # that drift reaches tens of seconds — enough to leak into dt and
-        # falsely reset the fast-cycle guard if WAITED undercounted.
-        [ "$pending" = "0" ] && { WAITED=$((SECONDS - wait_start)); return 0; }
-        if [ "$waited" -ge "$cap" ]; then
-            echo "[driver] worker-wait cap (${cap}s) reached with a sentinel still live — resuming anyway" | tee -a "$LOG"
-            WAITED=$((SECONDS - wait_start)); WAIT_CAPPED=1
-            return 0
-        fi
-        if [ "$waited" = "0" ]; then
-            echo "[driver] detached worker(s) still running after turn end — waiting for them to finish before re-prompting" | tee -a "$LOG"
-        fi
-        sleep 10
-        waited=$((waited + 10))
-    done
 }
 
 turn=0
@@ -2541,12 +2801,6 @@ rotate_log() {
         echo "[driver] rotated driver.log (>10MB) to driver.log.1" | tee -a "$LOG"
     fi
 }
-
-# Startup wait: a previous driver may have died while a detached worker was
-# still in flight (its sentinel survives). Wait it out once before the first
-# turn; from then on the post-turn wait inside the loop is the only wait, so
-# each cycle's worker time is counted exactly once by the fast-cycle guard.
-wait_for_workers
 
 while :; do
     rotate_log
@@ -2602,37 +2856,20 @@ for e in p:
         run_turn codex exec resume "$SID" "${CODEX_EXEC_ONLY_ARGS[@]}" "${CODEX_ARGS[@]}" -- "$CONT_PROMPT"
     fi
     set -e
-    # Absorb the post-turn worker wait into the turn's duration signal BEFORE
-    # judging the turn: a sub-60s no-commit turn that handed off a detached
-    # worker which then ran for minutes did real work — the wait is part of
-    # that turn's cycle. Without this, strike 5 can land on a legitimate
-    # launch turn (observed live: a Gate 3 recovery re-check launch was the
-    # 5th "fast" turn; the driver exited while its worker ran on). A spin loop
-    # is unaffected: it launches nothing (or instant-failing workers), so its
-    # wait is ~0 and dt stays sub-60. A wait that hit WORKER_WAIT_MAX with the
-    # sentinel still live is NOT credited (WAIT_CAPPED): a wedged worker that
-    # never finishes must feed the guard, not reset it — otherwise a hung
-    # worker turns the ~5-strike bound into MAX_TURNS-many multi-hour waits.
-    wait_for_workers
-    if [ "$WAIT_CAPPED" = "1" ]; then
-        dt=$((SECONDS - t0 - WAITED))
-    else
-        dt=$((SECONDS - t0))   # measured after the wait, so a worker's runtime counts as this turn's work
-    fi
+    # Native subagent time is already inside the parent turn: the runtime doc
+    # forbids returning while a requested child is live.
+    dt=$((SECONDS - t0))
     head_after="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)"
-    # Two ceilings on short CYCLES (dt = the turn plus the post-turn wait for
-    # any detached worker it launched — see the wait_for_workers call above),
-    # because a healthy turn is often itself <60s (it commits its stage
-    # artifact and hands off to a detached worker), so raw turn time alone
-    # false-positives:
+# Two ceilings on short turns. Native child execution is included in `dt`,
+# because the parent waits in-turn:
     #   fast_nocommit — short cycle AND HEAD unchanged. A model producing and
     #     committing NOTHING whose workers (if any) also end instantly is
     #     wedged, refusing, or poll-spinning on a blocked external source;
-    #     trip quickly (5). A launch turn whose worker actually runs resets
-    #     via dt; a collect-and-commit turn resets via HEAD.
+    #     trip quickly (5). A turn whose native child actually runs resets via
+    #     dt; a collect-and-commit turn resets via HEAD.
     #   fast_any — short cycle regardless of commits. Backstop against a
-    #     fail-retry loop that commits churn every turn (e.g. a WORKER FAILED
-    #     notice or a retry-count bump), which advances HEAD and would
+    #     fail-retry loop that commits churn every turn (e.g. a native child
+    #     terminal-error receipt or a retry-count bump), which advances HEAD and would
     #     otherwise slip past fast_nocommit all the way to MAX_TURNS. This is
     #     a COARSE token-burn ceiling, NOT a progress detector: HEALTHY
     #     loop-routing cycles whose worker finishes fast (collect a small gate
@@ -2652,19 +2889,7 @@ for e in p:
         fast_any=0; fast_nocommit=0
     fi
     if [ "$fast_nocommit" -ge 5 ]; then
-        echo "[driver] 5 consecutive sub-60s cycles (turn + worker wait) with no new commit — model appears stuck, refusing, or poll-spinning; stopping to avoid burning tokens. Inspect $LOG." | tee -a "$LOG"
-        # A sentinel still present at abort time changes the diagnosis
-        # entirely: the orchestrator was probably obeying poll-don't-relaunch
-        # on a worker the wait loop judged finished, not refusing to work.
-        # Say so — the bare message above sent one post-mortem hunting a
-        # "stuck model" that was in fact doing exactly what it was told.
-        for s in "$ROOT"/process_log/agent_runs/.*.running; do
-            [ -e "$s" ] || continue
-            # cat, not `tr … < "$s"`: a redirect whose file vanished between
-            # the [ -e ] test and here fails at open time, and that message
-            # escapes the command's own 2>/dev/null onto the terminal.
-            echo "[driver]   NOTE: sentinel $(basename "$s") is still present at abort — $(cat "$s" 2>/dev/null | tr '\n' ' ' || true)" | tee -a "$LOG"
-        done
+        echo "[driver] 5 consecutive sub-60s turns with no new commit — model appears stuck, refusing, or poll-spinning; stopping to avoid burning tokens. Inspect $LOG." | tee -a "$LOG"
         exit 1
     fi
     if [ "$fast_any" -ge "${FAST_TURN_CEILING:-60}" ]; then
@@ -2678,6 +2903,15 @@ done
 
 if [ "$_launch_is_internal" = "1" ]; then
     trap - HUP INT QUIT TERM
+    # Normal completion can release the private lock keeper synchronously;
+    # its PPID polling remains only the SIGKILL/crash fallback. Without this
+    # explicit reap an updater can observe a short, scheduler-dependent lock
+    # tail after the visible launcher has fully returned.
+    _launch_internal_keeper_close() {
+        kill "$_launch_internal_keeper" 2>/dev/null || true
+        wait "$_launch_internal_keeper" 2>/dev/null || true
+    }
+    trap _launch_internal_keeper_close EXIT
     _launch_runtime_main "$@"
     exit
 fi

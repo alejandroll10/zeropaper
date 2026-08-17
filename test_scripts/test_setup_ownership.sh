@@ -115,7 +115,14 @@ with open(path, "w") as handle:
     handle.write("\n")
 PY
 printf '\nPROJECT_ENV_SENTINEL=keep\n' >> "$target/.env"
-jq '.source = {"kind": "stale-source-sentinel"}' \
+# Simulate a pre-2.25.1 deployment that still owns the retired detached Codex
+# launcher. The fresh manifest omits it, so update must remove the whole old
+# replacement unit through old-minus-new ownership rather than leave dead
+# executable infrastructure behind.
+mkdir -p "$target/code/utils/agent_launcher"
+printf 'legacy launcher\n' > "$target/code/utils/agent_launcher/launch_agent.sh"
+jq '.source = {"kind": "stale-source-sentinel"}
+    | .infrastructure.dirs_replace += ["code/utils/agent_launcher"]' \
     "$target/.deploy_manifest.json" > "$scratch/manifest.next"
 mv "$scratch/manifest.next" "$target/.deploy_manifest.json"
 
@@ -155,6 +162,8 @@ cmp -s "$scratch/expected-claude.md" "$target/CLAUDE.md" \
     || { echo "FAIL: template-owned CLAUDE.md was not refreshed" >&2; exit 1; }
 [ ! -e "$target/.claude/agents/stale-agent.md" ] \
     || { echo "FAIL: stale file survived infrastructure-dir replacement" >&2; exit 1; }
+[ ! -e "$target/code/utils/agent_launcher" ] \
+    || { echo "FAIL: retired Codex launcher survived old-minus-new ownership sweep" >&2; exit 1; }
 grep -Fqx 'PROJECT_MAIN_SENTINEL' "$target/paper/main.tex" \
     || { echo "FAIL: project-owned paper/main.tex was overwritten" >&2; exit 1; }
 python3 - "$target/process_log/pipeline_state.json" <<'PY' \

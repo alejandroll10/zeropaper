@@ -129,7 +129,7 @@ deploy_assets/templates/
 │   └── theory_llm/
 ├── utils/                   # Utility scripts copied into deployed projects → code/utils/
 │   │                        # codex_math/, nber_agenda/, openalex/, bib_verify/, ssj/,
-│   │                        # model_heal/, agent_launcher/,
+│   │                        # model_heal/,
 │   │                        # pipeline_dotenv_guard.py, setup_push_token.sh
 ├── deps/                    # Python dependency lists (core.txt, ssj.txt)
 ├── fragments/               # Shared byte-identical rule fragments ({{> id}} includes)
@@ -171,7 +171,8 @@ deploy_assets/scripts/
 ├── agent_body_loader.py        # Resolves bodies ({id}.md vs {id}-core.md), fragments, vocab
 ├── test_agent_body_loader.py   # Tests for the loader
 ├── test_launch_opencode.sh     # Tests launch.sh's opencode server/quiescence driver
-├── test_launch_workers.sh      # Tests launch.sh's codex detached-worker wait (issue #223)
+├── test_assemble_codex_subagents.py # Deterministic native-role/config/protocol tests
+├── test_codex_native_live.sh   # Opt-in credentialed native-role lifecycle canary
 ├── list_agents_by_category.py  # Source of truth for the developing/evaluator split
 ├── generate_catalog.py         # Manual mode: emits agent/skill catalog markdown from metadata
 ├── apply_extension_empirical.sh    # Wires the empirical extension into a deployment
@@ -247,7 +248,7 @@ Agents are either **shared** (identical across variants) or **variant-specific**
 - **Body**: `agent_bodies/shared/{id}.md` for shared agents, `agent_bodies/shared/{id}-core.md` for variant agents. Both live in the same directory — the `-core` suffix is what marks a body as variant-specialized, and `deploy_assets/scripts/agent_body_loader.py` (`load_body`) tries `{id}-core.md` first, then `{id}.md`. `deploy_assets/templates/agents/{variant}/` holds **only** `vocab.json`; no agent bodies live there.
 - **Vocab**: *both* kinds get placeholder substitution, and since v2.9.0 both resolve against the same layered chain: `agent_bodies/shared/vocab.json` (defaults) → `agents/{variant}/vocab.json` (domain overrides) → tier vocab → mode overlay, later wins. So a `{{KEY}}` added to *any* body or fragment needs a default in the shared vocab (or in every variant vocab); variant vocabs override only where the domain wording differs. This layering is what makes shared bodies (referee-mechanism's evaluative frame, the literature agents' venue directives, the fragments) variant-aware — see the `_comment_shared_body_overrides` block in `agents/llm_cognition/vocab.json` for the full override set.
 
-**Shared** (domain-agnostic, receive variant context via injection). All 32 live in `claude_shared_agents.json`; the authoritative list is that file, and `python3 deploy_assets/scripts/list_agents_by_category.py` prints current membership by category.
+**Shared** (domain-agnostic, receive variant context via injection). All 33 live in `claude_shared_agents.json`; the authoritative list is that file, and `python3 deploy_assets/scripts/list_agents_by_category.py` prints current membership by category.
 
 *Literature & framing*
 - `literature-scout` — broad literature survey (variant context provides target journals)
@@ -267,6 +268,7 @@ Agents are either **shared** (identical across variants) or **variant-specific**
 - `referee-mechanism` — Stage 6 referee focused on whether the mechanism delivers the claimed result *for the claimed reason*
 - `editor` — aggregates the three Stage 6 referee reports into one Gate 5 routing verdict + canonical comment list
 - `report-synthesizer` — `--mode report` only: aggregates `audits/*.md` into `report/referee_report.md` with a single verdict
+- `report-reviewer` — `--mode report` only: independently gates the synthesized report and writes a versioned `process_log/report_self_review_r{N}.md` CLEAN/FIX artifact
 - `table-auditor` — independent rendered-page evaluator at Stage 5 and after final polish; gates native/custom/image-table legibility after the source-level `arpipeline.sty` checks
 
 *Writing & polish* (all `developing`)
@@ -332,7 +334,7 @@ If that model is unavailable on the account at setup time (a provider suspension
 
 **Codex tier mirrors the Claude tier.** Each agent's `codex.model` is the same capability tier as its Claude `model`, one-for-one: `fable → gpt-5.6-sol`, `opus → gpt-5.6-terra`, `sonnet → gpt-5.6-luna`. (OpenAI describes Sol/Terra/Luna as *durable capability tiers* that advance on their own cadence, so the mapping survives the next generation bump — only the `5.6` changes.) When you add an agent, pin both, and pin them to matching tiers; a `fable` agent whose codex twin is Terra is a silent cross-runtime capability mismatch, not a build error.
 
-**The codex model/effort only take effect through the launcher.** codex's built-in `spawn_agent` tool (codex-cli 0.144.1) exposes no `model`/`reasoning_effort`/`agent_type` parameter and cannot select a role from `.codex/agents/` at all, so the `codex.model` we pin is inert if the orchestrator uses `spawn_agent`. The codex runtime therefore dispatches every agent through `code/utils/agent_launcher/launch_agent.sh`, which reads the agent TOML and runs an isolated `codex exec` worker: the agent body goes in the developer channel (the worker *is* the agent), on the pinned model/effort, with the orchestrator's AGENTS.md suppressed (restoring evaluator independence, which `spawn_agent`'s default `fork_turns="all"` otherwise breaks) and the native multi-agent tool removed so a worker is a leaf that cannot spawn its own sub-agents (via a patched no-spawn model catalog — codex ties the tool to the catalog's `multi_agent_version`, not a feature flag). This is a codex-CLI-version dependency with no setup-time probe — see the codex-dispatch entry in `LIMITATIONS.md`. (Claude and Gemini use native subagents and are unaffected.)
+**Codex model/effort pins take effect through native custom roles (codex-cli 0.147.0+).** Production uses exactly MultiAgent V2: the orchestrator calls native `spawn_agent` with `agent_type` equal to the `.codex/agents/{id}.toml` role, a unique `task_name`, and `fork_turns="none"`. Do not fall back to the incompatible V1 schema if any field is missing. `launch.sh` pins the parent to `features.multi_agent_v2=true` even in interactive `--once` sessions, so ordinary user config cannot remove its role tool surface and `--light` Luna keeps the same V2 task/wait schema. Codex 0.147 exposes `agent_type` in V2 whenever project roles are loaded; its default hidden-metadata option removes service-tier/output metadata, not the role selector, and overriding that default breaks the provider-reserved tool schema. The role file's `model` and `model_reasoning_effort` override the parent. `assemble_codex_subagents.py` also emits `project_doc_max_bytes = 0`, `[features.multi_agent_v2] enabled = false`, and `[agents] enabled = false`, so the child omits the orchestrator AGENTS.md and remains a leaf against parent/session and ordinary user-config overrides. `launch.sh` uses `--ignore-user-config` for deterministic headless sessions and restores trust for exactly the physical project through a command-line `projects={...}` override; project roles are otherwise silently undiscoverable. Empirical session metadata verified `agent_type=scorer` on Terra/high with the scorer developer instructions and zero parent/AGENTS context despite a hostile parent V2 session override. Legacy managed_config/MDM layers can override the SessionFlags role, while separate enterprise/system feature requirements can force V2 despite `agents.enabled=false`; both are explicit #240 residuals in `LIMITATIONS.md`. Native children are process-resident: the parent must wait to terminal status and validate the artifact before ending its turn, because primary `codex exec` completion shuts down and interrupts live children. See the Codex native-subagent entry in `LIMITATIONS.md` for crash/timeout recovery. (Claude, Gemini, Grok, and OpenCode keep their own native dispatch mechanisms.)
 
 **Reasoning effort is capped at `high`.** gpt-5.6 also accepts `xhigh` and `max` (plus `ultra`, a four-agent parallel mode), and nothing in the pipeline uses them. On Agents' Last Exam — the long-horizon agentic benchmark whose shape most resembles this pipeline — GPT-5.6 Sol's score *peaks below its top effort setting*: the most expensive point on the cost curve scores below the one preceding it. Effort past `high` buys latency and tokens, not correctness. This is a claim about *our workload*, not about `max` in general (on ARC-AGI-3, `max` is the only setting that scores at all), so do not generalize it to a future benchmark without rechecking. The `codex_math` scripts reject `xhigh`/`max`/`ultra` at the CLI boundary.
 
