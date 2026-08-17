@@ -98,6 +98,18 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## Paper-writer-authored numbers and citation characterizations are not uniformly source-grounded
+
+**Scope:** every paper-producing mode. Empirical claim enumeration/grounding catches part of this failure class, but coverage is not uniform across pure-theory runs, every producer directory, appendix tables/footnotes, citation characterization, or every later `paper-writer` revision pass.
+
+**Failure mode:** `paper-writer` can introduce a count, table value, or statement about a cited paper from memory rather than an exact producer artifact or primary source. The prose compiles and can survive several referee/style rounds even though the number is fabricated or the citation does not support the attached claim. Verifying that a requested edit landed does not close this gap: an unsupported sentence can be correctly applied.
+
+**What would close it:** after every writer pass, independently enumerate changed numerical/table and citation-bearing factual claims, require an exact reproducible producer/source pointer for each, verify against that source, and route unsupported items through bounded repair/re-verification. Missing values must remain machine-detectably unresolved rather than guessed. The verified paper delta and provenance receipt must share a durable stage boundary across theory and empirical modes.
+
+**Tracking:** [#264](https://github.com/alejandroll10/zeropaper/issues/264). Application-only edit verification remains [#77](https://github.com/alejandroll10/zeropaper/issues/77).
+
+---
+
 ## OpenCode runtime: external OS sandbox, one model tier, and experimental background durability
 
 **Scope:** the OpenCode runtime assembled under `.opencode/agents/`, configured by `opencode.json`, and launched through `./launch.sh opencode`.
