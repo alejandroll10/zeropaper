@@ -8,7 +8,7 @@ second loopback port.  A rotating 256-bit capability in host-owned WRDS state
 prevents other local OS users from using the TCP listener.
 
 The bridge has no database credentials and implements no lifecycle commands.
-It accepts only the v6 query command set, strips its own authentication fields,
+It accepts only the v7 query command set, strips its own authentication fields,
 and relays the original bounded frame to the existing Unix-domain daemon.
 """
 
@@ -22,15 +22,16 @@ import socket
 import stat
 import struct
 import subprocess
+import sys
 import threading
 import time
 from pathlib import Path
 
 SERVER_PORT = 23847
 BRIDGE_PORT = 23848
-BRIDGE_PROTOCOL = "wrds-query-bridge-v2"
-BRIDGE_PREFACE_MAGIC = b"WRDS-BRIDGE-V2:"
-SAFETY_PROTOCOL = "wrds-auth-latch-v6"
+BRIDGE_PROTOCOL = "wrds-query-bridge-v3"
+BRIDGE_PREFACE_MAGIC = b"WRDS-BRIDGE-V3:"
+SAFETY_PROTOCOL = "wrds-auth-latch-v7"
 STATE_DIR = os.path.join(
     os.path.expanduser("~"), ".local", "state", "zeropaper", "wrds")
 SOCKET_FILE = os.path.join(STATE_DIR, f"wrds_server_{SERVER_PORT}.sock")
@@ -40,21 +41,30 @@ MAX_MSG = 10 * 1024 * 1024
 MAX_RESPONSE = 512 * 1024 * 1024
 CLIENT_IO_TIMEOUT = 15
 AUTH_PREFACE_TIMEOUT = 1
-# A WRDS statement may legitimately run for the daemon's full five-minute
-# deadline.  Keep untrusted client framing short, but never reuse that timeout
-# while awaiting the authenticated daemon's query response.
-UPSTREAM_RESPONSE_TIMEOUT = 315
+QUERY_TIMEOUT_SECONDS = 300
+QUERY_TIMEOUT_FLOOR_SECONDS = 1
+UPSTREAM_CONTROL_TIMEOUT = 15
+UPSTREAM_REQUEST_ALLOWANCE_SECONDS = 15
+RESPONSE_PREPARATION_GRACE_SECONDS = 65
+RECOVERY_GRACE_SECONDS = 60
+RESPONSE_WRITE_BASE_SECONDS = 60
+RESPONSE_WRITE_MIN_BYTES_PER_SECOND = 1024 * 1024
+RESPONSE_WRITE_MAX_SECONDS = QUERY_TIMEOUT_SECONDS + CLIENT_IO_TIMEOUT
 MAX_CLIENT_THREADS = 32
 MAX_AUTH_THREADS = 64
 ALLOWED_COMMANDS = frozenset({
-    "safety_hello_v6",
-    "safe_ping_v6",
-    "safe_query_v6",
-    "safe_list_tables_v6",
-    "safe_list_libraries_v6",
-    "safe_get_table_v6",
-    "safe_describe_v6",
+    "safety_hello_v7",
+    "safe_ping_v7",
+    "safe_query_v7",
+    "safe_list_tables_v7",
+    "safe_list_libraries_v7",
+    "safe_get_table_v7",
+    "safe_describe_v7",
 })
+
+
+class WrdsBridgeResponseWriteError(ConnectionError):
+    """A downstream response could not be delivered before its deadline."""
 
 
 def _prepare_state_dir():
@@ -147,9 +157,83 @@ def _recv_frame(conn, maximum, deadline=None):
     return _recv_exact(conn, size, deadline)
 
 
+def _recv_frame_size(conn, maximum, deadline):
+    raw_len = _recv_exact(conn, 8, deadline)
+    size = struct.unpack("!Q", raw_len)[0]
+    if size <= 0:
+        raise ValueError("WRDS bridge frame must not be empty")
+    if maximum is not None and size > maximum:
+        raise ValueError(f"WRDS bridge frame must be 1..{maximum} bytes")
+    return size
+
+
 def _send_frame(conn, payload):
     conn.sendall(struct.pack("!Q", len(payload)))
     conn.sendall(payload)
+
+
+def _response_write_timeout(payload_size):
+    scaled = (RESPONSE_WRITE_BASE_SECONDS +
+              payload_size / RESPONSE_WRITE_MIN_BYTES_PER_SECOND)
+    return min(RESPONSE_WRITE_MAX_SECONDS, scaled)
+
+
+def _upstream_header_timeout(request):
+    """Return the daemon execution/preparation budget, before transfer."""
+    cmd = request.get("cmd")
+    if cmd in ("safety_hello_v7", "safe_ping_v7"):
+        return UPSTREAM_CONTROL_TIMEOUT
+    requested = (request.get("timeout", QUERY_TIMEOUT_SECONDS)
+                 if cmd == "safe_query_v7" else QUERY_TIMEOUT_SECONDS)
+    try:
+        requested = float(requested)
+    except (TypeError, ValueError):
+        requested = QUERY_TIMEOUT_SECONDS
+    execution = max(
+        QUERY_TIMEOUT_FLOOR_SECONDS,
+        min(requested, QUERY_TIMEOUT_SECONDS),
+    )
+    return (UPSTREAM_REQUEST_ALLOWANCE_SECONDS + execution +
+            RECOVERY_GRACE_SECONDS +
+            RESPONSE_PREPARATION_GRACE_SECONDS)
+
+
+def _send_response_frame(conn, payload):
+    """Send a downstream frame once, with progress and a total deadline."""
+    header = struct.pack("!Q", len(payload))
+    total = len(header) + len(payload)
+    sent = 0
+    timeout = _response_write_timeout(len(payload))
+    deadline = time.monotonic() + timeout
+    try:
+        for part in (header, payload):
+            view = memoryview(part)
+            offset = 0
+            while offset < len(view):
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError("bridge response write deadline exceeded")
+                conn.settimeout(remaining)
+                count = conn.send(view[offset:])
+                if count == 0:
+                    raise ConnectionError(
+                        "bridge response peer closed during write")
+                offset += count
+                sent += count
+    except OSError as exc:
+        raise WrdsBridgeResponseWriteError(
+            f"frame stopped at {sent}/{total} bytes under a "
+            f"{timeout:.3f}s deadline ({type(exc).__name__}: {exc})"
+        ) from exc
+
+
+def _log_response_write_failure(exc, reporting=None):
+    context = (f" while reporting {type(reporting).__name__}"
+               if reporting is not None else "")
+    print(
+        f"[wrds_bridge] response write failed{context}: {exc}",
+        file=sys.stderr, flush=True,
+    )
 
 
 def _atomic_state_file(path, payload, mode):
@@ -221,12 +305,12 @@ def _relay_client(conn, token, query_slots, auth_slots=None):
         supplied_preface = _recv_exact_before(
             conn, len(expected_preface), AUTH_PREFACE_TIMEOUT)
         if not hmac.compare_digest(supplied_preface, expected_preface):
-            _send_frame(conn, _error_payload(
+            _send_response_frame(conn, _error_payload(
                 "WRDS bridge authentication failed; relaunch through "
                 "./launch.sh to refresh the protected query capability."))
             return
         if not query_slots.acquire(blocking=False):
-            _send_frame(conn, _error_payload(
+            _send_response_frame(conn, _error_payload(
                 "WRDS query bridge is busy; retry after another query finishes."))
             return
         query_slot_acquired = True
@@ -240,37 +324,51 @@ def _relay_client(conn, token, query_slots, auth_slots=None):
         protocol = request.pop("bridge_protocol", None)
         if (protocol != BRIDGE_PROTOCOL or not isinstance(supplied, str) or
                 not hmac.compare_digest(supplied, token)):
-            _send_frame(conn, _error_payload(
+            _send_response_frame(conn, _error_payload(
                 "WRDS bridge authentication failed; relaunch through "
                 "./launch.sh to refresh the protected query capability."))
             return
         if request.get("cmd") not in ALLOWED_COMMANDS:
-            _send_frame(conn, _error_payload(
+            _send_response_frame(conn, _error_payload(
                 "WRDS bridge accepts query protocol commands only."))
             return
         if request.get("safety_protocol") != SAFETY_PROTOCOL:
-            _send_frame(conn, _error_payload(
+            _send_response_frame(conn, _error_payload(
                 "WRDS bridge client safety protocol mismatch."))
             return
 
         upstream = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
         try:
-            upstream.settimeout(UPSTREAM_RESPONSE_TIMEOUT)
+            upstream.settimeout(UPSTREAM_CONTROL_TIMEOUT)
             upstream.connect(SOCKET_FILE)
             encoded = json.dumps(request).encode("utf-8")
             _send_frame(upstream, encoded)
-            response = _recv_frame(
+            response_size = _recv_frame_size(
                 upstream, MAX_RESPONSE,
-                time.monotonic() + UPSTREAM_RESPONSE_TIMEOUT)
+                time.monotonic() + _upstream_header_timeout(request))
+            # Renew the clock when the size becomes known.  The daemon may
+            # have consumed its full execution budget before starting this
+            # independent, payload-scaled transfer.
+            response = _recv_exact(
+                upstream, response_size,
+                time.monotonic() + _response_write_timeout(response_size))
         finally:
             upstream.close()
-        _send_frame(conn, response)
+        _send_response_frame(conn, response)
+    except WrdsBridgeResponseWriteError as exc:
+        _log_response_write_failure(exc)
     except Exception as exc:
         try:
-            _send_frame(conn, _error_payload(
+            _send_response_frame(conn, _error_payload(
                 f"WRDS query bridge failed safely: {exc}"))
-        except Exception:
-            pass
+        except WrdsBridgeResponseWriteError as write_error:
+            _log_response_write_failure(write_error, reporting=exc)
+        except Exception as write_error:
+            print(
+                f"[wrds_bridge] response error reporting failed: "
+                f"{type(write_error).__name__}: {write_error}",
+                file=sys.stderr, flush=True,
+            )
     finally:
         conn.close()
         if query_slot_acquired:

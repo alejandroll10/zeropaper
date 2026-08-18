@@ -15,7 +15,11 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.25.1] — 2026-08-17 (current)
+## [2.25.2] — 2026-08-18 (current)
+
+**WRDS v7 prevents intermittent mid-frame truncation of large query responses and false busy-daemon outages (#263).** The daemon and authenticated relay no longer reuse the 15-second untrusted-request read timeout while writing responses. Both apply one payload-scaled, 315-second-capped wall deadline, track exact write progress, log the original transport failure, and close after a partial write without appending a corrupt second frame. SQL execution, response preparation, authenticated-relay setup, daemon-to-relay transfer, and relay-to-client transfer now receive composed rather than overlapping deadlines; a query that consumes its full execution allowance retains a full frame-transfer allowance at every hop. Queue wait, one guarded recovery, and retry share one total server operation deadline, with only the remaining time passed to each SQL attempt and late results rejected. DataFrame conversion plus final JSON encoding run in a separately timed, concurrency-bounded producer stage; an expired worker owns no socket and discards its eventual result. Proxy CONNECT byte trickles cannot reset their total setup clock. Explicit lock-owner/deadline metadata makes only an in-budget command busy-but-live; expired commands, healthcheck/recovery, unblock, and unknown owners remain unhealthy. Ordinary commands no longer run a lock-taking ping between their DB-free version handshake and real request. End-to-end delayed-query/mid-transfer, relay-setup/proxy-trickle, late-success/expired-owner, preparation-timeout, recovery-expiry, command-vs-healthcheck lock contention, and multi-megabyte delayed-reader regressions cover the direct and relayed paths. The safety/bridge protocols advance together so an updated deployment cannot silently reuse an affected v5/v6 host service.
+
+## [2.25.1] — 2026-08-17
 
 Codex launch pins the parent to MultiAgent V2 in headless, interactive `--once`, and `--light` sessions, so ordinary user configuration cannot remove the native role tool surface or silently switch Luna to the incompatible V1 task/wait schema; role-local session flags still make every child a leaf. The documented #240 containment residual includes deliberate daemonization, reparenting, and escape into a pre-existing non-descendant-owned process group; the watcher claim is limited to the bound descendant-owned groups it can freeze safely.
 

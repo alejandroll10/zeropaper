@@ -42,6 +42,7 @@ GitHub issue #28.
 import os
 import sys
 import json
+import math
 import socket
 import stat
 import tempfile
@@ -55,6 +56,7 @@ import subprocess
 import shlex
 import struct
 import time
+from contextlib import contextmanager
 from pathlib import Path
 from dotenv import load_dotenv
 
@@ -64,7 +66,7 @@ load_dotenv(dotenv_path=_DOTENV_PATH)
 PORT = 23847  # arbitrary high port
 # Bump whenever daemon-side login/recovery safety semantics change. This must
 # remain a literal independent of wrds_client's copy so stale daemons mismatch.
-SAFETY_PROTOCOL = 'wrds-auth-latch-v6'
+SAFETY_PROTOCOL = 'wrds-auth-latch-v7'
 
 
 def _state_dir():
@@ -138,8 +140,28 @@ MAX_RESULT_MEMORY = 48 * 1024 * 1024
 MAX_RESULT_ROWS = 1_000_000
 MAX_GET_TABLE_ROWS = 100_000
 QUERY_TIMEOUT_SECONDS = 300
+RECOVERY_GRACE_SECONDS = 60
 CLIENT_IO_TIMEOUT = 15
+# Response writes must not inherit CLIENT_IO_TIMEOUT: that short deadline is
+# for reading an untrusted request frame. Large, valid responses cross either
+# a Unix socket or the authenticated relay and need a bounded deadline that
+# scales with payload size. The cap matches the longest legitimate query/relay
+# wait, so a slow peer cannot occupy a server thread indefinitely.
+RESPONSE_WRITE_BASE_SECONDS = 60
+RESPONSE_WRITE_MIN_BYTES_PER_SECOND = 1024 * 1024
+RESPONSE_WRITE_MAX_SECONDS = QUERY_TIMEOUT_SECONDS + CLIENT_IO_TIMEOUT
+RESPONSE_PREPARATION_TIMEOUT_SECONDS = 60
 MAX_CLIENT_THREADS = 32
+MAX_RESPONSE_PREPARATIONS = 32
+_response_preparation_slots = threading.BoundedSemaphore(
+    MAX_RESPONSE_PREPARATIONS)
+_DATABASE_RESPONSE_COMMANDS = frozenset({
+    'safe_query_v7',
+    'safe_list_tables_v7',
+    'safe_list_libraries_v7',
+    'safe_get_table_v7',
+    'safe_describe_v7',
+})
 LOGIN_ATTEMPT_PREFIX = 'WRDS_LOGIN_ATTEMPT_IN_PROGRESS pid='
 COMPAT_ACTIVE_PREFIX = 'WRDS_V5_DAEMON_ACTIVE pid='
 
@@ -154,6 +176,18 @@ class WrdsInstanceBusy(RuntimeError):
 
 class WrdsImplicitReconnectError(ConnectionError):
     """SQLAlchemy tried to open a DB connection outside the guarded path."""
+
+
+class WrdsResponseWriteError(ConnectionError):
+    """A response frame could not be delivered before its bounded deadline."""
+
+
+class WrdsOperationTimeout(TimeoutError):
+    """A queued/recovered command exhausted its total operation budget."""
+
+
+class WrdsResponsePreparationError(TimeoutError):
+    """A bounded response could not be serialized before its deadline."""
 
 
 def _prepare_auth_block_dir():
@@ -901,9 +935,45 @@ def _bounded_query(db, sql, timeout_seconds):
     return _safe_raw_sql(db, sql, bounded=True)
 
 
-def _bounded_db_call(db, fn):
-    _set_query_deadline(db)
+def _bounded_db_call(db, fn, timeout_seconds=QUERY_TIMEOUT_SECONDS):
+    _set_query_deadline(db, timeout_seconds)
     return fn(db)
+
+
+def _normalized_query_timeout(value):
+    try:
+        value = int(value)
+    except (TypeError, ValueError) as exc:
+        raise ValueError('invalid WRDS query timeout') from exc
+    return max(1, min(value, QUERY_TIMEOUT_SECONDS))
+
+
+def _remaining_operation_seconds(deadline):
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise WrdsOperationTimeout(
+            'WRDS command deadline exceeded while queued or recovering')
+    return remaining
+
+
+def _remaining_attempt_timeout(deadline, maximum):
+    remaining_seconds = math.floor(_remaining_operation_seconds(deadline))
+    if remaining_seconds < 1:
+        raise WrdsOperationTimeout(
+            'WRDS command has less than one second left for a database attempt')
+    return min(maximum, remaining_seconds)
+
+
+def _run_bounded_operation(state, operation, timeout=QUERY_TIMEOUT_SECONDS):
+    """Run queue + recovery + retry under one total command deadline."""
+    execution_timeout = _normalized_query_timeout(timeout)
+    deadline = (time.monotonic() + execution_timeout +
+                RECOVERY_GRACE_SECONDS)
+    return state.run(
+        lambda db: operation(
+            db, _remaining_attempt_timeout(deadline, execution_timeout)),
+        deadline=deadline,
+    )
 
 
 def _connect_once(db):
@@ -1053,15 +1123,57 @@ class WrdsState:
     def __init__(self, db):
         self.db = db
         self.lock = threading.Lock()
+        self._owner_guard = threading.Lock()
+        self._lock_owner = None
+        self._lock_owner_deadline = None
         # Sticky login-safety latch. Set on a known credential rejection or an
         # ambiguous failed reconnect; while set, no code path attempts another
         # login. Only an operator-approved unblock clears it.
         self.auth_failed = None
 
+    def _set_lock_owner(self, kind, deadline=None):
+        with self._owner_guard:
+            self._lock_owner = kind
+            self._lock_owner_deadline = deadline
+
+    def _clear_lock_owner(self):
+        with self._owner_guard:
+            self._lock_owner = None
+            self._lock_owner_deadline = None
+
+    def _busy_health(self):
+        with self._owner_guard:
+            owner = self._lock_owner
+            deadline = self._lock_owner_deadline
+        if owner == 'command' and (
+                deadline is None or time.monotonic() <= deadline):
+            return True, 'busy: bounded query command in progress'
+        if owner == 'command':
+            return False, 'query command exceeded its operation deadline'
+        if owner == 'healthcheck':
+            return False, 'prior WRDS healthcheck is still in progress'
+        if owner == 'unblock':
+            return False, 'operator WRDS unblock is still in progress'
+        return False, 'WRDS database lock has an unknown owner'
+
+    @contextmanager
+    def _owned_lock(self, kind, deadline=None):
+        self.lock.acquire()
+        self._set_lock_owner(kind, deadline)
+        try:
+            yield
+        finally:
+            self._clear_lock_owner()
+            self.lock.release()
+
     # --- recovery ---------------------------------------------------------
-    def _healthy(self, db):
+    def _healthy(self, db, deadline=None):
         """Return True iff `SELECT 1` succeeds on `db`."""
         try:
+            if deadline is not None:
+                _set_query_deadline(
+                    db, _remaining_attempt_timeout(
+                        deadline, QUERY_TIMEOUT_SECONDS))
             _safe_raw_sql(db, 'SELECT 1')
             return True
         except Exception as e:
@@ -1112,7 +1224,7 @@ class WrdsState:
               flush=True)
         raise WrdsAuthError(self.auth_failed) from exc
 
-    def _recover(self):
+    def _recover(self, deadline=None):
         """Restore a working connection. Caller must hold self.lock.
 
         Tiered, cheapest first. At most one credential-bearing reconnect is
@@ -1125,6 +1237,9 @@ class WrdsState:
         if self.auth_failed:
             raise WrdsAuthError(self.auth_failed)
 
+        if deadline is not None:
+            _remaining_operation_seconds(deadline)
+
         db = self.db
 
         # Tier 1: roll back the poisoned transaction on the existing socket.
@@ -1132,14 +1247,18 @@ class WrdsState:
         # transaction is aborted.
         try:
             db.connection.rollback()
-            if self._healthy(db):
+            if self._healthy(db, deadline=deadline):
                 return 'rolled_back'
+        except WrdsOperationTimeout:
+            raise
         except Exception as e:
             self._latch_auth_failure(e)
 
         # Tier 2: rebuild the engine/connection pool in place with exactly one
         # login attempt. Dispose the old pool first so the dead socket is not
         # leaked.
+        if deadline is not None:
+            _remaining_operation_seconds(deadline)
         try:
             try:
                 db.connection.close()
@@ -1151,7 +1270,16 @@ class WrdsState:
             except Exception:
                 pass
             _begin_login_attempt()
+            if deadline is not None:
+                # libpq enforces this across TCP/TLS/authentication. Keep the
+                # guarded one-attempt reconnect within the command deadline.
+                connect_args = dict(getattr(db, '_connect_args', {}) or {})
+                connect_args['connect_timeout'] = _remaining_attempt_timeout(
+                    deadline, RECOVERY_GRACE_SECONDS)
+                db._connect_args = connect_args
             _connect_once(db)  # exactly one login; public connect() may retry
+            if deadline is not None:
+                _remaining_operation_seconds(deadline)
             _install_reconnect_guard(db)
             # Rebuilding the connection does NOT refresh db.insp; the inspector still
             # points at the old, closed connection, which would re-poison
@@ -1160,7 +1288,7 @@ class WrdsState:
             # is itself bad, so the one-attempt handler latches and stops.
             import sqlalchemy as sa
             db.insp = sa.inspect(db.connection)
-            if self._healthy(db):
+            if self._healthy(db, deadline=deadline):
                 _clear_auth_block(preserve_compat=True)
                 return 'pool_rebuilt'
             raise RuntimeError('connection remained unhealthy after one reconnect')
@@ -1170,27 +1298,51 @@ class WrdsState:
             # the exception text is not a recognized auth string.
             self._latch_login_failure(e)
 
-    def run(self, fn):
+    def run(self, fn, deadline=None):
         """Run fn(db) under the lock. On a connection-level error, recover
         once and retry. Returns (result, recovered: bool).
 
         Query-level errors (bad SQL, permissions) are not retried — they
         propagate so the caller sees the real error.
         """
-        with self.lock:
+        if deadline is None:
+            self.lock.acquire()
+        else:
+            acquired = self.lock.acquire(
+                timeout=_remaining_operation_seconds(deadline))
+            if not acquired:
+                raise WrdsOperationTimeout(
+                    'WRDS command deadline exceeded waiting for the query lock')
+        self._set_lock_owner('command', deadline)
+        try:
             if self.auth_failed:
                 raise WrdsAuthError(self.auth_failed)
+            if deadline is not None:
+                _remaining_operation_seconds(deadline)
             try:
-                return fn(self.db), False
+                result = fn(self.db)
+                if deadline is not None:
+                    _remaining_operation_seconds(deadline)
+                return result, False
+            except WrdsOperationTimeout:
+                raise
             except Exception as e:
                 self._latch_auth_failure(e)
                 if not _is_conn_error(e):
                     raise
                 print(f"[wrds_server] connection error ({e}); recovering...")
-                tier = self._recover()
+                tier = (self._recover() if deadline is None else
+                        self._recover(deadline=deadline))
                 print(f"[wrds_server] recovered via {tier}; retrying query")
                 try:
-                    return fn(self.db), True
+                    if deadline is not None:
+                        _remaining_operation_seconds(deadline)
+                    result = fn(self.db)
+                    if deadline is not None:
+                        _remaining_operation_seconds(deadline)
+                    return result, True
+                except WrdsOperationTimeout:
+                    raise
                 except Exception as retry_error:
                     # Authentication can be lazy: rebuilding the pool may look
                     # successful and the rejection arrives only when the
@@ -1200,17 +1352,24 @@ class WrdsState:
                     if _is_auth_error(retry_error) or _is_conn_error(retry_error):
                         self._latch_login_failure(retry_error)
                     raise
+        finally:
+            self._clear_lock_owner()
+            self.lock.release()
 
     def healthcheck(self):
         """Exercise the connection with SELECT 1, recovering if wedged.
         Returns (ok: bool, detail: str). Used by the `ping` command so
         wrds_ping() reflects true connection health, not just socket
         liveness."""
-        with self.lock:
-            # Answer from the latch without touching the network. This is the
-            # hot path for the lockout: every ping used to drive _recover().
-            if self.auth_failed:
-                return False, self.auth_failed
+        # A running query proves the daemon and its serialized DB owner are
+        # live. Never queue a readiness probe behind it: that made five-second
+        # pings falsely report a healthy service as unreachable.
+        if self.auth_failed:
+            return False, self.auth_failed
+        if not self.lock.acquire(blocking=False):
+            return self._busy_health()
+        self._set_lock_owner('healthcheck')
+        try:
             try:
                 if self._healthy(self.db):
                     return True, 'ok'
@@ -1220,6 +1379,9 @@ class WrdsState:
                 return False, str(e)
             except Exception as e:
                 return False, str(e)
+        finally:
+            self._clear_lock_owner()
+            self.lock.release()
 
     def unblock(self):
         """Operator-approved retry after a latched credential rejection.
@@ -1232,7 +1394,7 @@ class WrdsState:
         Reloads .env with override first: the operator's fix landed in the file,
         while this process still holds the stale value it was spawned with.
         """
-        with self.lock:
+        with self._owned_lock('unblock'):
             if not self.auth_failed:
                 return True, 'not blocked'
 
@@ -1310,7 +1472,7 @@ def handle_client(conn, state):
         conn.settimeout(CLIENT_IO_TIMEOUT)
         # Receive the full message (unsigned 64-bit network-order length).
         # v5's fixed-width ASCII header corrupted every frame at 100,000,000
-        # bytes; v6 can represent the explicit 512 MiB wire-safety budget.
+        # bytes; v7 retains v6's binary framing and adds bounded writes.
         request_deadline = time.monotonic() + CLIENT_IO_TIMEOUT
         raw_len = _recv_exact(conn, 8, request_deadline)
         msg_len = struct.unpack('!Q', raw_len)[0]
@@ -1349,11 +1511,11 @@ def handle_client(conn, state):
             send_response(conn, response)
             return
 
-        if cmd == 'safety_hello_v6':
+        if cmd == 'safety_hello_v7':
             # Deliberately DB-free. Updated clients send this before `ping` so
             # probing a legacy daemon cannot invoke its vulnerable healthcheck.
             response = {'status': 'ok', 'msg': 'safety protocol confirmed'}
-        elif cmd == 'safe_ping_v6':
+        elif cmd == 'safe_ping_v7':
             ok, detail = state.healthcheck()
             if ok:
                 response = {'status': 'ok', 'msg': 'wrds_server alive',
@@ -1368,33 +1530,37 @@ def handle_client(conn, state):
                 response = {'status': 'error',
                             'msg': f'connection unhealthy: {detail}',
                             'error_kind': 'connection'}
-        elif cmd == 'safe_query_v6':
+        elif cmd == 'safe_query_v7':
             sql = request['sql']
             query_timeout = request.get('timeout', QUERY_TIMEOUT_SECONDS)
-            df, recovered = state.run(
-                lambda db: _bounded_query(db, sql, query_timeout))
+            df, recovered = _run_bounded_operation(
+                state,
+                lambda db, remaining: _bounded_query(db, sql, remaining),
+                query_timeout,
+            )
             # Convert to JSON-serializable format
             response = {
                 'status': 'ok',
                 'columns': list(df.columns),
-                'data': df.to_json(orient='split', date_format='iso'),
+                '_wrds_dataframe': df,
                 'shape': list(df.shape),
                 'recovered': recovered,
             }
-        elif cmd == 'safe_list_tables_v6':
+        elif cmd == 'safe_list_tables_v7':
             lib = request['library']
-            tables, recovered = state.run(
-                lambda db: _bounded_db_call(
-                    db, lambda active: active.list_tables(library=lib)))
+            tables, recovered = _run_bounded_operation(
+                state, lambda db, remaining: _bounded_db_call(
+                    db, lambda active: active.list_tables(library=lib),
+                    remaining))
             response = {'status': 'ok', 'tables': tables,
                         'recovered': recovered}
-        elif cmd == 'safe_list_libraries_v6':
-            libraries, recovered = state.run(
-                lambda db: _bounded_db_call(
-                    db, lambda active: active.list_libraries()))
+        elif cmd == 'safe_list_libraries_v7':
+            libraries, recovered = _run_bounded_operation(
+                state, lambda db, remaining: _bounded_db_call(
+                    db, lambda active: active.list_libraries(), remaining))
             response = {'status': 'ok', 'libraries': libraries,
                         'recovered': recovered}
-        elif cmd == 'safe_get_table_v6':
+        elif cmd == 'safe_get_table_v7':
             kwargs = request.get('kwargs') or {}
             requested_rows = kwargs.get('obs')
             if requested_rows is None:
@@ -1408,31 +1574,37 @@ def handle_client(conn, state):
                 raise ValueError(
                     f'WRDS get_table row limit must be 1..{MAX_GET_TABLE_ROWS}; '
                     'use filtered wrds_query pulls for larger extracts')
-            df, recovered = state.run(
-                lambda db: _bounded_db_call(
-                    db, lambda active: active.get_table(
-                        request['library'], request['table'], **kwargs)))
-            df = _validate_dataframe_budget(df)
+            df, recovered = _run_bounded_operation(
+                state, lambda db, remaining: _validate_dataframe_budget(
+                    _bounded_db_call(
+                        db, lambda active: active.get_table(
+                            request['library'], request['table'], **kwargs),
+                        remaining)))
             response = {
                 'status': 'ok',
-                'data': df.to_json(orient='split', date_format='iso'),
+                '_wrds_dataframe': df,
                 'recovered': recovered,
             }
-        elif cmd == 'safe_describe_v6':
+        elif cmd == 'safe_describe_v7':
             lib = request['library']
             table = request['table']
-            desc, recovered = state.run(
-                lambda db: _bounded_db_call(
-                    db, lambda active: active.describe_table(lib, table)))
+            desc, recovered = _run_bounded_operation(
+                state, lambda db, remaining: _bounded_db_call(
+                    db, lambda active: active.describe_table(lib, table),
+                    remaining))
             response = {
                 'status': 'ok',
-                'data': desc.to_json(orient='split', date_format='iso'),
+                '_wrds_dataframe': desc,
                 'recovered': recovered,
             }
         else:
             response = {'status': 'error', 'msg': f'unknown command: {cmd}'}
 
-        send_response(conn, response)
+        send_response(
+            conn, response,
+            bounded_preparation=cmd in _DATABASE_RESPONSE_COMMANDS)
+    except WrdsResponseWriteError as e:
+        _log_response_write_failure(e)
     except Exception as e:
         try:
             # Three-way, not two: _is_conn_error() deliberately excludes auth
@@ -1445,14 +1617,75 @@ def handle_client(conn, state):
             else:
                 error_kind = 'query'
             send_response(conn, {'status': 'error', 'msg': str(e),
-                                 'error_kind': error_kind})
-        except Exception:
-            pass
+                                 'error_kind': error_kind},
+                          bounded_preparation=False)
+        except WrdsResponseWriteError as write_error:
+            _log_response_write_failure(write_error, reporting=e)
+        except Exception as write_error:
+            print(
+                f"[wrds_server] response error reporting failed: "
+                f"{type(write_error).__name__}: {write_error}",
+                file=sys.stderr, flush=True,
+            )
     finally:
         conn.close()
 
-def send_response(conn, response):
-    """Send a binary-length-prefixed JSON response."""
+def _response_write_timeout(payload_size):
+    """Return a bounded deadline that permits slower writes for larger frames."""
+    scaled = (RESPONSE_WRITE_BASE_SECONDS +
+              payload_size / RESPONSE_WRITE_MIN_BYTES_PER_SECOND)
+    return min(RESPONSE_WRITE_MAX_SECONDS, scaled)
+
+
+def _send_response_frame(conn, payload):
+    """Send one complete response under a total wall-clock deadline.
+
+    Use ``send`` rather than ``sendall`` so a failure records exact progress.
+    Once any response byte has escaped, callers must close the socket; writing
+    a second error frame would only turn a loud truncation into corrupt framing.
+    """
+    header = struct.pack('!Q', len(payload))
+    total = len(header) + len(payload)
+    sent = 0
+    timeout = _response_write_timeout(len(payload))
+    deadline = time.monotonic() + timeout
+    try:
+        for part in (header, payload):
+            view = memoryview(part)
+            offset = 0
+            while offset < len(view):
+                remaining = deadline - time.monotonic()
+                if remaining <= 0:
+                    raise TimeoutError('response write deadline exceeded')
+                conn.settimeout(remaining)
+                count = conn.send(view[offset:])
+                if count == 0:
+                    raise ConnectionError('response peer closed during write')
+                offset += count
+                sent += count
+    except OSError as exc:
+        raise WrdsResponseWriteError(
+            f"frame stopped at {sent}/{total} bytes under a "
+            f"{timeout:.3f}s deadline ({type(exc).__name__}: {exc})"
+        ) from exc
+
+
+def _log_response_write_failure(exc, reporting=None):
+    context = (f" while reporting {type(reporting).__name__}"
+               if reporting is not None else "")
+    print(
+        f"[wrds_server] response write failed{context}: {exc}",
+        file=sys.stderr, flush=True,
+    )
+
+
+def _encode_response_payload(response):
+    """Materialize DataFrame JSON and the final bounded wire payload."""
+    response = dict(response)
+    dataframe = response.pop('_wrds_dataframe', None)
+    if dataframe is not None:
+        response['data'] = dataframe.to_json(
+            orient='split', date_format='iso')
     response = {**response, 'safety_protocol': SAFETY_PROTOCOL}
     data = json.dumps(response, default=str).encode()
     if len(data) > MAX_RESPONSE:
@@ -1463,8 +1696,52 @@ def send_response(conn, response):
                     'use documented deterministic windowed pulls'),
             'safety_protocol': SAFETY_PROTOCOL,
         }).encode()
-    conn.sendall(struct.pack('!Q', len(data)))
-    conn.sendall(data)
+    return data
+
+
+def _prepare_response_payload(response):
+    """Serialize off-socket under a producer-side wall deadline.
+
+    Timed-out workers never touch the socket and discard their eventual
+    result. A semaphore stays held until each worker really exits, bounding
+    CPU/memory even when serialization code does not stop cooperatively.
+    """
+    if not _response_preparation_slots.acquire(blocking=False):
+        raise WrdsResponsePreparationError(
+            'WRDS response preparation is busy; retry this bounded query')
+    done = threading.Event()
+    abandoned = threading.Event()
+    outcome = []
+
+    def prepare():
+        try:
+            result = ('ok', _encode_response_payload(response))
+        except Exception as exc:
+            result = ('error', exc)
+        finally:
+            if not abandoned.is_set():
+                outcome.append(result)
+            done.set()
+            _response_preparation_slots.release()
+
+    worker = threading.Thread(
+        target=prepare, name='wrds-response-prepare', daemon=True)
+    worker.start()
+    if not done.wait(RESPONSE_PREPARATION_TIMEOUT_SECONDS):
+        abandoned.set()
+        raise WrdsResponsePreparationError(
+            'WRDS response preparation deadline exceeded')
+    kind, value = outcome[0]
+    if kind == 'error':
+        raise value
+    return value
+
+
+def send_response(conn, response, bounded_preparation=False):
+    """Encode and send one binary-length-prefixed JSON response."""
+    data = (_prepare_response_payload(response) if bounded_preparation else
+            _encode_response_payload(response))
+    _send_response_frame(conn, data)
 
 
 def _bind_unix_server():

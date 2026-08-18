@@ -10,7 +10,8 @@ set -e
 cd "$(dirname "$0")/../.."
 
 # Pin the project venv interpreter (same PATH-demotion hazard as
-# launch_agent.sh — issue #191): a macOS login shell runs path_helper, which
+# the former Codex worker launcher — issue #191): a macOS login shell runs
+# path_helper, which
 # puts /usr/bin ahead of any inherited venv PATH entry, and the system python
 # has no pandas/dotenv — so the ping probe below fails silently even when a
 # healthy server is up, and the restart path dies on imports after a

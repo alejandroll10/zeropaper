@@ -3,6 +3,7 @@
 
 import json
 import errno
+import io
 import multiprocessing
 import os
 import socket
@@ -13,6 +14,7 @@ import sys
 import tempfile
 import time
 import threading
+from contextlib import redirect_stderr
 from pathlib import Path
 from unittest import mock
 
@@ -35,6 +37,63 @@ class HealthyState:
 
     def unblock(self):
         return True, "operator retry accepted"
+
+
+class FailingResponseSocket:
+    """Socket double that permits one partial payload write, then times out."""
+
+    def __init__(self, incoming):
+        self.incoming = bytearray(incoming)
+        self.send_calls = 0
+        self.closed = False
+        self.timeouts = []
+
+    def recv(self, size):
+        chunk = bytes(self.incoming[:size])
+        del self.incoming[:size]
+        return chunk
+
+    def send(self, payload):
+        self.send_calls += 1
+        if self.send_calls == 1:
+            return len(payload)  # complete frame header
+        if self.send_calls == 2:
+            return min(5, len(payload))
+        raise TimeoutError("simulated stalled response peer")
+
+    def settimeout(self, value):
+        self.timeouts.append(value)
+
+    def close(self):
+        self.closed = True
+
+
+class TricklingProxySocket:
+    """Proxy double whose byte trickle must not reset a setup deadline."""
+
+    def __init__(self):
+        self.closed = False
+        self.timeouts = []
+
+    def settimeout(self, value):
+        self.timeouts.append(value)
+
+    def sendall(self, payload):
+        pass
+
+    def recv(self, size):
+        time.sleep(0.03)
+        return b"x"
+
+    def close(self):
+        self.closed = True
+
+
+def _capture_error(errors, operation):
+    try:
+        operation()
+    except Exception as exc:
+        errors.append(exc)
 
 
 def compete_for_lock(state_dir, start, release, results):
@@ -460,7 +519,7 @@ def main():
                 "HTTP_PROXY": "",
         }, clear=False):
             response = client._send_request(
-                {"cmd": "safety_hello_v6"}, timeout=5, force_bridge=True)
+                {"cmd": "safety_hello_v7"}, timeout=5, force_bridge=True)
         assert response["status"] == "ok"
         upstream_worker.join(timeout=2)
         proxy_worker.join(timeout=2)
@@ -474,6 +533,26 @@ def main():
                 "HTTPS_PROXY": "http://user:secret@example.invalid:3128",
         }, clear=False):
             assert client._proxy_endpoint() is None
+
+        # Proxy CONNECT uses one total setup clock; trickled header bytes do
+        # not reset a per-recv timeout indefinitely.
+        trickling_proxy = TricklingProxySocket()
+        trickle_started = time.monotonic()
+        with mock.patch.object(
+                client, "_read_bridge_token", return_value=bridge_token), \
+                mock.patch.object(
+                    client, "_proxy_endpoint",
+                    return_value=("127.0.0.1", proxy_port, None)), \
+                mock.patch.object(
+                    client.socket, "create_connection",
+                    return_value=trickling_proxy):
+            try:
+                client._connect_bridge(0.05)
+                raise AssertionError("proxy trickle reset the setup deadline")
+            except TimeoutError:
+                pass
+        assert time.monotonic() - trickle_started < 0.15
+        assert trickling_proxy.closed
 
         def bridge_pair_request(token, command):
             left, right = socket.socketpair()
@@ -498,10 +577,10 @@ def main():
             assert not relay.is_alive()
             return result
 
-        rejected = bridge_pair_request("b" * 64, "safety_hello_v6")
+        rejected = bridge_pair_request("b" * 64, "safety_hello_v7")
         assert rejected["status"] == "error"
         assert "authentication failed" in rejected["msg"]
-        rejected = bridge_pair_request(bridge_token, "safe_unblock_v6")
+        rejected = bridge_pair_request(bridge_token, "safe_unblock_v7")
         assert rejected["status"] == "error"
         assert "query protocol commands only" in rejected["msg"]
 
@@ -539,12 +618,88 @@ def main():
         delayed_worker.start()
         with mock.patch.object(bridge, "CLIENT_IO_TIMEOUT", 0.05), \
                 mock.patch.object(
-                    bridge, "UPSTREAM_RESPONSE_TIMEOUT", 0.5):
+                    bridge, "UPSTREAM_CONTROL_TIMEOUT", 0.5):
             delayed = bridge_pair_request(
-                bridge_token, "safety_hello_v6")
+                bridge_token, "safety_hello_v7")
         assert delayed["status"] == "ok"
         delayed_worker.join(timeout=2)
         assert not delayed_worker.is_alive()
+
+        # Execution and each transfer hop have distinct wall deadlines.  The
+        # fake daemon spends most of the query budget before publishing its
+        # header, then pauses again mid-body.  The relay must renew its clock
+        # for the upstream body, and the bridge client must allow the relay's
+        # buffered upstream transfer before renewing for its downstream body.
+        composed_client, composed_relay = socket.socketpair()
+        composed_slots = threading.BoundedSemaphore(1)
+        composed_payload = json.dumps({
+            "status": "ok",
+            "columns": ["x"],
+            "data": '{"columns":["x"],"index":[0],"data":[[1]]}',
+            "shape": [1, 1],
+            "recovered": False,
+            "safety_protocol": server.SAFETY_PROTOCOL,
+        }).encode()
+
+        def serve_composed_upstream():
+            upstream_conn, _ = bridge_upstream.accept()
+            request_size = struct.unpack(
+                "!Q", bridge._recv_exact(upstream_conn, 8))[0]
+            bridge._recv_exact(upstream_conn, request_size)
+            time.sleep(0.04)
+            upstream_conn.sendall(struct.pack("!Q", len(composed_payload)))
+            upstream_conn.sendall(composed_payload[:16])
+            time.sleep(0.08)
+            upstream_conn.sendall(composed_payload[16:])
+            upstream_conn.close()
+
+        composed_upstream_worker = threading.Thread(
+            target=serve_composed_upstream, daemon=True)
+        def serve_composed_relay():
+            # Exercise the client allowance for authenticated relay setup and
+            # scheduling before the relay opens its upstream Unix socket.
+            time.sleep(0.12)
+            bridge._relay_client(
+                composed_relay, bridge_token, composed_slots)
+
+        composed_relay_worker = threading.Thread(
+            target=serve_composed_relay, daemon=True)
+        composed_upstream_worker.start()
+        composed_relay_worker.start()
+        with mock.patch.object(
+                client, "_connect",
+                return_value=(composed_client, bridge_token)), \
+                mock.patch.object(client, "QUERY_TIMEOUT_FLOOR_SECONDS", 0.01), \
+                mock.patch.object(client, "RECOVERY_GRACE_SECONDS", 0.02), \
+                mock.patch.object(
+                    client, "SERVER_REQUEST_ALLOWANCE_SECONDS", 0.01), \
+                mock.patch.object(
+                    client, "RESPONSE_PREPARATION_GRACE_SECONDS", 0.05), \
+                mock.patch.object(
+                    client, "BRIDGE_SETUP_ALLOWANCE_SECONDS", 0.15), \
+                mock.patch.object(
+                    client, "RESPONSE_TRANSFER_BASE_SECONDS", 0.1), \
+                mock.patch.object(
+                    client, "RESPONSE_TRANSFER_MAX_SECONDS", 0.1), \
+                mock.patch.object(bridge, "QUERY_TIMEOUT_FLOOR_SECONDS", 0.01), \
+                mock.patch.object(bridge, "RECOVERY_GRACE_SECONDS", 0.02), \
+                mock.patch.object(
+                    bridge, "UPSTREAM_REQUEST_ALLOWANCE_SECONDS", 0.01), \
+                mock.patch.object(
+                    bridge, "RESPONSE_PREPARATION_GRACE_SECONDS", 0.1), \
+                mock.patch.object(bridge, "RESPONSE_WRITE_BASE_SECONDS", 0.1), \
+                mock.patch.object(bridge, "RESPONSE_WRITE_MAX_SECONDS", 0.1):
+            composed = client._send_request({
+                "cmd": "safe_query_v7",
+                "sql": "SELECT 1 AS x",
+                "timeout": 0.01,
+            }, timeout=0.01, force_bridge=True)
+        assert composed["status"] == "ok"
+        assert composed["shape"] == [1, 1]
+        composed_upstream_worker.join(timeout=2)
+        composed_relay_worker.join(timeout=2)
+        assert not composed_upstream_worker.is_alive()
+        assert not composed_relay_worker.is_alive()
 
         # A planted token symlink is never followed into another owned file.
         os.unlink(bridge.TOKEN_FILE)
@@ -571,8 +726,9 @@ def main():
                 mock.patch.object(
                     client, "_connect_bridge",
                     return_value=(marker, bridge_token)) as fallback:
-            assert client._connect(5) == (marker, bridge_token)
-            fallback.assert_called_once_with(5)
+            assert client._connect(
+                5, bridge_timeout=32) == (marker, bridge_token)
+            fallback.assert_called_once_with(32)
 
         for blocked_errno in client._BRIDGE_FALLBACK_ERRNOS:
             def deny_with_errno(family, *args, _errno=blocked_errno, **kwargs):
@@ -594,10 +750,10 @@ def main():
             os.lstat(server.SOCKET_FILE)) == bridge_upstream_identity
 
         # Lifecycle commands do not exist on any wire endpoint.
-        denied = request_over_socketpair(state, "safe_unblock_v6")
+        denied = request_over_socketpair(state, "safe_unblock_v7")
         assert denied["status"] == "error"
         assert "unknown command" in denied["msg"]
-        denied = request_over_socketpair(state, "safe_shutdown_v6")
+        denied = request_over_socketpair(state, "safe_shutdown_v7")
         assert denied["status"] == "error"
 
         # Oversized and incomplete frames are bounded and rejected promptly.
@@ -619,7 +775,8 @@ def main():
         # than imposing v5's accidental 90 MiB ceiling.
         client_side, peer_side = socket.socketpair()
         original_connect = client._connect
-        client._connect = lambda timeout, force_bridge=False: (client_side, None)
+        client._connect = lambda timeout, force_bridge=False, bridge_timeout=None: (
+            client_side, None)
         payload = json.dumps({
             "status": "ok", "msg": "fragmented",
             "safety_protocol": client.SAFETY_PROTOCOL,
@@ -642,7 +799,7 @@ def main():
         fragmented = threading.Thread(target=fragmented_peer, daemon=True)
         fragmented.start()
         try:
-            response = client._send_request({"cmd": "safety_hello_v6"})
+            response = client._send_request({"cmd": "safety_hello_v7"})
             assert response["msg"] == "fragmented"
         finally:
             client._connect = original_connect
@@ -650,7 +807,8 @@ def main():
         assert not fragmented.is_alive()
 
         large_frame_client, large_frame_peer = socket.socketpair()
-        client._connect = lambda timeout, force_bridge=False: (large_frame_client, None)
+        client._connect = lambda timeout, force_bridge=False, bridge_timeout=None: (
+            large_frame_client, None)
         def formerly_oversized_peer():
             header = b""
             while len(header) < 8:
@@ -670,7 +828,7 @@ def main():
             100_000_000
         try:
             try:
-                client._send_request({"cmd": "safety_hello_v6"})
+                client._send_request({"cmd": "safety_hello_v7"})
                 raise AssertionError("incomplete large frame was accepted")
             except ConnectionError as exc:
                 assert "incomplete WRDS response frame" in str(exc)
@@ -680,7 +838,8 @@ def main():
         assert not formerly_oversized.is_alive()
 
         bounded_client, bounded_peer = socket.socketpair()
-        client._connect = lambda timeout, force_bridge=False: (bounded_client, None)
+        client._connect = lambda timeout, force_bridge=False, bridge_timeout=None: (
+            bounded_client, None)
         def over_bound_peer():
             request_size = struct.unpack(
                 "!Q", client._recv_exact(bounded_peer, 8))[0]
@@ -691,7 +850,7 @@ def main():
         over_bound.start()
         try:
             try:
-                client._send_request({"cmd": "safety_hello_v6"})
+                client._send_request({"cmd": "safety_hello_v7"})
                 raise AssertionError("response above wire-safety bound was accepted")
             except ConnectionError as exc:
                 assert "frame must be" in str(exc)
@@ -728,6 +887,147 @@ def main():
         assert len(bounded_df) == 2
         assert str(server.QUERY_TIMEOUT_SECONDS * 1000) in \
             bounded_db.connection.statements[0]
+
+        # Readiness is nonblocking while the serialized database owner is
+        # busy, and queued commands honor their own total operation deadline.
+        busy_state = server.WrdsState(None)
+        busy_entered = threading.Event()
+        busy_release = threading.Event()
+
+        def bounded_busy_command(db):
+            busy_entered.set()
+            busy_release.wait(timeout=1)
+            return "done"
+
+        busy_worker = threading.Thread(
+            target=lambda: busy_state.run(
+                bounded_busy_command, deadline=time.monotonic() + 1),
+            daemon=True,
+        )
+        busy_worker.start()
+        assert busy_entered.wait(timeout=1)
+        started = time.monotonic()
+        busy_ok, busy_detail = busy_state.healthcheck()
+        assert time.monotonic() - started < 0.05
+        assert busy_ok and "bounded query" in busy_detail
+        busy_release.set()
+        busy_worker.join(timeout=1)
+        assert not busy_worker.is_alive()
+
+        queued_state = server.WrdsState(None)
+        queued_state.lock.acquire()
+        try:
+            try:
+                queued_state.run(
+                    lambda db: "unreachable",
+                    deadline=time.monotonic() + 0.05,
+                )
+                raise AssertionError("queued command exceeded its deadline")
+            except server.WrdsOperationTimeout:
+                pass
+        finally:
+            queued_state.lock.release()
+
+        # Contention from a healthcheck/recovery owner is never called live.
+        wedged_state = server.WrdsState(object())
+        health_entered = threading.Event()
+        health_release = threading.Event()
+        first_health = []
+
+        def wedged_healthy(db, deadline=None):
+            health_entered.set()
+            health_release.wait(timeout=1)
+            return True
+
+        with mock.patch.object(
+                wedged_state, "_healthy", side_effect=wedged_healthy):
+            wedged_worker = threading.Thread(
+                target=lambda: first_health.append(wedged_state.healthcheck()),
+                daemon=True,
+            )
+            wedged_worker.start()
+            assert health_entered.wait(timeout=1)
+            wedged_ok, wedged_detail = wedged_state.healthcheck()
+            assert not wedged_ok
+            assert "healthcheck" in wedged_detail
+            health_release.set()
+            wedged_worker.join(timeout=1)
+        assert not wedged_worker.is_alive()
+        assert first_health == [(True, "ok")]
+
+        # Recovery and retry share the original operation clock. A slow
+        # recovery after a first connection failure cannot start a fresh full
+        # query allowance or leave the client waiting for a second deadline.
+        retry_state = server.WrdsState(object())
+        retry_calls = []
+
+        def fail_then_retry(db):
+            retry_calls.append(time.monotonic())
+            raise ConnectionResetError(
+                errno.ECONNRESET, "connection reset by peer")
+
+        def slow_recovery(deadline=None):
+            time.sleep(0.08)
+            return "test_recovery"
+
+        with mock.patch.object(
+                retry_state, "_recover", side_effect=slow_recovery):
+            try:
+                retry_state.run(
+                    fail_then_retry,
+                    deadline=time.monotonic() + 0.05,
+                )
+                raise AssertionError("recovery restarted the command deadline")
+            except server.WrdsOperationTimeout:
+                pass
+        assert len(retry_calls) == 1
+
+        late_success_state = server.WrdsState(object())
+        late_entered = threading.Event()
+        late_errors = []
+
+        def late_success(db):
+            late_entered.set()
+            time.sleep(0.1)
+            return "late success"
+
+        late_worker = threading.Thread(
+            target=lambda: _capture_error(
+                late_errors,
+                lambda: late_success_state.run(
+                    late_success, deadline=time.monotonic() + 0.05)),
+            daemon=True,
+        )
+        late_worker.start()
+        assert late_entered.wait(timeout=1)
+        time.sleep(0.06)
+        late_ok, late_detail = late_success_state.healthcheck()
+        assert not late_ok and "exceeded" in late_detail
+        late_worker.join(timeout=1)
+        assert not late_worker.is_alive()
+        assert len(late_errors) == 1
+        assert isinstance(late_errors[0], server.WrdsOperationTimeout)
+
+        # High-level requests need only the DB-free version handshake before
+        # sending their real command; they never issue a lock-taking ping.
+        checked_commands = []
+
+        def checked_response(request, **kwargs):
+            checked_commands.append(request["cmd"])
+            if request["cmd"] == "safety_hello_v7":
+                return {
+                    "status": "ok",
+                    "safety_protocol": client.SAFETY_PROTOCOL,
+                }
+            return {
+                "status": "ok",
+                "tables": [],
+                "safety_protocol": client.SAFETY_PROTOCOL,
+            }
+
+        with mock.patch.object(client, "_send_request", checked_response):
+            assert client.wrds_list_tables("crsp") == []
+        assert checked_commands == ["safety_hello_v7", "safe_list_tables_v7"]
         try:
             client.wrds_get_table("crsp", "msf")
             raise AssertionError("unbounded get_table call was accepted")
@@ -748,6 +1048,211 @@ def main():
         finally:
             response_client.close()
             response_server.close()
+
+        # A direct client's SQL budget ends before response transfer begins.
+        # Delay the query beyond the caller's tiny test timeout; the server's
+        # response must still arrive under the separate preparation/transport
+        # budgets instead of inheriting an already-expired query clock.
+        class DelayedQueryState(HealthyState):
+            def run(self, operation, deadline=None):
+                time.sleep(0.08)
+                return client.pd.DataFrame({"x": [1]}), False
+
+        delayed_query_client, delayed_query_server = socket.socketpair()
+        delayed_query_worker = threading.Thread(
+            target=server.handle_client,
+            args=(delayed_query_server, DelayedQueryState()),
+            daemon=True,
+        )
+        delayed_query_worker.start()
+        with mock.patch.object(
+                client, "_connect",
+                return_value=(delayed_query_client, None)), \
+                mock.patch.object(client, "QUERY_TIMEOUT_FLOOR_SECONDS", 0.01), \
+                mock.patch.object(
+                    client, "RESPONSE_PREPARATION_GRACE_SECONDS", 0.2), \
+                mock.patch.object(
+                    client, "RESPONSE_TRANSFER_BASE_SECONDS", 0.2):
+            delayed_query_response = client._send_request({
+                "cmd": "safe_query_v7",
+                "sql": "SELECT 1 AS x",
+                "timeout": 0.01,
+            }, timeout=0.01)
+        assert delayed_query_response["status"] == "ok"
+        delayed_query_worker.join(timeout=2)
+        assert not delayed_query_worker.is_alive()
+
+        # DataFrame conversion and final JSON encoding run in a bounded
+        # producer stage. If preparation overruns, the worker never owns the
+        # socket and the handler can still send one clean timeout frame.
+        class SlowFrame:
+            columns = ["x"]
+            shape = (1, 1)
+
+            def to_json(self, orient=None, date_format=None):
+                time.sleep(0.08)
+                return '{"columns":["x"],"index":[0],"data":[[1]]}'
+
+        class SlowPreparationState(HealthyState):
+            def run(self, operation, deadline=None):
+                return SlowFrame(), False
+
+        prep_client, prep_server = socket.socketpair()
+        prep_worker = threading.Thread(
+            target=server.handle_client,
+            args=(prep_server, SlowPreparationState()), daemon=True)
+        prep_worker.start()
+        with mock.patch.object(
+                client, "_connect", return_value=(prep_client, None)), \
+                mock.patch.object(
+                    server, "RESPONSE_PREPARATION_TIMEOUT_SECONDS", 0.05), \
+                mock.patch.object(
+                    client, "RESPONSE_PREPARATION_GRACE_SECONDS", 0.2):
+            prep_response = client._send_request({
+                "cmd": "safe_query_v7",
+                "sql": "SELECT 1 AS x",
+                "timeout": 1,
+            }, timeout=1)
+        assert prep_response["status"] == "error"
+        assert "preparation deadline exceeded" in prep_response["msg"]
+        prep_worker.join(timeout=2)
+        assert not prep_worker.is_alive()
+
+        # Even control responses renew the body deadline after their header.
+        # This isolates the client-side half of #263 from daemon behavior.
+        renewed_client, renewed_peer = socket.socketpair()
+        renewed_payload = json.dumps({
+            "status": "ok", "safety_protocol": server.SAFETY_PROTOCOL,
+        }).encode()
+
+        def serve_renewed_body():
+            request_size = struct.unpack(
+                "!Q", client._recv_exact(renewed_peer, 8))[0]
+            client._recv_exact(renewed_peer, request_size)
+            renewed_peer.sendall(struct.pack("!Q", len(renewed_payload)))
+            renewed_peer.sendall(renewed_payload[:4])
+            time.sleep(0.08)
+            renewed_peer.sendall(renewed_payload[4:])
+            renewed_peer.close()
+
+        renewed_worker = threading.Thread(
+            target=serve_renewed_body, daemon=True)
+        renewed_worker.start()
+        with mock.patch.object(
+                client, "_connect", return_value=(renewed_client, None)), \
+                mock.patch.object(
+                    client, "RESPONSE_TRANSFER_BASE_SECONDS", 0.2):
+            renewed_response = client._send_request(
+                {"cmd": "safety_hello_v7"}, timeout=0.05)
+        assert renewed_response["status"] == "ok"
+        renewed_worker.join(timeout=2)
+        assert not renewed_worker.is_alive()
+
+        # A multi-megabyte response must replace the stale 15-second request
+        # timeout before writing. Use tiny test deadlines and delay the reader
+        # past the stale timeout: old behavior truncates; the scaled response
+        # deadline completes on both the direct daemon and relay paths.
+        large_text = "x" * 2_000_000
+        slow_client, slow_server = socket.socketpair()
+        slow_server.setsockopt(socket.SOL_SOCKET, socket.SO_SNDBUF, 4096)
+        slow_server.settimeout(0.05)
+        slow_client.settimeout(3)
+        slow_errors = []
+        with mock.patch.object(server, "RESPONSE_WRITE_BASE_SECONDS", 1), \
+                mock.patch.object(
+                    server, "RESPONSE_WRITE_MIN_BYTES_PER_SECOND", 100_000_000), \
+                mock.patch.object(server, "RESPONSE_WRITE_MAX_SECONDS", 2):
+            slow_writer = threading.Thread(
+                target=lambda: _capture_error(
+                    slow_errors,
+                    lambda: server.send_response(
+                        slow_server, {"status": "ok", "data": large_text})),
+                daemon=True,
+            )
+            slow_writer.start()
+            time.sleep(0.1)
+            slow_size = struct.unpack(
+                "!Q", client._recv_exact(slow_client, 8))[0]
+            slow_response = json.loads(
+                client._recv_exact(slow_client, slow_size))
+            slow_writer.join(timeout=3)
+        assert not slow_writer.is_alive()
+        assert slow_errors == []
+        assert slow_response["data"] == large_text
+        slow_client.close()
+        slow_server.close()
+
+        bridge_payload = b"y" * 2_000_000
+        bridge_slow_client, bridge_slow_server = socket.socketpair()
+        bridge_slow_server.setsockopt(
+            socket.SOL_SOCKET, socket.SO_SNDBUF, 4096)
+        bridge_slow_server.settimeout(0.05)
+        bridge_slow_client.settimeout(3)
+        bridge_slow_errors = []
+        with mock.patch.object(bridge, "RESPONSE_WRITE_BASE_SECONDS", 1), \
+                mock.patch.object(
+                    bridge, "RESPONSE_WRITE_MIN_BYTES_PER_SECOND", 100_000_000), \
+                mock.patch.object(bridge, "RESPONSE_WRITE_MAX_SECONDS", 2):
+            bridge_slow_writer = threading.Thread(
+                target=lambda: _capture_error(
+                    bridge_slow_errors,
+                    lambda: bridge._send_response_frame(
+                        bridge_slow_server, bridge_payload)),
+                daemon=True,
+            )
+            bridge_slow_writer.start()
+            time.sleep(0.1)
+            bridge_slow_size = struct.unpack(
+                "!Q", client._recv_exact(bridge_slow_client, 8))[0]
+            bridge_slow_response = client._recv_exact(
+                bridge_slow_client, bridge_slow_size)
+            bridge_slow_writer.join(timeout=3)
+        assert not bridge_slow_writer.is_alive()
+        assert bridge_slow_errors == []
+        assert bridge_slow_response == bridge_payload
+        bridge_slow_client.close()
+        bridge_slow_server.close()
+
+        # Once a partial frame has escaped, neither component may append a
+        # second error frame. It must log exact progress and close instead.
+        hello = json.dumps({
+            "cmd": "safety_hello_v7",
+            "safety_protocol": server.SAFETY_PROTOCOL,
+        }).encode()
+        failing_server = FailingResponseSocket(
+            struct.pack("!Q", len(hello)) + hello)
+        server_stderr = io.StringIO()
+        with redirect_stderr(server_stderr):
+            server.handle_client(failing_server, state)
+        assert failing_server.closed
+        assert failing_server.send_calls == 3
+        assert "[wrds_server] response write failed" in server_stderr.getvalue()
+        assert "frame stopped at 13/" in server_stderr.getvalue()
+
+        bridge_token_for_failure = "c" * 64
+        rejected_request = json.dumps({
+            "cmd": "safe_unblock_v7",
+            "safety_protocol": bridge.SAFETY_PROTOCOL,
+            "bridge_protocol": bridge.BRIDGE_PROTOCOL,
+            "bridge_token": bridge_token_for_failure,
+        }).encode()
+        bridge_incoming = (
+            bridge.BRIDGE_PREFACE_MAGIC +
+            bridge_token_for_failure.encode("ascii") + b"\n" +
+            struct.pack("!Q", len(rejected_request)) + rejected_request
+        )
+        failing_bridge = FailingResponseSocket(bridge_incoming)
+        bridge_stderr = io.StringIO()
+        with redirect_stderr(bridge_stderr):
+            bridge._relay_client(
+                failing_bridge, bridge_token_for_failure,
+                threading.BoundedSemaphore(1),
+                None,
+            )
+        assert failing_bridge.closed
+        assert failing_bridge.send_calls == 3
+        assert "[wrds_bridge] response write failed" in bridge_stderr.getvalue()
+        assert "frame stopped at 13/" in bridge_stderr.getvalue()
 
         old_wire_cap = server.MAX_RESPONSE
         server.MAX_RESPONSE = 512

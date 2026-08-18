@@ -41,8 +41,8 @@ load_dotenv(dotenv_path=_DOTENV_PATH)
 
 PORT = 23847
 BRIDGE_PORT = 23848
-BRIDGE_PROTOCOL = 'wrds-query-bridge-v2'
-BRIDGE_PREFACE_MAGIC = b'WRDS-BRIDGE-V2:'
+BRIDGE_PROTOCOL = 'wrds-query-bridge-v3'
+BRIDGE_PREFACE_MAGIC = b'WRDS-BRIDGE-V3:'
 SOCKET_FILE = os.path.join(
     os.path.expanduser('~'), '.local', 'state', 'zeropaper', 'wrds',
     f'wrds_server_{PORT}.sock')
@@ -53,11 +53,33 @@ BRIDGE_TOKEN_FILE = os.path.join(
     f'wrds_query_bridge_{BRIDGE_PORT}.token')
 # Bump with the server whenever login/recovery safety semantics change. Keep a
 # literal here: importing the deployed module cannot identify a stale process.
-SAFETY_PROTOCOL = 'wrds-auth-latch-v6'
+SAFETY_PROTOCOL = 'wrds-auth-latch-v7'
 _BRIDGE_FALLBACK_ERRNOS = frozenset({
     errno.EPERM, errno.EACCES, errno.EAFNOSUPPORT, errno.EPROTONOSUPPORT,
 })
 MAX_RESPONSE = 512 * 1024 * 1024
+QUERY_TIMEOUT_SECONDS = 300
+QUERY_TIMEOUT_FLOOR_SECONDS = 1
+# SQL execution, response preparation, and each transport hop are separate
+# budgets.  In particular, the authenticated relay buffers the daemon frame
+# before it can publish the downstream header, so bridge clients must allow
+# one upstream transfer in addition to execution/preparation.
+# The producer enforces 60 seconds; five seconds lets its bounded timeout
+# error reach the response header without racing the receiver's same clock.
+RESPONSE_PREPARATION_GRACE_SECONDS = 65
+RECOVERY_GRACE_SECONDS = 60
+SERVER_REQUEST_ALLOWANCE_SECONDS = 15
+RESPONSE_TRANSFER_BASE_SECONDS = 60
+RESPONSE_TRANSFER_MIN_BYTES_PER_SECOND = 1024 * 1024
+RESPONSE_TRANSFER_MAX_SECONDS = QUERY_TIMEOUT_SECONDS + 15
+BRIDGE_SETUP_ALLOWANCE_SECONDS = 32
+_DB_COMMANDS = frozenset({
+    'safe_query_v7',
+    'safe_list_tables_v7',
+    'safe_list_libraries_v7',
+    'safe_get_table_v7',
+    'safe_describe_v7',
+})
 
 
 def _recv_exact(sock, size, deadline=None):
@@ -76,6 +98,41 @@ def _recv_exact(sock, size, deadline=None):
         chunks.append(chunk)
         received += len(chunk)
     return b''.join(chunks)
+
+
+def _bounded_execution_timeout(request, fallback):
+    """Mirror the daemon's SQL deadline for response-header budgeting."""
+    requested = (request.get('timeout', fallback)
+                 if request.get('cmd') == 'safe_query_v7' else fallback)
+    try:
+        requested = float(requested)
+    except (TypeError, ValueError):
+        requested = float(fallback)
+    return max(
+        QUERY_TIMEOUT_FLOOR_SECONDS,
+        min(requested, QUERY_TIMEOUT_SECONDS),
+    )
+
+
+def _response_transfer_timeout(payload_size):
+    scaled = (RESPONSE_TRANSFER_BASE_SECONDS +
+              payload_size / RESPONSE_TRANSFER_MIN_BYTES_PER_SECOND)
+    return min(RESPONSE_TRANSFER_MAX_SECONDS, scaled)
+
+
+def _response_header_timeout(request, fallback, through_bridge):
+    """Budget work which must finish before the first response header byte."""
+    if request.get('cmd') not in _DB_COMMANDS:
+        return fallback
+    timeout = (SERVER_REQUEST_ALLOWANCE_SECONDS +
+               _bounded_execution_timeout(request, fallback) +
+               RECOVERY_GRACE_SECONDS +
+               RESPONSE_PREPARATION_GRACE_SECONDS)
+    if through_bridge:
+        # The relay validates and buffers the complete daemon frame first.
+        timeout += (BRIDGE_SETUP_ALLOWANCE_SECONDS +
+                    RESPONSE_TRANSFER_MAX_SECONDS)
+    return timeout
 
 def _read_bridge_token():
     flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0)
@@ -125,14 +182,17 @@ def _proxy_endpoint():
 
 def _connect_bridge(timeout):
     """Reach the authenticated host bridge through Claude's local proxy."""
+    deadline = time.monotonic() + timeout
     token = _read_bridge_token()
     proxy = _proxy_endpoint()
     if proxy is None:
         sock = socket.create_connection(('127.0.0.1', BRIDGE_PORT), timeout)
         return sock, token
     host, port, credential = proxy
-    sock = socket.create_connection((host, port), timeout)
-    sock.settimeout(timeout)
+    remaining = deadline - time.monotonic()
+    if remaining <= 0:
+        raise TimeoutError('WRDS bridge setup deadline exceeded')
+    sock = socket.create_connection((host, port), remaining)
     try:
         lines = [
             f'CONNECT 127.0.0.1:{BRIDGE_PORT} HTTP/1.1',
@@ -141,9 +201,17 @@ def _connect_bridge(timeout):
         ]
         if credential is not None:
             lines.append(f'Proxy-Authorization: Basic {credential}')
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            raise TimeoutError('WRDS bridge setup deadline exceeded')
+        sock.settimeout(remaining)
         sock.sendall(('\r\n'.join(lines) + '\r\n\r\n').encode('ascii'))
         header = bytearray()
         while b'\r\n\r\n' not in header:
+            remaining = deadline - time.monotonic()
+            if remaining <= 0:
+                raise TimeoutError('WRDS bridge setup deadline exceeded')
+            sock.settimeout(remaining)
             chunk = sock.recv(1024)
             if not chunk:
                 raise ConnectionError('WRDS bridge proxy closed during CONNECT')
@@ -183,7 +251,7 @@ def wrds_requires_bridge():
     return False
 
 
-def _connect(timeout, force_bridge=False):
+def _connect(timeout, force_bridge=False, bridge_timeout=None):
     """Connect to the host-wide daemon across sandbox boundaries.
 
     Network-isolated sandboxes have a private 127.0.0.1, but their approved
@@ -201,13 +269,17 @@ def _connect(timeout, force_bridge=False):
             except OSError:
                 sock.close()
                 raise
-    return _connect_bridge(timeout)
+    return _connect_bridge(
+        timeout if bridge_timeout is None else bridge_timeout)
 
 
 def _send_request(request, timeout=300, force_bridge=False):
     """Send a request to the wrds_server and return the response."""
     request = {**request, 'safety_protocol': SAFETY_PROTOCOL}
-    sock, bridge_token = _connect(timeout, force_bridge=force_bridge)
+    bridge_timeout = (max(timeout, BRIDGE_SETUP_ALLOWANCE_SECONDS)
+                      if request.get('cmd') in _DB_COMMANDS else timeout)
+    sock, bridge_token = _connect(
+        timeout, force_bridge=force_bridge, bridge_timeout=bridge_timeout)
     try:
         if bridge_token is not None:
             request = {
@@ -221,14 +293,19 @@ def _send_request(request, timeout=300, force_bridge=False):
         sock.sendall(struct.pack('!Q', len(data)))
         sock.sendall(data)
 
-        # Receive response
-        response_deadline = time.monotonic() + timeout
-        raw_len = _recv_exact(sock, 8, response_deadline)
+        # Execution/preparation and payload transfer are independent budgets.
+        # A query that legitimately consumes its SQL timeout must still have a
+        # full transport deadline after the response length becomes known.
+        header_deadline = time.monotonic() + _response_header_timeout(
+            request, timeout, bridge_token is not None)
+        raw_len = _recv_exact(sock, 8, header_deadline)
         msg_len = struct.unpack('!Q', raw_len)[0]
         if msg_len <= 0 or msg_len > MAX_RESPONSE:
             raise ConnectionError(
                 f'WRDS response frame must be 1..{MAX_RESPONSE} bytes')
 
+        response_deadline = (
+            time.monotonic() + _response_transfer_timeout(msg_len))
         chunks = []
         received = 0
         while received < msg_len:
@@ -245,7 +322,7 @@ def wrds_bridge_ping():
     """Host-side readiness check for the authenticated fallback bridge."""
     try:
         resp = _send_request(
-            {'cmd': 'safety_hello_v6'}, timeout=5, force_bridge=True)
+            {'cmd': 'safety_hello_v7'}, timeout=5, force_bridge=True)
         return (resp.get('status') == 'ok' and
                 resp.get('safety_protocol') == SAFETY_PROTOCOL)
     except (ConnectionRefusedError, OSError, WrdsSafetyBlocked,
@@ -277,21 +354,15 @@ def _validate_protocol(resp):
 
 def _safety_hello():
     """DB-free handshake; legacy servers reject this as an unknown command."""
-    resp = _send_request({'cmd': 'safety_hello_v6'}, timeout=5)
+    resp = _send_request({'cmd': 'safety_hello_v7'}, timeout=5)
     _validate_protocol(resp)
     if resp.get('status') != 'ok':
         raise WrdsSafetyBlocked(resp.get('msg') or _safety_message())
 
 
-def _ensure_safe_server(allow_auth=False):
+def _ensure_safe_server():
     """Handshake before any command an old daemon could execute unsafely."""
     _safety_hello()
-    resp = _send_request({'cmd': 'safe_ping_v6'}, timeout=5)
-    _validate_protocol(resp)
-    if resp.get('status') == 'error':
-        if allow_auth and resp.get('error_kind') == 'auth':
-            return
-        _raise("WRDS server unavailable", resp)
 
 
 def _checked_request(request, timeout=300):
@@ -305,7 +376,7 @@ def wrds_ping():
     """Check if wrds_server is running. Returns True/False."""
     try:
         _safety_hello()
-        resp = _send_request({'cmd': 'safe_ping_v6'}, timeout=5)
+        resp = _send_request({'cmd': 'safe_ping_v7'}, timeout=5)
         return (resp.get('status') == 'ok' and
                 resp.get('safety_protocol') == SAFETY_PROTOCOL)
     except (ConnectionRefusedError, OSError, WrdsSafetyBlocked):
@@ -322,7 +393,7 @@ def wrds_auth_error():
     """
     try:
         _safety_hello()
-        resp = _send_request({'cmd': 'safe_ping_v6'}, timeout=5)
+        resp = _send_request({'cmd': 'safe_ping_v7'}, timeout=5)
     except WrdsSafetyBlocked as e:
         return str(e)
     except (ConnectionRefusedError, OSError):
@@ -465,7 +536,9 @@ def wrds_query(sql, timeout=300):
 
     Args:
         sql: SQL query string
-        timeout: seconds to wait for response (default 5 min for large queries)
+        timeout: requested database-operation allowance in seconds (default
+            5 min). Queueing/recovery share the server operation clock;
+            response preparation and transport use separate deadlines.
 
     Returns:
         pandas DataFrame
@@ -475,7 +548,7 @@ def wrds_query(sql, timeout=300):
     that happened.
     """
     resp = _checked_request(
-        {'cmd': 'safe_query_v6', 'sql': sql, 'timeout': timeout}, timeout=timeout)
+        {'cmd': 'safe_query_v7', 'sql': sql, 'timeout': timeout}, timeout=timeout)
     if resp['status'] == 'error':
         _raise("WRDS query failed", resp)
     from io import StringIO
@@ -483,14 +556,14 @@ def wrds_query(sql, timeout=300):
 
 def wrds_list_tables(library):
     """List tables in a WRDS library."""
-    resp = _checked_request({'cmd': 'safe_list_tables_v6', 'library': library})
+    resp = _checked_request({'cmd': 'safe_list_tables_v7', 'library': library})
     if resp['status'] == 'error':
         _raise("WRDS list_tables failed", resp)
     return resp['tables']
 
 def wrds_list_libraries():
     """List WRDS libraries via the persistent server."""
-    resp = _checked_request({'cmd': 'safe_list_libraries_v6'})
+    resp = _checked_request({'cmd': 'safe_list_libraries_v7'})
     if resp['status'] == 'error':
         _raise("WRDS list_libraries failed", resp)
     return resp['libraries']
@@ -521,7 +594,7 @@ def wrds_get_table(library, table, rows=-1, obs=None, offset=0, columns=None,
         'date_cols': date_cols,
     }
     resp = _checked_request({
-        'cmd': 'safe_get_table_v6', 'library': library, 'table': table,
+        'cmd': 'safe_get_table_v7', 'library': library, 'table': table,
         'kwargs': kwargs,
     })
     if resp['status'] == 'error':
@@ -532,7 +605,7 @@ def wrds_get_table(library, table, rows=-1, obs=None, offset=0, columns=None,
 def wrds_describe(library, table):
     """Describe a WRDS table (columns, types, row count)."""
     resp = _checked_request(
-        {'cmd': 'safe_describe_v6', 'library': library, 'table': table})
+        {'cmd': 'safe_describe_v7', 'library': library, 'table': table})
     if resp['status'] == 'error':
         _raise("WRDS describe failed", resp)
     from io import StringIO

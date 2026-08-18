@@ -2208,8 +2208,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -2904,8 +2904,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -4452,8 +4452,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -4470,20 +4470,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -5202,8 +5202,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -5898,8 +5898,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -7446,8 +7446,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -7464,20 +7464,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -10076,8 +10076,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -10772,8 +10772,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -12320,8 +12320,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -12338,20 +12338,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -13058,8 +13058,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -13720,8 +13720,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -15214,8 +15214,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -15232,20 +15232,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -15929,8 +15929,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -16597,8 +16597,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -18109,8 +18109,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -18127,20 +18127,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -18828,8 +18828,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -19530,8 +19530,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -21096,8 +21096,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -21114,20 +21114,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -23710,8 +23710,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -24378,8 +24378,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -25896,8 +25896,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -25914,20 +25914,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -34415,8 +34415,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -35111,8 +35111,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -36659,8 +36659,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -36677,20 +36677,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -38479,8 +38479,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -38977,8 +38977,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -39805,8 +39805,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -39823,20 +39823,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -40370,8 +40370,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -40868,8 +40868,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -41696,8 +41696,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -41714,20 +41714,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -42249,8 +42249,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -42731,8 +42731,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -43559,8 +43559,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -43577,20 +43577,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -48317,8 +48317,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -48979,8 +48979,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -50473,8 +50473,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -50491,20 +50491,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -66937,8 +66937,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -67621,8 +67621,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -69133,8 +69133,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -69151,20 +69151,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -69871,8 +69871,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -70521,8 +70521,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -71979,8 +71979,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -71997,20 +71997,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -73849,8 +73849,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -74347,8 +74347,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -75175,8 +75175,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -75193,20 +75193,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -75728,8 +75728,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "30f72a94abbb36782384a3dc66d7be0703759ce3f6d4f91a4bdaa3b2b8161725",
-          "size": 15035,
+          "sha256": "dc869e9af635b8592f85ccf0adafe0f08e5bb3b39d39369d2b189e1c7498505c",
+          "size": 16326,
           "type": "file"
         },
         ".arpipeline": {
@@ -76210,8 +76210,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "cbae93838695a49678e7526211628ec012f49ddacff1cd285178acbd9f38cdd3",
-          "size": 15139,
+          "sha256": "69aaef8f71a43fc5ac81100c9a9eb8442fcc3445800344341bf627a131b31e00",
+          "size": 16430,
           "type": "file"
         },
         ".codex": {
@@ -77038,8 +77038,8 @@
         },
         "code/utils/start_services.sh": {
           "mode": "0755",
-          "sha256": "b715c5362ab418aa3e48db21014fe486ebc435632d23d063dd0b2515ee0b4f51",
-          "size": 13370,
+          "sha256": "26af387d8d7652dd1e774eaac0b6d260eb5869cf5bbad912e82c8f2a4244470b",
+          "size": 13389,
           "type": "file"
         },
         "code/utils/trace_bonds_utils.py": {
@@ -77056,20 +77056,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "0e0693c17f9377196be40469bec2a755ea8050e4a47f18799e664621ce041da6",
-          "size": 24976,
+          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
+          "size": 28278,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "7f0b9993a06247be0b2883f102142ccff5b86c8799c5f65f215e0ff844815247",
-          "size": 12503,
+          "sha256": "a5862d6d0e31d9fed4b359c317d38f332cdb389b1ada98c1c61271c408e5fb0b",
+          "size": 16353,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "b246328b2dd6947fa65dcb785648846e2443ec1745aafb4319e5f5898181f1f0",
-          "size": 89872,
+          "sha256": "daf4244be09883657aed53d44958c1c14eac6c19c9218befc60bc0b28273baaa",
+          "size": 100846,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {

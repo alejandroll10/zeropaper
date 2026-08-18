@@ -256,7 +256,7 @@ auth_response = {'status': 'error', 'msg': 'latched', 'error_kind': 'auth',
 hello_response = {'status': 'ok', 'msg': 'hello',
                   'safety_protocol': C.SAFETY_PROTOCOL}
 C._send_request = lambda request, **kwargs: (
-    hello_response if request.get('cmd') == 'safety_hello_v6' else auth_response)
+    hello_response if request.get('cmd') == 'safety_hello_v7' else auth_response)
 for label, call in (
     ('query', lambda: C.wrds_query('SELECT 1')),
     ('list_tables', lambda: C.wrds_list_tables('crsp')),
@@ -297,7 +297,7 @@ else:
     legacy_query_refused = False
 check("legacy daemon cannot execute updated-client query", legacy_query_refused, True)
 check("legacy daemon receives only DB-free hello",
-      set(legacy_commands), {'safety_hello_v6'})
+      set(legacy_commands), {'safety_hello_v7'})
 
 with mock.patch.object(C, 'wrds_ping', return_value=False), \
      mock.patch.object(C, 'wrds_auth_error', return_value=None), \

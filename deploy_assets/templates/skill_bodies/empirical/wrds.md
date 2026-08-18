@@ -22,9 +22,26 @@ df = wrds_query("SELECT * FROM crsp.msf LIMIT 5")
 
 The server handles connection persistence, threading, and cleanup. Each script just calls `wrds_query(sql)`.
 
-The v6 transport uses an unsigned 64-bit binary length prefix, so the former
-90 MiB response-frame ceiling no longer exists. A deliberate 512 MiB wire
-safety bound and total frame deadlines reject malformed or slow-drip peers.
+The v7 transport retains v6's unsigned 64-bit binary length prefix, so the
+former 90 MiB response-frame ceiling no longer exists. A deliberate 512 MiB
+wire safety bound and total frame deadlines reject malformed or slow-drip
+peers. Response writes use a separate payload-scaled deadline rather than
+inheriting the short untrusted-request timeout; an interrupted write is logged
+with byte progress and the connection closes without appending a corrupt
+second frame. SQL execution, response preparation, daemon-to-relay transfer,
+and relay-to-client transfer have composed—not shared—wall-clock budgets, so a
+query that legitimately uses its execution deadline does not leave zero time
+to deliver the resulting frame. Queueing, one guarded recovery, and its retry
+share one server operation deadline; the retry receives only the time left,
+never a fresh query clock, and a result returning after that clock is rejected.
+DataFrame conversion and final JSON encoding run in a separately bounded
+producer stage whose timed-out workers cannot touch the socket and remain
+under a fixed concurrency cap until they exit. Readiness treats the serialized
+database owner as live only while an in-budget command holds it; an expired
+command, prior healthcheck/recovery, operator unblock, or unknown owner remains
+unhealthy. Normal calls use only the DB-free version handshake before submitting
+their real command, so a concurrent long query cannot create a false
+WRDS-unreachable halt without masking a genuinely wedged probe.
 Query execution remains more tightly bounded: one `wrds_query()` may
 materialize at most 1,000,000 rows and 48 MiB in the server, and
 `wrds_get_table()` requires an explicit limit of at most 100,000 rows. These
