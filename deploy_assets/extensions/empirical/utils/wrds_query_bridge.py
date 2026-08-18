@@ -50,6 +50,7 @@ RECOVERY_GRACE_SECONDS = 60
 RESPONSE_WRITE_BASE_SECONDS = 60
 RESPONSE_WRITE_MIN_BYTES_PER_SECOND = 1024 * 1024
 RESPONSE_WRITE_MAX_SECONDS = QUERY_TIMEOUT_SECONDS + CLIENT_IO_TIMEOUT
+RESPONSE_DRAIN_ERROR_SECONDS = 10
 MAX_CLIENT_THREADS = 32
 MAX_AUTH_THREADS = 64
 ALLOWED_COMMANDS = frozenset({
@@ -227,6 +228,35 @@ def _send_response_frame(conn, payload):
         ) from exc
 
 
+def _await_client_close(conn, deadline):
+    """Hold an authenticated connection open until the peer closes it.
+
+    Sandboxed clients reach this bridge through a relay chain (in-sandbox
+    listener, Unix-socket relay, authenticated HTTP proxy) that buffers
+    hundreds of kilobytes of a response frame in flight.  At least one hop
+    discards its buffered bytes when this side closes first, truncating
+    large query responses mid-frame at a byte offset that varies with
+    forwarding progress (#263).  The client closes its end as soon as it has
+    read the full frame, so waiting for that close — bounded by the absolute
+    ``deadline``, which the query path derives from the same payload-scaled
+    delivery budget that governs the write, so write plus wait can never
+    hold a query slot for two full budgets — guarantees the tail was
+    delivered without trusting any intermediary's drain behavior.  Never
+    called before preface authentication, so an anonymous connection cannot
+    hold a thread here.
+    """
+    while True:
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return
+        try:
+            conn.settimeout(remaining)
+            if not conn.recv(4096):
+                return
+        except OSError:
+            return
+
+
 def _log_response_write_failure(exc, reporting=None):
     context = (f" while reporting {type(reporting).__name__}"
                if reporting is not None else "")
@@ -300,6 +330,7 @@ def _error_payload(message):
 
 def _relay_client(conn, token, query_slots, auth_slots=None):
     query_slot_acquired = False
+    authenticated = False
     try:
         expected_preface = BRIDGE_PREFACE_MAGIC + token.encode("ascii") + b"\n"
         supplied_preface = _recv_exact_before(
@@ -309,9 +340,12 @@ def _relay_client(conn, token, query_slots, auth_slots=None):
                 "WRDS bridge authentication failed; relaunch through "
                 "./launch.sh to refresh the protected query capability."))
             return
+        authenticated = True
         if not query_slots.acquire(blocking=False):
             _send_response_frame(conn, _error_payload(
                 "WRDS query bridge is busy; retry after another query finishes."))
+            _await_client_close(
+                conn, time.monotonic() + RESPONSE_DRAIN_ERROR_SECONDS)
             return
         query_slot_acquired = True
         conn.settimeout(CLIENT_IO_TIMEOUT)
@@ -327,14 +361,20 @@ def _relay_client(conn, token, query_slots, auth_slots=None):
             _send_response_frame(conn, _error_payload(
                 "WRDS bridge authentication failed; relaunch through "
                 "./launch.sh to refresh the protected query capability."))
+            _await_client_close(
+                conn, time.monotonic() + RESPONSE_DRAIN_ERROR_SECONDS)
             return
         if request.get("cmd") not in ALLOWED_COMMANDS:
             _send_response_frame(conn, _error_payload(
                 "WRDS bridge accepts query protocol commands only."))
+            _await_client_close(
+                conn, time.monotonic() + RESPONSE_DRAIN_ERROR_SECONDS)
             return
         if request.get("safety_protocol") != SAFETY_PROTOCOL:
             _send_response_frame(conn, _error_payload(
                 "WRDS bridge client safety protocol mismatch."))
+            _await_client_close(
+                conn, time.monotonic() + RESPONSE_DRAIN_ERROR_SECONDS)
             return
 
         upstream = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
@@ -354,13 +394,19 @@ def _relay_client(conn, token, query_slots, auth_slots=None):
                 time.monotonic() + _response_write_timeout(response_size))
         finally:
             upstream.close()
+        delivery_deadline = (
+            time.monotonic() + _response_write_timeout(len(response)))
         _send_response_frame(conn, response)
+        _await_client_close(conn, delivery_deadline)
     except WrdsBridgeResponseWriteError as exc:
         _log_response_write_failure(exc)
     except Exception as exc:
         try:
             _send_response_frame(conn, _error_payload(
                 f"WRDS query bridge failed safely: {exc}"))
+            if authenticated:
+                _await_client_close(
+                    conn, time.monotonic() + RESPONSE_DRAIN_ERROR_SECONDS)
         except WrdsBridgeResponseWriteError as write_error:
             _log_response_write_failure(write_error, reporting=exc)
         except Exception as write_error:

@@ -701,6 +701,120 @@ def main():
         assert not composed_upstream_worker.is_alive()
         assert not composed_relay_worker.is_alive()
 
+        # A buffering intermediary on the relayed path (the sandbox proxy
+        # chain) discards its undelivered bytes the moment the bridge closes
+        # first, truncating large responses mid-frame at a wobbling offset
+        # (#263/#266).  The bridge must instead hold an authenticated
+        # connection open until the client — who closes only after reading
+        # the whole frame — closes its end.  The relay double forwards
+        # eagerly from the bridge into a userspace buffer, trickles toward
+        # the client, and drops the buffer if it ever sees bridge-side EOF
+        # while bytes remain undelivered.
+        drain_response = json.dumps({
+            "status": "ok",
+            "columns": ["x"],
+            "data": "x" * 600000,
+            "shape": [1, 1],
+            "recovered": False,
+            "safety_protocol": server.SAFETY_PROTOCOL,
+        }).encode()
+
+        def serve_drain_upstream():
+            upstream_conn, _ = bridge_upstream.accept()
+            request_size = struct.unpack(
+                "!Q", bridge._recv_exact(upstream_conn, 8))[0]
+            bridge._recv_exact(upstream_conn, request_size)
+            upstream_conn.sendall(struct.pack("!Q", len(drain_response)))
+            upstream_conn.sendall(drain_response)
+            upstream_conn.close()
+
+        drain_request = json.dumps({
+            "cmd": "safe_query_v7",
+            "sql": "SELECT 1 AS x",
+            "timeout": 5,
+            "safety_protocol": server.SAFETY_PROTOCOL,
+            "bridge_protocol": bridge.BRIDGE_PROTOCOL,
+            "bridge_token": bridge_token,
+        }).encode()
+        drain_preface = (bridge.BRIDGE_PREFACE_MAGIC +
+                         bridge_token.encode("ascii") + b"\n")
+        bridge_conn, relay_to_bridge = socket.socketpair()
+        client_conn, relay_to_client = socket.socketpair()
+        relay_outcomes = []
+
+        def discarding_relay():
+            try:
+                inbound = len(drain_preface) + 8 + len(drain_request)
+                forwarded = 0
+                while forwarded < inbound:
+                    chunk = relay_to_client.recv(inbound - forwarded)
+                    relay_to_bridge.sendall(chunk)
+                    forwarded += len(chunk)
+                buffered = bytearray()
+                upstream_eof = False
+                while True:
+                    if not upstream_eof:
+                        relay_to_bridge.settimeout(0.001)
+                        try:
+                            chunk = relay_to_bridge.recv(1 << 20)
+                            if chunk:
+                                buffered.extend(chunk)
+                            else:
+                                upstream_eof = True
+                        except socket.timeout:
+                            pass
+                    if upstream_eof and buffered:
+                        relay_outcomes.append("discarded")
+                        return
+                    if buffered:
+                        sent = relay_to_client.send(bytes(buffered[:4096]))
+                        del buffered[:sent]
+                        time.sleep(0.002)
+                        continue
+                    if upstream_eof:
+                        relay_outcomes.append("drained")
+                        return
+                    relay_to_client.settimeout(0.001)
+                    try:
+                        if relay_to_client.recv(4096) == b"":
+                            relay_outcomes.append("client-closed")
+                            return
+                    except socket.timeout:
+                        pass
+            except OSError:
+                relay_outcomes.append("relay-error")
+            finally:
+                relay_to_client.close()
+                relay_to_bridge.close()
+
+        drain_slots = threading.BoundedSemaphore(1)
+        drain_upstream_worker = threading.Thread(
+            target=serve_drain_upstream, daemon=True)
+        drain_relay_worker = threading.Thread(
+            target=discarding_relay, daemon=True)
+        drain_bridge_worker = threading.Thread(
+            target=bridge._relay_client,
+            args=(bridge_conn, bridge_token, drain_slots), daemon=True)
+        drain_upstream_worker.start()
+        drain_relay_worker.start()
+        drain_bridge_worker.start()
+        client_conn.sendall(drain_preface)
+        client_conn.sendall(struct.pack("!Q", len(drain_request)))
+        client_conn.sendall(drain_request)
+        drain_size = struct.unpack(
+            "!Q", client._recv_exact(client_conn, 8))[0]
+        assert drain_size == len(drain_response)
+        drain_received = client._recv_exact(client_conn, drain_size)
+        assert drain_received == drain_response
+        client_conn.close()
+        drain_bridge_worker.join(timeout=5)
+        drain_relay_worker.join(timeout=5)
+        drain_upstream_worker.join(timeout=5)
+        assert not drain_bridge_worker.is_alive()
+        assert not drain_relay_worker.is_alive()
+        assert not drain_upstream_worker.is_alive()
+        assert relay_outcomes and relay_outcomes[0] != "discarded"
+
         # A planted token symlink is never followed into another owned file.
         os.unlink(bridge.TOKEN_FILE)
         bridge_victim = state_dir / "bridge-victim"

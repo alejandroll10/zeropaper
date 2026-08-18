@@ -28,7 +28,11 @@ wire safety bound and total frame deadlines reject malformed or slow-drip
 peers. Response writes use a separate payload-scaled deadline rather than
 inheriting the short untrusted-request timeout; an interrupted write is logged
 with byte progress and the connection closes without appending a corrupt
-second frame. SQL execution, response preparation, daemon-to-relay transfer,
+second frame. After the last response byte is buffered, the authenticated
+relay holds the connection open until the client closes it (bounded by the
+same payload-scaled budget), so a buffering intermediary on the sandboxed
+path cannot discard an undelivered frame tail when it observes the relay
+side close first. SQL execution, response preparation, daemon-to-relay transfer,
 and relay-to-client transfer have composed—not shared—wall-clock budgets, so a
 query that legitimately uses its execution deadline does not leave zero time
 to deliver the resulting frame. Queueing, one guarded recovery, and its retry
