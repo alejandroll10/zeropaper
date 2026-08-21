@@ -4,7 +4,7 @@
     "description": "Confronts theory with data. The orchestrator launches this agent at Stage 3a after implications are developed. Reads the theory, decides what empirical work is needed (calibration, tests, descriptive stats, portfolio sorts), fetches real data via skills, and executes it.",
     "category": "developing",
     "tools": "Bash, Read, Write",
-    "skills": "fred, ken-french, chen-zimmerman, wrds, edgar, flex-mining, mutual-funds",
+    "skills": "fred, ken-french, chen-zimmerman, wrds, edgar, flex-mining, mutual-funds, deepvest",
     "model": "opus",
     "effort": "high",
     "codex": {

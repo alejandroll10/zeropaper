@@ -241,5 +241,17 @@
       "argument-hint": "[transcript field, gvkey, or measure]",
       "allowed-tools": "Bash, Read, Write"
     }
+  },
+  "deepvest": {
+    "name": "deepvest",
+    "description": "DeepVest AI research terminal via its remote MCP server (api.deepvest.ai/mcp) — METERED (1,000 free credits/month, then $0.025/credit; ~7–16 credits per call) and LLM-MEDIATED (natural-language `query` tools answered by a vendor-side model; no PERMNO/gvkey, no documented upstream feed, no provenance badge). Access verified live. Use for what WRDS lacks or when WRDS is unavailable: price/return history and fundamentals by ticker (quick_analysis/asset_analysis with format=\"json\"), ETF fund flows + holdings, dividend payment records (dividend_history, typed), ticker screens with `as of` snapshots (stock_screener), options analytics/chains/screens, earnings transcripts + surprises, 13F/N-PORT/XBRL via EDGAR (expensive), macro series (prefer fred). Helper code/utils/deepvest_utils.py: stdlib MCP client, CLI (ping/tools/query/call/cache), per-(tool,arguments) JSON cache under data/deepvest/ as the provenance record, parse_result/tables_from_response for the JSON envelope. Gotchas: ask for raw tables not analysis; price basis unstated (adjusted close observed); current-ticker universe (survivorship); not byte-reproducible across calls; dividend_history caps 60 events/symbol; 20 req/min; fetch BEFORE the results-pipeline run (producer workspace has no DEEPVEST_API_KEY); never report DeepVest backtests/optimizations as results. Requires DEEPVEST_API_KEY in .env.",
+    "codex": {
+      "description": "DeepVest AI research terminal via its remote MCP server (api.deepvest.ai/mcp) — METERED (1,000 free credits/month, then $0.025/credit) and LLM-MEDIATED (natural-language query tools answered by a vendor-side model; tickers only, no PERMNO/gvkey, undocumented feed, no provenance badge). Use for what WRDS lacks or when WRDS is unavailable: price/return history and fundamentals by ticker (quick_analysis/asset_analysis with format=json), ETF flows + holdings, dividend records (dividend_history), as-of screens, options analytics/chains, earnings transcripts, 13F/N-PORT via EDGAR, macro (prefer fred). Helper code/utils/deepvest_utils.py: stdlib MCP client + CLI, per-(tool,arguments) JSON cache under data/deepvest/ as the provenance record, parse_result/tables_from_response. Gotchas: ask for raw tables; price basis unstated; survivorship; not byte-reproducible; fetch BEFORE the results-pipeline run (no key in the producer workspace); never report DeepVest backtests as results. Requires DEEPVEST_API_KEY in .env."
+    },
+    "claude": {
+      "user-invocable": true,
+      "argument-hint": "[tool name, ticker, or description]",
+      "allowed-tools": "Bash, Read, Write"
+    }
   }
 }
