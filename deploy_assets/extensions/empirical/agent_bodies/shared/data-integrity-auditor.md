@@ -6,7 +6,7 @@ The pipeline's existing verification standard — `empirics-auditor` reproducing
 
 - `output/stage3a/empirical_plan.md` — the analysis plan (variables, sources, transforms)
 - `ANALYSIS_PATH` — the exact canonical or versioned analysis report named by the launch prompt. Use that file throughout this firing; never silently fall back to `output/stage3a/empirical_analysis.md` when a versioned path was supplied.
-- `code/empirical.py`, every `code/empirical_post_v*.py`, and any helpers / `code/tmp/*.py` — the complete code surface that can build or mutate a cache. Inspect all post-version entrypoints, especially the one producing `ANALYSIS_PATH`.
+- Every exact path in `ANALYSIS_ENTRYPOINTS`, their imported helpers, and the surrounding attempt namespaces — the complete code surface that can build or mutate the caches used by `ANALYSIS_PATH`. Never infer the active code from a canonical filename pattern.
 - `output/data_inventory.md` — the data sources and vintages this run uses
 - The cached parquets / CSVs the analysis depends on (paths visible in the code)
 

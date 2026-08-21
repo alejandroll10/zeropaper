@@ -248,7 +248,7 @@ Agents are either **shared** (identical across variants) or **variant-specific**
 - **Body**: `agent_bodies/shared/{id}.md` for shared agents, `agent_bodies/shared/{id}-core.md` for variant agents. Both live in the same directory — the `-core` suffix is what marks a body as variant-specialized, and `deploy_assets/scripts/agent_body_loader.py` (`load_body`) tries `{id}-core.md` first, then `{id}.md`. `deploy_assets/templates/agents/{variant}/` holds **only** `vocab.json`; no agent bodies live there.
 - **Vocab**: *both* kinds get placeholder substitution, and since v2.9.0 both resolve against the same layered chain: `agent_bodies/shared/vocab.json` (defaults) → `agents/{variant}/vocab.json` (domain overrides) → tier vocab → mode overlay, later wins. So a `{{KEY}}` added to *any* body or fragment needs a default in the shared vocab (or in every variant vocab); variant vocabs override only where the domain wording differs. This layering is what makes shared bodies (referee-mechanism's evaluative frame, the literature agents' venue directives, the fragments) variant-aware — see the `_comment_shared_body_overrides` block in `agents/llm_cognition/vocab.json` for the full override set.
 
-**Shared** (domain-agnostic, receive variant context via injection). All 33 live in `claude_shared_agents.json`; the authoritative list is that file, and `python3 deploy_assets/scripts/list_agents_by_category.py` prints current membership by category.
+**Shared** (domain-agnostic, receive variant context via injection). All 34 live in `claude_shared_agents.json`; the authoritative list is that file, and `python3 deploy_assets/scripts/list_agents_by_category.py` prints current membership by category.
 
 *Literature & framing*
 - `literature-scout` — broad literature survey (variant context provides target journals)
@@ -270,6 +270,7 @@ Agents are either **shared** (identical across variants) or **variant-specific**
 - `report-synthesizer` — `--mode report` only: aggregates `audits/*.md` into `report/referee_report.md` with a single verdict
 - `report-reviewer` — `--mode report` only: independently gates the synthesized report and writes a versioned `process_log/report_self_review_r{N}.md` CLEAN/FIX artifact
 - `table-auditor` — independent rendered-page evaluator at Stage 5 and after final polish; gates native/custom/image-table legibility after the source-level `arpipeline.sty` checks
+- `evidence-auditor` — independently verifies analysis receipts, bundle-generated exhibits, and every prose/caption interpretation after each paper mutation
 
 *Writing & polish* (all `developing`)
 - `paper-writer` — writes and revises the LaTeX paper
@@ -313,9 +314,6 @@ Agents are either **shared** (identical across variants) or **variant-specific**
 - `data-selection-auditor` — verifies cached sample against documented inclusion rule (shared, `--ext empirical`)
 - `identification-designer` — designs the identification strategy at Stage 1 step 4 (variant-specific, finance only in v1, `--ext empirical`)
 - `identification-auditor` — adversarial audit of identification strategy at Stage 3a step 3 (variant-specific, finance only in v1, `--ext empirical`)
-- `claim-enumerator` — deterministic regex enumeration of numerical claims in the paper draft → `paper_claims.json` (shared, `--ext empirical`, Stage 5 step 5a)
-- `claim-grounder` — LLM-judgment match of every enumerated claim to its empiricist-output source → `paper_source_map.json` (shared, `--ext empirical`, Stage 5 step 5a)
-- `claim-verifier` — programmatic file/field/value verification of grounder citations with coverage check → REVISE feeds back to grounder or paper-writer (shared, `--ext empirical`, Stage 5 step 5a)
 - `experiment-designer` — LLM experiments (shared, `--ext theory_llm`)
 - `experiment-reviewer` — validates experiment methodology (shared, `--ext theory_llm`)
 

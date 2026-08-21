@@ -92,6 +92,7 @@ _setup_extensions_prune_report_mode_agents \
     scorer-freeform \
     literature-scout \
     gap-scout \
+    evidence-auditor \
     style \
     table-auditor
 
@@ -114,7 +115,7 @@ VARIANT_BLOCK="
 - **Domain:** ${DOMAIN_AREAS}
 "
 
-for agent in literature-scout gap-scout novelty-checker theory-explorer implications-deriver referee referee-freeform referee-mechanism scorer scorer-freeform editor branch-manager last-resort paper-writer style report-synthesizer report-reviewer; do
+for agent in literature-scout gap-scout novelty-checker theory-explorer implications-deriver referee referee-freeform referee-mechanism scorer scorer-freeform editor branch-manager last-resort paper-writer evidence-auditor style report-synthesizer report-reviewer; do
     if [ -f "$AGENTS_OUT/$agent.md" ]; then
         echo "$VARIANT_BLOCK" >> "$AGENTS_OUT/$agent.md"
     fi
@@ -295,6 +296,7 @@ _core_bypass_agents=(
     polish-institutions
     math-auditor
     math-auditor-freeform
+    evidence-auditor
 )
 _setup_extensions_inject_core_bypass_into_agents "${_core_bypass_agents[@]}"
 echo "  ✓ Core-bypass guard pointer injected into binding-source agents"
@@ -690,6 +692,13 @@ if os.path.exists(state_path):
             if k == "stage3a_theory_version":
                 new["stage3a_analysis_path"] = None
         data = new
+    if "stage3a_result_receipt" not in data:
+        new = {}
+        for k, v in data.items():
+            new[k] = v
+            if k == "stage3a_analysis_path":
+                new["stage3a_result_receipt"] = None
+        data = new
     if "stage2_mechanism_version" not in data:
         new = {}
         for k, v in data.items():
@@ -708,9 +717,6 @@ if os.path.exists(state_path):
         "replicator_self_refire":       {"round": 0, "cap": 3},
         "data_integrity":               {"round": 0, "cap": 3},
         "method_check":                 {"round": 0, "cap": 3},
-        "claim_grounding":              {"round": 0, "cap": 3},
-        "paper_writer_pse":             {"round": 0, "cap": 3},
-        "claim_format_reexport":        {"round": 0, "cap": 2},
     }
     data.setdefault("loops", {})
     for _lid, _cfg in emp_loops.items():
@@ -747,8 +753,7 @@ PYEOF
 
             # Efficiency mandate (issue #74): the empirical agents that load/run
             # large tables — the source of every documented OOM. method-checker is
-            # excluded (it reads code, doesn't run analyses); claim-enumerator/
-            # claim-verifier do lightweight regex/file checks, not data analysis.
+            # excluded because it reads code rather than running analyses.
             _empirical_heavy_agents=(empiricist empirics-auditor headline-replicator data-integrity-auditor data-selection-auditor)
             _setup_extensions_inject_efficiency_into_agents "${_empirical_heavy_agents[@]}"
 
@@ -759,7 +764,7 @@ PYEOF
             _setup_extensions_inject_core_bypass_into_agents \
                 empiricist empirics-auditor headline-replicator \
                 data-integrity-auditor data-selection-auditor method-checker \
-                claim-grounder claim-verifier identification-auditor
+                identification-auditor
 
             # Report mode: --ext empirical is install-only (WRDS/FRED/Census/SEC
             # skills + utility scripts). All audit agents that ship with the
@@ -775,8 +780,7 @@ PYEOF
                 empirics-auditor identification-auditor \
                 data-integrity-auditor data-selection-auditor method-checker \
                 mechanism-auditor \
-                headline-replicator \
-                claim-enumerator claim-grounder claim-verifier
+                headline-replicator
             # mechanism-auditor is meaningful only under --mode empirical-first
             # (it audits the prose+DAG mechanism that only that mode produces).
             # Assembled with the empirical agents above; removed in every other

@@ -10,7 +10,7 @@ replaced, skipped, or downgraded.
 citations, WRDS / EDGAR / FRED for data ("binding" = the verdict is only
 trustworthy if it came from this source; a fallback like WebSearch can inform but
 not certify); (b) audit/verification gates — `math-auditor`, `bib-verifier`,
-`empirics-auditor`, `identification-auditor`, `data-*-auditor`, `claim-verifier`,
+`empirics-auditor`, `identification-auditor`, `data-*-auditor`, `evidence-auditor`,
 `scorer`, `referee`/`editor`, polish auditors; (c) the canonical stage order and
 its designated agents.
 

@@ -14,7 +14,7 @@ This agent is the symmetric counterpart to `polish-equilibria`: where that agent
   - Under `--mode empirical-first`: `output/stage1/identification_design.md` (the primary, single-design artifact written at Stage 1).
   - Under `--variant finance --ext empirical` without empirical-first: `output/stage3a/identification_menu.md` (the ranked menu plus the empiricist's selection, if produced).
   - If neither file exists: the paper makes no causal claims; produce the N/A report.
-- Path to `output/stage3a/empirical_analysis.md` (regression output, point estimates, standard errors, diagnostic tests as actually run).
+- The exact report at `pipeline_state.json:stage3a_analysis_path` (regression output, point estimates, standard errors, diagnostic tests as actually run).
 - Path to `output/stage3a/identification_audit.md` (the auditor's PASS verdict on the plan; the rendered paper should not have introduced new identification claims that this audit did not cover).
 
 ## What you check

@@ -6,7 +6,7 @@ The pipeline's existing verification standard — `empirics-auditor` reproducing
 
 - `output/stage3a/empirical_plan.md` — sample definition, inclusion criteria, cohort rules
 - `ANALYSIS_PATH` — the exact canonical or versioned executed analysis named by the launch prompt, including its reported N's. Use that file throughout this firing; never silently fall back to `output/stage3a/empirical_analysis.md` when a versioned path was supplied.
-- `code/empirical.py`, every `code/empirical_post_v*.py`, and any helpers / `code/tmp/*.py` — the complete sample-construction surface. Inspect all post-version entrypoints, especially the one producing `ANALYSIS_PATH`.
+- Every exact path in `ANALYSIS_ENTRYPOINTS`, their imported helpers, and the surrounding attempt namespaces — the complete sample-construction surface for `ANALYSIS_PATH`. Never infer the active code from a canonical filename pattern.
 - `output/data_inventory.md` — the source databases and vintages
 - The cached parquets / CSVs that hold the constructed universe(s) and cohort(s)
 
@@ -14,7 +14,7 @@ The pipeline's existing verification standard — `empirics-auditor` reproducing
 
 For each *universe* (firm-month panel, event panel, treated/control cohort, sub-sample for a heterogeneity cut) that drives a result in the analysis:
 
-1. **Extract the documented inclusion rule** from `empirical_plan.md` and (separately) from the construction code in `code/empirical.py` plus every `code/empirical_post_v*.py`. Compare them as text — note any text-vs-code mismatch *before* touching the data.
+1. **Extract the documented inclusion rule** from `empirical_plan.md` and (separately) from every exact construction entrypoint in `ANALYSIS_ENTRYPOINTS` plus its imported helpers. Compare them as text — note any text-vs-code mismatch *before* touching the data.
 2. **Re-query the source with the documented inclusion rule** to enumerate candidate identifiers. Run the rule both as documented and with each filter relaxed in turn ("what gets dropped by the exchcd filter alone? by the share-code filter alone? by the active-on-event-date filter alone?").
 3. **Diff** candidate set vs cached set. Identifiers present in candidates but absent from the cache are silent exclusions and the heart of this audit.
 4. **Spot-check treatment assignment and outcome coding** on N=20–50 sampled firms per cohort.

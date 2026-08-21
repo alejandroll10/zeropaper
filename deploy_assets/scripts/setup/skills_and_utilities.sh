@@ -96,6 +96,17 @@ setup_skills_and_utilities() {
     cp "$TEMPLATE_ROOT/templates/utils/openalex/"openalex.py "$P/code/utils/openalex/"
     chmod +x "$P/code/utils/openalex/"openalex.py
 
+    # Canonical computed-result bundles, presentation-only exhibit rendering,
+    # and durable paper-evidence receipts. The directory is one replacement-
+    # owned infrastructure unit; result bundles/receipts themselves are mutable
+    # project output and are intentionally not manifested.
+    infrastructure_dir 125 "code/utils/results_pipeline"
+    cp "$TEMPLATE_ROOT/templates/utils/results_pipeline/results_pipeline.py" \
+        "$TEMPLATE_ROOT/templates/utils/results_pipeline/results-v1.schema.json" \
+        "$TEMPLATE_ROOT/templates/utils/results_pipeline/run-plan-v1.schema.json" \
+        "$P/code/utils/results_pipeline/"
+    chmod +x "$P/code/utils/results_pipeline/results_pipeline.py"
+
     # NBER conference agenda skill (loaded by literature-scout, gap-scout — the
     # pre-publication research frontier: who is presenting what, right now).
     # Variant-gated (issue #205): economics conferences are dead weight for

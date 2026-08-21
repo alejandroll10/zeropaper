@@ -45,7 +45,7 @@ If you must write custom code for a method that has a canonical package, the scr
 
 ## How `method-checker` uses this skill
 
-The `method-checker` agent fires at Stage 3a step 7.5 in parallel with `data-integrity-auditor` and `data-selection-auditor`. It scans `code/empirical.py` and `output/stage3a/empirical_analysis.md` for named econometric methods, looks each one up using the search recipes above (its own training knowledge + WebSearch + PyPI / CRAN queries via Bash), and flags any custom implementation of a method whose canonical package the empiricist could have used. For each flag, the agent verifies the script docstring carries an (a)–(d) justification; missing or implausible justifications become REVISE.
+The `method-checker` agent fires at Stage 3a step 7.5 in parallel with `data-integrity-auditor` and `data-selection-auditor`. It scans the exact analysis report and analysis entrypoints supplied by the launch (the active attempt named by pipeline state and its receipt) for named econometric methods, looks each one up using the search recipes above (its own training knowledge + WebSearch + PyPI / CRAN queries via Bash), and flags any custom implementation of a method whose canonical package the empiricist could have used. For each flag, the agent verifies the script docstring carries an (a)–(d) justification; missing or implausible justifications become REVISE.
 
 The agent does not check the math correctness of the custom code — that is the `empirics-auditor`'s reproducibility check. The agent checks canonical-availability + justification only.
 

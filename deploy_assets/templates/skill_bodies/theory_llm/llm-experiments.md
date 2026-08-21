@@ -72,6 +72,6 @@ Set one or both. The client auto-detects which is available.
 - **Determinism vs variance:** Reserve `temperature=0` for determinism checks and exact reproduction; sample headline conditions at `temperature > 0` with multiple runs per stimulus so error bars capture run-to-run variance.
 
 ## Rules
-- **Save all raw outputs.** Write responses to `output/stage3b/raw_results/` as JSON.
+- **Save all raw outputs.** Write responses as JSON beneath the fresh attempt-specific artifact paths supplied by the launch, and declare every path in the run plan and result bundle. Never write a retry into the first attempt's `output/stage3b/raw_results/` namespace.
 - **Log every call.** Record model, prompt, response, tokens, time — and the exact snapshot identifier the API returns (`r.model`), the decoding parameters, and the access date. A paper whose evidence is model calls must pin which snapshot the claims are about.
 - **Set seeds where possible.** `temperature=0` is for determinism checks — headline error bars come from sampled runs.

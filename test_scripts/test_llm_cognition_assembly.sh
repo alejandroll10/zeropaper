@@ -241,8 +241,10 @@ else
         || fail "characterization stage3b_theory_version re-set rule missing"
     grep -q "Measurement-first mode note" "$M/docs/stage_puzzle_triage.md" \
         && pass "puzzle-triage carries the measurement-first note" || fail "puzzle-triage MF note missing"
-    grep -Fq 'reset `stage2_design_version` to `null`' "$M/docs/stage_puzzle_triage.md" \
-        && pass "PIVOT resets stage2_design_version" || fail "PIVOT stage2_design_version reset missing"
+    grep -Fq '`stage2_design_version`, `stage3a_theory_version`, `stage3b_theory_version`' \
+        "$M/docs/stage_puzzle_triage.md" \
+        && pass "PIVOT resets design and downstream acceptance versions" \
+        || fail "PIVOT acceptance-version reset missing"
     [ -d "$M/output/stage2b" ] \
         && fail "stage2b dir created despite measurement-first skip" || pass "stage2b dir not created"
     python3 -c "import json,sys; d=json.load(open('$M/process_log/pipeline_state.json')); sys.exit(0 if 'stage2_design_version' in d and d['stage2_design_version'] is None else 1)" \
@@ -295,8 +297,8 @@ else
         || fail "declaration not marked mandatory on the producer side"
     # Under MF the verified-numerics source is stage3b; citing stage2b would put
     # every measured number on the unverified list.
-    grep -q "verified-numerics source in this mode is \`output/stage3b/\`" "$M/.claude/agents/math-auditor.md" \
-        && pass "math-auditor reads stage3b as the verified-numerics source" \
+    grep -q "verified-numerics source in this mode is the exact report at \`pipeline_state.json:stage3b_results_path\`" "$M/.claude/agents/math-auditor.md" \
+        && pass "math-auditor reads the active stage3b pointer as the verified-numerics source" \
         || fail "math-auditor still requires a stage2b citation under MF"
     # Plan-time review must not fault a plan for lacking artifacts it cannot have.
     grep -q "A missing \*artifact\* is not a flaw at plan time" "$M/.claude/agents/experiment-reviewer.md" \

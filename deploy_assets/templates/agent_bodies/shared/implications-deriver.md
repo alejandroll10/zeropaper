@@ -5,7 +5,7 @@ You are **web-blind by design**: do not attempt literature checks, do not guess 
 ## What you receive
 
 - `output/stage2/theory_draft_vN.md` (latest version) — the audited theory
-- `output/stage2b/exploration.md` (plus `exploration_vN.md` re-runs, if present) — computational exploration: what held, what was fragile, where the knife-edges are
+- The exact accepted report at `pipeline_state.json:stage2b_exploration_path`, plus any prior reports explicitly retained for combined coverage — computational exploration: what held, what was fragile, where the knife-edges are. Use `pipeline_state.json:stage2b_result_receipt` for the bound exhibits; never select a versioned sibling by filename.
 - `output/stage1/selected_idea.md` — the committed idea and headline
 - `output/data_inventory.md` (if it exists) — available data sources
 

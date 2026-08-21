@@ -12,20 +12,22 @@ Stage 10 owns the `"status": "complete"` flag. The pipeline is not done until bo
 
 ## Procedure
 
-1. **Write `LESSONS_PAPER.md` at the project root.** Before drafting, read the latest `paper/simulated_referee_reports/editor_decision_r*.md` (highest N) — the editor's "Within-tier outlet recommendation" block names the best-fit outlet within the active tier and is the single most informed within-tier signal you have. Treat it as a strong prior, not a binding choice. Then answer, in your own voice and as honestly as you can:
+1. **Verify the final evidence receipt before writing or committing anything.** Run `python3 code/utils/results_pipeline/results_pipeline.py verify-paper --receipt process_log/paper_evidence.receipt.json --rerender`. A missing receipt, non-PASS result, or any stale audit/paper/result/renderer byte returns to Stage 9's final evidence checkpoint. Stage 10 cannot repair, waive, or defer this failure.
+
+2. **Write `LESSONS_PAPER.md` at the project root.** Before drafting, read the latest `paper/simulated_referee_reports/editor_decision_r*.md` (highest N) — the editor's "Within-tier outlet recommendation" block names the best-fit outlet within the active tier and is the single most informed within-tier signal you have. Treat it as a strong prior, not a binding choice. Then answer, in your own voice and as honestly as you can:
    - **How do you feel about the paper?**
    - **Did it achieve the desired quality (the target journal tier set in `pipeline_state.json`)?**
    - **If not, which journal(s) would be the best fit? Explain for every tier in this variant's ladder ({{TIER_LIST_INLINE}}, or other if you feel there's a better fit) why the paper would or would not be a good fit at that tier. For the active tier specifically, name the best-fit outlet within that tier (e.g., for finance `top-3-fin`: JF vs. JFE vs. RFS vs. JF Insights & Perspectives if the paper format-fits; for finance `field`: JFQA vs. Review of Finance vs. Management Science; for macro `top-5`: AER vs. Econometrica vs. QJE vs. JPE vs. ReStud vs. AER Insights if the paper format-fits; for llm_cognition `top-ml`: NeurIPS vs. ICML vs. ICLR; for llm_cognition `field`: TMLR vs. ACL vs. EMNLP vs. CogSci — pick one and justify based on word count, exhibit count, single-vs-multi-insight character, and the editor's recommendation if available). For format-constrained outlets (JF Insights & Perspectives ≤7k / single-insight, AER Insights ≤6k / single-mechanism), explicitly check whether the paper format-fits before recommending them.**
 
    Commit: `lessons: paper reflection`.
 
-2. **Write `LESSONS_PIPELINE.md` at the project root.** Answer:
+3. **Write `LESSONS_PIPELINE.md` at the project root.** Answer:
    - **How do you feel about the pipeline?**
    - **What helped vs. what hurt the paper — keeping cost/time impact separate from quality impact?**
 
    Commit: `lessons: pipeline reflection`.
 
-3. **Mark complete.** First verify `output/stage5/table_legibility.md` exists, is non-empty, and records `VERDICT: PASS` from Stage 9's final-render re-audit; any other/missing verdict returns to Stage 9 step 7 and cannot be recorded as a deferrable verification. Then apply the completion precondition in CLAUDE.md before writing the flag — an unresolved binding row in `process_log/degradation_ledger.md` means the run has not earned a clean `complete`.
+4. **Mark complete.** Re-run the exact `verify-paper --rerender` command from step 1 immediately before changing status; this closes changes made while writing lessons or handling completion checks. First also verify `output/stage5/table_legibility.md` exists, is non-empty, and records `VERDICT: PASS` from Stage 9's final-render re-audit; any other/missing verdict returns to Stage 9 step 7 and cannot be recorded as a deferrable verification. Then apply the completion precondition in CLAUDE.md before writing the flag — an unresolved binding row in `process_log/degradation_ledger.md` means the run has not earned a clean `complete`.
    - Clean: `"status": "complete"`. Final commit: `pipeline: COMPLETE — paper ready for submission`.
    - Deferrable outage outstanding (rate/credit limit with a reset horizon, cheap re-check): `"status": "complete_pending_verification"` with the entry recorded in `pending_verification`. Final commit: `pipeline: COMPLETE (pending <core> verification) — paper ready, verification owed`. Say plainly in `LESSONS_PAPER.md` which citations or checks were never verified, so the pending state is legible from the paper's own record and not only from the state file.
    - Anything else unresolved: `"status": "halted_core_bypass"`, per the precondition.

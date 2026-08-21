@@ -4,7 +4,9 @@
     "description": "Plan-time mechanism-plausibility gate for --mode empirical-first only (the empirical-first analogue of theory-first's Gate 2 math-auditor). Launched at Stage 2 after the prose+DAG mechanism document is written and before Stage 3 / any empirical execution. Runs the data-independent dimensions of the referee-mechanism checklist against output/stage2/theory_draft_vN.md + output/stage1/identification_design.md: does the channel deliver the documented sign and approximate magnitude, does the DAG match the prose and the identification design, are the leading alternative channels named with a discriminating test, are the posits disciplined (not surreptitiously structural), do the auxiliary empirical predictions follow from the channel. Returns PLAUSIBLE (proceed) / REVISE (re-fire theory-generator in mutate mode). Does not check documented heterogeneity (no data at plan time — that post-data check stays at Stage 6 referee-mechanism). Pruned in every mode except empirical-first.",
     "category": "evaluator",
     "tools": "Bash, Read, Write, Glob, Grep, WebSearch, WebFetch",
-    "skills": ["openalex"],
+    "skills": [
+      "openalex"
+    ],
     "model": "opus",
     "codex": {
       "model": "gpt-5.6-terra",
@@ -73,48 +75,6 @@
   "data-selection-auditor": {
     "name": "data-selection-auditor",
     "description": "Adversarial audit of sample-SELECTION correctness. Launched at Stage 3a step 7.5 after empirics-auditor PASS, in parallel with data-integrity-auditor, before the puzzle-triage entry check. Re-runs the documented inclusion criteria against the source with relaxed filters and diffs candidate identifiers vs cached identifiers to surface silent exclusions. Runs the selection-correctness checklist: silent sample exclusion, filter text-vs-code mismatch, cross-method universe drift, treatment-assignment mismatch, outcome-coding mismatch, cohort-definition drift code-vs-text, snapshot-vs-time-varying covariate, coverage-vs-external-benchmark. Returns PASS / REVISE / FAIL with severity-ranked named failure modes. Does not audit identification (identification-auditor), code execution (empirics-auditor), or field-content correctness (data-integrity-auditor, its sibling).",
-    "category": "evaluator",
-    "tools": "Bash, Read, Write, Glob, Grep",
-    "model": "sonnet",
-    "codex": {
-      "model": "gpt-5.6-luna",
-      "model_reasoning_effort": "medium"
-    },
-    "gemini": {
-      "model": "gemini-3-preview"
-    }
-  },
-  "claim-enumerator": {
-    "name": "claim-enumerator",
-    "description": "Deterministic regex enumeration of every numerical claim in the paper draft. Launched at Stage 5 step 5a after the paper-writer marker-scan loop completes, before claim-grounder. Walks `paper/sections/*.tex` plus `paper/main.tex` and the populated `paper/internet_appendix.tex` if present, extracts every numerical token (coefficients, SEs, t-stats, p-values, confidence intervals, sample sizes, descriptive statistics, percentages, ratios, counts, dollars, basis points, R², persistence/half-lives, sample-defining date ranges) with file:line location and surrounding context, and writes `output/stage5/paper_claims.json`. Produces the canonical claim list both downstream agents (claim-grounder, claim-verifier) must achieve 100% coverage against. Does not match claims to empiricist outputs (claim-grounder) or verify file:field:value resolution (claim-verifier).",
-    "category": "developing",
-    "tools": "Read, Bash, Write, Glob, Grep",
-    "model": "sonnet",
-    "codex": {
-      "model": "gpt-5.6-luna",
-      "model_reasoning_effort": "medium"
-    },
-    "gemini": {
-      "model": "gemini-3-preview"
-    }
-  },
-  "claim-grounder": {
-    "name": "claim-grounder",
-    "description": "LLM-judgment matching of every enumerated numerical claim to its source in empiricist outputs. Launched at Stage 5 step 5a after claim-enumerator completes, before claim-verifier. Reads `output/stage5/paper_claims.json` and locates each claim in `output/stage3a/` (empirical_analysis files, cached JSONs, regression-output tables, descriptive-statistics tables). Writes `output/stage5/paper_source_map.json` with one entry per enumerated claim: `{claim_id, status, file, field_path, cited_value, paper_value, tolerance_used, derivation}`. Cites only parseable sources (JSON or LaTeX tables); status is GROUNDED, NEEDS_EMPIRICIST (value in no output — null citation fields), or NEEDS_REEXPORT (value exists but only in a non-parseable file like CSV/parquet — null field_path/cited_value plus a reexport_description for the empiricist to re-export as JSON). Entry count must equal enumerator count. Does not enumerate (claim-enumerator) or verify resolution (claim-verifier).",
-    "category": "developing",
-    "tools": "Read, Write, Glob, Grep",
-    "model": "sonnet",
-    "codex": {
-      "model": "gpt-5.6-luna",
-      "model_reasoning_effort": "medium"
-    },
-    "gemini": {
-      "model": "gemini-3-preview"
-    }
-  },
-  "claim-verifier": {
-    "name": "claim-verifier",
-    "description": "Adversarial programmatic verification of grounder citations. Launched at Stage 5 step 5a after claim-grounder completes; the last gate before Stage 5 step 6 (early bib-verify). Reads `output/stage5/paper_claims.json` and `output/stage5/paper_source_map.json` and runs four checks per entry via Bash: (1) source-map entry count equals enumerator count (coverage); (2) cited file exists on disk; (3) field path resolves in the cited file (JSON key path / regression-table cell); (4) cited value matches paper text within rounding tolerance. A Gate-3 format pre-check classifies the source format first: a cited file that exists but is neither JSON nor a LaTeX table (CSV/parquet/pickle/etc.) is tagged VERIFIER-LIMITATION / format-unsupported — the value is real but unparseable — rather than misclassified as a fabrication. Writes TWO outputs: `output/stage5/claim_verification.md` (human-readable PASS/REVISE report with per-failure GROUNDER-ERROR / PAPER-SIDE-ERROR / VERIFIER-LIMITATION / ENUMERATOR-DRIFT classification) AND `output/stage5/claim_verification_summary.json` (machine-readable: verdict, enumerator_drift, totals, grounder_error_claim_ids, pse_claim_ids, needs_empiricist_claim_ids, verifier_limitation_claim_ids, failure_index — the orchestrator parses this for routing and counter updates; the three error-class id-lists are mutually disjoint and format-unsupported is kept out of paper_side_error_count). REVISE routes: GROUNDER-ERROR → re-fire claim-grounder; PAPER-SIDE-ERROR → re-fire paper-writer per the existing Stage 5 step 5 marker-scan procedure; VERIFIER-LIMITATION → re-fire empiricist to re-export the value as JSON (not paper-writer; the number is not dropped); ENUMERATOR-DRIFT → re-fire claim-enumerator first. Full enumeration by default — no sampling. Does not enumerate (claim-enumerator) or match claims to sources (claim-grounder).",
     "category": "evaluator",
     "tools": "Bash, Read, Write, Glob, Grep",
     "model": "sonnet",

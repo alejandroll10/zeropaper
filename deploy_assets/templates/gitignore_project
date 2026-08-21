@@ -76,6 +76,17 @@ code/utils/.wrds_server.pid
 # process-log artifacts under process_log/ are added explicitly by scribe.
 process_log/*.log
 process_log/driver.log.*
+process_log/results_pipeline.lock
+process_log/results_pipeline.transaction.json
+process_log/.results_pipeline-transaction-backup/
+process_log/.results_registry.update.tmp
+process_log/.results_registry.json.*
+process_log/.results_pipeline.transaction.json.*
+process_log/.paper_evidence.receipt.json.*
+output/**/.*.publish.*
+output/**/.*.exhibit.*
+output/**/.*results.receipt.json.*
+output/evidence/.*.json.*
 
 # launch.sh codex-driver session cache (host-local codex session id — resuming
 # on another host would be meaningless; never a tracked artifact)

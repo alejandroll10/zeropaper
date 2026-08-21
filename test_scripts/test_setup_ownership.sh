@@ -202,6 +202,7 @@ path = sys.argv[1]
 with open(path) as handle:
     state = json.load(handle)
 state.pop("stage3a_analysis_path", None)
+state.pop("stage3a_result_receipt", None)
 with open(path, "w") as handle:
     json.dump(state, handle, indent=2)
     handle.write("\n")
@@ -209,9 +210,12 @@ PY
 env PATH=/usr/bin:/bin "$repo_root/update.sh" "$extension_target" \
     --no-model-probe >"$scratch/extension-same-selector-update.log" 2>&1 \
     || { cat "$scratch/extension-same-selector-update.log" >&2; echo "FAIL: empirical same-selector update failed" >&2; exit 1; }
-jq -e '.stage3a_analysis_path == null and has("stage3a_analysis_path")' \
+jq -e '
+    .stage3a_analysis_path == null and has("stage3a_analysis_path")
+    and .stage3a_result_receipt == null and has("stage3a_result_receipt")
+' \
     "$extension_target/process_log/pipeline_state.json" >/dev/null \
-    || { echo "FAIL: empirical same-selector update omitted stage3a_analysis_path migration" >&2; exit 1; }
+    || { echo "FAIL: empirical same-selector update omitted Stage 3a evidence-pointer migration" >&2; exit 1; }
 extension_process_log_saved="$scratch/extension-process-log.saved"
 mv "$extension_target/process_log" "$extension_process_log_saved"
 env PATH=/usr/bin:/bin "$repo_root/update.sh" "$extension_target" \
@@ -236,6 +240,92 @@ jq -e '.extensions == []' "$extension_target/.deploy_manifest.json" >/dev/null \
 
 # Adding an extension before launch merges its complete project-owned state
 # schema and bootstrap directories from the verified fresh assembly.
+completed_target="$scratch/completed-evidence-migration-project"
+env PATH=/usr/bin:/bin "$repo_root/setup.sh" "$completed_target" \
+    --assemble-only --no-model-probe >"$scratch/completed-evidence-setup.log" 2>&1
+rm -r "$completed_target/output/evidence"
+env PATH=/usr/bin:/bin "$repo_root/update.sh" "$completed_target" \
+    --dry-run --no-model-probe >"$scratch/completed-evidence-dry-run.log" 2>&1 \
+    || { cat "$scratch/completed-evidence-dry-run.log" >&2; echo "FAIL: evidence migration dry-run failed" >&2; exit 1; }
+[ ! -e "$completed_target/output/evidence" ] \
+    || { echo "FAIL: evidence migration dry-run created output/evidence" >&2; exit 1; }
+grep -Fq 'output/evidence (would create mutable directory)' \
+    "$scratch/completed-evidence-dry-run.log" \
+    || { echo "FAIL: evidence migration dry-run omitted missing directory" >&2; exit 1; }
+python3 - "$completed_target/process_log/pipeline_state.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+with open(path) as handle:
+    state = json.load(handle)
+state["loops"].pop("evidence", None)
+state["status"] = "complete"
+state["current_stage"] = "stage_10"
+with open(path, "w") as handle:
+    json.dump(state, handle, indent=2)
+    handle.write("\n")
+PY
+env PATH=/usr/bin:/bin "$repo_root/update.sh" "$completed_target" \
+    --no-model-probe >"$scratch/completed-evidence-update.log" 2>&1 \
+    || { cat "$scratch/completed-evidence-update.log" >&2; echo "FAIL: completed evidence migration failed" >&2; exit 1; }
+jq -e '
+    .status == "running"
+    and .current_stage == "stage_9"
+    and .loops.evidence == {"round": 0, "cap": 3}
+    and (.history[-1].event | contains("reopened completed paper"))
+' "$completed_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: completed deployment was not reopened for evidence binding" >&2; exit 1; }
+
+# Stage 10 alone is not authority to reopen an unrelated safety halt.
+python3 - "$completed_target/process_log/pipeline_state.json" <<'PY'
+import json, sys
+path = sys.argv[1]
+with open(path) as handle:
+    state = json.load(handle)
+state["status"] = "halted_core_bypass"
+state["current_stage"] = "stage_10"
+with open(path, "w") as handle:
+    json.dump(state, handle, indent=2)
+    handle.write("\n")
+PY
+env PATH=/usr/bin:/bin "$repo_root/update.sh" "$completed_target" \
+    --no-model-probe >"$scratch/completed-halt-update.log" 2>&1 \
+    || { cat "$scratch/completed-halt-update.log" >&2; echo "FAIL: completed-halt update failed" >&2; exit 1; }
+jq -e '.status == "halted_core_bypass" and .current_stage == "stage_10"' \
+    "$completed_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: evidence migration reopened an unrelated Stage-10 halt" >&2; exit 1; }
+
+# A missing registry may be initialized only after a complete, fail-loud scan
+# proves that no historical result receipt exists anywhere beneath output/.
+rm "$completed_target/process_log/results_registry.json"
+mkdir -p "$completed_target/output/unreadable-history"
+chmod 000 "$completed_target/output/unreadable-history"
+if env PATH=/usr/bin:/bin "$repo_root/update.sh" "$completed_target" \
+    --dry-run --no-model-probe >"$scratch/unreadable-receipt-scan.log" 2>&1; then
+    chmod 700 "$completed_target/output/unreadable-history"
+    echo "FAIL: update silently skipped an unreadable result-history subtree" >&2
+    exit 1
+fi
+chmod 700 "$completed_target/output/unreadable-history"
+grep -Fq 'cannot inspect output tree for historical result receipts' \
+    "$scratch/unreadable-receipt-scan.log" \
+    || { cat "$scratch/unreadable-receipt-scan.log" >&2; echo "FAIL: unreadable history failure was unclear" >&2; exit 1; }
+[ ! -e "$completed_target/process_log/results_registry.json" ] \
+    || { echo "FAIL: unreadable history scan fabricated an empty registry" >&2; exit 1; }
+
+mkdir -p "$completed_target/output/stagex"
+printf '%s\n' '{"kind":"result"}' > \
+    "$completed_target/output/stagex/legacy_results.receipt.json"
+if env PATH=/usr/bin:/bin "$repo_root/update.sh" "$completed_target" \
+    --no-model-probe >"$scratch/missing-registry-history.log" 2>&1; then
+    echo "FAIL: update reconstructed registry over existing receipt history" >&2
+    exit 1
+fi
+grep -Fq 'cannot initialize a missing results registry after result receipts exist' \
+    "$scratch/missing-registry-history.log" \
+    || { cat "$scratch/missing-registry-history.log" >&2; echo "FAIL: missing-registry history failure was unclear" >&2; exit 1; }
+[ ! -e "$completed_target/process_log/results_registry.json" ] \
+    || { echo "FAIL: failed history migration fabricated an empty registry" >&2; exit 1; }
+
 schema_target="$scratch/schema-migration-project"
 env PATH=/usr/bin:/bin "$repo_root/setup.sh" "$schema_target" \
     --assemble-only --no-model-probe >"$scratch/schema-setup.log" 2>&1
@@ -247,6 +337,7 @@ path = sys.argv[1]
 with open(path) as handle:
     state = json.load(handle)
 state["loops"].pop("table_legibility", None)
+state["loops"].pop("evidence", None)
 state["loops"].pop("stage0_discovery", None)
 state.pop("stage0_discovery_last_counted_attempt", None)
 state.pop("stage0_discovery_episode_start_attempt", None)
@@ -273,6 +364,12 @@ env PATH=/usr/bin:/bin "$repo_root/update.sh" "$schema_target" \
 jq -e '.loops.table_legibility == {"round": 0, "cap": 3}' \
     "$schema_target/process_log/pipeline_state.json" >/dev/null \
     || { echo "FAIL: same-selector update omitted new core table-legibility loop" >&2; exit 1; }
+jq -e '.loops.evidence == {"round": 0, "cap": 3}' \
+    "$schema_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: same-selector update omitted new core evidence loop" >&2; exit 1; }
+jq -e '.stage2b_exploration_path == null and .stage2b_result_receipt == null' \
+    "$schema_target/process_log/pipeline_state.json" >/dev/null \
+    || { echo "FAIL: same-selector update omitted Stage 2b evidence pointers" >&2; exit 1; }
 jq -e '.loops.stage0_discovery == {"round": 100, "cap": 100}' \
     "$schema_target/process_log/pipeline_state.json" >/dev/null \
     || { echo "FAIL: active legacy Stage-0 migration did not fail closed at the lifetime cap" >&2; exit 1; }
@@ -347,10 +444,17 @@ for name in (
         os.unlink(os.path.join(project, "output", "stage0", name))
     except FileNotFoundError:
         pass
+os.unlink(os.path.join(project, "process_log", "results_registry.json"))
+os.rmdir(os.path.join(project, "output", "evidence"))
 PY
+# Simulate SIGKILL after the updater created but before it atomically renamed
+# the registry staging file. The next update must safely discard and recover it.
+: > "$schema_target/process_log/.results_registry.update.tmp"
 env PATH=/usr/bin:/bin "$repo_root/update.sh" "$schema_target" \
     --no-model-probe >"$scratch/active-midstage0-update.log" 2>&1 \
     || { cat "$scratch/active-midstage0-update.log" >&2; echo "FAIL: active mid-Stage-0 update failed" >&2; exit 1; }
+[ ! -e "$schema_target/process_log/.results_registry.update.tmp" ] \
+    || { echo "FAIL: updater did not recover stale results-registry staging file" >&2; exit 1; }
 jq -e '
     .loops.stage0_discovery == {"round": 100, "cap": 100}
     and .stage0_discovery_phase == "legacy_reroute"
@@ -434,6 +538,7 @@ jq -e '
     . as $state
     | .stage2_mechanism_version == null
     and .stage3a_theory_version == null
+    and .stage3a_result_receipt == null
     and .stage0_discovery_last_counted_attempt == null
     and .stage0_discovery_episode_start_attempt == null
     and .stage0_discovery_phase == "entry"
@@ -444,15 +549,34 @@ jq -e '
     and .stage0_discovery_active_gap_id == null
     and (.loops.stage0_discovery == {"round": 0, "cap": 100})
     and (.loops.table_legibility == {"round": 0, "cap": 3})
+    and (.loops.evidence == {"round": 0, "cap": 3})
     and ([
       "identification_plan_revision", "headline_replication", "replicator_self_refire",
-      "data_integrity", "method_check", "claim_grounding", "paper_writer_pse",
-      "claim_format_reexport"
+      "data_integrity", "method_check"
     ] | all(. as $key | ($state.loops[$key].cap | numbers)))
+    and (.loops | has("claim_grounding") | not)
+    and (.loops | has("paper_writer_pse") | not)
+    and (.loops | has("claim_format_reexport") | not)
 ' "$schema_target/process_log/pipeline_state.json" >/dev/null \
     || { echo "FAIL: empirical update omitted required pipeline-state schema" >&2; exit 1; }
 [ -d "$schema_target/output/stage3a/figures" ] \
     || { echo "FAIL: empirical update omitted project-owned stage3a directories" >&2; exit 1; }
+[ -d "$schema_target/output/evidence" ] \
+    || { echo "FAIL: update omitted mutable evidence directory" >&2; exit 1; }
+jq -e '.kind == "result_registry" and .registry_version == 1 and .active == [] and .pending == [] and .retired == [] and .receipt_fingerprints == {}' \
+    "$schema_target/process_log/results_registry.json" >/dev/null \
+    || { echo "FAIL: update omitted mutable result registry" >&2; exit 1; }
+cp "$schema_target/process_log/results_registry.json" "$scratch/valid-results-registry.json"
+jq '.active = ["output/../bad_results.receipt.json"]' \
+    "$scratch/valid-results-registry.json" > "$schema_target/process_log/results_registry.json"
+if env PATH=/usr/bin:/bin "$repo_root/update.sh" "$schema_target" \
+    --dry-run --no-model-probe >"$scratch/malformed-results-registry.log" 2>&1; then
+    echo "FAIL: updater accepted a result registry the runtime rejects" >&2
+    exit 1
+fi
+grep -Fq 'result receipt paths must be normalized' "$scratch/malformed-results-registry.log" \
+    || { cat "$scratch/malformed-results-registry.log" >&2; echo "FAIL: malformed registry failure was unclear" >&2; exit 1; }
+cp "$scratch/valid-results-registry.json" "$schema_target/process_log/results_registry.json"
 jq -e '.extensions == ["empirical"]' "$schema_target/.deploy_manifest.json" >/dev/null \
     || { echo "FAIL: empirical selector was not persisted" >&2; exit 1; }
 

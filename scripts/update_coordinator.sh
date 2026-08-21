@@ -249,6 +249,8 @@ TMP=""
 SEED_MIGRATION_PENDING=0
 SEED_MIGRATION_JOURNAL=""
 CORE_STATE_CANDIDATE=""
+UPDATE_CREATED_EVIDENCE_DIR=0
+UPDATE_CREATED_RESULTS_REGISTRY=0
 _update_cleanup() {
     if [ "$SEED_MIGRATION_PENDING" = "1" ] && [ -f "$SEED_MIGRATION_JOURNAL" ]; then
         "$UPDATE_CONTROL_PYTHON" -I - "$SEED_MIGRATION_JOURNAL" <<'PY' || true
@@ -286,6 +288,12 @@ for path in reversed(journal.get("created_dirs", [])):
     if os.path.isdir(path) and not os.path.islink(path):
         os.rmdir(path)
 PY
+    fi
+    if [ "$UPDATE_CREATED_RESULTS_REGISTRY" = "1" ]; then
+        rm -f "$PROJECT/process_log/results_registry.json"
+    fi
+    if [ "$UPDATE_CREATED_EVIDENCE_DIR" = "1" ]; then
+        rmdir "$PROJECT/output/evidence" 2>/dev/null || true
     fi
     [ -z "$TMP" ] || rm -rf "$TMP"
     [ "$UPDATE_CREATED_CONTROL_DIR" = "1" ] && rmdir "$UPDATE_CONTROL_DIR" 2>/dev/null || true
@@ -793,7 +801,7 @@ if [ -f "$MANIFEST" ]; then
                 dir:.claude/agents|dir:.claude/skills|dir:.codex/agents|dir:.agents/skills|\
                 dir:.gemini/agents|dir:.grok/agents|dir:.opencode/agents|dir:docs|\
                 dir:code/utils/codex_math|dir:code/utils/agent_launcher|dir:code/utils/bib_verify|\
-                dir:code/utils/openalex|dir:code/utils/nber_agenda|dir:code/utils/model_heal|dir:code/utils/ssj|\
+                dir:code/utils/openalex|dir:code/utils/nber_agenda|dir:code/utils/model_heal|dir:code/utils/results_pipeline|dir:code/utils/ssj|\
                 dir:code/utils/ssa_oact)
                     ;;
                 file:CLAUDE.md|file:AGENTS.md|file:GEMINI.md|file:launch.sh|\
@@ -1079,9 +1087,6 @@ with os.fdopen(fd, "r+", encoding="utf-8") as f:
         "headline_replication_round":        ("headline_replication", 3),
         "data_integrity_round":              ("data_integrity", 3),
         "method_check_round":                ("method_check", 3),
-        "claim_grounding_round":             ("claim_grounding", 3),
-        "paper_writer_pse_round":            ("paper_writer_pse", 3),
-        "claim_format_reexport_round":       ("claim_format_reexport", 2),
     }
     loops = {}
     # Always seed the full base set (round from legacy value if present, else 0).
@@ -1124,6 +1129,26 @@ with os.fdopen(fd, "r+", encoding="utf-8") as f:
     data["stage3a_analysis_path"] = None
     changed = True
     print("  ✓ pipeline_state.json added empirical analysis pointer (issue #247)")
+ if "stage2b_theory_version" in data and "stage2b_exploration_path" not in data:
+    data["stage2b_exploration_path"] = None
+    changed = True
+    print("  ✓ pipeline_state.json added Stage 2b exploration pointer (issue #264)")
+ if "stage2b_theory_version" in data and "stage2b_result_receipt" not in data:
+    data["stage2b_result_receipt"] = None
+    changed = True
+    print("  ✓ pipeline_state.json added Stage 2b receipt pointer (issue #264)")
+ if "stage3a_theory_version" in data and "stage3a_result_receipt" not in data:
+    data["stage3a_result_receipt"] = None
+    changed = True
+    print("  ✓ pipeline_state.json added empirical receipt pointer (issue #264)")
+ if "stage3b_theory_version" in data and "stage3b_results_path" not in data:
+    data["stage3b_results_path"] = None
+    changed = True
+    print("  ✓ pipeline_state.json added experiment result pointer (issue #264)")
+ if "stage3b_theory_version" in data and "stage3b_result_receipt" not in data:
+    data["stage3b_result_receipt"] = None
+    changed = True
+    print("  ✓ pipeline_state.json added experiment receipt pointer (issue #264)")
  if "stage0_discovery_last_counted_attempt" not in data:
     data["stage0_discovery_last_counted_attempt"] = (
         current_problem_attempt
@@ -1219,6 +1244,57 @@ with os.fdopen(fd, "r+", encoding="utf-8") as f:
     loops["table_legibility"] = {"round": 0, "cap": 3}
     changed = True
     print("  ✓ pipeline_state.json added core table_legibility loop (issue #253)")
+ introduced_evidence = "evidence" not in loops
+ if introduced_evidence:
+    loops["evidence"] = {"round": 0, "cap": 3}
+    changed = True
+    print("  ✓ pipeline_state.json added core computed-evidence loop (issue #264)")
+ paper_receipt_path = os.path.join(os.path.dirname(p), "paper_evidence.receipt.json")
+ try:
+    paper_receipt_fd = os.open(
+        paper_receipt_path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    )
+    paper_receipt_info = os.fstat(paper_receipt_fd)
+    with os.fdopen(paper_receipt_fd, "r", encoding="utf-8") as paper_receipt_file:
+        paper_receipt = json.load(paper_receipt_file)
+    has_current_paper_receipt = (
+        stat.S_ISREG(paper_receipt_info.st_mode)
+        and paper_receipt_info.st_nlink == 1
+        and isinstance(paper_receipt, dict)
+        and paper_receipt.get("kind") == "paper_evidence"
+        and not isinstance(paper_receipt.get("receipt_version"), bool)
+        and paper_receipt.get("receipt_version") == 2
+    )
+ except (FileNotFoundError, OSError, UnicodeDecodeError, json.JSONDecodeError):
+    has_current_paper_receipt = False
+ if data.get("status") in {"complete", "complete_pending_verification"} \
+        and (introduced_evidence or not has_current_paper_receipt):
+    data["status"] = "running"
+    data["current_stage"] = "stage_9"
+    history = data.setdefault("history", [])
+    if not isinstance(history, list):
+        raise SystemExit(f"ERROR: pipeline state history must be an array: {p}")
+    history.append({
+        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
+        "event": "update reopened completed paper for mandatory evidence binding",
+    })
+    changed = True
+    print("  ✓ pipeline_state.json reopened completed run at Stage 9 for evidence binding")
+ retired_claim_loops = {"claim_grounding", "paper_writer_pse", "claim_format_reexport"}
+ if retired_claim_loops & loops.keys():
+    for retired in retired_claim_loops:
+        loops.pop(retired, None)
+    changed = True
+    print("  ✓ pipeline_state.json retired empirical-only claim-grounding loops (issue #264)")
+ retired_claim_fields = {
+    "claim_grounding_round", "paper_writer_pse_round",
+    "claim_format_reexport_round", "paper_writer_pse_claim_ids",
+ }
+ if retired_claim_fields & data.keys():
+    for retired in retired_claim_fields:
+        data.pop(retired, None)
+    changed = True
+    print("  ✓ pipeline_state.json removed retired claim-grounding fields (issue #264)")
  if changed:
     candidate_fd = os.open(
         candidate_path,
@@ -1281,6 +1357,244 @@ if [ ! -d "$VENV" ]; then
             done
         fi
     fi
+fi
+
+# Prepare the mutable computed-evidence skeleton before committing selector
+# state or the deployment manifest. The EXIT rollback removes only the leaves this
+# update created after an ordinary later failure. SIGKILL may leave an empty
+# evidence directory or valid empty registry, but the next update validates and
+# adopts either idempotently; neither claims a selector/manifest commit.
+if [ "$MODE" != "report" ] && [ "$MANUAL" != "true" ]; then
+    EVIDENCE_DIR_WAS_MISSING=0
+    RESULTS_REGISTRY_WAS_MISSING=0
+    [ -e "$PROJECT/output/evidence" ] || [ -L "$PROJECT/output/evidence" ] \
+        || EVIDENCE_DIR_WAS_MISSING=1
+    [ -e "$PROJECT/process_log/results_registry.json" ] \
+        || [ -L "$PROJECT/process_log/results_registry.json" ] \
+        || RESULTS_REGISTRY_WAS_MISSING=1
+    python3 -I - "$PROJECT" "$DRY_RUN" <<'PY'
+import json
+import os
+import stat
+import sys
+from pathlib import PurePosixPath
+
+project, dry_text = sys.argv[1:]
+dry_run = dry_text == "1"
+no_follow = getattr(os, "O_NOFOLLOW", 0)
+directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | no_follow
+created_evidence = False
+created_registry = False
+registry_temp_created = False
+registry_temp_name = ".results_registry.update.tmp"
+root_fd = os.open(project, directory_flags)
+
+def open_real_dir(parent_fd, name):
+    fd = os.open(name, directory_flags, dir_fd=parent_fd)
+    info = os.fstat(fd)
+    if not stat.S_ISDIR(info.st_mode):
+        os.close(fd)
+        raise RuntimeError(f"{name} must be a real directory inside the deployment")
+    return fd
+
+def normalized_receipt(raw):
+    if not isinstance(raw, str) or not raw:
+        raise RuntimeError("result receipt paths must be non-empty strings")
+    posix = PurePosixPath(raw.replace("\\", "/"))
+    if (posix.is_absolute() or "." in posix.parts or ".." in posix.parts or
+            ".env" in posix.parts):
+        raise RuntimeError("result receipt paths must be normalized project-relative paths")
+    normalized = posix.as_posix()
+    if (normalized != raw or not normalized.startswith("output/") or
+            not normalized.endswith("results.receipt.json")):
+        raise RuntimeError("result receipt paths must be normalized output receipts")
+    return normalized
+
+try:
+    output_fd = open_real_dir(root_fd, "output")
+    process_fd = open_real_dir(root_fd, "process_log")
+    try:
+        try:
+            evidence_fd = open_real_dir(output_fd, "evidence")
+        except FileNotFoundError:
+            if dry_run:
+                print("  + output/evidence (would create mutable directory)")
+                evidence_fd = None
+            else:
+                os.mkdir("evidence", mode=0o755, dir_fd=output_fd)
+                created_evidence = True
+                evidence_fd = open_real_dir(output_fd, "evidence")
+        if evidence_fd is not None:
+            os.close(evidence_fd)
+
+        try:
+            registry_fd = os.open("results_registry.json", os.O_RDONLY | no_follow,
+                                  dir_fd=process_fd)
+        except FileNotFoundError:
+            existing_receipts = []
+            def walk_error(error):
+                raise RuntimeError(
+                    f"cannot inspect output tree for historical result receipts: {error}"
+                )
+            for base, dirs, files in os.walk(os.path.join(project, "output"),
+                                             followlinks=False, onerror=walk_error):
+                dirs[:] = [name for name in dirs
+                           if not os.path.islink(os.path.join(base, name))]
+                existing_receipts.extend(
+                    os.path.join(base, name) for name in files
+                    if name.endswith("results.receipt.json")
+                )
+            if existing_receipts:
+                raise RuntimeError(
+                    "cannot initialize a missing results registry after result receipts exist: "
+                    + ", ".join(sorted(existing_receipts))
+                )
+            if dry_run:
+                print("  + process_log/results_registry.json (would create mutable registry)")
+                registry_fd = None
+            else:
+                payload = (json.dumps({"kind": "result_registry", "registry_version": 1,
+                                       "active": [], "pending": [], "retired": [],
+                                       "receipt_fingerprints": {}},
+                                      indent=2) + "\n").encode()
+                try:
+                    stale_info = os.stat(
+                        registry_temp_name, dir_fd=process_fd, follow_symlinks=False
+                    )
+                except FileNotFoundError:
+                    pass
+                else:
+                    if not stat.S_ISREG(stale_info.st_mode) or stale_info.st_nlink != 1:
+                        raise RuntimeError("unsafe stale results-registry update file")
+                    os.unlink(registry_temp_name, dir_fd=process_fd)
+                registry_fd = os.open(
+                    registry_temp_name,
+                    os.O_WRONLY | os.O_CREAT | os.O_EXCL | no_follow,
+                    0o644, dir_fd=process_fd,
+                )
+                registry_temp_created = True
+                with os.fdopen(registry_fd, "wb") as handle:
+                    handle.write(payload)
+                    handle.flush()
+                    os.fsync(handle.fileno())
+                os.rename(
+                    registry_temp_name, "results_registry.json",
+                    src_dir_fd=process_fd, dst_dir_fd=process_fd,
+                )
+                registry_temp_created = False
+                created_registry = True
+                os.fsync(process_fd)
+                registry_fd = os.open("results_registry.json", os.O_RDONLY | no_follow,
+                                      dir_fd=process_fd)
+        if registry_fd is not None:
+            info = os.fstat(registry_fd)
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                raise RuntimeError("process_log/results_registry.json must be one regular file")
+            with os.fdopen(registry_fd, "r", encoding="utf-8") as handle:
+                value = json.load(handle)
+            if (not isinstance(value, dict) or
+                    set(value) != {"kind", "registry_version", "active", "pending", "retired",
+                                  "receipt_fingerprints"} or
+                    value.get("kind") != "result_registry" or
+                    isinstance(value.get("registry_version"), bool) or
+                    value.get("registry_version") != 1):
+                raise RuntimeError("process_log/results_registry.json is malformed")
+            active = value["active"]
+            if (not isinstance(active, list) or len(active) != len(set(active)) or
+                    any(not isinstance(item, str) or not item for item in active)):
+                raise RuntimeError("process_log/results_registry.json has malformed active entries")
+            for item in active:
+                normalized_receipt(item)
+            pending = value["pending"]
+            if not isinstance(pending, list):
+                raise RuntimeError("process_log/results_registry.json has malformed pending entries")
+            pending_paths = []
+            for entry in pending:
+                if (not isinstance(entry, dict) or set(entry) != {"receipt", "supersedes"} or
+                        not isinstance(entry["receipt"], str) or not entry["receipt"] or
+                        not isinstance(entry["supersedes"], list) or
+                        len(entry["supersedes"]) != len(set(entry["supersedes"])) or
+                        any(not isinstance(item, str) or not item
+                            for item in entry["supersedes"])):
+                    raise RuntimeError("process_log/results_registry.json has malformed pending entries")
+                normalized_receipt(entry["receipt"])
+                for item in entry["supersedes"]:
+                    normalized_receipt(item)
+                if (entry["receipt"] in entry["supersedes"] or
+                        not set(entry["supersedes"]).issubset(active)):
+                    raise RuntimeError("process_log/results_registry.json has malformed pending entries")
+                pending_paths.append(entry["receipt"])
+            retired = value["retired"]
+            if not isinstance(retired, list):
+                raise RuntimeError("process_log/results_registry.json has malformed retired entries")
+            retired_paths = []
+            for entry in retired:
+                allowed = {"receipt", "reason", "last_fingerprint", "superseded_by"}
+                if (not isinstance(entry, dict) or
+                        not {"receipt", "reason", "last_fingerprint"}.issubset(entry) or
+                        not set(entry).issubset(allowed) or
+                        not isinstance(entry["receipt"], str) or not entry["receipt"] or
+                        not isinstance(entry["reason"], str) or not entry["reason"] or
+                        not isinstance(entry["last_fingerprint"], dict) or
+                        entry["last_fingerprint"].get("path") != entry["receipt"]):
+                    raise RuntimeError("process_log/results_registry.json has malformed retired entries")
+                normalized_receipt(entry["receipt"])
+                if "superseded_by" in entry:
+                    normalized_receipt(entry["superseded_by"])
+                retired_paths.append(entry["receipt"])
+            if (len(pending_paths) != len(set(pending_paths)) or
+                    len(retired_paths) != len(set(retired_paths)) or
+                    set(active) & set(pending_paths) or set(active) & set(retired_paths) or
+                    set(pending_paths) & set(retired_paths)):
+                raise RuntimeError("process_log/results_registry.json has conflicting lifecycle entries")
+            receipt_fingerprints = value["receipt_fingerprints"]
+            expected_fingerprints = set(active) | set(pending_paths)
+            if (not isinstance(receipt_fingerprints, dict) or
+                    set(receipt_fingerprints) != expected_fingerprints):
+                raise RuntimeError(
+                    "process_log/results_registry.json has malformed receipt fingerprints"
+                )
+            for receipt_path, fingerprint_value in receipt_fingerprints.items():
+                normalized_receipt(receipt_path)
+                if (not isinstance(fingerprint_value, dict) or
+                        set(fingerprint_value) != {"path", "kind", "sha256"} or
+                        fingerprint_value.get("path") != receipt_path or
+                        fingerprint_value.get("kind") != "file" or
+                        not isinstance(fingerprint_value.get("sha256"), str) or
+                        not fingerprint_value["sha256"].startswith("sha256:") or
+                        len(fingerprint_value["sha256"]) != 71):
+                    raise RuntimeError(
+                        "process_log/results_registry.json has malformed receipt fingerprints"
+                    )
+    finally:
+        os.close(output_fd)
+        os.close(process_fd)
+except BaseException:
+    if not dry_run:
+        if registry_temp_created:
+            try:
+                os.unlink(registry_temp_name, dir_fd=process_fd)
+            except OSError:
+                pass
+        if created_registry:
+            try:
+                os.unlink(os.path.join(project, "process_log", "results_registry.json"))
+            except OSError:
+                pass
+        if created_evidence:
+            try:
+                os.rmdir(os.path.join(project, "output", "evidence"))
+            except OSError:
+                pass
+    raise
+finally:
+    os.close(root_fd)
+PY
+    if [ "$DRY_RUN" = "0" ]; then
+        UPDATE_CREATED_EVIDENCE_DIR="$EVIDENCE_DIR_WAS_MISSING"
+        UPDATE_CREATED_RESULTS_REGISTRY="$RESULTS_REGISTRY_WAS_MISSING"
+    fi
+    [ "$DRY_RUN" = "1" ] || echo "  ✓ computed-evidence mutable skeleton prepared"
 fi
 
 # Commit the prepared project-owned selector state only after every other
@@ -1482,6 +1796,8 @@ echo
 if [ "$DRY_RUN" = "1" ]; then
     echo "Dry run complete. No files modified."
 else
+    UPDATE_CREATED_EVIDENCE_DIR=0
+    UPDATE_CREATED_RESULTS_REGISTRY=0
     echo "Update complete. Review with: cd $PROJECT && git status"
     echo "Then commit the infrastructure refresh when ready."
 fi

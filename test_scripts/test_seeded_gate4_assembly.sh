@@ -109,12 +109,12 @@ expect_text "$FAITHFUL" '`faithful-drift-auditor` remains binding' \
     "faithful Gate 4 retains independent drift audit"
 expect_text "$FAITHFUL" 'current `output/stage2/theory_draft_vN.md`' \
     "faithful Gate 4 passes the current theory draft to drift audit"
-expect_text "$FAITHFUL_EMPIRICAL" '`output/stage3a/empirical_analysis.md`' \
+expect_text "$FAITHFUL_EMPIRICAL" '`pipeline_state.json:stage3a_analysis_path`' \
     "faithful empirical Gate 4 passes contribution-bearing empirical results"
-expect_text "$FAITHFUL_EXPERIMENTAL" '`output/stage3b/experiment_results.md`' \
+expect_text "$FAITHFUL_EXPERIMENTAL" '`pipeline_state.json:stage3b_results_path`' \
     "faithful experimental Gate 4 passes contribution-bearing experiment results"
 expect_text "$ROOT/faithful/.claude/agents/faithful-drift-auditor.md" \
-    'do not substitute a scorer, triage, audit, or self-attack report merely because it is newer.' \
+    'do not substitute a guessed canonical sibling, scorer, triage, audit, or self-attack report merely because it is newer.' \
     "faithful drift auditor cannot fall back to the newest scorer artifact"
 expect_text "$ROOT/faithful/.claude/agents/faithful-drift-auditor.md" \
     'check the current theory draft and every applicable Stage 3a/3b evidence result' \

@@ -5,7 +5,7 @@ Your job is specific and narrow. **You evaluate whether the paper's measurement 
 ## What to read
 
 - The construct spec: definition, task family, scoring rule (`output/stage2/theory_draft_vN.md`, latest version)
-- The experiment results and analysis (`output/stage3b/experiment_results.md` and its artifacts)
+- The experiment results and analysis at `pipeline_state.json:stage3b_results_path` and the artifacts bound by `stage3b_result_receipt`
 - The formal characterization (the post-experiment version of the spec document)
 - `output/stage3/implications.md` — the tagged auxiliary contrasts
 

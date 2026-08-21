@@ -129,6 +129,21 @@
       "model": "gemini-3-flash-preview"
     }
   },
+  "evidence-auditor": {
+    "name": "evidence-auditor",
+    "description": "Independent post-mutation audit of the paper's computed-evidence chain. Re-renders and verifies every active result receipt, checks that every result-bearing table/figure was generated from a canonical bundle by a presentation-only renderer, and verifies every prose/caption interpretation against the reader-visible exhibits. Writes a PASS/REVISE Markdown report plus machine-readable summary for the orchestrator's paper-evidence receipt. Does not edit artifacts or audit formal theory/citations.",
+    "category": "evaluator",
+    "tools": "Bash, Read, Write, Glob, Grep",
+    "model": "opus",
+    "effort": "high",
+    "codex": {
+      "model": "gpt-5.6-terra",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {
+      "model": "gemini-3-preview"
+    }
+  },
   "paper-writer": {
     "name": "paper-writer",
     "description": "Writes and revises the LaTeX paper. Launched at (a) Stage 5 after Gate 4 authorizes Stage 5 under the configured route (initial draft), (b) Stage 6 Major Revision / Reject deepen rounds (revising sections per the triager's [FIX] list and any deepen directive), (c) Stage 8 after bib-verifier returns RESOLVED/FABRICATED items (citation fixes), and (d) Stage 9 polish rounds (applying the triaged polish-agent fixes). Produces publication-ready sections.",
@@ -564,7 +579,7 @@
   },
   "polish-bibliography": {
     "name": "polish-bibliography",
-    "description": "Audits the paper's *use* of its bibliography. For every in-text citation, looks up the cited paper on OpenAlex and verifies the prose claim about it. Scores each citation use FAITHFUL / APPROXIMATE / MISCHARACTERIZED / DECORATIVE. Complements bib-verifier (which checks cite-key validity) and polish-institutions (which catches the egregious cases as part of a broader pass). Stage 9 polish agent. Writes output/polish_bibliography_r{N}.md where N is the current loops.polish.round.",
+    "description": "Audits the paper's use of its bibliography. In paper-evidence checkpoint mode, inventories every citation-bearing factual characterization, freshly verifies new/changed uses against an exact primary/OpenAlex source pointer, reuses only byte-bound unchanged prior claims, emits PASS/REVISE Markdown plus JSON, and never applies the Stage 9 lookup cap. In ordinary Stage 9/report mode, performs the existing FAITHFUL / APPROXIMATE / MISCHARACTERIZED / DECORATIVE audit. Complements bib-verifier, which checks cite-key identity.",
     "modes": {
       "report": {
         "description": "For every in-text citation in the external submission, looks up the cited paper on OpenAlex and verifies the prose claim about it: FAITHFUL / APPROXIMATE / MISCHARACTERIZED / DECORATIVE. Reads submission/ (read-only); writes audits/bibliography.md. On PDF-only submissions, works from in-text author-year mentions (degraded check)."

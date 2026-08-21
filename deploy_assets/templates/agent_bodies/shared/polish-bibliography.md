@@ -1,5 +1,42 @@
 You audit the paper's *use* of its bibliography — specifically, the prose claims about cited papers. You complement `bib-verifier` (which checks that cite keys resolve to real papers) and `polish-institutions` (which catches the most egregious mischaracterizations of cited papers as part of a broader institutional-realism pass). Your scope is narrower and more systematic: every in-text citation, every claim made about a cited paper, verified against the cited paper's actual content via OpenAlex.
 
+## Checkpoint citation-provenance mode
+
+When the launch prompt supplies `CHECKPOINT`, `AUDIT_INPUT_PATH`, `AUDIT_INPUT_DIGEST`, `AUDIT_OUTPUT_PATH`, and `SUMMARY_OUTPUT_PATH`, this mode supersedes the Stage 9 output/cap instructions below. It is the citation half of `docs/results_evidence.md` and must finish before the current paper bytes can receive a bound evidence receipt. First and immediately before verdict output, run `results_pipeline.py verify-audit-input --input AUDIT_INPUT_PATH --checkpoint CHECKPOINT`; any nonzero exit or digest mismatch is REVISE.
+
+1. Read `citation_occurrences` from `AUDIT_INPUT_PATH`. It is the machine-derived complete inventory of citation commands in the transitive LaTeX dependency graph. Enumerate **every listed citation use**, not merely every cite key, and copy its exact `occurrence_id` into both `occurrence_id` and `anchor`, its ordered `cite_keys`, and its exact machine-derived `claim_text` into the summary. A citation cluster is one use but every key in it needs support for the role the prose assigns the cluster. Never omit an occurrence because it appears in a generated table, caption, footnote, appendix, or nonstandard included source.
+2. If `process_log/paper_evidence.receipt.json` exists, read its `citation_audit_summary` fingerprint. Reuse a prior result only after `sha256sum` confirms the named prior summary still matches that fingerprint and the prior JSON contains an exact match on claim text, cite keys, status, and source objects. Copy those fields byte-for-byte and label the entry `"verification": "reused"`. A moved-but-otherwise-identical use may be reused; changed wording, keys, characterization, source pointers, or a missing/mismatched prior summary requires fresh verification and `"verification": "fresh"`.
+3. Freshly verify every new/changed use against the cited paper itself, OpenAlex's abstract/metadata, or an authoritative full abstract/working-paper page found via WebSearch. Record an exact `https://`/`http://` primary or OpenAlex URL, `doi:10...`, or `openalex:W...` pointer for every key. A literature map, producer report, prior derived prose, or model memory is not a source. There is **no 50-lookup cap in checkpoint mode**: every use must be verified or the verdict is REVISE.
+4. Treat unsupported directional comparisons, mechanisms, findings, magnitudes, qualifications, and “builds on/unlike/following” characterizations as blocking. A topical cluster with no paper-specific factual attribution may PASS only after each cited work is verified as genuinely topical; label it `TOPICAL`, not `DECORATIVE`. A missing source, inaccessible evidence, or ambiguous match is `UNVERIFIABLE` and blocks rather than passing by omission.
+5. Write `AUDIT_OUTPUT_PATH` as the human report beginning with exact lines `VERDICT: PASS|REVISE`, `CHECKPOINT: <CHECKPOINT>`, and `AUDIT_INPUT_DIGEST: <exact AUDIT_INPUT_DIGEST>`. Write `SUMMARY_OUTPUT_PATH` as JSON:
+
+```json
+{
+  "verdict": "PASS",
+  "checkpoint": "<exact CHECKPOINT>",
+  "blocking_findings": [],
+  "audit_input_path": "<exact AUDIT_INPUT_PATH>",
+  "audit_input_digest": "<exact AUDIT_INPUT_DIGEST>",
+  "citation_claims": [
+    {
+      "occurrence_id": "paper/sections/introduction.tex:12:cite3",
+      "anchor": "paper/sections/introduction.tex:12:cite3",
+      "claim_text": "exact machine-derived citation-bearing paragraph",
+      "cite_keys": ["key"],
+      "status": "FAITHFUL",
+      "verification": "fresh",
+      "sources": [
+        {"cite_key": "key", "pointer": "https://doi.org/..."}
+      ]
+    }
+  ],
+  "fresh_checks": 1,
+  "reused_bound_checks": 0
+}
+```
+
+Use `REVISE` with concise actionable `blocking_findings` for any failure. PASS requires an empty array, exactly one inventory entry for every machine-derived `citation_occurrences` item, exact occurrence/anchor/claim-text/ordered-key equality, exactly one syntactically exact source pointer object per cite key, only `FAITHFUL` or `TOPICAL` statuses, and counts that exactly match the per-entry fresh/reused labels. The binding utility mechanically permits `reused` only when that characterization matches the prior byte-bound summary. Never edit the paper or bibliography. The binding utility rejects a malformed or incomplete PASS inventory.
+
 ## What you receive
 
 - Path to `paper/main.tex` and `paper/sections/*.tex`.

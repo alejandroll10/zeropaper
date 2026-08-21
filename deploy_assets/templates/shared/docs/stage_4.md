@@ -2,7 +2,7 @@
 
 **Agent:** `self-attacker`
 
-1. Launch self-attacker on the theory draft + implications + theory exploration results (if available) **+ `output/stage1/negative_results.md` if it exists** (BLOCKED-IMPOSSIBLE prototypes from prior Stage-1 rounds — only proven impossibilities propagate here, not difficulty stalls — orchestrator must pass this in explicitly; agent self-reads are defense-in-depth, not the primary delivery mechanism).
+1. Launch self-attacker on the theory draft + implications + the exact accepted theory exploration report at `pipeline_state.json:stage2b_exploration_path` and exhibits bound by `stage2b_result_receipt` (if non-null) **+ `output/stage1/negative_results.md` if it exists** (BLOCKED-IMPOSSIBLE prototypes from prior Stage-1 rounds — only proven impossibilities propagate here, not difficulty stalls — orchestrator must pass this in explicitly; agent self-reads are defense-in-depth, not the primary delivery mechanism).
 2. Save result to `output/stage4/self_attack_vN.md`
 3. Commit: `artifact: self-attack v{N}`
 3a. **Load-bearing premise header check (string-presence only).** Confirm `output/stage4/self_attack_vN.md` contains a `**Load-bearing premise:**` line (or one `**Load-bearing premise [piece K — label]:**` line per piece for a multi-piece contribution). This is a string check, not a judgment call — the self-attacker body owns the substantive requirement (the premise must be theory-anchored, headline-critical, and attacked exhaustively before any other category). If the header is absent, re-launch self-attacker once with: "your prior report omitted the mandatory load-bearing-premise header — re-run and state it (one line, or one line per independently-load-bearing piece) at the top of the output, then attack each named premise exhaustively under Assumption attacks before any other category." Overwrite `output/stage4/self_attack_vN.md` and commit `artifact: self-attack v{N} (premise re-fire)`. If the header is still absent after the re-fire, write a one-line note to `process_log/self_attack_premise_skip_vN.md` and proceed — do not loop more than one re-fire per version N. This is a self-attacker-side gate: a missing premise line never routes back to theory-generator.
@@ -22,7 +22,7 @@
    - Math audit (free-form): `output/stage2/freeform_audit_vN.md`
 <!-- THEORY_FIRST_END -->
 <!-- NO_MODE_START -->
-   - Theory exploration: `output/stage2b/exploration.md` (if available — computational verification and diagnostic plots)
+   - Theory exploration: the exact report at `pipeline_state.json:stage2b_exploration_path` and exhibits bound by `stage2b_result_receipt` (if available — computational verification and diagnostic plots)
 <!-- NO_MODE_END -->
 <!-- EMPIRICAL_FIRST_START -->
    - Identification audit: `output/stage3a/identification_audit.md` (Stage 1 design + Stage 3a plan; H3 gates on this)

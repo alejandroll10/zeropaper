@@ -143,6 +143,7 @@ else
     STAGE2B_DIRS=()
     [ "$MODE" != "empirical-first" ] && [ "$MODE" != "measurement-first" ] && STAGE2B_DIRS=("$P/output/stage2b/figures")
     mkdir -p "$P/output/stage0" "$P/output/stage1" "$P/output/stage2" "${STAGE2B_DIRS[@]}" "$P/output/stage3" "$P/output/stage4" "$P/output/puzzle_triage" "$P/output/post_pipeline"
+    bootstrap_dir "output/evidence"
     mkdir -p "$P/process_log/sessions" "$P/process_log/decisions"
 fi
 
@@ -259,6 +260,7 @@ cat > "$P/process_log/pipeline_state.json" <<JSONEOF
     "referee":           {"round": 0, "cap": 10},
     "bib_verify":        {"round": 0, "cap": 2},
     "table_legibility":  {"round": 0, "cap": 3},
+    "evidence":          {"round": 0, "cap": 3},
     "polish":            {"round": 0, "cap": 2}
   },
   "pivot_resolved": null,
@@ -273,6 +275,8 @@ cat > "$P/process_log/pipeline_state.json" <<JSONEOF
   "pending_verification": [],
   "scores": {},
   "stage2b_theory_version": null,
+  "stage2b_exploration_path": null,
+  "stage2b_result_receipt": null,
   "stage1_candidates": [],
   "history": []
 }
@@ -308,6 +312,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
     "referee":           {"round": 0, "cap": 10},
     "bib_verify":        {"round": 0, "cap": 2},
     "table_legibility":  {"round": 0, "cap": 3},
+    "evidence":          {"round": 0, "cap": 3},
     "polish":            {"round": 0, "cap": 2}
   },
   "pivot_resolved": null,
@@ -322,6 +327,8 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "pending_verification": [],
   "scores": {},
   "stage2b_theory_version": null,
+  "stage2b_exploration_path": null,
+  "stage2b_result_receipt": null,
   "stage1_candidates": [],
   "history": []
 }
@@ -361,6 +368,18 @@ fi
 # a non-empty ledger must surface in the run summary. Manual mode has no process_log/,
 # so the agent pointer there degrades to "state it in your returned report."
 if [ "$MANUAL" = "0" ]; then
+    if [ "$MODE" != "report" ] && [ ! -e "$P/process_log/results_registry.json" ]; then
+        cat > "$P/process_log/results_registry.json" <<'RESULTREGISTRY'
+{
+  "kind": "result_registry",
+  "registry_version": 1,
+  "active": [],
+  "pending": [],
+  "retired": [],
+  "receipt_fingerprints": {}
+}
+RESULTREGISTRY
+    fi
     cat > "$P/process_log/degradation_ledger.md" <<'LEDGEREOF'
 # Degradation ledger — core-bypass events
 

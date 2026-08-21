@@ -15,7 +15,7 @@
   },
   "polish-experiments": {
     "name": "polish-experiments",
-    "description": "Stage 9 polish agent for theory_llm runs: re-verifies the rendered paper's experimental evidence against output/stage3b/ \u2014 recomputes reported numbers from raw_results/, checks stimulus-contamination status, model snapshot pinning and decoding-parameter disclosure, error-bar integrity across stimuli and sampled runs, scope honesty of capability claims, and that experiment_code/ + seeds actually reproduce. Launched with the other polish agents; writes output/polish_experiments_r{N}.md where N is the current loops.polish.round.",
+    "description": "Stage 9 polish agent for theory_llm runs: re-verifies the rendered paper's experimental evidence against the active Stage 3b receipt \u2014 recomputes reported numbers from its declared raw artifacts, checks stimulus-contamination status, model snapshot pinning and decoding-parameter disclosure, error-bar integrity across stimuli and sampled runs, scope honesty of capability claims, and that its declared analysis code + seeds actually reproduce. Launched with the other polish agents; writes output/polish_experiments_r{N}.md where N is the current loops.polish.round.",
     "category": "developing",
     "tools": "Read, Write, Bash, Glob, Grep",
     "model": "opus",

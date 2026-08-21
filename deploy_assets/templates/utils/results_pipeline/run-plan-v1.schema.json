@@ -1,0 +1,48 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/alejandroll10/zeropaper/schemas/run-plan-v1.schema.json",
+  "title": "ZeroPaper pre-run evidence declaration",
+  "type": "object",
+  "additionalProperties": false,
+  "required": [
+    "plan_version", "producer_code", "producer_inputs", "artifacts",
+    "renderer_code", "exhibits"
+  ],
+  "properties": {
+    "plan_version": {"type": "integer", "const": 1},
+    "producer_code": {
+      "type": "array", "minItems": 1, "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "producer_inputs": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "artifacts": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^output/(?!evidence(?:/|$)).+"}
+    },
+    "renderer_code": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "minLength": 1}
+    },
+    "exhibits": {
+      "type": "array", "uniqueItems": true,
+      "items": {"type": "string", "pattern": "^output/(?!evidence(?:/|$)).+"}
+    },
+    "provider_credentials": {
+      "type": "array", "uniqueItems": true,
+      "items": {
+        "enum": [
+          "OPENAI_API_KEY", "UF_API_KEY", "DEEPINFRA_TOKEN", "LOCAL_LLM_API_KEY"
+        ]
+      }
+    }
+  },
+  "allOf": [
+    {
+      "if": {"properties": {"exhibits": {"minItems": 1}}},
+      "then": {"properties": {"renderer_code": {"minItems": 1}}}
+    }
+  ]
+}
