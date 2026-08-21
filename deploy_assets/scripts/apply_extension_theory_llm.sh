@@ -128,3 +128,13 @@ UF_API_KEY=your-key-here
 DEEPINFRA_TOKEN=your-key-here
 ENVEOF
 fi
+if ! grep -q 'ANTHROPIC_API_KEY' "$ENV_FILE" 2>/dev/null; then
+    cat >> "$ENV_FILE" <<'ENVEOF'
+
+# Frontier proprietary backends (pay-per-token; optional, for frontier-tier comparison arms)
+# OpenAI GPT-5.x: https://platform.openai.com/api-keys
+OPENAI_API_KEY=
+# Anthropic Claude: https://platform.claude.com/settings/keys
+ANTHROPIC_API_KEY=
+ENVEOF
+fi

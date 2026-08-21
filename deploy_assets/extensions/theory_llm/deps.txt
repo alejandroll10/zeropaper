@@ -3,4 +3,5 @@
 # setup) AND by update.sh's venv bootstrap, via `uv pip install -r`.
 # Build-time only — installed into the project's .venv, not copied into deploys.
 openai
+anthropic
 python-dotenv

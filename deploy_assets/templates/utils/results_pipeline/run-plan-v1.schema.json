@@ -34,7 +34,8 @@
       "type": "array", "uniqueItems": true,
       "items": {
         "enum": [
-          "OPENAI_API_KEY", "UF_API_KEY", "DEEPINFRA_TOKEN", "LOCAL_LLM_API_KEY"
+          "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "UF_API_KEY", "DEEPINFRA_TOKEN",
+          "LOCAL_LLM_API_KEY"
         ]
       }
     }
