@@ -37,6 +37,25 @@ import uuid
 
 
 REPO_ROOT = Path(__file__).resolve().parents[1]
+# Optional host tooling (the codex CLI for codex-math) is detected at setup time
+# and only produces a warning; whether the runner has it installed is not part
+# of the assembly contract, so those lines are removed from captured CLI output
+# before comparison.  Without this the CLI-output golden can only match hosts
+# with the same optional tools as the machine that generated it.
+HOST_TOOL_WARNING_RE = re.compile(
+    r"^\s*⚠ (?:[A-Za-z0-9_.-]+ CLI not found\. Install with: .*"
+    r"|The [A-Za-z0-9_.-]+ skill will not work until [A-Za-z0-9_.-]+ is installed\.)\s*$"
+)
+
+
+def strip_host_tool_warnings(text: str) -> str:
+    """Drop optional-host-tool availability warnings from captured CLI output."""
+    return "".join(
+        line for line in text.splitlines(keepends=True)
+        if not HOST_TOOL_WARNING_RE.match(line)
+    )
+
+
 GOLDEN_PATH = Path(__file__).resolve().parent / "fixtures" / "setup_characterization.json"
 
 # The first 22 cases enumerate every currently supported
@@ -514,7 +533,7 @@ def run_cli_failure(source: Path, deployment_root: Path, log_root: Path,
     (log_root / f"cli_{name}.log").write_text(result.stdout)
     if result.returncode == 0:
         raise RuntimeError(f"CLI failure case unexpectedly succeeded: {name}")
-    normalized = result.stdout
+    normalized = strip_host_tool_warnings(result.stdout)
     for value, marker in (
         (str(output), "<DEPLOYMENT_PATH>"),
         (str(source), "<SOURCE_PATH>"),
@@ -553,7 +572,7 @@ def run_production_cli_failure(
     (log_root / f"cli_{name}.log").write_text(result.stdout)
     if result.returncode == 0:
         raise RuntimeError(f"production CLI failure case unexpectedly succeeded: {name}")
-    normalized = result.stdout
+    normalized = strip_host_tool_warnings(result.stdout)
     for value, marker in (
         (str(output), "<DEPLOYMENT_PATH>"),
         (str(source), "<SOURCE_PATH>"),
@@ -583,7 +602,7 @@ def run_text_success(source: Path, log_root: Path,
     (log_root / f"cli_{name}.log").write_text(result.stdout)
     if result.returncode != 0:
         raise RuntimeError(f"CLI success case failed with exit {result.returncode}: {name}")
-    normalized = result.stdout
+    normalized = strip_host_tool_warnings(result.stdout)
     for value, marker in (
         (str(source), "<SOURCE_PATH>"),
         (str(REPO_ROOT), "<REPO_ROOT>"),
