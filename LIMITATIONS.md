@@ -6,6 +6,18 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## `deepvest` skill: an LLM-mediated data source has no raw re-query path for the integrity audit
+
+**Scope:** the `--ext empirical` `deepvest` skill (`code/utils/deepvest_utils.py`, MCP server `api.deepvest.ai/mcp`) and the Stage 3a step 7.5 `data-integrity-auditor`, which verifies cached field values by re-querying the source.
+
+**Failure mode:** DeepVest answers its natural-language `query` tools through a vendor-side LLM over an undisclosed upstream feed, keyed on current tickers. A re-query through the same layer is not byte-reproducible and can return a *different plausible* answer instead of a contradiction, so a cached pull with the wrong price basis (a live `quick_analysis` close was dividend-adjusted without saying so), a survivorship-biased ticker list, or a silently dropped screener filter can pass the audit — or a string comparison can flag a false disagreement. The skill body mitigates (raw tables / `format="json"`, first-pull cache JSON as the binding record, numeric comparison with tolerance, a mandatory cross-source check logged in `data_search_log.md`, no provenance badge, DeepVest's own backtests/optimizations never reported as results), but nothing mechanical enforces the cross-source check.
+
+**What would close it:** a vendor raw-data endpoint (the portal's "REST API" tab is a *Coming Soon* placeholder as of 2026-08-21) or a disclosed upstream feed the auditor can re-pull outside the LLM layer; an auditor rule for LLM-mediated sources (re-issue the identical cached `(tool, arguments)`, parse both with `tables_from_response`, compare within the `returns_spreads_coefficients` tolerance class, treat shape drift as REVISE); and a `[HEADLINE]` guard refusing a headline whose only source is an LLM-mediated pull without a logged cross-source check.
+
+**Tracking:** [#272](https://github.com/alejandroll10/zeropaper/issues/272).
+
+---
+
 ## Update quiescence is cooperative for processes outside supported launchers
 
 **Scope:** applying `update.sh` replacements to an existing deployment while another same-UID process can mutate that project.

@@ -654,14 +654,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bbc4da2f20a9de820cd5af728543ffa1236205d57e2dc30bdfccd4c6c16cf6d7",
+          "sha256": "c1535cfbce50e5f134fe548528799e13b4fc626d38211e1eb7b1ad6887ea1cc0",
           "size": 1859,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -1812,7 +1812,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -1945,7 +1945,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -2029,6 +2029,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -2373,8 +2383,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "c371e7da8fd4c55bce224104690170b737a7a1bafaa5a90b2f028d4216074745",
-          "size": 28476,
+          "sha256": "f34b35dedc59eeb3beb9b7f9896c0ba273ce2f058ca73f11199ee0e6cfcc40e4",
+          "size": 28486,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -2713,6 +2723,16 @@
           "mode": "0644",
           "sha256": "14a0c3eb7d22b0ece2e5eaf219fe86f0d5410a647e5bfd199063065137130d0d",
           "size": 14510,
+          "type": "file"
+        },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
           "type": "file"
         },
         ".claude/skills/edgar": {
@@ -3275,14 +3295,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c8094f67cf182c96373719ce00684d8d8fb23704dff6a679e2e52c8b7a06b985",
-          "size": 3079,
+          "sha256": "c29d2149908bffdf7e84ee677e4e98a636f8afc76e1e1e49a3426830ea599019",
+          "size": 3117,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -3899,8 +3919,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "b9d700607c36ee1d0760e8b8a7fbd6fa143c37bad331eadac11724462c8ee2a5",
-          "size": 28743,
+          "sha256": "c6df62a8e8d22a6472eaf4c0f85f01f04bcc2e0f6271ea276401c5f73ace079d",
+          "size": 28765,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -4313,6 +4333,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
+          "type": "file"
+        },
         "code/utils/download_crsp_daily.py": {
           "mode": "0644",
           "sha256": "a75aef1d5c9f8e0f309b733d751f551307f044d3a79cc03b2e51080aaf22bfcc",
@@ -4771,7 +4797,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -4903,6 +4929,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -4936,7 +4963,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -5020,6 +5047,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -5364,8 +5401,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "c371e7da8fd4c55bce224104690170b737a7a1bafaa5a90b2f028d4216074745",
-          "size": 28476,
+          "sha256": "f34b35dedc59eeb3beb9b7f9896c0ba273ce2f058ca73f11199ee0e6cfcc40e4",
+          "size": 28486,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -5704,6 +5741,16 @@
           "mode": "0644",
           "sha256": "14a0c3eb7d22b0ece2e5eaf219fe86f0d5410a647e5bfd199063065137130d0d",
           "size": 14510,
+          "type": "file"
+        },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
           "type": "file"
         },
         ".claude/skills/edgar": {
@@ -6266,14 +6313,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "3a6ba0374f777569cb9b17810855ab819eddb20dd38082119b021a425690128f",
-          "size": 3079,
+          "sha256": "ba52f8c0099d814327cd86e38845e39222aab1198c81b1b5aa1d0f9c68f88d8e",
+          "size": 3117,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -6890,8 +6937,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "b9d700607c36ee1d0760e8b8a7fbd6fa143c37bad331eadac11724462c8ee2a5",
-          "size": 28743,
+          "sha256": "c6df62a8e8d22a6472eaf4c0f85f01f04bcc2e0f6271ea276401c5f73ace079d",
+          "size": 28765,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -7302,6 +7349,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
           "type": "file"
         },
         "code/utils/download_crsp_daily.py": {
@@ -7762,7 +7815,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -7894,6 +7947,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -7927,7 +7981,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -8582,14 +8636,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bbc4da2f20a9de820cd5af728543ffa1236205d57e2dc30bdfccd4c6c16cf6d7",
+          "sha256": "c1535cfbce50e5f134fe548528799e13b4fc626d38211e1eb7b1ad6887ea1cc0",
           "size": 1859,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -9740,7 +9794,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -9873,7 +9927,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -9960,6 +10014,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -10304,8 +10368,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "c371e7da8fd4c55bce224104690170b737a7a1bafaa5a90b2f028d4216074745",
-          "size": 28476,
+          "sha256": "f34b35dedc59eeb3beb9b7f9896c0ba273ce2f058ca73f11199ee0e6cfcc40e4",
+          "size": 28486,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -10644,6 +10708,16 @@
           "mode": "0644",
           "sha256": "14a0c3eb7d22b0ece2e5eaf219fe86f0d5410a647e5bfd199063065137130d0d",
           "size": 14510,
+          "type": "file"
+        },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
           "type": "file"
         },
         ".claude/skills/edgar": {
@@ -11206,14 +11280,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c8094f67cf182c96373719ce00684d8d8fb23704dff6a679e2e52c8b7a06b985",
-          "size": 3079,
+          "sha256": "c29d2149908bffdf7e84ee677e4e98a636f8afc76e1e1e49a3426830ea599019",
+          "size": 3117,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -11830,8 +11904,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "b9d700607c36ee1d0760e8b8a7fbd6fa143c37bad331eadac11724462c8ee2a5",
-          "size": 28743,
+          "sha256": "c6df62a8e8d22a6472eaf4c0f85f01f04bcc2e0f6271ea276401c5f73ace079d",
+          "size": 28765,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -12242,6 +12316,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
           "type": "file"
         },
         "code/utils/download_crsp_daily.py": {
@@ -12702,7 +12782,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -12834,6 +12914,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -12867,7 +12948,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -12949,6 +13030,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -13277,8 +13368,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "c371e7da8fd4c55bce224104690170b737a7a1bafaa5a90b2f028d4216074745",
-          "size": 28476,
+          "sha256": "f34b35dedc59eeb3beb9b7f9896c0ba273ce2f058ca73f11199ee0e6cfcc40e4",
+          "size": 28486,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -13599,6 +13690,16 @@
           "mode": "0644",
           "sha256": "14a0c3eb7d22b0ece2e5eaf219fe86f0d5410a647e5bfd199063065137130d0d",
           "size": 14510,
+          "type": "file"
+        },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
           "type": "file"
         },
         ".claude/skills/edgar": {
@@ -14133,14 +14234,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "71afe5535c10243069fc12694027863698280a73c77a63144f5c1483be8466a5",
-          "size": 2972,
+          "sha256": "e4ecdc0a1e2338b619ae3e5cb264d5dd4bad9c1d8d90d06c1837eb9a904ea5a6",
+          "size": 3010,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -14739,8 +14840,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "b9d700607c36ee1d0760e8b8a7fbd6fa143c37bad331eadac11724462c8ee2a5",
-          "size": 28743,
+          "sha256": "c6df62a8e8d22a6472eaf4c0f85f01f04bcc2e0f6271ea276401c5f73ace079d",
+          "size": 28765,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -15133,6 +15234,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
           "type": "file"
         },
         "code/utils/download_crsp_daily.py": {
@@ -15573,7 +15680,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -15703,6 +15810,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -15735,7 +15843,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -15817,6 +15925,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -16145,8 +16263,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "c371e7da8fd4c55bce224104690170b737a7a1bafaa5a90b2f028d4216074745",
-          "size": 28476,
+          "sha256": "f34b35dedc59eeb3beb9b7f9896c0ba273ce2f058ca73f11199ee0e6cfcc40e4",
+          "size": 28486,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -16473,6 +16591,16 @@
           "mode": "0644",
           "sha256": "14a0c3eb7d22b0ece2e5eaf219fe86f0d5410a647e5bfd199063065137130d0d",
           "size": 14510,
+          "type": "file"
+        },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
           "type": "file"
         },
         ".claude/skills/edgar": {
@@ -17013,14 +17141,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c71a6357ba94be3903c2288620b9af5ff69c7026a827d220527a169870f2885f",
-          "size": 2987,
+          "sha256": "13a0e98cd9d6948dd229fcd1fa243ed5c87ef8c219c9e5def413b215fe641301",
+          "size": 3025,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -17625,8 +17753,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "b9d700607c36ee1d0760e8b8a7fbd6fa143c37bad331eadac11724462c8ee2a5",
-          "size": 28743,
+          "sha256": "c6df62a8e8d22a6472eaf4c0f85f01f04bcc2e0f6271ea276401c5f73ace079d",
+          "size": 28765,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -18025,6 +18153,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
           "type": "file"
         },
         "code/utils/download_crsp_daily.py": {
@@ -18457,7 +18591,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -18587,6 +18721,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -18619,7 +18754,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -18703,6 +18838,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -19047,8 +19192,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "c371e7da8fd4c55bce224104690170b737a7a1bafaa5a90b2f028d4216074745",
-          "size": 28476,
+          "sha256": "f34b35dedc59eeb3beb9b7f9896c0ba273ce2f058ca73f11199ee0e6cfcc40e4",
+          "size": 28486,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -19393,6 +19538,16 @@
           "mode": "0644",
           "sha256": "14a0c3eb7d22b0ece2e5eaf219fe86f0d5410a647e5bfd199063065137130d0d",
           "size": 14510,
+          "type": "file"
+        },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
           "type": "file"
         },
         ".claude/skills/edgar": {
@@ -19961,14 +20116,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d6e7a1eadf0bbe8ea1f08dbd89e2c2a61d704ecb5b87431ac2f7521667a8a704",
-          "size": 3094,
+          "sha256": "cc24e1540883db0aab674fa5dc2ad6853937094bf1ad3942f9cfe0aa01be16a8",
+          "size": 3132,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -20591,8 +20746,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "b9d700607c36ee1d0760e8b8a7fbd6fa143c37bad331eadac11724462c8ee2a5",
-          "size": 28743,
+          "sha256": "c6df62a8e8d22a6472eaf4c0f85f01f04bcc2e0f6271ea276401c5f73ace079d",
+          "size": 28765,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -21009,6 +21164,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
           "type": "file"
         },
         "code/utils/download_crsp_daily.py": {
@@ -21461,7 +21622,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -21593,6 +21754,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -21626,7 +21788,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -22285,14 +22447,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bbc4da2f20a9de820cd5af728543ffa1236205d57e2dc30bdfccd4c6c16cf6d7",
+          "sha256": "c1535cfbce50e5f134fe548528799e13b4fc626d38211e1eb7b1ad6887ea1cc0",
           "size": 1859,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -23443,7 +23605,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -23576,7 +23738,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -23661,6 +23823,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -23989,8 +24161,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "54cf43be05a2bfa53eeebbc4845ec13edd7ce4edc72415790b6d7893187a2392",
-          "size": 30784,
+          "sha256": "03b90badcecfae847979b3c599e508796402418641c54c079d6b0632de1e195e",
+          "size": 30794,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -24317,6 +24489,16 @@
           "mode": "0644",
           "sha256": "14a0c3eb7d22b0ece2e5eaf219fe86f0d5410a647e5bfd199063065137130d0d",
           "size": 14510,
+          "type": "file"
+        },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
           "type": "file"
         },
         ".claude/skills/edgar": {
@@ -24857,14 +25039,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "df860434ab604bfef2c3b27f86dc0313bdd47e5bfd2d5d32008ccca91001e809",
-          "size": 2968,
+          "sha256": "a6f91c583f029f330375440e385561ef5a9708f837e5e4a84ab1449e6031826a",
+          "size": 3006,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -25475,8 +25657,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "8fa0ed44016ff1324eba63b335f11d32cf9bcdf57880bfdf575a864249fa3d45",
-          "size": 31064,
+          "sha256": "f98291d41fb8f2fdc824edcc4077058594b75e4d94515db2ea575cc98a473515",
+          "size": 31086,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -25875,6 +26057,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
           "type": "file"
         },
         "code/utils/download_crsp_daily.py": {
@@ -26325,7 +26513,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -26461,6 +26649,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -26493,7 +26682,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -27152,14 +27341,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f7163a2fd783817d2ada85ed297d910d0cdb6c0d332c863553d0f1107512ac7d",
+          "sha256": "aa4c04cadf02f95cee4de98d3d128eab0b151559da69a7ac41f6f26fe07579a8",
           "size": 1858,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -28310,7 +28499,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -28443,7 +28632,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -29168,14 +29357,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b7d5f5c6092368bebb009c8ef6f3549745e7aa3c190bf997e5f9946798f6bc52",
+          "sha256": "8270e71bb46f691b0bc14e95787a8f49d4d4de745d0d303d834c45eebb64ed29",
           "size": 1968,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -30382,7 +30571,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -30519,7 +30708,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -31243,14 +31432,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b7d5f5c6092368bebb009c8ef6f3549745e7aa3c190bf997e5f9946798f6bc52",
+          "sha256": "8270e71bb46f691b0bc14e95787a8f49d4d4de745d0d303d834c45eebb64ed29",
           "size": 1968,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -32457,7 +32646,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -32594,7 +32783,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -33253,14 +33442,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a21113fdc06784075472ce1783e6bffd5998c500b743fd8e05122946ac21e25f",
+          "sha256": "4becd729269acfa059de052d057cfb2bc5c15d3f3e2a23dd69de607948b014c0",
           "size": 1858,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -34411,7 +34600,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -34544,7 +34733,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -34629,6 +34818,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -34973,8 +35172,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "c371e7da8fd4c55bce224104690170b737a7a1bafaa5a90b2f028d4216074745",
-          "size": 28476,
+          "sha256": "f34b35dedc59eeb3beb9b7f9896c0ba273ce2f058ca73f11199ee0e6cfcc40e4",
+          "size": 28486,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -35313,6 +35512,16 @@
           "mode": "0644",
           "sha256": "14a0c3eb7d22b0ece2e5eaf219fe86f0d5410a647e5bfd199063065137130d0d",
           "size": 14510,
+          "type": "file"
+        },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
           "type": "file"
         },
         ".claude/skills/edgar": {
@@ -35875,14 +36084,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0ffa2b03668aeaf4d42de8319a396470bc6b5c460c09230204168900b8da8916",
-          "size": 3054,
+          "sha256": "0bf1ed5f3b5270fcb1fdd950be75594a0cb50200cc67990f00b3f581164171ef",
+          "size": 3092,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -36499,8 +36708,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "b9d700607c36ee1d0760e8b8a7fbd6fa143c37bad331eadac11724462c8ee2a5",
-          "size": 28743,
+          "sha256": "c6df62a8e8d22a6472eaf4c0f85f01f04bcc2e0f6271ea276401c5f73ace079d",
+          "size": 28765,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -36793,20 +37002,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "6118000bebf7f9f4a9e7d21d245ffefd26005a11f4a4ea99f9e1b75fd896cb73",
-          "size": 11688,
+          "sha256": "817b6c0a827529337c03bc33d64031fb5e0bbe12f58134b3b6ee2aa4c4958ec1",
+          "size": 11830,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "efc3aa1b86dd7e10362d5ec3396ae1ac6d45ba96d8af4e859b3040ffe281b27c",
-          "size": 11832,
+          "sha256": "d20bfd223cb22fe311a7c05352862bcb5bb78c8901673c3f72f5a2c9cadc6a93",
+          "size": 11974,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "40dcb428cd998b4099093bdb8f26955dde65734f49f98afcce4554b37f513690",
-          "size": 11832,
+          "sha256": "3b83715b3971d7af60a65d7f7944c7fe4f343f08c309b37a6c6f9b201d132fca",
+          "size": 11974,
           "type": "file"
         },
         "code": {
@@ -36911,6 +37120,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
           "type": "file"
         },
         "code/utils/download_crsp_daily.py": {
@@ -37325,7 +37540,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "9cc15bcba6ff9c449be94e089a05cab73f24e1f131fa5c30b8ae0a0f51487c4e",
+          "sha256": "d84fb5a260d212ee702e7dc5733f9e704e26b92182a09eae0b4d18e57f43ffee",
           "size": 15387,
           "type": "file"
         },
@@ -37420,6 +37635,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -37453,7 +37669,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -37873,14 +38089,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "dd1e5be45da040c51a1e967fce372928c47c22962187b107ed566ec931726898",
+          "sha256": "e720ccd8ed420121a16a6f8307b8ce5a2e3153b4522fe4d7e40a79d803f7a3d6",
           "size": 1841,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -38617,7 +38833,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -38703,6 +38919,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -39203,6 +39429,16 @@
           "size": 14510,
           "type": "file"
         },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
+          "type": "file"
+        },
         ".claude/skills/edgar": {
           "mode": "0755",
           "type": "dir"
@@ -39577,14 +39813,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2a99d19e006169775d47cf0ead93b00ccd8eff2c62dd62d1b8b6253d1b0aea47",
-          "size": 3061,
+          "sha256": "c90a726ba5821c3b358627ead0034bbce8496ed8720f2100b81a64ebfed3f754",
+          "size": 3099,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -40109,6 +40345,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
           "type": "file"
         },
         "code/utils/download_crsp_daily.py": {
@@ -40498,6 +40740,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -40531,7 +40774,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -40617,6 +40860,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -41117,6 +41370,16 @@
           "size": 14510,
           "type": "file"
         },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
+          "type": "file"
+        },
         ".claude/skills/edgar": {
           "mode": "0755",
           "type": "dir"
@@ -41491,14 +41754,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7e53d2a811262750e2a7c8609b57e862ae5ea83aed89c7710437186b4c3d0649",
-          "size": 3061,
+          "sha256": "2b5e1d588dd64068acb1439302f4fd6e9fbf0e7a9457310c9af1a83b4e0e9056",
+          "size": 3099,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -42025,6 +42288,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
+          "type": "file"
+        },
         "code/utils/download_crsp_daily.py": {
           "mode": "0644",
           "sha256": "a75aef1d5c9f8e0f309b733d751f551307f044d3a79cc03b2e51080aaf22bfcc",
@@ -42412,6 +42681,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -42445,7 +42715,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -42529,6 +42799,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -43013,6 +43293,16 @@
           "size": 14510,
           "type": "file"
         },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
+          "type": "file"
+        },
         ".claude/skills/edgar": {
           "mode": "0755",
           "type": "dir"
@@ -43377,14 +43667,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d75bee17775ceb39a43541115e7ec3ae4bc3e266ebbd074c9898064c0098f44d",
-          "size": 2954,
+          "sha256": "254ec2a88fde6e2cf94a0f2ca6e9b5ebae45c832b202c04effc3d0898b713d2e",
+          "size": 2992,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -43911,6 +44201,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
+          "type": "file"
+        },
         "code/utils/download_crsp_daily.py": {
           "mode": "0644",
           "sha256": "a75aef1d5c9f8e0f309b733d751f551307f044d3a79cc03b2e51080aaf22bfcc",
@@ -44290,6 +44586,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -44322,7 +44619,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -44743,14 +45040,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f6ee459953ff1076d28ea22dda607994f58fb4d50250b5ca8ece1980532af14b",
+          "sha256": "348e568ba9854bbce19e6b1309b6ffb43c55f44561df65af625dac73f966ebba",
           "size": 1840,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -45487,7 +45784,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -45939,14 +46236,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0eea1dd5dc2cac87b23162d2d9f055be4a77f09eb73cfa426932e3a1ec38f8cd",
+          "sha256": "ec480b42bb9fb141ce461e21efb74e0201ead1bd0e31936b19e65e9cb23ca30b",
           "size": 1950,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -46693,7 +46990,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -47352,14 +47649,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "067d7743dce9961e3c647fe5c65b7a73ca60a6febb034d7b62f590d4fcb0d943",
+          "sha256": "46f6be0c26b5cd7e4109ca2810aa605728d8ea7e1710df667ca63283d2cc9549",
           "size": 1858,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -48520,7 +48817,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -48653,7 +48950,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -48735,6 +49032,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -49063,8 +49370,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "c371e7da8fd4c55bce224104690170b737a7a1bafaa5a90b2f028d4216074745",
-          "size": 28476,
+          "sha256": "f34b35dedc59eeb3beb9b7f9896c0ba273ce2f058ca73f11199ee0e6cfcc40e4",
+          "size": 28486,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -49385,6 +49692,16 @@
           "mode": "0644",
           "sha256": "14a0c3eb7d22b0ece2e5eaf219fe86f0d5410a647e5bfd199063065137130d0d",
           "size": 14510,
+          "type": "file"
+        },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
           "type": "file"
         },
         ".claude/skills/edgar": {
@@ -49919,14 +50236,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "71afe5535c10243069fc12694027863698280a73c77a63144f5c1483be8466a5",
-          "size": 2972,
+          "sha256": "e4ecdc0a1e2338b619ae3e5cb264d5dd4bad9c1d8d90d06c1837eb9a904ea5a6",
+          "size": 3010,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "0672b53010f4998b0ff8daea121c110e5f7b370d06ad924bc75041c244cd46c1",
-          "size": 412,
+          "sha256": "15f022e2a42a9f3eb9bb9804dc89515d12c76fdaf0fcda2a06c88888a7d97d2d",
+          "size": 430,
           "type": "file"
         },
         ".gemini": {
@@ -50525,8 +50842,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "b9d700607c36ee1d0760e8b8a7fbd6fa143c37bad331eadac11724462c8ee2a5",
-          "size": 28743,
+          "sha256": "c6df62a8e8d22a6472eaf4c0f85f01f04bcc2e0f6271ea276401c5f73ace079d",
+          "size": 28765,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -50919,6 +51236,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
           "type": "file"
         },
         "code/utils/download_crsp_daily.py": {
@@ -51359,7 +51682,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -51489,6 +51812,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -51521,7 +51845,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -52247,14 +52571,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b7d5f5c6092368bebb009c8ef6f3549745e7aa3c190bf997e5f9946798f6bc52",
+          "sha256": "8270e71bb46f691b0bc14e95787a8f49d4d4de745d0d303d834c45eebb64ed29",
           "size": 1968,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -53461,7 +53785,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -53598,7 +53922,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -54282,14 +54606,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f67325f76933d2cfd3e3031d96e3e9665667558c1210352cfbe43d7708784d9f",
+          "sha256": "907ea9e8ff97b37e011428866cbaa0176bfb7cc69cbd5e1f6d93292b2789b198",
           "size": 1918,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -55470,7 +55794,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -55605,7 +55929,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -56302,14 +56626,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "222357da216830ec985cb7ce4fd96a9ddae2ef084e694baba30e064b06dc3ad3",
+          "sha256": "f5253480762482fdaba114ebd1b69cd8f85bf0e9275d96439a0313e407f23335",
           "size": 1916,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -57518,7 +57842,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -57659,7 +57983,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -58345,14 +58669,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "92d52b3bc56bdb6b71e125acaab22ced25f92fd61f6eea6dba6658c8ce612ff6",
+          "sha256": "ce40e99d2cb6eb1759d97b820212263085b7fac49652526819b4b4c50506a135",
           "size": 1916,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -59533,7 +59857,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -59668,7 +59992,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -60353,14 +60677,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "89d83ca549171f83231f49d8cc59719161826a209e6ed8d624e941c3ba4fe96f",
+          "sha256": "293e016d4335393492a20c1cc4a6af16c5b6989834fc697c13bbb257e7657629",
           "size": 1893,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -61495,7 +61819,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "9cc15bcba6ff9c449be94e089a05cab73f24e1f131fa5c30b8ae0a0f51487c4e",
+          "sha256": "d84fb5a260d212ee702e7dc5733f9e704e26b92182a09eae0b4d18e57f43ffee",
           "size": 15387,
           "type": "file"
         },
@@ -61593,7 +61917,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -62279,14 +62603,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "fdac7c1a0fb37ad88f10f1c5c89692fcbac1c6cc219ea1c4c0629b775d85ce7c",
+          "sha256": "f4dd417572ac78acb247cacb4816b353666a80d69888e8ca54cd0873e2b8ef69",
           "size": 1935,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -63459,7 +63783,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -63594,7 +63918,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -63974,14 +64298,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "60910f88a24f8d580063f9c4c248e63200ec71a11f9c0879194acdc40145e3fd",
+          "sha256": "2f352ecc7cd76b2c7da6121d7661daec0c495975b3e1733d61c78fe52be69f2f",
           "size": 1791,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -64690,7 +65014,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -65102,14 +65426,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "3c685e79e76c49ad4b2478f8c2d9591daa82b712a2db4adee50fbafac234f1ed",
+          "sha256": "68bc46fdfdc0381f04bbe5ca8db64436d93948fdda7dba7770e90c2114a781af",
           "size": 1900,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -65828,7 +66152,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -66486,14 +66810,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "797a44f799d5de230cc444dc9b72958ab6d36ae6ba86933b40806e95acdaafe6",
+          "sha256": "b08dc3c65a18fbe8598cbd96860cca213640c8197ab812e161129cba4ab99b33",
           "size": 1857,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -67644,7 +67968,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -67777,7 +68101,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -67861,6 +68185,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -68535,6 +68869,16 @@
           "size": 14510,
           "type": "file"
         },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
+          "type": "file"
+        },
         ".claude/skills/edgar": {
           "mode": "0755",
           "type": "dir"
@@ -69083,14 +69427,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c4218e0253761dac3916e771fe5cccc9b76f2fc376bb38bb5b5fa6b07651551c",
-          "size": 3077,
+          "sha256": "05bf72c6ca3d76f327f19309ed0eba9309c11a748565a6f5dfc57c8b4222dfe7",
+          "size": 3115,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -70097,6 +70441,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
+          "type": "file"
+        },
         "code/utils/download_crsp_daily.py": {
           "mode": "0644",
           "sha256": "a75aef1d5c9f8e0f309b733d751f551307f044d3a79cc03b2e51080aaf22bfcc",
@@ -70555,7 +70905,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -70687,6 +71037,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -70720,7 +71071,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -70802,6 +71153,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -71442,6 +71803,16 @@
           "size": 14510,
           "type": "file"
         },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
+          "type": "file"
+        },
         ".claude/skills/edgar": {
           "mode": "0755",
           "type": "dir"
@@ -71962,14 +72333,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "063bc408c5e7fb7d7e7cca583f5d92532fb935ad25c85c7185235beffdca1c5c",
-          "size": 2970,
+          "sha256": "5f6b603e329cb83cb32a25485b16cd9745ba6b79ed773022fe2d5df0c2e2fab7",
+          "size": 3008,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -72940,6 +73311,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
+          "type": "file"
+        },
         "code/utils/download_crsp_daily.py": {
           "mode": "0644",
           "sha256": "a75aef1d5c9f8e0f309b733d751f551307f044d3a79cc03b2e51080aaf22bfcc",
@@ -73378,7 +73755,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -73508,6 +73885,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -73540,7 +73918,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -73960,14 +74338,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e3b673d0b5a66f3bb2a85137ce06bc27e4441c1e3edcbce9f76192b56d10c1e7",
+          "sha256": "ac8211f11e976471a6d6f090632f827b9daee6a091b2b2f5b91fbb1143cbca2e",
           "size": 1839,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -74704,7 +75082,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -74790,6 +75168,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -75290,6 +75678,16 @@
           "size": 14510,
           "type": "file"
         },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
+          "type": "file"
+        },
         ".claude/skills/edgar": {
           "mode": "0755",
           "type": "dir"
@@ -75664,14 +76062,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "660adc540c91dbc0bf4b392f414878e9f3a724c8c76c9bcf0946a7607ba08cd9",
-          "size": 3059,
+          "sha256": "b8313fab1da2909876c2a0d6a6cf33c9f49c05320eb7970abda892b24aa9b5c0",
+          "size": 3097,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -76198,6 +76596,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
+          "type": "file"
+        },
         "code/utils/download_crsp_daily.py": {
           "mode": "0644",
           "sha256": "a75aef1d5c9f8e0f309b733d751f551307f044d3a79cc03b2e51080aaf22bfcc",
@@ -76585,6 +76989,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -76618,7 +77023,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -76702,6 +77107,16 @@
           "mode": "0644",
           "sha256": "2236036998acee28b0e8f0c908cdeccb73169eb7ca28781d1ee8ef5640e8d25a",
           "size": 3031,
+          "type": "file"
+        },
+        ".agents/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".agents/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "d5ef5097cbd4e61cfaa3f101bf9af0e493854a1a406b40de19cf1e42b66de176",
+          "size": 13653,
           "type": "file"
         },
         ".agents/skills/edgar": {
@@ -77186,6 +77601,16 @@
           "size": 14510,
           "type": "file"
         },
+        ".claude/skills/deepvest": {
+          "mode": "0755",
+          "type": "dir"
+        },
+        ".claude/skills/deepvest/SKILL.md": {
+          "mode": "0644",
+          "sha256": "fdf195854555a05bf72fd6e28033c8b0df6d51dbcbd706138dd7568861969b5d",
+          "size": 15172,
+          "type": "file"
+        },
         ".claude/skills/edgar": {
           "mode": "0755",
           "type": "dir"
@@ -77550,14 +77975,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "63d7ebdc83c20891acffdc8a6f7f1081d32c8bcadc42b38b49759a0731bdc531",
-          "size": 2952,
+          "sha256": "c0b37afdb322d0434ebab2e9062c5fdcfc810a049f2d7cf7f36354813bed1ad0",
+          "size": 2990,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -78084,6 +78509,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/deepvest_utils.py": {
+          "mode": "0644",
+          "sha256": "3a3a0df67b49cc4ae162c93d311fe221f9d6e0b4e1683456ed00257e10be9ae9",
+          "size": 27636,
+          "type": "file"
+        },
         "code/utils/download_crsp_daily.py": {
           "mode": "0644",
           "sha256": "a75aef1d5c9f8e0f309b733d751f551307f044d3a79cc03b2e51080aaf22bfcc",
@@ -78463,6 +78894,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
             "code/utils/edgar_utils.py",
@@ -78495,7 +78927,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -78947,14 +79379,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2a1079850ce678343519586de0319f3c7b7de0fe5dcd285534c6b3b3e38e1a2d",
+          "sha256": "6fb7ad3a4262a1e622fd345b0818b3a1038cfa135d71ef3d768614b988b3e6d4",
           "size": 1948,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -79701,7 +80133,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -80427,14 +80859,14 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "03a2b3b19f383477e59d796431b2164989314b4a67c16a437c433f1c67634323",
+          "sha256": "e9ce59f8069fa567bf64d065ec48ca626813b65e96ecc96cb288ac7f627a35f1",
           "size": 1966,
           "type": "file"
         },
         ".env": {
           "mode": "0644",
-          "sha256": "5835a937030715cf16a1c21e87428ac6b94820f0db9b3aaef12ad3d39d0cde74",
-          "size": 3766,
+          "sha256": "2db8df908eeffa8740ae1a8e00b06a59cca385b2e9caf33dfcb01df129576f45",
+          "size": 4101,
           "type": "file"
         },
         ".gemini": {
@@ -81641,7 +82073,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "66150aa9b6632c6bd195ef9dd2974ff85342b01faf7ee24f644f70e2a542a286",
+          "sha256": "09088326cc60f6314d305a2ad7c0f371600d3df35d3a92af640afe51602ef6d2",
           "size": 15378,
           "type": "file"
         },
@@ -81778,7 +82210,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.26.0+<GIT_REVISION>",
+        "template_version": "2.27.0+<GIT_REVISION>",
         "variant": "macro"
       }
     }

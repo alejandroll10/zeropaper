@@ -189,3 +189,11 @@ SEC_EDGAR_NAME=Your Name
 SEC_EDGAR_EMAIL=your@email.edu
 ENVEOF
 fi
+if ! grep -q 'DEEPVEST_API_KEY' "$ENV_FILE" 2>/dev/null; then
+    cat >> "$ENV_FILE" <<'ENVEOF'
+
+# DeepVest AI research terminal (OPTIONAL, metered — 1,000 free credits/month):
+# https://console.deepvest.ai/dashboard/api-keys
+DEEPVEST_API_KEY=
+ENVEOF
+fi

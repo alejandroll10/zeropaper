@@ -185,7 +185,7 @@ Then, per extension:
 
 | Extension | Credentials needed |
 |-----------|-------------------|
-| `--ext empirical` | `FRED_API_KEY` (free, from [FRED](https://fred.stlouisfed.org/docs/api/api_key.html)), `WRDS_USER` + `WRDS_PASS` (from [WRDS](https://wrds-www.wharton.upenn.edu/)), `CENSUS_API_KEY` (free, from [Census](https://api.census.gov/data/key_signup.html) — **required** for any ACS/CPS call; the keyless tier was retired), `SEC_EDGAR_NAME` + `SEC_EDGAR_EMAIL` (no registration; SEC requires a real identity in the User-Agent). Optional: `BLS_API_KEY` (free, raises the daily cap — keyless still works) |
+| `--ext empirical` | `FRED_API_KEY` (free, from [FRED](https://fred.stlouisfed.org/docs/api/api_key.html)), `WRDS_USER` + `WRDS_PASS` (from [WRDS](https://wrds-www.wharton.upenn.edu/)), `CENSUS_API_KEY` (free, from [Census](https://api.census.gov/data/key_signup.html) — **required** for any ACS/CPS call; the keyless tier was retired), `SEC_EDGAR_NAME` + `SEC_EDGAR_EMAIL` (no registration; SEC requires a real identity in the User-Agent). Optional: `BLS_API_KEY` (free, raises the daily cap — keyless still works), `DEEPVEST_API_KEY` (metered — 1,000 free credits/month, from [DeepVest](https://console.deepvest.ai/dashboard/api-keys); enables the `deepvest` skill) |
 | `--ext theory_llm` | `UF_API_KEY` (from [UF NaviGator](https://api.ai.it.ufl.edu)); `DEEPINFRA_TOKEN` for cross-family replication. Or run against a self-hosted model with no key at all: set `LOCAL_LLM_MODEL` (+ `LOCAL_LLM_BASE_URL`, defaults to Ollama's) |
 
 `EMAIL` identifies your API traffic to OpenAlex and Crossref (the `mailto` parameter) — worth setting regardless. Note that **no identity value reaches the manuscript**: papers ship `\author{[Author names withheld for double-blind review]}` and the pipeline is forbidden to de-anonymize them.
@@ -364,6 +364,7 @@ Each gate is adversarial. Failed theories get revised, reworked, or abandoned. T
 | `chen-zimmerman` | Open Source Asset Pricing — 200+ anomaly signals | None |
 | `mutual-funds` | Mutual fund holdings and fund-level empirical workflows | None |
 | `wrds` | WRDS — CRSP, Compustat, IBES, options, insider trading | Username + password |
+| `deepvest` | DeepVest MCP terminal — ticker prices/fundamentals, ETF flows, dividends, options, earnings, EDGAR (LLM-mediated, metered) | API key (1,000 free credits/month) |
 
 ## Project structure (after setup)
 
