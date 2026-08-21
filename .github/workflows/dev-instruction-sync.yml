@@ -28,7 +28,7 @@ jobs:
       - name: Install Python test dependencies
         run: >-
           python -m pip install --disable-pip-version-check
-          PyYAML==6.0.3 pandas python-dotenv wrds==3.5.0
+          PyYAML==6.0.3 pandas python-dotenv wrds==3.5.0 openai anthropic
 
       - name: Install LaTeX table-gate dependencies
         run: |
@@ -52,6 +52,9 @@ jobs:
 
       - name: Test empirical replication input binding
         run: python3 deploy_assets/scripts/test_empirical_input_manifest.py
+
+      - name: Test theory_llm client backend resolution (offline)
+        run: python -m unittest -v test_scripts.test_llm_client_backends
 
       - name: Test Codex native subagent assembly
         run: python3 deploy_assets/scripts/test_assemble_codex_subagents.py
