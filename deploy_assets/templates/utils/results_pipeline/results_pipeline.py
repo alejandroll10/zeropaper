@@ -27,7 +27,7 @@ import tempfile
 import time
 from contextlib import contextmanager
 from pathlib import Path, PurePosixPath
-from typing import Any, Iterable
+from typing import Any, Callable, Iterable
 from urllib.parse import unquote, urlsplit
 
 
@@ -157,6 +157,13 @@ class _EnvironmentCaptureBudget:
 
 
 _LOCK_DESCRIPTOR: int | None = None
+_SOURCE_LEASE_BROKEN = False
+
+
+def _mark_source_lease_broken(_signal_number: int, _frame: Any) -> None:
+    """Record a host-side attempt to open a bound source for writing."""
+    global _SOURCE_LEASE_BROKEN
+    _SOURCE_LEASE_BROKEN = True
 
 
 @contextmanager
@@ -848,7 +855,8 @@ def actual_command(values: list[str]) -> list[str]:
 
 
 def supervised_command(command: list[str], *, cwd: Path,
-                       environment: dict[str, str]
+                       environment: dict[str, str],
+                       pass_fds: tuple[int, ...] = ()
                        ) -> tuple[int, bytes, bytes, bool]:
     """Run one process group, capturing bounded output under a parent-death guard."""
     if not hasattr(os, "fork"):
@@ -865,9 +873,12 @@ def supervised_command(command: list[str], *, cwd: Path,
                 os.close(_LOCK_DESCRIPTOR)
             child = subprocess.Popen(
                 command, cwd=cwd, env=environment, close_fds=True,
+                pass_fds=pass_fds,
                 start_new_session=True, stdin=subprocess.DEVNULL,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             )
+            for descriptor in pass_fds:
+                os.close(descriptor)
             assert child.stdout is not None and child.stderr is not None
             streams = {
                 child.stdout.fileno(): stdout_capture.fileno(),
@@ -914,10 +925,24 @@ def supervised_command(command: list[str], *, cwd: Path,
         except BaseException:
             os._exit(253)
     os.close(read_fd)
+    write_open = True
     try:
-        _, status = os.waitpid(supervisor, 0)
+        if pass_fds:
+            while True:
+                waited, status = os.waitpid(supervisor, os.WNOHANG)
+                if waited == supervisor:
+                    break
+                if _SOURCE_LEASE_BROKEN:
+                    os.close(write_fd)
+                    write_open = False
+                    _, status = os.waitpid(supervisor, 0)
+                    break
+                time.sleep(0.02)
+        else:
+            _, status = os.waitpid(supervisor, 0)
     finally:
-        os.close(write_fd)
+        if write_open:
+            os.close(write_fd)
     stdout_capture.seek(0)
     stderr_capture.seek(0)
     stdout = stdout_capture.read()
@@ -1889,14 +1914,15 @@ def emit_captured_output(stdout: bytes, stderr: bytes) -> None:
 
 
 def reject_credential_leak(workspace: Path, environment: dict[str, str]) -> None:
-    """Reject literal provider credentials in any staged source or output byte stream."""
+    """Reject literal provider credentials in one staged source/output tree or file."""
     secrets = {
         value.encode() for value in credential_literals(environment)
         if len(value) >= 8
     }
     if not secrets:
         return
-    for path in workspace.rglob("*"):
+    paths = [workspace] if workspace.is_file() else workspace.rglob("*")
+    for path in paths:
         if path.is_symlink() or not path.is_file():
             continue
         tails = {secret: b"" for secret in secrets}
@@ -1940,6 +1966,80 @@ def trusted_sandbox_executable(name: str) -> str | None:
     if not stat.S_ISREG(metadata.st_mode) or not os.access(expected, os.X_OK):
         return None
     return expected
+
+
+def bubblewrap_supports_read_only_fd_bind(executable: str) -> bool:
+    """Probe the fd-consuming bind primitive required to hide lease fds."""
+    try:
+        completed = subprocess.run(
+            [executable, "--help"], stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            timeout=2, check=False,
+        )
+    except (OSError, subprocess.TimeoutExpired):
+        return False
+    return completed.returncode == 0 and b"--ro-bind-fd" in (
+        completed.stdout + completed.stderr
+    )
+
+
+def validate_read_only_bindings(cwd: Path,
+                                bindings: list[tuple[int, Path, Path]]) -> None:
+    """Validate descriptor-pinned declared sources and their empty mount points."""
+    canonical_cwd = cwd.resolve(strict=True)
+    descriptors: set[int] = set()
+    destinations: list[str] = []
+    for descriptor, source, destination in bindings:
+        if not isinstance(descriptor, int) or descriptor < 0 or descriptor in descriptors:
+            raise EvidenceError("read-only source binding descriptors must be unique")
+        descriptors.add(descriptor)
+        try:
+            source_info = os.fstat(descriptor)
+            live_info = os.stat(source, follow_symlinks=False)
+        except OSError as exc:
+            raise EvidenceError(f"cannot validate read-only source binding: {source}: {exc}") from exc
+        if ((source_info.st_dev, source_info.st_ino) !=
+                (live_info.st_dev, live_info.st_ino)):
+            raise EvidenceError(f"read-only source changed before execution: {source}")
+        if not stat.S_ISREG(source_info.st_mode):
+            raise EvidenceError(f"read-only source is not a regular file: {source}")
+        if source_info.st_nlink != 1:
+            raise EvidenceError(f"read-only source is not one non-aliased file: {source}")
+        if not destination.is_absolute():
+            raise EvidenceError("read-only source destinations must be absolute")
+        try:
+            relative = destination.relative_to(canonical_cwd).as_posix()
+        except ValueError as exc:
+            raise EvidenceError("read-only source destination escapes the workspace") from exc
+        if relative in {"", "."} or ".." in PurePosixPath(relative).parts:
+            raise EvidenceError("read-only source destination must not be the workspace root")
+        try:
+            destination_info = os.lstat(destination)
+        except OSError as exc:
+            raise EvidenceError(
+                f"cannot inspect read-only source mount point: {destination}: {exc}"
+            ) from exc
+        if stat.S_ISLNK(destination_info.st_mode):
+            raise EvidenceError("read-only source destination must not be a symlink")
+        if not stat.S_ISREG(destination_info.st_mode):
+            raise EvidenceError("read-only file source requires a file mount point")
+        destinations.append(relative)
+    overlap = overlapping_pair(destinations, destinations, same=True)
+    if overlap is not None:
+        raise EvidenceError("read-only source destinations overlap: " + " / ".join(overlap))
+
+
+def require_source_leases_intact(bindings: list[tuple[int, Path, Path]]) -> None:
+    """Fail if the kernel observed a writer against any zero-copy source."""
+    if _SOURCE_LEASE_BROKEN:
+        raise EvidenceError("declared source write was attempted during execution")
+    for descriptor, source, _ in bindings:
+        try:
+            lease = fcntl.fcntl(descriptor, fcntl.F_GETLEASE)
+        except OSError as exc:
+            raise EvidenceError(f"cannot verify declared source lease: {source}: {exc}") from exc
+        if lease != fcntl.F_RDLCK:
+            raise EvidenceError(f"declared source lease broke during execution: {source}")
 
 
 def selected_dotenv_credentials(project_root: Path,
@@ -2025,7 +2125,8 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
             extra_environment: dict[str, str] | None = None,
             project_root: Path | None = None,
             allow_network: bool = True,
-            provider_credentials: set[str] | None = None) -> None:
+            provider_credentials: set[str] | None = None,
+            read_only_bindings: list[tuple[int, Path, Path]] | None = None) -> None:
     environment = os.environ.copy()
     environment["PWD"] = str(cwd)
     environment.pop("OLDPWD", None)
@@ -2062,9 +2163,15 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
             command, project_root, cwd, environment
         )
     sandboxed_command: list[str]
+    bindings = read_only_bindings or []
+    binding_descriptors: tuple[int, ...] = ()
     bubblewrap = trusted_sandbox_executable("bwrap")
     sandbox_exec = trusted_sandbox_executable("sandbox-exec")
+    if bindings and (project_root is None or bubblewrap is None or
+                     not bubblewrap_supports_read_only_fd_bind(bubblewrap)):
+        raise EvidenceError("read-only source bindings require Linux bubblewrap")
     if project_root is not None and bubblewrap is not None:
+        validate_read_only_bindings(cwd, bindings)
         sandboxed_command = [
             bubblewrap, "--die-with-parent", "--new-session", "--unshare-pid",
             "--as-pid-1",
@@ -2097,9 +2204,13 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
                         ["--ro-bind", str(service_path), str(service_path)]
                     )
         sandboxed_command.extend(["--tmpfs", str(project_root)])
-        sandboxed_command.extend([
-            "--bind", str(cwd), str(cwd), "--chdir", str(cwd), "--", *command
-        ])
+        sandboxed_command.extend(["--bind", str(cwd), str(cwd)])
+        binding_descriptors = tuple(binding[0] for binding in bindings)
+        for descriptor, _, destination in bindings:
+            sandboxed_command.extend([
+                "--ro-bind-fd", str(descriptor), str(destination)
+            ])
+        sandboxed_command.extend(["--chdir", str(cwd), "--", *command])
     elif project_root is not None and sandbox_exec is not None:
         def literal(raw: str) -> str:
             return raw.replace("\\", "\\\\").replace('"', '\\"')
@@ -2149,17 +2260,21 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
     else:
         sandboxed_command = command
     returncode, captured_stdout, captured_stderr, output_overflow = supervised_command(
-        sandboxed_command, cwd=cwd, environment=environment
+        sandboxed_command, cwd=cwd, environment=environment,
+        pass_fds=binding_descriptors,
     )
     reject_captured_credential_leak(
         captured_stdout, captured_stderr, credential_scan_environment
     )
+    require_source_leases_intact(bindings)
     if output_overflow:
         raise EvidenceError("producer/renderer output exceeded the 1 MiB per-stream limit")
     emit_captured_output(captured_stdout, captured_stderr)
     if returncode != 0:
         raise EvidenceError(f"command failed with exit {returncode}: {command!r}")
     reject_credential_leak(cwd, credential_scan_environment)
+    for _, source, _ in bindings:
+        reject_credential_leak(source, credential_scan_environment)
 
 
 def command_entrypoint(command: list[str]) -> str:
@@ -2637,8 +2752,11 @@ def workspace_cleanup_guard(workspace: Path) -> Iterable[None]:
 
 @contextmanager
 def isolated_workspace(root: Path, source_paths: Iterable[str],
-                       output_paths: Iterable[str]) -> Iterable[Path]:
+                       output_paths: Iterable[str], *,
+                       read_only_bindings: list[tuple[int, Path, Path]] | None = None
+                       ) -> Iterable[Path]:
     """Run untrusted computation in a fresh view containing only declared inputs."""
+    global _SOURCE_LEASE_BROKEN
     normalized_sources: list[str] = []
     for raw in dict.fromkeys(source_paths):
         normalized, _ = project_path(root, raw)
@@ -2653,6 +2771,23 @@ def isolated_workspace(root: Path, source_paths: Iterable[str],
     # to `/private/var`. Canonicalize this trusted freshly-created directory
     # before the no-follow walker anchors every component.
     workspace = Path(tempfile.mkdtemp(prefix="results-workspace-")).resolve(strict=True)
+    binding_start = len(read_only_bindings) if read_only_bindings is not None else 0
+    bind_declared_sources = (
+        read_only_bindings is not None and
+        (binding_bubblewrap := trusted_sandbox_executable("bwrap")) is not None and
+        bubblewrap_supports_read_only_fd_bind(binding_bubblewrap)
+    )
+    previous_sigio: Any = None
+    lease_handler_installed = False
+    if bind_declared_sources:
+        try:
+            previous_sigio = signal.getsignal(signal.SIGIO)
+            signal.signal(signal.SIGIO, _mark_source_lease_broken)
+        except (AttributeError, ValueError):
+            bind_declared_sources = False
+        else:
+            _SOURCE_LEASE_BROKEN = False
+            lease_handler_installed = True
     with workspace_cleanup_guard(workspace):
         try:
             canonical_root = root.resolve(strict=True)
@@ -2680,14 +2815,48 @@ def isolated_workspace(root: Path, source_paths: Iterable[str],
                     workspace, raw, create=True
                 )
                 try:
-                    _copy_evidence_path(
-                        source, destination, source_fd=source_descriptor,
-                        destination_parent_fd=destination_parent_descriptor,
-                        destination_name=destination_name,
-                    )
+                    use_binding = False
+                    if (bind_declared_sources and
+                            stat.S_ISREG(os.fstat(source_descriptor).st_mode)):
+                        source_info = os.fstat(source_descriptor)
+                        if source_info.st_nlink != 1:
+                            raise EvidenceError(
+                                f"source is not one non-aliased regular file: {source}"
+                            )
+                        try:
+                            fcntl.fcntl(source_descriptor, fcntl.F_SETOWN, os.getpid())
+                            fcntl.fcntl(
+                                source_descriptor, fcntl.F_SETLEASE, fcntl.F_RDLCK
+                            )
+                        except (AttributeError, OSError):
+                            # A live writer, unsupported filesystem, or unavailable
+                            # lease means zero-copy cannot preserve snapshot semantics.
+                            use_binding = False
+                        else:
+                            use_binding = True
+                    if use_binding:
+                        mount_descriptor = os.open(
+                            destination_name,
+                            os.O_WRONLY | os.O_CREAT | os.O_EXCL |
+                            getattr(os, "O_NOFOLLOW", 0),
+                            0o600, dir_fd=destination_parent_descriptor,
+                        )
+                        os.close(mount_descriptor)
+                        assert read_only_bindings is not None
+                        read_only_bindings.append(
+                            (source_descriptor, source, destination)
+                        )
+                        source_descriptor = -1
+                    else:
+                        _copy_evidence_path(
+                            source, destination, source_fd=source_descriptor,
+                            destination_parent_fd=destination_parent_descriptor,
+                            destination_name=destination_name,
+                        )
                 finally:
                     os.close(destination_parent_descriptor)
-                    os.close(source_descriptor)
+                    if source_descriptor >= 0:
+                        os.close(source_descriptor)
             for raw in dict.fromkeys(output_paths):
                 normalized, destination = project_path(workspace, raw, must_exist=False)
                 if destination.exists() or destination.is_symlink():
@@ -2695,7 +2864,20 @@ def isolated_workspace(root: Path, source_paths: Iterable[str],
                 destination.parent.mkdir(parents=True, exist_ok=True)
             yield workspace
         finally:
-            remove_abandoned_workspace(workspace)
+            try:
+                remove_abandoned_workspace(workspace)
+            finally:
+                if read_only_bindings is not None:
+                    for descriptor, _, _ in read_only_bindings[binding_start:]:
+                        try:
+                            fcntl.fcntl(descriptor, fcntl.F_SETLEASE, fcntl.F_UNLCK)
+                        except OSError:
+                            pass
+                        os.close(descriptor)
+                    del read_only_bindings[binding_start:]
+                if lease_handler_installed:
+                    signal.signal(signal.SIGIO, previous_sigio)
+                    _SOURCE_LEASE_BROKEN = False
 
 
 def publish_workspace_path(root: Path, workspace: Path, raw: str) -> None:
@@ -2957,7 +3139,10 @@ def lifecycle_transaction(root: Path, *, cleanup_paths: Iterable[str],
 def execute_fresh_exhibits(command: list[str], root: Path, bundle: dict[str, Any],
                            bundle_path: str,
                            *, expected: list[dict[str, Any]] | None = None,
-                           publish: bool = True) -> tuple[list[str], dict[str, Any]]:
+                           publish: bool = True,
+                           finalize_while_sources_pinned: (
+                               Callable[[dict[str, Any]], None] | None
+                           ) = None) -> tuple[list[str], dict[str, Any]]:
     paths: list[tuple[str, Path]] = []
     live_exhibit_snapshots: list[dict[str, Any]] = []
     for exhibit in bundle["exhibits"]:
@@ -2971,7 +3156,9 @@ def execute_fresh_exhibits(command: list[str], root: Path, bundle: dict[str, Any
     sources = [bundle_path, *artifact_paths, *bundle["renderer"]["code"]]
     source_snapshots = fingerprint_many(root, sources)
     environment_capture = capture_execution_environment(root, command)
-    with isolated_workspace(root, sources, []) as workspace:
+    read_only_bindings: list[tuple[int, Path, Path]] = []
+    with isolated_workspace(
+            root, sources, [], read_only_bindings=read_only_bindings) as workspace:
         stage = workspace / ".results-exhibits"
         stage.mkdir()
         execute(
@@ -2980,13 +3167,15 @@ def execute_fresh_exhibits(command: list[str], root: Path, bundle: dict[str, Any
             project_root=root,
             allow_network=False,
             provider_credentials=set(),
+            read_only_bindings=read_only_bindings,
         )
         require_stable_environment(
             environment_capture, capture_execution_environment(root, command),
             "rendering",
         )
-        source_failures = compare_snapshot(
-            workspace, source_snapshots, "isolated renderer source"
+        source_failures = compare_isolated_sources(
+            root, workspace, source_snapshots, read_only_bindings,
+            "isolated renderer source",
         )
         if source_failures:
             raise EvidenceError("renderer mutated its isolated declared sources: " +
@@ -3008,6 +3197,13 @@ def execute_fresh_exhibits(command: list[str], root: Path, bundle: dict[str, Any
             for raw, _ in paths:
                 _remove_project_path(root, raw)
                 publish_workspace_path(root, stage, raw)
+        if finalize_while_sources_pinned is not None:
+            finalize_while_sources_pinned(environment_capture)
+        # execute() checked immediately after the child exited, but validation
+        # and publication above can be substantial. A writer remains blocked by
+        # the lease until the workspace exits; reject any break observed during
+        # that post-execution interval before the caller commits its transaction.
+        require_source_leases_intact(read_only_bindings)
     return [raw for raw, _ in paths], environment_capture
 
 
@@ -3084,6 +3280,23 @@ def compare_snapshot(root: Path, recorded: list[dict[str, Any]], label: str) -> 
             continue
         if current != expected:
             failures.append(f"{label}: stale bytes at {raw}")
+    return failures
+
+
+def compare_isolated_sources(root: Path, workspace: Path,
+                             recorded: list[dict[str, Any]],
+                             bindings: list[tuple[int, Path, Path]],
+                             label: str) -> list[str]:
+    """Verify bound regular files live and copied directory sources in workspace."""
+    bound_paths = {
+        destination.relative_to(workspace).as_posix()
+        for _, _, destination in bindings
+    }
+    bound = [entry for entry in recorded if entry.get("path") in bound_paths]
+    copied = [entry for entry in recorded if entry.get("path") not in bound_paths]
+    failures = compare_snapshot(root, bound, label) if bound else []
+    if copied:
+        failures.extend(compare_snapshot(workspace, copied, label))
     return failures
 
 
@@ -3825,17 +4038,23 @@ def command_run(args: argparse.Namespace) -> int:
                          *plan["renderer_code"]]
     workspace_outputs = [bundle_raw, *plan["artifacts"], *plan["exhibits"]]
     environment_capture = capture_execution_environment(root, command)
-    with isolated_workspace(root, workspace_sources, workspace_outputs) as workspace:
+    read_only_bindings: list[tuple[int, Path, Path]] = []
+    with isolated_workspace(
+            root, workspace_sources, workspace_outputs,
+            read_only_bindings=read_only_bindings) as workspace:
         execute(
             command, workspace, bundle_path=bundle_raw, project_root=root,
             provider_credentials=set(plan["provider_credentials"]),
+            read_only_bindings=read_only_bindings,
         )
         require_stable_environment(
             environment_capture, capture_execution_environment(root, command),
             "analysis",
         )
-        isolated_source_failures = compare_snapshot(
-            workspace, [plan_snapshot, *code_snapshot, *input_snapshot, *renderer_snapshot],
+        isolated_source_failures = compare_isolated_sources(
+            root, workspace,
+            [plan_snapshot, *code_snapshot, *input_snapshot, *renderer_snapshot],
+            read_only_bindings,
             "isolated producer source",
         )
         if isolated_source_failures:
@@ -3916,6 +4135,7 @@ def command_run(args: argparse.Namespace) -> int:
             registry["receipt_fingerprints"][receipt_raw] = fingerprint(root, receipt_raw)
             load_registry(root, candidate=registry)
             atomic_json(registry_path, registry)
+            require_source_leases_intact(read_only_bindings)
         except BaseException:
             rollback_lifecycle_transaction(root, transaction)
             raise
@@ -3971,14 +4191,8 @@ def command_render(args: argparse.Namespace) -> int:
         restore_paths=[receipt_raw, *existing_exhibits],
         registry_before=json.loads(json.dumps(registry_before)),
     )
-    try:
-        _, environment_capture = execute_fresh_exhibits(
-            command, root, bundle, bundle_field["path"],
-            expected=expected_exhibits,
-        )
-        rendered_snapshot = snapshot_render(
-            root, bundle, command, environment_capture
-        )
+    def finalize_render(environment_capture: dict[str, Any]) -> None:
+        rendered_snapshot = snapshot_render(root, bundle, command, environment_capture)
         # Rendering must not mutate the evidence it consumes.
         producer_failures: list[str] = []
         for key in ("plan", "bundle", "code", "inputs", "renderer_code", "artifacts"):
@@ -4003,6 +4217,13 @@ def command_render(args: argparse.Namespace) -> int:
                                     "; ".join(final["failures"]))
         elif rendered_snapshot != prior_render:
             raise EvidenceError("active rerender changed immutable render metadata")
+
+    try:
+        execute_fresh_exhibits(
+            command, root, bundle, bundle_field["path"],
+            expected=expected_exhibits,
+            finalize_while_sources_pinned=finalize_render,
+        )
     except BaseException:
         rollback_lifecycle_transaction(root, transaction)
         raise

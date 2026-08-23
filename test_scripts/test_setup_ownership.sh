@@ -348,7 +348,7 @@ if env PATH=/usr/bin:/bin "$repo_root/test_scripts/update_with_manifest_selector
     --no-model-probe >"$scratch/unsupported-generation-update.log" 2>&1; then
     echo "FAIL: updater accepted an older deployment generation" >&2; exit 1
 fi
-grep -Fq 'update requires a 2.29.0 deployment' \
+grep -Fq 'update requires a 2.29.1 deployment' \
     "$scratch/unsupported-generation-update.log" \
     || { echo "FAIL: older-generation rejection was unclear" >&2; exit 1; }
 [ "$(ls -di "$unsupported_target/CLAUDE.md")" = "$unsupported_claude_inode" ] \
@@ -374,7 +374,7 @@ if env PATH=/usr/bin:/bin "$repo_root/test_scripts/update_with_manifest_selector
     --no-model-probe >"$scratch/unsupported-adjacent-update.log" 2>&1; then
     echo "FAIL: updater accepted an adjacent template version" >&2; exit 1
 fi
-grep -Fq 'update requires a 2.29.0 deployment' \
+grep -Fq 'update requires a 2.29.1 deployment' \
     "$scratch/unsupported-adjacent-update.log" \
     || { echo "FAIL: adjacent-version rejection was unclear" >&2; exit 1; }
 rm "$unsupported_target/.deploy_manifest.json"

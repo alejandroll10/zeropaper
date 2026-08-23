@@ -4,6 +4,7 @@ from __future__ import annotations
 import fcntl
 import hashlib
 import importlib.util
+import io
 import json
 import os
 import re
@@ -17,6 +18,7 @@ import tempfile
 import time
 import unittest
 import venv
+from contextlib import redirect_stderr, redirect_stdout
 from pathlib import Path
 from unittest import mock
 
@@ -168,6 +170,50 @@ if (trigger_root / 'mutate-during-bind').exists():
             fcntl.flock(descriptor, fcntl.LOCK_UN)
         finally:
             os.close(descriptor)
+
+    def run_with_post_execution_writer(
+            self, argv: list[str], source: Path) -> tuple[int, str]:
+        """Break a bound-source lease after child exit but before publication."""
+        spec = importlib.util.spec_from_file_location(
+            f"results_pipeline_post_execution_{time.time_ns()}", UTILITY
+        )
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        original_compare = module.compare_isolated_sources
+        writers: list[subprocess.Popen[str]] = []
+
+        def compare_then_write(*args, **kwargs):
+            failures = original_compare(*args, **kwargs)
+            if not writers:
+                writers.append(subprocess.Popen(
+                    [sys.executable, "-c",
+                     "import pathlib, sys; pathlib.Path(sys.argv[1]).write_text("
+                     "'post-execution\\n', encoding='utf-8')", str(source)],
+                    text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+                ))
+                deadline = time.monotonic() + 5
+                while (not module._SOURCE_LEASE_BROKEN and
+                       writers[0].poll() is None and time.monotonic() < deadline):
+                    time.sleep(0.01)
+                if not module._SOURCE_LEASE_BROKEN:
+                    raise AssertionError("post-execution writer did not break the source lease")
+            return failures
+
+        stdout = io.StringIO()
+        stderr_bytes = io.BytesIO()
+        stderr = io.TextIOWrapper(stderr_bytes, encoding="utf-8")
+        try:
+            with mock.patch.object(module, "compare_isolated_sources", compare_then_write):
+                with redirect_stdout(stdout), redirect_stderr(stderr):
+                    returncode = module.main(argv)
+        finally:
+            for writer in writers:
+                writer_stdout, writer_stderr = writer.communicate(timeout=5)
+                if writer.returncode != 0:
+                    raise AssertionError(writer_stdout + writer_stderr)
+        stderr.flush()
+        return returncode, stderr_bytes.getvalue().decode("utf-8")
 
     def add_paper_audit(self, *, citation: bool = False, asset: bool = False,
                         listing: bool = False, local_style: bool = False,
@@ -875,6 +921,209 @@ if (trigger_root / 'mutate-during-bind').exists():
         )
         self.assertEqual(set(temp_root.glob("results-workspace-*")), before)
         self.assert_results_lock_available()
+
+    @unittest.skipUnless(
+        sys.platform.startswith("linux") and shutil.which("bwrap"),
+        "Linux read-only declared-input binding check",
+    )
+    def test_linux_declared_input_is_bound_read_only_without_copying(self) -> None:
+        input_path = self.root / "data/input.txt"
+        input_path.write_bytes(b"x" * (4 * 1024 * 1024))
+        script = self.root / "code/analyze.py"
+        script.write_text(
+            "import pathlib, time\n"
+            "declared = pathlib.Path('data/input.txt')\n"
+            "pathlib.Path('producer-ready').write_text(str(declared.stat().st_size))\n"
+            "while not pathlib.Path('producer-continue').exists():\n"
+            "    time.sleep(0.02)\n" + self.analyze_source,
+            encoding="utf-8",
+        )
+        temp_root = Path(tempfile.gettempdir())
+        before = set(temp_root.glob("results-workspace-*"))
+        process = subprocess.Popen(
+            [sys.executable, str(UTILITY), "run", "--plan",
+             "output/stagex/results.plan.json", "--bundle",
+             "output/stagex/results.json", "--receipt",
+             "output/stagex/results.receipt.json", "--",
+             sys.executable, "code/analyze.py"],
+            cwd=self.root, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        workspace: Path | None = None
+        try:
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                for candidate in set(temp_root.glob("results-workspace-*")) - before:
+                    if (candidate / "producer-ready").exists():
+                        workspace = candidate
+                        break
+                if workspace is not None:
+                    break
+                time.sleep(0.02)
+            self.assertIsNotNone(workspace, "producer never entered its isolated workspace")
+            assert workspace is not None
+            self.assertEqual(
+                (workspace / "producer-ready").read_text(encoding="utf-8"),
+                str(input_path.stat().st_size),
+            )
+            self.assertEqual(
+                (workspace / "data/input.txt").stat().st_size, 0,
+                "host workspace contains a physical input copy instead of a mount point",
+            )
+            (workspace / "producer-continue").write_text("continue\n", encoding="utf-8")
+            stdout, stderr = process.communicate(timeout=10)
+            self.assertEqual(process.returncode, 0, stdout + stderr)
+        finally:
+            if process.poll() is None:
+                process.kill()
+                process.communicate(timeout=5)
+        self.assertFalse(workspace.exists())
+        self.assertEqual(input_path.stat().st_size, 4 * 1024 * 1024)
+        self.assert_results_lock_available()
+
+    @unittest.skipUnless(
+        sys.platform.startswith("linux") and shutil.which("bwrap"),
+        "Linux lease-descriptor confinement check",
+    )
+    def test_linux_payload_cannot_access_bound_source_lease_descriptor(self) -> None:
+        script = self.root / "code/analyze.py"
+        script.write_text(
+            "import os, pathlib\n"
+            "declared = os.stat('data/input.txt')\n"
+            "leaked = []\n"
+            "for raw_fd in os.listdir('/proc/self/fd'):\n"
+            "    try:\n"
+            "        opened = os.fstat(int(raw_fd))\n"
+            "    except OSError:\n"
+            "        continue\n"
+            "    if (opened.st_dev, opened.st_ino) == (declared.st_dev, declared.st_ino):\n"
+            "        leaked.append(raw_fd)\n"
+            "assert not leaked, f'lease descriptors leaked: {leaked}'\n" +
+            self.analyze_source,
+            encoding="utf-8",
+        )
+        self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py",
+        )
+        self.assertEqual(
+            (self.root / "data/input.txt").read_text(encoding="utf-8"),
+            "input-v1\n",
+        )
+
+    @unittest.skipUnless(
+        sys.platform.startswith("linux") and shutil.which("bwrap"),
+        "Linux declared-source lease check",
+    )
+    def test_linux_transient_host_write_breaks_bound_source_lease(self) -> None:
+        input_path = self.root / "data/input.txt"
+        original = "input-v1\n"
+        script = self.root / "code/analyze.py"
+        script.write_text(
+            "import pathlib, time\n"
+            "pathlib.Path('producer-ready').write_text('ready')\n"
+            "time.sleep(30)\n" + self.analyze_source,
+            encoding="utf-8",
+        )
+        temp_root = Path(tempfile.gettempdir())
+        before = set(temp_root.glob("results-workspace-*"))
+        run = subprocess.Popen(
+            [sys.executable, str(UTILITY), "run", "--plan",
+             "output/stagex/results.plan.json", "--bundle",
+             "output/stagex/results.json", "--receipt",
+             "output/stagex/results.receipt.json", "--",
+             sys.executable, "code/analyze.py"],
+            cwd=self.root, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        writer: subprocess.Popen[str] | None = None
+        try:
+            workspace: Path | None = None
+            deadline = time.monotonic() + 5
+            while time.monotonic() < deadline:
+                for candidate in set(temp_root.glob("results-workspace-*")) - before:
+                    if (candidate / "producer-ready").exists():
+                        workspace = candidate
+                        break
+                if workspace is not None:
+                    break
+                time.sleep(0.02)
+            self.assertIsNotNone(workspace, "producer never reached its leased input")
+            writer = subprocess.Popen(
+                [sys.executable, "-c",
+                 "import pathlib; p=pathlib.Path('data/input.txt'); "
+                 "p.write_text('transient-v2\\n'); p.write_text('input-v1\\n')"],
+                cwd=self.root, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+            )
+            stdout, stderr = run.communicate(timeout=10)
+            self.assertEqual(run.returncode, 2, stdout + stderr)
+            self.assertIn("declared source write was attempted", stderr)
+            writer_stdout, writer_stderr = writer.communicate(timeout=5)
+            self.assertEqual(writer.returncode, 0, writer_stdout + writer_stderr)
+        finally:
+            if run.poll() is None:
+                run.kill()
+                run.communicate(timeout=5)
+            if writer is not None and writer.poll() is None:
+                writer.kill()
+                writer.communicate(timeout=5)
+        self.assertEqual(input_path.read_text(encoding="utf-8"), original)
+        self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
+        self.assert_results_lock_available()
+
+    @unittest.skipUnless(
+        sys.platform.startswith("linux") and shutil.which("bwrap"),
+        "Linux post-execution producer lease check",
+    )
+    def test_linux_post_execution_writer_rolls_back_producer_publication(self) -> None:
+        returncode, stderr = self.run_with_post_execution_writer(
+            ["run", "--project-root", str(self.root),
+             "--plan", "output/stagex/results.plan.json",
+             "--bundle", "output/stagex/results.json",
+             "--receipt", "output/stagex/results.receipt.json", "--",
+             sys.executable, "code/analyze.py"],
+            self.root / "data/input.txt",
+        )
+        self.assertEqual(returncode, 2, stderr)
+        self.assertIn("declared source write was attempted", stderr)
+        self.assertFalse((self.root / "output/stagex/results.json").exists())
+        self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
+        self.assertFalse((self.root / "output/stagex/detail.json").exists())
+        registry = json.loads(
+            (self.root / "process_log/results_registry.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(registry["pending"], [])
+        self.assertEqual(
+            (self.root / "data/input.txt").read_text(encoding="utf-8"),
+            "post-execution\n",
+        )
+
+    @unittest.skipUnless(
+        sys.platform.startswith("linux") and shutil.which("bwrap"),
+        "Linux post-execution renderer lease check",
+    )
+    def test_linux_post_execution_writer_rolls_back_renderer_publication(self) -> None:
+        self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py",
+        )
+        receipt = self.root / "output/stagex/results.receipt.json"
+        registry = self.root / "process_log/results_registry.json"
+        before = (receipt.read_bytes(), registry.read_bytes())
+        returncode, stderr = self.run_with_post_execution_writer(
+            ["render", "--project-root", str(self.root),
+             "--receipt", "output/stagex/results.receipt.json", "--",
+             sys.executable, "code/render.py"],
+            self.root / "code/render.py",
+        )
+        self.assertEqual(returncode, 2, stderr)
+        self.assertIn("declared source write was attempted", stderr)
+        self.assertEqual((receipt.read_bytes(), registry.read_bytes()), before)
+        self.assertFalse((self.root / "output/stagex/tables/main.tex").exists())
+        self.assertEqual(
+            (self.root / "code/render.py").read_text(encoding="utf-8"),
+            "post-execution\n",
+        )
 
     def test_mode_zero_workspace_root_is_removed_after_normal_exit(self) -> None:
         script = self.root / "code/analyze.py"
@@ -2259,6 +2508,67 @@ if (trigger_root / 'mutate-during-bind').exists():
                 self.assertEqual(workspace.parent, physical.resolve())
                 self.assertTrue((workspace / "data/input.txt").is_file())
 
+    def test_isolated_workspace_copies_when_read_only_bindings_are_unavailable(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_copy_fallback", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        bindings: list[tuple[int, Path, Path]] = []
+        with mock.patch.object(module, "trusted_sandbox_executable", return_value=None):
+            with module.isolated_workspace(
+                    self.root, ["data/input.txt"], [],
+                    read_only_bindings=bindings) as workspace:
+                self.assertEqual(bindings, [])
+                self.assertEqual(
+                    (workspace / "data/input.txt").read_text(encoding="utf-8"),
+                    "input-v1\n",
+                )
+
+    @unittest.skipUnless(
+        sys.platform.startswith("linux") and shutil.which("bwrap"),
+        "Linux source-lease fallback check",
+    )
+    def test_isolated_workspace_copies_when_source_lease_is_unavailable(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_lease_fallback", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        original_fcntl = module.fcntl.fcntl
+
+        def reject_read_lease(descriptor: int, operation: int, argument: int = 0):
+            if operation == module.fcntl.F_SETLEASE and argument == module.fcntl.F_RDLCK:
+                raise OSError("leases unsupported")
+            return original_fcntl(descriptor, operation, argument)
+
+        bindings: list[tuple[int, Path, Path]] = []
+        with mock.patch.object(module.fcntl, "fcntl", side_effect=reject_read_lease):
+            with module.isolated_workspace(
+                    self.root, ["data/input.txt"], [],
+                    read_only_bindings=bindings) as workspace:
+                self.assertEqual(bindings, [])
+                self.assertEqual(
+                    (workspace / "data/input.txt").read_text(encoding="utf-8"),
+                    "input-v1\n",
+                )
+
+    @unittest.skipUnless(
+        sys.platform.startswith("linux") and shutil.which("bwrap"),
+        "Linux declared-directory snapshot check",
+    )
+    def test_isolated_workspace_still_copies_declared_directories(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_directory_copy", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        bindings: list[tuple[int, Path, Path]] = []
+        with module.isolated_workspace(
+                self.root, ["data"], [], read_only_bindings=bindings) as workspace:
+            self.assertEqual(bindings, [])
+            self.assertEqual(
+                (workspace / "data/input.txt").read_text(encoding="utf-8"),
+                "input-v1\n",
+            )
+
     def test_isolated_workspace_rejects_temp_root_inside_project(self) -> None:
         spec = importlib.util.spec_from_file_location("results_pipeline_temp_overlap", UTILITY)
         assert spec and spec.loader
@@ -2420,7 +2730,7 @@ if (trigger_root / 'mutate-during-bind').exists():
             "--receipt", "output/stagex/results.receipt.json", "--",
             sys.executable, "code/analyze.py", expected=2,
         )
-        self.assertIn("isolated producer source", completed.stderr)
+        self.assertRegex(completed.stderr, r"command failed|isolated producer source")
         self.assertEqual((self.root / "data/input.txt").read_text(), "input-v1\n")
         self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
         self.assertFalse((self.root / "output/stagex/detail.json").exists())
@@ -2548,7 +2858,7 @@ if (trigger_root / 'mutate-during-bind').exists():
             "--receipt", "output/stagex/results.receipt.json", "--",
             sys.executable, "code/analyze.py", expected=2,
         )
-        self.assertIn("isolated producer source", completed.stderr)
+        self.assertRegex(completed.stderr, r"command failed|isolated producer source")
         self.assertEqual((self.root / "data/input.txt").read_text(), "input-v1\n")
         self.assertFalse((self.root / "output/stagex/detail.json").exists())
 
@@ -2571,7 +2881,10 @@ if (trigger_root / 'mutate-during-bind').exists():
                 "--receipt", "output/stagex/results.receipt.json", "--",
                 sys.executable, "code/analyze.py", expected=2,
             )
-            self.assertIn("isolated producer source", completed.stderr)
+            self.assertRegex(
+                completed.stderr,
+                r"command failed|isolated producer source|symlink path is forbidden",
+            )
             self.assertFalse((self.root / "data").is_symlink())
             self.assertEqual((self.root / "data/input.txt").read_text(), "input-v1\n")
             self.assertEqual(outside_input.read_text(), "outside-v1\n")
@@ -2594,7 +2907,7 @@ if (trigger_root / 'mutate-during-bind').exists():
             "--receipt", "output/stagex/results.receipt.json", "--",
             sys.executable, "code/analyze.py", expected=2,
         )
-        self.assertIn("isolated producer source", completed.stderr)
+        self.assertRegex(completed.stderr, r"command failed|isolated producer source")
         self.assertEqual(renderer.read_bytes(), before)
 
     def test_analysis_cannot_prewrite_renderer_owned_exhibit(self) -> None:

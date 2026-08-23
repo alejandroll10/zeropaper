@@ -154,12 +154,18 @@ An N that is off by an order of magnitude from these (e.g. 500K or 50M firm-mont
 - `consol = 'C'` — consolidated
 
 ### IBES (ibes) — Analyst forecasts
+Read the dedicated `ibes` skill before pulling these tables. It carries the
+split-basis, currency, periodicity, revision, and identifier rules that keep a
+plausible-looking query from producing invalid forecast errors or dispersion.
+
 | Table | Description | Key columns |
 |-------|-------------|-------------|
-| `statsum_epsus` | Summary statistics | ticker, fpedats, statpers, meanest, medest, numest |
-| `det_epsus` | Individual estimates | ticker, analys, fpedats, value, revdats |
-| `act_epsus` | Actual EPS | ticker, pends, value, anndats |
-| `id` | Identifier mapping | ticker, cusip, cname |
+| `statsumu_epsus` | Unadjusted summary statistics (preferred for dispersion) | ticker, fpedats, statpers, fpi, estflag, curcode, meanest, medest, stdev, numest |
+| `detu_epsus` | Unadjusted individual estimates | ticker, estimator, analys, fpedats, anndats, anntims, actdats, acttims, revdats, revtims, report_curr, pdf, value |
+| `actu_epsus` | Unadjusted actual EPS | ticker, pends, pdicity, value, anndats, curr_act |
+| `statsum_epsus` / `det_epsus` / `act_epsus` | Split-adjusted counterparts | same roles; adjusted Summary is cent-rounded |
+| `wrdsapps.ibcrsphist` | Date-bounded IBES-to-CRSP link (ICLINK) | ticker, permno, score, sdate, edate |
+| `ibes.id` | IBES identifiers only — not the CRSP link | ticker, cusip, cname, sdates |
 
 ### Options (optionm) — OptionMetrics
 | Table | Description | Key columns |
@@ -256,13 +262,20 @@ df = wrds_query("""
 ### Analyst forecast dispersion
 ```python
 df = wrds_query("""
-    SELECT ticker, fpedats, statpers, meanest, medest, stdev, numest
-    FROM ibes.statsum_epsus
-    WHERE fpi = '1'
+    SELECT ticker, fpedats, statpers, estflag, curcode,
+           meanest, medest, stdev, numest
+    FROM ibes.statsumu_epsus
+    WHERE measure = 'EPS'
+      AND fpi = '1'
+      AND estflag = 'P'  -- choose one company basis; do not mix P/S rows
       AND statpers BETWEEN '2000-01-01' AND '2024-12-31'
       AND numest >= 3
 """)
 ```
+Here `stdev` is disagreement across analysts at one snapshot, not dispersion of
+ex-post forecast errors. For an error measure, read the `ibes` skill before
+joining an actual: match `measure`, annual/quarterly periodicity, and currency,
+then put forecast and actual on the same split basis before subtracting.
 
 ## Performance tips
 - **Always filter on date.** CRSP daily has ~100M rows. Never `SELECT *` without a WHERE clause.
