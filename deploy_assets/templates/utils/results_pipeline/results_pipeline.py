@@ -31,7 +31,8 @@ from typing import Any, Iterable
 from urllib.parse import unquote, urlsplit
 
 
-RECEIPT_VERSION = 1
+RECEIPT_VERSION = 2
+ENVIRONMENT_CAPTURE_VERSION = 1
 RUN_PLAN_VERSION = 1
 PAPER_RECEIPT_VERSION = 4
 REGISTRY_VERSION = 1
@@ -100,10 +101,59 @@ NETWORK_ENV_KEYS = {
     "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "UF_API_KEY", "DEEPINFRA_TOKEN",
     "LOCAL_LLM_API_KEY", "LOCAL_LLM_BASE_URL", "LOCAL_LLM_MODEL",
 }
+CAPTURED_RUNTIME_ENV_KEYS = {
+    "LANG", "LANGUAGE", "LC_ALL", "LC_CTYPE", "TZ",
+    "PYTHONHASHSEED", "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS",
+    "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS", "CUDA_VISIBLE_DEVICES",
+}
+DEPENDENCY_MANIFEST_PATHS = (
+    ".python-version", ".tool-versions", "pyproject.toml", "uv.lock",
+    "requirements.txt", "renv.lock", "Project.toml", "Manifest.toml",
+    ".arpipeline/update_inputs/deps/core.txt",
+    ".arpipeline/update_inputs/deps/ssj.txt",
+    ".arpipeline/update_inputs/deps/extensions/empirical.txt",
+    ".arpipeline/update_inputs/deps/extensions/theory_llm.txt",
+)
+MAX_ENVIRONMENT_CAPTURE_FILE_BYTES = 64 * 1024 * 1024
+MAX_ENVIRONMENT_CAPTURE_TOTAL_BYTES = 64 * 1024 * 1024
+MAX_ENVIRONMENT_CAPTURE_FILES = 20_000
+MAX_ENVIRONMENT_CAPTURE_ENTRIES = 20_000
+MAX_ENVIRONMENT_CAPTURE_TEXT_BYTES = 16_384
+MAX_VENV_LIBRARY_ENTRIES = 512
+MAX_VENV_SITE_PACKAGES_ENTRIES = 16_384
 
 
 class EvidenceError(RuntimeError):
     pass
+
+
+class _EnvironmentCaptureBudget:
+    """Bound trusted-parent environment inspection work per snapshot."""
+
+    def __init__(self) -> None:
+        self.bytes = 0
+        self.files = 0
+        self.entries = 0
+        self.forbidden_inodes: set[tuple[int, int]] = set()
+
+    def reserve(self, size: int, display_path: str) -> None:
+        if size > MAX_ENVIRONMENT_CAPTURE_FILE_BYTES:
+            raise EvidenceError(
+                f"runtime file exceeds the environment capture per-file limit: {display_path}"
+            )
+        if self.files + 1 > MAX_ENVIRONMENT_CAPTURE_FILES:
+            raise EvidenceError("environment capture file-count limit exceeded")
+        if self.bytes + size > MAX_ENVIRONMENT_CAPTURE_TOTAL_BYTES:
+            raise EvidenceError("environment capture aggregate byte limit exceeded")
+        self.files += 1
+        self.bytes += size
+
+    def observe_entry(self, where: str) -> None:
+        if self.entries + 1 > MAX_ENVIRONMENT_CAPTURE_ENTRIES:
+            raise EvidenceError(
+                f"environment capture directory-entry limit exceeded: {where}"
+            )
+        self.entries += 1
 
 
 _LOCK_DESCRIPTOR: int | None = None
@@ -887,6 +937,783 @@ def _inside(path: Path, parent: Path) -> bool:
         return False
 
 
+def _sha256_bytes(value: bytes) -> str:
+    return f"sha256:{hashlib.sha256(value).hexdigest()}"
+
+
+def _runtime_descriptor_identity(descriptor: int, display_path: str,
+                                 resolved_path: str,
+                                 budget: _EnvironmentCaptureBudget,
+                                 *, link_target: str | None = None,
+                                 require_unaliased: bool = False) -> dict[str, Any]:
+    """Hash a securely opened runtime descriptor within the capture budget."""
+    try:
+        before = os.fstat(descriptor)
+        if (not stat.S_ISREG(before.st_mode) or
+                (require_unaliased and before.st_nlink != 1)):
+            raise EvidenceError(f"runtime file is not regular: {display_path}")
+        if (before.st_dev, before.st_ino) in budget.forbidden_inodes:
+            raise EvidenceError(
+                f"credential-bearing file may not enter environment capture: {display_path}"
+            )
+        budget.reserve(before.st_size, display_path)
+        digest = hashlib.sha256()
+        remaining = before.st_size
+        while remaining:
+            chunk = os.read(descriptor, min(1024 * 1024, remaining))
+            if not chunk:
+                raise EvidenceError(f"runtime file truncated while captured: {display_path}")
+            digest.update(chunk)
+            remaining -= len(chunk)
+        after = os.fstat(descriptor)
+        identity_before = (
+            before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns,
+            before.st_ctime_ns,
+        )
+        identity_after = (
+            after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns,
+            after.st_ctime_ns,
+        )
+        if identity_before != identity_after:
+            raise EvidenceError(f"runtime file changed while captured: {display_path}")
+        result: dict[str, Any] = {
+            "path": display_path,
+            "resolved_path": resolved_path,
+            "sha256": f"sha256:{digest.hexdigest()}",
+            "size": before.st_size,
+        }
+        if link_target is not None:
+            result["link_target"] = link_target
+        return result
+    finally:
+        os.close(descriptor)
+
+
+def _host_file_identity(path: Path, display_path: str,
+                        budget: _EnvironmentCaptureBudget, *,
+                        expose_resolved_path: bool = False,
+                        allowed_root: Path | None = None) -> dict[str, Any]:
+    """Fingerprint one host runtime file without executing project-controlled code."""
+    try:
+        requested = path.absolute()
+        resolved = requested.resolve(strict=True)
+        if allowed_root is not None:
+            resolved_allowed_root = allowed_root.resolve(strict=True)
+            if not _inside(resolved, resolved_allowed_root):
+                raise EvidenceError(
+                    f"runtime metadata resolves outside its environment: {display_path}"
+                )
+        link_target = os.readlink(requested) if requested.is_symlink() else None
+        descriptor = _open_entry_read(resolved)
+    except (OSError, RuntimeError) as exc:
+        raise EvidenceError(f"cannot inspect runtime file {display_path}: {exc}") from exc
+    resolved_display = (str(resolved) if expose_resolved_path or
+                        Path(display_path).is_absolute() else display_path)
+    return _runtime_descriptor_identity(
+        descriptor, display_path, resolved_display, budget, link_target=link_target
+    )
+
+
+def _optional_runtime_file(path: Path, display_path: str, *,
+                           allowed_root: Path | None = None,
+                           budget: _EnvironmentCaptureBudget) -> dict[str, Any] | None:
+    try:
+        path.lstat()
+    except FileNotFoundError:
+        return None
+    except OSError as exc:
+        raise EvidenceError(f"cannot inspect runtime file {display_path}: {exc}") from exc
+    return _host_file_identity(
+        path, display_path, budget, allowed_root=allowed_root
+    )
+
+
+def _metadata_name_version(path: Path, allowed_root: Path,
+                           budget: _EnvironmentCaptureBudget
+                           ) -> tuple[str | None, str | None]:
+    """Read only the bounded RFC-822 header needed for package name/version."""
+    try:
+        resolved = path.resolve(strict=True)
+        if not _inside(resolved, allowed_root.resolve(strict=True)):
+            return None, None
+        descriptor = _open_entry_read(resolved)
+    except (EvidenceError, OSError, RuntimeError):
+        return None, None
+    try:
+        before = os.fstat(descriptor)
+        maximum = 4 * 1024 * 1024
+        if not stat.S_ISREG(before.st_mode) or before.st_size > maximum:
+            return None, None
+        if (before.st_dev, before.st_ino) in budget.forbidden_inodes:
+            raise EvidenceError(
+                f"credential-bearing file may not enter environment capture: {path}"
+            )
+        budget.reserve(before.st_size, str(path))
+        chunks: list[bytes] = []
+        remaining = before.st_size
+        while remaining:
+            chunk = os.read(descriptor, min(1024 * 1024, remaining))
+            if not chunk:
+                return None, None
+            chunks.append(chunk)
+            remaining -= len(chunk)
+        raw = b"".join(chunks)
+        after = os.fstat(descriptor)
+        if (len(raw) > maximum or
+                (before.st_dev, before.st_ino, before.st_size, before.st_mtime_ns,
+                 before.st_ctime_ns) !=
+                (after.st_dev, after.st_ino, after.st_size, after.st_mtime_ns,
+                 after.st_ctime_ns)):
+            return None, None
+    finally:
+        os.close(descriptor)
+    name: str | None = None
+    version: str | None = None
+    for line in raw.decode("utf-8", errors="replace").splitlines():
+        if not line:
+            break
+        key, separator, value = line.partition(":")
+        if not separator:
+            continue
+        folded = key.strip().casefold()
+        if folded == "name" and name is None:
+            candidate = value.strip()
+            if (len(candidate) <= 512 and
+                    not any(ord(character) < 32 for character in candidate)):
+                name = candidate
+        elif folded == "version" and version is None:
+            candidate = value.strip()
+            if (len(candidate) <= 512 and
+                    not any(ord(character) < 32 for character in candidate)):
+                version = candidate
+    return name, version
+
+
+def _bounded_directory_paths(path: Path, maximum: int, where: str,
+                             budget: _EnvironmentCaptureBudget) -> list[Path]:
+    """Enumerate a resolved directory through a held descriptor with a hard cap."""
+    descriptor = _open_directory_path(path)
+    names: list[str] = []
+    try:
+        with os.scandir(descriptor) as entries:
+            for entry in entries:
+                budget.observe_entry(where)
+                _validate_descendant_name(entry.name, path)
+                names.append(entry.name)
+                if len(names) > maximum:
+                    raise EvidenceError(f"too many entries while capturing {where}")
+    except OSError as exc:
+        raise EvidenceError(f"cannot enumerate {where}: {exc}") from exc
+    finally:
+        os.close(descriptor)
+    return [path / name for name in sorted(names, key=lambda value: (value.casefold(), value))]
+
+
+def _venv_site_packages(venv: Path, budget: _EnvironmentCaptureBudget) -> list[Path]:
+    venv_root = venv.resolve()
+    candidates: list[Path] = []
+    for lib_name in ("lib", "lib64"):
+        library = venv / lib_name
+        try:
+            library.lstat()
+        except FileNotFoundError:
+            continue
+        except OSError as exc:
+            raise EvidenceError(f"cannot inspect project venv library {library}: {exc}") from exc
+        try:
+            resolved_library = library.resolve(strict=True)
+        except (OSError, RuntimeError) as exc:
+            raise EvidenceError(f"cannot resolve project venv library {library}: {exc}") from exc
+        if not _inside(resolved_library, venv_root):
+            raise EvidenceError(f"project venv library resolves outside its environment: {library}")
+        try:
+            children = _bounded_directory_paths(
+                resolved_library, MAX_VENV_LIBRARY_ENTRIES,
+                f"project venv library {library}", budget,
+            )
+        except (NotADirectoryError, PermissionError, OSError) as exc:
+            raise EvidenceError(f"cannot enumerate project venv library {library}: {exc}") from exc
+        for child in children:
+            if child.name.startswith("python"):
+                candidates.append(child / "site-packages")
+    candidates.append(venv / "Lib" / "site-packages")
+    result: list[Path] = []
+    seen: set[Path] = set()
+    for candidate in candidates:
+        try:
+            candidate.lstat()
+        except FileNotFoundError:
+            continue
+        except OSError as exc:
+            raise EvidenceError(
+                f"cannot inspect project venv site-packages {candidate}: {exc}"
+            ) from exc
+        try:
+            resolved = candidate.resolve(strict=True)
+        except (OSError, RuntimeError) as exc:
+            raise EvidenceError(
+                f"cannot resolve project venv site-packages {candidate}: {exc}"
+            ) from exc
+        if not _inside(resolved, venv_root):
+            raise EvidenceError(
+                f"project venv site-packages resolves outside its environment: {candidate}"
+            )
+        if not resolved.is_dir():
+            raise EvidenceError(f"project venv site-packages is not a directory: {candidate}")
+        if resolved not in seen:
+            seen.add(resolved)
+            result.append(resolved)
+    return result
+
+
+def _capture_python_venv(root: Path, budget: _EnvironmentCaptureBudget
+                         ) -> dict[str, Any] | None:
+    """Capture installed Python distribution metadata without importing packages."""
+    venv = root / ".venv"
+    try:
+        if not venv.is_dir() or venv.is_symlink():
+            return None
+    except OSError:
+        return None
+    venv_root = venv.resolve()
+    config = _optional_runtime_file(
+        venv / "pyvenv.cfg", ".venv/pyvenv.cfg",
+        allowed_root=venv_root, budget=budget,
+    )
+    distributions: list[dict[str, Any]] = []
+    path_configuration: list[dict[str, Any]] = []
+    for site_packages in _venv_site_packages(venv, budget):
+        try:
+            site_display = site_packages.relative_to(root).as_posix()
+        except ValueError:
+            site_display = str(site_packages)
+        try:
+            children = _bounded_directory_paths(
+                site_packages, MAX_VENV_SITE_PACKAGES_ENTRIES,
+                f"project venv site-packages {site_display}", budget,
+            )
+        except OSError as exc:
+            path_configuration.append({"path": site_display, "error": str(exc)})
+            continue
+        for child in children:
+            folded = child.name.casefold()
+            if folded.endswith((".pth", ".egg-link")) or folded in {
+                    "sitecustomize.py", "usercustomize.py"}:
+                record = _optional_runtime_file(
+                    child, f"{site_display}/{child.name}",
+                    allowed_root=venv_root, budget=budget,
+                )
+                if record is not None:
+                    path_configuration.append(record)
+                continue
+            if not folded.endswith((".dist-info", ".egg-info")):
+                continue
+            metadata_path: Path | None = None
+            try:
+                child_is_file = child.is_file()
+            except OSError:
+                child_is_file = False
+            if child_is_file and folded.endswith(".dist-info"):
+                raise EvidenceError(
+                    f"project venv dist-info entry must be a directory: {child}"
+                )
+            if child_is_file:
+                metadata_path = child
+            else:
+                for candidate in (child / "METADATA", child / "PKG-INFO"):
+                    try:
+                        if candidate.is_file():
+                            metadata_path = candidate
+                            break
+                    except OSError:
+                        continue
+            name, version = ((None, None) if metadata_path is None
+                             else _metadata_name_version(
+                                 metadata_path, venv_root, budget
+                             ))
+            files: dict[str, dict[str, Any]] = {}
+            if child_is_file:
+                record = _optional_runtime_file(
+                    child, f"{site_display}/{child.name}",
+                    allowed_root=venv_root, budget=budget,
+                )
+                if record is not None:
+                    files["PKG-INFO"] = record
+            else:
+                for filename in ("METADATA", "PKG-INFO", "RECORD", "direct_url.json",
+                                 "INSTALLER", "entry_points.txt"):
+                    record = _optional_runtime_file(
+                        child / filename, f"{site_display}/{child.name}/{filename}",
+                        allowed_root=venv_root, budget=budget,
+                    )
+                    if record is not None:
+                        files[filename] = record
+            distributions.append({
+                "location": f"{site_display}/{child.name}",
+                "name": name,
+                "version": version,
+                "metadata_files": files,
+            })
+    distributions.sort(key=lambda item: (item["location"].casefold(), item["location"]))
+    path_configuration.sort(key=lambda item: (item["path"].casefold(), item["path"]))
+    return {
+        "configuration": config,
+        "distributions": distributions,
+        "path_configuration": path_configuration,
+    }
+
+
+def _capture_dependency_manifests(root: Path, budget: _EnvironmentCaptureBudget
+                                  ) -> list[dict[str, Any]]:
+    records: list[dict[str, Any]] = []
+    for raw in DEPENDENCY_MANIFEST_PATHS:
+        path = root / raw
+        try:
+            info = path.lstat()
+        except FileNotFoundError:
+            continue
+        except OSError as exc:
+            raise EvidenceError(f"cannot inspect dependency manifest {raw}: {exc}") from exc
+        if stat.S_ISDIR(info.st_mode) and not stat.S_ISLNK(info.st_mode):
+            raise EvidenceError(f"dependency manifest is a directory: {raw}")
+        parent_fd, name = _open_relative_parent(root, raw, create=False)
+        descriptor: int | None = None
+        try:
+            expected = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+            if not stat.S_ISREG(expected.st_mode) or expected.st_nlink != 1:
+                raise EvidenceError(
+                    f"dependency manifest must be one non-aliased regular file: {raw}"
+                )
+            flags = (os.O_RDONLY | getattr(os, "O_CLOEXEC", 0) |
+                     getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0))
+            descriptor = os.open(name, flags, dir_fd=parent_fd)
+            opened = os.fstat(descriptor)
+            if ((opened.st_dev, opened.st_ino) != (expected.st_dev, expected.st_ino)):
+                raise EvidenceError(f"dependency manifest changed while opening: {raw}")
+            capture_descriptor = descriptor
+            descriptor = None
+            records.append(_runtime_descriptor_identity(
+                capture_descriptor, raw, raw, budget, require_unaliased=True
+            ))
+        except OSError as exc:
+            raise EvidenceError(f"cannot inspect dependency manifest {raw}: {exc}") from exc
+        finally:
+            if descriptor is not None:
+                os.close(descriptor)
+            os.close(parent_fd)
+    return records
+
+
+def _credential_file_inodes(root: Path, budget: _EnvironmentCaptureBudget
+                            ) -> set[tuple[int, int]]:
+    """Identify root `.env*` files so aliases cannot become hash oracles."""
+    descriptor = _open_directory_path(root.resolve())
+    identities: set[tuple[int, int]] = set()
+    try:
+        with os.scandir(descriptor) as entries:
+            for entry in entries:
+                budget.observe_entry("project root")
+                if not entry.name.casefold().startswith(".env"):
+                    continue
+                try:
+                    info = entry.stat(follow_symlinks=False)
+                except OSError as exc:
+                    raise EvidenceError(
+                        f"cannot inspect credential-bearing project file {entry.name}: {exc}"
+                    ) from exc
+                if not stat.S_ISREG(info.st_mode):
+                    raise EvidenceError(
+                        f"credential-bearing project path must be a regular file: {entry.name}"
+                    )
+                identities.add((info.st_dev, info.st_ino))
+    except OSError as exc:
+        raise EvidenceError(f"cannot enumerate project root for environment capture: {exc}") from exc
+    finally:
+        os.close(descriptor)
+    return identities
+
+
+def _libc_identity() -> tuple[str, str]:
+    """Return libc identity without scanning or executing the captured launcher."""
+    try:
+        raw = os.confstr("CS_GNU_LIBC_VERSION")
+    except (OSError, ValueError):
+        raw = None
+    if raw:
+        name, separator, version = raw.partition(" ")
+        return name, version if separator else ""
+    if sys.platform == "darwin":
+        return "libSystem", ""
+    return "", ""
+
+
+UV_PYTHON_LAUNCHERS = {"python", "python3", "python.exe", "python3.exe"}
+
+
+def _uv_python_run(command: list[str], has_venv: bool) -> bool:
+    return bool(
+        has_venv and len(command) >= 4 and
+        Path(command[0]).name.casefold() in {"uv", "uv.exe"} and
+        command[1].casefold() == "run" and
+        Path(command[2]).name.casefold() in UV_PYTHON_LAUNCHERS
+    )
+
+
+def _venv_python_launcher(venv: Path, requested: str) -> Path:
+    folded = Path(requested).name.casefold()
+    names = [folded]
+    if folded.endswith(".exe"):
+        names.append(folded[:-4])
+    names.extend(("python3", "python"))
+    for name in dict.fromkeys(names):
+        candidate = venv / "bin" / name
+        try:
+            if candidate.is_file():
+                return candidate.absolute()
+        except OSError:
+            continue
+    return (venv / "bin" / names[0]).absolute()
+
+
+def _runtime_search_path(root: Path, environment: dict[str, str],
+                         has_venv: bool) -> str:
+    parts: list[str] = []
+    if has_venv:
+        parts.append(str(root / ".venv/bin"))
+    for raw in environment.get("PATH", os.defpath).split(os.pathsep):
+        if not raw:
+            continue
+        candidate = Path(raw)
+        if not candidate.is_absolute() or _inside(candidate, root):
+            continue
+        if raw not in parts:
+            parts.append(raw)
+    return os.pathsep.join(parts)
+
+
+def resolved_runtime_executable(command: list[str], root: Path,
+                                environment: dict[str, str]) -> Path:
+    """Resolve the launcher exactly as isolated_runtime will select it."""
+    venv = root / ".venv"
+    has_venv = venv.is_dir() and not venv.is_symlink()
+    if _uv_python_run(command, has_venv):
+        return _venv_python_launcher(venv, command[2])
+    resolved = shutil.which(
+        command[0], path=_runtime_search_path(root, environment, has_venv)
+    )
+    executable = Path(resolved) if resolved is not None else Path(command[0])
+    if not executable.is_absolute():
+        executable = root / executable
+    return executable.absolute()
+
+
+def capture_execution_environment(root: Path, command: list[str]) -> dict[str, Any]:
+    """Capture historical runtime provenance without changing or executing it."""
+    environment = os.environ.copy()
+    budget = _EnvironmentCaptureBudget()
+    budget.forbidden_inodes = _credential_file_inodes(root, budget)
+    executable = resolved_runtime_executable(command, root, environment)
+    display = (executable.relative_to(root).as_posix()
+               if _inside(executable, root) else str(executable))
+    uname = os.uname()
+    os_release = _optional_runtime_file(
+        Path("/etc/os-release"), "/etc/os-release", budget=budget
+    )
+    libc_name, libc_version = _libc_identity()
+    runtime_environment = {
+        key: environment[key]
+        for key in sorted(CAPTURED_RUNTIME_ENV_KEYS)
+        if key in environment
+    }
+    try:
+        oversized_runtime_value = any(
+            len(value.encode("utf-8")) > MAX_ENVIRONMENT_CAPTURE_TEXT_BYTES
+            for value in runtime_environment.values()
+        )
+    except UnicodeError as exc:
+        raise EvidenceError("captured runtime environment value is not valid UTF-8") from exc
+    if oversized_runtime_value:
+        raise EvidenceError("captured runtime environment value is too large")
+    secrets = credential_literals(environment)
+    if any(secret and secret in value
+           for value in runtime_environment.values() for secret in secrets):
+        raise EvidenceError(
+            "captured runtime environment contains a literal provider credential"
+        )
+    manifest = {
+        "launcher": {
+            "requested": command[0],
+            "executable": _host_file_identity(
+                executable, display, budget, expose_resolved_path=True
+            ),
+        },
+        "platform": {
+            "system": uname.sysname,
+            "release": uname.release,
+            "version": uname.version,
+            "machine": uname.machine,
+            "libc": {"name": libc_name, "version": libc_version},
+            "os_release": os_release,
+        },
+        "runtime_environment": runtime_environment,
+        "project_environment": {
+            "python_venv": _capture_python_venv(root, budget),
+            "dependency_manifests": _capture_dependency_manifests(root, budget),
+        },
+    }
+    encoded = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    result = {
+        "capture_version": ENVIRONMENT_CAPTURE_VERSION,
+        "sha256": _sha256_bytes(encoded),
+        "manifest": manifest,
+    }
+    validate_environment_capture(result, "generated environment capture", command)
+    return result
+
+
+def _validate_capture_text(value: Any, where: str, *, maximum: int = 4096,
+                           allow_empty: bool = False) -> None:
+    if not isinstance(value, str) or (not allow_empty and not value):
+        raise EvidenceError(f"{where} is malformed")
+    try:
+        encoded = value.encode("utf-8")
+    except UnicodeError as exc:
+        raise EvidenceError(f"{where} is not valid UTF-8") from exc
+    if (len(encoded) > maximum or
+            any(ord(character) < 32 for character in value)):
+        raise EvidenceError(f"{where} is malformed")
+
+
+def _validate_capture_file(value: Any, where: str,
+                           totals: list[Any]) -> None:
+    base_keys = {"path", "resolved_path", "sha256", "size"}
+    if (not isinstance(value, dict) or
+            set(value) not in (base_keys, base_keys | {"link_target"})):
+        raise EvidenceError(f"{where} is malformed")
+    _validate_capture_text(value["path"], f"{where}.path")
+    _validate_capture_text(value["resolved_path"], f"{where}.resolved_path")
+    if "link_target" in value:
+        _validate_capture_text(value["link_target"], f"{where}.link_target")
+    if (not isinstance(value["sha256"], str) or
+            re.fullmatch(r"sha256:[0-9a-f]{64}", value["sha256"]) is None):
+        raise EvidenceError(f"{where}.sha256 is malformed")
+    size = value["size"]
+    if (isinstance(size, bool) or not isinstance(size, int) or size < 0 or
+            size > MAX_ENVIRONMENT_CAPTURE_FILE_BYTES):
+        raise EvidenceError(f"{where}.size is malformed")
+    if value["path"] in totals[2]:
+        raise EvidenceError(f"{where}.path is duplicated")
+    totals[2].add(value["path"])
+    totals[0] += 1
+    totals[1] += size
+    if (totals[0] > MAX_ENVIRONMENT_CAPTURE_FILES or
+            totals[1] > MAX_ENVIRONMENT_CAPTURE_TOTAL_BYTES):
+        raise EvidenceError(f"{where} exceeds environment capture limits")
+
+
+def _validate_optional_capture_file(value: Any, where: str,
+                                    totals: list[Any]) -> None:
+    if value is not None:
+        _validate_capture_file(value, where, totals)
+
+
+def _validate_capture_project_path(value: str, where: str) -> None:
+    path = PurePosixPath(value)
+    if (path.is_absolute() or path.as_posix() != value or not value or value == "." or
+            "\\" in value or "." in path.parts or ".." in path.parts or
+            any(_forbidden_part(part) for part in path.parts)):
+        raise EvidenceError(f"{where} is not a safe normalized project path")
+
+
+def validate_environment_capture(value: Any, where: str,
+                                 expected_command: list[str] | None = None) -> None:
+    if not isinstance(value, dict) or set(value) != {
+            "capture_version", "sha256", "manifest"}:
+        raise EvidenceError(f"{where} is malformed")
+    if (isinstance(value["capture_version"], bool) or
+            value["capture_version"] != ENVIRONMENT_CAPTURE_VERSION):
+        raise EvidenceError(f"{where}.capture_version is unsupported")
+    manifest = value["manifest"]
+    if not isinstance(manifest, dict) or set(manifest) != {
+            "launcher", "platform", "runtime_environment", "project_environment"}:
+        raise EvidenceError(f"{where}.manifest is malformed")
+    totals: list[Any] = [0, 0, set()]
+    launcher = manifest["launcher"]
+    if not isinstance(launcher, dict) or set(launcher) != {"requested", "executable"}:
+        raise EvidenceError(f"{where}.manifest.launcher is malformed")
+    _validate_capture_text(
+        launcher["requested"], f"{where}.manifest.launcher.requested"
+    )
+    if (expected_command is not None and
+            (not expected_command or launcher["requested"] != expected_command[0])):
+        raise EvidenceError(f"{where}.manifest.launcher does not match its receipt command")
+    _validate_capture_file(
+        launcher["executable"], f"{where}.manifest.launcher.executable", totals
+    )
+    launcher_file = launcher["executable"]
+    if Path(launcher_file["path"]).is_absolute():
+        if not Path(launcher_file["resolved_path"]).is_absolute():
+            raise EvidenceError(f"{where}.manifest.launcher path is malformed")
+    else:
+        _validate_capture_project_path(
+            launcher_file["path"], f"{where}.manifest.launcher.executable.path"
+        )
+        if (not launcher_file["path"].startswith(".venv/") or
+                not Path(launcher_file["resolved_path"]).is_absolute()):
+            raise EvidenceError(f"{where}.manifest.launcher path is malformed")
+    platform_value = manifest["platform"]
+    if not isinstance(platform_value, dict) or set(platform_value) != {
+            "system", "release", "version", "machine", "libc", "os_release"}:
+        raise EvidenceError(f"{where}.manifest.platform is malformed")
+    for key in ("system", "release", "version", "machine"):
+        _validate_capture_text(
+            platform_value[key], f"{where}.manifest.platform.{key}", allow_empty=True
+        )
+    libc = platform_value["libc"]
+    if not isinstance(libc, dict) or set(libc) != {"name", "version"}:
+        raise EvidenceError(f"{where}.manifest.platform.libc is malformed")
+    for key in ("name", "version"):
+        _validate_capture_text(
+            libc[key], f"{where}.manifest.platform.libc.{key}", allow_empty=True
+        )
+    _validate_optional_capture_file(
+        platform_value["os_release"], f"{where}.manifest.platform.os_release", totals
+    )
+    if (platform_value["os_release"] is not None and
+            (platform_value["os_release"]["path"] != "/etc/os-release" or
+             not Path(platform_value["os_release"]["resolved_path"]).is_absolute())):
+        raise EvidenceError(f"{where}.manifest.platform.os_release path is malformed")
+    runtime_environment = manifest["runtime_environment"]
+    if (not isinstance(runtime_environment, dict) or
+            not set(runtime_environment).issubset(CAPTURED_RUNTIME_ENV_KEYS)):
+        raise EvidenceError(f"{where}.manifest.runtime_environment is malformed")
+    for key, captured_value in runtime_environment.items():
+        _validate_capture_text(
+            captured_value, f"{where}.manifest.runtime_environment.{key}",
+            maximum=MAX_ENVIRONMENT_CAPTURE_TEXT_BYTES, allow_empty=True,
+        )
+    project = manifest["project_environment"]
+    if not isinstance(project, dict) or set(project) != {
+            "python_venv", "dependency_manifests"}:
+        raise EvidenceError(f"{where}.manifest.project_environment is malformed")
+    python_venv = project["python_venv"]
+    if not Path(launcher_file["path"]).is_absolute() and python_venv is None:
+        raise EvidenceError(f"{where}.manifest venv launcher has no venv capture")
+    if python_venv is not None:
+        if not isinstance(python_venv, dict) or set(python_venv) != {
+                "configuration", "distributions", "path_configuration"}:
+            raise EvidenceError(f"{where}.manifest.project_environment.python_venv is malformed")
+        _validate_optional_capture_file(
+            python_venv["configuration"],
+            f"{where}.manifest.project_environment.python_venv.configuration", totals,
+        )
+        configuration = python_venv["configuration"]
+        if (configuration is not None and
+                (configuration["path"] != ".venv/pyvenv.cfg" or
+                 configuration["resolved_path"] != configuration["path"])):
+            raise EvidenceError(f"{where}.manifest venv configuration path is malformed")
+        distributions = python_venv["distributions"]
+        if (not isinstance(distributions, list) or
+                len(distributions) > MAX_VENV_SITE_PACKAGES_ENTRIES):
+            raise EvidenceError(f"{where}.manifest distributions are malformed")
+        locations: set[str] = set()
+        metadata_names = {
+            "METADATA", "PKG-INFO", "RECORD", "direct_url.json",
+            "INSTALLER", "entry_points.txt",
+        }
+        for index, distribution in enumerate(distributions):
+            item_where = f"{where}.manifest distributions[{index}]"
+            if not isinstance(distribution, dict) or set(distribution) != {
+                    "location", "name", "version", "metadata_files"}:
+                raise EvidenceError(f"{item_where} is malformed")
+            _validate_capture_text(distribution["location"], f"{item_where}.location")
+            _validate_capture_project_path(
+                distribution["location"], f"{item_where}.location"
+            )
+            if (not distribution["location"].startswith(".venv/") or
+                    not distribution["location"].casefold().endswith(
+                        (".dist-info", ".egg-info")
+                    )):
+                raise EvidenceError(f"{item_where}.location is not venv metadata")
+            if distribution["location"] in locations:
+                raise EvidenceError(f"{item_where}.location is duplicated")
+            locations.add(distribution["location"])
+            for key in ("name", "version"):
+                if distribution[key] is not None:
+                    _validate_capture_text(
+                        distribution[key], f"{item_where}.{key}", maximum=512
+                    )
+            metadata_files = distribution["metadata_files"]
+            if (not isinstance(metadata_files, dict) or
+                    not set(metadata_files).issubset(metadata_names)):
+                raise EvidenceError(f"{item_where}.metadata_files is malformed")
+            for key, file_value in metadata_files.items():
+                _validate_capture_file(
+                    file_value, f"{item_where}.metadata_files.{key}", totals
+                )
+                _validate_capture_project_path(
+                    file_value["path"], f"{item_where}.metadata_files.{key}.path"
+                )
+                expected_path = f"{distribution['location']}/{key}"
+                allowed_paths = {expected_path}
+                if (key == "PKG-INFO" and
+                        distribution["location"].casefold().endswith(".egg-info")):
+                    allowed_paths.add(distribution["location"])
+                if (file_value["path"] not in allowed_paths or
+                        file_value["resolved_path"] != file_value["path"]):
+                    raise EvidenceError(
+                        f"{item_where}.metadata_files.{key}.path is malformed"
+                    )
+        location_list = [item["location"] for item in distributions]
+        if location_list != sorted(location_list, key=lambda item: (item.casefold(), item)):
+            raise EvidenceError(f"{where}.manifest distributions are not sorted")
+        path_configuration = python_venv["path_configuration"]
+        if (not isinstance(path_configuration, list) or
+                len(path_configuration) > MAX_VENV_SITE_PACKAGES_ENTRIES):
+            raise EvidenceError(f"{where}.manifest path configuration is malformed")
+        path_names: set[str] = set()
+        for index, file_value in enumerate(path_configuration):
+            item_where = f"{where}.manifest path_configuration[{index}]"
+            _validate_capture_file(file_value, item_where, totals)
+            _validate_capture_project_path(file_value["path"], f"{item_where}.path")
+            basename = PurePosixPath(file_value["path"]).name.casefold()
+            if (not file_value["path"].startswith(".venv/") or
+                    not (basename.endswith((".pth", ".egg-link")) or
+                         basename in {"sitecustomize.py", "usercustomize.py"}) or
+                    file_value["resolved_path"] != file_value["path"]):
+                raise EvidenceError(f"{item_where}.path is not venv path configuration")
+            if file_value["path"] in path_names:
+                raise EvidenceError(f"{item_where}.path is duplicated")
+            path_names.add(file_value["path"])
+        path_list = [item["path"] for item in path_configuration]
+        if path_list != sorted(path_list, key=lambda item: (item.casefold(), item)):
+            raise EvidenceError(f"{where}.manifest path configuration is not sorted")
+    dependencies = project["dependency_manifests"]
+    if not isinstance(dependencies, list) or len(dependencies) > len(DEPENDENCY_MANIFEST_PATHS):
+        raise EvidenceError(f"{where}.manifest dependency manifests are malformed")
+    dependency_order = {path: index for index, path in enumerate(DEPENDENCY_MANIFEST_PATHS)}
+    previous = -1
+    for index, file_value in enumerate(dependencies):
+        item_where = f"{where}.manifest dependency_manifests[{index}]"
+        _validate_capture_file(file_value, item_where, totals)
+        _validate_capture_project_path(file_value["path"], f"{item_where}.path")
+        if "link_target" in file_value:
+            raise EvidenceError(f"{item_where} may not be a symlink")
+        position = dependency_order.get(file_value["path"])
+        if position is None or position <= previous or file_value["resolved_path"] != file_value["path"]:
+            raise EvidenceError(f"{item_where}.path is malformed or out of order")
+        previous = position
+    encoded = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode("utf-8")
+    if value["sha256"] != _sha256_bytes(encoded):
+        raise EvidenceError(f"{where}.sha256 does not match its manifest")
+
+
+def require_stable_environment(before: dict[str, Any], after: dict[str, Any],
+                               phase: str) -> None:
+    if before != after:
+        raise EvidenceError(f"execution environment changed during {phase}")
+
+
 def venv_base_roots(venv: Path, root: Path) -> list[Path]:
     """Return external interpreter roots needed by a relocatable project venv."""
     config = venv / "pyvenv.cfg"
@@ -968,15 +1795,12 @@ def isolated_runtime(command: list[str], root: Path, cwd: Path,
     if venv.is_symlink():
         raise EvidenceError("project .venv must not be a symlink")
     has_venv = venv.is_dir()
-    original_path = environment.get("PATH", os.defpath)
-    resolved = shutil.which(rewritten[0], path=original_path)
-    executable = Path(resolved) if resolved is not None else Path(rewritten[0])
-    if not executable.is_absolute():
-        executable = root / executable
+    executable = resolved_runtime_executable(rewritten, root, environment)
     neutral_venv = Path("/results-runtime-venv")
-    if (len(rewritten) >= 4 and Path(rewritten[0]).name.lower() in {"uv", "uv.exe"}
-            and rewritten[1:3] == ["run", "python"] and has_venv):
-        rewritten = [str(neutral_venv / "bin/python3"), *rewritten[3:]]
+    if _uv_python_run(rewritten, has_venv):
+        if not _inside(executable, venv):
+            raise EvidenceError("uv Python launcher did not resolve inside the project venv")
+        rewritten = [str(neutral_venv / executable.relative_to(venv)), *rewritten[3:]]
     elif has_venv and _inside(executable, venv):
         rewritten[0] = str(neutral_venv / executable.relative_to(venv))
     elif _inside(executable, root):
@@ -986,17 +1810,12 @@ def isolated_runtime(command: list[str], root: Path, cwd: Path,
         raise EvidenceError(
             "isolated producer/renderer command arguments may not contain the project-root path"
         )
-    path_parts: list[str] = []
-    if has_venv:
-        path_parts.append(str(neutral_venv / "bin"))
-    for raw in original_path.split(os.pathsep):
-        if not raw:
-            continue
-        candidate = Path(raw)
-        if _inside(candidate, root):
-            continue
-        if raw not in path_parts:
-            path_parts.append(raw)
+    path_parts = [
+        (str(neutral_venv / "bin") if has_venv and
+         raw == str(venv / "bin") else raw)
+        for raw in _runtime_search_path(root, environment, has_venv).split(os.pathsep)
+        if raw
+    ]
     clean = {key: value for key, value in environment.items()
              if key in RUNTIME_ENV_KEYS or key in INTERNAL_ENV_KEYS}
     clean["PATH"] = os.pathsep.join(path_parts)
@@ -2138,7 +2957,7 @@ def lifecycle_transaction(root: Path, *, cleanup_paths: Iterable[str],
 def execute_fresh_exhibits(command: list[str], root: Path, bundle: dict[str, Any],
                            bundle_path: str,
                            *, expected: list[dict[str, Any]] | None = None,
-                           publish: bool = True) -> list[str]:
+                           publish: bool = True) -> tuple[list[str], dict[str, Any]]:
     paths: list[tuple[str, Path]] = []
     live_exhibit_snapshots: list[dict[str, Any]] = []
     for exhibit in bundle["exhibits"]:
@@ -2151,6 +2970,7 @@ def execute_fresh_exhibits(command: list[str], root: Path, bundle: dict[str, Any
     artifact_paths = [entry["path"] for entry in bundle["artifacts"]]
     sources = [bundle_path, *artifact_paths, *bundle["renderer"]["code"]]
     source_snapshots = fingerprint_many(root, sources)
+    environment_capture = capture_execution_environment(root, command)
     with isolated_workspace(root, sources, []) as workspace:
         stage = workspace / ".results-exhibits"
         stage.mkdir()
@@ -2160,6 +2980,10 @@ def execute_fresh_exhibits(command: list[str], root: Path, bundle: dict[str, Any
             project_root=root,
             allow_network=False,
             provider_credentials=set(),
+        )
+        require_stable_environment(
+            environment_capture, capture_execution_environment(root, command),
+            "rendering",
         )
         source_failures = compare_snapshot(
             workspace, source_snapshots, "isolated renderer source"
@@ -2184,14 +3008,15 @@ def execute_fresh_exhibits(command: list[str], root: Path, bundle: dict[str, Any
             for raw, _ in paths:
                 _remove_project_path(root, raw)
                 publish_workspace_path(root, stage, raw)
-    return [raw for raw, _ in paths]
+    return [raw for raw, _ in paths], environment_capture
 
 
 def snapshot_bundle(root: Path, bundle: dict[str, Any], bundle_path: str,
                     command: list[str], plan_path: str,
                     code_snapshot: list[dict[str, Any]],
                     input_snapshot: list[dict[str, Any]],
-                    renderer_snapshot: list[dict[str, Any]]) -> dict[str, Any]:
+                    renderer_snapshot: list[dict[str, Any]],
+                    environment_capture: dict[str, Any]) -> dict[str, Any]:
     artifacts = [entry["path"] for entry in bundle["artifacts"]]
     return {
         "command": command,
@@ -2203,15 +3028,18 @@ def snapshot_bundle(root: Path, bundle: dict[str, Any], bundle_path: str,
         "artifacts": fingerprint_many(root, artifacts),
         "exhibits": [entry["path"] for entry in bundle["exhibits"]],
         "reproducibility": bundle["producer"]["reproducibility"],
+        "environment": environment_capture,
     }
 
 
-def snapshot_render(root: Path, bundle: dict[str, Any], command: list[str]) -> dict[str, Any]:
+def snapshot_render(root: Path, bundle: dict[str, Any], command: list[str],
+                    environment_capture: dict[str, Any]) -> dict[str, Any]:
     exhibit_paths = [entry["path"] for entry in bundle["exhibits"]]
     return {
         "command": command,
         "code": fingerprint_many(root, bundle["renderer"]["code"]),
         "exhibits": fingerprint_many(root, exhibit_paths),
+        "environment": environment_capture,
     }
 
 
@@ -2335,7 +3163,8 @@ def validate_receipt_contract(root: Path, receipt_path: Path) -> dict[str, Any]:
     result_receipt_supersedes(root, receipt_raw, receipt)
     producer = receipt.get("producer_run")
     producer_keys = {"command", "plan", "bundle", "code", "inputs",
-                     "renderer_code", "artifacts", "exhibits", "reproducibility"}
+                     "renderer_code", "artifacts", "exhibits", "reproducibility",
+                     "environment"}
     if not isinstance(producer, dict) or set(producer) != producer_keys:
         raise EvidenceError("receipt producer_run has unexpected or missing keys")
     command = producer["command"]
@@ -2385,10 +3214,14 @@ def validate_receipt_contract(root: Path, receipt_path: Path) -> dict[str, Any]:
     if (not isinstance(producer["reproducibility"], str) or
             producer["reproducibility"] not in {"exact", "bounded", "captured"}):
         raise EvidenceError("producer_run.reproducibility is malformed")
+    validate_environment_capture(
+        producer["environment"], "producer_run.environment", command
+    )
     command_uses_declared_code(command, recorded_paths["code"], "producer")
     render = receipt["render_run"]
     if render is not None:
-        if not isinstance(render, dict) or set(render) != {"command", "code", "exhibits"}:
+        if not isinstance(render, dict) or set(render) != {
+                "command", "code", "exhibits", "environment"}:
             raise EvidenceError("render_run is malformed")
         render_command = render["command"]
         if (not isinstance(render_command, list) or not render_command or
@@ -2410,6 +3243,9 @@ def validate_receipt_contract(root: Path, receipt_path: Path) -> dict[str, Any]:
             raise EvidenceError("render_run exhibit inventory contains duplicates")
         if exhibit_paths != recorded_paths["exhibits"]:
             raise EvidenceError("render_run exhibit inventory differs from producer_run")
+        validate_environment_capture(
+            render["environment"], "render_run.environment", render_command
+        )
         command_uses_declared_code(render_command, code_paths, "renderer")
     return receipt
 
@@ -2427,9 +3263,15 @@ def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool) -> dict[st
     if not isinstance(producer, dict):
         raise EvidenceError(f"receipt missing producer_run: {receipt_path}")
     producer_keys = {"command", "plan", "bundle", "code", "inputs",
-                     "renderer_code", "artifacts", "exhibits", "reproducibility"}
+                     "renderer_code", "artifacts", "exhibits", "reproducibility",
+                     "environment"}
     if set(producer) != producer_keys:
         raise EvidenceError(f"receipt producer_run has unexpected or missing keys: {receipt_path}")
+    producer_command_value = producer.get("command")
+    validate_environment_capture(
+        producer["environment"], "producer_run.environment",
+        producer_command_value if isinstance(producer_command_value, list) else None,
+    )
     receipt_raw = receipt_path.relative_to(root).as_posix()
     result_receipt_supersedes(root, receipt_raw, receipt)
     failures: list[str] = []
@@ -2495,8 +3337,16 @@ def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool) -> dict[st
         if not isinstance(render, dict):
             failures.append("render_run: missing for bundle with declared exhibits")
         else:
-            if set(render) != {"command", "code", "exhibits"}:
+            if set(render) != {"command", "code", "exhibits", "environment"}:
                 failures.append("render_run: unexpected or missing receipt keys")
+            else:
+                try:
+                    validate_environment_capture(
+                        render["environment"], "render_run.environment",
+                        render.get("command") if isinstance(render.get("command"), list) else None,
+                    )
+                except EvidenceError as exc:
+                    failures.append(str(exc))
             render_command = render.get("command")
             if (not isinstance(render_command, list) or not render_command or
                     any(not isinstance(item, str) for item in render_command)):
@@ -2974,10 +3824,15 @@ def command_run(args: argparse.Namespace) -> int:
     workspace_sources = [plan_raw, *plan["producer_code"], *plan["producer_inputs"],
                          *plan["renderer_code"]]
     workspace_outputs = [bundle_raw, *plan["artifacts"], *plan["exhibits"]]
+    environment_capture = capture_execution_environment(root, command)
     with isolated_workspace(root, workspace_sources, workspace_outputs) as workspace:
         execute(
             command, workspace, bundle_path=bundle_raw, project_root=root,
             provider_credentials=set(plan["provider_credentials"]),
+        )
+        require_stable_environment(
+            environment_capture, capture_execution_environment(root, command),
+            "analysis",
         )
         isolated_source_failures = compare_snapshot(
             workspace, [plan_snapshot, *code_snapshot, *input_snapshot, *renderer_snapshot],
@@ -3051,7 +3906,8 @@ def command_run(args: argparse.Namespace) -> int:
                 "supersedes": supersedes,
                 "producer_run": snapshot_bundle(
                     root, bundle, bundle_raw, command, plan_raw,
-                    code_snapshot, input_snapshot, renderer_snapshot
+                    code_snapshot, input_snapshot, renderer_snapshot,
+                    environment_capture,
                 ),
                 "render_run": None,
             }
@@ -3116,11 +3972,13 @@ def command_render(args: argparse.Namespace) -> int:
         registry_before=json.loads(json.dumps(registry_before)),
     )
     try:
-        execute_fresh_exhibits(
+        _, environment_capture = execute_fresh_exhibits(
             command, root, bundle, bundle_field["path"],
             expected=expected_exhibits,
         )
-        rendered_snapshot = snapshot_render(root, bundle, command)
+        rendered_snapshot = snapshot_render(
+            root, bundle, command, environment_capture
+        )
         # Rendering must not mutate the evidence it consumes.
         producer_failures: list[str] = []
         for key in ("plan", "bundle", "code", "inputs", "renderer_code", "artifacts"):

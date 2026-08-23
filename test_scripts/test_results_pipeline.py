@@ -286,12 +286,484 @@ if (trigger_root / 'mutate-during-bind').exists():
 
     def test_round_trip_and_rerender(self) -> None:
         self.record_and_render()
+        receipt = json.loads(
+            (self.root / "output/stagex/results.receipt.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(receipt["receipt_version"], 2)
+        for run_key in ("producer_run", "render_run"):
+            capture = receipt[run_key]["environment"]
+            self.assertEqual(capture["capture_version"], 1)
+            encoded = json.dumps(
+                capture["manifest"], sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
+            self.assertEqual(
+                capture["sha256"],
+                "sha256:" + hashlib.sha256(encoded).hexdigest(),
+            )
+            self.assertIn("launcher", capture["manifest"])
+            self.assertIn("platform", capture["manifest"])
         report = self.call(
             "verify", "--receipt", "output/stagex/results.receipt.json", "--rerender"
         )
         self.assertEqual(json.loads(report.stdout)["status"], "PASS")
         all_report = self.call("verify-all", "--require-one", "--rerender")
         self.assertEqual(json.loads(all_report.stdout)["status"], "PASS")
+
+    def test_environment_capture_records_installed_metadata_and_detects_change(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        venv_root = self.root / ".venv"
+        site_packages = venv_root / "lib/python3.12/site-packages"
+        dist_info = site_packages / "example_pkg-1.2.3.dist-info"
+        dist_info.mkdir(parents=True)
+        (venv_root / "pyvenv.cfg").write_text(
+            f"home = {Path(sys.executable).parent}\nversion = 3.12\n",
+            encoding="utf-8",
+        )
+        (dist_info / "METADATA").write_text(
+            "Metadata-Version: 2.1\nName: example-pkg\nVersion: 1.2.3\n\n",
+            encoding="utf-8",
+        )
+        (dist_info / "RECORD").write_text("example_pkg/__init__.py,,\n", encoding="utf-8")
+        (site_packages / "editable.pth").write_text("/tmp/example-source\n", encoding="utf-8")
+        (venv_root / "lib64").symlink_to("lib", target_is_directory=True)
+        (self.root / "uv.lock").write_text("version = 1\n", encoding="utf-8")
+
+        before = module.capture_execution_environment(
+            self.root, [sys.executable, "code/analyze.py"]
+        )
+        project_environment = before["manifest"]["project_environment"]
+        distributions = project_environment["python_venv"]["distributions"]
+        self.assertEqual(
+            [(item["name"], item["version"]) for item in distributions],
+            [("example-pkg", "1.2.3")],
+        )
+        self.assertEqual(
+            [item["path"] for item in project_environment["dependency_manifests"]],
+            ["uv.lock"],
+        )
+        (dist_info / "METADATA").write_text(
+            "Metadata-Version: 2.1\nName: example-pkg\nVersion: 1.2.4\n\n",
+            encoding="utf-8",
+        )
+        after = module.capture_execution_environment(
+            self.root, [sys.executable, "code/analyze.py"]
+        )
+        self.assertNotEqual(before, after)
+        with self.assertRaisesRegex(module.EvidenceError, "changed during analysis"):
+            module.require_stable_environment(before, after, "analysis")
+
+    def test_environment_capture_does_not_follow_hostile_metadata(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_hostile", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        venv_root = self.root / ".venv"
+        dist_info = venv_root / "lib/python3.12/site-packages/hostile-1.dist-info"
+        dist_info.mkdir(parents=True)
+        (venv_root / "pyvenv.cfg").write_text("version = 3.12\n", encoding="utf-8")
+        outside = self.root / "outside-metadata"
+        outside.write_text(
+            "Name: must-not-leak\nVersion: secret-version-marker\n\n",
+            encoding="utf-8",
+        )
+        (dist_info / "METADATA").symlink_to(outside)
+        os.mkfifo(dist_info / "entry_points.txt")
+
+        with self.assertRaisesRegex(
+            module.EvidenceError, "resolves outside its environment"
+        ) as symlink_failure:
+            module.capture_execution_environment(
+                self.root, [sys.executable, "code/analyze.py"]
+            )
+        self.assertNotIn("must-not-leak", str(symlink_failure.exception))
+        self.assertNotIn("secret-version-marker", str(symlink_failure.exception))
+
+        (dist_info / "METADATA").unlink()
+        (dist_info / "METADATA").write_text(
+            "Name: hostile\nVersion: 1\n\n", encoding="utf-8"
+        )
+        with self.assertRaisesRegex(module.EvidenceError, "runtime file is not regular"):
+            module.capture_execution_environment(
+                self.root, [sys.executable, "code/analyze.py"]
+            )
+
+    def test_environment_capture_rejects_venv_library_outside_venv(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_escape", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        venv_root = self.root / ".venv"
+        venv_root.mkdir()
+        external_library = self.root / "external-library"
+        external_library.mkdir()
+        (venv_root / "lib").symlink_to(external_library, target_is_directory=True)
+
+        with self.assertRaisesRegex(
+            module.EvidenceError, "venv library resolves outside its environment"
+        ):
+            module.capture_execution_environment(
+                self.root, [sys.executable, "code/analyze.py"]
+            )
+
+    def test_environment_capture_bounds_manifest_hashing(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_limit", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        manifest = self.root / "uv.lock"
+        with manifest.open("wb") as handle:
+            handle.seek(module.MAX_ENVIRONMENT_CAPTURE_FILE_BYTES)
+            handle.write(b"x")
+
+        with self.assertRaisesRegex(
+            module.EvidenceError, "exceeds the environment capture per-file limit"
+        ):
+            module.capture_execution_environment(
+                self.root, [sys.executable, "code/analyze.py"]
+            )
+
+    def test_environment_capture_uses_effective_venv_launcher(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_launcher", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        bin_dir = self.root / ".venv/bin"
+        bin_dir.mkdir(parents=True)
+        launcher = bin_dir / "bash"
+        launcher.write_text("#!/bin/sh\nexec /bin/bash \"$@\"\n", encoding="utf-8")
+        launcher.chmod(0o755)
+        python_launcher = bin_dir / "python3"
+        python_launcher.write_text("#!/bin/sh\nexec /usr/bin/python3 \"$@\"\n", encoding="utf-8")
+        python_launcher.chmod(0o755)
+        environment = os.environ.copy()
+
+        capture = module.capture_execution_environment(
+            self.root, ["bash", "-c", "true"]
+        )
+        recorded = capture["manifest"]["launcher"]["executable"]
+        self.assertEqual(recorded["resolved_path"], str(launcher.resolve()))
+        self.assertEqual(recorded["sha256"], "sha256:" + hashlib.sha256(
+            launcher.read_bytes()
+        ).hexdigest())
+        rewritten, clean, _, _ = module.isolated_runtime(
+            ["bash", "-c", "true"], self.root, self.root, environment
+        )
+        self.assertEqual(rewritten[0], "/results-runtime-venv/bin/bash")
+        self.assertEqual(clean["PATH"].split(os.pathsep)[0], "/results-runtime-venv/bin")
+
+        for requested in ("python", "python3", "python.exe", "python3.exe"):
+            command = ["uv", "run", requested, "code/analyze.py"]
+            uv_capture = module.capture_execution_environment(self.root, command)
+            uv_recorded = uv_capture["manifest"]["launcher"]["executable"]
+            self.assertEqual(uv_recorded["resolved_path"], str(python_launcher.resolve()))
+            uv_rewritten, _, _, _ = module.isolated_runtime(
+                command, self.root, self.root, environment
+            )
+            self.assertEqual(uv_rewritten[0], "/results-runtime-venv/bin/python3")
+
+        python_launcher.write_text(
+            f'#!/bin/sh\nexec "{sys.executable}" "$@"\n', encoding="utf-8"
+        )
+        self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            "python3", "code/analyze.py",
+        )
+        self.call(
+            "render", "--receipt", "output/stagex/results.receipt.json", "--",
+            "python3", "code/render.py",
+        )
+        receipt = json.loads(
+            (self.root / "output/stagex/results.receipt.json").read_text(encoding="utf-8")
+        )
+        expected_hash = "sha256:" + hashlib.sha256(python_launcher.read_bytes()).hexdigest()
+        self.assertEqual(
+            receipt["producer_run"]["environment"]["manifest"]["launcher"]
+            ["executable"]["sha256"],
+            expected_hash,
+        )
+        self.assertEqual(
+            receipt["render_run"]["environment"]["manifest"]["launcher"]
+            ["executable"]["sha256"],
+            expected_hash,
+        )
+
+    def test_environment_capture_rejects_dependency_manifest_aliases(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_alias", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        secret = self.root / ".env"
+        secret.write_text("SECRET_MARKER=must-not-hash\n", encoding="utf-8")
+        manifest = self.root / "uv.lock"
+        manifest.symlink_to(".env")
+
+        with self.assertRaisesRegex(
+            module.EvidenceError, "dependency manifest must be one non-aliased regular file"
+        ) as symlink_failure:
+            module.capture_execution_environment(
+                self.root, [sys.executable, "code/analyze.py"]
+            )
+        self.assertNotIn("must-not-hash", str(symlink_failure.exception))
+
+        manifest.unlink()
+        os.link(secret, manifest)
+        with self.assertRaisesRegex(
+            module.EvidenceError, "dependency manifest must be one non-aliased regular file"
+        ):
+            module.capture_execution_environment(
+                self.root, [sys.executable, "code/analyze.py"]
+            )
+
+    def test_environment_capture_has_aggregate_byte_budget(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_budget", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        size = module.MAX_ENVIRONMENT_CAPTURE_TOTAL_BYTES // 2 + 1
+        for name in ("uv.lock", "requirements.txt"):
+            with (self.root / name).open("wb") as handle:
+                handle.seek(size - 1)
+                handle.write(b"x")
+
+        with self.assertRaisesRegex(
+            module.EvidenceError, "environment capture aggregate byte limit exceeded"
+        ):
+            module.capture_execution_environment(
+                self.root, [sys.executable, "code/analyze.py"]
+            )
+
+    def test_environment_capture_rejects_credential_aliases(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_secret", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        secret_value = "provider-secret-marker-123456789"
+        with mock.patch.dict(
+            os.environ,
+            {"OPENAI_API_KEY": secret_value, "OMP_NUM_THREADS": secret_value},
+            clear=False,
+        ):
+            with self.assertRaisesRegex(
+                module.EvidenceError,
+                "captured runtime environment contains a literal provider credential",
+            ) as environment_failure:
+                module.capture_execution_environment(
+                    self.root, [sys.executable, "code/analyze.py"]
+                )
+        self.assertNotIn(secret_value, str(environment_failure.exception))
+
+        venv_root = self.root / ".venv"
+        dist_info = venv_root / "lib/python3.12/site-packages/alias-1.dist-info"
+        dist_info.mkdir(parents=True)
+        secret_file = self.root / ".env"
+        secret_file.write_text(
+            "Name: must-not-leak\nVersion: secret-version-marker\n\n",
+            encoding="utf-8",
+        )
+        os.link(secret_file, dist_info / "METADATA")
+        with self.assertRaisesRegex(
+            module.EvidenceError, "credential-bearing file may not enter environment capture"
+        ) as metadata_failure:
+            module.capture_execution_environment(
+                self.root, [sys.executable, "code/analyze.py"]
+            )
+        self.assertNotIn("must-not-leak", str(metadata_failure.exception))
+        self.assertNotIn("secret-version-marker", str(metadata_failure.exception))
+
+        (dist_info / "METADATA").unlink()
+        launcher = venv_root / "bin/secret-launcher"
+        launcher.parent.mkdir()
+        os.link(secret_file, launcher)
+        launcher.chmod(0o755)
+        with self.assertRaisesRegex(
+            module.EvidenceError, "credential-bearing file may not enter environment capture"
+        ):
+            module.capture_execution_environment(
+                self.root, ["secret-launcher", "code/analyze.py"]
+            )
+
+    def test_environment_capture_does_not_read_growth_beyond_budget(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_growth", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        target = self.root / "growing-runtime"
+        target.write_bytes(b"x")
+        descriptor = os.open(target, os.O_RDONLY)
+        original_read = module.os.read
+        read_bytes = 0
+        grown = False
+
+        def grow_then_read(fd: int, size: int) -> bytes:
+            nonlocal read_bytes, grown
+            if not grown:
+                grown = True
+                with target.open("ab") as handle:
+                    handle.write(b"y" * 1024 * 1024)
+            payload = original_read(fd, size)
+            read_bytes += len(payload)
+            return payload
+
+        with mock.patch.object(module.os, "read", side_effect=grow_then_read):
+            with self.assertRaisesRegex(module.EvidenceError, "changed while captured"):
+                module._runtime_descriptor_identity(
+                    descriptor, "growing-runtime", "growing-runtime",
+                    module._EnvironmentCaptureBudget(),
+                )
+        self.assertEqual(read_bytes, 1)
+
+    def test_environment_capture_validates_nested_manifest(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_validate", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        venv_root = self.root / ".venv"
+        dist_info = venv_root / "lib/python3.12/site-packages/example-1.dist-info"
+        dist_info.mkdir(parents=True)
+        (venv_root / "pyvenv.cfg").write_text("version = 3.12\n", encoding="utf-8")
+        (dist_info / "METADATA").write_text(
+            "Name: example\nVersion: 1\n\n", encoding="utf-8"
+        )
+        command = [sys.executable, "code/analyze.py"]
+        capture = module.capture_execution_environment(
+            self.root, command
+        )
+        module.validate_environment_capture(capture, "capture", command)
+
+        mutations = (
+            lambda manifest: manifest.__setitem__("launcher", None),
+            lambda manifest: manifest.__setitem__("platform", []),
+            lambda manifest: manifest.__setitem__("runtime_environment", "not-an-object"),
+            lambda manifest: manifest.__setitem__("project_environment", 17),
+            lambda manifest: manifest["launcher"]["executable"].__setitem__("size", True),
+            lambda manifest: manifest["launcher"]["executable"].__setitem__(
+                "sha256", "sha256:" + "z" * 64
+            ),
+            lambda manifest: manifest["project_environment"]["python_venv"]
+            ["configuration"].update({"path": ".env", "resolved_path": ".env"}),
+            lambda manifest: manifest["project_environment"]["python_venv"]
+            ["distributions"][0]["metadata_files"]["METADATA"].update(
+                {"path": ".env", "resolved_path": ".env"}
+            ),
+            lambda manifest: manifest["launcher"].__setitem__("requested", "other"),
+        )
+        for mutate in mutations:
+            hostile = json.loads(json.dumps(capture))
+            mutate(hostile["manifest"])
+            encoded = json.dumps(
+                hostile["manifest"], sort_keys=True, separators=(",", ":")
+            ).encode("utf-8")
+            hostile["sha256"] = "sha256:" + hashlib.sha256(encoded).hexdigest()
+            with self.subTest(mutation=mutate):
+                with self.assertRaises(module.EvidenceError):
+                    module.validate_environment_capture(hostile, "capture", command)
+
+    def test_environment_capture_has_shared_directory_entry_budget(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_entries", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        budget = module._EnvironmentCaptureBudget()
+        budget.entries = module.MAX_ENVIRONMENT_CAPTURE_ENTRIES
+        with self.assertRaisesRegex(
+            module.EvidenceError, "environment capture directory-entry limit exceeded"
+        ):
+            budget.observe_entry("site-packages")
+
+    def test_environment_capture_rejects_nonregular_env_roots(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_env_shape", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        store = self.root / "credential-store"
+        store.write_text(
+            "Name: leaked-name\nVersion: leaked-secret\n\n", encoding="utf-8"
+        )
+        (self.root / ".env").symlink_to(store.name)
+        with self.assertRaisesRegex(
+            module.EvidenceError, "credential-bearing project path must be a regular file"
+        ) as symlink_failure:
+            module.capture_execution_environment(
+                self.root, [sys.executable, "code/analyze.py"]
+            )
+        self.assertNotIn("leaked-name", str(symlink_failure.exception))
+        self.assertNotIn("leaked-secret", str(symlink_failure.exception))
+
+        (self.root / ".env").unlink()
+        (self.root / ".env.d").mkdir()
+        with self.assertRaisesRegex(
+            module.EvidenceError, "credential-bearing project path must be a regular file"
+        ):
+            module.capture_execution_environment(
+                self.root, [sys.executable, "code/analyze.py"]
+            )
+
+    def test_environment_capture_accepts_custom_venv_launcher_shape(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_custom", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        launcher = self.root / ".venv/custom/python3"
+        launcher.parent.mkdir(parents=True)
+        launcher.write_text("#!/bin/sh\nexit 0\n", encoding="utf-8")
+        launcher.chmod(0o755)
+        command = [".venv/custom/python3", "code/analyze.py"]
+        capture = module.capture_execution_environment(self.root, command)
+        module.validate_environment_capture(capture, "capture", command)
+        self.assertEqual(
+            capture["manifest"]["launcher"]["executable"]["path"],
+            ".venv/custom/python3",
+        )
+
+        hostile = json.loads(json.dumps(capture))
+        hostile["manifest"]["project_environment"]["python_venv"] = None
+        encoded = json.dumps(
+            hostile["manifest"], sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+        hostile["sha256"] = "sha256:" + hashlib.sha256(encoded).hexdigest()
+        with self.assertRaisesRegex(module.EvidenceError, "venv launcher has no venv capture"):
+            module.validate_environment_capture(hostile, "capture", command)
+
+    def test_environment_capture_rejects_file_form_dist_info(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_dist_file", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        dist_info = self.root / ".venv/lib/python3.12/site-packages/example.dist-info"
+        dist_info.parent.mkdir(parents=True)
+        dist_info.write_text("Name: example\nVersion: 1\n\n", encoding="utf-8")
+        with self.assertRaisesRegex(
+            module.EvidenceError, "venv dist-info entry must be a directory"
+        ):
+            module.capture_execution_environment(
+                self.root, [sys.executable, "code/analyze.py"]
+            )
+
+    def test_environment_capture_rejects_surrogate_text_controllably(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_capture_surrogate", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        command = [sys.executable, "code/analyze.py"]
+        capture = module.capture_execution_environment(self.root, command)
+        hostile = json.loads(json.dumps(capture))
+        hostile["manifest"]["runtime_environment"]["LANG"] = "\ud800"
+        encoded = json.dumps(
+            hostile["manifest"], sort_keys=True, separators=(",", ":")
+        ).encode("utf-8")
+        hostile["sha256"] = "sha256:" + hashlib.sha256(encoded).hexdigest()
+        with self.assertRaisesRegex(module.EvidenceError, "not valid UTF-8"):
+            module.validate_environment_capture(hostile, "capture", command)
+
+        environment = os.environ.copy()
+        environment["LANG"] = "\ud800"
+        with mock.patch.object(module.os, "environ", environment):
+            with self.assertRaisesRegex(module.EvidenceError, "not valid UTF-8"):
+                module.capture_execution_environment(self.root, command)
 
     def test_results_lock_does_not_conflict_with_launcher_shared_root_lock(self) -> None:
         descriptor = os.open(self.root, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
