@@ -9,9 +9,9 @@ directory, which is earlier on sys.path than the venv's site-packages and
 silently shadows anything we put there (observed: a venv copy was never
 imported). .pth import lines run for every site-packages dir unconditionally.
 
-Deployed by setup.sh at venv creation and refreshed by update.sh (it lives
-inside the gitignored .venv, so it is NOT in the deployment manifest — both
-scripts handle it as a dedicated step, like the .env merge).
+Installed by setup.sh at venv creation. It lives inside the gitignored .venv,
+which update.sh deliberately never executes or mutates; a changed guard
+therefore requires a fresh deployment.
 
 WHY THIS EXISTS: python-dotenv's find_dotenv() locates .env by walking the
 call stack for the first frame whose filename exists on disk. When the

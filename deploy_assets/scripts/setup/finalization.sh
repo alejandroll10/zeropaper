@@ -23,6 +23,82 @@ _setup_git_control() {
             -c commit.gpgSign=false "$@"
 }
 
+_setup_print_update_attestation() {
+    local -a update_command
+    local extension update_launcher
+    local update_launcher_source update_launcher_digest update_bootstrap
+    update_launcher="$SOURCE_CHECKOUT_ROOT/update.sh"
+    update_launcher_source="$SCRIPT_DIR/update.sh"
+    update_launcher_digest="$(python3 -I - "$update_launcher_source" <<'PY'
+import hashlib
+import os
+import stat
+import sys
+
+path = sys.argv[1]
+fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0))
+info = os.fstat(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    raise SystemExit("update launcher is not one regular file")
+digest = hashlib.sha256()
+with os.fdopen(fd, "rb") as handle:
+    for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+        digest.update(chunk)
+print("sha256:" + digest.hexdigest())
+PY
+)"
+    update_bootstrap='import hashlib, os, stat, sys
+launcher, launcher_digest, *arguments = sys.argv[1:]
+def verified_open(path, expected):
+    fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_CLOEXEC", 0))
+    info = os.fstat(fd)
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        raise SystemExit(f"attested updater input is not one regular file: {path}")
+    digest = hashlib.sha256()
+    chunks = []
+    while True:
+        chunk = os.read(fd, 1024 * 1024)
+        if not chunk:
+            break
+        digest.update(chunk)
+        chunks.append(chunk)
+    if "sha256:" + digest.hexdigest() != expected:
+        raise SystemExit(f"attested updater bytes changed; rerun setup from a trusted snapshot: {path}")
+    os.close(fd)
+    return b"".join(chunks)
+launcher_source = verified_open(launcher, launcher_digest)
+sys.argv = [launcher, *arguments]
+namespace = {"__name__": "__main__", "__file__": launcher}
+exec(compile(launcher_source.decode("utf-8"), launcher, "exec"), namespace)'
+    update_command=(
+        /usr/bin/python3 -I -c "$update_bootstrap"
+        "$update_launcher" "$update_launcher_digest" "$P"
+        --source-digest "$SOURCE_CONTENT_DIGEST"
+        --variant "$VARIANT"
+    )
+    if [ -n "$MODE" ]; then
+        update_command+=(--mode "$MODE")
+    else
+        update_command+=(--no-mode)
+    fi
+    update_command+=(--clear-ext)
+    for extension in "${EXTENSIONS[@]}"; do
+        update_command+=(--ext "$extension")
+    done
+    [ "$SEEDED" = "1" ] && update_command+=(--seeded) || update_command+=(--no-seeded)
+    [ "$FAITHFUL" = "1" ] && update_command+=(--faithful) || update_command+=(--no-faithful)
+    [ "$MANUAL" = "1" ] && update_command+=(--manual) || update_command+=(--no-manual)
+    [ "$LIGHT" = "1" ] && update_command+=(--light) || update_command+=(--no-light)
+    [ "$HALT_ON_CORE_BYPASS" = "1" ] \
+        && update_command+=(--halt-on-core-bypass) \
+        || update_command+=(--no-halt-on-core-bypass)
+
+    echo "Trusted update attestation (record this complete command outside the project):"
+    printf '  '
+    printf '%q ' "${update_command[@]}"
+    printf '\n'
+}
+
 finalize_assemble_only_setup() {
     echo ""
     echo "=== Assembled CLAUDE.md ==="
@@ -105,6 +181,8 @@ finalize_assemble_only_setup() {
     else
         echo "✓ All placeholders resolved"
     fi
+    echo ""
+    _setup_print_update_attestation
     echo ""
     echo "Assembly output at: $OUT_DIR/"
 }
@@ -210,6 +288,7 @@ _setup_print_completion() {
     echo ""
     echo "Variant: $VARIANT"
     echo "Extensions: ${EXTENSIONS[*]:-none}"
+    _setup_print_update_attestation
     if [ "$LIGHT" = "1" ]; then
         echo "Mode: light (cheapest tier throughout — subagents AND orchestrator: claude sonnet, codex gpt-5.6-luna, gemini flash; per-agent effort dropped)"
     fi

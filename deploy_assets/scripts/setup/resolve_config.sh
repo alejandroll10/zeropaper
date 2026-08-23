@@ -220,7 +220,7 @@ _setup_config_resolve_variant_and_modes() {
                     echo "Error: --mode empirical-first is finance-only in v1."
                     case "$VARIANT" in
                         macro)
-                            echo "  Macro support requires identification tooling for macro (issue #18) before this mode can ship."
+                            echo "  Macro has theory-first identification tooling, but this mode still requires macro-specific mechanism/vocabulary calibration (issue #18)."
                             ;;
                         llm_cognition)
                             echo "  llm_cognition has no identification-designer/auditor, and --ext empirical"

@@ -13,5 +13,32 @@
     "gemini": {
       "model": "gemini-3-preview"
     }
+  },
+  "identification-designer": {
+    "name": "identification-designer",
+    "description": "Designs and ranks macroeconometric identification strategies for the theory and available data before empirical execution.",
+    "category": "developing",
+    "tools": "Read, Write, WebSearch, WebFetch",
+    "skills": ["openalex"],
+    "model": "opus",
+    "effort": "high",
+    "codex": {
+      "model": "gpt-5.6-terra",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {"model": "gemini-3-preview"}
+  },
+  "identification-auditor": {
+    "name": "identification-auditor",
+    "description": "Adversarially audits SVAR, HFI, LP-IV, narrative, heteroskedastic, panel, calibration, and structural macro identification before execution.",
+    "category": "evaluator",
+    "tools": "Read, Write",
+    "model": "opus",
+    "effort": "high",
+    "codex": {
+      "model": "gpt-5.6-terra",
+      "model_reasoning_effort": "high"
+    },
+    "gemini": {"model": "gemini-3-preview"}
   }
 }

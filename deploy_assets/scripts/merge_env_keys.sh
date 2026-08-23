@@ -1,12 +1,12 @@
-# Shared .env key-merge routine. Build-time only (sourced by setup.sh and
-# update.sh from the template checkout; removed with the rest of scripts/ on
-# deploy, so no deployment-manifest entry).
+# Setup-only .env key-merge routine. Build-time only (sourced by setup.sh and
+# never copied into a deployment, so no deployment-manifest entry). update.sh
+# separately transports operator bytes through an anonymous authenticated pipe
+# and reproduces this missing-key behavior without sourcing live checkout code.
 #
-# Single implementation on purpose: setup.sh (union of the repo's personal
-# .env with .env.example at deploy time) and update.sh (merging new template
-# keys into existing deployments) must stay byte-identical in their edge-case
-# handling — a divergent second copy is how the v2.11.1 silent-key-drop bug
-# class reappears.
+# Setup uses this function to form the union of the repo's personal .env with
+# .env.example at deploy time. The authenticated updater has separate tests
+# asserting equivalent missing-key and unterminated-line behavior across its
+# anonymous transport boundary.
 
 # merge_env_missing_keys <source_env> <target_env> [dry_run 0|1]
 # Appends every KEY=... line present in source but absent from target. Never

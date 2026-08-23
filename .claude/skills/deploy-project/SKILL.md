@@ -53,7 +53,7 @@ vocab placeholder — load the `edit-pipeline` skill instead.
 # Combine extensions
 ./setup.sh <project-name> --variant finance --ext empirical --ext theory_llm
 
-# Light mode (cheapest tier for all subagents — cheaper/faster, orchestrator unchanged)
+# Light mode (cheapest tier for all subagents and the orchestrator)
 ./setup.sh <project-name> --variant finance --light
 
 # Halt-on-core-bypass (issue #51): make a silently-bypassed core a hard stop, not
@@ -91,22 +91,48 @@ vocab placeholder — load the `edit-pipeline` skill instead.
 
 ## Updating an existing project
 
-Run `update.sh` from the template checkout whose version you want to apply:
+Run the complete attested command printed by setup from the exact
+checkout/source snapshot that assembled the deployment:
 
 ```bash
-./update.sh <deployed-project-path>
-./update.sh <deployed-project-path> --dry-run
+./update.sh <project> --source-digest sha256:<trusted-setup-digest> \
+  --variant finance --no-mode --clear-ext \
+  --no-seeded --no-faithful --no-manual --no-light \
+  --no-halt-on-core-bypass
+# Add --dry-run without changing the selector declaration.
 ```
 
+Record that complete command outside the project. Every invocation explicitly
+provides its trusted source digest plus all eight resolved canonical selector dimensions:
+`--variant`; `--mode`/`--no-mode`; repeated `--ext`/`--clear-ext`; and the
+positive or negative forms of seeded, faithful, manual, light, and
+halt-on-core-bypass. Setup's command has already expanded implied extensions and
+legacy aliases, and its embedded bootstrap authenticates the recorded updater
+launcher, locks the project, and verifies a full source snapshot before that
+snapshot's coordinator or setup modules execute. Do not simplify it to a
+direct `update.sh` invocation or derive/reconstruct it from project-writable files. The updater accepts no in-place
+selector change. Any different variant, mode, extension, seed, faithful,
+manual, light, or halt-policy choice requires a fresh deployment.
+
+The updater accepts only a complete manifest-backed deployment assembled from
+the exact same v2.28.1 source snapshot. Every other version or source snapshot
+must stay on its original template or be redeployed fresh; update does not
+sniff its shape, create missing mutable state, or migrate historical state.
+
 Before updating, stop every process that may create, delete, rename, or modify files in the
-target project, and keep the project quiescent until the update finishes. On deployments whose
-installed `./launch.sh` includes the v2.24.0+ cooperative lock, `update.sh` detects and refuses
-active launcher sessions automatically. Older launchers generally do not hold that lock, so
-stop their sessions manually before updating. Processes that bypass `launch.sh`—for example
+target project, and keep the project quiescent until the update finishes. Supported deployments'
+installed `./launch.sh` holds the cooperative lock, so `update.sh` detects and refuses active
+launcher sessions automatically. Processes that bypass `launch.sh`—for example
 directly started runtimes, scripts, file watchers, cron jobs, or an editor that may save
 files—also do not hold the lock and must be stopped manually. An idle editor need not be closed
 if it will not write during the update. This is the operational boundary tracked in [issue
 #259](https://github.com/alejandroll10/zeropaper/issues/259) and documented in `LIMITATIONS.md`.
+
+Within the supported generation, state must already satisfy the complete receipt-backed contract.
+A stale paper receipt is handled by the ordinary Stage-9 re-audit; malformed or
+historical state fails before managed replacement. The updater never executes
+or mutates the agent-writable project `.venv`, and no selector change is
+supported even for an assemble-only or not-yet-launched target.
 
 ## Variants, extensions, modes
 
@@ -129,11 +155,11 @@ The target defaults to `automated-papers-produced`; override it with `PUBLISH_OR
 
 ### `--manual`
 
-Mutually exclusive with `--seed` and `--faithful`. It assembles `core_manual.md` instead of `core.md`, auto-generates an agent/skill catalog from the metadata files, swaps in per-runtime `session_manual.md` files, and skips creating `process_log/pipeline_state.json`, the `output/stage*` subdirs, and `dashboard.html`. Pipeline-only agents (`scribe`, `triager`, `puzzle-triager`, `branch-manager`) are still assembled into `.claude/agents/` etc. but flagged `pipeline_only: true` in metadata so `deploy_assets/scripts/generate_catalog.py` hides them from the user-facing catalog.
+Mutually exclusive with `--seed` and `--faithful`. It assembles `core_manual.md` instead of `core.md`, auto-generates an agent/skill catalog from the metadata files, swaps in per-runtime `session_manual.md` files, and skips creating `process_log/pipeline_state.json`, the `output/stage*` subdirs, and `dashboard.html`. It still creates `process_log/results_registry.json`, `process_log/manual_evidence_state.json`, and `output/evidence/` so manual paper edits use the same computed-evidence and citation checkpoints. Pipeline-only agents (`scribe`, `triager`, `puzzle-triager`, `branch-manager`) are still assembled into `.claude/agents/` etc. but flagged `pipeline_only: true` in metadata so `deploy_assets/scripts/generate_catalog.py` hides them from the user-facing catalog.
 
 ### `--mode empirical-first`
 
-Flips the pipeline from theory-first to identification-first for empirical papers whose contribution is a causal estimate rather than a theorem. Finance-only in v1 (macro requires identification tooling — see [issue #18](https://github.com/alejandroll10/zeropaper/issues/18)); auto-implies `--ext empirical` (the empirical agents and skills are mandatory for this mode). The flag composes with `--seed` and `--faithful` (a seeded empirical idea or a faithful identification contract is coherent) and with `--light`; it is independent of `--manual` (which skips the autonomous pipeline entirely). Concretely: Stage 1 produces `output/stage1/identification_design.md` as a first-class artifact (the identification-designer fires at Stage 1 Step 4, before any mechanism work); Stage 2 produces a prose + DAG + ≤2 reduced-form posits mechanism document (no derivations, no theorems); Gate 2's math audit (`math-auditor` + freeform) is replaced by a lightweight plan-time **mechanism-plausibility gate** (`mechanism-auditor`, #82) — there are no derivations to re-check, but a prose+DAG channel can still fail to deliver the documented sign/magnitude, contradict the identification design, or leave the leading alternative un-ruled-out, and catching that at plan time costs one read instead of a Stage-6 re-execution; Stage 2b (theory exploration) is permanently skipped because mechanism mode has no equilibria to grid-search; the scorer's H3 hard requirement swaps from "math audit passed" to "identification audit passed AND empirics audit passed"; Stage 3 derives auxiliary predictions (heterogeneity, falsification, alternative-channel discriminators) rather than the headline causal estimate (already committed in Stage 1); evaluator vocab (scorer, referee, self-attacker, empirics-auditor, referee-mechanism) is recalibrated for the identification-first framing via `deploy_assets/templates/agents/finance_modes/empirical_first/vocab.json` and body overrides under `deploy_assets/templates/agent_bodies/shared_modes/empirical_first/`. The deployed runtime doc's H1 title becomes "Autonomous Empirical Paper Pipeline" to reflect the route; the body's PAPER_TYPE / DOMAIN_AREAS placeholders are also mode-substituted (grep `DOC_SUBTITLE=` in `deploy_assets/scripts/setup/resolve_config.sh`). An optional `--ext theory` for post-results structural-model support is deferred to v2 — see [issue #26](https://github.com/alejandroll10/zeropaper/issues/26).
+Flips the pipeline from theory-first to identification-first for empirical papers whose contribution is a causal estimate rather than a theorem. Finance-only in v1 (macro has theory-first identification tooling, but its empirical-first mechanism/vocabulary calibration is not implemented — see [issue #18](https://github.com/alejandroll10/zeropaper/issues/18)); auto-implies `--ext empirical` (the empirical agents and skills are mandatory for this mode). The flag composes with `--seed` and `--faithful` (a seeded empirical idea or a faithful identification contract is coherent) and with `--light`; it is independent of `--manual` (which skips the autonomous pipeline entirely). Concretely: Stage 1 produces `output/stage1/identification_design.md` as a first-class artifact (the identification-designer fires at Stage 1 Step 4, before any mechanism work); Stage 2 produces a prose + DAG + ≤2 reduced-form posits mechanism document (no derivations, no theorems); Gate 2's math audit (`math-auditor` + freeform) is replaced by a lightweight plan-time **mechanism-plausibility gate** (`mechanism-auditor`, #82) — there are no derivations to re-check, but a prose+DAG channel can still fail to deliver the documented sign/magnitude, contradict the identification design, or leave the leading alternative un-ruled-out, and catching that at plan time costs one read instead of a Stage-6 re-execution; Stage 2b (theory exploration) is permanently skipped because mechanism mode has no equilibria to grid-search; the scorer's H3 hard requirement swaps from "math audit passed" to "identification audit passed AND empirics audit passed"; Stage 3 derives auxiliary predictions (heterogeneity, falsification, alternative-channel discriminators) rather than the headline causal estimate (already committed in Stage 1); evaluator vocab (scorer, referee, self-attacker, empirics-auditor, referee-mechanism) is recalibrated for the identification-first framing via `deploy_assets/templates/agents/finance_modes/empirical_first/vocab.json` and body overrides under `deploy_assets/templates/agent_bodies/shared_modes/empirical_first/`. The deployed runtime doc's H1 title becomes "Autonomous Empirical Paper Pipeline" to reflect the route; the body's PAPER_TYPE / DOMAIN_AREAS placeholders are also mode-substituted (grep `DOC_SUBTITLE=` in `deploy_assets/scripts/setup/resolve_config.sh`). An optional `--ext theory` for post-results structural-model support is deferred to v2 — see [issue #26](https://github.com/alejandroll10/zeropaper/issues/26).
 
 ### `--mode measurement-first`
 
@@ -143,7 +169,7 @@ The llm_cognition analog of `empirical-first` (issue #199): flips the pipeline f
 
 Reframes the project as refereeing an external submission. User drops the paper in `submission/`; the orchestrator runs a triage step, fans out all audit agents (`math-auditor` + freeform, `polish-{formula,numerics,consistency,equilibria,identification,prose,bibliography,institutions}`, `bib-verifier`, `novelty-checker`, `self-attacker`, `referee` / `referee-freeform` / `referee-mechanism`) in parallel against the submission, then `report-synthesizer` aggregates `audits/*.md` into `report/referee_report.md` with a single verdict (Accept / Minor revision / Major revision / Reject). One-shot, no stages, no `pipeline_state.json`, no `dashboard.html`. Mutually exclusive with `--seed`, `--faithful`, `--manual`, `--mode empirical-first`. Composes with `--light`. Supported variants: `finance`, `macro`, and (since v2.16.0) `llm_cognition` — the llm_cognition report referees run ML-calibrated (top-ML venue role, conference-cadence verdict semantics: Minor/Major Revision read as rebuttal-cycle / resubmit-next-cycle routing tokens), and the theory_llm auto-imply is skipped (report mode prunes those agents; the flag can still be passed explicitly for install-only skills).
 
-Composes with `--ext empirical` and `--ext theory_llm` in **install-only** mode: the extension's *skills* install (WRDS/FRED/Census/SEC helpers, the LLM-experiment client) so the audit agents can spot-check external data or call an LLM if needed, but the extensions' *audit agents* (`empirics-auditor`, `identification-auditor`, `mechanism-auditor`, `headline-replicator`, `data-integrity-auditor`, `data-selection-auditor`, `method-checker`, `claim-{enumerator,grounder,verifier}`, `experiment-reviewer`) are pruned — they were designed against the pipeline's own empiricist output and would need substantial rewrites for external submissions. The base referees evaluate empirical submissions holistically (identification, magnitude, robustness at editorial level); deep code-level adversarial auditing of external empirical submissions is a v2 feature.
+Composes with `--ext empirical` and `--ext theory_llm` in **install-only** mode: the extension's *skills* install (WRDS/FRED/Census/SEC helpers, the LLM-experiment client) so the audit agents can spot-check external data or call an LLM if needed, but the extensions' *audit agents* (`empirics-auditor`, `identification-auditor`, `mechanism-auditor`, `headline-replicator`, `data-integrity-auditor`, `data-selection-auditor`, `method-checker`, `experiment-reviewer`) are pruned — they were designed against the pipeline's own producer output and would need substantial rewrites for external submissions. The base referees evaluate empirical submissions holistically (identification, magnitude, robustness at editorial level); deep code-level adversarial auditing of external empirical submissions is a v2 feature.
 
 Pruned at assembly time via `_setup_extensions_prune_report_mode_agents` in `deploy_assets/scripts/setup/extensions_and_injections.sh`, by category: generative agents (`theory-generator`, `paper-writer`, `idea-*`, `question-poser`, `question-referee`, `theory-explorer`, `implications-deriver`), the `last-resort` escalation agent (one-shot report mode has no stuck pipeline to unstick), pipeline-management agents (`scribe`, `triager`, `puzzle-triager`, `branch-manager`, `editor`), scoring agents (`scorer`, `scorer-freeform`), broad-survey agents (`literature-scout`, `gap-scout`), the `style` editor, and extension generative agents (`empiricist`, `identification-designer`, `experiment-designer`). (`faithful-drift-auditor` is also absent from a report build, but via a different mechanism — `_setup_extensions_prune_non_faithful_agents`, which drops it from any non-`--faithful` build; report mode simply can't be faithful.) For the exact current set — it changes as agents are added — grep the `_setup_extensions_prune_report_mode_agents` call sites in `deploy_assets/scripts/setup/extensions_and_injections.sh` rather than trusting this list.
 

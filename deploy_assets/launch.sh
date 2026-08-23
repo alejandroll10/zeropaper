@@ -124,6 +124,35 @@ then
     exit 1
 fi
 
+# A killed updater can leave managed prompts/utilities and mutable selector
+# state at different publication phases even though the project flock was
+# released by process death. Never run that mixed snapshot: a non-dry update
+# must finish recovery and remove every durable transaction marker first.
+for _launch_update_marker in \
+    "$ROOT/process_log/.opencode-control/update-in-progress" \
+    "$ROOT/process_log/.opencode-control/selector-migration.json" \
+    "$ROOT/process_log/.opencode-control/selector-migration.json.next"
+do
+    if [ -e "$_launch_update_marker" ] || [ -L "$_launch_update_marker" ]; then
+        echo "ERROR: interrupted project update detected; rerun update.sh successfully before launch" >&2
+        exit 1
+    fi
+done
+
+# A result lifecycle command may have published part of a registry/receipt
+# transition before process death. Every results command recovers that journal,
+# but the orchestrator reads state and registry before issuing one; launching
+# against the prepared view could therefore move a stage pointer to evidence
+# that recovery later makes pending again. Require recovery before any runtime
+# observes project state. Do not execute the project-writable utility here with
+# launcher authority.
+_launch_results_transaction="$ROOT/process_log/results_pipeline.transaction.json"
+if [ -e "$_launch_results_transaction" ] || [ -L "$_launch_results_transaction" ]; then
+    echo "ERROR: interrupted computed-results transaction detected" >&2
+    echo "  Recover it before launch by running one results_pipeline.py command (for example verify-all), then retry." >&2
+    exit 1
+fi
+
 # A --tmux handoff keeps its original shared lock until this nested launcher has
 # acquired its own. Publish through one parent-created regular file only after
 # flock succeeds; failure paths in the tmux command publish `failed` instead.

@@ -54,8 +54,9 @@ Claude Code will handle the clone, setup, and prereq checks for you. Works on Ma
 #   Linux (Ubuntu/Debian):
 sudo apt-get install python3 python3-pip git bubblewrap socat ripgrep
 #   macOS (Homebrew): sandbox is built-in via Seatbelt — no bubblewrap needed;
-#   ripgrep is additionally required when using OpenCode/SRT
-brew install python git ripgrep
+#   Bash 4+ is required by the authenticated updater (macOS /bin/bash is 3.2),
+#   and ripgrep is additionally required when using OpenCode/SRT
+brew install bash python git ripgrep
 
 # The setup/update bootstrap and setup control plane deliberately use system
 # tools (including /usr/bin/python3), not an activated venv or its PATH.
@@ -106,21 +107,40 @@ its sole build source. Full deployments require committed build inputs, so commi
 template changes first; use `--assemble-only /tmp/zeropaper-check` to validate
 uncommitted development changes without provisioning or project Git setup.
 
-To refresh an existing deployment, stop its runtime and run
-`./update.sh /path/to/project` from the checkout version you want to apply.
+To refresh an existing deployment, stop its runtime and run the complete
+attested command printed by setup from the exact checkout/source snapshot that
+assembled it. Every invocation must spell the resolved canonical selector;
+for a plain finance deployment the recorded command has this shape:
+
+```bash
+./update.sh /path/to/project --source-digest sha256:<trusted-setup-digest> \
+  --variant finance --no-mode --clear-ext \
+  --no-seeded --no-faithful --no-manual --no-light \
+  --no-halt-on-core-bypass
+```
+
+Record setup's complete canonical command outside the project. It already
+expands implied extensions and legacy aliases and carries the trusted source
+digest; its embedded bootstrap authenticates the recorded `update.sh`, locks
+the project, and verifies a full source snapshot before that snapshot's
+coordinator or setup modules execute. Do not simplify it to a direct
+`update.sh` invocation or reconstruct it from project-writable files. The updater accepts only the exact
+same selector and source snapshot. Any variant, mode, extension, seeded,
+faithful, manual, light, or halt-policy change requires a fresh deployment.
+Every other version/source snapshot must likewise remain on its original
+template or be redeployed fresh; no historical state is inferred or created.
 Supported launchers hold a shared lock on the project-directory inode; update
 requires its exclusive side and refuses to race a live runtime. Before launch,
-compatible autonomous mode and extension overrides merge their complete state
-schema and output-directory skeleton from the verified fresh assembly;
-same-layout manual/report extension refreshes have no autonomous state to
-migrate. Selector overrides persist the fresh manifest. `--seeded`, `--faithful`, and
-their `--no-*` forms also migrate `pipeline_state.json` before the first launch,
-with prepared seed content rolled back if the refresh does not complete;
-after a run has started, mode/extension/seed migration fails closed. Update never
-deletes `output/seed` content. Cross-variant, autonomous↔manual, and
-report↔autonomous layout changes require a fresh deployment rather than an
-in-place update. Processes that bypass `launch.sh` must be stopped manually;
+the updater validates the complete current state/evidence contract before
+refreshing managed infrastructure. It never executes or mutates the
+agent-writable project virtualenv. A durable update marker blocks every
+supported launcher until
+an interrupted refresh is rerun successfully. Processes that bypass `launch.sh`
+must be stopped manually;
 that cooperative-lock boundary is tracked in `LIMITATIONS.md` (#259).
+Within that generation, malformed state fails before managed replacement. Current
+receipt-backed projects continue to update normally and re-enter Stage 9 when
+their bound paper receipt needs a fresh audit.
 
 ```bash
 # Pure finance theory (default)
@@ -190,7 +210,9 @@ Then, per extension:
 
 `EMAIL` identifies your API traffic to OpenAlex and Crossref (the `mailto` parameter) — worth setting regardless. Note that **no identity value reaches the manuscript**: papers ship `\author{[Author names withheld for double-blind review]}` and the pipeline is forbidden to de-anonymize them.
 
-To add a key to projects you already deployed, put it in this repo's `.env` and run `./update.sh <project>`; the merge appends keys the project is missing without touching values it already has.
+To add a key to projects you already deployed, put it in this repo's `.env` and run
+`update.sh` with the project's complete explicit selector; the merge appends keys the
+project is missing without touching values it already has.
 
 ### Step 4: Launch
 
@@ -255,7 +277,7 @@ You can also watch files appear in real time in your editor, or run `git log --o
 |---------|------|-----------------|-------------|
 | **finance** | `--variant finance` (default) | JF, JFE, RFS | Pure finance theory paper |
 | **macro** | `--variant macro` | AER, Econometrica, QJE, JPE, ReStud, JME | Macro theory paper |
-| **llm_cognition** | `--variant llm_cognition` | NeurIPS, ICML, ICLR (TMLR as field tier) | The science of LLM cognition & evaluation. Auto-implies `--ext theory_llm` (the experiments are the evidence); `--ext empirical` and `--mode report` are gated off (see LIMITATIONS.md) |
+| **llm_cognition** | `--variant llm_cognition` | NeurIPS, ICML, ICLR (TMLR as field tier) | The science of LLM cognition & evaluation. Auto-implies `--ext theory_llm` except in report mode; `--ext empirical` is gated off (see LIMITATIONS.md). |
 
 ## Extensions
 
@@ -272,9 +294,11 @@ Modes flip the pipeline architecture. Orthogonal to `--variant` and `--ext`.
 
 | Mode | Flag | What it does |
 |------|------|-------------|
-| **empirical-first** | `--mode empirical-first` | Causal-identification empirical paper. The identification design becomes the primary Stage 1 deliverable (not a Stage 3a check). The mechanism section is prose + DAG + ≤2 reduced-form posits — no theorem-and-proof. Gate 2 (math audit) and Stage 2b (theory exploration) are skipped because mechanism mode has no derivations or equilibria to audit. Scorer's H3 hard requirement swaps from "math audit passed" to "identification + empirics audits passed." Auto-implies `--ext empirical`. Finance variant only in v1 (macro requires identification tooling — see [issue #18](https://github.com/alejandroll10/zeropaper/issues/18)). |
+| **empirical-first** | `--mode empirical-first` | Causal-identification empirical paper. The identification design becomes the primary Stage 1 deliverable (not a Stage 3a check). The mechanism section is prose + DAG + ≤2 reduced-form posits — no theorem-and-proof. Gate 2 (math audit) and Stage 2b (theory exploration) are skipped because mechanism mode has no derivations or equilibria to audit. Scorer's H3 hard requirement swaps from "math audit passed" to "identification + empirics audits passed." Auto-implies `--ext empirical`. Finance variant only in v1 (macro has theory-first identification tooling, but not this mode's mechanism/vocabulary calibration — see [issue #18](https://github.com/alejandroll10/zeropaper/issues/18)). |
+| **measurement-first** | `--mode measurement-first` | LLM-cognition evidence-first route: construct and design gate, Stage 3b experiments, then post-experiment formal characterization. |
+| **report** | `--mode report` | One-shot referee report on an external submission instead of paper generation. Supported for finance, macro, and llm_cognition. |
 
-If `identification-designer` returns `N/A — no causal claim` at Stage 1 (the question is irreducibly non-causal), the pipeline halts with `status = halted_no_identification_design` and prompts the operator to rerun `update.sh --no-mode` to convert the deployment back to theory-first. After the update, the operator must also reset `current_stage` in `process_log/pipeline_state.json` (to `"stage_1"` to re-pick the idea, or `"stage_2"` if the selected idea is still valid in theory-first) and flip `status` back to `"running"` before relaunching — leaving `current_stage = "stage_1_identification_design"` in place would point the resume logic at a stage doc that no longer exists in the converted deployment. The full procedure is in the runtime's halted-status handler.
+If `identification-designer` returns `N/A — no causal claim` at Stage 1 (the question is irreducibly non-causal), the pipeline halts with `status = halted_no_identification_design`. The operator either abandons that question or creates a fresh theory-first deployment and carries the question and useful project-owned research material into it. `update.sh` intentionally refuses to reinterpret a started pipeline state across modes; the full procedure is in the runtime's halted-status handler.
 
 ## Additional flags
 
@@ -282,10 +306,10 @@ If `identification-designer` returns `N/A — no causal claim` at Stage 1 (the q
 |------|-------------|
 | `--seed` | Create a seeded-idea project. Creates `output/seed/` — drop your idea files there (markdown, PDFs, drafts, etc.) before launching. Pipeline triages seed maturity and enters at the appropriate stage. Never silently abandons the seeded idea, but **may** pivot under puzzle-triage / refine framing under scorer recommendations. |
 | `--faithful` | Stricter variant of `--seed`. Treats the seed as a **contract**. At seed_triage the orchestrator extracts `output/seed/mechanism_contract.md` (the seed's named mechanism, structural invariants, theorem-statement constraints, identification strategy, stated contribution); developing agents must respect every invariant. Substitution / pivot / headline-replacement are forbidden — additions on top of the faithfully-implemented contract (extra theorems, comparative statics, robustness checks) are allowed and encouraged once the contract is in place. Genuine impossibilities (proof unrepairable, identification infeasible, prediction contradicted by data) get documented in `output/seed/limitations.md` and the paper ships documenting them honestly. Evaluators (scorers, referees, auditors) stay impartial — the constraint enters only at the orchestrator's routing of their verdicts, with every routing decision logged to `process_log/pivot_log.md` for auditability. Use `--faithful` when you want the seed implemented as written; use `--seed` when you want the pipeline to preserve the seed but allow puzzle-triage pivots and scorer-driven framing refinements. Mutually exclusive with `--seed` and `--manual`. |
-| `--manual` | Set up the same agents and skills as a research toolkit — no autonomous pipeline. The runtime doc lists every agent and skill with a one-line description; you invoke them yourself. Useful when you want the math-auditor, novelty-checker, theory-explorer, paper-writer, polish-* agents, etc. as standalone helpers without committing to the end-to-end loop. Mutually exclusive with `--seed` and `--faithful`. **Paths are fixed**: agents read from `paper/main.tex`, `paper/sections/*.tex`, `output/`, `references/`. **Bringing your own paper:** (1) existing paper as its own git repo → drop the whole repo into `paper/` and add a bare `paper/` line to `.gitignore` so the outer git ignores the nested repo entirely (the existing `paper/*.aux`/`paper/*.pdf`/etc. lines become harmless once `paper/` is excluded); (2) flat `.tex` files → drop them into `paper/sections/` + `paper/main.tex`, the default `.gitignore` handles them; (3) no paper yet → launch `paper-writer` to create one from scratch. **License note:** human-directed manual-mode work is *Assisted Output* — exempt from the §2 submission notice and §3 disclosure (LICENSE §2, Assisted Output exemption; your venue's own AI policy still applies). The watermark still installs (`mode=manual`) and §4 applies in full. |
+| `--manual` | Set up the same agents and skills as a research toolkit — no autonomous pipeline. The runtime doc lists every agent and skill with a one-line description; you invoke them yourself. Useful when you want the math-auditor, novelty-checker, theory-explorer, paper-writer, polish-* agents, etc. as standalone helpers without committing to the end-to-end loop. Computed results still enter through reproducible result receipts, and every accepted paper mutation runs the shared evidence and citation checkpoint using the initialized manual evidence state/registry. Mutually exclusive with `--seed` and `--faithful`. **Paths are fixed**: agents read from `paper/main.tex`, `paper/sections/*.tex`, `output/`, `references/`. **Bringing your own paper:** (1) existing paper as its own git repo → drop the whole repo into `paper/` and add a bare `paper/` line to `.gitignore` so the outer git ignores the nested repo entirely (the existing `paper/*.aux`/`paper/*.pdf`/etc. lines become harmless once `paper/` is excluded); (2) flat `.tex` files → drop them into `paper/sections/` + `paper/main.tex`, the default `.gitignore` handles them; (3) no paper yet → launch `paper-writer` to create one from scratch. **License note:** human-directed manual-mode work is *Assisted Output* — exempt from the §2 submission notice and §3 disclosure (LICENSE §2, Assisted Output exemption; your venue's own AI policy still applies). The watermark still installs (`mode=manual`) and §4 applies in full. |
 | `--light` | Run the whole pipeline on the cheapest tier its runtime offers (cheaper/faster) — **orchestrator included**, and each agent's pinned reasoning effort dropped with it. Applies across all five runtimes — claude `sonnet`, codex `gpt-5.6-luna`, gemini `gemini-3-flash-preview`; Grok and OpenCode each have one configured model, so the flag is a no-op for them. Subagents are pinned at assembly time; `launch.sh` pins the orchestrator at launch. Good for drafts or iteration — but note the orchestrator makes the stage-routing and gate decisions, so this is the setting where a cheaper model costs the most. |
 
-These flags combine freely with `--variant` and `--ext` (except `--manual` and `--seed`/`--faithful`, which are mutually exclusive).
+These flags combine freely with `--variant`, `--ext`, and non-report `--mode` selections (except `--manual` and `--seed`/`--faithful`, which are mutually exclusive; report mode is also mutually exclusive with all three).
 
 ## Pipeline stages
 

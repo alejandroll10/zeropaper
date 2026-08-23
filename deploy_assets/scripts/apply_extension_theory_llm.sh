@@ -27,11 +27,13 @@ if [ -n "$9" ]; then
     MODEL_OVERRIDE_ARG=(--model-override "$9")
 fi
 # $10 = MODE_BODIES_OVERLAY, $11 = MODE_VOCAB_OVERLAY,
-# $12 = base variant vocab path, $13 = active underscored mode slug.
+# $12 = base variant vocab path, $13 = active underscored mode slug,
+# $14 = manual-mode flag.
 EXT_MODE_BODIES_OVERLAY="${10}"
 EXT_MODE_VOCAB_OVERLAY="${11}"
 EXT_BASE_VOCAB="${12}"
 EXT_MODE="${13}"
+EXT_MANUAL="${14}"
 EXT_VOCAB_ARGS=()
 EXT_SHARED_VOCAB="$TEMPLATE_ROOT/templates/agent_bodies/shared/vocab.json"
 [ -f "$EXT_SHARED_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_SHARED_VOCAB")
@@ -98,7 +100,9 @@ python3 "$TEMPLATE_ROOT/scripts/assemble_claude_skills.py" \
     --bodies-dir "$TEMPLATE_ROOT/templates/skill_bodies/theory_llm" \
     --output-dir "$SKILLS_OUT"
 
-bootstrap_dir "output/stage3b/figures"
+if [ "$EXT_MANUAL" != "1" ]; then
+    bootstrap_dir "output/stage3b/figures"
+fi
 
 # Amend the deployed Stage 9 doc: theory_llm adds a ninth polish agent.
 # Guarded (grep) so update.sh re-runs don't append twice; skipped when the
@@ -111,7 +115,12 @@ if [ -f "$STAGE9_DOC" ] && ! grep -q "polish-experiments" "$STAGE9_DOC"; then
 
 This run has `--ext theory_llm`, which adds **`polish-experiments`** to Stage 9. Read the eight-agent lists above as nine-agent lists:
 
+<!-- AUTONOMOUS_START -->
 - **Launch** it in the same parallel batch, with the same `loops.polish.round` value. Pass it `paper/main.tex`, the included sections, the IA files when non-empty, the exact report at `pipeline_state.json:stage3b_results_path`, and the analysis code, artifacts, and exhibits bound by `pipeline_state.json:stage3b_result_receipt`.
+<!-- AUTONOMOUS_END -->
+<!-- MANUAL_START -->
+- **Launch** it in the same parallel batch, with the same `loops.polish.round` value. Pass it `paper/main.tex`, the included sections, the IA files when non-empty, and `process_log/results_registry.json`. It resolves experimental reports, code, artifacts, and exhibits from every active receipt supplied by the caller; it never invents Stage 3b paths or a `pipeline_state.json` pointer.
+<!-- MANUAL_END -->
 - **It writes** `output/polish_experiments_r{N}.md`; include that path in the triager's input list alongside the other eight reports. Its findings triage on the same Apply/Investigate/Drop rules, and its correction rows belong to pass 1 of the two-pass paper-writer application.
 - **Ownership:** paper↔raw-results agreement for experimental numbers, stimulus-contamination status, model snapshot pinning and decoding-parameter disclosure, error-bar integrity across stimuli and sampled runs, scope honesty of capability claims, artifact reproducibility (code + seeds regenerate the battery). It does **not** own experimental design quality (experiment-reviewer, Stage 3b), formula derivations (polish-formula), non-experimental numbers (polish-numerics), or citation faithfulness (polish-bibliography). The deliberate overlap with polish-numerics/polish-consistency on stage3b-grounded prose numbers is fine — the triager dedupes by anchor.
 STAGE9EOF

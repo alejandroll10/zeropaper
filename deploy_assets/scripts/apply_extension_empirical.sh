@@ -2,7 +2,8 @@
 set -e
 
 # Mode threading: positional $11 = MODE_BODIES_OVERLAY, $12 = MODE_VOCAB_OVERLAY,
-# $13 = base variant vocab path, $14 = active underscored mode slug. The variant vocab supplies default values for
+# $13 = base variant vocab path, $14 = active underscored mode slug,
+# $15 = manual-mode flag. The variant vocab supplies default values for
 # placeholders the extension bodies use (e.g. {{EMPIRICS_AUDITOR_MODE_BLOCK}}
 # is empty in the base vocab and populated only by the empirical-first
 # overlay). The base vocab MUST be passed even outside mode-empirical-first
@@ -29,6 +30,7 @@ EXT_MODE_BODIES_OVERLAY="${11}"
 EXT_MODE_VOCAB_OVERLAY="${12}"
 EXT_BASE_VOCAB="${13}"
 EXT_MODE="${14}"
+EXT_MANUAL="${15}"
 
 # Build vocab args: shared defaults first, then base variant vocab, then mode
 # overlay (last-write-wins) — same layering as the base assemblers in setup.sh.
@@ -164,7 +166,9 @@ if [ ! -f "$PROJECT_ROOT/code/utils/__init__.py" ]; then
 fi
 infrastructure_file 1000 "code/utils/__init__.py"
 
-bootstrap_dir "output/stage3a/figures"
+if [ "$EXT_MANUAL" != "1" ]; then
+    bootstrap_dir "output/stage3a/figures"
+fi
 
 ENV_FILE="$PROJECT_ROOT/.env"
 if ! grep -q 'FRED_API_KEY' "$ENV_FILE" 2>/dev/null; then

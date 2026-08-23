@@ -3,9 +3,13 @@ from __future__ import annotations
 
 import fcntl
 import hashlib
+import importlib.util
 import json
 import os
+import re
+import resource
 import shutil
+import socket
 import stat
 import subprocess
 import sys
@@ -14,6 +18,7 @@ import time
 import unittest
 import venv
 from pathlib import Path
+from unittest import mock
 
 
 REPO = Path(__file__).resolve().parents[1]
@@ -41,7 +46,7 @@ artifact.write_text(json.dumps({'rows': [1, 2, 3]}) + '\\n')
 bundle = {
   'schema_version': 1,
   'producer': {'name': 'test', 'code': ['code/analyze.py'],
-               'inputs': ['data/input.txt'], 'reproducibility': 'exact'},
+               'inputs': ['data/input.txt'], 'reproducibility': 'captured'},
   'results': {'main.mean': {'description': 'Main mean', 'value': '2.0'},
               'main.rows': {'description': 'Underlying rows',
                             'artifact': 'output/stagex/detail.json', 'selector': 'rows'}},
@@ -722,6 +727,149 @@ if (trigger_root / 'mutate-during-bind').exists():
         self.assertIn("literal provider credential", completed.stderr)
         self.assertFalse((self.root / "output/stagex/results.json").exists())
 
+    def test_provider_credential_cannot_enter_producer_command_record(self) -> None:
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["provider_credentials"] = ["OPENAI_API_KEY"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        environment = os.environ.copy()
+        secret = "dummy-producer-argv-secret-264"
+        environment["OPENAI_API_KEY"] = secret
+        completed = subprocess.run(
+            [sys.executable, str(UTILITY), "run", "--plan",
+             "output/stagex/results.plan.json", "--bundle",
+             "output/stagex/results.json", "--receipt",
+             "output/stagex/results.receipt.json", "--",
+             sys.executable, "code/analyze.py", "--api-key", secret],
+            cwd=self.root, env=environment, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        self.assertEqual(completed.returncode, 2, completed.stdout + completed.stderr)
+        self.assertIn("command arguments contain a literal provider credential",
+                      completed.stderr)
+        self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
+
+    def test_provider_credential_cannot_enter_renderer_command_record(self) -> None:
+        environment = os.environ.copy()
+        secret = "dummy-renderer-argv-secret-264"
+        environment["OPENAI_API_KEY"] = secret
+        self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py",
+        )
+        completed = subprocess.run(
+            [sys.executable, str(UTILITY), "render", "--receipt",
+             "output/stagex/results.receipt.json", "--",
+             sys.executable, "code/render.py", "--api-key", secret],
+            cwd=self.root, env=environment, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        self.assertEqual(completed.returncode, 2, completed.stdout + completed.stderr)
+        self.assertIn("command arguments contain a literal provider credential",
+                      completed.stderr)
+        receipt = json.loads(
+            (self.root / "output/stagex/results.receipt.json").read_text(encoding="utf-8")
+        )
+        self.assertIsNone(receipt["render_run"])
+        self.assertNotIn(secret, json.dumps(receipt))
+
+    def test_proxy_password_cannot_enter_command_record(self) -> None:
+        environment = os.environ.copy()
+        secret = "dummy-proxy-argv-secret-264"
+        environment["HTTPS_PROXY"] = (
+            "https://proxy-user:dummy-proxy-argv-secret-264@proxy.example:8443"
+        )
+        completed = subprocess.run(
+            [sys.executable, str(UTILITY), "run", "--plan",
+             "output/stagex/results.plan.json", "--bundle",
+             "output/stagex/results.json", "--receipt",
+             "output/stagex/results.receipt.json", "--",
+             sys.executable, "code/analyze.py", "--proxy-password", secret],
+            cwd=self.root, env=environment, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        self.assertEqual(completed.returncode, 2, completed.stdout + completed.stderr)
+        self.assertIn("command arguments contain a literal provider credential",
+                      completed.stderr)
+        self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
+
+    def test_encoded_proxy_credentials_cannot_enter_command_or_staged_files(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        environment = {
+            "HTTPS_PROXY": "http://user:very%40secret@proxy.example:8443"
+        }
+        for leaked in (
+            "very%40secret", "very@secret",
+            "http://user:very%40secret@proxy.example:8443",
+        ):
+            with self.subTest(leaked=leaked):
+                with self.assertRaises(module.EvidenceError):
+                    module.reject_command_credential_leak(["python3", leaked], environment)
+        staged = self.root / "staged-credential"
+        staged.mkdir()
+        (staged / "leak.txt").write_text(
+            "http://user:very%40secret@proxy.example:8443\n", encoding="utf-8"
+        )
+        with self.assertRaises(module.EvidenceError):
+            module.reject_credential_leak(staged, environment)
+
+    def test_token_only_proxy_credentials_cannot_enter_command_or_staged_files(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        environment = {
+            "HTTPS_PROXY": "http://token%40only@proxy.example:8443"
+        }
+        for leaked in (
+            "token%40only", "token@only",
+            "http://token%40only@proxy.example:8443",
+        ):
+            with self.subTest(leaked=leaked):
+                with self.assertRaises(module.EvidenceError):
+                    module.reject_command_credential_leak(["python3", leaked], environment)
+        staged = self.root / "staged-token-only-proxy-credential"
+        staged.mkdir()
+        (staged / "leak.txt").write_text(
+            "token@only\n", encoding="utf-8"
+        )
+        with self.assertRaises(module.EvidenceError):
+            module.reject_credential_leak(staged, environment)
+
+    def test_short_ambient_secret_is_rejected_even_when_embedded(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        for command in (["python3", "code/test_renderer.py"], ["python3", "test"],
+                        ["python3", "--proxy-password=test"]):
+            with self.subTest(command=command), self.assertRaises(module.EvidenceError):
+                module.reject_command_credential_leak(
+                    command, {"OPENAI_API_KEY": "test"}
+                )
+
+    def test_stripped_ambient_credential_is_still_scanned_after_execution(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        secret = "dummy-unselected-staged-secret-264"
+
+        def stage_secret(_command: list[str], **_kwargs: object
+                         ) -> tuple[int, bytes, bytes, bool]:
+            (self.root / "leak.txt").write_text(secret, encoding="utf-8")
+            return 0, b"", b"", False
+
+        with (mock.patch.dict(module.os.environ,
+                              {"OPENAI_API_KEY": secret}, clear=True),
+              mock.patch.object(module, "supervised_command", side_effect=stage_secret)):
+            with self.assertRaises(module.EvidenceError):
+                module.execute(["/bin/true"], self.root, allow_network=False)
+
     def test_renderer_receives_no_provider_credentials(self) -> None:
         environment = os.environ.copy()
         environment["OPENAI_API_KEY"] = "dummy-render-secret-264"
@@ -754,6 +902,152 @@ if (trigger_root / 'mutate-during-bind').exists():
             stdout=subprocess.PIPE, stderr=subprocess.PIPE,
         )
         self.assertEqual(rendered.returncode, 0, rendered.stdout + rendered.stderr)
+
+    @unittest.skipUnless(
+        sys.platform.startswith("linux") and shutil.which("bwrap"),
+        "Linux bubblewrap renderer-network check",
+    )
+    def test_renderer_cannot_reach_host_loopback(self) -> None:
+        try:
+            server = socket.socket(socket.AF_INET, socket.SOCK_STREAM)
+        except PermissionError:
+            self.skipTest("outer test sandbox forbids loopback sockets")
+        server.bind(("127.0.0.1", 0))
+        server.listen(1)
+        port = server.getsockname()[1]
+        renderer = self.root / "code/render.py"
+        renderer.write_text(
+            "import socket\n"
+            f"probe = socket.socket(); probe.settimeout(1); port = {port}\n"
+            "try:\n"
+            "    probe.connect(('127.0.0.1', port))\n"
+            "except OSError:\n"
+            "    pass\n"
+            "else:\n"
+            "    raise RuntimeError('renderer reached host network')\n"
+            "finally:\n"
+            "    probe.close()\n" + renderer.read_text(encoding="utf-8"),
+            encoding="utf-8",
+        )
+        try:
+            self.call(
+                "run", "--bundle", "output/stagex/results.json",
+                "--receipt", "output/stagex/results.receipt.json", "--",
+                sys.executable, "code/analyze.py",
+            )
+            self.call(
+                "render", "--receipt", "output/stagex/results.receipt.json", "--",
+                sys.executable, "code/render.py",
+            )
+        finally:
+            server.close()
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux bubblewrap command check")
+    def test_renderer_bubblewrap_command_unshares_network(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        captured: list[str] = []
+
+        def record(command: list[str], **_kwargs: object
+                   ) -> tuple[int, bytes, bytes, bool]:
+            captured.extend(command)
+            return 0, b"", b"", False
+
+        with (mock.patch.object(module, "trusted_sandbox_executable",
+                               side_effect=lambda name: (
+                                   "/usr/bin/bwrap" if name == "bwrap" else None
+                               )),
+              mock.patch.object(module, "ambient_network_is_denied", return_value=False),
+              mock.patch.object(module, "supervised_command", side_effect=record),
+              mock.patch.object(module, "reject_credential_leak")):
+            module.execute(["/bin/true"], self.root, project_root=self.root,
+                           allow_network=False)
+        self.assertIn("--unshare-net", captured)
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux bubblewrap command check")
+    def test_renderer_does_not_mount_wrds_service_paths(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        runtime_home = self.root / "host-home"
+        wrds_state = runtime_home / ".local/state/zeropaper/wrds"
+        wrds_cache = runtime_home / ".cache/zeropaper/wrds"
+        wrds_state.mkdir(parents=True)
+        wrds_cache.mkdir(parents=True)
+        captured: list[str] = []
+
+        def record(command: list[str], **_kwargs: object
+                   ) -> tuple[int, bytes, bytes, bool]:
+            captured.extend(command)
+            return 0, b"", b"", False
+
+        with (mock.patch.dict(module.os.environ, {"HOME": str(runtime_home)}),
+              mock.patch.object(module, "trusted_sandbox_executable",
+                                side_effect=lambda name: (
+                                    "/usr/bin/bwrap" if name == "bwrap" else None
+                                )),
+              mock.patch.object(module, "ambient_network_is_denied", return_value=False),
+              mock.patch.object(module, "supervised_command", side_effect=record),
+              mock.patch.object(module, "reject_credential_leak")):
+            module.execute(["/bin/true"], self.root, project_root=self.root,
+                           allow_network=False)
+        self.assertNotIn(str(wrds_state), captured)
+        self.assertNotIn(str(wrds_cache), captured)
+
+    def test_macos_sandbox_does_not_grant_keychain_mach_lookup(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        captured: list[str] = []
+
+        def record(command: list[str], **_kwargs: object
+                   ) -> tuple[int, bytes, bytes, bool]:
+            captured.extend(command)
+            return 0, b"", b"", False
+
+        with (mock.patch.object(module.sys, "platform", "darwin"),
+              mock.patch.object(module, "trusted_sandbox_executable",
+                                side_effect=lambda name: (
+                                    "/usr/bin/sandbox-exec"
+                                    if name == "sandbox-exec" else None
+                                )),
+              mock.patch.object(module, "supervised_command", side_effect=record),
+              mock.patch.object(module, "reject_credential_leak")):
+            module.execute(["/bin/true"], self.root, project_root=self.root,
+                           allow_network=False)
+        profile = captured[captured.index("-p") + 1]
+        self.assertNotIn("(allow mach-lookup)", profile)
+
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux sandbox path check")
+    def test_ambient_path_cannot_select_project_sandbox_executable(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        fake_bin = self.root / ".venv/bin"
+        fake_bin.mkdir(parents=True, exist_ok=True)
+        fake = fake_bin / "bwrap"
+        fake.write_text("#!/bin/sh\nexit 99\n", encoding="utf-8")
+        fake.chmod(0o755)
+        captured: list[str] = []
+
+        def record(command: list[str], **_kwargs: object
+                   ) -> tuple[int, bytes, bytes, bool]:
+            captured.extend(command)
+            return 0, b"", b"", False
+
+        with (mock.patch.dict(module.os.environ,
+                              {"PATH": f"{fake_bin}:/usr/bin:/bin"}),
+              mock.patch.object(module, "supervised_command", side_effect=record),
+              mock.patch.object(module, "reject_credential_leak")):
+            module.execute(["/bin/true"], self.root, project_root=self.root,
+                           allow_network=False)
+        self.assertEqual(captured[0], "/usr/bin/bwrap")
+        self.assertNotIn(str(fake), captured)
 
     def test_producer_receives_only_plan_selected_provider_credentials(self) -> None:
         plan_path = self.root / "output/stagex/results.plan.json"
@@ -841,7 +1135,7 @@ if (trigger_root / 'mutate-during-bind').exists():
         )
         self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
 
-    def test_project_venv_can_use_an_external_base_runtime(self) -> None:
+    def test_project_venv_rejects_project_selected_untrusted_base_runtime(self) -> None:
         venv.create(self.root / ".venv", with_pip=False)
         with tempfile.TemporaryDirectory(
             prefix="external-python-runtime-", dir=self.root.parent
@@ -876,7 +1170,8 @@ if (trigger_root / 'mutate-during-bind').exists():
                 cwd=self.root, env=environment, text=True,
                 stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             )
-        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        self.assertEqual(completed.returncode, 2, completed.stdout + completed.stderr)
+        self.assertIn("protected system path", completed.stderr)
 
     def test_renderer_cannot_replace_live_publication_journal(self) -> None:
         journal = self.root / "process_log/results_pipeline.transaction.json"
@@ -1057,6 +1352,49 @@ if (trigger_root / 'mutate-during-bind').exists():
         completed = self.bind_paper(expected=2)
         self.assertIn("consistent PASS/checkpoint/digest", completed.stderr)
 
+    def test_bind_requires_distinct_audit_artifacts(self) -> None:
+        self.record_and_render()
+        self.add_paper_audit()
+        completed = self.call(
+            "bind-paper", "--audit-input", "output/evidence/audit_input.json",
+            "--summary", "output/evidence/audit.json",
+            "--report", "output/evidence/audit.md",
+            "--citation-summary", "output/evidence/citations.json",
+            "--citation-report", "output/evidence/audit.md",
+            "--receipt", "process_log/paper_evidence.receipt.json",
+            "--checkpoint", "stage5-initial", expected=2,
+        )
+        self.assertIn("must be five distinct files", completed.stderr)
+
+    def test_bind_rejects_hardlinked_audit_artifacts(self) -> None:
+        self.record_and_render()
+        self.add_paper_audit()
+        citation_report = self.root / "output/evidence/citations.md"
+        citation_report.unlink()
+        os.link(self.root / "output/evidence/audit.md", citation_report)
+        completed = self.bind_paper(expected=2)
+        self.assertIn("non-aliased regular file", completed.stderr)
+
+    def test_invalid_utf8_audit_report_is_controlled_failure(self) -> None:
+        self.record_and_render()
+        self.add_paper_audit()
+        (self.root / "output/evidence/audit.md").write_bytes(b"\xff\xfe")
+        completed = self.bind_paper(expected=2)
+        self.assertIn("cannot read evidence audit report", completed.stderr)
+        self.assertNotIn("Traceback", completed.stderr)
+
+    def test_unreadable_audit_report_is_controlled_failure(self) -> None:
+        self.record_and_render()
+        self.add_paper_audit()
+        report = self.root / "output/evidence/audit.md"
+        report.chmod(0)
+        try:
+            completed = self.bind_paper(expected=2)
+        finally:
+            report.chmod(0o644)
+        self.assertIn("cannot open one non-aliased regular file", completed.stderr)
+        self.assertNotIn("Traceback", completed.stderr)
+
     def test_paper_with_no_computed_evidence_can_bind(self) -> None:
         self.add_paper_audit()
         self.bind_paper()
@@ -1065,6 +1403,91 @@ if (trigger_root / 'mutate-during-bind').exists():
             "--rerender",
         )
         self.assertEqual(json.loads(report.stdout)["status"], "PASS")
+
+    def test_verify_paper_revalidates_bound_audit_semantics(self) -> None:
+        self.add_paper_audit()
+        self.bind_paper()
+        summary_path = self.root / "output/evidence/audit.json"
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        summary["verdict"] = "REVISE"
+        summary["blocking_findings"] = ["tampered after binding"]
+        summary_path.write_text(json.dumps(summary) + "\n", encoding="utf-8")
+        receipt_path = self.root / "process_log/paper_evidence.receipt.json"
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        receipt["audit_summary"]["sha256"] = (
+            "sha256:" + hashlib.sha256(summary_path.read_bytes()).hexdigest()
+        )
+        receipt_path.write_text(json.dumps(receipt) + "\n", encoding="utf-8")
+        completed = self.call(
+            "verify-paper", "--receipt", "process_log/paper_evidence.receipt.json",
+            expected=1,
+        )
+        self.assertIn("cannot bind non-PASS evidence audit", completed.stdout)
+
+    def test_verify_paper_checks_result_receipts_without_rerender(self) -> None:
+        self.record_and_render()
+        self.add_paper_audit()
+        self.bind_paper()
+        (self.root / "output/stagex/detail.json").write_text(
+            '{"rows": [999]}\n', encoding="utf-8"
+        )
+        completed = self.call(
+            "verify-paper", "--receipt", "process_log/paper_evidence.receipt.json",
+            expected=1,
+        )
+        self.assertIn("stale bytes at output/stagex/detail.json", completed.stdout)
+
+    def test_verify_paper_cannot_drop_bound_result_inventory(self) -> None:
+        self.record_and_render()
+        self.add_paper_audit()
+        self.bind_paper()
+        summary_path = self.root / "output/evidence/audit.json"
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        summary["result_receipts_checked"] = []
+        summary_path.write_text(json.dumps(summary) + "\n", encoding="utf-8")
+        receipt_path = self.root / "process_log/paper_evidence.receipt.json"
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        receipt["result_receipts"] = []
+        receipt["audit_summary"]["sha256"] = (
+            "sha256:" + hashlib.sha256(summary_path.read_bytes()).hexdigest()
+        )
+        receipt_path.write_text(json.dumps(receipt) + "\n", encoding="utf-8")
+        (self.root / "data/input.txt").write_text("changed\n", encoding="utf-8")
+        completed = self.call(
+            "verify-paper", "--receipt", "process_log/paper_evidence.receipt.json",
+            expected=1,
+        )
+        self.assertIn("inventory differs from its bound audit input", completed.stdout)
+
+    def test_verify_paper_does_not_self_authorize_citation_reuse(self) -> None:
+        self.add_paper_audit(citation=True)
+        self.bind_paper()
+        summary_path = self.root / "output/evidence/citations.json"
+        summary = json.loads(summary_path.read_text(encoding="utf-8"))
+        summary["citation_claims"][0]["verification"] = "reused"
+        summary["fresh_checks"] = 0
+        summary["reused_bound_checks"] = 1
+        summary_path.write_text(json.dumps(summary) + "\n", encoding="utf-8")
+        receipt_path = self.root / "process_log/paper_evidence.receipt.json"
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        receipt["citation_audit_summary"]["sha256"] = (
+            "sha256:" + hashlib.sha256(summary_path.read_bytes()).hexdigest()
+        )
+        signature = {
+            key: summary["citation_claims"][0][key]
+            for key in ("claim_text", "cite_keys", "status", "sources")
+        }
+        receipt["prior_citation_claim_signatures"] = [
+            "sha256:" + hashlib.sha256(
+                json.dumps(signature, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest()
+        ]
+        receipt_path.write_text(json.dumps(receipt) + "\n", encoding="utf-8")
+        completed = self.call(
+            "verify-paper", "--receipt", "process_log/paper_evidence.receipt.json",
+            expected=2,
+        )
+        self.assertIn("unexpected or missing keys", completed.stderr)
 
     def test_stale_input_and_exhibit_fail(self) -> None:
         self.record_and_render()
@@ -1081,6 +1504,325 @@ if (trigger_root / 'mutate-during-bind').exists():
         )
         self.assertIn("stale bytes at output/stagex/tables/main.tex", report.stdout)
 
+    def test_control_characters_are_rejected_in_runtime_paths(self) -> None:
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["artifacts"] = ["output/stagex/bad\nname.json"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        completed = self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertIn("control characters are forbidden", completed.stderr)
+
+    def test_unreadable_declared_directory_fails_loudly(self) -> None:
+        hidden = self.root / "data/hidden"
+        hidden.mkdir()
+        (hidden / "secret.txt").write_text("secret\n", encoding="utf-8")
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["producer_inputs"] = ["data"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        (self.root / "code/analyze.py").write_text(
+            self.analyze_source.replace(
+                "'inputs': ['data/input.txt']", "'inputs': ['data']"
+            ),
+            encoding="utf-8",
+        )
+        hidden.chmod(0)
+        try:
+            completed = self.call(
+                "run", "--bundle", "output/stagex/results.json",
+                "--receipt", "output/stagex/results.receipt.json", "--",
+                sys.executable, "code/analyze.py", expected=2,
+            )
+        finally:
+            hidden.chmod(0o700)
+        self.assertRegex(completed.stderr, r"cannot (?:inspect|open) declared directory")
+        self.assertNotIn("Traceback", completed.stderr)
+
+    def test_unsafe_descendant_names_fail_before_receipt_publication(self) -> None:
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["producer_inputs"] = ["data"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        (self.root / "code/analyze.py").write_text(
+            self.analyze_source.replace(
+                "'inputs': ['data/input.txt']", "'inputs': ['data']"
+            ),
+            encoding="utf-8",
+        )
+        for name in ("bad\nname", "bad\\name"):
+            with self.subTest(name=name):
+                unsafe = self.root / "data" / name
+                unsafe.write_text("unsafe\n", encoding="utf-8")
+                try:
+                    completed = self.call(
+                        "run", "--bundle", "output/stagex/results.json",
+                        "--receipt", "output/stagex/results.receipt.json", "--",
+                        sys.executable, "code/analyze.py", expected=2,
+                    )
+                finally:
+                    unsafe.unlink(missing_ok=True)
+                self.assertIn(
+                    "control characters and backslashes are forbidden",
+                    completed.stderr,
+                )
+                self.assertNotIn("Traceback", completed.stderr)
+                self.assertFalse(
+                    (self.root / "output/stagex/results.receipt.json").exists()
+                )
+
+    @unittest.skipIf(os.name == "nt", "byte filenames are POSIX-specific")
+    def test_non_utf8_descendant_name_is_a_controlled_prepublication_failure(self) -> None:
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["producer_inputs"] = ["data"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        (self.root / "code/analyze.py").write_text(
+            self.analyze_source.replace(
+                "'inputs': ['data/input.txt']", "'inputs': ['data']"
+            ),
+            encoding="utf-8",
+        )
+        raw_name = os.fsencode(self.root / "data") + b"/bad-\xff"
+        descriptor = os.open(raw_name, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600)
+        os.write(descriptor, b"unsafe\n")
+        os.close(descriptor)
+        try:
+            completed = self.call(
+                "run", "--bundle", "output/stagex/results.json",
+                "--receipt", "output/stagex/results.receipt.json", "--",
+                sys.executable, "code/analyze.py", expected=2,
+            )
+        finally:
+            os.unlink(raw_name)
+        self.assertIn("not valid UTF-8", completed.stderr)
+        self.assertNotIn("Traceback", completed.stderr)
+        self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
+
+    def test_init_registry_fails_on_unreadable_output_subtree(self) -> None:
+        (self.root / "process_log/results_registry.json").unlink()
+        hidden = self.root / "output/unreadable"
+        hidden.mkdir()
+        hidden.chmod(0)
+        try:
+            completed = self.call("init-registry", expected=2)
+        finally:
+            hidden.chmod(0o700)
+        self.assertRegex(completed.stderr, r"cannot (?:inspect|open) declared directory")
+        self.assertFalse((self.root / "process_log/results_registry.json").exists())
+
+    def test_receipt_shaped_symlink_fails_discovery_and_registry_init(self) -> None:
+        shaped = self.root / "output/hiddenresults.receipt.json"
+        shaped.symlink_to(self.root / "data/input.txt")
+        completed = self.call("verify-all", expected=2)
+        self.assertIn("receipt-shaped path", completed.stderr)
+        (self.root / "process_log/results_registry.json").unlink()
+        completed = self.call("init-registry", expected=2)
+        self.assertIn("receipt-shaped path", completed.stderr)
+
+    def test_deep_declared_directory_is_iterative(self) -> None:
+        directories: list[Path] = []
+        current = self.root / "data/deep"
+        current.mkdir()
+        directories.append(current)
+        for _ in range(1050):
+            current = current / "d"
+            current.mkdir()
+            directories.append(current)
+        leaf = current / "leaf.txt"
+        leaf.write_text("leaf\n", encoding="utf-8")
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["producer_inputs"] = ["data"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        (self.root / "code/analyze.py").write_text(
+            self.analyze_source.replace(
+                "'inputs': ['data/input.txt']", "'inputs': ['data']"
+            ),
+            encoding="utf-8",
+        )
+        try:
+            self.call(
+                "run", "--bundle", "output/stagex/results.json",
+                "--receipt", "output/stagex/results.receipt.json", "--",
+                sys.executable, "code/analyze.py",
+            )
+        finally:
+            leaf.unlink(missing_ok=True)
+            for directory in reversed(directories):
+                directory.rmdir()
+
+    def test_wide_declared_directory_uses_depth_bounded_descriptors(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        wide = self.root / "data/wide"
+        wide.mkdir()
+        for index in range(100):
+            (wide / f"d{index:03d}").mkdir()
+        soft, hard = resource.getrlimit(resource.RLIMIT_NOFILE)
+        lowered = min(64, hard)
+        try:
+            resource.setrlimit(resource.RLIMIT_NOFILE, (lowered, hard))
+            snapshot = module.fingerprint(self.root, "data/wide")
+            copied = self.root / "wide-copy"
+            module._copy_evidence_path(wide, copied)
+        finally:
+            resource.setrlimit(resource.RLIMIT_NOFILE, (soft, hard))
+        self.assertEqual(len(snapshot["entries"]), 100)
+        self.assertEqual(len(list(copied.iterdir())), 100)
+
+    def test_fingerprint_rejects_ancestor_swap_after_lexical_validation(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_ancestor", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        outside_temp = tempfile.TemporaryDirectory()
+        self.addCleanup(outside_temp.cleanup)
+        outside = Path(outside_temp.name)
+        (outside / "input.txt").write_text("outside-secret\n", encoding="utf-8")
+        original_data = self.root / "data"
+        held_data = self.root / "data-held"
+        original_open = module._open_directory_path
+        swapped = False
+
+        def swap_after_project_path(path: Path) -> int:
+            nonlocal swapped
+            if not swapped and path == original_data:
+                original_data.rename(held_data)
+                original_data.symlink_to(outside, target_is_directory=True)
+                swapped = True
+            return original_open(path)
+
+        try:
+            with mock.patch.object(module, "_open_directory_path", side_effect=swap_after_project_path):
+                with self.assertRaises(module.EvidenceError):
+                    module.fingerprint(self.root, "data/input.txt")
+        finally:
+            if original_data.is_symlink():
+                original_data.unlink()
+            if held_data.exists():
+                held_data.rename(original_data)
+        self.assertTrue(swapped)
+
+    def test_secure_project_removal_does_not_follow_swapped_ancestor(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_remove", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        outside_temp = tempfile.TemporaryDirectory()
+        self.addCleanup(outside_temp.cleanup)
+        outside = Path(outside_temp.name)
+        victim = outside / "main.tex"
+        victim.write_text("outside\n", encoding="utf-8")
+        local = self.root / "output/stagex/tables/main.tex"
+        local.parent.mkdir(parents=True, exist_ok=True)
+        local.write_text("local\n", encoding="utf-8")
+        moved = self.root / "output-real"
+        original = module.project_path
+        swapped = False
+
+        def swap_after_validation(root: Path, raw: str, **kwargs: object):
+            nonlocal swapped
+            result = original(root, raw, **kwargs)
+            if not swapped and raw == "output/stagex/tables/main.tex":
+                (self.root / "output").rename(moved)
+                (self.root / "output").symlink_to(outside, target_is_directory=True)
+                swapped = True
+            return result
+
+        with mock.patch.object(module, "project_path", side_effect=swap_after_validation):
+            with self.assertRaises(module.EvidenceError):
+                module._remove_project_path(self.root, "output/stagex/tables/main.tex")
+        self.assertEqual(victim.read_text(encoding="utf-8"), "outside\n")
+        (self.root / "output").unlink()
+        moved.rename(self.root / "output")
+        self.assertEqual(local.read_text(encoding="utf-8"), "local\n")
+
+    def test_copied_directory_retains_owner_cleanup_permissions(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_copy_mode", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        source = self.root / "data/mode-zero"
+        source.mkdir()
+        source_fd = module._open_entry_read(source)
+        source.chmod(0)
+        destination = self.root / "output/stagex/copied"
+        destination.parent.mkdir(parents=True, exist_ok=True)
+        try:
+            module._copy_evidence_path(source, destination, source_fd=source_fd)
+        finally:
+            os.close(source_fd)
+            source.chmod(0o700)
+        self.assertEqual(
+            stat.S_IMODE(destination.stat().st_mode) & stat.S_IRWXU,
+            stat.S_IRWXU,
+        )
+        parent_fd = module._open_directory_path(destination.parent)
+        try:
+            module._remove_entry_at(parent_fd, destination.name)
+        finally:
+            os.close(parent_fd)
+        self.assertFalse(destination.exists())
+
+    def test_isolated_workspace_canonicalizes_symlinked_temp_root(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_temp_alias", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        external_temp = tempfile.TemporaryDirectory()
+        self.addCleanup(external_temp.cleanup)
+        external_root = Path(external_temp.name)
+        physical = external_root / "physical-temp"
+        physical.mkdir()
+        alias = external_root / "temp-alias"
+        alias.symlink_to(physical, target_is_directory=True)
+        with mock.patch.object(module.tempfile, "tempdir", str(alias)):
+            with module.isolated_workspace(self.root, ["data/input.txt"], []) as workspace:
+                self.assertEqual(workspace.parent, physical.resolve())
+                self.assertTrue((workspace / "data/input.txt").is_file())
+
+    def test_isolated_workspace_rejects_temp_root_inside_project(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_temp_overlap", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        project_temp = self.root / "data/tmp"
+        project_temp.mkdir()
+        with mock.patch.object(module.tempfile, "tempdir", str(project_temp)):
+            with self.assertRaisesRegex(module.EvidenceError, "outside the project"):
+                with module.isolated_workspace(self.root, ["data"], []):
+                    self.fail("overlapping temp root was accepted")
+
+    def test_uv_managed_python_runtime_root_is_supported(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_uv_runtime", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        home_temp = tempfile.TemporaryDirectory()
+        self.addCleanup(home_temp.cleanup)
+        fake_home = Path(home_temp.name)
+        runtime = fake_home / ".local/share/uv/python/cpython-3.12"
+        (runtime / "bin").mkdir(parents=True)
+        interpreter = runtime / "bin/python3"
+        interpreter.write_text("runtime\n", encoding="utf-8")
+        venv = self.root / ".venv"
+        (venv / "bin").mkdir(parents=True)
+        (venv / "pyvenv.cfg").write_text(
+            f"home = {runtime / 'bin'}\n", encoding="utf-8"
+        )
+        (venv / "bin/python3").symlink_to(interpreter)
+        with mock.patch.object(module.Path, "home", return_value=fake_home):
+            self.assertEqual(
+                module.venv_base_roots(venv, self.root),
+                [fake_home / ".local/share/uv/python"],
+            )
+
     def test_active_receipt_cannot_rebaseline_itself_to_changed_input(self) -> None:
         self.record_and_render()
         changed = self.root / "data/input.txt"
@@ -1093,6 +1835,68 @@ if (trigger_root / 'mutate-during-bind').exists():
         receipt_path_value.write_text(json.dumps(receipt) + "\n", encoding="utf-8")
         completed = self.call("verify-all", expected=2)
         self.assertIn("registered result receipt bytes are stale", completed.stderr)
+
+    def test_receipt_cannot_delete_its_provenance_inventory(self) -> None:
+        self.record_and_render()
+        receipt_path = self.root / "output/stagex/results.receipt.json"
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        for key in ("code", "inputs", "renderer_code", "artifacts"):
+            receipt["producer_run"][key] = []
+        receipt["producer_run"]["reproducibility"] = "exact"
+        receipt_path.write_text(json.dumps(receipt) + "\n", encoding="utf-8")
+        registry_path = self.root / "process_log/results_registry.json"
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        registry["receipt_fingerprints"]["output/stagex/results.receipt.json"] = {
+            "path": "output/stagex/results.receipt.json", "kind": "file",
+            "sha256": "sha256:" + hashlib.sha256(receipt_path.read_bytes()).hexdigest(),
+        }
+        registry_path.write_text(json.dumps(registry) + "\n", encoding="utf-8")
+        completed = self.call("verify-all", "--rerender", expected=1)
+        self.assertIn("inventory differs from the plan", completed.stdout)
+
+    def test_receipt_directory_snapshot_must_be_structurally_possible(self) -> None:
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["producer_inputs"] = ["data"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        (self.root / "code/analyze.py").write_text(
+            self.analyze_source.replace(
+                "'inputs': ['data/input.txt']", "'inputs': ['data']"
+            ),
+            encoding="utf-8",
+        )
+        self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py",
+        )
+        receipt_path = self.root / "output/stagex/results.receipt.json"
+        original = json.loads(receipt_path.read_text(encoding="utf-8"))
+
+        impossible = json.loads(json.dumps(original))
+        entries = [{"path": "missing/child.txt", "kind": "file",
+                    "sha256": "sha256:" + "0" * 64}]
+        impossible["producer_run"]["inputs"][0]["entries"] = entries
+        impossible["producer_run"]["inputs"][0]["sha256"] = (
+            "sha256:" + hashlib.sha256(
+                json.dumps(entries, sort_keys=True, separators=(",", ":")).encode()
+            ).hexdigest()
+        )
+        receipt_path.write_text(json.dumps(impossible) + "\n", encoding="utf-8")
+        completed = self.call(
+            "validate-receipt", "--receipt", "output/stagex/results.receipt.json",
+            expected=2,
+        )
+        self.assertIn("missing or non-directory parent", completed.stderr)
+
+        wrong_digest = json.loads(json.dumps(original))
+        wrong_digest["producer_run"]["inputs"][0]["sha256"] = "sha256:" + "f" * 64
+        receipt_path.write_text(json.dumps(wrong_digest) + "\n", encoding="utf-8")
+        completed = self.call(
+            "validate-receipt", "--receipt", "output/stagex/results.receipt.json",
+            expected=2,
+        )
+        self.assertIn("does not match its directory entries", completed.stderr)
 
     def test_empty_directory_membership_stales_declared_input_directory(self) -> None:
         plan_path = self.root / "output/stagex/results.plan.json"
@@ -1148,6 +1952,113 @@ if (trigger_root / 'mutate-during-bind').exists():
         self.assertEqual((self.root / "data/input.txt").read_text(), "input-v1\n")
         self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
         self.assertFalse((self.root / "output/stagex/detail.json").exists())
+
+    def test_child_output_is_captured_without_corrupting_json_or_leaking_secrets(self) -> None:
+        script = self.root / "code/analyze.py"
+        script.write_text(
+            "import os\nprint('progress line')\nprint(os.environ['OPENAI_API_KEY'])\n" +
+            self.analyze_source,
+            encoding="utf-8",
+        )
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["provider_credentials"] = ["OPENAI_API_KEY"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        secret = "provider-secret-output-264"
+        with mock.patch.dict(os.environ, {"OPENAI_API_KEY": secret}):
+            completed = self.call(
+                "run", "--bundle", "output/stagex/results.json",
+                "--receipt", "output/stagex/results.receipt.json", "--",
+                sys.executable, "code/analyze.py", expected=2,
+            )
+        self.assertNotIn(secret, completed.stdout + completed.stderr)
+        self.assertIn("output contains a literal provider credential", completed.stderr)
+        self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
+
+        script.write_text(
+            "print('safe progress')\n" + self.analyze_source,
+            encoding="utf-8",
+        )
+        plan.pop("provider_credentials")
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        completed = self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py",
+        )
+        self.assertEqual(json.loads(completed.stdout)["status"], "PENDING_RENDER")
+        self.assertIn("safe progress", completed.stderr)
+
+    def test_declared_directory_rejects_nested_credentials(self) -> None:
+        (self.root / "data/.env").write_text("TOKEN=unselected-secret\n", encoding="utf-8")
+        script = self.root / "code/analyze.py"
+        script.write_text(
+            self.analyze_source.replace("['data/input.txt']", "['data']"),
+            encoding="utf-8",
+        )
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["producer_inputs"] = ["data"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        completed = self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertIn("credential-bearing descendant", completed.stderr)
+        self.assertFalse((self.root / "output/stagex/detail.json").exists())
+
+    def test_all_dotenv_prefixes_are_forbidden(self) -> None:
+        for name in (".envrc", ".env-local", ".ENV", ".Env.production"):
+            with self.subTest(name=name):
+                secret = self.root / "data" / name
+                secret.write_text("TOKEN=unselected-secret\n", encoding="utf-8")
+                plan_path = self.root / "output/stagex/results.plan.json"
+                plan = json.loads(plan_path.read_text(encoding="utf-8"))
+                plan["producer_inputs"] = [f"data/{name}"]
+                plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+                completed = self.call(
+                    "run", "--bundle", "output/stagex/results.json",
+                    "--receipt", "output/stagex/results.receipt.json", "--",
+                    sys.executable, "code/analyze.py", expected=2,
+                )
+                self.assertIn("credential-bearing path", completed.stderr)
+                secret.unlink()
+
+    def test_hardlinked_credential_aliases_are_forbidden(self) -> None:
+        (self.root / ".env").write_text("OPENAI_API_KEY=supersecretvalue\n", encoding="utf-8")
+        for alias in (self.root / "data/input.txt", self.root / "data/nested/alias.txt"):
+            with self.subTest(alias=alias):
+                alias.parent.mkdir(parents=True, exist_ok=True)
+                alias.unlink(missing_ok=True)
+                os.link(self.root / ".env", alias)
+                plan_path = self.root / "output/stagex/results.plan.json"
+                plan = json.loads(plan_path.read_text(encoding="utf-8"))
+                plan["producer_inputs"] = [
+                    "data" if alias.parent.name == "nested" else "data/input.txt"
+                ]
+                plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+                completed = self.call(
+                    "run", "--bundle", "output/stagex/results.json",
+                    "--receipt", "output/stagex/results.receipt.json", "--",
+                    sys.executable, "code/analyze.py", expected=2,
+                )
+                self.assertIn("non-aliased regular file", completed.stderr)
+                alias.unlink()
+
+    def test_git_credential_store_cannot_be_declared(self) -> None:
+        (self.root / ".git").mkdir()
+        (self.root / ".git/push-credentials").write_text("token\n", encoding="utf-8")
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["producer_inputs"] = [".git/push-credentials"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        completed = self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertIn("credential-bearing path", completed.stderr)
 
     def test_analysis_os_replace_cannot_corrupt_input(self) -> None:
         script = self.root / "code/analyze.py"
@@ -1243,6 +2154,52 @@ if (trigger_root / 'mutate-during-bind').exists():
         )
         self.assertIn("already exists before analysis", completed.stderr)
         self.assertEqual((self.root / "data/input.txt").read_text(), "input-v1\n")
+
+    def test_fifo_plan_fails_without_holding_results_lock(self) -> None:
+        plan_path = self.root / "output/stagex/fifo.plan.json"
+        os.mkfifo(plan_path)
+        completed = self.call(
+            "run", "--plan", "output/stagex/fifo.plan.json",
+            "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertIn("expected one non-aliased regular file", completed.stderr)
+        self.assert_results_lock_available()
+
+    def test_fifo_bundle_fails_without_holding_results_lock(self) -> None:
+        script = self.root / "code/analyze.py"
+        script.write_text(
+            self.analyze_source.replace(
+                "(root / os.environ['RESULTS_BUNDLE_PATH']).write_text(json.dumps(bundle, indent=2) + '\\n')",
+                "os.mkfifo(root / os.environ['RESULTS_BUNDLE_PATH'])",
+            ),
+            encoding="utf-8",
+        )
+        completed = self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertIn("expected one non-aliased regular file", completed.stderr)
+        self.assert_results_lock_available()
+
+    def test_fifo_artifact_fails_without_holding_results_lock(self) -> None:
+        script = self.root / "code/analyze.py"
+        script.write_text(
+            self.analyze_source.replace(
+                "artifact.write_text(json.dumps({'rows': [1, 2, 3]}) + '\\n')",
+                "os.mkfifo(artifact)",
+            ),
+            encoding="utf-8",
+        )
+        completed = self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertIn("expected one non-aliased regular file", completed.stderr)
+        self.assert_results_lock_available()
 
     def test_renderer_only_change_requires_fresh_attempt(self) -> None:
         self.record_and_render()
@@ -1618,7 +2575,7 @@ bundle = {
             "transaction_version": 1,
             "phase": "preparing",
             "cleanup_paths": ["output/stagex/never-published.json"],
-            "backups": [{"path": "data/input.txt", "backup": "0"}],
+            "backups": [{"path": "output/stagex/old.json", "backup": "0"}],
             "registry_before": registry,
         }
         journal.write_text(json.dumps(transaction) + "\n", encoding="utf-8")
@@ -1633,6 +2590,28 @@ bundle = {
         self.call("verify-all")
         self.assertFalse(journal.exists())
         self.assertFalse(backup.exists())
+
+    def test_forged_transaction_cannot_remove_non_result_project_files(self) -> None:
+        (self.root / "paper").mkdir()
+        victim = self.root / "paper/main.tex"
+        victim.write_text("keep me\n", encoding="utf-8")
+        registry = json.loads(
+            (self.root / "process_log/results_registry.json").read_text(encoding="utf-8")
+        )
+        journal = self.root / "process_log/results_pipeline.transaction.json"
+        backup = self.root / "process_log/.results_pipeline-transaction-backup"
+        backup.mkdir()
+        journal.write_text(json.dumps({
+            "transaction_version": 1,
+            "phase": "prepared",
+            "cleanup_paths": ["paper/main.tex"],
+            "backups": [],
+            "registry_before": registry,
+        }) + "\n", encoding="utf-8")
+        completed = self.call("verify-all", expected=2)
+        self.assertIn("outside the result-owned output namespace", completed.stderr)
+        self.assertEqual(victim.read_text(encoding="utf-8"), "keep me\n")
+        self.assertTrue(journal.exists())
 
     def test_inline_python_cannot_claim_trailing_declared_script(self) -> None:
         completed = self.call(
@@ -1721,9 +2700,9 @@ bundle = {
         value["reused_bound_checks"] = 1
         citation.write_text(json.dumps(value) + "\n")
         completed = self.bind_paper(expected=2)
-        self.assertIn("no byte-bound prior characterization", completed.stderr)
+        self.assertIn("verification must be fresh", completed.stderr)
 
-    def test_unchanged_citation_can_reuse_bound_characterization(self) -> None:
+    def test_unchanged_citation_still_requires_fresh_verification(self) -> None:
         self.add_paper_audit(citation=True)
         self.bind_paper()
         prepared = self.call(
@@ -1768,7 +2747,7 @@ bundle = {
         (self.root / "output/evidence/citations_second.json").write_text(
             json.dumps(citation) + "\n"
         )
-        self.call(
+        completed = self.call(
             "bind-paper", "--audit-input", "output/evidence/audit_input_second.json",
             "--summary", "output/evidence/audit_second.json",
             "--report", "output/evidence/audit_second.md",
@@ -1776,7 +2755,9 @@ bundle = {
             "--citation-report", "output/evidence/citations_second.md",
             "--receipt", "process_log/paper_evidence.receipt.json",
             "--checkpoint", "stage5-second",
+            expected=2,
         )
+        self.assertIn("verification must be fresh", completed.stderr)
 
     def test_conflicting_markdown_body_verdict_is_rejected(self) -> None:
         self.add_paper_audit()
@@ -1786,6 +2767,62 @@ bundle = {
         (self.root / "output/evidence/audit.md").write_text(
             f"VERDICT: PASS\nCHECKPOINT: stage5-initial\nAUDIT_INPUT_DIGEST: {digest}"
             "\n\n## Verdict\nREVISE\n",
+            encoding="utf-8",
+        )
+        completed = self.bind_paper(expected=2)
+        self.assertIn("conflicting verdict", completed.stderr)
+
+    def test_mixed_case_conflicting_audit_markers_are_rejected(self) -> None:
+        self.add_paper_audit()
+        forms = (
+            "Verdict: REVISE",
+            "**Verdict:** REVISE",
+            "- Verdict: REVISE",
+            "- [x] Verdict: REVISE",
+            "> Verdict: REVISE",
+            "| Verdict | REVISE |\n|---|---|",
+            "| Verdict | REVISE | rationale |\n|---|---|---|",
+            "Verdict | REVISE\n---|---",
+            "| Check | Verdict | Rationale |\n|---|---|---|\n| evidence | REVISE | stale |",
+            "| Field | Value |\n|---|---|\n| Verdict | REVISE |",
+            "| Verdict |\n|---|\n| REVISE |",
+            "- [x] | Verdict |\n  |---|\n  | REVISE |",
+            "## Verdict ##\nREVISE",
+            "> ### **Verdict** ###\n> REVISE",
+            "## Audit  Input  Digest\nwrong",
+            "Audit\tInput\tDigest: wrong",
+            "| Audit  Input  Digest | wrong |\n|---|---|",
+            "Intro | note\n| Check | Verdict |\n|---|---|\n| evidence | REVISE |",
+        )
+        for relative in ("output/evidence/audit.md", "output/evidence/citations.md"):
+            report = self.root / relative
+            original = report.read_text(encoding="utf-8")
+            for marker in forms:
+                with self.subTest(report=relative, marker=marker):
+                    report.write_text(original + f"\n{marker}\n", encoding="utf-8")
+                    completed = self.bind_paper(expected=2)
+                    self.assertTrue(
+                        "consistent PASS/checkpoint/digest" in completed.stderr
+                        or "conflicting " in completed.stderr,
+                        completed.stderr,
+                    )
+            report.write_text(original, encoding="utf-8")
+
+    def test_markdown_verdict_heading_accepts_case_insensitive_pass(self) -> None:
+        self.add_paper_audit()
+        for relative in ("output/evidence/audit.md", "output/evidence/citations.md"):
+            report = self.root / relative
+            report.write_text(
+                report.read_text(encoding="utf-8") + "\n## Verdict\nPass\n",
+                encoding="utf-8",
+            )
+        self.bind_paper()
+
+    def test_nested_markdown_verdict_heading_is_rejected(self) -> None:
+        self.add_paper_audit()
+        report = self.root / "output/evidence/audit.md"
+        report.write_text(
+            report.read_text(encoding="utf-8") + "\n- ## Verdict\n  - REVISE\n",
             encoding="utf-8",
         )
         completed = self.bind_paper(expected=2)
@@ -1802,6 +2839,131 @@ bundle = {
             expected=1,
         )
         self.assertIn("paper/assets/chart.png", completed.stdout)
+
+    def test_read_only_paper_verification_creates_no_lock(self) -> None:
+        self.add_paper_audit()
+        self.bind_paper()
+        lock = self.root / "process_log/results_pipeline.lock"
+        lock.unlink()
+        self.call(
+            "verify-paper", "--receipt", "process_log/paper_evidence.receipt.json",
+            "--read-only",
+        )
+        self.assertFalse(lock.exists())
+        completed = self.call(
+            "verify-paper", "--receipt", "process_log/paper_evidence.receipt.json",
+            "--read-only", "--rerender", expected=2,
+        )
+        self.assertIn("cannot be combined", completed.stderr)
+
+    def test_read_only_receipt_validation_creates_no_lock(self) -> None:
+        self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py",
+        )
+        lock = self.root / "process_log/results_pipeline.lock"
+        lock.unlink()
+        self.call(
+            "validate-receipt", "--receipt", "output/stagex/results.receipt.json",
+            "--read-only",
+        )
+        self.assertFalse(lock.exists())
+
+    def test_read_only_receipt_validation_does_not_require_historical_input(self) -> None:
+        self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py",
+        )
+        (self.root / "data/input.txt").unlink()
+        self.call(
+            "validate-receipt", "--receipt", "output/stagex/results.receipt.json",
+            "--read-only",
+        )
+
+    def test_malformed_snapshot_entries_fail_without_traceback(self) -> None:
+        self.add_paper_audit()
+        audit_path = self.root / "output/evidence/audit_input.json"
+        audit = json.loads(audit_path.read_text(encoding="utf-8"))
+        valid_audit = json.loads(json.dumps(audit))
+        audit["paper_sources"] = ["not-a-fingerprint"]
+        unsigned = {key: value for key, value in audit.items() if key != "digest"}
+        encoded = json.dumps(
+            unsigned, sort_keys=True, separators=(",", ":"), ensure_ascii=False,
+            allow_nan=False,
+        ).encode("utf-8")
+        audit["digest"] = "sha256:" + hashlib.sha256(encoded).hexdigest()
+        audit_path.write_text(json.dumps(audit) + "\n", encoding="utf-8")
+        completed = self.call(
+            "verify-audit-input", "--input", "output/evidence/audit_input.json",
+            "--checkpoint", "stage5-initial", expected=2,
+        )
+        self.assertIn("not a fingerprint object", completed.stderr)
+        self.assertNotIn("Traceback", completed.stderr)
+
+        audit_path.write_text(json.dumps(valid_audit) + "\n", encoding="utf-8")
+        self.bind_paper()
+        receipt_path = self.root / "process_log/paper_evidence.receipt.json"
+        receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
+        receipt["paper_sources"] = ["not-a-fingerprint"]
+        receipt_path.write_text(json.dumps(receipt) + "\n", encoding="utf-8")
+        completed = self.call(
+            "verify-paper", "--receipt", "process_log/paper_evidence.receipt.json",
+            expected=1,
+        )
+        self.assertIn("not a fingerprint object", completed.stdout)
+        self.assertNotIn("Traceback", completed.stderr)
+
+    def test_non_string_enum_values_fail_without_traceback(self) -> None:
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["reproducibility"] = []
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        completed = self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertIn("reproducibility", completed.stderr)
+        self.assertNotIn("Traceback", completed.stderr)
+
+    def test_duplicate_json_keys_fail_closed(self) -> None:
+        plan_path = self.root / "output/stagex/results.plan.json"
+        text = plan_path.read_text(encoding="utf-8")
+        plan_path.write_text(
+            text.replace('"plan_version": 1',
+                         '"plan_version": 1, "plan_version": 1', 1),
+            encoding="utf-8",
+        )
+        completed = self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertIn("duplicate JSON object key", completed.stderr)
+        self.assertNotIn("Traceback", completed.stderr)
+
+    def test_duplicate_audit_summary_keys_fail_closed(self) -> None:
+        self.add_paper_audit()
+        summary = self.root / "output/evidence/audit.json"
+        text = summary.read_text(encoding="utf-8")
+        summary.write_text(
+            text.replace('"verdict": "PASS"',
+                         '"verdict": "PASS", "verdict": "PASS"', 1),
+            encoding="utf-8",
+        )
+        completed = self.call(
+            "bind-paper", "--audit-input", "output/evidence/audit_input.json",
+            "--summary", "output/evidence/audit.json",
+            "--report", "output/evidence/audit.md",
+            "--citation-summary", "output/evidence/citations.json",
+            "--citation-report", "output/evidence/citations.md",
+            "--receipt", "process_log/paper_evidence.receipt.json",
+            "--checkpoint", "stage5-initial", expected=2,
+        )
+        self.assertIn("duplicate JSON object key", completed.stderr)
+        self.assertNotIn("Traceback", completed.stderr)
 
     def test_paper_receipt_cannot_overwrite_paper_source(self) -> None:
         self.add_paper_audit()
@@ -1842,6 +3004,38 @@ bundle = {
         )
         self.assertIn("reuse a pending/retired attempt namespace", completed.stderr)
 
+    def test_retired_unrendered_attempt_keeps_planned_exhibit_namespace(self) -> None:
+        self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py",
+        )
+        self.call(
+            "retire", "--receipt", "output/stagex/results.receipt.json",
+            "--reason", "failed before rendering",
+        )
+        source = self.analyze_source.replace(
+            "'code/analyze.py'", "'code/analyze_v2.py'"
+        ).replace(
+            "output/stagex/detail.json", "output/stagex/v2/detail.json"
+        )
+        (self.root / "code/analyze_v2.py").write_text(source, encoding="utf-8")
+        self.write_plan(
+            "output/stagex/v2/results.plan.json", prefix="output/stagex/v2/",
+            analyze="code/analyze_v2.py",
+        )
+        plan_path = self.root / "output/stagex/v2/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        plan["exhibits"] = ["output/stagex/tables/main.tex"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        completed = self.call(
+            "run", "--plan", "output/stagex/v2/results.plan.json",
+            "--bundle", "output/stagex/v2/results.json",
+            "--receipt", "output/stagex/v2/results.receipt.json", "--",
+            sys.executable, "code/analyze_v2.py", expected=2,
+        )
+        self.assertIn("reuse a pending/retired attempt namespace", completed.stderr)
+
     def test_tampered_retired_receipt_cannot_release_historical_namespace(self) -> None:
         self.record_and_render()
         self.call(
@@ -1852,6 +3046,12 @@ bundle = {
         receipt = json.loads(receipt_path.read_text(encoding="utf-8"))
         receipt["producer_run"]["artifacts"] = []
         receipt_path.write_text(json.dumps(receipt) + "\n", encoding="utf-8")
+        registry_path = self.root / "process_log/results_registry.json"
+        registry = json.loads(registry_path.read_text(encoding="utf-8"))
+        registry["retired"][0]["last_fingerprint"]["sha256"] = (
+            "sha256:" + hashlib.sha256(receipt_path.read_bytes()).hexdigest()
+        )
+        registry_path.write_text(json.dumps(registry) + "\n", encoding="utf-8")
         (self.root / "output/stagex/detail.json").unlink()
         self.write_plan("output/stagex/v2/results.plan.json", prefix="output/stagex/v2/")
         plan_path = self.root / "output/stagex/v2/results.plan.json"
@@ -1864,7 +3064,8 @@ bundle = {
             "--receipt", "output/stagex/v2/results.receipt.json", "--",
             sys.executable, "code/analyze.py", expected=2,
         )
-        self.assertIn("retired result receipt bytes are stale", completed.stderr)
+        self.assertIn("producer_run.artifacts inventory differs from the plan",
+                      completed.stderr)
 
     def test_boolean_schema_version_is_rejected(self) -> None:
         script = self.root / "code/analyze.py"
@@ -1943,7 +3144,8 @@ bundle = {
             "prepare-audit", "--output", "output/evidence/collision.json",
             "--checkpoint", "collision-regression", expected=2,
         )
-        self.assertIn("would overwrite result lifecycle evidence", completed.stderr)
+        self.assertIn("producer_run.artifacts inventory differs from the plan",
+                      completed.stderr)
         self.assertEqual(collision.read_bytes(), before)
 
     def test_prepare_audit_requires_json_output_suffix(self) -> None:
@@ -2327,6 +3529,122 @@ bundle = {
         bound = {entry["path"] for entry in value["paper_sources"]}
         self.assertTrue({f"paper/{raw}" for raw in files}.issubset(bound))
 
+    def test_latex_dependencies_parse_balanced_optional_arguments(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "data/code.py").write_text("print(1)\n", encoding="utf-8")
+        (self.root / "paper/main.tex").write_text(
+            "\\lstinputlisting[caption={Results [baseline]}]{../data/code.py}\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "balanced-options",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertIn(
+            "data/code.py", {entry["path"] for entry in value["paper_sources"]}
+        )
+
+    def test_external_listing_escape_options_fail_closed_after_balanced_parse(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "data/code.py").write_text(
+            "(*@\\input{secret.tex}@*)\n", encoding="utf-8"
+        )
+        (self.root / "paper/secret.tex").write_text("secret\n", encoding="utf-8")
+        (self.root / "paper/main.tex").write_text(
+            "\\lstinputlisting[escapeinside={(*@}{@*)}]{../data/code.py}\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        completed = self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "external-listing-escape", expected=2,
+        )
+        self.assertIn("escape-enabled external literal input", completed.stderr)
+
+    @unittest.skipUnless(shutil.which("pdflatex"), "pdflatex recorder check")
+    def test_suffix_appending_latex_command_binds_the_file_tex_opens(self) -> None:
+        paper = self.root / "paper"
+        paper.mkdir()
+        (paper / "graphic-source.tex").write_text(
+            "\\documentclass{article}\\begin{document}graphic\\end{document}\n",
+            encoding="utf-8",
+        )
+        made_graphic = subprocess.run(
+            ["pdflatex", "-interaction=nonstopmode", "-halt-on-error",
+             "-jobname=graphic", "graphic-source.tex"],
+            cwd=paper, text=True, stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        )
+        self.assertEqual(made_graphic.returncode, 0, made_graphic.stdout)
+        (paper / "graphic").write_text("not the graphic TeX opens\n", encoding="utf-8")
+        (paper / "main.tex").write_text(
+            "\\documentclass{article}\n"
+            "\\usepackage{graphicx}\n"
+            "\\begin{document}\\includegraphics{graphic}\\end{document}\n",
+            encoding="utf-8",
+        )
+        compiled = subprocess.run(
+            ["pdflatex", "-recorder", "-interaction=nonstopmode", "-halt-on-error",
+             "main.tex"], cwd=paper, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.STDOUT,
+        )
+        self.assertEqual(compiled.returncode, 0, compiled.stdout)
+        recorder = (paper / "main.fls").read_text(encoding="utf-8", errors="replace")
+        self.assertRegex(recorder, r"(?m)^INPUT (?:\./)?graphic\.pdf$")
+        self.assertRegex(recorder, r"(?m)^INPUT (?:\./)?graphic$")
+        (self.root / "output/evidence").mkdir()
+        rejected = self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "suffix-resolution", expected=2,
+        )
+        self.assertIn("ambiguous extensionless and suffixed LaTeX dependency",
+                      rejected.stderr)
+        (paper / "graphic").unlink()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "suffix-resolution",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        bound = {entry["path"] for entry in value["paper_sources"]}
+        self.assertIn("paper/graphic.pdf", bound)
+        self.assertNotIn("paper/graphic", bound)
+
+    def test_suffix_appending_dependency_classes_never_prefer_raw_collision(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        paper = self.root / "paper"
+        paper.mkdir()
+        current = paper / "main.tex"
+        current.write_text("", encoding="utf-8")
+        for stem, extension in (
+            ("local-package", ".sty"), ("local-class", ".cls"),
+            ("references", ".bib"), ("bibliography-style", ".bst"),
+            ("appendix-pages", ".pdf"), ("figure", ".png"),
+        ):
+            with self.subTest(extension=extension):
+                suffixed = paper / f"{stem}{extension}"
+                suffixed.write_text("bound\n", encoding="utf-8")
+                resolved = module.resolve_latex_dependency(
+                    self.root, paper, current, stem, (extension,), required=True,
+                    append_extension=True,
+                )
+                self.assertEqual(resolved, suffixed)
+                raw = paper / stem
+                raw.write_text("collision\n", encoding="utf-8")
+                with self.assertRaises(module.EvidenceError):
+                    module.resolve_latex_dependency(
+                        self.root, paper, current, stem, (extension,), required=True,
+                        append_extension=True,
+                    )
+                raw.unlink()
+
     def test_local_package_bibliography_and_conditional_input_are_transitive(self) -> None:
         paper = self.root / "paper"
         paper.mkdir()
@@ -2354,6 +3672,79 @@ bundle = {
             "paper/main.tex", "paper/localstyle.sty",
             "paper/style-refs.bib", "paper/hidden.tex",
         }.issubset(bound))
+
+    def test_dotted_packages_nested_classes_and_bibliography_variants_are_transitive(self) -> None:
+        paper = self.root / "paper"
+        paper.mkdir()
+        (paper / "main.tex").write_text(
+            "\\documentclass{outer}\\usepackage{foo.bar}\n", encoding="utf-8"
+        )
+        (paper / "outer.cls").write_text(
+            "\\LoadClass{inner}\\RequirePackageWithOptions{nested}\n",
+            encoding="utf-8",
+        )
+        (paper / "inner.cls").write_text("% inner\n", encoding="utf-8")
+        (paper / "foo.bar.sty").write_text(
+            "\\addglobalbib{global.bib}\\addsectionbib{section.bib}\n",
+            encoding="utf-8",
+        )
+        (paper / "nested.sty").write_text("% nested\n", encoding="utf-8")
+        (paper / "global.bib").write_text("@misc{g,title={G}}\n", encoding="utf-8")
+        (paper / "section.bib").write_text("@misc{s,title={S}}\n", encoding="utf-8")
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "package-closure",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        bound = {entry["path"] for entry in value["paper_sources"]}
+        self.assertTrue({
+            "paper/main.tex", "paper/outer.cls", "paper/inner.cls",
+            "paper/foo.bar.sty", "paper/nested.sty", "paper/global.bib",
+            "paper/section.bib",
+        }.issubset(bound))
+
+    def test_local_package_and_class_nested_options_are_transitive(self) -> None:
+        paper = self.root / "paper"
+        paper.mkdir()
+        (paper / "main.tex").write_text(
+            "\\documentclass{wrapper}\\begin{document}x\\end{document}\n",
+            encoding="utf-8",
+        )
+        (paper / "wrapper.cls").write_text(
+            "\\LoadClass[config={nested[value]}]{inner}\n"
+            "\\RequirePackage[config={nested[value]}]{dep}\n",
+            encoding="utf-8",
+        )
+        (paper / "inner.cls").write_text("% inner\n", encoding="utf-8")
+        (paper / "dep.sty").write_text("% dep\n", encoding="utf-8")
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "nested-local-options",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        bound = {entry["path"] for entry in value["paper_sources"]}
+        self.assertTrue({"paper/inner.cls", "paper/dep.sty"}.issubset(bound))
+
+    def test_nested_optional_default_citation_macro_fails_closed(self) -> None:
+        paper = self.root / "paper"
+        paper.mkdir()
+        (paper / "main.tex").write_text(
+            "\\newcommand{\\foo}[1][{x[y]}]{\\cite{smith}}\n"
+            "\\foo \\foo\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        completed = self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "nested-citation-default", expected=2,
+        )
+        self.assertIn("user-defined citation command", completed.stderr)
 
     def test_local_package_dynamic_file_read_fails_closed(self) -> None:
         paper = self.root / "paper"
@@ -2432,6 +3823,381 @@ bundle = {
             [["seven"], ["eight"], ["nine"], ["ten"]],
         )
 
+    def test_csquotes_biblatex_citations_are_inventoried(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "Quoted \\textcquote[see][p. 2]{smith2020}{claim}.\n"
+            "Foreign \\foreignblockcquote{french}{jones2021}{long claim}.\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "csquotes-citations",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            [item["cite_keys"] for item in value["citation_occurrences"]],
+            [["smith2020"], ["jones2021"]],
+        )
+
+    def test_csquotes_options_with_braces_do_not_replace_real_key(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "Quoted \\textcquote[see \\emph{discussion}]{smith2020}{claim}.\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "csquotes-braced-option",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            [item["cite_keys"] for item in value["citation_occurrences"]],
+            [["smith2020"]],
+        )
+        self.assertTrue(value["citation_occurrences"][0]["claim_text"].startswith("Quoted"))
+
+    def test_csquotes_punctuation_and_language_notes_are_inventoried(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "Quoted \\textcquote[see][p. 2]{smith2020}[!]{claim}.\n"
+            "Foreign \\foreigntextcquote{french}[cf.][p. 3]{jones2021}[?]{texte}.\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "csquotes-punctuation",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            [item["cite_keys"] for item in value["citation_occurrences"]],
+            [["smith2020"], ["jones2021"]],
+        )
+
+    def test_citation_notes_with_braces_do_not_become_keys(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "Prior \\cite[see \\emph{discussion}]{smith2020}.\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "citation-braced-note",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            [item["cite_keys"] for item in value["citation_occurrences"]],
+            [["smith2020"]],
+        )
+
+    def test_extended_standard_citation_commands_are_inventoried(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "\\hyphentextcquote{german}{one}{claim}.\n"
+            "\\hyphenblockcquote{french}{two}{claim}.\n"
+            "\\hybridblockcquote{spanish}{three}{claim}.\n"
+            "\\citename{four}{author} and \\citelist{five}{publisher}.\n"
+            "\\notecite{six} \\pnotecite{seven} \\fnotecite{eight}.\n"
+            "\\cites(see)(and)[p. 1]{nine}[p. 2]{ten}.\n"
+            "\\volcites(see)(and)[cf.]{I}[2]{eleven}{II}[3]{twelve}.\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "extended-standard-citations",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            [item["cite_keys"] for item in value["citation_occurrences"]],
+            [["one"], ["two"], ["three"], ["four"], ["five"], ["six"],
+             ["seven"], ["eight"], ["nine", "ten"], ["eleven", "twelve"]],
+        )
+
+    def test_additional_standard_alias_and_plural_citations_are_inventoried(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "\\supercites{one}{two} \\footcitetexts{three}{four} "
+            "\\citetalias{five} \\citepalias{six}.\n"
+            "\\defcitealias{five}{Alias}\\citetext{printed text}\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "alias-citations",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            [item["cite_keys"] for item in value["citation_occurrences"]],
+            [["one", "two"], ["three", "four"], ["five"], ["six"]],
+        )
+
+    def test_natbib_bibentry_binds_key_and_bibliography(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "\\usepackage{bibentry}\n"
+            "\\nobibliography{refs}\n"
+            "Prior work: \\bibentry{smith2020}.\n",
+            encoding="utf-8",
+        )
+        (self.root / "paper/refs.bib").write_text(
+            "@article{smith2020,title={Bound entry}}\n", encoding="utf-8"
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "bibentry-citation",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            [item["cite_keys"] for item in value["citation_occurrences"]],
+            [["smith2020"]],
+        )
+        self.assertIn(
+            "paper/refs.bib", [item["path"] for item in value["paper_sources"]]
+        )
+
+    def test_paired_backslashes_do_not_create_false_commands(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            r"Printed \\cite{ghost} and \\input{ghost}." + "\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "paired-backslashes",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(value["citation_occurrences"], [])
+
+    def test_literal_percent_does_not_hide_live_citation(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "Printed \\verb|\\cite{printed}%| then live \\cite{livekey}.\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "literal-percent",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            [item["cite_keys"] for item in value["citation_occurrences"]],
+            [["livekey"]],
+        )
+
+    def test_literal_percent_does_not_hide_dynamic_reader(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "Printed \\verb|%| then live \\openin0=secret.txt.\n",
+            encoding="utf-8",
+        )
+        (self.root / "paper/secret.txt").write_text("secret\n", encoding="utf-8")
+        (self.root / "output/evidence").mkdir()
+        completed = self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "literal-percent", expected=2,
+        )
+        self.assertIn("unsupported dynamic LaTeX dependency", completed.stderr)
+
+    def test_standard_inline_literals_do_not_hide_live_dependencies(self) -> None:
+        for literal in (r"\url{https://example.test/a%b}",
+                        r"\url{https://example.test/a\}b%20c}",
+                        r"\lstinline|printed % text|",
+                        r"\Verb|printed % text|",
+                        r"\mintinline{tex}|printed % text|",
+                        r"\mintinline{tex}{printed % text}",
+                        r"\url|https://example.test/a%b|",
+                        r"\path|printed % text|",
+                        r"\nolinkurl!printed % text!"):
+            with self.subTest(literal=literal):
+                shutil.rmtree(self.root / "paper", ignore_errors=True)
+                (self.root / "paper").mkdir()
+                (self.root / "paper/main.tex").write_text(
+                    literal + r" then live \openin0=secret.txt." + "\n",
+                    encoding="utf-8",
+                )
+                (self.root / "paper/secret.txt").write_text("secret\n", encoding="utf-8")
+                (self.root / "output/evidence").mkdir(exist_ok=True)
+                completed = self.call(
+                    "prepare-audit", "--output", "output/evidence/audit_input.json",
+                    "--checkpoint", "inline-literal", expected=2,
+                )
+                self.assertIn("unsupported dynamic LaTeX dependency", completed.stderr)
+
+    def test_saved_verb_literal_does_not_hide_live_dependencies(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            r"\SaveVerb{saved}|%| then live \openin0=secret.txt." + "\n",
+            encoding="utf-8",
+        )
+        (self.root / "paper/secret.txt").write_text("secret\n", encoding="utf-8")
+        (self.root / "output/evidence").mkdir()
+        completed = self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "save-verb", expected=2,
+        )
+        self.assertIn("unsupported dynamic LaTeX dependency", completed.stderr)
+
+    def test_escape_enabled_literal_environment_fails_closed(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "\\begin{lstlisting}[escapeinside={(*@}{@*)}]\n"
+            "printed % text\n\\end{lstlisting}\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        completed = self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "escaped-listing", expected=2,
+        )
+        self.assertIn("escape-enabled lstlisting environment", completed.stderr)
+
+    def test_stateful_literal_configuration_fails_closed(self) -> None:
+        sources = (
+            r"\lstset{texcl}\begin{lstlisting}hidden\end{lstlisting}",
+            r"\lstset{escapechar=|}\begin{lstlisting}|\input{hidden}|\end{lstlisting}",
+            "\\lstset{escapeinside% split\n={(*@}{@*)}}\\begin{lstlisting}hidden\\end{lstlisting}",
+            "\\lstset% boundary\n{escapeinside={(*@}{@*)}}\\begin{lstlisting}hidden\\end{lstlisting}",
+            "\\begin{lstlisting}% boundary\n[escapeinside={(*@}{@*)}]\nhidden\n\\end{lstlisting}",
+            "\\lstset{numbers=left,% } fake close\n"
+            "escapeinside={(*@}{@*)}}\\begin{lstlisting}"
+            "(*@\\input{hidden}@*)\\end{lstlisting}",
+            "\\begin{lstlisting}[numbers=left,% ] fake close\n"
+            "escapeinside={(*@}{@*)}]\n(*@\\input{hidden}@*)\n"
+            "\\end{lstlisting}",
+            r"\fvset{commandchars=\\\{\}}\begin{Verbatim}hidden\end{Verbatim}",
+            r"\setminted{escapeinside=||}\begin{minted}{tex}hidden\end{minted}",
+            r"\setminted[tex]{escapeinside=||}\begin{minted}{tex}hidden\end{minted}",
+            r"\lstdefinestyle{danger}{escapeinside={(*@}{@*)}}"
+            r"\begin{lstlisting}[style=danger]hidden\end{lstlisting}",
+            r"\begin{lstlisting}[style=danger]hidden\end{lstlisting}",
+            r"\DefineShortVerb{\|} printed |%| then live \cite{hidden}.",
+            r"\lstMakeShortInline| printed |%| then live \cite{hidden}.",
+            r"\Verb[commandchars=\\\{\}]|\input{hidden}|",
+            r"\SaveVerb[aftersave=\cite{hidden}]{saved}|x|",
+            r"\begin{lstlisting}[literate={X}{{\includegraphics{hidden}}}1]"
+            r"X\end{lstlisting}",
+        )
+        for index, source in enumerate(sources):
+            with self.subTest(source=source):
+                shutil.rmtree(self.root / "paper", ignore_errors=True)
+                (self.root / "paper").mkdir()
+                (self.root / "paper/main.tex").write_text(source + "\n", encoding="utf-8")
+                (self.root / "output/evidence").mkdir(exist_ok=True)
+                completed = self.call(
+                    "prepare-audit", "--output",
+                    f"output/evidence/stateful_{index}.json",
+                    "--checkpoint", "stateful-literal", expected=2,
+                )
+                self.assertRegex(
+                    completed.stderr,
+                    r"unsupported stateful|escape-enabled|options on|SaveVerb options",
+                )
+
+    def test_delimited_url_literals_do_not_hide_live_citations(self) -> None:
+        for literal in (r"\url|https://example.test/a%b|",
+                        r"\url|https://example.test/a\|b%20|",
+                        r"\path!printed % text!",
+                        r"\path|printed \| delimiter % text|",
+                        r"\nolinkurl+printed % text+"):
+            with self.subTest(literal=literal):
+                shutil.rmtree(self.root / "paper", ignore_errors=True)
+                (self.root / "paper").mkdir()
+                (self.root / "paper/main.tex").write_text(
+                    literal + r" then live \cite{livekey}." + "\n",
+                    encoding="utf-8",
+                )
+                (self.root / "output/evidence").mkdir(exist_ok=True)
+                self.call(
+                    "prepare-audit", "--output", "output/evidence/audit_input.json",
+                    "--checkpoint", "delimited-url",
+                )
+                value = json.loads(
+                    (self.root / "output/evidence/audit_input.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+                self.assertEqual(
+                    [item["cite_keys"] for item in value["citation_occurrences"]],
+                    [["livekey"]],
+                )
+
+    def test_escaped_url_delimiter_does_not_hide_live_reader(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            r"\url|https://example.test/a\|b%20| then live \openin0=secret.txt." + "\n",
+            encoding="utf-8",
+        )
+        (self.root / "paper/secret.txt").write_text("secret\n", encoding="utf-8")
+        (self.root / "output/evidence").mkdir()
+        completed = self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "escaped-url-delimiter", expected=2,
+        )
+        self.assertIn("unsupported dynamic LaTeX dependency", completed.stderr)
+
+    def test_commented_verbatim_delimiters_cannot_hide_live_content(self) -> None:
+        for delimiter in (r"\begin{verbatim}", r"\end{verbatim}"):
+            with self.subTest(delimiter=delimiter):
+                shutil.rmtree(self.root / "paper", ignore_errors=True)
+                (self.root / "paper").mkdir()
+                (self.root / "paper/main.tex").write_text(
+                    "% " + delimiter + "\n" + r"\openin0=secret.txt" + "\n",
+                    encoding="utf-8",
+                )
+                (self.root / "paper/secret.txt").write_text("secret\n", encoding="utf-8")
+                (self.root / "output/evidence").mkdir(exist_ok=True)
+                completed = self.call(
+                    "prepare-audit", "--output", "output/evidence/audit_input.json",
+                    "--checkpoint", "commented-verbatim", expected=2,
+                )
+                self.assertIn("unsupported dynamic LaTeX dependency", completed.stderr)
+
+    def test_percent_escape_uses_backslash_parity(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "Escaped \\% keeps \\cite{kept}.\n"
+            "Two slashes \\\\% comment hides \\cite{hidden}.\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "percent-parity",
+        )
+        value = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            [item["cite_keys"] for item in value["citation_occurrences"]], [["kept"]]
+        )
+
     def test_unknown_citation_family_command_fails_closed(self) -> None:
         (self.root / "paper/sections").mkdir(parents=True)
         (self.root / "paper/main.tex").write_text(
@@ -2446,6 +4212,103 @@ bundle = {
             "--checkpoint", "stage5-initial", expected=2,
         )
         self.assertIn("unsupported citation-family command", completed.stderr)
+
+    def test_mixed_case_unknown_citation_families_fail_closed(self) -> None:
+        for command in (r"\customCite{x}", r"\noteCQuote{x}{claim}"):
+            with self.subTest(command=command):
+                shutil.rmtree(self.root / "paper", ignore_errors=True)
+                (self.root / "paper").mkdir()
+                (self.root / "paper/main.tex").write_text(command + "\n", encoding="utf-8")
+                (self.root / "output/evidence").mkdir(exist_ok=True)
+                completed = self.call(
+                    "prepare-audit", "--output", "output/evidence/audit_input.json",
+                    "--checkpoint", "mixed-case-citation-family", expected=2,
+                )
+                self.assertIn("unsupported citation", completed.stderr)
+
+    def test_standard_display_cquote_environments_are_inventoried(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "\\begin{displaycquote}[see][p.~2]{plainkey}[!] Plain.\\end{displaycquote}\n\n"
+            "\\begin{foreigndisplaycquote}{french}[cf.][]{foreignkey} Foreign."
+            "\\end{foreigndisplaycquote}\n\n"
+            "\\begin{hyphendisplaycquote}{english}{hyphenkey} Hyphen."
+            "\\end{hyphendisplaycquote}\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "display-cquotes",
+        )
+        audit = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertEqual(
+            [item["cite_keys"] for item in audit["citation_occurrences"]],
+            [["plainkey"], ["foreignkey"], ["hyphenkey"]],
+        )
+
+    def test_user_defined_citation_aliases_fail_closed(self) -> None:
+        sources = (
+            r"\newcommand{\smithref}{\cite{smith2020}} Two \smithref uses.",
+            r"\def\basecite#1{\cite{#1}}\let\aliascite=\basecite",
+            r"\DeclareCiteCommand{\localref}{}{}{}{}",
+            r"\newcommand{\oldref}{\cite{x}}\renewcommand{\oldref}{safe}",
+            r"\newcommand{\Foo}{\cite{x}}\newcommand{\foo}{safe}",
+            r"\NewDocumentCommand{\xparseRef}{m}{\cite{#1}}",
+            r"\RenewDocumentCommand\xparseRef{m}{\cite{#1}}",
+            r"\ProvideDocumentCommand{\xparseRef}{m}{\cite{#1}}",
+            r"\DeclareDocumentCommand{\xparseRef}{m}{\cite{#1}}",
+            r"\NewExpandableDocumentCommand{\xparseRef}{m}{\cite{#1}}",
+            r"\newrobustcmd{\smithref}{\cite{smith2020}}",
+            r"\renewrobustcmd{\smithref}{\cite{smith2020}}",
+            r"\providerobustcmd{\smithref}{\cite{smith2020}}",
+            r"\let\priorentry\bibentry Prior \priorentry{smith2020}.",
+            r"\newcommand{\priorentry}{\bibentry{smith2020}} Prior \priorentry.",
+            r"\newcommand{\priorentry}[1]{\bibentry{#1}} Prior \priorentry{smith2020}.",
+            r"\let\priorentry\bibentry\let\olderentry\priorentry",
+        )
+        for source in sources:
+            with self.subTest(source=source):
+                shutil.rmtree(self.root / "paper", ignore_errors=True)
+                (self.root / "paper").mkdir()
+                (self.root / "paper/main.tex").write_text(source + "\n", encoding="utf-8")
+                (self.root / "output/evidence").mkdir(exist_ok=True)
+                completed = self.call(
+                    "prepare-audit", "--output", "output/evidence/audit_input.json",
+                    "--checkpoint", "citation-alias", expected=2,
+                )
+                self.assertIn("user-defined citation command", completed.stderr)
+
+    def test_supported_citation_command_redefinition_fails_closed(self) -> None:
+        for source in (
+            r"\renewcommand{\bibentry}[1]{safe text}",
+            r"\def\bibentry#1{safe text}",
+        ):
+            with self.subTest(source=source):
+                shutil.rmtree(self.root / "paper", ignore_errors=True)
+                (self.root / "paper").mkdir()
+                (self.root / "paper/main.tex").write_text(source + "\n", encoding="utf-8")
+                (self.root / "output/evidence").mkdir(exist_ok=True)
+                completed = self.call(
+                    "prepare-audit", "--output", "output/evidence/audit_input.json",
+                    "--checkpoint", "citation-redefinition", expected=2,
+                )
+                self.assertIn("redefinition of supported citation command", completed.stderr)
+
+    def test_declared_graphics_extension_order_fails_closed(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            r"\DeclareGraphicsExtensions{.png,.pdf}\includegraphics{figure}" + "\n",
+            encoding="utf-8",
+        )
+        (self.root / "output/evidence").mkdir()
+        completed = self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "graphics-extension-order", expected=2,
+        )
+        self.assertIn("unsupported dynamic LaTeX dependency", completed.stderr)
 
     def test_dynamic_bibliography_dependency_fails_closed(self) -> None:
         (self.root / "paper").mkdir()
@@ -2469,6 +4332,107 @@ bundle = {
             [entry["path"] for entry in audit_input["paper_sources"]],
         )
         self.assertEqual(audit_input["citation_occurrences"][0]["cite_keys"], ["prior"])
+
+    def test_braceless_input_in_local_package_is_included(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "\\documentclass{article}\\usepackage{local}\\begin{document}x\\end{document}\n",
+            encoding="utf-8",
+        )
+        (self.root / "paper/local.sty").write_text(
+            "\\input data.tex\n", encoding="utf-8"
+        )
+        (self.root / "paper/data.tex").write_text(
+            "Evidence \\cite{inside}.\n", encoding="utf-8"
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "package-braceless-input",
+        )
+        audit_input = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        self.assertIn(
+            "paper/data.tex", [entry["path"] for entry in audit_input["paper_sources"]]
+        )
+        self.assertEqual(audit_input["citation_occurrences"][0]["cite_keys"], ["inside"])
+
+    def test_extensionless_input_prefers_the_tex_file(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text("\\input{chapter}\n", encoding="utf-8")
+        (self.root / "paper/chapter").write_text("decoy\n", encoding="utf-8")
+        (self.root / "paper/chapter.tex").write_text(
+            "Actual \\cite{actual}.\n", encoding="utf-8"
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "extensionless-input",
+        )
+        audit_input = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        paths = [entry["path"] for entry in audit_input["paper_sources"]]
+        self.assertIn("paper/chapter.tex", paths)
+        self.assertNotIn("paper/chapter", paths)
+        self.assertEqual(audit_input["citation_occurrences"][0]["cite_keys"], ["actual"])
+
+    def test_input_if_file_exists_prefers_the_tex_file(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_text(
+            "\\InputIfFileExists{choice}{}{}\n", encoding="utf-8"
+        )
+        (self.root / "paper/choice").write_text("decoy\n", encoding="utf-8")
+        (self.root / "paper/choice.tex").write_text(
+            "Actual \\cite{conditional}.\n", encoding="utf-8"
+        )
+        (self.root / "output/evidence").mkdir()
+        self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "conditional-extensionless-input",
+        )
+        audit = json.loads(
+            (self.root / "output/evidence/audit_input.json").read_text(encoding="utf-8")
+        )
+        paths = [entry["path"] for entry in audit["paper_sources"]]
+        self.assertIn("paper/choice.tex", paths)
+        self.assertNotIn("paper/choice", paths)
+        self.assertEqual(audit["citation_occurrences"][0]["cite_keys"], ["conditional"])
+
+    def test_local_package_inputs_preserve_explicit_non_tex_suffixes(self) -> None:
+        for braced in (True, False):
+            with self.subTest(braced=braced):
+                shutil.rmtree(self.root / "paper", ignore_errors=True)
+                shutil.rmtree(self.root / "output/evidence", ignore_errors=True)
+                (self.root / "paper").mkdir()
+                (self.root / "paper/main.tex").write_text(
+                    "\\documentclass{article}\\usepackage{local}"
+                    "\\begin{document}x\\end{document}\n",
+                    encoding="utf-8",
+                )
+                input_text = "\\input{reader.cfg}\n" if braced else "\\input reader.cfg\n"
+                (self.root / "paper/local.sty").write_text(input_text, encoding="utf-8")
+                (self.root / "paper/reader.cfg").write_text(
+                    "Evidence \\cite{configkey}.\n", encoding="utf-8"
+                )
+                (self.root / "output/evidence").mkdir(parents=True)
+                self.call(
+                    "prepare-audit", "--output", "output/evidence/audit_input.json",
+                    "--checkpoint", f"local-explicit-suffix-{braced}",
+                )
+                audit = json.loads(
+                    (self.root / "output/evidence/audit_input.json").read_text(
+                        encoding="utf-8"
+                    )
+                )
+                self.assertIn(
+                    "paper/reader.cfg",
+                    [entry["path"] for entry in audit["paper_sources"]],
+                )
+                self.assertEqual(
+                    audit["citation_occurrences"][0]["cite_keys"], ["configkey"]
+                )
 
     def test_static_iffileexists_allows_absent_optional_bibliography(self) -> None:
         self.add_paper_audit(conditional_bib=True)
@@ -2539,6 +4503,122 @@ bundle = {
             sys.executable, "code/analyze.py", expected=2,
         )
         self.assertIn("selector must be a string", completed.stderr)
+
+    def test_published_schemas_reject_obvious_path_hazards_and_mark_semantic_boundary(self) -> None:
+        schema_root = REPO / "deploy_assets/templates/utils/results_pipeline"
+        plan = json.loads((schema_root / "run-plan-v1.schema.json").read_text())
+        bundle = json.loads((schema_root / "results-v1.schema.json").read_text())
+        for schema in (plan, bundle):
+            self.assertIn("Structural preflight only", schema["$comment"])
+            project_pattern = re.compile(schema["$defs"]["projectPath"]["pattern"])
+            output_pattern = re.compile(schema["$defs"]["outputPath"]["pattern"])
+            for dotenv_name in (".env", ".envrc", ".env-local", ".env.production",
+                                ".ENV", ".Env.local"):
+                self.assertIsNone(project_pattern.fullmatch(f"data/{dotenv_name}/secret"))
+                self.assertIsNone(output_pattern.fullmatch(f"output/{dotenv_name}/secret"))
+            for bad in ("/abs/file", "../escape", "data/../escape", "data\\escape",
+                        ".env", "data/.env.local", ".git/config", ".GIT/config",
+                        "data//file"):
+                self.assertIsNone(project_pattern.search(bad), bad)
+            for bad in ("output/evidence/x.json", "output/EVIDENCE/x.json",
+                        "output/../escape", "output/.env",
+                        "output/a\\b", "output//x", "output//evidence/x.json",
+                        "output/a//b"):
+                self.assertIsNone(output_pattern.search(bad), bad)
+            self.assertIsNotNone(project_pattern.search("data/input.csv"))
+            self.assertIsNotNone(output_pattern.search("output/stage3/results.json"))
+        self.assertTrue(bundle["properties"]["artifacts"]["uniqueItems"])
+        self.assertTrue(bundle["properties"]["exhibits"]["uniqueItems"])
+
+    def test_invalid_utf8_plan_is_controlled_failure(self) -> None:
+        (self.root / "output/stagex/results.plan.json").write_bytes(b"\xff\xfe")
+        completed = self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertIn("cannot read JSON", completed.stderr)
+        self.assertNotIn("Traceback", completed.stderr)
+
+    def test_invalid_utf8_paper_source_is_controlled_failure(self) -> None:
+        (self.root / "paper").mkdir()
+        (self.root / "paper/main.tex").write_bytes(b"\xff\xfe")
+        (self.root / "output/evidence").mkdir()
+        completed = self.call(
+            "prepare-audit", "--output", "output/evidence/audit_input.json",
+            "--checkpoint", "invalid-utf8", expected=2,
+        )
+        self.assertIn("cannot read LaTeX source", completed.stderr)
+        self.assertNotIn("Traceback", completed.stderr)
+
+    def test_atomic_json_parent_failure_is_controlled(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        blocker = self.root / "blocked"
+        blocker.write_text("not a directory\n", encoding="utf-8")
+        with self.assertRaisesRegex(module.EvidenceError, "directory"):
+            module.atomic_json(blocker / "receipt.json", {"ok": True})
+
+    def test_atomic_json_rejects_parent_ancestor_swap(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_atomic_swap", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        process_log = self.root / "process_log"
+        moved = self.root / "process-log-real"
+        outside_temp = tempfile.TemporaryDirectory()
+        self.addCleanup(outside_temp.cleanup)
+        outside = Path(outside_temp.name)
+        original = module._open_or_create_directory_path
+        swapped = False
+
+        def swap_after_open(path: Path) -> int:
+            nonlocal swapped
+            descriptor = original(path)
+            if not swapped and Path(path) == process_log:
+                process_log.rename(moved)
+                process_log.symlink_to(outside, target_is_directory=True)
+                swapped = True
+            return descriptor
+
+        with mock.patch.object(
+                module, "_open_or_create_directory_path", side_effect=swap_after_open):
+            with self.assertRaises(module.EvidenceError):
+                module.atomic_json(process_log / "results_registry.json", {"ok": True})
+        self.assertFalse((outside / "results_registry.json").exists())
+        process_log.unlink()
+        moved.rename(process_log)
+
+    def test_transaction_cleanup_fsyncs_each_removed_entry(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        backup = self.root / module.TRANSACTION_BACKUP_PATH
+        backup.mkdir()
+        (backup / "0").write_text("backup\n", encoding="utf-8")
+        journal = self.root / module.TRANSACTION_PATH
+        journal.write_text("{}\n", encoding="utf-8")
+        original_fsync = os.fsync
+        with mock.patch.object(module.os, "fsync", wraps=original_fsync) as synced:
+            module._clear_transaction_files(self.root)
+        self.assertGreaterEqual(synced.call_count, 2)
+
+    def test_rollback_cleanup_fsyncs_removed_destination(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec and spec.loader
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        destination = self.root / "output/stagex/cleanup-only.json"
+        destination.write_text("published\n", encoding="utf-8")
+        original_fsync = os.fsync
+        with mock.patch.object(module.os, "fsync", wraps=original_fsync) as synced:
+            parent_fd, _ = module._safe_restore_destination(self.root, destination)
+            os.close(parent_fd)
+        self.assertFalse(destination.exists())
+        self.assertGreaterEqual(synced.call_count, 1)
 
     def test_symlink_and_credentials_rejected(self) -> None:
         (self.root / ".env").write_text("SECRET=x\n")

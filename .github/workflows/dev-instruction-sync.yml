@@ -33,7 +33,7 @@ jobs:
       - name: Install LaTeX table-gate dependencies
         run: |
           sudo apt-get update
-          sudo apt-get install --no-install-recommends texlive-latex-extra
+          sudo apt-get install --no-install-recommends bubblewrap texlive-latex-extra
 
       - name: Test rendered-table source gate
         run: bash test_scripts/test_table_legibility.sh
@@ -49,6 +49,18 @@ jobs:
 
       - name: Test infrastructure/bootstrap ownership
         run: bash test_scripts/test_setup_ownership.sh
+
+      - name: Test computed-results provenance utility
+        run: python3 test_scripts/test_results_pipeline.py
+
+      - name: Test computed-results cross-shape assembly
+        run: bash test_scripts/test_results_evidence_assembly.sh
+
+      - name: Test DeepVest parsers without paid calls
+        env:
+          DEEPVEST_TEST_OFFLINE: "1"
+          PYTHONPATH: deploy_assets/extensions/empirical
+        run: python3 test_scripts/test_deepvest.py
 
       - name: Test empirical replication input binding
         run: python3 deploy_assets/scripts/test_empirical_input_manifest.py

@@ -27,6 +27,7 @@ import json
 import os
 from pathlib import Path
 import re
+import shlex
 import shutil
 import stat
 import subprocess
@@ -211,10 +212,15 @@ def prepare_isolated_source(root: Path, name: str, synthetic_env: bool = False) 
     """Create the minimal --assemble-only source tree, never copying the real .env."""
     source = root / name
     source.mkdir()
-    for name in ("setup.sh", "VERSION", "LICENSE", ".env.example"):
+    for name in ("setup.sh", "update.sh", "VERSION", "LICENSE", ".env.example"):
         candidate = REPO_ROOT / name
         if candidate.exists():
             shutil.copy2(candidate, source / name)
+    (source / "scripts").mkdir()
+    shutil.copy2(
+        REPO_ROOT / "scripts/update_coordinator.sh",
+        source / "scripts/update_coordinator.sh",
+    )
     # Build-input symlinks are intentionally rejected by setup because
     # consumers may dereference them outside the checkout while provenance
     # hashes link text. Use a real isolated copy; the test temp filesystem may
@@ -245,6 +251,46 @@ def setup_command(source: Path, output: Path, args: tuple[str, ...]) -> list[str
     return fixed_umask_command(setup_argv)
 
 
+def assert_update_attestation(output: Path, setup_stdout: str) -> None:
+    """Every successful shape prints its complete canonical update selector."""
+    marker = "Trusted update attestation (record this complete command outside the project):"
+    lines = setup_stdout.splitlines()
+    try:
+        command_line = lines[lines.index(marker) + 1].strip()
+    except (ValueError, IndexError) as exc:
+        raise AssertionError("setup output omitted the trusted update command") from exc
+    tail_offset = command_line.find("--source-digest")
+    if tail_offset < 0:
+        raise AssertionError("trusted update command omitted --source-digest")
+    actual = shlex.split(command_line[tail_offset:])
+    manifest = json.loads((output / ".deploy_manifest.json").read_text())
+    flags = manifest["flags"]
+    expected = [
+        "--source-digest", manifest["source"]["content_digest"],
+        "--variant", manifest["variant"],
+    ]
+    if manifest["mode"]:
+        expected.extend(("--mode", manifest["mode"]))
+    else:
+        expected.append("--no-mode")
+    expected.append("--clear-ext")
+    for extension in manifest["extensions"]:
+        expected.extend(("--ext", extension))
+    for key, positive, negative in (
+        ("seeded", "--seeded", "--no-seeded"),
+        ("faithful", "--faithful", "--no-faithful"),
+        ("manual", "--manual", "--no-manual"),
+        ("light", "--light", "--no-light"),
+        ("halt_on_core_bypass", "--halt-on-core-bypass", "--no-halt-on-core-bypass"),
+    ):
+        expected.append(positive if flags[key] else negative)
+    if actual != expected:
+        raise AssertionError(
+            "trusted update selector does not match deployed manifest:\n"
+            f"actual={actual!r}\nexpected={expected!r}"
+        )
+
+
 def run_case(source: Path, deployment_root: Path, log_root: Path,
              name: str, args: tuple[str, ...]) -> Path:
     output = deployment_root / name
@@ -261,6 +307,7 @@ def run_case(source: Path, deployment_root: Path, log_root: Path,
     if result.returncode:
         tail = "\n".join(result.stdout.splitlines()[-30:])
         raise RuntimeError(f"{name} failed with exit {result.returncode}:\n{tail}")
+    assert_update_attestation(output, result.stdout)
     return output
 
 

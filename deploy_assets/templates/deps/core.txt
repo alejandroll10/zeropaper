@@ -1,7 +1,8 @@
 # Core Python deps for the pipeline (all variants).
-# Single source of truth: read by setup.sh AND update.sh via `uv pip install -r`.
-# Build-time only — installed into the project's .venv, this file is NOT copied
-# into deployed projects (so it needs no deployment-manifest entry).
+# Single source of truth: read by setup.sh via `uv pip install -r`.
+# This source-tree file is a build input. Setup also copies it into the
+# manifest-owned `.arpipeline/update_inputs/deps/` provisioning record inside
+# each deployment; that deployed copy is not a project-authored dependency file.
 sympy
 matplotlib
 certifi

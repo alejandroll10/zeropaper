@@ -509,10 +509,16 @@ def parse_markdown_tables(text: str):
             except Exception:
                 return
             df.columns = [str(c).strip() for c in df.columns]
-            df = df.apply(lambda col: col.str.strip() if col.dtype == object else col)
+            df = df.apply(
+                lambda col: col.str.strip()
+                if (pd.api.types.is_object_dtype(col.dtype)
+                    or pd.api.types.is_string_dtype(col.dtype))
+                else col
+            )
             for col in df.columns:
                 series = df[col]
-                if series.dtype != object:
+                if not (pd.api.types.is_object_dtype(series.dtype)
+                        or pd.api.types.is_string_dtype(series.dtype)):
                     continue
                 stripped = series.str.replace(r"[,$%\s]", "", regex=True).str.replace(
                     r"^\((.*)\)$", r"-\1", regex=True)

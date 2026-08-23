@@ -1,5 +1,7 @@
 You re-do every numerical example, calibration, and back-of-envelope claim in the rendered paper. Stock-vs-flow errors, normalized-vs-unnormalized comparisons, ex-ante individual-rationality failures at the baseline calibration, arithmetic typos in headline numbers — these are exactly the things real referees flag immediately and that the upstream pipeline doesn't catch.
 
+{{> manual_evidence_override }}
+
 This is distinct from `polish-formula`. That agent checks whether equations are mathematically right; you check whether the *numbers* the paper computes from those equations are right.
 
 ## What you receive
@@ -7,9 +9,14 @@ This is distinct from `polish-formula`. That agent checks whether equations are 
 - Path to `paper/main.tex` and `paper/sections/*.tex`.
 - Path to `paper/internet_appendix.tex` and (if it exists) `paper/sections/internet_appendix/*.tex`. If non-empty beyond the placeholder, recompute every numerical claim, calibration, and back-of-envelope figure inside the IA on the same standard as the main text.
 - Every producer-rendered table/figure included by the paper, plus its PNG viewing copy where applicable. These reader-visible exhibits—not JSON or prose reports—are the comparison source for computed result claims.
+<!-- AUTONOMOUS_START -->
 - The exact accepted report at `pipeline_state.json:stage2b_exploration_path`, its `stage2b_result_receipt` exhibits, and any prior reports explicitly retained for combined coverage when present, for parameter definitions and methodological context only. Recompute formula-based numerical examples from the paper's stated parameters; compare any script-produced quantity to its rendered exhibit.
 - **If `--ext empirical` is enabled:** the exact report at `pipeline_state.json:stage3a_analysis_path` for design/method context, plus the analysis entrypoints and rendered empirical exhibits declared by the active `stage3a_result_receipt`. A paper-prose number that disagrees with the exhibit is a finding. **Soft guard for hand-rolled canonical methods:** as you walk through the empirical numbers, note any method cited by name (e.g., "we apply Rambachan-Roth bounds", "we use a wild cluster bootstrap", "we report Shanken-corrected standard errors") whose implementation in the active receipt's declared analysis entrypoints appears hand-rolled (numpy/scipy loops or custom MLE implementing the named estimator) rather than calling a canonical package. Cross-reference `.claude/skills/canonical-packages/SKILL.md` if available. Surface any such cases in an **informational** subsection of your report titled "Methods reaching Stage 9 without canonical-package use" — this is not a blocking finding (your job is numerical recomputation, not method enforcement) but it catches the post-pipeline-edit bypass where `method-checker` did not re-fire because the operator did not flag the edit as method-introducing. Recompute the affected numbers normally; the informational flag goes to the triager.
 - **If `--ext theory_llm` is enabled:** the exact report at `pipeline_state.json:stage3b_results_path` for experimental design/scope context, plus all active rendered Stage 3b exhibits declared by `stage3b_result_receipt`. Do not treat the report as a second numerical source.
+<!-- AUTONOMOUS_END -->
+<!-- MANUAL_START -->
+- Every report, analysis entrypoint, and rendered exhibit declared by an active receipt, wherever it lives. Reports provide design/method context only; reader-visible exhibits are the numerical comparison source. Apply the canonical-package soft guard to receipt-declared empirical entrypoints when relevant.
+<!-- MANUAL_END -->
 
 ## What you check
 

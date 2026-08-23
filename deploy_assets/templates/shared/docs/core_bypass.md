@@ -33,8 +33,10 @@ its designated agents.
    genuinely down — not a local tool/cert problem — before treating it as
    unavailable. Do not pivot or weaken on an un-triaged tool failure.
 2. **Record it** — append a row to `process_log/degradation_ledger.md` (create it
-   from the header below if absent; if there is no `process_log/`, state the facts
-   prominently in your returned report — never a buried aside).
+   from the header below if absent). A manual deployment is identified by
+   `process_log/manual_evidence_state.json`; it intentionally has no degradation
+   ledger, so state the facts prominently in your returned report instead — never
+   as a buried aside.
 3. **Mark non-binding** — any verdict via a non-binding fallback is NON-BINDING and
    cannot be reported as "checked"; it does not satisfy a gate.
 4. **Surface it** — a non-empty ledger appears in the run summary.
@@ -45,12 +47,15 @@ Conditions 1 and 4 are agent-detectable (a binding-source agent sees its own
 source go down). Conditions 2 (gate-skipped / advanced-past / continued despite
 FAIL) and 3 (designated-agent-substituted) are *orchestrator* decisions — no agent
 can see that a gate was skipped or its task handed to a substitute. So the
-orchestrator records these itself: **when you skip a verification gate, advance
+orchestrator records these itself. **When you skip a verification gate, advance
 past one without a result, continue despite a FAIL, or run a designated agent's
-task via a substitute path, append a `gate-skipped` / `agent-substituted` row to
-`process_log/degradation_ledger.md` before continuing** — in default mode too, not
-only under `--halt-on-core-bypass`. This is the recording half; the terminal
-completion-block (below) does the enforcing.
+task via a substitute path, first check the deployment shape:** when
+`process_log/manual_evidence_state.json` exists, state the `gate-skipped` /
+`agent-substituted` facts prominently in the returned report and do not create a
+ledger; otherwise append that row to `process_log/degradation_ledger.md` before
+continuing. This applies in default mode too, not only under
+`--halt-on-core-bypass`. This is the recording half; the terminal completion-block
+(below) does the enforcing.
 
 **Scope — only *unsanctioned* skips.** A skip a stage doc explicitly sanctions is
 not a bypass and gets no row: e.g. empirical-first permanently skips Stage 2b and the

@@ -46,7 +46,7 @@ grep -Fq 'Before launching the agent' "$stage_doc" \
     || { echo "FAIL: broad scans are not charged before launch" >&2; exit 1; }
 grep -Fq 'Durable resume guard (evaluate before any entry reset)' "$stage_doc" \
     || { echo "FAIL: crash/update resume can clear or duplicate a charged scan" >&2; exit 1; }
-for phase in entry_initializing scan_charged gap_search promotion legacy_reroute cap_routing; do
+for phase in entry_initializing scan_charged gap_search promotion cap_routing; do
     grep -Fq "\`$phase\`" "$stage_doc" \
         || { echo "FAIL: Stage-0 resume contract omits $phase" >&2; exit 1; }
 done
@@ -81,12 +81,17 @@ done
 grep -Fq 'neither tier fallback nor transient retry is a direct relaunch' \
     "$project/docs/model_fallback.md" \
     || { echo "FAIL: shared model fallback can bypass the Stage-0 launch permit" >&2; exit 1; }
-for context in downstream_return incomplete_scan legacy_update; do
+for context in downstream_return incomplete_scan; do
     grep -Fq "\`$context\`" "$stage_doc" \
         || { echo "FAIL: Stage-0 cap routing omits $context" >&2; exit 1; }
     grep -Fq "\`$context\`" "$project/.claude/agents/branch-manager.md" \
         || { echo "FAIL: branch-manager cap contract omits $context" >&2; exit 1; }
 done
+if grep -Eq 'legacy_reroute|legacy_update' \
+    "$stage_doc" "$project/.claude/agents/branch-manager.md"; then
+    echo "FAIL: removed updater-only Stage-0 compatibility routes still ship" >&2
+    exit 1
+fi
 grep -Fq 'preserve the pending payload' "$stage_doc" \
     || { echo "FAIL: permit-100 crash discards its only scan instruction" >&2; exit 1; }
 grep -Fq 'never launch scan 101' "$stage_doc" \
@@ -100,8 +105,6 @@ grep -Fq 'promotion REJECT (including a REVISE-cap conversion) does not incremen
 grep -Fq 'on REJECT (including a REVISE-cap conversion), first restore `output/stage0/best_question.md`' \
     "$stage_doc" \
     || { echo "FAIL: promotion REJECT does not restore the best snapshot for Stage 1" >&2; exit 1; }
-grep -Fq 'Create `output/stage0/discovery_e{E}/` if absent' "$stage_doc" \
-    || { echo "FAIL: legacy salvage can target a nonexistent episode directory" >&2; exit 1; }
 grep -Fq 'set `stage0_discovery_last_counted_attempt`, `stage0_discovery_episode_start_attempt`, and `stage0_discovery_active_gap_id` to `null`' \
     "$stage_doc" \
     || { echo "FAIL: Stage-0 handoff leaves transient ownership state behind" >&2; exit 1; }

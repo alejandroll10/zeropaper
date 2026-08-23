@@ -1,7 +1,7 @@
 # sequence-jacobian (ssj skill) deps. numba is finicky to build; pin
 # numpy/scipy/numba explicitly so an unpinned install can't backtrack to a
 # Python-incompatible numba. Non-fatal if it fails (warn, don't abort setup).
-# Single-sourced (setup.sh + update.sh); build-time only.
+# Single-sourced by setup.sh and copied into the updater attestation snapshot.
 sequence-jacobian
 numpy
 scipy

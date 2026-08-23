@@ -32,6 +32,7 @@ Subagents live in `{{AGENT_DIR}}/`. Invoke by name — see your runtime's docs f
 
 ```
 output/                   # Free-form agent outputs — organize per task
+├── evidence/             # Frozen audit inputs, audit reports, and summaries
 code/
 ├── analysis/             # Analysis scripts
 ├── download/             # Data download helpers
@@ -42,7 +43,16 @@ paper/
 ├── main.tex
 ├── sections/
 └── simulated_referee_reports/
+process_log/
+├── manual_evidence_state.json  # Bounded evidence-audit retry counter
+└── results_registry.json       # Pending/active/retired computed-result receipts
 ```
+
+## Computed evidence and paper mutations
+
+For any computed result, use `docs/results_evidence.md`: scripts emit reproducible bundles, renderers derive result-bearing tables/figures from those bundles, and accepted receipts become active in `process_log/results_registry.json`. The manual deployment already initializes the registry and `process_log/manual_evidence_state.json`; do not invent `pipeline_state.json` pointers. Discover accepted evidence from the active registry receipts and their bound reports/artifacts.
+
+After an agent changes paper prose, captions, tables, figures, or citations, run a named checkpoint through `docs/results_evidence.md` before treating the edit as accepted. This launches the independent evidence and citation audits, binds the exact paper state in `process_log/paper_evidence.receipt.json`, and uses `manual_evidence_state.json:loops.evidence` for the bounded retry loop.
 
 Reference docs for each research step are also in `docs/` if you want to read how a particular step is normally handled.
 

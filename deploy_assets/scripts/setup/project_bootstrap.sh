@@ -130,7 +130,8 @@ if [ "$MODE" != "report" ]; then
 fi
 
 if [ "$MANUAL" = "1" ]; then
-    mkdir -p "$P/output"
+    mkdir -p "$P/output" "$P/process_log"
+    bootstrap_dir "output/evidence"
 elif [ "$MODE" = "report" ]; then
     # Report mode has no stages, no pipeline_state.json, no session/decision/
     # discussion/pattern logs to accumulate. The submission/audits/report/
@@ -210,10 +211,18 @@ SEEDREADME
     fi
 fi
 
-# Initial pipeline state (skipped in manual mode — no autonomous pipeline; also
+# Initial pipeline state (manual mode gets only its evidence-loop state; also
 # skipped in report mode — no stages or routing to track, just the audit log)
 if [ "$MANUAL" = "1" ]; then
-    : # no pipeline state
+    cat > "$P/process_log/manual_evidence_state.json" <<'MANUALEVIDENCE'
+{
+  "kind": "manual_evidence_state",
+  "state_version": 1,
+  "loops": {
+    "evidence": {"round": 0, "cap": 3}
+  }
+}
+MANUALEVIDENCE
 elif [ "$MODE" = "report" ]; then
     # Seed the audit log so the synthesizer has a stable file to read at the end.
     # The orchestrator appends the launch-time submission hash + per-agent rows
@@ -274,6 +283,7 @@ cat > "$P/process_log/pipeline_state.json" <<JSONEOF
   "halt_on_core_bypass": $([ "$HALT_ON_CORE_BYPASS" = "1" ] && echo true || echo false),
   "pending_verification": [],
   "scores": {},
+  "archived_best_scores": {},
   "stage2b_theory_version": null,
   "stage2b_exploration_path": null,
   "stage2b_result_receipt": null,
@@ -326,6 +336,7 @@ cat > "$P/process_log/pipeline_state.json" <<'JSONEOF'
   "status": "not_started",
   "pending_verification": [],
   "scores": {},
+  "archived_best_scores": {},
   "stage2b_theory_version": null,
   "stage2b_exploration_path": null,
   "stage2b_result_receipt": null,
@@ -363,12 +374,11 @@ if [ "$MANUAL" = "0" ] && [ "$MODE" != "report" ]; then
 fi
 
 # Core-bypass degradation ledger (issue #51). Seeded for every autonomous mode
-# that has a process_log/ (i.e. non-manual, including report mode). Agents and the
+# that has an autonomous process log (manual has only evidence state). Agents and the
 # orchestrator append one row per silent-degradation event per docs/core_bypass.md;
-# a non-empty ledger must surface in the run summary. Manual mode has no process_log/,
-# so the agent pointer there degrades to "state it in your returned report."
-if [ "$MANUAL" = "0" ]; then
-    if [ "$MODE" != "report" ] && [ ! -e "$P/process_log/results_registry.json" ]; then
+# a non-empty ledger must surface in the run summary. Manual mode has no degradation
+# ledger, so the agent pointer there degrades to "state it in your returned report."
+if [ "$MODE" != "report" ] && [ ! -e "$P/process_log/results_registry.json" ]; then
         cat > "$P/process_log/results_registry.json" <<'RESULTREGISTRY'
 {
   "kind": "result_registry",
@@ -379,7 +389,8 @@ if [ "$MANUAL" = "0" ]; then
   "receipt_fingerprints": {}
 }
 RESULTREGISTRY
-    fi
+fi
+if [ "$MANUAL" = "0" ]; then
     cat > "$P/process_log/degradation_ledger.md" <<'LEDGEREOF'
 # Degradation ledger — core-bypass events
 
@@ -437,7 +448,7 @@ setup_project_environment_bootstrap() {
     # instead of replacing this file.
     if [ -f "$SOURCE_CHECKOUT_ROOT/.env" ]; then
         cp "$SOURCE_CHECKOUT_ROOT/.env" "$P/.env"
-        # update.sh's line reader would drop a final unterminated line.
+        # The missing-key merge below would drop a final unterminated line.
         [ -n "$(tail -c1 "$P/.env")" ] && printf '\n' >> "$P/.env"
         echo "  ✓ .env copied from template repo"
         if [ -f "$SRC_ROOT/.env.example" ]; then

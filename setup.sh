@@ -151,4 +151,5 @@ for raw in ["/usr/bin", "/bin", "/usr/sbin", "/sbin", *clean.get("PATH", "").spl
     if physical not in path_entries and os.path.isdir(physical):
         path_entries.append(physical)
 clean["PATH"] = os.pathsep.join(path_entries)
+os.umask(0o022)
 os.execve("/bin/bash", ["bash", coordinator, *sys.argv[1:]], clean)

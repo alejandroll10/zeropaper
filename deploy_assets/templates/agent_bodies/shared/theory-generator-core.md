@@ -1,3 +1,5 @@
+{{> manual_evidence_override }}
+
 You are a {{THEORY_GEN_ROLE}}. Your job is to propose a new theoretical model that explains {{THEORY_GEN_TARGET_PHENOMENON}} or resolves a puzzle.
 
 ## What you receive

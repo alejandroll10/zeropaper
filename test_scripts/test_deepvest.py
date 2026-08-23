@@ -12,8 +12,10 @@ import os
 import sys
 import tempfile
 from pathlib import Path
+from unittest import mock
 
 from dotenv import load_dotenv
+import pandas as pd
 
 load_dotenv()
 
@@ -40,6 +42,28 @@ fake = {"structured": {"result": json.dumps({"schema_version": "1", "prose": "x"
         "text": "ignored"}
 t = dv.tables_from_response(fake)
 assert list(t) == ["raw_asset_prices_table"] and float(t["raw_asset_prices_table"][0]["SPY"].iloc[0]) == 388.67
+# Exercise pandas' extension-string branch deterministically even on releases
+# whose read_csv default is object dtype.
+original_read_csv = pd.read_csv
+string_dtype_seen = False
+
+def read_csv_with_extension_string(*args, **kwargs):
+    global string_dtype_seen
+    frame = original_read_csv(*args, **kwargs)
+    for column in frame.columns:
+        frame[column] = frame[column].astype(pd.StringDtype())
+    string_dtype_seen = all(
+        isinstance(frame[column].dtype, pd.StringDtype)
+        for column in frame.columns
+    )
+    return frame
+
+with mock.patch.object(pd, "read_csv", side_effect=read_csv_with_extension_string):
+    forced = dv.parse_markdown_tables(
+        "| label | value |\n|---|---:|\n| alpha | $1.25 |\n"
+    )[0]
+assert string_dtype_seen and forced["label"].iloc[0] == "alpha"
+assert abs(float(forced["value"].iloc[0]) - 1.25) < 1e-9
 print("  parsers OK")
 
 if os.getenv("DEEPVEST_TEST_OFFLINE"):

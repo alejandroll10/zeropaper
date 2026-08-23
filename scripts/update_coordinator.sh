@@ -1,27 +1,26 @@
 #!/bin/bash
 # update.sh — Refresh pipeline infrastructure in a deployed project.
 #
-# Usage:
-#   ./update.sh <deployed-project-path>
-#   ./update.sh <deployed-project-path> --dry-run
-#   ./update.sh <deployed-project-path> --variant finance --ext empirical
-#   ./update.sh <deployed-project-path> --seeded --faithful --manual --light
-#   ./update.sh <deployed-project-path> --no-model-probe
+# Usage: every invocation explicitly authorizes the complete target selector:
+#   ./update.sh <project> --source-digest sha256:<trusted-setup-digest> \
+#     --variant finance --no-mode --clear-ext \
+#     --no-seeded --no-faithful --no-manual --no-light \
+#     --no-halt-on-core-bypass [--dry-run] [--no-model-probe]
 #
-# Overrides (--variant, --ext, --seeded/--no-seeded,
+# Selectors (--variant, --mode/--no-mode, --ext/--clear-ext, --seeded/--no-seeded,
 # --faithful/--no-faithful, --manual/--no-manual,
-# --light/--no-light) take precedence over the manifest's recorded values
-# AND over sniffed values for pre-manifest deploys. Use them when the
-# manifest is wrong on a pre-manifest deployment, or when applying a supported
-# in-layout selector change. Manifested cross-variant migration fails closed.
-# Each --ext repeats; passing --ext replaces the manifest's full extension
-# list (does not append).
+# --light/--no-light, --halt-on-core-bypass/--no-halt-on-core-bypass) are
+# mandatory and must exactly describe the deployment's current shape. No
+# selector change is supported in place; create a fresh deployment instead.
+# Each --ext repeats and the ordered list must match the current manifest.
+# --source-digest is mandatory operator attestation from the trusted setup
+# record; never derive it from the project-writable manifest.
 # --no-model-probe is a one-run assembly control forwarded to setup.sh; it is
 # not a deployment selector and is not persisted in the manifest.
 #
 # What it does:
-#   1. Reads .deploy_manifest.json from the target project (or sniffs/accepts
-#      flags if the project predates manifests).
+#   1. Reads a v2.28-generation .deploy_manifest.json from the target project.
+#      Older and pre-manifest deployments are intentionally unsupported.
 #   2. Assembles a fresh project into a tmp dir using setup.sh --assemble-only
 #      from the checkout containing this update.sh, with the
 #      same variant + extensions + flags.
@@ -48,36 +47,71 @@ OVERRIDE_SEEDED=""    # "", "true", or "false"
 OVERRIDE_FAITHFUL=""
 OVERRIDE_MANUAL=""
 OVERRIDE_LIGHT=""
+OVERRIDE_HALT_ON_CORE_BYPASS=""
 NO_MODEL_PROBE=0
+ATTESTED_SOURCE_DIGEST=""
 NEXT_IS_VARIANT=0
 NEXT_IS_MODE=0
 NEXT_IS_EXT=0
+NEXT_IS_SOURCE_DIGEST=0
+COUNT_SOURCE_DIGEST=0
+COUNT_VARIANT=0
+COUNT_MODE=0
+COUNT_CLEAR_EXT=0
+COUNT_SEEDED=0
+COUNT_FAITHFUL=0
+COUNT_MANUAL=0
+COUNT_LIGHT=0
+COUNT_HALT=0
 
 for arg in "$@"; do
     case "$arg" in
         --dry-run)        DRY_RUN=1 ;;
-        --variant)        NEXT_IS_VARIANT=1 ;;
-        --variant=*)      OVERRIDE_VARIANT="${arg#--variant=}" ;;
-        --mode)           NEXT_IS_MODE=1 ;;
-        --mode=*)         OVERRIDE_MODE="${arg#--mode=}";  OVERRIDE_MODE_SET=1 ;;
-        --no-mode)        OVERRIDE_MODE="";                OVERRIDE_MODE_SET=1 ;;
+        --source-digest)  NEXT_IS_SOURCE_DIGEST=1; COUNT_SOURCE_DIGEST=$((COUNT_SOURCE_DIGEST + 1)) ;;
+        --source-digest=*) ATTESTED_SOURCE_DIGEST="${arg#--source-digest=}"; COUNT_SOURCE_DIGEST=$((COUNT_SOURCE_DIGEST + 1)) ;;
+        --variant)        NEXT_IS_VARIANT=1; COUNT_VARIANT=$((COUNT_VARIANT + 1)) ;;
+        --variant=*)      OVERRIDE_VARIANT="${arg#--variant=}"; COUNT_VARIANT=$((COUNT_VARIANT + 1)) ;;
+        --mode)           NEXT_IS_MODE=1; COUNT_MODE=$((COUNT_MODE + 1)) ;;
+        --mode=*)
+            OVERRIDE_MODE="${arg#--mode=}"
+            [ -n "$OVERRIDE_MODE" ] || {
+                echo "ERROR: empty --mode is unsupported; use explicit --no-mode" >&2
+                exit 1
+            }
+            OVERRIDE_MODE_SET=1; COUNT_MODE=$((COUNT_MODE + 1))
+            ;;
+        --no-mode)        OVERRIDE_MODE="";                OVERRIDE_MODE_SET=1; COUNT_MODE=$((COUNT_MODE + 1)) ;;
         --ext)            NEXT_IS_EXT=1 ;;
         --ext=*)          OVERRIDE_EXTS+=("${arg#--ext=}"); OVERRIDE_EXTS_SET=1 ;;
-        --clear-ext)      OVERRIDE_EXTS=();                  OVERRIDE_EXTS_SET=1 ;;
-        --seeded)         OVERRIDE_SEEDED=true ;;
-        --no-seeded)      OVERRIDE_SEEDED=false ;;
-        --faithful)       OVERRIDE_FAITHFUL=true ;;
-        --no-faithful)    OVERRIDE_FAITHFUL=false ;;
-        --manual)         OVERRIDE_MANUAL=true ;;
-        --no-manual)      OVERRIDE_MANUAL=false ;;
-        --light)          OVERRIDE_LIGHT=true ;;
-        --no-light)       OVERRIDE_LIGHT=false ;;
+        --clear-ext)
+            if [ "${#OVERRIDE_EXTS[@]}" -gt 0 ]; then
+                echo "ERROR: --clear-ext must precede every --ext selector" >&2
+                exit 1
+            fi
+            OVERRIDE_EXTS=(); OVERRIDE_EXTS_SET=1; COUNT_CLEAR_EXT=$((COUNT_CLEAR_EXT + 1))
+            ;;
+        --seeded)         OVERRIDE_SEEDED=true; COUNT_SEEDED=$((COUNT_SEEDED + 1)) ;;
+        --no-seeded)      OVERRIDE_SEEDED=false; COUNT_SEEDED=$((COUNT_SEEDED + 1)) ;;
+        --faithful)       OVERRIDE_FAITHFUL=true; COUNT_FAITHFUL=$((COUNT_FAITHFUL + 1)) ;;
+        --no-faithful)    OVERRIDE_FAITHFUL=false; COUNT_FAITHFUL=$((COUNT_FAITHFUL + 1)) ;;
+        --manual)         OVERRIDE_MANUAL=true; COUNT_MANUAL=$((COUNT_MANUAL + 1)) ;;
+        --no-manual)      OVERRIDE_MANUAL=false; COUNT_MANUAL=$((COUNT_MANUAL + 1)) ;;
+        --light)          OVERRIDE_LIGHT=true; COUNT_LIGHT=$((COUNT_LIGHT + 1)) ;;
+        --no-light)       OVERRIDE_LIGHT=false; COUNT_LIGHT=$((COUNT_LIGHT + 1)) ;;
+        --halt-on-core-bypass)    OVERRIDE_HALT_ON_CORE_BYPASS=true; COUNT_HALT=$((COUNT_HALT + 1)) ;;
+        --no-halt-on-core-bypass) OVERRIDE_HALT_ON_CORE_BYPASS=false; COUNT_HALT=$((COUNT_HALT + 1)) ;;
         --no-model-probe) NO_MODEL_PROBE=1 ;;
         -*)               echo "Unknown option: $arg"; exit 1 ;;
         *)
             if [ "$NEXT_IS_VARIANT" = "1" ]; then
                 OVERRIDE_VARIANT="$arg"; NEXT_IS_VARIANT=0
+            elif [ "$NEXT_IS_SOURCE_DIGEST" = "1" ]; then
+                ATTESTED_SOURCE_DIGEST="$arg"; NEXT_IS_SOURCE_DIGEST=0
             elif [ "$NEXT_IS_MODE" = "1" ]; then
+                [ -n "$arg" ] || {
+                    echo "ERROR: empty --mode is unsupported; use explicit --no-mode" >&2
+                    exit 1
+                }
                 OVERRIDE_MODE="$arg"; OVERRIDE_MODE_SET=1; NEXT_IS_MODE=0
             elif [ "$NEXT_IS_EXT" = "1" ]; then
                 OVERRIDE_EXTS+=("$arg"); OVERRIDE_EXTS_SET=1; NEXT_IS_EXT=0
@@ -96,14 +130,50 @@ if [ "$NEXT_IS_VARIANT" = "1" ]; then
     echo "Error: --variant requires a value (finance, macro, llm_cognition)"; exit 1
 fi
 if [ "$NEXT_IS_MODE" = "1" ]; then
-    echo "Error: --mode requires a value (empirical-first), or use --no-mode to clear"; exit 1
+    echo "Error: --mode requires a value (empirical-first, measurement-first, report), or use --no-mode"; exit 1
 fi
 if [ "$NEXT_IS_EXT" = "1" ]; then
     echo "Error: --ext requires a value (empirical, theory_llm)"; exit 1
 fi
+if [ "$NEXT_IS_SOURCE_DIGEST" = "1" ]; then
+    echo "Error: --source-digest requires a sha256:<64 lowercase hex> value"; exit 1
+fi
+
+if [ "$COUNT_SOURCE_DIGEST" != "1" ] || [ "$COUNT_VARIANT" != "1" ] \
+   || [ "$COUNT_MODE" != "1" ] || [ "$COUNT_SEEDED" != "1" ] \
+   || [ "$COUNT_FAITHFUL" != "1" ] || [ "$COUNT_MANUAL" != "1" ] \
+   || [ "$COUNT_LIGHT" != "1" ] || [ "$COUNT_HALT" != "1" ] \
+   || [ "$COUNT_CLEAR_EXT" -gt 1 ]; then
+    echo "ERROR: update requires each deployment selector exactly once" >&2
+    exit 1
+fi
+if [ "${#OVERRIDE_EXTS[@]}" -eq 0 ] && [ "$COUNT_CLEAR_EXT" != "1" ]; then
+    echo "ERROR: an empty extension selector requires exactly one --clear-ext" >&2
+    exit 1
+fi
+declare -A _seen_update_extensions=()
+for _extension in "${OVERRIDE_EXTS[@]}"; do
+    if [[ ! "$_extension" =~ ^(empirical|theory_llm)$ ]] \
+       || [ -n "${_seen_update_extensions[$_extension]:-}" ]; then
+        echo "ERROR: extension selector contains empty, unknown, or duplicate values" >&2
+        exit 1
+    fi
+    _seen_update_extensions[$_extension]=1
+done
 
 if [ -z "$PROJECT" ]; then
-    echo "usage: update.sh <deployed-project-path> [--dry-run] [--variant X] [--mode M] [--ext Y ...] [--faithful|--no-faithful] [--no-model-probe]"
+    echo "usage: update.sh <project> --source-digest sha256:... --variant X (--mode M|--no-mode) (--ext Y...|--clear-ext) (--seeded|--no-seeded) (--faithful|--no-faithful) (--manual|--no-manual) (--light|--no-light) (--halt-on-core-bypass|--no-halt-on-core-bypass) [--dry-run] [--no-model-probe]"
+    exit 1
+fi
+if [ -z "$OVERRIDE_VARIANT" ] || [ "$OVERRIDE_MODE_SET" != "1" ] \
+   || [ "$OVERRIDE_EXTS_SET" != "1" ] || [ -z "$OVERRIDE_SEEDED" ] \
+   || [ -z "$OVERRIDE_FAITHFUL" ] || [ -z "$OVERRIDE_MANUAL" ] \
+   || [ -z "$OVERRIDE_LIGHT" ] || [ -z "$OVERRIDE_HALT_ON_CORE_BYPASS" ]; then
+    echo "ERROR: update requires the complete deployment selector explicitly; see the usage line above" >&2
+    exit 1
+fi
+if [[ ! "$ATTESTED_SOURCE_DIGEST" =~ ^sha256:[0-9a-f]{64}$ ]]; then
+    echo "ERROR: update requires --source-digest from the trusted setup record; do not derive it from project files" >&2
     exit 1
 fi
 
@@ -140,13 +210,66 @@ if any(os.path.samefile(current, deploy_assets) for current in ancestors(project
     )
 PY
 
-# Acquire launch.sh's project-directory lock before creating process_log or any
-# other target path. Bash retains descriptor 9 throughout the refresh; a short
-# isolated-Python helper applies flock to that inherited open file description.
-if ! exec 9< "$PROJECT"; then
-    echo "ERROR: could not open the project runtime/update lock" >&2
+# The authenticated Python launcher acquires launch.sh's project-directory lock
+# before snapshotting any build input and passes that same open file description
+# here. Retain it as fd 9 for the whole refresh; direct coordinator invocation is
+# deliberately unsupported.
+_inherited_project_lock_fd="${ZEROPAPER_UPDATE_PROJECT_LOCK_FD:-}"
+unset ZEROPAPER_UPDATE_PROJECT_LOCK_FD
+if [[ ! "$_inherited_project_lock_fd" =~ ^[0-9]+$ ]]; then
+    echo "ERROR: missing authenticated project runtime/update lock" >&2
     exit 1
 fi
+if [ "$_inherited_project_lock_fd" != "9" ]; then
+    if ! eval "exec 9<&$_inherited_project_lock_fd"; then
+        echo "ERROR: missing authenticated project runtime/update lock" >&2
+        exit 1
+    fi
+    eval "exec ${_inherited_project_lock_fd}<&-"
+fi
+UPDATE_DOTENV_FD=""
+_inherited_dotenv_fd="${ZEROPAPER_UPDATE_DOTENV_FD:-}"
+unset ZEROPAPER_UPDATE_DOTENV_FD
+if [ -n "$_inherited_dotenv_fd" ]; then
+    if [[ ! "$_inherited_dotenv_fd" =~ ^[0-9]+$ ]] \
+       || [ "$_inherited_dotenv_fd" = "9" ]; then
+        echo "ERROR: invalid authenticated operator environment descriptor" >&2
+        exit 1
+    fi
+    if [ "$_inherited_dotenv_fd" != "10" ]; then
+        if ! eval "exec 10<&$_inherited_dotenv_fd"; then
+            echo "ERROR: missing authenticated operator environment descriptor" >&2
+            exit 1
+        fi
+        eval "exec ${_inherited_dotenv_fd}<&-"
+    fi
+    if ! /usr/bin/python3 -I - 10 <<'PY'
+import os, stat, sys
+fd = int(sys.argv[1])
+info = os.fstat(fd)
+if not stat.S_ISFIFO(info.st_mode):
+    raise SystemExit("invalid authenticated operator environment descriptor")
+PY
+    then
+        echo "ERROR: invalid authenticated operator environment descriptor" >&2
+        exit 1
+    fi
+    UPDATE_DOTENV_FD=10
+fi
+_inherited_launcher_liveness_fd="${ZEROPAPER_UPDATE_LAUNCHER_LIVENESS_FD:-}"
+unset ZEROPAPER_UPDATE_LAUNCHER_LIVENESS_FD
+if [[ ! "$_inherited_launcher_liveness_fd" =~ ^[0-9]+$ ]] \
+   || [ "$_inherited_launcher_liveness_fd" = "9" ] \
+   || { [ -n "$UPDATE_DOTENV_FD" ] \
+        && [ "$_inherited_launcher_liveness_fd" = "$UPDATE_DOTENV_FD" ]; }; then
+    echo "ERROR: missing authenticated updater-launcher liveness descriptor" >&2
+    exit 1
+fi
+if ! eval "exec {UPDATE_LAUNCHER_LIVENESS_FD}<&$_inherited_launcher_liveness_fd"; then
+    echo "ERROR: missing authenticated updater-launcher liveness descriptor" >&2
+    exit 1
+fi
+eval "exec ${_inherited_launcher_liveness_fd}<&-"
 if ! /usr/bin/python3 -I - 9 <<'PY'
 import fcntl
 import os
@@ -169,7 +292,8 @@ fi
 
 _update_main() {
 # Deployable assets live under deploy_assets/. TEMPLATE_ROOT remains the repo
-# checkout because setup.sh, VERSION, LICENSE, and .env.example are root inputs.
+# checkout because setup.sh, update.sh, scripts/update_coordinator.sh, VERSION,
+# LICENSE, and .env.example are root inputs.
 MANIFEST="$PROJECT/.deploy_manifest.json"
 
 # The target venv/project is agent-writable. Never let an activated venv (or a
@@ -195,7 +319,6 @@ done
 [ -n "$UPDATE_CONTROL_PATH" ] || { echo "update.sh could not establish a trusted host PATH"; exit 1; }
 PATH="$UPDATE_CONTROL_PATH"
 export PATH PYTHONNOUSERSITE=1
-UPDATE_TOOL_UV="$(command -v uv 2>/dev/null || true)"
 unset VIRTUAL_ENV CONDA_PREFIX CONDA_DEFAULT_ENV \
     CONDA_PROMPT_MODIFIER PIPENV_ACTIVE POETRY_ACTIVE \
     PYTHONHOME PYTHONPATH PYTHONSTARTUP PYTHONINSPECT
@@ -206,19 +329,177 @@ hash -r
 UPDATE_CONTROL_PYTHON=/usr/bin/python3
 python3() { "$UPDATE_CONTROL_PYTHON" -I "$@"; }
 
-command -v jq >/dev/null 2>&1 || { echo "update.sh requires jq (sudo apt-get install jq)"; exit 1; }
-
-if [ -e "$MANIFEST" ] || [ -L "$MANIFEST" ]; then
-    python3 -I - "$MANIFEST" <<'PY'
+UPDATE_CONTROL_JQ="${ZEROPAPER_UPDATE_JQ:?missing isolated update jq path}"
+unset ZEROPAPER_UPDATE_JQ
+"$UPDATE_CONTROL_PYTHON" -I - "$UPDATE_CONTROL_JQ" "$PROJECT" "$TEMPLATE_ROOT" <<'PY'
 import os, stat, sys
-info = os.lstat(sys.argv[1])
+path, project, template = sys.argv[1:]
+if not os.path.isabs(path) or os.path.realpath(path) != path:
+    raise SystemExit("update.sh received an untrusted jq path")
+info = os.stat(path)
+if (not stat.S_ISREG(info.st_mode) or info.st_nlink != 1
+        or not os.access(path, os.X_OK)):
+    raise SystemExit("update.sh requires one regular executable jq")
+for forbidden in (project, template, "/tmp", "/var/tmp", "/private/tmp"):
+    forbidden = os.path.realpath(forbidden)
+    if os.path.commonpath((path, forbidden)) == forbidden:
+        raise SystemExit("update.sh jq path crosses a mutable project/source/temp boundary")
+allowed_roots = ("/usr", "/bin", "/opt/homebrew", "/usr/local", "/opt/local", "/nix/store")
+if not any(os.path.commonpath((path, root)) == root for root in allowed_roots):
+    raise SystemExit("update.sh jq path is outside fixed host installation roots")
+PY
+jq() { "$UPDATE_CONTROL_JQ" "$@"; }
+
+if [ ! -e "$MANIFEST" ] && [ ! -L "$MANIFEST" ]; then
+    echo "ERROR: update supports only same-version manifest-backed deployments; create a fresh deployment" >&2
+    exit 1
+fi
+UPDATE_VERSION="$(tr -d '[:space:]' < "$TEMPLATE_ROOT/VERSION")"
+python3 -I - "$MANIFEST" "$UPDATE_VERSION" "$ATTESTED_SOURCE_DIGEST" <<'PY'
+import json, os, stat, sys
+path, expected_version, attested_source_digest = sys.argv[1:]
+
+def reject_constant(value):
+    raise ValueError(f"non-finite JSON number: {value}")
+
+def unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key!r}")
+        result[key] = value
+    return result
+
+info = os.lstat(path)
 if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
     raise SystemExit("ERROR: deployment manifest must be one regular non-aliased file")
+try:
+    with open(path, encoding="utf-8") as handle:
+        manifest = json.load(
+            handle, parse_constant=reject_constant, object_pairs_hook=unique_object
+        )
+except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+    raise SystemExit(f"ERROR: deployment manifest is not strict UTF-8 JSON: {exc}")
+required_keys = {
+    "manifest_version", "template_version", "deploy_date", "deploy_fingerprint",
+    "source", "variant", "mode", "extensions", "flags", "infrastructure",
+}
+if not isinstance(manifest, dict) or not required_keys <= set(manifest) \
+        or set(manifest) - required_keys - {"last_updated"}:
+    raise SystemExit("ERROR: deployment manifest is not the exact current-generation shape")
+if manifest.get("manifest_version") != 1:
+    raise SystemExit("ERROR: unsupported deployment manifest generation; create a fresh deployment")
+for key in ("template_version", "deploy_date", "deploy_fingerprint"):
+    if not isinstance(manifest.get(key), str) or not manifest[key]:
+        raise SystemExit(f"ERROR: deployment manifest {key} is malformed")
+if "last_updated" in manifest and (
+        not isinstance(manifest["last_updated"], str) or not manifest["last_updated"]):
+    raise SystemExit("ERROR: deployment manifest last_updated is malformed")
+version = manifest.get("template_version") if isinstance(manifest, dict) else None
+semver = version.split("+", 1)[0] if isinstance(version, str) else None
+if semver != expected_version:
+    raise SystemExit(
+        f"ERROR: update requires a {expected_version} deployment; "
+        "create a fresh deployment for every other version"
+    )
+source = manifest.get("source")
+source_keys = {"kind", "repository", "commit", "dirty", "content_digest", "update_channel"}
+if not isinstance(source, dict) or set(source) != source_keys:
+    raise SystemExit("ERROR: deployment manifest source is malformed")
+for key in ("kind", "commit", "content_digest", "update_channel"):
+    if not isinstance(source[key], str) or not source[key]:
+        raise SystemExit(f"ERROR: deployment manifest source.{key} is malformed")
+if source["repository"] is not None and not isinstance(source["repository"], str):
+    raise SystemExit("ERROR: deployment manifest source.repository is malformed")
+if not isinstance(source["dirty"], bool):
+    raise SystemExit("ERROR: deployment manifest source.dirty is malformed")
+recorded_digest = source.get("content_digest") if isinstance(source, dict) else None
+if recorded_digest != attested_source_digest:
+    raise SystemExit(
+        "ERROR: project manifest source digest does not match the operator-attested "
+        "trusted setup record"
+    )
+variant = manifest.get("variant")
+if not isinstance(variant, str) or variant not in {"finance", "macro", "llm_cognition"}:
+    raise SystemExit("ERROR: deployment manifest has an invalid variant")
+if manifest.get("mode") not in {"", "empirical-first", "measurement-first", "report"}:
+    raise SystemExit("ERROR: deployment manifest mode must be a string")
+extensions = manifest.get("extensions")
+if (not isinstance(extensions, list)
+        or any(not isinstance(value, str)
+               or value not in {"empirical", "theory_llm"}
+               for value in extensions)
+        or len(extensions) != len(set(extensions))):
+    raise SystemExit("ERROR: deployment manifest extensions are malformed")
+flags = manifest.get("flags")
+expected_flags = {"seeded", "faithful", "manual", "light", "halt_on_core_bypass"}
+if (not isinstance(flags, dict) or set(flags) != expected_flags
+        or any(not isinstance(flags[key], bool) for key in expected_flags)):
+    raise SystemExit("ERROR: deployment manifest flags are malformed")
+infrastructure = manifest.get("infrastructure")
+infrastructure_keys = {"dirs_replace", "files_replace", "files_env_merge"}
+if not isinstance(infrastructure, dict) or set(infrastructure) != infrastructure_keys:
+    raise SystemExit("ERROR: deployment manifest infrastructure is malformed")
+for key in infrastructure_keys:
+    values = infrastructure[key]
+    if (not isinstance(values, list)
+            or any(not isinstance(value, str) or not value for value in values)
+            or len(values) != len(set(values))):
+        raise SystemExit(f"ERROR: deployment manifest infrastructure.{key} is malformed")
 PY
+
+_recorded_variant="$(jq -r '.variant' "$MANIFEST")"
+_recorded_mode="$(jq -r '.mode' "$MANIFEST")"
+mapfile -t _recorded_exts < <(jq -r '.extensions[]' "$MANIFEST")
+_extensions_match=1
+if [ "${#OVERRIDE_EXTS[@]}" -ne "${#_recorded_exts[@]}" ]; then
+    _extensions_match=0
+else
+    for _extension_index in "${!OVERRIDE_EXTS[@]}"; do
+        if [ "${OVERRIDE_EXTS[$_extension_index]}" != "${_recorded_exts[$_extension_index]}" ]; then
+            _extensions_match=0
+            break
+        fi
+    done
+fi
+_recorded_seeded="$(jq -r '.flags.seeded' "$MANIFEST")"
+_recorded_faithful="$(jq -r '.flags.faithful' "$MANIFEST")"
+_recorded_manual="$(jq -r '.flags.manual' "$MANIFEST")"
+_recorded_light="$(jq -r '.flags.light' "$MANIFEST")"
+_recorded_halt="$(jq -r '.flags.halt_on_core_bypass' "$MANIFEST")"
+if [ "$OVERRIDE_VARIANT" != "$_recorded_variant" ] \
+   || [ "$OVERRIDE_MODE" != "$_recorded_mode" ] \
+   || [ "$_extensions_match" != "1" ] \
+   || [ "$OVERRIDE_SEEDED" != "$_recorded_seeded" ] \
+   || [ "$OVERRIDE_FAITHFUL" != "$_recorded_faithful" ] \
+   || [ "$OVERRIDE_MANUAL" != "$_recorded_manual" ] \
+   || [ "$OVERRIDE_LIGHT" != "$_recorded_light" ] \
+   || [ "$OVERRIDE_HALT_ON_CORE_BYPASS" != "$_recorded_halt" ]; then
+    echo "ERROR: update selectors must exactly describe the current deployment" >&2
+    echo "  In-place selector changes are unsupported; create a fresh deployment." >&2
+    exit 1
 fi
 
-# The legacy folder migration below predates manifests and touches paper/
-# before the fresh deployment exists. Refuse an aliased parent first.
+# Reject extension additions before creating any target-side update control
+# path when an agent-writable virtualenv already exists. The updater cannot
+# safely execute that environment's interpreter with host authority.
+VENV="$PROJECT/.venv"
+if [ -L "$VENV" ] || { [ -e "$VENV" ] && [ ! -d "$VENV" ]; }; then
+    echo "ERROR: .venv must be a real directory when present" >&2
+    exit 1
+fi
+if [ -d "$VENV" ]; then
+    _manifest_extensions="$(jq -r '.extensions[]?' "$MANIFEST")"
+    for _requested_extension in "${OVERRIDE_EXTS[@]}"; do
+        if ! grep -Fxq -- "$_requested_extension" <<< "$_manifest_extensions"; then
+            echo "ERROR: adding extensions to an existing .venv requires a fresh deployment" >&2
+            exit 1
+        fi
+    done
+fi
+
+# Paper is mutable project content. Validate its parent before any later
+# same-layout selector operation inspects it.
 if [ -L "$PROJECT/paper" ] || { [ -e "$PROJECT/paper" ] && [ ! -d "$PROJECT/paper" ]; }; then
     echo "ERROR: $PROJECT/paper must be a real project directory" >&2
     exit 1
@@ -233,88 +514,171 @@ fi
 # inside SRT, so use the policy-denied control directory on the project fs.
 UPDATE_PROCESS_LOG="$PROJECT/process_log"
 UPDATE_CONTROL_DIR="$UPDATE_PROCESS_LOG/.opencode-control"
-UPDATE_CREATED_PROCESS_LOG=0
 UPDATE_CREATED_CONTROL_DIR=0
 if [ -L "$UPDATE_PROCESS_LOG" ] || { [ -e "$UPDATE_PROCESS_LOG" ] && [ ! -d "$UPDATE_PROCESS_LOG" ]; }; then
     echo "ERROR: $UPDATE_PROCESS_LOG must be a real project directory" >&2
     exit 1
 fi
-[ -e "$UPDATE_PROCESS_LOG" ] || UPDATE_CREATED_PROCESS_LOG=1
-mkdir -p "$UPDATE_PROCESS_LOG"
+[ -d "$UPDATE_PROCESS_LOG" ] || {
+    echo "ERROR: same-version update requires an existing process_log directory" >&2
+    exit 1
+}
 if [ "$(cd "$UPDATE_PROCESS_LOG" && pwd -P)" != "$UPDATE_PROCESS_LOG" ]; then
     echo "ERROR: $UPDATE_PROCESS_LOG resolves outside the deployment" >&2
     exit 1
 fi
 TMP=""
-SEED_MIGRATION_PENDING=0
-SEED_MIGRATION_JOURNAL=""
-CORE_STATE_CANDIDATE=""
-UPDATE_CREATED_EVIDENCE_DIR=0
-UPDATE_CREATED_RESULTS_REGISTRY=0
-_update_cleanup() {
-    if [ "$SEED_MIGRATION_PENDING" = "1" ] && [ -f "$SEED_MIGRATION_JOURNAL" ]; then
-        "$UPDATE_CONTROL_PYTHON" -I - "$SEED_MIGRATION_JOURNAL" <<'PY' || true
-import json
+SEED_MIGRATION_JOURNAL="$UPDATE_CONTROL_DIR/selector-migration.json"
+SEED_MIGRATION_NEXT="$SEED_MIGRATION_JOURNAL.next"
+UPDATE_TRANSACTION_MARKER="$UPDATE_CONTROL_DIR/update-in-progress"
+_remove_private_update_tree() {
+    local _private_root="$1"
+    "$UPDATE_CONTROL_PYTHON" -I - "$_private_root" <<'PY'
 import os
-import secrets
 import stat
 import sys
 
-journal = json.load(open(sys.argv[1], encoding="utf-8"))
-state_path = journal["state_path"]
-if journal.get("state_committed"):
-    temp = os.path.join(
-        os.path.dirname(state_path), f".pipeline-state.rollback.{secrets.token_hex(8)}"
-    )
-    fd = os.open(
-        temp,
-        os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
-        journal["state_mode"],
-    )
-    with os.fdopen(fd, "w", encoding="utf-8") as handle:
-        handle.write(journal["original_state"])
-        handle.flush()
-        os.fsync(handle.fileno())
-    os.replace(temp, state_path)
-readme = journal["readme"]
-if journal.get("created_readme") and os.path.lexists(readme):
-    info = os.lstat(readme)
-    if stat.S_ISREG(info.st_mode) and info.st_nlink == 1:
-        os.unlink(readme)
-seed = journal["seed"]
-if journal.get("created_seed") and os.path.isdir(seed) and not os.path.islink(seed):
-    os.rmdir(seed)
-for path in reversed(journal.get("created_dirs", [])):
-    if os.path.isdir(path) and not os.path.islink(path):
-        os.rmdir(path)
+root = sys.argv[1]
+if not os.path.lexists(root):
+    raise SystemExit(0)
+root_info = os.lstat(root)
+if not stat.S_ISDIR(root_info.st_mode) or stat.S_ISLNK(root_info.st_mode):
+    raise SystemExit(f"ERROR: unsafe updater workspace root: {root}")
+directories = []
+pending = [root]
+while pending:
+    current = pending.pop()
+    info = os.lstat(current)
+    if not stat.S_ISDIR(info.st_mode) or stat.S_ISLNK(info.st_mode):
+        raise SystemExit(f"ERROR: unsafe updater workspace directory: {current}")
+    os.chmod(current, 0o700)
+    directories.append(current)
+    with os.scandir(current) as entries:
+        for entry in entries:
+            child_info = entry.stat(follow_symlinks=False)
+            if stat.S_ISDIR(child_info.st_mode) and not stat.S_ISLNK(child_info.st_mode):
+                pending.append(entry.path)
+            else:
+                os.unlink(entry.path)
+for directory in reversed(directories):
+    os.rmdir(directory)
+if os.path.lexists(root):
+    raise SystemExit(f"ERROR: updater workspace cleanup incomplete: {root}")
+PY
+}
+_update_cleanup() {
+    [ -z "$TMP" ] || _remove_private_update_tree "$TMP"
+    if [ "$UPDATE_CREATED_CONTROL_DIR" = "1" ] \
+       && rmdir "$UPDATE_CONTROL_DIR" 2>/dev/null; then
+        "$UPDATE_CONTROL_PYTHON" -I - "$UPDATE_PROCESS_LOG" <<'PY' || true
+import os, sys
+fd = os.open(sys.argv[1], os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+try:
+    os.fsync(fd)
+finally:
+    os.close(fd)
 PY
     fi
-    if [ "$UPDATE_CREATED_RESULTS_REGISTRY" = "1" ]; then
-        rm -f "$PROJECT/process_log/results_registry.json"
-    fi
-    if [ "$UPDATE_CREATED_EVIDENCE_DIR" = "1" ]; then
-        rmdir "$PROJECT/output/evidence" 2>/dev/null || true
-    fi
-    [ -z "$TMP" ] || rm -rf "$TMP"
-    [ "$UPDATE_CREATED_CONTROL_DIR" = "1" ] && rmdir "$UPDATE_CONTROL_DIR" 2>/dev/null || true
-    [ "$UPDATE_CREATED_PROCESS_LOG" = "1" ] && rmdir "$UPDATE_PROCESS_LOG" 2>/dev/null || true
 }
 trap _update_cleanup EXIT
 if [ -L "$UPDATE_CONTROL_DIR" ] || { [ -e "$UPDATE_CONTROL_DIR" ] && [ ! -d "$UPDATE_CONTROL_DIR" ]; }; then
     echo "ERROR: $UPDATE_CONTROL_DIR must be a real control directory" >&2
     exit 1
 fi
-[ -e "$UPDATE_CONTROL_DIR" ] || UPDATE_CREATED_CONTROL_DIR=1
-(umask 077 && mkdir -p "$UPDATE_CONTROL_DIR")
-if [ "$(cd "$UPDATE_CONTROL_DIR" && pwd -P)" != "$UPDATE_CONTROL_DIR" ]; then
-    echo "ERROR: $UPDATE_CONTROL_DIR resolves outside the deployment" >&2
+if [ -e "$UPDATE_CONTROL_DIR" ]; then
+    if [ "$(cd "$UPDATE_CONTROL_DIR" && pwd -P)" != "$UPDATE_CONTROL_DIR" ]; then
+        echo "ERROR: $UPDATE_CONTROL_DIR resolves outside the deployment" >&2
+        exit 1
+    fi
+elif [ "$DRY_RUN" = "0" ]; then
+    UPDATE_CREATED_CONTROL_DIR=1
+    (umask 077 && mkdir "$UPDATE_CONTROL_DIR")
+fi
+# Infrastructure replacement cannot be published as one atomic filesystem
+# operation. Validate any crash-left marker now, but publish a new marker only
+# after every read-only preflight succeeds and immediately before the first
+# managed mutation. Remove it only after state and manifest publication succeeds.
+UPDATE_MARKER_PRESENT=0
+if [ -e "$UPDATE_TRANSACTION_MARKER" ] || [ -L "$UPDATE_TRANSACTION_MARKER" ]; then
+    "$UPDATE_CONTROL_PYTHON" -I - "$UPDATE_TRANSACTION_MARKER" <<'PY'
+import os, stat, sys
+path = sys.argv[1]
+try:
+    fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0))
+except OSError as exc:
+    raise SystemExit(f"ERROR: cannot safely read update transaction marker: {exc}")
+info = os.fstat(fd)
+os.close(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    raise SystemExit("ERROR: update transaction marker must be one regular file")
+PY
+    if [ "$DRY_RUN" = "1" ]; then
+        echo "ERROR: dry-run cannot inspect an interrupted update; rerun update without --dry-run" >&2
+        exit 1
+    fi
+    UPDATE_MARKER_PRESENT=1
+    echo "  ✓ resuming interrupted update"
+fi
+# Selector migration was removed: current-generation updates refresh one exact
+# deployment shape only. Any old journal is unsupported mutable state, not an
+# instruction the host-authority updater may execute.
+if [ -e "$SEED_MIGRATION_JOURNAL" ] || [ -L "$SEED_MIGRATION_JOURNAL" ] \
+   || [ -e "$SEED_MIGRATION_NEXT" ] || [ -L "$SEED_MIGRATION_NEXT" ]; then
+    echo "ERROR: obsolete selector-migration state is unsupported; create a fresh deployment" >&2
     exit 1
 fi
 
-# Refuse an old deployment's live OpenCode server, which predates the shared
-# launcher lock acquired above. New launchers (all runtimes) hold LOCK_SH for their
-# lifetime; update holds LOCK_EX, making managed-path validation + replacement
-# one quiescent interval rather than an uncloseable pathname-check race.
+# A SIGKILLed refresh body cannot run its EXIT trap. On the next mutating
+# invocation, remove only updater-created `update.XXXXXX` workspaces from the
+# policy-denied control directory before assembling a replacement. This also
+# removes any copied `.env`; dry-run remains byte-for-byte read-only.
+if [ "$DRY_RUN" = "0" ]; then
+    "$UPDATE_CONTROL_PYTHON" -I - "$UPDATE_CONTROL_DIR" <<'PY'
+import os
+import re
+import stat
+import sys
+
+control = sys.argv[1]
+for name in os.listdir(control):
+    if re.fullmatch(r"update\.[A-Za-z0-9]{6}", name) is None:
+        continue
+    root = os.path.join(control, name)
+    info = os.lstat(root)
+    if not stat.S_ISDIR(info.st_mode) or stat.S_ISLNK(info.st_mode):
+        raise SystemExit(f"ERROR: abandoned updater workspace has unsafe type: {root}")
+    os.chmod(root, 0o700)
+    directories = []
+    for current, child_dirs, files in os.walk(root, topdown=True, followlinks=False):
+        os.chmod(current, 0o700)
+        for child in list(child_dirs):
+            path = os.path.join(current, child)
+            child_info = os.lstat(path)
+            if stat.S_ISLNK(child_info.st_mode):
+                os.unlink(path)
+                child_dirs.remove(child)
+            elif stat.S_ISDIR(child_info.st_mode):
+                os.chmod(path, 0o700)
+            else:
+                raise SystemExit(
+                    f"ERROR: abandoned updater workspace descendant has unsafe type: {path}"
+                )
+        for filename in files:
+            path = os.path.join(current, filename)
+            file_info = os.lstat(path)
+            if stat.S_ISDIR(file_info.st_mode) and not stat.S_ISLNK(file_info.st_mode):
+                raise SystemExit(
+                    f"ERROR: abandoned updater workspace changed during cleanup: {path}"
+                )
+            os.unlink(path)
+        directories.append(current)
+    for directory in reversed(directories):
+        os.rmdir(directory)
+PY
+fi
+
+# Defense in depth for an OpenCode server not attached to the ordinary launcher
+# lock. Current launchers hold LOCK_SH for their lifetime; update holds LOCK_EX.
 _server_pid_file="$UPDATE_CONTROL_DIR/server_pid"
 if [ -f "$_server_pid_file" ] && [ ! -L "$_server_pid_file" ]; then
     _server_pid="$(cat "$_server_pid_file" 2>/dev/null || true)"
@@ -343,174 +707,467 @@ fi
 # re-passed in the SETUP_FLAGS block below — drift between the two breaks the
 # round-trip on update. Currently tracked: variant, mode, extensions, seeded, faithful,
 # manual, light, halt_on_core_bypass. When adding a new setup.sh flag, update both blocks.
-if [ -f "$MANIFEST" ]; then
-    VARIANT=$(jq -r .variant "$MANIFEST")
-    MODE=$(jq -r '.mode // ""' "$MANIFEST")
-    EXTENSIONS=()
-    while IFS= read -r _ext; do EXTENSIONS+=("$_ext"); done < <(jq -r '.extensions[]?' "$MANIFEST")
-    SEEDED=$(jq -r .flags.seeded "$MANIFEST")
-    FAITHFUL=$(jq -r '.flags.faithful // empty' "$MANIFEST")
-    if [ -z "$FAITHFUL" ]; then
-        FAITHFUL=$(jq -r '.faithful // false' "$PROJECT/process_log/pipeline_state.json" 2>/dev/null || echo false)
-    fi
-    MANUAL=$(jq -r .flags.manual "$MANIFEST")
-    LIGHT=$(jq -r .flags.light "$MANIFEST")
-    HALT_ON_CORE_BYPASS=$(jq -r '.flags.halt_on_core_bypass // false' "$MANIFEST")
-    OLD_VERSION=$(jq -r .template_version "$MANIFEST")
-    mode_str="${MODE:-(none)}"
-    echo "Found manifest: variant=$VARIANT, mode=$mode_str, extensions=[${EXTENSIONS[*]}], template=$OLD_VERSION"
-else
-    echo "No .deploy_manifest.json — pre-manifest deploy. Sniffing..."
-    # Sniff variant from CLAUDE.md
-    if grep -q "macroeconomics theory paper" "$PROJECT/CLAUDE.md" 2>/dev/null; then
-        VARIANT="macro"
-    elif grep -q "language-model cognition paper" "$PROJECT/CLAUDE.md" 2>/dev/null; then
-        VARIANT="llm_cognition"
-    elif grep -q "finance theory paper" "$PROJECT/CLAUDE.md" 2>/dev/null; then
-        VARIANT="finance"
-    else
-        VARIANT=""
-    fi
-    # Mode cannot be sniffed reliably — every empirical-first signature in a
-    # deployed project (mechanism body content, identification at Stage 1)
-    # could be retrofitted by hand or look the same across different
-    # decisions. Default to empty; user can pass --mode if their pre-manifest
-    # deploy was empirical-first.
-    MODE=""
-    EXTENSIONS=()
-    [ -f "$PROJECT/code/utils/wrds_client.py" ] && EXTENSIONS+=("empirical")
-    [ -f "$PROJECT/code/llm_client.py" ] && EXTENSIONS+=("theory_llm")
-    [ -d "$PROJECT/output/seed" ] && SEEDED=true || SEEDED=false
-    FAITHFUL=$(jq -r '.faithful // false' "$PROJECT/process_log/pipeline_state.json" 2>/dev/null || echo false)
-    [ ! -d "$PROJECT/output/stage0" ] && [ ! -f "$PROJECT/dashboard.html" ] && MANUAL=true || MANUAL=false
-    LIGHT=false
-    # Pre-manifest deploys predate the core-bypass guard; default off. The
-    # operator can re-assert it by re-running setup with --halt-on-core-bypass.
-    HALT_ON_CORE_BYPASS=false
-    OLD_VERSION="(pre-manifest)"
+VARIANT=$(jq -r .variant "$MANIFEST")
+MODE=$(jq -r '.mode // ""' "$MANIFEST")
+EXTENSIONS=()
+while IFS= read -r _ext; do EXTENSIONS+=("$_ext"); done < <(jq -r '.extensions[]?' "$MANIFEST")
+SEEDED=$(jq -r .flags.seeded "$MANIFEST")
+FAITHFUL=$(jq -r '.flags.faithful // false' "$MANIFEST")
+MANUAL=$(jq -r .flags.manual "$MANIFEST")
+LIGHT=$(jq -r .flags.light "$MANIFEST")
+HALT_ON_CORE_BYPASS=$(jq -r '.flags.halt_on_core_bypass // false' "$MANIFEST")
+OLD_VERSION=$(jq -r .template_version "$MANIFEST")
+mode_str="${MODE:-(none)}"
+echo "Found manifest: variant=$VARIANT, mode=$mode_str, extensions=[${EXTENSIONS[*]}], template=$OLD_VERSION"
 
-    if [ -z "$VARIANT" ] && [ -z "$OVERRIDE_VARIANT" ]; then
-        echo "Could not infer variant. Pass --variant finance|macro|llm_cognition."
-        exit 1
-    fi
-    echo "Inferred: variant=$VARIANT, extensions=[${EXTENSIONS[*]}], seeded=$SEEDED, manual=$MANUAL"
-fi
-
-ORIGINAL_SEEDED="$SEEDED"
-ORIGINAL_FAITHFUL="$FAITHFUL"
-ORIGINAL_MODE="$MODE"
 ORIGINAL_EXT_STR="${EXTENSIONS[*]}"
 
-# ── Apply explicit overrides (precedence: CLI flag > manifest > sniff) ──
-APPLIED_OVERRIDES=()
-if [ -n "$OVERRIDE_VARIANT" ] && [ "$OVERRIDE_VARIANT" != "$VARIANT" ]; then
-    if [ -f "$MANIFEST" ]; then
-        echo "Error: update cannot migrate project-owned paper/state across variants." >&2
-        echo "  Create a fresh deployment with --variant $OVERRIDE_VARIANT." >&2
-        exit 1
+# The mandatory CLI selector was matched against the manifest before any
+# target-side control path was created. From here the deployment shape is
+# immutable: update only refreshes managed bytes for this exact selector.
+# Require the complete v2.28 state contract before any project mutation.
+EVIDENCE_STATE="$PROJECT/process_log/pipeline_state.json"
+STRICT_CONTROL_JSON=()
+for _strict_control in \
+    "$EVIDENCE_STATE" \
+    "$PROJECT/process_log/manual_evidence_state.json" \
+    "$PROJECT/process_log/results_registry.json" \
+    "$PROJECT/process_log/paper_evidence.receipt.json"
+do
+    if [ -e "$_strict_control" ] || [ -L "$_strict_control" ]; then
+        STRICT_CONTROL_JSON+=("$_strict_control")
     fi
-    APPLIED_OVERRIDES+=("variant identification: $VARIANT → $OVERRIDE_VARIANT")
-    VARIANT="$OVERRIDE_VARIANT"
+done
+if [ "${#STRICT_CONTROL_JSON[@]}" -gt 0 ]; then
+    "$UPDATE_CONTROL_PYTHON" -I - "${STRICT_CONTROL_JSON[@]}" <<'PY'
+import json
+import os
+import stat
+import sys
+
+no_follow = getattr(os, "O_NOFOLLOW", 0)
+
+def reject_constant(value):
+    raise ValueError(f"non-finite JSON number: {value}")
+
+def unique_object(pairs):
+    result = {}
+    for key, value in pairs:
+        if key in result:
+            raise ValueError(f"duplicate JSON object key: {key!r}")
+        result[key] = value
+    return result
+
+for path in sys.argv[1:]:
+    try:
+        descriptor = os.open(path, os.O_RDONLY | os.O_NONBLOCK | no_follow)
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            os.close(descriptor)
+            raise ValueError("must be one regular non-aliased file")
+        with os.fdopen(descriptor, "r", encoding="utf-8") as handle:
+            json.load(
+                handle,
+                parse_constant=reject_constant,
+                object_pairs_hook=unique_object,
+            )
+    except (OSError, UnicodeError, json.JSONDecodeError, ValueError) as exc:
+        raise SystemExit(f"ERROR: {path} is not strict UTF-8 JSON: {exc}")
+PY
 fi
-if [ "$OVERRIDE_MODE_SET" = "1" ] && [ "$OVERRIDE_MODE" != "$MODE" ]; then
-    old_mode_str="${MODE:-(none)}"
-    new_mode_str="${OVERRIDE_MODE:-(none)}"
-    APPLIED_OVERRIDES+=("mode: $old_mode_str → $new_mode_str")
-    MODE="$OVERRIDE_MODE"
-    # Mode change can leave a stale current_stage in pipeline_state.json that
-    # references a stage marker only valid in the prior mode (e.g., the
-    # empirical-first marker `stage_1_identification_design` has no handler
-    # under theory-first). The session-start resume path would then stall.
-    # Surface this so the operator can reset current_stage before relaunching.
-    MODE_CHANGE_ADVISORY=1
-fi
-if [ "$OVERRIDE_EXTS_SET" = "1" ]; then
-    OLD_EXT_STR="${EXTENSIONS[*]}"
-    NEW_EXT_STR="${OVERRIDE_EXTS[*]}"
-    if [ "$OLD_EXT_STR" != "$NEW_EXT_STR" ]; then
-        APPLIED_OVERRIDES+=("extensions: [$OLD_EXT_STR] → [$NEW_EXT_STR]")
-        EXTENSIONS=("${OVERRIDE_EXTS[@]}")
-    fi
-fi
-if [ -n "$OVERRIDE_SEEDED" ] && [ "$OVERRIDE_SEEDED" != "$SEEDED" ]; then
-    APPLIED_OVERRIDES+=("seeded: $SEEDED → $OVERRIDE_SEEDED")
-    SEEDED="$OVERRIDE_SEEDED"
-fi
-if [ "$OVERRIDE_SEEDED" = "false" ]; then
-    FAITHFUL=false
-fi
-if [ -n "$OVERRIDE_FAITHFUL" ] && [ "$OVERRIDE_FAITHFUL" != "$FAITHFUL" ]; then
-    APPLIED_OVERRIDES+=("faithful: $FAITHFUL → $OVERRIDE_FAITHFUL")
-    FAITHFUL="$OVERRIDE_FAITHFUL"
-fi
-if [ "$FAITHFUL" = "true" ]; then
-    if [ "$OVERRIDE_SEEDED" = "false" ]; then
-        echo "Error: --faithful and --no-seeded are mutually exclusive" >&2
-        exit 1
-    fi
-    SEEDED=true
-fi
-if [ -n "$OVERRIDE_MANUAL" ] && [ "$OVERRIDE_MANUAL" != "$MANUAL" ]; then
-    echo "Error: update cannot migrate between autonomous and manual project layouts." >&2
-    echo "  Create a fresh deployment with the desired --manual setting." >&2
+if [ -e "$EVIDENCE_STATE" ] || [ -L "$EVIDENCE_STATE" ]; then
+    "$UPDATE_CONTROL_PYTHON" -I - "$EVIDENCE_STATE" "$ORIGINAL_EXT_STR" <<'PY'
+import hashlib
+import json
+import os
+import re
+import stat
+import sys
+from pathlib import PurePosixPath
+
+path, original_extensions_text = sys.argv[1:]
+original_extensions = set(original_extensions_text.split())
+try:
+    fd = os.open(
+        path,
+        os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0),
+    )
+except OSError as exc:
+    raise SystemExit(f"ERROR: cannot safely read pipeline state: {exc}")
+info = os.fstat(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    os.close(fd)
+    raise SystemExit("ERROR: pipeline state must be one regular non-aliased file")
+try:
+    with os.fdopen(fd, "r", encoding="utf-8") as handle:
+        state = json.load(handle)
+except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+    raise SystemExit(f"ERROR: pipeline state is not valid UTF-8 JSON: {exc}")
+if not isinstance(state, dict):
+    raise SystemExit("ERROR: pipeline state must be a JSON object")
+loops = state.get("loops")
+evidence = loops.get("evidence") if isinstance(loops, dict) else None
+if (not isinstance(loops, dict)
+        or not isinstance(evidence, dict)
+        or set(evidence) != {"round", "cap"}
+        or not all(isinstance(evidence[key], int) and not isinstance(evidence[key], bool)
+                   for key in ("round", "cap"))
+        or evidence["round"] < 0 or evidence["cap"] < 1):
+    raise SystemExit(
+        "ERROR: pipeline state does not match the supported v2.28 evidence contract; "
+        "create a fresh deployment"
+    )
+problem_attempt = state.get("problem_attempt", 1)
+if (not isinstance(problem_attempt, int) or isinstance(problem_attempt, bool)
+        or problem_attempt < 1):
+    raise SystemExit("ERROR: pipeline state problem_attempt must be a positive integer")
+if not isinstance(state.get("history"), list):
+    raise SystemExit("ERROR: pipeline state history must be an array")
+legacy_keys = {
+    "stage2b_legacy_recovery_inputs", "stage3a_legacy_recovery_inputs",
+    "stage3a_feasibility_legacy_recovery_inputs", "stage3b_legacy_recovery_inputs",
+}
+present = sorted(legacy_keys & state.keys())
+if present:
+    raise SystemExit(
+        "ERROR: legacy computed-evidence recovery fields are unsupported; "
+        "create a fresh deployment: " + ", ".join(present)
+    )
+required_triplets = [
+    ("stage2b_theory_version", "stage2b_exploration_path", "stage2b_result_receipt"),
+]
+if "empirical" in original_extensions:
+    required_triplets.append(
+        ("stage3a_theory_version", "stage3a_analysis_path", "stage3a_result_receipt")
+    )
+if "theory_llm" in original_extensions:
+    required_triplets.append(
+        ("stage3b_theory_version", "stage3b_results_path", "stage3b_result_receipt")
+    )
+for version_key, report_key, receipt_key in required_triplets:
+    missing = [key for key in (version_key, report_key, receipt_key) if key not in state]
+    if missing:
+        raise SystemExit(
+            "ERROR: pipeline state is missing required receipt-backed evidence fields; "
+            "create a fresh deployment: "
+            + ", ".join(missing)
+        )
+    version = state.get(version_key)
+    report = state.get(report_key)
+    receipt = state.get(receipt_key)
+    if version is None and report is None and receipt is None:
+        continue
+    if (report is None) != (receipt is None):
+        raise SystemExit(
+            f"ERROR: {report_key}/{receipt_key} must both be null or populated"
+        )
+    if (version is not None and
+            (not isinstance(version, int) or isinstance(version, bool) or version < 1)):
+        raise SystemExit(f"ERROR: {version_key} must be a positive integer or null")
+    if report is None:
+        if version is not None:
+            raise SystemExit(
+                f"ERROR: {version_key} cannot be populated without report/receipt pointers"
+            )
+        continue
+    for raw, key, suffix in (
+        (report, report_key, ".md"),
+        (receipt, receipt_key, "results.receipt.json"),
+    ):
+        if not isinstance(raw, str) or not raw:
+            raise SystemExit(f"ERROR: {key} must be a normalized output path or null")
+        path_value = PurePosixPath(raw.replace("\\", "/"))
+        normalized = path_value.as_posix()
+        if (path_value.is_absolute()
+                or any(part in {"", ".", ".."} for part in path_value.parts)
+                or any(part == ".git" or part.startswith(".env") for part in path_value.parts)
+                or normalized != raw or not normalized.startswith("output/")
+                or not normalized.endswith(suffix)):
+            raise SystemExit(f"ERROR: {key} must be a normalized output path or null")
+PY
+elif [ "$MANUAL" != "true" ] && [ "$MODE" != "report" ]; then
+    echo "ERROR: autonomous update requires process_log/pipeline_state.json" >&2
     exit 1
-fi
-if [ -n "$OVERRIDE_LIGHT" ] && [ "$OVERRIDE_LIGHT" != "$LIGHT" ]; then
-    APPLIED_OVERRIDES+=("light: $LIGHT → $OVERRIDE_LIGHT")
-    LIGHT="$OVERRIDE_LIGHT"
-fi
-if [ ${#APPLIED_OVERRIDES[@]} -gt 0 ]; then
-    echo
-    echo "Applying overrides:"
-    for o in "${APPLIED_OVERRIDES[@]}"; do echo "  $o"; done
-fi
-if { [ "$ORIGINAL_MODE" = "report" ] && [ "$MODE" != "report" ]; } \
-   || { [ "$ORIGINAL_MODE" != "report" ] && [ "$MODE" = "report" ]; }; then
-    echo "Error: update cannot migrate between report and autonomous project layouts." >&2
-    echo "  Create a fresh deployment with the desired --mode setting." >&2
-    exit 1
-fi
-SEED_SELECTOR_CHANGE=0
-if [ "$SEEDED" != "$ORIGINAL_SEEDED" ] || [ "$FAITHFUL" != "$ORIGINAL_FAITHFUL" ]; then
-    SEED_SELECTOR_CHANGE=1
-fi
-SCHEMA_SELECTOR_CHANGE=0
-if [ "$MODE" != "$ORIGINAL_MODE" ] || [ "${EXTENSIONS[*]}" != "$ORIGINAL_EXT_STR" ]; then
-    SCHEMA_SELECTOR_CHANGE=1
-fi
-STATEFUL_SCHEMA_SELECTOR_CHANGE="$SCHEMA_SELECTOR_CHANGE"
-if [ "$MANUAL" = "true" ] || [ "$MODE" = "report" ]; then
-    # These same-layout extension refreshes have no pipeline_state.json or
-    # autonomous output skeleton by design; managed infrastructure is enough.
-    STATEFUL_SCHEMA_SELECTOR_CHANGE=0
-fi
-if [ "${MODE_CHANGE_ADVISORY:-0}" = "1" ]; then
-    echo
-    echo "  ⚠ Mode changed. Verify process_log/pipeline_state.json:current_stage is"
-    echo "    valid in the new mode before relaunching the pipeline."
-    echo "    - Empirical-first marker 'stage_1_identification_design' has no handler"
-    echo "      under theory-first; reset to 'stage_1' or 'stage_2' if present."
-    echo "    - Theory-first stage markers are all valid under empirical-first too,"
-    echo "      so converting theory-first → empirical-first usually needs no reset"
-    echo "      (unless the run is in Stage 2 mid-derivation — in which case reset"
-    echo "      to 'stage_1' to re-enter and pick up Step 4 identification design)."
-    echo "    See README.md (Modes section) and the runtime doc's halted-status"
-    echo "    handler for the full procedure."
 fi
 
-# ── One-time folder rename: referee_reports → simulated_referee_reports (issue #35) ──
-# Existing deployments have paper/referee_reports/; the template now emits
-# paper/simulated_referee_reports/. Migrate in place when only the old name exists.
-if [ -d "$PROJECT/paper/referee_reports" ] && [ ! -d "$PROJECT/paper/simulated_referee_reports" ]; then
-    if [ "$DRY_RUN" = "1" ]; then
-        echo "  (dry-run) would rename paper/referee_reports → paper/simulated_referee_reports"
-    else
-        mv "$PROJECT/paper/referee_reports" "$PROJECT/paper/simulated_referee_reports"
-        echo "  ✓ renamed paper/referee_reports → paper/simulated_referee_reports"
-    fi
-elif [ -d "$PROJECT/paper/referee_reports" ] && [ -d "$PROJECT/paper/simulated_referee_reports" ]; then
-    echo "  ⚠ Both paper/referee_reports/ and paper/simulated_referee_reports/ exist — skipping auto-rename. Inspect manually and merge if needed."
-fi
+# Validate every existing mutable evidence control before replacing managed
+# infrastructure. Same-version updates never create missing mutable state.
+"$UPDATE_CONTROL_PYTHON" -I - "$PROJECT" "$MANUAL" "$MODE" <<'PY'
+import hashlib
+import json
+import os
+import re
+import stat
+import sys
+from pathlib import PurePosixPath
+
+project, manual_text, mode = sys.argv[1:]
+no_follow = getattr(os, "O_NOFOLLOW", 0)
+
+def load_regular(path, label):
+    try:
+        fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | no_follow)
+    except OSError as exc:
+        raise SystemExit(f"ERROR: cannot safely read {label}: {exc}")
+    info = os.fstat(fd)
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        os.close(fd)
+        raise SystemExit(f"ERROR: {label} must be one regular non-aliased file")
+    try:
+        with os.fdopen(fd, "r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"ERROR: {label} is not valid UTF-8 JSON: {exc}")
+
+def normalized_receipt(raw):
+    if not isinstance(raw, str) or not raw:
+        raise SystemExit("ERROR: result receipt paths must be non-empty strings")
+    posix = PurePosixPath(raw.replace("\\", "/"))
+    normalized = posix.as_posix()
+    if (posix.is_absolute() or any(part in {"", ".", ".."} for part in posix.parts)
+            or any(part == ".git" or part.startswith(".env") for part in posix.parts)
+            or normalized != raw or not normalized.startswith("output/")
+            or not normalized.endswith("results.receipt.json")):
+        raise SystemExit("ERROR: result receipt paths must be normalized output receipts")
+    return normalized
+
+def normalized_report(raw):
+    if not isinstance(raw, str) or not raw:
+        raise SystemExit("ERROR: result report paths must be non-empty strings")
+    posix = PurePosixPath(raw.replace("\\", "/"))
+    normalized = posix.as_posix()
+    if (posix.is_absolute() or any(part in {"", ".", ".."} for part in posix.parts)
+            or any(part == ".git" or part.startswith(".env") for part in posix.parts)
+            or normalized != raw or not normalized.startswith("output/")
+            or not normalized.endswith(".md")):
+        raise SystemExit("ERROR: result report paths must be normalized output Markdown files")
+    return normalized
+
+def open_project_regular(relative, label):
+    parts = PurePosixPath(relative).parts
+    try:
+        directory_fd = os.open(
+            project, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | no_follow
+        )
+        for part in parts[:-1]:
+            next_fd = os.open(
+                part, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | no_follow,
+                dir_fd=directory_fd,
+            )
+            os.close(directory_fd)
+            directory_fd = next_fd
+        fd = os.open(
+            parts[-1], os.O_RDONLY | os.O_NONBLOCK | no_follow,
+            dir_fd=directory_fd,
+        )
+        os.close(directory_fd)
+    except OSError as exc:
+        try:
+            os.close(directory_fd)
+        except (NameError, OSError):
+            pass
+        raise SystemExit(f"ERROR: cannot safely read {label}: {exc}")
+    info = os.fstat(fd)
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        os.close(fd)
+        raise SystemExit(f"ERROR: {label} must be one regular non-aliased file")
+    return fd
+
+def read_project_json(relative, label):
+    fd = open_project_regular(relative, label)
+    try:
+        with os.fdopen(fd, "r", encoding="utf-8") as handle:
+            return json.load(handle)
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+        raise SystemExit(f"ERROR: {label} is not valid UTF-8 JSON: {exc}")
+
+def project_file_digest(relative, label):
+    fd = open_project_regular(relative, label)
+    digest = hashlib.sha256()
+    with os.fdopen(fd, "rb") as handle:
+        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+            digest.update(chunk)
+    return "sha256:" + digest.hexdigest()
+
+manual_path = os.path.join(project, "process_log", "manual_evidence_state.json")
+if os.path.lexists(manual_path):
+    value = load_regular(manual_path, "process_log/manual_evidence_state.json")
+    evidence = value.get("loops", {}).get("evidence") if isinstance(value, dict) else None
+    if (not isinstance(value, dict)
+            or value.get("kind") != "manual_evidence_state"
+            or isinstance(value.get("state_version"), bool)
+            or value.get("state_version") != 1
+            or set(value) != {"kind", "state_version", "loops"}
+            or not isinstance(value.get("loops"), dict)
+            or set(value["loops"]) != {"evidence"}
+            or not isinstance(evidence, dict)
+            or set(evidence) != {"round", "cap"}
+            or not all(isinstance(evidence[key], int) and not isinstance(evidence[key], bool)
+                       for key in ("round", "cap"))
+            or evidence["round"] < 0 or evidence["cap"] < 1):
+        raise SystemExit("ERROR: process_log/manual_evidence_state.json is malformed")
+elif manual_text == "true":
+    raise SystemExit(
+        "ERROR: manual update requires process_log/manual_evidence_state.json; "
+        "create a fresh deployment"
+    )
+
+if mode == "report":
+    raise SystemExit(0)
+
+output = os.path.join(project, "output")
+process_log = os.path.join(project, "process_log")
+for path, label in ((output, "output"), (process_log, "process_log")):
+    try:
+        info = os.lstat(path)
+    except FileNotFoundError:
+        raise SystemExit(f"ERROR: {label}/ must exist before update")
+    if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+        raise SystemExit(f"ERROR: {label}/ must be a real directory")
+
+evidence_dir = os.path.join(output, "evidence")
+try:
+    info = os.lstat(evidence_dir)
+except FileNotFoundError:
+    raise SystemExit(
+        "ERROR: update requires output/evidence from the same template version; "
+        "create a fresh deployment"
+    )
+if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+    raise SystemExit("ERROR: output/evidence must be a real directory")
+
+stage0_dir = os.path.join(output, "stage0")
+if os.path.lexists(stage0_dir):
+    info = os.lstat(stage0_dir)
+    if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
+        raise SystemExit("ERROR: output/stage0 must be a real directory")
+
+registry_temp = os.path.join(process_log, ".results_registry.update.tmp")
+if os.path.lexists(registry_temp):
+    info = os.lstat(registry_temp)
+    if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        raise SystemExit("ERROR: unsafe stale results-registry update file")
+
+registry_path = os.path.join(process_log, "results_registry.json")
+if not os.path.lexists(registry_path):
+    raise SystemExit(
+        "ERROR: update requires process_log/results_registry.json from the same "
+        "template version; create a fresh deployment"
+    )
+
+value = load_regular(registry_path, "process_log/results_registry.json")
+required = {"kind", "registry_version", "active", "pending", "retired",
+            "receipt_fingerprints"}
+if (not isinstance(value, dict) or set(value) != required
+        or value.get("kind") != "result_registry"
+        or isinstance(value.get("registry_version"), bool)
+        or value.get("registry_version") != 1):
+    raise SystemExit("ERROR: process_log/results_registry.json is malformed")
+active = value["active"]
+if (not isinstance(active, list)
+        or any(not isinstance(item, str) or not item for item in active)
+        or len(active) != len(set(active))):
+    raise SystemExit("ERROR: results registry has malformed active entries")
+active = [normalized_receipt(item) for item in active]
+pending_paths = []
+if not isinstance(value["pending"], list):
+    raise SystemExit("ERROR: results registry has malformed pending entries")
+for entry in value["pending"]:
+    if (not isinstance(entry, dict) or set(entry) != {"receipt", "supersedes"}
+            or not isinstance(entry["supersedes"], list)
+            or any(not isinstance(item, str) or not item
+                   for item in entry["supersedes"])
+            or len(entry["supersedes"]) != len(set(entry["supersedes"]))):
+        raise SystemExit("ERROR: results registry has malformed pending entries")
+    receipt = normalized_receipt(entry.get("receipt"))
+    supersedes = [normalized_receipt(item) for item in entry["supersedes"]]
+    if receipt in supersedes or not set(supersedes).issubset(active):
+        raise SystemExit("ERROR: results registry has malformed pending entries")
+    pending_paths.append(receipt)
+retired_paths = []
+if not isinstance(value["retired"], list):
+    raise SystemExit("ERROR: results registry has malformed retired entries")
+for entry in value["retired"]:
+    allowed = {"receipt", "reason", "last_fingerprint", "superseded_by"}
+    if (not isinstance(entry, dict) or not {"receipt", "reason", "last_fingerprint"}.issubset(entry)
+            or not set(entry).issubset(allowed) or not isinstance(entry["reason"], str)
+            or not entry["reason"] or not isinstance(entry["last_fingerprint"], dict)):
+        raise SystemExit("ERROR: results registry has malformed retired entries")
+    receipt = normalized_receipt(entry["receipt"])
+    last = entry["last_fingerprint"]
+    if (set(last) != {"path", "kind", "sha256"}
+            or last.get("path") != receipt or last.get("kind") != "file"
+            or not isinstance(last.get("sha256"), str)
+            or not re.fullmatch(r"sha256:[0-9a-f]{64}", last["sha256"])):
+        raise SystemExit("ERROR: results registry has malformed retired entries")
+    if "superseded_by" in entry:
+        normalized_receipt(entry["superseded_by"])
+    retired_paths.append(receipt)
+if (len(pending_paths) != len(set(pending_paths))
+        or len(retired_paths) != len(set(retired_paths))
+        or set(active) & set(pending_paths) or set(active) & set(retired_paths)
+        or set(pending_paths) & set(retired_paths)):
+    raise SystemExit("ERROR: results registry has conflicting lifecycle entries")
+fingerprints = value["receipt_fingerprints"]
+if not isinstance(fingerprints, dict) or set(fingerprints) != set(active) | set(pending_paths):
+    raise SystemExit("ERROR: results registry has malformed receipt fingerprints")
+for receipt, record in fingerprints.items():
+    normalized_receipt(receipt)
+    if (not isinstance(record, dict) or set(record) != {"path", "kind", "sha256"}
+            or record.get("path") != receipt or record.get("kind") != "file"
+            or not isinstance(record.get("sha256"), str)
+            or not re.fullmatch(r"sha256:[0-9a-f]{64}", record["sha256"])):
+        raise SystemExit("ERROR: results registry has malformed receipt fingerprints")
+
+receipt_values = {}
+for receipt in active + pending_paths:
+    expected = fingerprints[receipt]["sha256"]
+    if project_file_digest(receipt, f"registered receipt {receipt}") != expected:
+        raise SystemExit(f"ERROR: registered receipt fingerprint is stale: {receipt}")
+    receipt_values[receipt] = read_project_json(receipt, f"registered receipt {receipt}")
+    if not isinstance(receipt_values[receipt], dict):
+        raise SystemExit(f"ERROR: registered receipt must be a JSON object: {receipt}")
+for entry in value["retired"]:
+    receipt = entry["receipt"]
+    if project_file_digest(receipt, f"retired receipt {receipt}") != entry["last_fingerprint"]["sha256"]:
+        raise SystemExit(f"ERROR: retired receipt fingerprint is stale: {receipt}")
+    receipt_values[receipt] = read_project_json(receipt, f"retired receipt {receipt}")
+    if not isinstance(receipt_values[receipt], dict):
+        raise SystemExit(f"ERROR: retired receipt must be a JSON object: {receipt}")
+
+state_path = os.path.join(process_log, "pipeline_state.json")
+if os.path.lexists(state_path):
+    state = load_regular(state_path, "process_log/pipeline_state.json")
+    pointer_pairs = [
+        ("stage2b_exploration_path", "stage2b_result_receipt"),
+        ("stage3a_analysis_path", "stage3a_result_receipt"),
+        ("stage3b_results_path", "stage3b_result_receipt"),
+    ]
+    for report_key, receipt_key in pointer_pairs:
+        receipt = state.get(receipt_key)
+        report = state.get(report_key)
+        if receipt is None and report is None:
+            continue
+        if receipt is None or report is None:
+            raise SystemExit(
+                f"ERROR: {report_key}/{receipt_key} must both be null or populated"
+            )
+        receipt = normalized_receipt(receipt)
+        report = normalized_report(report)
+        if receipt not in active:
+            raise SystemExit(f"ERROR: {receipt_key} must name an active result receipt")
+        report_fd = open_project_regular(report, f"active report {report}")
+        os.close(report_fd)
+        producer = receipt_values[receipt].get("producer_run")
+        artifacts = producer.get("artifacts") if isinstance(producer, dict) else None
+        artifact_paths = {
+            item.get("path") for item in artifacts if isinstance(item, dict)
+        } if isinstance(artifacts, list) else set()
+        if report not in artifact_paths:
+            raise SystemExit(
+                f"ERROR: {report_key} is not a generated artifact of {receipt_key}"
+            )
+PY
 
 # ── Build setup.sh flag list ──
 # When adding a new setup.sh flag, update both this block AND the manifest-
@@ -529,10 +1186,16 @@ fi
 [ "$HALT_ON_CORE_BYPASS" = "true" ] && SETUP_FLAGS+=( --halt-on-core-bypass )
 
 # ── Deploy fresh into tmp ──
-TMP=$(mktemp -d "$UPDATE_CONTROL_DIR/update.XXXXXX")
+if [ "$DRY_RUN" = "1" ]; then
+    TMP=$(mktemp -d /tmp/zeropaper-update.XXXXXX)
+else
+    TMP=$(mktemp -d "$UPDATE_CONTROL_DIR/update.XXXXXX")
+fi
 FRESH="$TMP/refresh"
 SETUP_TMPDIR="$TMP/setup-tmp"
 (umask 077 && mkdir "$SETUP_TMPDIR")
+OLD_MANIFEST_SNAPSHOT="$TMP/target-manifest.before.json"
+cp "$MANIFEST" "$OLD_MANIFEST_SNAPSHOT"
 
 echo
 echo "Deploying fresh template into $FRESH ..."
@@ -552,6 +1215,243 @@ if ! NEW_VERSION="$(jq -er '.template_version | strings | select(length > 0)' "$
     echo "ERROR: fresh deploy manifest has no valid template_version" >&2
     exit 1
 fi
+if [ "$NEW_VERSION" != "$OLD_VERSION" ]; then
+    echo "ERROR: template source changed during update assembly; rerun from one stable checkout" >&2
+    exit 1
+fi
+PINNED_SOURCE_DIGEST="$(jq -er '.source.content_digest | strings | select(test("^sha256:[0-9a-f]{64}$"))' "$NEW_MANIFEST")" \
+    || { echo "ERROR: fresh deploy manifest has no valid source content digest" >&2; exit 1; }
+RECORDED_SOURCE_DIGEST="$(jq -er '.source.content_digest | strings | select(test("^sha256:[0-9a-f]{64}$"))' "$MANIFEST")" \
+    || { echo "ERROR: target manifest has no valid source content digest" >&2; exit 1; }
+if [ "$RECORDED_SOURCE_DIGEST" != "$PINNED_SOURCE_DIGEST" ]; then
+    echo "ERROR: target deployment was not assembled from this exact source snapshot" >&2
+    echo "  Create a fresh deployment; cross-snapshot update compatibility is unsupported." >&2
+    exit 1
+fi
+if [ "$PINNED_SOURCE_DIGEST" != "$ATTESTED_SOURCE_DIGEST" ]; then
+    echo "ERROR: this checkout does not match the operator-attested trusted setup digest" >&2
+    echo "  Create a fresh deployment; cross-snapshot update compatibility is unsupported." >&2
+    exit 1
+fi
+# The exact-selector preflight means setup's resolved extension list must be
+# identical as well; the trusted manifest comparison below enforces it.
+
+EXPECTED_OLD_MANIFEST="$NEW_MANIFEST"
+ORIGINAL_STATE_REFERENCE="$FRESH/process_log/pipeline_state.json"
+
+# Same-generation means the mutable autonomous state has the exact field
+# inventory emitted by this checkout. Validate that complete shape before any
+# target replacement; do not maintain a second partial schema in the updater.
+if [ "$MANUAL" != "true" ] && [ "$MODE" != "report" ]; then
+    python3 -I - "$EVIDENCE_STATE" "$ORIGINAL_STATE_REFERENCE" "$VARIANT" <<'PY'
+import json
+import re
+import sys
+
+target_path, fresh_path, variant = sys.argv[1:]
+with open(target_path, encoding="utf-8") as handle:
+    target = json.load(handle)
+with open(fresh_path, encoding="utf-8") as handle:
+    fresh = json.load(handle)
+if not isinstance(target, dict) or set(target) != set(fresh):
+    raise SystemExit(
+        "ERROR: pipeline state field inventory does not match this template version; "
+        "create a fresh deployment"
+    )
+
+def integer(value):
+    return isinstance(value, int) and not isinstance(value, bool)
+
+for key, expected in fresh.items():
+    value = target[key]
+    if key == "loops":
+        if not isinstance(value, dict) or set(value) != set(expected):
+            raise SystemExit("ERROR: pipeline state loops do not match this template version")
+        for loop, loop_value in value.items():
+            if (not isinstance(loop_value, dict) or set(loop_value) != {"round", "cap"}
+                    or not integer(loop_value["round"]) or loop_value["round"] < 0
+                    or not integer(loop_value["cap"]) or loop_value["cap"] < 1
+                    or loop_value["cap"] != expected[loop]["cap"]):
+                raise SystemExit(f"ERROR: pipeline state loop {loop} is malformed")
+        continue
+    if key == "archived_best_scores":
+        if (not isinstance(value, dict)
+                or any(re.fullmatch(r"r[1-9][0-9]*", round_key) is None
+                       or not isinstance(score, (int, float))
+                       or isinstance(score, bool)
+                       for round_key, score in value.items())):
+            raise SystemExit("ERROR: pipeline state archived_best_scores is malformed")
+        continue
+    if key == "stage0_discovery_phase":
+        if value not in {
+                "entry", "entry_initializing", "scan_charged", "gap_search",
+                "cap_routing", "promotion"}:
+            raise SystemExit("ERROR: pipeline state stage0_discovery_phase is malformed")
+        continue
+    if key == "stage0_discovery_step":
+        if value not in {None, "characterize", "pose", "review", "route", "select"}:
+            raise SystemExit("ERROR: pipeline state stage0_discovery_step is malformed")
+        continue
+    if key in {"problem_attempt", "theory_attempt", "theory_version"}:
+        if not integer(value) or value < 1:
+            raise SystemExit(f"ERROR: pipeline state field {key} must be positive")
+        continue
+    if key in {"regeneration_round", "stage0_discovery_gap_serial"}:
+        if not integer(value) or value < 0:
+            raise SystemExit(f"ERROR: pipeline state field {key} must be nonnegative")
+        continue
+    if expected is None:
+        if value is None:
+            continue
+        if key == "pivot_resolved":
+            valid = isinstance(value, bool)
+        elif key == "stage0_discovery_pending_scan":
+            valid = (isinstance(value, dict)
+                     and set(value) == {"instruction", "permit"}
+                     and isinstance(value["instruction"], str)
+                     and integer(value["permit"]) and value["permit"] >= 1)
+        elif key.endswith("_version") or key.endswith("_attempt"):
+            valid = integer(value) and value >= 1
+        elif key.endswith("_serial"):
+            valid = integer(value) and value >= 0
+        else:
+            valid = isinstance(value, str) and bool(value)
+        if not valid:
+            raise SystemExit(f"ERROR: pipeline state field {key} has an invalid type")
+        continue
+    if key in {"seeded", "faithful", "halt_on_core_bypass",
+               "initial_journal_tier"}:
+        if value != expected or type(value) is not type(expected):
+            raise SystemExit(
+                f"ERROR: pipeline state field {key} does not match its immutable setup value"
+            )
+        continue
+    if isinstance(expected, bool):
+        valid = isinstance(value, bool)
+    elif isinstance(expected, int):
+        valid = integer(value)
+    elif isinstance(expected, str):
+        valid = isinstance(value, str) and bool(value)
+    elif isinstance(expected, list):
+        valid = isinstance(value, list)
+    elif isinstance(expected, dict):
+        valid = isinstance(value, dict)
+    else:
+        valid = type(value) is type(expected)
+    if not valid:
+        raise SystemExit(f"ERROR: pipeline state field {key} has an invalid type")
+
+tier_ladders = {
+    "finance": ("top-5", "top-3-fin", "field", "letters"),
+    "macro": ("top-5", "field", "letters"),
+    "llm_cognition": ("nature", "top-ml", "field", "workshop"),
+}
+ladder = tier_ladders[variant]
+target_tier = target.get("target_journal_tier")
+initial_tier = target["initial_journal_tier"]
+if target_tier not in ladder:
+    raise SystemExit(
+        "ERROR: pipeline state target_journal_tier is outside the variant ladder"
+    )
+if ladder.index(target_tier) < ladder.index(initial_tier):
+    raise SystemExit(
+        "ERROR: pipeline state target_journal_tier is above its immutable initial tier"
+    )
+
+allowed_statuses = {
+    "not_started", "running", "complete", "complete_pending_verification",
+    "halted_core_bypass", "halted_no_identification_design",
+    "halted_seed_abandon", "halted_wrds_unreachable",
+    "halted_data_audit_unreachable", "halted_replicator_self_failure",
+    "halted_replicator_unrecognized_failure", "halted_replication_artifact_collision",
+}
+status = target["status"]
+if status not in allowed_statuses:
+    raise SystemExit("ERROR: pipeline state status is malformed")
+allowed_stages = {"seed_triage", "stage_1_identification_design"}
+allowed_stages.update(f"stage_{index}" for index in range(11))
+if target["current_stage"] not in allowed_stages:
+    raise SystemExit("ERROR: pipeline state current_stage is malformed")
+for index, entry in enumerate(target["history"]):
+    if (not isinstance(entry, dict) or set(entry) != {"timestamp", "event"}
+            or not all(isinstance(entry[name], str) and entry[name]
+                       for name in ("timestamp", "event"))):
+        raise SystemExit(f"ERROR: pipeline state history[{index}] is malformed")
+PY
+fi
+
+if [ "$MANUAL" = "true" ]; then
+    python3 -I - "$PROJECT/process_log/manual_evidence_state.json" \
+        "$FRESH/process_log/manual_evidence_state.json" <<'PY'
+import json
+import sys
+
+target_path, fresh_path = sys.argv[1:]
+with open(target_path, encoding="utf-8") as handle:
+    target = json.load(handle)
+with open(fresh_path, encoding="utf-8") as handle:
+    fresh = json.load(handle)
+if (target.get("kind") != fresh.get("kind")
+        or target.get("state_version") != fresh.get("state_version")
+        or target.get("loops", {}).get("evidence", {}).get("cap")
+           != fresh.get("loops", {}).get("evidence", {}).get("cap")):
+    raise SystemExit(
+        "ERROR: manual evidence state invariants do not match this template version"
+    )
+PY
+fi
+
+# Use only the freshly assembled utility—not target-project executable code—to
+# validate every lifecycle receipt against the current immutable contract.
+# --read-only performs no lock creation or transaction recovery, preserving the
+# update dry-run guarantee.
+if [ "$MODE" != "report" ]; then
+    while IFS= read -r receipt; do
+        [ -n "$receipt" ] || continue
+        if ! python3 -I "$FRESH/code/utils/results_pipeline/results_pipeline.py" \
+            validate-receipt --read-only --project-root "$PROJECT" \
+            --receipt "$receipt" >/dev/null; then
+            echo "ERROR: results registry contains an invalid receipt: $receipt" >&2
+            exit 1
+        fi
+    done < <(jq -r '.active[]?, .pending[]?.receipt, .retired[]?.receipt' \
+        "$PROJECT/process_log/results_registry.json")
+fi
+
+# A completed run is terminal to every launcher, so a stale or malformed bound
+# paper receipt must be converted into durable Stage-9 work by the updater
+# itself. The freshly assembled verifier is trusted; --read-only neither locks
+# nor recovers/mutates the target.
+PAPER_REAUDIT_REQUIRED=0
+if [ "$MANUAL" != "true" ] && [ "$MODE" != "report" ]; then
+    _paper_status="$(jq -r '.status' "$EVIDENCE_STATE")"
+    if [ "$_paper_status" = "complete" ] || \
+       [ "$_paper_status" = "complete_pending_verification" ]; then
+        if ! python3 -I "$FRESH/code/utils/results_pipeline/results_pipeline.py" \
+            verify-paper --read-only --project-root "$PROJECT" \
+            --receipt process_log/paper_evidence.receipt.json >/dev/null 2>&1; then
+            PAPER_REAUDIT_REQUIRED=1
+        fi
+    fi
+fi
+
+# Authenticate the target's complete ownership inventory against a trusted
+# same-version assembly of its recorded selector. A project-writable manifest
+# may not omit retired infrastructure and thereby suppress the stale sweep.
+python3 -I - "$MANIFEST" "$EXPECTED_OLD_MANIFEST" <<'PY'
+import json, sys
+target_path, expected_path = sys.argv[1:]
+with open(target_path, encoding="utf-8") as handle:
+    target = json.load(handle)
+with open(expected_path, encoding="utf-8") as handle:
+    expected = json.load(handle)
+for key in ("variant", "mode", "extensions", "flags", "infrastructure"):
+    if target.get(key) != expected.get(key):
+        raise SystemExit(
+            f"ERROR: deployment manifest {key} does not match the trusted "
+            "same-version assembly; create a fresh deployment"
+        )
+PY
 
 # Pre-sandbox agents could have aliased any managed parent, not just
 # `.opencode`. Validate every existing ancestor used by replacement, merging,
@@ -561,7 +1461,8 @@ import json, os, stat, sys
 from pathlib import PurePosixPath
 
 project, new_path, old_path = sys.argv[1:]
-manifests = [json.load(open(new_path, encoding="utf-8"))]
+new_manifest = json.load(open(new_path, encoding="utf-8"))
+manifests = [new_manifest]
 if os.path.isfile(old_path):
     manifests.append(json.load(open(old_path, encoding="utf-8")))
 paths = set()
@@ -587,6 +1488,15 @@ for value in paths:
             raise SystemExit(f"ERROR: managed path ancestor is not a real directory: {current}")
         if os.path.commonpath((project, os.path.realpath(current))) != project:
             raise SystemExit(f"ERROR: managed path ancestor escapes deployment: {current}")
+for value in new_manifest.get("infrastructure", {}).get("files_replace", []):
+    target = os.path.join(project, value)
+    if not os.path.lexists(target):
+        continue
+    info = os.lstat(target)
+    if not stat.S_ISREG(info.st_mode) and not stat.S_ISLNK(info.st_mode):
+        raise SystemExit(
+            f"ERROR: managed file target has an incompatible type: {target}"
+        )
 for manifest in manifests:
     for value in manifest.get("infrastructure", {}).get("files_env_merge", []):
         target = os.path.join(project, value)
@@ -599,143 +1509,44 @@ for manifest in manifests:
             )
 PY
 
-# Seed/faithful selection has project-owned bootstrap effects as well as
-# manifest-managed runtime effects. Run only after every managed ancestor has
-# passed its fail-closed validation, and only before a pipeline starts. Never
-# delete seed material when leaving seeded mode; it remains operator-owned.
-if [ "$SEED_SELECTOR_CHANGE" = "1" ] || [ "$STATEFUL_SCHEMA_SELECTOR_CHANGE" = "1" ]; then
-    SEED_MIGRATION_JOURNAL="$TMP/seed-migration.json"
-    python3 -I - "$PROJECT" "$FRESH" "$SEEDED" "$FAITHFUL" "$DRY_RUN" \
-        "$SEED_MIGRATION_JOURNAL" "$STATEFUL_SCHEMA_SELECTOR_CHANGE" <<'PY'
-import json
-import os
-import stat
-import sys
-
-project, fresh, seeded_text, faithful_text, dry_text, journal_path, schema_text = sys.argv[1:]
-seeded = seeded_text == "true"
-faithful = faithful_text == "true"
-dry_run = dry_text == "1"
-schema_change = schema_text == "1"
-state_path = os.path.join(project, "process_log", "pipeline_state.json")
-flags = (os.O_RDONLY if dry_run else os.O_RDWR) | getattr(os, "O_NOFOLLOW", 0)
-fd = os.open(state_path, flags)
-state_info = os.fstat(fd)
-if not stat.S_ISREG(state_info.st_mode) or state_info.st_nlink != 1:
-    os.close(fd)
-    raise SystemExit("ERROR: seed migration requires one regular non-aliased pipeline_state.json")
-with os.fdopen(fd, "r", encoding="utf-8") as handle:
-    original_state = handle.read()
-    state = json.loads(original_state)
-    if state.get("status") != "not_started":
-        raise SystemExit(
-            "ERROR: mode/extension/seed migration is supported only before the pipeline starts; "
-            "create a fresh deployment or preserve the existing selector"
-        )
-    output = os.path.join(project, "output")
-    seed = os.path.join(output, "seed")
-    paths = (output, seed) if seeded else ()
-    for path in paths:
-        if os.path.lexists(path):
-            info = os.lstat(path)
-            if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
-                raise SystemExit(f"ERROR: seed migration path must be a real directory: {path}")
-    readme = os.path.join(seed, "README.md")
-    if seeded and os.path.lexists(readme):
-        info = os.lstat(readme)
-        if stat.S_ISLNK(info.st_mode) or not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-            raise SystemExit(f"ERROR: seed README must be one regular non-aliased file: {readme}")
-    if dry_run:
-        raise SystemExit(0)
-
-    created_seed = False
-    created_readme = False
-    created_dirs = []
-    try:
-        if schema_change:
-            fresh_output = os.path.join(fresh, "output")
-            for root, dirs, _files in os.walk(fresh_output):
-                dirs[:] = sorted(name for name in dirs if not (
-                    os.path.relpath(os.path.join(root, name), fresh_output).split(os.sep)[0]
-                    == "seed"
-                ))
-                rel = os.path.relpath(root, fresh)
-                target = os.path.join(project, rel)
-                if not os.path.lexists(target):
-                    os.mkdir(target)
-                    created_dirs.append(target)
-                else:
-                    info = os.lstat(target)
-                    if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
-                        raise SystemExit(
-                            f"ERROR: selector migration path must be a real directory: {target}"
-                        )
-        if seeded and not os.path.exists(seed):
-            os.mkdir(seed)
-            created_seed = True
-        if seeded and not os.path.lexists(readme):
-            source = os.path.join(fresh, "output", "seed", "README.md")
-            with open(source, "rb") as src:
-                data = src.read()
-            readme_fd = os.open(
-                readme,
-                os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
-                0o644,
-            )
-            with os.fdopen(readme_fd, "wb") as target:
-                target.write(data)
-                target.flush()
-                os.fsync(target.fileno())
-            created_readme = True
-        journal = {
-            "state_path": state_path,
-            "state_mode": stat.S_IMODE(state_info.st_mode),
-            "original_state": original_state,
-            "fresh_state_path": os.path.join(fresh, "process_log", "pipeline_state.json"),
-            "schema_change": schema_change,
-            "seed": seed,
-            "readme": readme,
-            "created_seed": created_seed,
-            "created_readme": created_readme,
-            "created_dirs": created_dirs,
-            "state_committed": False,
-        }
-        fd = os.open(
-            journal_path,
-            os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
-            0o600,
-        )
-        with os.fdopen(fd, "w", encoding="utf-8") as target:
-            json.dump(journal, target)
-            target.write("\n")
-            target.flush()
-            os.fsync(target.fileno())
-    except BaseException:
-        try:
-            if created_readme and os.path.lexists(readme):
-                os.unlink(readme)
-            if created_seed and os.path.isdir(seed):
-                os.rmdir(seed)
-            for path in reversed(created_dirs):
-                if os.path.isdir(path) and not os.path.islink(path):
-                    os.rmdir(path)
-        except OSError:
-            pass
-        raise
-PY
-    if [ "$DRY_RUN" = "1" ]; then
-        echo "  project state: would migrate compatible pre-launch selectors"
-    else
-        SEED_MIGRATION_PENDING=1
-        echo "  ✓ prepared project state migration"
-    fi
-fi
-
 # ── Snapshot agent set BEFORE replacement (for diff) ──
 OLD_AGENTS_TMP="$TMP/old_agents.txt"
 NEW_AGENTS_TMP="$TMP/new_agents.txt"
 ls "$PROJECT/.claude/agents/" 2>/dev/null | sort > "$OLD_AGENTS_TMP" || true
 ls "$FRESH/.claude/agents/"   2>/dev/null | sort > "$NEW_AGENTS_TMP" || true
+
+# All read-only target/source/state/ownership checks have succeeded. Publish
+# the launch barrier at the last possible point before target infrastructure
+# can change. A crash-left marker validated above is reused rather than
+# replaced, preserving its durable recovery signal.
+if [ "$DRY_RUN" = "0" ] && [ "$UPDATE_MARKER_PRESENT" = "0" ]; then
+    "$UPDATE_CONTROL_PYTHON" -I - "$UPDATE_TRANSACTION_MARKER" "$UPDATE_CONTROL_DIR" \
+        "$UPDATE_PROCESS_LOG" "$UPDATE_CREATED_CONTROL_DIR" <<'PY'
+import os, sys
+path, directory, parent, created_text = sys.argv[1:]
+fd = os.open(
+    path,
+    os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
+    0o600,
+)
+with os.fdopen(fd, "wb") as handle:
+    handle.write(b"zeropaper update transaction\n")
+    handle.flush()
+    os.fsync(handle.fileno())
+dir_fd = os.open(directory, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+try:
+    os.fsync(dir_fd)
+finally:
+    os.close(dir_fd)
+if created_text == "1":
+    parent_fd = os.open(parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+    try:
+        os.fsync(parent_fd)
+    finally:
+        os.close(parent_fd)
+PY
+    UPDATE_MARKER_PRESENT=1
+fi
 
 # ── Apply replacements ──
 echo
@@ -762,9 +1573,9 @@ while IFS= read -r f; do
     # Guard against type mismatch: target exists as a directory where the
     # manifest expects a file. cp into a dir would silently put the file
     # *inside* the dir rather than replacing it.
-    if [ -d "$PROJECT/$f" ]; then
-        echo "  file ! $f — target is a directory; skipping (manual fix needed)"
-        continue
+    if [ -d "$PROJECT/$f" ] && [ ! -L "$PROJECT/$f" ]; then
+        echo "ERROR: managed file target became a directory after preflight: $f" >&2
+        exit 1
     fi
     if [ "$DRY_RUN" = "1" ]; then
         echo "  file: $f"
@@ -786,60 +1597,33 @@ done < <(jq -r '.infrastructure.files_replace[]' "$NEW_MANIFEST")
 # longer deploys for this variant/mode/extension set (e.g. per-variant skill
 # gating dropped the ssj + nber-agenda util dirs from llm_cognition). Leaving
 # it would let old deployments diverge permanently from a fresh deploy, so
-# remove it. Only paths the old deploy's own manifest called infrastructure
-# are candidates — user content is never listed there. Pre-manifest deploys
-# have no old manifest, so there is nothing to sweep. files_env_merge (.env)
-# is deliberately not swept: it is user-merged, not replaced.
+# remove it. The complete old ownership inventory has already been matched
+# byte-for-byte against a trusted same-version assembly, so it is the sole
+# deletion source; there is intentionally no second hand-maintained catalog.
+# files_env_merge (.env) is deliberately not swept: it is user-merged, not
+# replaced.
 if [ -f "$MANIFEST" ]; then
     sweep() {
-        local kind="$1" jqlist="$2" testflag="$3" p
+        local kind="$1" jqlist="$2" p
         while IFS= read -r p; do
-            # Manifest paths are repo-relative by construction; refuse
-            # anything that could escape the project tree.
-            case "$p" in /*|*..*|"") continue ;; esac
-            case "$kind:$p" in
-                dir:.claude/agents|dir:.claude/skills|dir:.codex/agents|dir:.agents/skills|\
-                dir:.gemini/agents|dir:.grok/agents|dir:.opencode/agents|dir:docs|\
-                dir:code/utils/codex_math|dir:code/utils/agent_launcher|dir:code/utils/bib_verify|\
-                dir:code/utils/openalex|dir:code/utils/nber_agenda|dir:code/utils/model_heal|dir:code/utils/results_pipeline|dir:code/utils/ssj|\
-                dir:code/utils/ssa_oact)
-                    ;;
-                file:CLAUDE.md|file:AGENTS.md|file:GEMINI.md|file:launch.sh|\
-                file:docs/start_session_claude.md|file:docs/start_session_codex.md|file:docs/start_session_gemini.md|\
-                file:.claude/settings.json|file:.gemini/settings.json|file:.grok/sandbox.toml|\
-                file:.opencode/sandbox.json|file:.opencode/opencode_driver.py|\
-                file:.opencode/opencode_sandbox_exec.sh|file:.opencode/opencode_sandbox_exec.mjs|\
-                file:opencode.json|file:.gitignore|file:dashboard.html|file:llm_client.py|\
-                file:.arpipeline/update_inputs/pipeline_dotenv_guard.py|\
-                file:.arpipeline/update_inputs/deps/core.txt|file:.arpipeline/update_inputs/deps/ssj.txt|\
-                file:.arpipeline/update_inputs/deps/extensions/empirical.txt|\
-                file:.arpipeline/update_inputs/deps/extensions/theory_llm.txt|\
-                file:code/utils/setup_push_token.sh|file:code/utils/codex_preflight.sh|\
-                file:code/utils/bls_census_utils.py|file:code/utils/call_reports_utils.py|\
-                file:code/utils/chen_zimmerman_utils.py|file:code/utils/download_crsp_daily.py|\
-                file:code/utils/download_crsp_monthly.py|file:code/utils/edgar_utils.py|\
-                file:code/utils/form_5500_utils.py|file:code/utils/fred_utils.py|\
-                file:code/utils/hrs_scf_utils.py|file:code/utils/ken_french_utils.py|\
-                file:code/utils/mutual_fund_utils.py|file:code/utils/open_bond_pricing_utils.py|\
-                file:code/utils/process_crsp_daily.py|file:code/utils/process_crsp_monthly.py|\
-                file:code/utils/sec_funds_utils.py|file:code/utils/start_services.sh|\
-                file:code/utils/trace_bonds_utils.py|file:code/utils/treasury_yields_utils.py|\
-                file:code/utils/wrds_client.py|file:code/utils/wrds_server.py|file:code/utils/wrds_utils.py)
-                    ;;
-                *)
-                    echo "  stale $kind: $p (untrusted legacy path — preserved)"
-                    continue
-                    ;;
-            esac
-            # Never let an untrusted old manifest remove a current managed path
-            # or one of its ancestors/descendants.
+            # Never remove a current managed path or one of its
+            # ancestors/descendants.
             if jq -e --arg p "$p" '
                 [.infrastructure.dirs_replace[]?, .infrastructure.files_replace[]?, .infrastructure.files_env_merge[]?]
                 | any(. as $q | $q == $p or ($q | startswith($p + "/")) or ($p | startswith($q + "/")))
             ' "$NEW_MANIFEST" >/dev/null; then
                 continue
             fi
-            [ $testflag "$PROJECT/$p" ] || continue
+            [ -e "$PROJECT/$p" ] || [ -L "$PROJECT/$p" ] || continue
+            if [ "$kind" = "dir" ]; then
+                if [ ! -d "$PROJECT/$p" ] || [ -L "$PROJECT/$p" ]; then
+                    echo "ERROR: stale managed directory changed type: $p" >&2
+                    exit 1
+                fi
+            elif [ -d "$PROJECT/$p" ] && [ ! -L "$PROJECT/$p" ]; then
+                echo "ERROR: stale managed file changed into a directory: $p" >&2
+                exit 1
+            fi
             if [ "$DRY_RUN" = "1" ]; then
                 echo "  stale $kind: $p (no longer deployed — would remove)"
             else
@@ -850,8 +1634,8 @@ if [ -f "$MANIFEST" ]; then
             ".infrastructure.${jqlist}[]? | select(. as \$p | (\$new[0].infrastructure.${jqlist} // [] | index(\$p)) | not)" \
             "$MANIFEST")
     }
-    sweep dir dirs_replace -d
-    sweep file files_replace -f
+    sweep dir dirs_replace
+    sweep file files_replace
 fi
 
 # Extension dependency specs are individual manifest-owned files. When the
@@ -866,915 +1650,339 @@ fi
 echo
 echo "=== Merging .env ==="
 while IFS= read -r env_file; do
-    if [ -f "$FRESH/$env_file" ] && { [ -e "$PROJECT/$env_file" ] || [ -L "$PROJECT/$env_file" ]; }; then
-        python3 -I - "$FRESH/$env_file" "$PROJECT/$env_file" "$DRY_RUN" <<'PY'
-import os, stat, sys
-
-source, target, dry_run = sys.argv[1], sys.argv[2], sys.argv[3] == "1"
-flags = os.O_RDONLY if dry_run else os.O_RDWR
-flags |= getattr(os, "O_NOFOLLOW", 0)
-fd = os.open(target, flags)
-info = os.fstat(fd)
-if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-    os.close(fd)
-    raise SystemExit(f"ERROR: environment target must be one regular non-aliased file: {target}")
-with os.fdopen(fd, "r" if dry_run else "r+", encoding="utf-8", newline="") as handle:
-    existing = handle.read()
-    additions = []
-    for line in open(source, encoding="utf-8"):
-        line = line.rstrip("\n")
-        if not line or line.startswith("#"):
-            continue
-        key = line.split("=", 1)[0]
-        if not any(row.startswith(key + "=") for row in existing.splitlines()):
-            additions.append((key, line))
-            existing += ("" if not existing or existing.endswith("\n") else "\n") + line + "\n"
-    for key, _line in additions:
-        print(f"  + {key}" + (" (would add)" if dry_run else ""))
-    if not additions:
-        print("  (no new keys)")
-    if additions and not dry_run:
-        handle.seek(0)
-        handle.write(existing)
-        handle.truncate()
-        handle.flush()
-        os.fsync(handle.fileno())
-PY
-    elif [ ! -e "$PROJECT/$env_file" ] && [ ! -L "$PROJECT/$env_file" ] && [ -f "$FRESH/$env_file" ]; then
-        echo "  ! $env_file missing in target — copying fresh"
-        if [ "$DRY_RUN" = "0" ]; then
-            cp "$FRESH/$env_file" "$PROJECT/$env_file"
-        fi
+    env_source="$FRESH/$env_file"
+    env_source_fd=""
+    if [ "$env_file" = ".env" ] && [ -n "$UPDATE_DOTENV_FD" ]; then
+        env_source_fd="$UPDATE_DOTENV_FD"
     fi
-done < <(jq -r '.infrastructure.files_env_merge[]?' "$NEW_MANIFEST")
+    if [ -n "$env_source_fd" ] || [ -f "$env_source" ]; then
+        python3 -I - "$env_source" "$PROJECT/$env_file" "$DRY_RUN" "$env_source_fd" <<'PY'
+import hashlib, os, re, stat, sys
 
-# ── Refresh the stdin-safe dotenv guard in the venv ──
-# Counterpart of setup.sh's install step (see templates/utils/
-# pipeline_dotenv_guard.py — installed as module + .pth, not sitecustomize.py,
-# which Homebrew's stdlib copy shadows). The guard lives inside the gitignored
-# .venv, so that installed copy is refreshed as a dedicated step; its verified
-# source is a manifest-owned update input in the fresh assembly. Skipped when
-# the target has no venv or that staged source is unavailable.
-_guard_src="$FRESH/.arpipeline/update_inputs/pipeline_dotenv_guard.py"
-if [ -f "$_guard_src" ] && [ -d "$PROJECT/.venv" ] && [ ! -L "$PROJECT/.venv" ]; then
-    _venv_sp="$(python3 -I - "$PROJECT/.venv" <<'PY'
-import glob, os, stat, sys
-root = os.path.abspath(sys.argv[1])
-if os.path.realpath(root) != root:
-    raise SystemExit(1)
-candidates = []
-for path in glob.glob(os.path.join(root, "lib", "python*", "site-packages")):
-    current = root
-    safe = True
-    for part in os.path.relpath(path, root).split(os.sep):
-        current = os.path.join(current, part)
-        info = os.lstat(current)
-        if stat.S_ISLNK(info.st_mode) or not stat.S_ISDIR(info.st_mode):
-            safe = False
-            break
-    if safe and os.path.commonpath((root, os.path.realpath(path))) == root:
-        candidates.append(path)
-if candidates:
-    print(sorted(candidates)[-1])
-PY
-)"
-    if [ -n "$_venv_sp" ] && [ -d "$_venv_sp" ]; then
-        if [ "$DRY_RUN" = "1" ]; then
-            echo "  venv: would refresh _pipeline_dotenv_guard (dotenv stdin guard)"
-        else
-            rm -f "$_venv_sp/_pipeline_dotenv_guard.py" "$_venv_sp/_pipeline_dotenv_guard.pth"
-            cp "$_guard_src" "$_venv_sp/_pipeline_dotenv_guard.py"
-            printf 'import _pipeline_dotenv_guard\n' > "$_venv_sp/_pipeline_dotenv_guard.pth"
-            # Remove the shadowed first-attempt install — but only if it is
-            # OURS (the old file carries the _find_dotenv_stdin_safe wrapper).
-            # A user-created sitecustomize.py (e.g. coverage.py's documented
-            # subprocess-coverage hook) must survive the refresh.
-            if [ -f "$_venv_sp/sitecustomize.py" ] && [ ! -L "$_venv_sp/sitecustomize.py" ] \
-               && grep -q '_find_dotenv_stdin_safe' "$_venv_sp/sitecustomize.py" 2>/dev/null; then
-                rm -f "$_venv_sp/sitecustomize.py"
-            fi
-            echo "  venv ✓ _pipeline_dotenv_guard (dotenv stdin guard)"
-        fi
-    else
-        echo "  ⚠ venv present but site-packages could not be located — dotenv stdin guard not refreshed"
-    fi
-fi
-
-# ── Migrate pipeline_state.json to the loops:{} shape (issue #166) ──
-# The refreshed runtime docs reference loops.<id>.round; an in-flight deployment's
-# pipeline_state.json (never in the manifest, so preserved verbatim) may still carry
-# the legacy named counters. Fold them into a single `loops` object, preserving the
-# in-progress round values, so a resumed run's state matches the new docs. New core
-# loops are also added with setdefault semantics: ordinary same-selector updates do
-# not run the extension/mode schema merge, but must still satisfy refreshed core docs.
-STATE_FILE="$PROJECT/process_log/pipeline_state.json"
-if [ -L "$PROJECT/process_log" ] || { [ -e "$PROJECT/process_log" ] && [ ! -d "$PROJECT/process_log" ]; }; then
-    echo "ERROR: $PROJECT/process_log must be a real project directory" >&2
-    exit 1
-fi
-if [ -d "$PROJECT/process_log" ] && [ "$(cd "$PROJECT/process_log" && pwd -P)" != "$PROJECT/process_log" ]; then
-    echo "ERROR: $PROJECT/process_log resolves outside the deployment" >&2
-    exit 1
-fi
-if [ "$DRY_RUN" = "0" ] && { [ -e "$STATE_FILE" ] || [ -L "$STATE_FILE" ]; }; then
-    CORE_STATE_CANDIDATE="$TMP/core-pipeline-state.next"
-    python3 -I - "$STATE_FILE" "$CORE_STATE_CANDIDATE" <<'PYEOF'
-import json, os, re, stat, sys
-from datetime import datetime, timezone
-p, candidate_path = sys.argv[1:]
-flags = os.O_RDWR | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
-fd = os.open(p, flags)
-info = os.fstat(fd)
-if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-    os.close(fd)
-    raise SystemExit(f"ERROR: pipeline state must be one regular non-aliased file: {p}")
-with os.fdopen(fd, "r+", encoding="utf-8") as f:
- data = json.load(f)
- changed = False
- legacy_exhausted_attempts = set()
- legacy_domain_scan_count = 0
- legacy_stage0_artifact_evidence = False
- project_dir = os.path.dirname(os.path.dirname(p))
- dir_flags = (
-    os.O_RDONLY
-    | os.O_NONBLOCK
-    | getattr(os, "O_DIRECTORY", 0)
-    | getattr(os, "O_NOFOLLOW", 0)
- )
- def open_project_dir(parent_fd, name, label):
-    try:
-        return os.open(name, dir_flags, dir_fd=parent_fd)
-    except FileNotFoundError:
-        return None
-    except OSError as exc:
-        raise SystemExit(f"ERROR: {label} must be a real directory inside the deployment: {exc}")
- try:
-    project_fd = os.open(project_dir, dir_flags)
- except OSError as exc:
-    raise SystemExit(f"ERROR: deployment root is not a real directory: {exc}")
- try:
-    output_fd = open_project_dir(project_fd, "output", "output")
- finally:
-    os.close(project_fd)
- stage0_fd = None
- if output_fd is not None:
-    try:
-        stage0_fd = open_project_dir(output_fd, "stage0", "output/stage0")
-    finally:
-        os.close(output_fd)
- if stage0_fd is not None:
-    try:
-        for entry in os.scandir(stage0_fd):
-            # Fresh autonomous deployments create an empty stage0 directory.
-            # Any retained entry therefore proves the project is non-pristine,
-            # including pre-v2.18.1 maps that have no domain log or report.
-            legacy_stage0_artifact_evidence = True
-            match = re.fullmatch(r"branch_manager_discovery_p([0-9]+)\.md", entry.name)
-            if match and entry.is_file(follow_symlinks=False):
-                legacy_exhausted_attempts.add(int(match.group(1)))
-        try:
-            log_flags = os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0)
-            log_fd = os.open("domain_log.md", log_flags, dir_fd=stage0_fd)
-        except FileNotFoundError:
-            log_fd = None
-        except OSError as exc:
-            raise SystemExit(f"ERROR: output/stage0/domain_log.md must be a regular project file: {exc}")
-        if log_fd is not None:
-            log_info = os.fstat(log_fd)
-            if not stat.S_ISREG(log_info.st_mode) or log_info.st_nlink != 1:
-                os.close(log_fd)
-                raise SystemExit("ERROR: output/stage0/domain_log.md must be one regular non-aliased file")
-            with os.fdopen(log_fd, "r", encoding="utf-8") as domain_log:
-                legacy_domain_scan_count = sum(1 for line in domain_log if line.strip())
-    finally:
-        os.close(stage0_fd)
- # The retired halt itself proves the current scan exhausted even if a legacy
- # report is absent (for example, a partially retained pre-update output tree).
- current_problem_attempt = int(data.get("problem_attempt", 1) or 1)
- retired_stage0_halt = data.get("status") == "halted_no_viable_question"
- if retired_stage0_halt:
-    legacy_exhausted_attempts.add(current_problem_attempt)
- # No pre-#252 state can prove its lifetime physical-launch count: deployments
- # before v2.18.1 have no domain log, and later scored scans have no exhausted
- # report. Preserve the strict ceiling by failing closed for every non-pristine
- # legacy run. A never-started deployment is the only shape known to have spent
- # zero permits; active legacy runs retain their artifacts and enter autonomous
- # near-miss promotion at the cap.
- legacy_stage0_activity = (
-    data.get("status") != "not_started"
-    or current_problem_attempt > 1
-    or legacy_domain_scan_count > 0
-    or bool(legacy_exhausted_attempts)
-    or legacy_stage0_artifact_evidence
- )
- legacy_scan_count = 100 if legacy_stage0_activity else 0
- if "loops" not in data:
-    # legacy field -> (loop id, default cap)
-    base = {
-        "gate0_revise_cycles":               ("gate0_revise", 3),
-        "gate0_questions_rejected":          ("gate0_reject", 5),
-        "idea_round":                        ("idea", 5),
-        "reject_cosmetic_round":             ("reject_cosmetic", 2),
-        "downgrade_enrich_round":            ("downgrade_enrich", 2),
-        "pivot_round":                       ("pivot", 2),
-        "fix_empirics_round":                ("fix_empirics", 2),
-        "referee_round":                     ("referee", 10),
-        "bib_verify_round":                  ("bib_verify", 2),
-        "polish_round":                      ("polish", 2),
-    }
-    emp = {
-        "identification_plan_revision_round": ("identification_plan_revision", 3),
-        "headline_replication_round":        ("headline_replication", 3),
-        "data_integrity_round":              ("data_integrity", 3),
-        "method_check_round":                ("method_check", 3),
-    }
-    loops = {}
-    # Always seed the full base set (round from legacy value if present, else 0).
-    for legacy, (lid, cap) in base.items():
-        loops[lid] = {"round": int(data.pop(legacy, 0) or 0), "cap": cap}
-    # Unknown active legacy history fails closed at the run-global cap; only a
-    # pristine not_started deployment can soundly receive all 100 permits.
-    loops["stage0_discovery"] = {"round": legacy_scan_count, "cap": 100}
-    # Seed empirical loops only if this deployment had them (any legacy empirical
-    # counter present, or the empirical version pointer exists).
-    had_emp = any(k in data for k in emp) or "stage3a_theory_version" in data
-    for legacy, (lid, cap) in emp.items():
-        v = data.pop(legacy, None)
-        if had_emp:
-            loops[lid] = {"round": int(v or 0), "cap": cap}
-    if had_emp:
-        loops["replicator_self_refire"] = {"round": 0, "cap": 3}
-    # The Jaccard companion field is deleted outright.
-    data.pop("paper_writer_pse_claim_ids", None)
-    # Insert `loops` after gate0_best_question_score if present, else at a stable spot.
-    new = {}
-    inserted = False
-    for k, v in data.items():
-        new[k] = v
-        if k == "gate0_best_question_score":
-            new["loops"] = loops
-            inserted = True
-    if not inserted:
-        new["loops"] = loops
-    data = new
-    changed = True
-    print("  ✓ pipeline_state.json migrated to loops:{} (issue #166)")
- loops = data.get("loops")
- if not isinstance(loops, dict):
-    raise SystemExit(f"ERROR: pipeline state loops must be an object: {p}")
- if "stage3a_theory_version" in data and "stage3a_analysis_path" not in data:
-    # Same-selector updates do not run the fresh extension schema merge. Leave
-    # the pointer null so resumed Stage 5 must revalidate legacy schema-v1
-    # replication evidence before selecting a current headline analysis.
-    data["stage3a_analysis_path"] = None
-    changed = True
-    print("  ✓ pipeline_state.json added empirical analysis pointer (issue #247)")
- if "stage2b_theory_version" in data and "stage2b_exploration_path" not in data:
-    data["stage2b_exploration_path"] = None
-    changed = True
-    print("  ✓ pipeline_state.json added Stage 2b exploration pointer (issue #264)")
- if "stage2b_theory_version" in data and "stage2b_result_receipt" not in data:
-    data["stage2b_result_receipt"] = None
-    changed = True
-    print("  ✓ pipeline_state.json added Stage 2b receipt pointer (issue #264)")
- if "stage3a_theory_version" in data and "stage3a_result_receipt" not in data:
-    data["stage3a_result_receipt"] = None
-    changed = True
-    print("  ✓ pipeline_state.json added empirical receipt pointer (issue #264)")
- if "stage3b_theory_version" in data and "stage3b_results_path" not in data:
-    data["stage3b_results_path"] = None
-    changed = True
-    print("  ✓ pipeline_state.json added experiment result pointer (issue #264)")
- if "stage3b_theory_version" in data and "stage3b_result_receipt" not in data:
-    data["stage3b_result_receipt"] = None
-    changed = True
-    print("  ✓ pipeline_state.json added experiment receipt pointer (issue #264)")
- if "stage0_discovery_last_counted_attempt" not in data:
-    data["stage0_discovery_last_counted_attempt"] = (
-        current_problem_attempt
-        if (
-            retired_stage0_halt
-            or (
-                legacy_stage0_activity
-                and data.get("current_stage") == "stage_0"
-            )
-            or (
-                data.get("current_stage") == "stage_0"
-                and current_problem_attempt in legacy_exhausted_attempts
-            )
-        )
-        else None
-    )
-    changed = True
-    print("  ✓ pipeline_state.json added Stage-0 scan ownership marker (issue #252)")
- if "stage0_discovery_episode_start_attempt" not in data:
-    data["stage0_discovery_episode_start_attempt"] = (
-        current_problem_attempt
-        if (
-            retired_stage0_halt
-            or (
-                legacy_stage0_activity
-                and data.get("current_stage") == "stage_0"
-            )
-        )
-        else None
-    )
-    changed = True
-    print("  ✓ pipeline_state.json added Stage-0 episode boundary marker (issue #252)")
- if "stage0_discovery_phase" not in data:
-    if (
-        legacy_stage0_activity
-        and (
-            retired_stage0_halt
-            or data.get("current_stage") == "stage_0"
-        )
-    ):
-        data["stage0_discovery_phase"] = "legacy_reroute"
-    elif (
-        data.get("current_stage") == "stage_0"
-        and current_problem_attempt in legacy_exhausted_attempts
-    ):
-        data["stage0_discovery_phase"] = "legacy_reroute"
-    else:
-        data["stage0_discovery_phase"] = "entry"
-    changed = True
-    print("  ✓ pipeline_state.json added Stage-0 durable phase (issue #252)")
- if "stage0_discovery_step" not in data:
-    data["stage0_discovery_step"] = (
-        "select" if data.get("stage0_discovery_phase") == "gap_search" else None
-    )
-    changed = True
-    print("  ✓ pipeline_state.json added Stage-0 durable substep (issue #252)")
- if "stage0_discovery_cap_context" not in data:
-    data["stage0_discovery_cap_context"] = None
-    changed = True
-    print("  ✓ pipeline_state.json added Stage-0 cap-routing context (issue #252)")
- if "stage0_discovery_pending_scan" not in data:
-    data["stage0_discovery_pending_scan"] = None
-    changed = True
-    print("  ✓ pipeline_state.json added Stage-0 pending-scan payload (issue #252)")
- if "stage0_discovery_gap_serial" not in data:
-    data["stage0_discovery_gap_serial"] = 0
-    changed = True
-    print("  ✓ pipeline_state.json added Stage-0 stable gap serial (issue #252)")
- if "stage0_discovery_active_gap_id" not in data:
-    data["stage0_discovery_active_gap_id"] = None
-    changed = True
-    print("  ✓ pipeline_state.json added Stage-0 active gap identity (issue #252)")
- if "stage0_discovery" not in loops:
-    loops["stage0_discovery"] = {"round": legacy_scan_count, "cap": 100}
-    changed = True
-    print(f"  ✓ pipeline_state.json added core stage0_discovery loop at fail-closed round {legacy_scan_count} (issue #252)")
- # This exact halt was the retired terminal route for an exhausted Stage-0
- # domain scan. Resume it under the bounded discovery policy; every other
- # halted_* status remains operator-controlled.
- if retired_stage0_halt:
-    data["status"] = "running"
-    data["current_stage"] = "stage_0"
-    history = data.setdefault("history", [])
-    if not isinstance(history, list):
-        raise SystemExit(f"ERROR: pipeline state history must be an array: {p}")
-    history.append({
-        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "event": "update resumed retired halted_no_viable_question under bounded Stage-0 discovery",
-    })
-    changed = True
-    print("  ✓ pipeline_state.json resumed retired Stage-0 terminal halt (issue #252)")
- if "table_legibility" not in loops:
-    loops["table_legibility"] = {"round": 0, "cap": 3}
-    changed = True
-    print("  ✓ pipeline_state.json added core table_legibility loop (issue #253)")
- introduced_evidence = "evidence" not in loops
- if introduced_evidence:
-    loops["evidence"] = {"round": 0, "cap": 3}
-    changed = True
-    print("  ✓ pipeline_state.json added core computed-evidence loop (issue #264)")
- paper_receipt_path = os.path.join(os.path.dirname(p), "paper_evidence.receipt.json")
- try:
-    paper_receipt_fd = os.open(
-        paper_receipt_path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
-    )
-    paper_receipt_info = os.fstat(paper_receipt_fd)
-    with os.fdopen(paper_receipt_fd, "r", encoding="utf-8") as paper_receipt_file:
-        paper_receipt = json.load(paper_receipt_file)
-    has_current_paper_receipt = (
-        stat.S_ISREG(paper_receipt_info.st_mode)
-        and paper_receipt_info.st_nlink == 1
-        and isinstance(paper_receipt, dict)
-        and paper_receipt.get("kind") == "paper_evidence"
-        and not isinstance(paper_receipt.get("receipt_version"), bool)
-        and paper_receipt.get("receipt_version") == 2
-    )
- except (FileNotFoundError, OSError, UnicodeDecodeError, json.JSONDecodeError):
-    has_current_paper_receipt = False
- if data.get("status") in {"complete", "complete_pending_verification"} \
-        and (introduced_evidence or not has_current_paper_receipt):
-    data["status"] = "running"
-    data["current_stage"] = "stage_9"
-    history = data.setdefault("history", [])
-    if not isinstance(history, list):
-        raise SystemExit(f"ERROR: pipeline state history must be an array: {p}")
-    history.append({
-        "timestamp": datetime.now(timezone.utc).strftime("%Y-%m-%dT%H:%M:%SZ"),
-        "event": "update reopened completed paper for mandatory evidence binding",
-    })
-    changed = True
-    print("  ✓ pipeline_state.json reopened completed run at Stage 9 for evidence binding")
- retired_claim_loops = {"claim_grounding", "paper_writer_pse", "claim_format_reexport"}
- if retired_claim_loops & loops.keys():
-    for retired in retired_claim_loops:
-        loops.pop(retired, None)
-    changed = True
-    print("  ✓ pipeline_state.json retired empirical-only claim-grounding loops (issue #264)")
- retired_claim_fields = {
-    "claim_grounding_round", "paper_writer_pse_round",
-    "claim_format_reexport_round", "paper_writer_pse_claim_ids",
- }
- if retired_claim_fields & data.keys():
-    for retired in retired_claim_fields:
-        data.pop(retired, None)
-    changed = True
-    print("  ✓ pipeline_state.json removed retired claim-grounding fields (issue #264)")
- if changed:
-    candidate_fd = os.open(
-        candidate_path,
-        os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
-        stat.S_IMODE(info.st_mode),
-    )
-    with os.fdopen(candidate_fd, "w", encoding="utf-8") as candidate:
-        json.dump(data, candidate, indent=2)
-        candidate.write("\n")
-        candidate.flush()
-        os.fsync(candidate.fileno())
-PYEOF
-fi
-
-# ── Bootstrap the project venv if missing ──
-# Deploys made before the .venv change (or whose .venv was deleted) have no venv,
-# but the refreshed runtime docs now tell the user/agents to
-# `source .venv/bin/activate` and expect a bare `python3` to resolve there. Create
-# it from the SAME manifest-owned dependency files setup.sh uses, so a refreshed
-# legacy project matches both its new docs and the verified fresh assembly.
-# A project that already has a .venv is left untouched — we never clobber an
-# existing environment (its interpreter paths and user-installed packages).
-VENV="$PROJECT/.venv"
-if [ ! -d "$VENV" ]; then
-    # ssj deps are variant-gated (issue #205; mirrors setup.sh's
-    # variant_wants_skill — keep the two in sync when gating more skills).
-    WANT_SSJ_DEPS=1
-    [ "$VARIANT" = "llm_cognition" ] && WANT_SSJ_DEPS=0
-    if [ "$DRY_RUN" = "1" ]; then
-        echo
-        echo "=== venv bootstrap ==="
-        _ssj_label=""
-        [ "$WANT_SSJ_DEPS" = "1" ] && _ssj_label=" + ssj"
-        echo "  would create $VENV and install core${_ssj_label} + extension deps [${EXTENSIONS[*]}]"
-    elif [ -z "$UPDATE_TOOL_UV" ] || [ ! -x "$UPDATE_TOOL_UV" ]; then
-        echo
-        echo "  ⚠ .venv missing and uv not found — install uv, then re-run update.sh (or create it manually)"
-    else
-        echo
-        echo "=== Bootstrapping missing .venv ==="
-        "$UPDATE_TOOL_UV" venv --python 3.12 "$VENV" 2>/dev/null \
-            || "$UPDATE_TOOL_UV" venv --python 3.12 --clear "$VENV" 2>/dev/null \
-            || "$UPDATE_TOOL_UV" venv --clear "$VENV" 2>/dev/null \
-            || { rm -rf "$VENV"; echo "  ⚠ could not create $VENV (create manually: uv venv $VENV)"; }
-        if [ -d "$VENV" ]; then
-            "$UPDATE_TOOL_UV" pip install --python "$VENV" -r "$FRESH/.arpipeline/update_inputs/deps/core.txt" -q 2>/dev/null \
-                && echo "  ✓ core deps installed" \
-                || echo "  ⚠ core deps failed (source $VENV/bin/activate && uv pip install sympy matplotlib certifi)"
-            if [ "$WANT_SSJ_DEPS" = "1" ]; then
-                "$UPDATE_TOOL_UV" pip install --python "$VENV" -r "$FRESH/.arpipeline/update_inputs/deps/ssj.txt" -q 2>/dev/null \
-                    && echo "  ✓ ssj deps installed" \
-                    || echo "  ⚠ ssj deps skipped (numba build issue; non-fatal — ssj skill only)"
-            fi
-            for ext in "${EXTENSIONS[@]}"; do
-                _extdeps="$FRESH/.arpipeline/update_inputs/deps/extensions/$ext.txt"
-                [ -f "$_extdeps" ] || continue
-                "$UPDATE_TOOL_UV" pip install --python "$VENV" -r "$_extdeps" -q 2>/dev/null \
-                    && echo "  ✓ $ext deps installed" \
-                    || echo "  ⚠ $ext deps failed (source $VENV/bin/activate && uv pip install -r extensions/$ext/deps.txt)"
-            done
-        fi
-    fi
-fi
-
-# Prepare the mutable computed-evidence skeleton before committing selector
-# state or the deployment manifest. The EXIT rollback removes only the leaves this
-# update created after an ordinary later failure. SIGKILL may leave an empty
-# evidence directory or valid empty registry, but the next update validates and
-# adopts either idempotently; neither claims a selector/manifest commit.
-if [ "$MODE" != "report" ] && [ "$MANUAL" != "true" ]; then
-    EVIDENCE_DIR_WAS_MISSING=0
-    RESULTS_REGISTRY_WAS_MISSING=0
-    [ -e "$PROJECT/output/evidence" ] || [ -L "$PROJECT/output/evidence" ] \
-        || EVIDENCE_DIR_WAS_MISSING=1
-    [ -e "$PROJECT/process_log/results_registry.json" ] \
-        || [ -L "$PROJECT/process_log/results_registry.json" ] \
-        || RESULTS_REGISTRY_WAS_MISSING=1
-    python3 -I - "$PROJECT" "$DRY_RUN" <<'PY'
-import json
-import os
-import stat
-import sys
-from pathlib import PurePosixPath
-
-project, dry_text = sys.argv[1:]
+source, target, dry_text, source_fd_text = sys.argv[1:]
 dry_run = dry_text == "1"
 no_follow = getattr(os, "O_NOFOLLOW", 0)
-directory_flags = os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) | no_follow
-created_evidence = False
-created_registry = False
-registry_temp_created = False
-registry_temp_name = ".results_registry.update.tmp"
-root_fd = os.open(project, directory_flags)
-
-def open_real_dir(parent_fd, name):
-    fd = os.open(name, directory_flags, dir_fd=parent_fd)
-    info = os.fstat(fd)
-    if not stat.S_ISDIR(info.st_mode):
-        os.close(fd)
-        raise RuntimeError(f"{name} must be a real directory inside the deployment")
-    return fd
-
-def normalized_receipt(raw):
-    if not isinstance(raw, str) or not raw:
-        raise RuntimeError("result receipt paths must be non-empty strings")
-    posix = PurePosixPath(raw.replace("\\", "/"))
-    if (posix.is_absolute() or "." in posix.parts or ".." in posix.parts or
-            ".env" in posix.parts):
-        raise RuntimeError("result receipt paths must be normalized project-relative paths")
-    normalized = posix.as_posix()
-    if (normalized != raw or not normalized.startswith("output/") or
-            not normalized.endswith("results.receipt.json")):
-        raise RuntimeError("result receipt paths must be normalized output receipts")
-    return normalized
-
-try:
-    output_fd = open_real_dir(root_fd, "output")
-    process_fd = open_real_dir(root_fd, "process_log")
-    try:
-        try:
-            evidence_fd = open_real_dir(output_fd, "evidence")
-        except FileNotFoundError:
-            if dry_run:
-                print("  + output/evidence (would create mutable directory)")
-                evidence_fd = None
-            else:
-                os.mkdir("evidence", mode=0o755, dir_fd=output_fd)
-                created_evidence = True
-                evidence_fd = open_real_dir(output_fd, "evidence")
-        if evidence_fd is not None:
-            os.close(evidence_fd)
-
-        try:
-            registry_fd = os.open("results_registry.json", os.O_RDONLY | no_follow,
-                                  dir_fd=process_fd)
-        except FileNotFoundError:
-            existing_receipts = []
-            def walk_error(error):
-                raise RuntimeError(
-                    f"cannot inspect output tree for historical result receipts: {error}"
-                )
-            for base, dirs, files in os.walk(os.path.join(project, "output"),
-                                             followlinks=False, onerror=walk_error):
-                dirs[:] = [name for name in dirs
-                           if not os.path.islink(os.path.join(base, name))]
-                existing_receipts.extend(
-                    os.path.join(base, name) for name in files
-                    if name.endswith("results.receipt.json")
-                )
-            if existing_receipts:
-                raise RuntimeError(
-                    "cannot initialize a missing results registry after result receipts exist: "
-                    + ", ".join(sorted(existing_receipts))
-                )
-            if dry_run:
-                print("  + process_log/results_registry.json (would create mutable registry)")
-                registry_fd = None
-            else:
-                payload = (json.dumps({"kind": "result_registry", "registry_version": 1,
-                                       "active": [], "pending": [], "retired": [],
-                                       "receipt_fingerprints": {}},
-                                      indent=2) + "\n").encode()
-                try:
-                    stale_info = os.stat(
-                        registry_temp_name, dir_fd=process_fd, follow_symlinks=False
-                    )
-                except FileNotFoundError:
-                    pass
-                else:
-                    if not stat.S_ISREG(stale_info.st_mode) or stale_info.st_nlink != 1:
-                        raise RuntimeError("unsafe stale results-registry update file")
-                    os.unlink(registry_temp_name, dir_fd=process_fd)
-                registry_fd = os.open(
-                    registry_temp_name,
-                    os.O_WRONLY | os.O_CREAT | os.O_EXCL | no_follow,
-                    0o644, dir_fd=process_fd,
-                )
-                registry_temp_created = True
-                with os.fdopen(registry_fd, "wb") as handle:
-                    handle.write(payload)
-                    handle.flush()
-                    os.fsync(handle.fileno())
-                os.rename(
-                    registry_temp_name, "results_registry.json",
-                    src_dir_fd=process_fd, dst_dir_fd=process_fd,
-                )
-                registry_temp_created = False
-                created_registry = True
-                os.fsync(process_fd)
-                registry_fd = os.open("results_registry.json", os.O_RDONLY | no_follow,
-                                      dir_fd=process_fd)
-        if registry_fd is not None:
-            info = os.fstat(registry_fd)
-            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-                raise RuntimeError("process_log/results_registry.json must be one regular file")
-            with os.fdopen(registry_fd, "r", encoding="utf-8") as handle:
-                value = json.load(handle)
-            if (not isinstance(value, dict) or
-                    set(value) != {"kind", "registry_version", "active", "pending", "retired",
-                                  "receipt_fingerprints"} or
-                    value.get("kind") != "result_registry" or
-                    isinstance(value.get("registry_version"), bool) or
-                    value.get("registry_version") != 1):
-                raise RuntimeError("process_log/results_registry.json is malformed")
-            active = value["active"]
-            if (not isinstance(active, list) or len(active) != len(set(active)) or
-                    any(not isinstance(item, str) or not item for item in active)):
-                raise RuntimeError("process_log/results_registry.json has malformed active entries")
-            for item in active:
-                normalized_receipt(item)
-            pending = value["pending"]
-            if not isinstance(pending, list):
-                raise RuntimeError("process_log/results_registry.json has malformed pending entries")
-            pending_paths = []
-            for entry in pending:
-                if (not isinstance(entry, dict) or set(entry) != {"receipt", "supersedes"} or
-                        not isinstance(entry["receipt"], str) or not entry["receipt"] or
-                        not isinstance(entry["supersedes"], list) or
-                        len(entry["supersedes"]) != len(set(entry["supersedes"])) or
-                        any(not isinstance(item, str) or not item
-                            for item in entry["supersedes"])):
-                    raise RuntimeError("process_log/results_registry.json has malformed pending entries")
-                normalized_receipt(entry["receipt"])
-                for item in entry["supersedes"]:
-                    normalized_receipt(item)
-                if (entry["receipt"] in entry["supersedes"] or
-                        not set(entry["supersedes"]).issubset(active)):
-                    raise RuntimeError("process_log/results_registry.json has malformed pending entries")
-                pending_paths.append(entry["receipt"])
-            retired = value["retired"]
-            if not isinstance(retired, list):
-                raise RuntimeError("process_log/results_registry.json has malformed retired entries")
-            retired_paths = []
-            for entry in retired:
-                allowed = {"receipt", "reason", "last_fingerprint", "superseded_by"}
-                if (not isinstance(entry, dict) or
-                        not {"receipt", "reason", "last_fingerprint"}.issubset(entry) or
-                        not set(entry).issubset(allowed) or
-                        not isinstance(entry["receipt"], str) or not entry["receipt"] or
-                        not isinstance(entry["reason"], str) or not entry["reason"] or
-                        not isinstance(entry["last_fingerprint"], dict) or
-                        entry["last_fingerprint"].get("path") != entry["receipt"]):
-                    raise RuntimeError("process_log/results_registry.json has malformed retired entries")
-                normalized_receipt(entry["receipt"])
-                if "superseded_by" in entry:
-                    normalized_receipt(entry["superseded_by"])
-                retired_paths.append(entry["receipt"])
-            if (len(pending_paths) != len(set(pending_paths)) or
-                    len(retired_paths) != len(set(retired_paths)) or
-                    set(active) & set(pending_paths) or set(active) & set(retired_paths) or
-                    set(pending_paths) & set(retired_paths)):
-                raise RuntimeError("process_log/results_registry.json has conflicting lifecycle entries")
-            receipt_fingerprints = value["receipt_fingerprints"]
-            expected_fingerprints = set(active) | set(pending_paths)
-            if (not isinstance(receipt_fingerprints, dict) or
-                    set(receipt_fingerprints) != expected_fingerprints):
-                raise RuntimeError(
-                    "process_log/results_registry.json has malformed receipt fingerprints"
-                )
-            for receipt_path, fingerprint_value in receipt_fingerprints.items():
-                normalized_receipt(receipt_path)
-                if (not isinstance(fingerprint_value, dict) or
-                        set(fingerprint_value) != {"path", "kind", "sha256"} or
-                        fingerprint_value.get("path") != receipt_path or
-                        fingerprint_value.get("kind") != "file" or
-                        not isinstance(fingerprint_value.get("sha256"), str) or
-                        not fingerprint_value["sha256"].startswith("sha256:") or
-                        len(fingerprint_value["sha256"]) != 71):
-                    raise RuntimeError(
-                        "process_log/results_registry.json has malformed receipt fingerprints"
-                    )
-    finally:
-        os.close(output_fd)
-        os.close(process_fd)
-except BaseException:
-    if not dry_run:
-        if registry_temp_created:
-            try:
-                os.unlink(registry_temp_name, dir_fd=process_fd)
-            except OSError:
-                pass
-        if created_registry:
-            try:
-                os.unlink(os.path.join(project, "process_log", "results_registry.json"))
-            except OSError:
-                pass
-        if created_evidence:
-            try:
-                os.rmdir(os.path.join(project, "output", "evidence"))
-            except OSError:
-                pass
-    raise
-finally:
-    os.close(root_fd)
-PY
-    if [ "$DRY_RUN" = "0" ]; then
-        UPDATE_CREATED_EVIDENCE_DIR="$EVIDENCE_DIR_WAS_MISSING"
-        UPDATE_CREATED_RESULTS_REGISTRY="$RESULTS_REGISTRY_WAS_MISSING"
-    fi
-    [ "$DRY_RUN" = "1" ] || echo "  ✓ computed-evidence mutable skeleton prepared"
-fi
-
-# Commit the prepared project-owned selector state only after every other
-# refresh step has succeeded. The journal is marked first, so any later shell,
-# manifest, or process error restores the pre-commit state and removes only
-# seed paths this update created.
-if [ "$SEED_MIGRATION_PENDING" = "1" ]; then
-    python3 -I - "$SEED_MIGRATION_JOURNAL" "$SEEDED" "$FAITHFUL" "$CORE_STATE_CANDIDATE" <<'PY'
-import json
-import os
-import secrets
-import stat
-import sys
-
-journal_path, seeded_text, faithful_text, core_candidate = sys.argv[1:]
-seeded = seeded_text == "true"
-faithful = faithful_text == "true"
-journal = json.load(open(journal_path, encoding="utf-8"))
-state_path = journal["state_path"]
-fd = os.open(state_path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
-info = os.fstat(fd)
-if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-    os.close(fd)
-    raise SystemExit("ERROR: seed migration state changed before commit")
-with os.fdopen(fd, "r", encoding="utf-8") as handle:
-    original_state = handle.read()
-if core_candidate and os.path.isfile(core_candidate):
-    with open(core_candidate, encoding="utf-8") as handle:
-        state = json.load(handle)
-else:
-    state = json.loads(original_state)
-if state.get("status") != "not_started":
-    raise SystemExit("ERROR: pipeline started while selector migration was being prepared")
-if journal.get("schema_change"):
-    with open(journal["fresh_state_path"], encoding="utf-8") as handle:
-        fresh_state = json.load(handle)
-
-    def merge_missing(current, expected):
-        for key, value in expected.items():
-            if key not in current:
-                current[key] = value
-            elif isinstance(current[key], dict) and isinstance(value, dict):
-                merge_missing(current[key], value)
-
-    merge_missing(state, fresh_state)
-state["seeded"] = seeded
-state["faithful"] = faithful
-if seeded and state.get("current_stage") == "stage_0":
-    state["current_stage"] = "seed_triage"
-elif not seeded and state.get("current_stage") == "seed_triage":
-    state["current_stage"] = "stage_0"
-
-journal["original_state"] = original_state
-journal["state_mode"] = stat.S_IMODE(info.st_mode)
-journal["state_committed"] = True
-journal_tmp = journal_path + ".next"
-with open(journal_tmp, "x", encoding="utf-8") as handle:
-    json.dump(journal, handle)
-    handle.write("\n")
-    handle.flush()
-    os.fsync(handle.fileno())
-os.replace(journal_tmp, journal_path)
-
-state_tmp = os.path.join(
-    os.path.dirname(state_path), f".pipeline-state.update.{secrets.token_hex(8)}"
+staged = os.path.join(
+    os.path.dirname(target), f".{os.path.basename(target)}.zeropaper-update.next"
 )
-try:
-    state_fd = os.open(
-        state_tmp,
-        os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
-        journal["state_mode"],
+target_exists = os.path.lexists(target)
+if target_exists:
+    fd = os.open(target, os.O_RDONLY | no_follow)
+    info = os.fstat(fd)
+    if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+        os.close(fd)
+        raise SystemExit(
+            f"ERROR: environment target must be one regular non-aliased file: {target}"
+        )
+    mode = stat.S_IMODE(info.st_mode)
+    with os.fdopen(fd, "r", encoding="utf-8", newline="") as handle:
+        existing = handle.read()
+else:
+    mode = 0o600
+    existing = ""
+    print(f"  ! {os.path.basename(target)} missing in target — " +
+          ("would copy fresh" if dry_run else "copying fresh"))
+
+additions = []
+if source_fd_text:
+    source_fd = int(source_fd_text)
+    with os.fdopen(os.dup(source_fd), "rb") as pipe:
+        framed = pipe.read()
+    header, separator, payload = framed.partition(b"\n")
+    match = re.fullmatch(
+        rb"ZEROPAPER_DOTENV_V1 ([0-9]+) ([0-9a-f]{64})", header
     )
-    with os.fdopen(state_fd, "w", encoding="utf-8") as handle:
-        json.dump(state, handle, indent=2)
-        handle.write("\n")
+    if (not separator or match is None or int(match.group(1)) != len(payload)
+            or hashlib.sha256(payload).hexdigest().encode("ascii") != match.group(2)):
+        raise SystemExit("ERROR: authenticated operator environment transfer was truncated")
+    try:
+        source_text = payload.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise SystemExit("ERROR: source environment is not valid UTF-8") from exc
+    if source_text and not source_text.endswith("\n"):
+        source_text += "\n"
+    source_lines = source_text.splitlines(keepends=True)
+    seen_keys = {
+        line.rstrip("\n").split("=", 1)[0]
+        for line in source_lines
+        if line.rstrip("\n") and not line.startswith("#")
+    }
+    # Fresh setup normally copies the operator .env and then appends every
+    # missing .env.example key. The operator bytes stay anonymous here, but
+    # update must preserve that same composite source semantics.
+    with open(source, encoding="utf-8") as source_handle:
+        for line in source_handle:
+            stripped = line.rstrip("\n")
+            if not stripped or stripped.startswith("#"):
+                continue
+            key = stripped.split("=", 1)[0]
+            if key not in seen_keys:
+                source_lines.append(line if line.endswith("\n") else line + "\n")
+                seen_keys.add(key)
+else:
+    with open(source, encoding="utf-8") as source_handle:
+        source_lines = source_handle.readlines()
+if not target_exists:
+    existing = "".join(source_lines)
+for line in source_lines:
+    line = line.rstrip("\n")
+    if not line or line.startswith("#"):
+        continue
+    key = line.split("=", 1)[0]
+    if not target_exists:
+        additions.append((key, line))
+    elif not any(row.startswith(key + "=") for row in existing.splitlines()):
+        additions.append((key, line))
+        existing += ("" if not existing or existing.endswith("\n") else "\n") + line + "\n"
+for key, _line in additions:
+    print(f"  + {key}" + (" (would add)" if dry_run else ""))
+if not additions and target_exists:
+    print("  (no new keys)")
+if dry_run or (target_exists and not additions):
+    raise SystemExit(0)
+
+if os.path.lexists(staged):
+    staged_fd = os.open(staged, os.O_RDONLY | os.O_NONBLOCK | no_follow)
+    staged_info = os.fstat(staged_fd)
+    os.close(staged_fd)
+    if not stat.S_ISREG(staged_info.st_mode) or staged_info.st_nlink != 1:
+        raise SystemExit("ERROR: unsafe interrupted environment merge file")
+    os.unlink(staged)
+fd = os.open(staged, os.O_WRONLY | os.O_CREAT | os.O_EXCL | no_follow, mode)
+try:
+    with os.fdopen(fd, "w", encoding="utf-8", newline="") as handle:
+        handle.write(existing)
         handle.flush()
         os.fsync(handle.fileno())
-    os.replace(state_tmp, state_path)
+    os.replace(staged, target)
+    directory_fd = os.open(
+        os.path.dirname(target), os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+    )
+    try:
+        os.fsync(directory_fd)
+    finally:
+        os.close(directory_fd)
 except BaseException:
     try:
-        if os.path.lexists(state_tmp):
-            os.unlink(state_tmp)
+        if os.path.lexists(staged):
+            os.unlink(staged)
     except OSError:
         pass
     raise
 PY
-    [ -z "$CORE_STATE_CANDIDATE" ] || rm -f "$CORE_STATE_CANDIDATE"
-    echo "  ✓ committed seed state (seeded=$SEEDED, faithful=$FAITHFUL)"
+    fi
+done < <(jq -r '.infrastructure.files_env_merge[]?' "$NEW_MANIFEST")
+
+# Completed launchers are terminal, so stale paper evidence must become
+# durable Stage-9 work before the refreshed manifest can commit. This is the
+# only project-owned state transition performed by update; selector fields are
+# immutable.
+if [ "$PAPER_REAUDIT_REQUIRED" = "1" ]; then
+    if [ "$DRY_RUN" = "1" ]; then
+        echo "  project state: would reopen Stage 9 for paper evidence re-audit"
+    else
+        python3 -I - "$EVIDENCE_STATE" <<'PY'
+from datetime import datetime, timezone
+import json
+import os
+import stat
+import sys
+
+path = sys.argv[1]
+no_follow = getattr(os, "O_NOFOLLOW", 0)
+fd = os.open(path, os.O_RDONLY | no_follow)
+info = os.fstat(fd)
+if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+    os.close(fd)
+    raise SystemExit("ERROR: pipeline state changed type before Stage-9 reopen")
+with os.fdopen(fd, "r", encoding="utf-8") as handle:
+    state = json.load(handle)
+if state.get("status") not in {"complete", "complete_pending_verification"}:
+    raise SystemExit("ERROR: pipeline state changed before Stage-9 reopen")
+state["status"] = "running"
+state["current_stage"] = "stage_9"
+state["history"].append({
+    "timestamp": datetime.now(timezone.utc).isoformat().replace("+00:00", "Z"),
+    "event": "Updater reopened Stage 9 because the bound paper evidence is stale or malformed",
+})
+temporary = os.path.join(os.path.dirname(path), ".pipeline-state.reaudit.next")
+if os.path.lexists(temporary):
+    stale = os.open(
+        temporary, os.O_RDONLY | os.O_NONBLOCK | no_follow
+    )
+    stale_info = os.fstat(stale)
+    os.close(stale)
+    if not stat.S_ISREG(stale_info.st_mode) or stale_info.st_nlink != 1:
+        raise SystemExit("ERROR: unsafe interrupted Stage-9 state publication")
+    os.unlink(temporary)
+out = os.open(temporary, os.O_WRONLY | os.O_CREAT | os.O_EXCL | no_follow,
+              stat.S_IMODE(info.st_mode))
+try:
+    with os.fdopen(out, "w", encoding="utf-8") as handle:
+        json.dump(state, handle, indent=2)
+        handle.write("\n")
+        handle.flush()
+        os.fsync(handle.fileno())
+    os.replace(temporary, path)
+    directory = os.open(
+        os.path.dirname(path), os.O_RDONLY | getattr(os, "O_DIRECTORY", 0)
+    )
+    try:
+        os.fsync(directory)
+    finally:
+        os.close(directory)
+except BaseException:
+    if os.path.lexists(temporary):
+        os.unlink(temporary)
+    raise
+PY
+    fi
 fi
 
 # ── Refresh manifest in target (preserve original deploy_date + fingerprint) ──
 if [ "$DRY_RUN" = "0" ]; then
     manifest_tmp="$TMP/manifest.next"
-    if [ -f "$MANIFEST" ]; then
-        # Update template_version + last_updated; sync deployment selectors
-        # (variant, mode, extensions, flags) from the fresh deploy so that an override on
-        # this run is reflected in the persisted manifest. Anything not
-        # listed here passes through verbatim from the existing manifest
-        # (e.g. deploy_fingerprint, deploy_date — original deploy metadata).
-        # Bind NEW_MANIFEST once via `input as $new`; each bare `input` call
-        # consumes one file from the argv list, so reusing `(input | .X)` four
-        # times would try to read four files. The slurp pattern below reads
-        # NEW_MANIFEST once and lets us pull multiple fields from it.
-        jq --arg v "$NEW_VERSION" --arg d "$(date -u +%Y-%m-%d)" \
-           'input as $new
-            | .template_version = $v
-            | .last_updated = $d
-            | .variant = $new.variant
-            | .mode = $new.mode
-            | .extensions = $new.extensions
-            | .flags = $new.flags
-            | .source = $new.source
-            | .infrastructure = $new.infrastructure' \
-           "$MANIFEST" "$NEW_MANIFEST" > "$manifest_tmp" && mv "$manifest_tmp" "$MANIFEST" || {
-               rm -f "$manifest_tmp"; exit 1;
-           }
-    else
-        # No prior manifest — adopt the fresh manifest but blank deploy_fingerprint
-        # (we don't know the original UUID; user can copy it from paper/arpipeline.sty if needed).
-        jq --arg d "$(date -u +%Y-%m-%d)" \
-           '.deploy_fingerprint = "(unknown — pre-manifest deploy)" | .last_updated = $d' \
-           "$NEW_MANIFEST" > "$manifest_tmp" && mv "$manifest_tmp" "$MANIFEST" || {
-               rm -f "$manifest_tmp"; exit 1;
-           }
+    # Update template_version + last_updated and sync deployment selectors from
+    # the verified fresh assembly while preserving project identity metadata.
+    if ! jq --arg v "$NEW_VERSION" --arg d "$(date -u +%Y-%m-%d)" \
+       'input as $new
+        | .template_version = $v
+        | .last_updated = $d
+        | .variant = $new.variant
+        | .mode = $new.mode
+        | .extensions = $new.extensions
+        | .flags = $new.flags
+        | .source = $new.source
+        | .infrastructure = $new.infrastructure' \
+       "$MANIFEST" "$NEW_MANIFEST" > "$manifest_tmp"; then
+        rm -f "$manifest_tmp"
+        exit 1
     fi
-    if [ "$SEED_MIGRATION_PENDING" = "1" ]; then
-        SEED_MIGRATION_PENDING=0
-        rm -f "$SEED_MIGRATION_JOURNAL"
-    fi
+    python3 -I - "$manifest_tmp" "$MANIFEST" "$PROJECT" <<'PY'
+import os
+import stat
+import sys
+
+source, destination, project = sys.argv[1:]
+no_follow = getattr(os, "O_NOFOLLOW", 0)
+source_fd = os.open(source, os.O_RDONLY | no_follow)
+source_info = os.fstat(source_fd)
+if not stat.S_ISREG(source_info.st_mode) or source_info.st_nlink != 1:
+    os.close(source_fd)
+    raise SystemExit("ERROR: staged deployment manifest is not one regular file")
+staged = os.path.join(project, ".deploy_manifest.zeropaper-update.next")
+if os.path.lexists(staged):
+    stale_fd = os.open(staged, os.O_RDONLY | os.O_NONBLOCK | no_follow)
+    stale_info = os.fstat(stale_fd)
+    os.close(stale_fd)
+    if not stat.S_ISREG(stale_info.st_mode) or stale_info.st_nlink != 1:
+        os.close(source_fd)
+        raise SystemExit("ERROR: unsafe interrupted deployment-manifest staging file")
+    os.unlink(staged)
+staged_fd = os.open(
+    staged, os.O_WRONLY | os.O_CREAT | os.O_EXCL | no_follow,
+    stat.S_IMODE(source_info.st_mode),
+)
+try:
+    while True:
+        chunk = os.read(source_fd, 1024 * 1024)
+        if not chunk:
+            break
+        view = memoryview(chunk)
+        while view:
+            written = os.write(staged_fd, view)
+            if written <= 0:
+                raise SystemExit("ERROR: short write while staging deployment manifest")
+            view = view[written:]
+    os.fsync(staged_fd)
+finally:
+    os.close(staged_fd)
+    os.close(source_fd)
+os.replace(staged, destination)
+root_fd = os.open(project, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+try:
+    os.fsync(root_fd)
+finally:
+    os.close(root_fd)
+PY
     echo
     echo "  ✓ manifest updated: template_version $OLD_VERSION → $NEW_VERSION"
 fi
 
-# Same-selector core schema/status migration is the final stateful update step:
-# the refreshed manifest is already durable, and the candidate is published by
-# one atomic replace. A kill before the replace leaves the original state (and
-# any retired halt) intact; a kill after it leaves both manifest and state new.
-if [ "$DRY_RUN" = "0" ] && [ "$SEED_MIGRATION_PENDING" = "0" ] \
-    && [ -n "$CORE_STATE_CANDIDATE" ] && [ -f "$CORE_STATE_CANDIDATE" ]; then
-    python3 -I - "$STATE_FILE" "$CORE_STATE_CANDIDATE" <<'PY'
+# The transaction marker is the launch barrier. Before it can disappear,
+# force every published managed byte and every affected directory entry to
+# stable storage, including parents that recorded stale-path deletions.
+if [ "$DRY_RUN" = "0" ]; then
+    python3 -I - "$PROJECT" "$NEW_MANIFEST" "$OLD_MANIFEST_SNAPSHOT" <<'PY'
 import json
 import os
-import secrets
 import stat
 import sys
 
-state_path, candidate_path = sys.argv[1:]
-fd = os.open(state_path, os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0))
-info = os.fstat(fd)
-if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
-    os.close(fd)
-    raise SystemExit("ERROR: core migration state changed before commit")
-with os.fdopen(fd, "r", encoding="utf-8") as handle:
-    json.load(handle)
-with open(candidate_path, encoding="utf-8") as handle:
-    candidate = json.load(handle)
-state_tmp = os.path.join(
-    os.path.dirname(state_path), f".pipeline-state.update.{secrets.token_hex(8)}"
-)
-try:
-    state_fd = os.open(
-        state_tmp,
-        os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
-        stat.S_IMODE(info.st_mode),
-    )
-    with os.fdopen(state_fd, "w", encoding="utf-8") as handle:
-        json.dump(candidate, handle, indent=2)
-        handle.write("\n")
-        handle.flush()
-        os.fsync(handle.fileno())
-    os.replace(state_tmp, state_path)
-except BaseException:
+project, new_manifest_path, old_manifest_path = sys.argv[1:]
+with open(new_manifest_path, encoding="utf-8") as handle:
+    new = json.load(handle)["infrastructure"]
+with open(old_manifest_path, encoding="utf-8") as handle:
+    old = json.load(handle)["infrastructure"]
+no_follow = getattr(os, "O_NOFOLLOW", 0)
+directory_flag = getattr(os, "O_DIRECTORY", 0)
+
+def fsync_file(path):
+    fd = os.open(path, os.O_RDONLY | os.O_NONBLOCK | no_follow)
     try:
-        if os.path.lexists(state_tmp):
-            os.unlink(state_tmp)
-    except OSError:
-        pass
-    raise
+        info = os.fstat(fd)
+        if not stat.S_ISREG(info.st_mode):
+            raise SystemExit(f"ERROR: managed file changed type before durability barrier: {path}")
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+def fsync_tree(path):
+    info = os.lstat(path)
+    if stat.S_ISLNK(info.st_mode):
+        raise SystemExit(f"ERROR: managed tree contains a symlink at durability barrier: {path}")
+    if stat.S_ISREG(info.st_mode):
+        fsync_file(path)
+        return
+    if not stat.S_ISDIR(info.st_mode):
+        raise SystemExit(f"ERROR: managed tree contains a special file: {path}")
+    with os.scandir(path) as entries:
+        children = [entry.path for entry in entries]
+    for child in children:
+        fsync_tree(child)
+    fd = os.open(path, os.O_RDONLY | directory_flag | no_follow)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
+
+for relative in new.get("dirs_replace", []):
+    fsync_tree(os.path.join(project, relative))
+for key in ("files_replace", "files_env_merge"):
+    for relative in new.get(key, []):
+        path = os.path.join(project, relative)
+        if os.path.lexists(path):
+            fsync_file(path)
+
+directories = {project}
+for manifest in (old, new):
+    for key in ("dirs_replace", "files_replace", "files_env_merge"):
+        for relative in manifest.get(key, []):
+            current = os.path.dirname(os.path.join(project, relative))
+            while current.startswith(project) and current not in directories:
+                directories.add(current)
+                if current == project:
+                    break
+                current = os.path.dirname(current)
+for directory in sorted(directories, key=lambda value: value.count(os.sep), reverse=True):
+    if not os.path.isdir(directory) or os.path.islink(directory):
+        continue
+    fd = os.open(directory, os.O_RDONLY | directory_flag | no_follow)
+    try:
+        os.fsync(fd)
+    finally:
+        os.close(fd)
 PY
-    echo "  ✓ committed pipeline-state schema/status migration"
 fi
 
 # ── Report agent diff ──
@@ -1796,14 +2004,188 @@ echo
 if [ "$DRY_RUN" = "1" ]; then
     echo "Dry run complete. No files modified."
 else
-    UPDATE_CREATED_EVIDENCE_DIR=0
-    UPDATE_CREATED_RESULTS_REGISTRY=0
+    "$UPDATE_CONTROL_PYTHON" -I - "$UPDATE_TRANSACTION_MARKER" "$UPDATE_CONTROL_DIR" <<'PY'
+import os, sys
+path, directory = sys.argv[1:]
+os.unlink(path)
+dir_fd = os.open(directory, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+try:
+    os.fsync(dir_fd)
+finally:
+    os.close(dir_fd)
+PY
     echo "Update complete. Review with: cd $PROJECT && git status"
     echo "Then commit the infrastructure refresh when ready."
 fi
 
 }
 
-# Keep LOCK_EX exclusively in this trusted parent. Setup, providers, venv tools,
-# and every other refresh child run with fd 9 closed while the parent waits.
-( _update_main ) 9<&-
+# Keep LOCK_EX in the visible parent plus a detached guardian, never in the
+# refresh body. If the visible updater is SIGKILLed, the guardian retains the
+# lock, terminates the body's private process group, and waits for it to drain
+# before releasing LOCK_EX. No updater writer can therefore outlive the lock.
+coproc UPDATE_GUARD {
+    /usr/bin/python3 -I /dev/fd/6 9 "$UPDATE_LAUNCHER_LIVENESS_FD" 6<<'PY'
+import os
+import select
+import signal
+import subprocess
+import sys
+import time
+
+try:
+    os.setsid()
+except OSError:
+    pass
+liveness_fd = int(sys.argv[2])
+
+
+def launcher_died():
+    readable, _, _ = select.select([liveness_fd], [], [], 0)
+    return bool(readable) and os.read(liveness_fd, 1) == b""
+
+
+def read_control():
+    while True:
+        readable, _, _ = select.select([sys.stdin, liveness_fd], [], [], 0.1)
+        # Prefer a simultaneously available PID/control message so launcher
+        # death can still terminate the exact armed body identity.
+        if sys.stdin in readable:
+            return sys.stdin.readline().strip(), False
+        if liveness_fd in readable and os.read(liveness_fd, 1) == b"":
+            return "", True
+
+
+raw, launcher_is_dead = read_control()
+if not raw.isdigit():
+    raise SystemExit(0)
+child = int(raw)
+deadline = time.monotonic() + 5.0
+while True:
+    try:
+        if os.getpgid(child) == child:
+            break
+    except ProcessLookupError:
+        print("armed", flush=True)
+        raise SystemExit(0)
+    launcher_is_dead = launcher_is_dead or launcher_died()
+    if time.monotonic() >= deadline:
+        raise SystemExit("update body did not enter its private process group")
+    time.sleep(0.01)
+if launcher_is_dead:
+    message = ""
+else:
+    try:
+        os.kill(child, signal.SIGUSR1)
+    except ProcessLookupError:
+        print("armed", flush=True)
+        raise SystemExit(0)
+    print("armed", flush=True)
+    message, launcher_is_dead = read_control()
+    if launcher_is_dead:
+        message = ""
+if message.startswith("complete "):
+    def members():
+        try:
+            output = subprocess.check_output(
+                ["/bin/ps", "-axo", "pid=,pgid="], text=True,
+                stderr=subprocess.DEVNULL,
+            )
+        except (OSError, subprocess.CalledProcessError):
+            raise SystemExit("cannot enumerate update body process group")
+        result = []
+        for line in output.splitlines():
+            fields = line.split()
+            if len(fields) != 2 or not all(field.isdigit() for field in fields):
+                continue
+            pid, pgid = map(int, fields)
+            if pgid == child and pid != child:
+                result.append(pid)
+        return result
+
+    for sent_signal, duration in ((signal.SIGTERM, 2.0), (signal.SIGKILL, 5.0)):
+        deadline = time.monotonic() + duration
+        while True:
+            remaining = members()
+            if not remaining:
+                print("drained", flush=True)
+                raise SystemExit(0)
+            for pid in remaining:
+                try:
+                    os.kill(pid, sent_signal)
+                except ProcessLookupError:
+                    pass
+            if time.monotonic() >= deadline:
+                break
+            time.sleep(0.02)
+    raise SystemExit("update body descendants did not terminate")
+if message:
+    raise SystemExit("invalid update body completion message")
+if not message:
+    # The body died before its explicit completion handshake. Its group leader
+    # is still the identity armed above; terminate and drain the whole group.
+    pass
+else:
+    raise SystemExit(0)
+for sent_signal, duration in ((signal.SIGTERM, 2.0), (signal.SIGKILL, 5.0)):
+    try:
+        os.killpg(child, sent_signal)
+    except ProcessLookupError:
+        raise SystemExit(0)
+    deadline = time.monotonic() + duration
+    while time.monotonic() < deadline:
+        try:
+            os.killpg(child, 0)
+        except ProcessLookupError:
+            raise SystemExit(0)
+        time.sleep(0.02)
+raise SystemExit("update body process group did not terminate")
+PY
+}
+_update_guard_read="${UPDATE_GUARD[0]}"
+_update_guard_write="${UPDATE_GUARD[1]}"
+_update_guard_pid="$UPDATE_GUARD_PID"
+# Coprocess descriptors are marked close-on-subshell by Bash. Duplicate the
+# ends onto ordinary descriptors so the body can publish its PID, report
+# completion, and wait until the detached guardian drains its descendants.
+exec 7>&"$_update_guard_write"
+exec 8<&"$_update_guard_read"
+exec {_update_guard_write}>&-
+set -m
+(
+    _update_body_start=0
+    trap '_update_body_start=1' USR1
+    printf '%s\n' "$BASHPID" >&7
+    while [ "$_update_body_start" = "0" ]; do
+        sleep 0.01
+    done
+    trap - USR1
+    set +e
+    ( set -e; _update_main ) 7>&- 8<&-
+    _update_body_status=$?
+    set -e
+    printf 'complete %s\n' "$_update_body_status" >&7
+    if ! read -r _update_guard_drained <&8 \
+       || [ "$_update_guard_drained" != "drained" ]; then
+        exit 1
+    fi
+    exec 7>&- 8<&-
+    exit "$_update_body_status"
+) 9<&- &
+_update_body_pid=$!
+set +m
+if ! read -r _update_guard_ready <&"$_update_guard_read" \
+   || [ "$_update_guard_ready" != "armed" ]; then
+    kill -KILL -- "-$_update_body_pid" 2>/dev/null || true
+    echo "ERROR: update supervisor failed to arm" >&2
+    exit 1
+fi
+exec 7>&-
+if wait "$_update_body_pid"; then
+    _update_body_status=0
+else
+    _update_body_status=$?
+fi
+exec 8<&-
+wait "$_update_guard_pid"
+exit "$_update_body_status"

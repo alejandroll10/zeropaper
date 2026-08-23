@@ -274,7 +274,7 @@ _setup_extensions_inject_efficiency_into_agents() {
 # bash-background injector (subagents never see the runtime doc, and recording is
 # the default behavior regardless of the --halt-on-core-bypass flag; the flag only
 # adds the orchestrator-side halt pointer in the runtime doc). The pointer text
-# degrades gracefully when there is no process_log/ (manual mode). File-existence
+# degrades gracefully when there is no autonomous pipeline state (manual mode). File-existence
 # guards make passing a not-yet-assembled agent a harmless no-op.
 _setup_extensions_inject_core_bypass_into_agents() {
     _setup_extensions_inject_block_into_agents "$TEMPLATE_ROOT/templates/shared/core_bypass_inject.md" "$@"
@@ -413,7 +413,8 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$MODE_BODIES_OVERLAY" \
                 "$MODE_VOCAB_OVERLAY" \
                 "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json" \
-                "${MODE//-/_}"
+                "${MODE//-/_}" \
+                "$MANUAL"
             provision_extension_dependencies theory_llm
 
             python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
@@ -478,19 +479,23 @@ for d in runtime_docs:
         ("{{THEORY_LLM_STATE3B_DOC}}", state3b_doc),
     ])
 
-# pipeline_state.json: add stage3b_theory_version field, mirroring stage2b_theory_version.
+# pipeline_state.json: add the complete Stage 3b acceptance triad.
 state_path = os.path.join(os.path.dirname(stage2_md), "..", "process_log", "pipeline_state.json")
 state_path = os.path.normpath(state_path)
 if os.path.exists(state_path):
     with open(state_path) as f: data = json.load(f)
     if "stage3b_theory_version" not in data:
-        # Insert immediately after stage3a_theory_version (if --ext empirical) or stage2b_theory_version.
+        # Insert immediately after stage3a_theory_version (if --ext empirical)
+        # or stage2b_theory_version. Fresh setup always creates all three
+        # fields together; updater validation rejects partial current state.
         new = {}
         anchor = "stage3a_theory_version" if "stage3a_theory_version" in data else "stage2b_theory_version"
         for k, v in data.items():
             new[k] = v
             if k == anchor:
                 new["stage3b_theory_version"] = None
+                new["stage3b_results_path"] = None
+                new["stage3b_result_receipt"] = None
         data = new
         with open(state_path, "w") as f:
             json.dump(data, f, indent=2)
@@ -569,7 +574,8 @@ PYEOF
                 "$MODE_BODIES_OVERLAY" \
                 "$MODE_VOCAB_OVERLAY" \
                 "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json" \
-                "${MODE//-/_}"
+                "${MODE//-/_}" \
+                "$MANUAL"
             # Privileged OpenCode SRT gatekeeper: deploy under the model-immutable
             # runtime, never beside model-writable empirical service code.
             infrastructure_copy_file 295 \
@@ -727,8 +733,8 @@ if os.path.exists(state_path):
 PYEOF
 
             # Empirical extension developing agents — from metadata.
-            # Variant-aware via $AGENT_DIR (finance metadata adds identification-designer;
-            # macro currently has empiricist only). The metadata is the source of truth.
+            # Variant-aware via $AGENT_DIR (finance and macro metadata add their
+            # domain-specific identification pair). The metadata is the source of truth.
             _empirical_developing_agents=()
             while IFS= read -r _line; do _empirical_developing_agents+=("$_line"); done < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \
                 --category developing \
@@ -760,7 +766,7 @@ PYEOF
             # Core-bypass guard: empirical agents that read a binding data source
             # (WRDS/EDGAR/FRED) or verify the pipeline's empirics against it. The
             # injector's file-existence guards make pruned/absent agents a no-op
-            # (e.g. macro has no identification-auditor; report mode prunes these).
+            # (e.g. report mode prunes identification-auditor).
             _setup_extensions_inject_core_bypass_into_agents \
                 empiricist empirics-auditor headline-replicator \
                 data-integrity-auditor data-selection-auditor method-checker \
@@ -907,12 +913,13 @@ EXT_EMPIRICAL_ON="$EMPIRICAL_ENABLED"
 # when the body's mode-specific delta is small. Vocab substitution runs at
 # assembly time (before this resolver fires), so {{KEY}} placeholders are
 # already resolved when the resolver sees the agent files.
-python3 -I - "$MODE" "$EXT_EMPIRICAL_ON" "$VARIANT" "$P/docs/"*.md "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
+python3 -I - "$MODE" "$EXT_EMPIRICAL_ON" "$VARIANT" "$MANUAL" "$P/docs/"*.md "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
     "$AGENTS_OUT"/*.md "$CODEX_AGENTS_OUT"/*.toml "$GEMINI_AGENTS_OUT"/*.md "$GROK_AGENTS_OUT"/*.md "$OPENCODE_AGENTS_OUT"/*.md <<'PYEOF'
 import os, re, sys
 mode = sys.argv[1]  # "", "empirical-first", "measurement-first", "report"
 xe = sys.argv[2] == "1"
 variant = sys.argv[3].upper()
+manual = sys.argv[4] == "1"
 
 def keep(name):
     """Marker-family semantics per mode. THEORY_FIRST = any theory-shaped
@@ -923,6 +930,15 @@ def keep(name):
     block renders exactly one of them in every mode). Report mode copies no
     stage docs and prunes the marker-carrying generative agents, so it takes
     the default branch."""
+    if name == "MANUAL":
+        return manual
+    if name == "AUTONOMOUS":
+        return not manual
+    # Manual deployments keep the selected mode's scientific and paper-shape
+    # semantics. Only AUTONOMOUS blocks disappear; result-consuming bodies use
+    # the uniform manual-source override to make stage pointers inapplicable.
+    # Erasing whole mode families here also erases substantive output schemas,
+    # review methods, and section-writing guidance that manual callers need.
     if mode == "empirical-first":
         return name == "EMPIRICAL_FIRST"
     if mode == "measurement-first":
@@ -943,7 +959,10 @@ patterns = []  # list of (regex, replacement) applied in order
 # EMPIRICAL_FIRST twin). Doing all removals first makes the result independent
 # of family order, so adding a mode block at an existing site cannot perturb the
 # other modes' output.
-_families = ("THEORY_FIRST", "EMPIRICAL_FIRST", "MEASUREMENT_FIRST", "NO_MODE")
+_families = (
+    "THEORY_FIRST", "EMPIRICAL_FIRST", "MEASUREMENT_FIRST", "NO_MODE",
+    "MANUAL", "AUTONOMOUS",
+)
 for fam in _families:
     if not keep(fam):
         patterns.append((re.compile(r"<!-- " + fam + r"_START -->\n.*?<!-- " + fam + r"_END -->\n{0,2}", re.DOTALL), ""))
@@ -966,13 +985,19 @@ else:
 # The same fragility exists in the mode-marker patterns above.
 patterns.append((re.compile(r"<!-- VARIANT_" + re.escape(variant) + r"_(?:START|END) -->\n?"), ""))
 patterns.append((re.compile(r"<!-- VARIANT_([A-Z0-9_]+)_START -->\n.*?<!-- VARIANT_\1_END -->\n{0,2}", re.DOTALL), ""))
-for p in sys.argv[4:]:
+for p in sys.argv[5:]:
     if not os.path.exists(p):
         continue
     with open(p) as f: t = f.read()
     new = t
     for rx, repl in patterns:
         new = rx.sub(repl, new)
+    if manual:
+        new = new.replace(
+            "activate, move the stage pointer, and retire the stale predecessor",
+            "activate, return the accepted receipt/report paths to the caller, and "
+            "retire the stale predecessor",
+        )
     if new != t:
         with open(p, "w") as f: f.write(new)
 PYEOF

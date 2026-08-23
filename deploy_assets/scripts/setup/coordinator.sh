@@ -15,8 +15,8 @@
 #                                empirical results lead and theory-generator runs
 #                                in mechanism mode (prose+DAG, no theorem/proof).
 #                                Auto-implies --ext empirical. Finance variant only
-#                                in v1; macro is gated on adding identification
-#                                tooling there.
+#                                in v1; macro has theory-first identification tooling
+#                                but not this mode's mechanism/vocabulary calibration.
 #             report           — referee an external paper submission instead of
 #                                generating one. Reads submission/, fans out audit
 #                                agents in parallel, synthesizes report/referee_report.md.
@@ -64,7 +64,10 @@ unset ZEROPAPER_SETUP_LAUNCH_ROOT
 # Keep this list in dependency order: it drives snapshotting, the clean gate,
 # and destination protection. .env.example is a template input; .env is
 # operator state.
-SOURCE_INPUT_PATHS=(setup.sh VERSION LICENSE .env.example deploy_assets)
+SOURCE_INPUT_PATHS=(
+    setup.sh update.sh scripts/update_coordinator.sh
+    VERSION LICENSE .env.example deploy_assets
+)
 _setup_source_digest() {
     local digest_root="$1"
     python3 -I - "$digest_root" "${SOURCE_INPUT_PATHS[@]}" <<'PYEOF'
@@ -215,6 +218,7 @@ def ignore_non_inputs(_directory, names):
 for logical in sys.argv[3:]:
     src = os.path.join(source, logical)
     dst = os.path.join(destination, logical)
+    os.makedirs(os.path.dirname(dst), exist_ok=True)
     if os.path.isdir(src) and not os.path.islink(src):
         shutil.copytree(src, dst, symlinks=True, ignore=ignore_non_inputs)
     else:
@@ -617,6 +621,10 @@ def visit(logical, path):
         raise SystemExit(f"unsupported effective build input: {logical}")
 
 for logical in source_inputs:
+    parent = os.path.dirname(logical)
+    while parent:
+        actual_dirs.add(parent)
+        parent = os.path.dirname(parent)
     visit(logical, os.path.join(root, logical))
 
 if actual != expected or actual_dirs != expected_dirs:
@@ -944,7 +952,7 @@ else
     fi
     if [ "$SOURCE_CLEAN_STATE" = "dirty" ]; then
         echo "Error: template build inputs are dirty; full setup requires committed source." >&2
-        echo "  Commit or remove changes under setup.sh, VERSION, LICENSE, .env.example, and deploy_assets/." >&2
+        echo "  Commit or remove changes under setup.sh, update.sh, scripts/update_coordinator.sh, VERSION, LICENSE, .env.example, and deploy_assets/." >&2
         echo "  Use --assemble-only <destination> to validate development changes without provisioning." >&2
         exit 1
     fi
@@ -959,7 +967,18 @@ else
     [ -n "$SETUP_TOOL_UV" ] && [ -x "$SETUP_TOOL_UV" ] \
         || missing+=("uv (curl -LsSf https://astral.sh/uv/install.sh | sh)")
     if [[ "$(uname)" == "Linux" ]]; then
-        command -v bwrap >/dev/null 2>&1 || missing+=("bubblewrap (sudo apt-get install bubblewrap)")
+        [ -x /usr/bin/bwrap ] || missing+=("bubblewrap at /usr/bin/bwrap (sudo apt-get install bubblewrap)")
+    elif [[ "$(uname)" == "Darwin" ]]; then
+        _setup_modern_bash=""
+        for _candidate in /opt/homebrew/bin/bash /usr/local/bin/bash /opt/local/bin/bash; do
+            if [ -x "$_candidate" ] && "$_candidate" -c '(( BASH_VERSINFO[0] >= 4 ))' \
+                    >/dev/null 2>&1; then
+                _setup_modern_bash="$_candidate"
+                break
+            fi
+        done
+        [ -n "$_setup_modern_bash" ] \
+            || missing+=("Bash 4+ at a Homebrew/MacPorts path (brew install bash)")
     fi
     # Git identity is required: setup.sh runs `git commit` on the new project, and
     # `set -e` aborts the whole script (skipping any requested publish step) if commit

@@ -2,8 +2,8 @@
 # Host-local Python environment and dependency provisioning for setup.sh.
 #
 # Provisioned paths live under the gitignored .venv and are intentionally not
-# deployment-manifest infrastructure. update.sh owns the corresponding refresh
-# and missing-venv bootstrap behavior for existing projects.
+# deployment-manifest infrastructure. update.sh deliberately never executes or
+# mutates this agent-writable environment; dependency changes require a fresh setup.
 
 setup_python_environment() {
     local _venv_sp
@@ -19,8 +19,8 @@ setup_python_environment() {
     fi
 
     # Dependency inputs are copied into manifest-owned deployment paths before
-    # provisioning. setup.sh and update.sh therefore install from the exact
-    # verified bytes represented by the deployment manifest.
+    # provisioning. setup.sh installs from the exact verified bytes represented
+    # by the deployment manifest.
     if [ "$ASSEMBLE_ONLY" = "0" ] && [ -d "$P/.venv" ]; then
         "$SETUP_TOOL_UV" pip install --python "$P/.venv" -r "$P/.arpipeline/update_inputs/deps/core.txt" -q 2>/dev/null \
             || echo "Note: core deps failed; install manually: source $P/.venv/bin/activate && uv pip install sympy matplotlib certifi"
@@ -55,7 +55,7 @@ provision_extension_dependencies() {
     case "$ext" in
         theory_llm)
             "$SETUP_TOOL_UV" pip install --python "$P/.venv" -r "$P/.arpipeline/update_inputs/deps/extensions/theory_llm.txt" -q 2>/dev/null \
-                || echo "Note: theory_llm deps failed; install manually: source $P/.venv/bin/activate && uv pip install openai python-dotenv"
+                || echo "Note: theory_llm deps failed; install manually: source $P/.venv/bin/activate && uv pip install openai anthropic python-dotenv"
             ;;
         empirical)
             "$SETUP_TOOL_UV" pip install --python "$P/.venv" -r "$P/.arpipeline/update_inputs/deps/extensions/empirical.txt" -q 2>/dev/null \

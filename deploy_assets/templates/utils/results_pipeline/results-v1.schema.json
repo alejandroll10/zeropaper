@@ -2,6 +2,18 @@
   "$schema": "https://json-schema.org/draft/2020-12/schema",
   "$id": "https://github.com/alejandroll10/zeropaper/schemas/results-v1.schema.json",
   "title": "ZeroPaper paper-facing result bundle",
+  "$comment": "Structural preflight only. results_pipeline.py is the canonical semantic validator for normalized paths, cross-references, duplicate path/id ownership, plan equality, and lifecycle state.",
+  "$defs": {
+    "projectPath": {
+      "type": "string",
+      "minLength": 1,
+      "pattern": "^(?!/)(?!.*\\\\)(?!\\.\\.?/)(?!.*(?:/\\.\\.?/|/\\.\\.?$))(?!.*//)(?!\\.[Gg][Ii][Tt](?:/|$))(?!\\.[Ee][Nn][Vv][^/]*(?:/|$))(?!.*\\/(?:\\.[Gg][Ii][Tt]|\\.[Ee][Nn][Vv][^/]*)(?:/|$))(?!.*[\\u0000-\\u001F]).+$"
+    },
+    "outputPath": {
+      "type": "string",
+      "pattern": "^(?!.*//)output/(?![Ee][Vv][Ii][Dd][Ee][Nn][Cc][Ee](?:/|$))(?!.*\\\\)(?!\\.\\.?/)(?!.*(?:/\\.\\.?/|/\\.\\.?$))(?!\\.[Gg][Ii][Tt](?:/|$))(?!\\.[Ee][Nn][Vv][^/]*(?:/|$))(?!.*\\/(?:\\.[Gg][Ii][Tt]|\\.[Ee][Nn][Vv][^/]*)(?:/|$))(?!.*[\\u0000-\\u001F]).+$"
+    }
+  },
   "type": "object",
   "additionalProperties": false,
   "required": ["schema_version", "producer", "results", "artifacts", "renderer", "exhibits"],
@@ -17,12 +29,12 @@
           "type": "array",
           "minItems": 1,
           "uniqueItems": true,
-          "items": {"type": "string", "minLength": 1}
+          "items": {"$ref": "#/$defs/projectPath"}
         },
         "inputs": {
           "type": "array",
           "uniqueItems": true,
-          "items": {"type": "string", "minLength": 1}
+          "items": {"$ref": "#/$defs/projectPath"}
         },
         "reproducibility": {"enum": ["exact", "bounded", "captured"]},
         "notes": {"type": "string"}
@@ -43,7 +55,7 @@
           "display": {"type": "object"},
           "uncertainty": {"type": "object"},
           "artifact": {
-            "type": "string", "pattern": "^output/(?!evidence(?:/|$)).+"
+            "$ref": "#/$defs/outputPath"
           },
           "selector": {"type": "string"},
           "metadata": {"type": "object"}
@@ -56,13 +68,14 @@
     },
     "artifacts": {
       "type": "array",
+      "uniqueItems": true,
       "items": {
         "type": "object",
         "additionalProperties": false,
         "required": ["path", "description"],
         "properties": {
           "path": {
-            "type": "string", "pattern": "^output/(?!evidence(?:/|$)).+"
+            "$ref": "#/$defs/outputPath"
           },
           "description": {"type": "string", "minLength": 1},
           "media_type": {"type": "string"}
@@ -77,13 +90,14 @@
         "code": {
           "type": "array",
           "uniqueItems": true,
-          "items": {"type": "string", "minLength": 1}
+          "items": {"$ref": "#/$defs/projectPath"}
         },
         "notes": {"type": "string"}
       }
     },
     "exhibits": {
       "type": "array",
+      "uniqueItems": true,
       "items": {
         "type": "object",
         "additionalProperties": false,
@@ -92,7 +106,7 @@
           "id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
           "kind": {"enum": ["table", "figure"]},
           "path": {
-            "type": "string", "pattern": "^output/(?!evidence(?:/|$)).+"
+            "$ref": "#/$defs/outputPath"
           },
           "description": {"type": "string", "minLength": 1},
           "result_ids": {

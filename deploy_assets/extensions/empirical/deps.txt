@@ -1,7 +1,9 @@
 # Empirical extension Python deps.
-# Single source of truth: read by scripts/apply_extension_empirical.sh (during
-# setup) AND by update.sh's venv bootstrap, via `uv pip install -r`.
-# Build-time only — installed into the project's .venv, not copied into deploys.
+# Single source of truth: read by scripts/apply_extension_empirical.sh during
+# setup, then installed by setup's provisioning step.
+# This extension source file is a build input. Setup also copies it into the
+# manifest-owned `.arpipeline/update_inputs/deps/` provisioning record inside
+# each deployment.
 #
 # Before adding a dep, check where it writes caches/config by default (#212):
 # a `~/.something` default outside the sandbox writable sets (Claude

@@ -9,14 +9,17 @@ outputs, and fails closed when any recorded byte becomes stale.
 from __future__ import annotations
 
 import argparse
+import errno
 import fcntl
 import hashlib
 import json
 import os
 import re
+import secrets
 import select
 import signal
 import shutil
+import socket
 import stat
 import subprocess
 import sys
@@ -30,7 +33,7 @@ from urllib.parse import unquote, urlsplit
 
 RECEIPT_VERSION = 1
 RUN_PLAN_VERSION = 1
-PAPER_RECEIPT_VERSION = 2
+PAPER_RECEIPT_VERSION = 4
 REGISTRY_VERSION = 1
 AUDIT_INPUT_VERSION = 1
 REGISTRY_PATH = "process_log/results_registry.json"
@@ -40,7 +43,6 @@ TRANSACTION_PATH = "process_log/results_pipeline.transaction.json"
 TRANSACTION_BACKUP_PATH = "process_log/.results_pipeline-transaction-backup"
 AUDIT_NAMESPACE = "output/evidence"
 RESULT_ID_RE = re.compile(r"^[a-z0-9][a-z0-9._-]*$")
-FORBIDDEN_PARTS = {".env"}
 CITATION_COMMANDS = {
     "cite", "cites", "parencite", "parencites", "textcite", "textcites",
     "footcite", "footcites", "footcitetext", "smartcite", "smartcites",
@@ -49,18 +51,32 @@ CITATION_COMMANDS = {
     "volcite", "volcites", "pvolcite", "pvolcites", "fvolcite", "fvolcites",
     "ftvolcite", "ftvolcites", "svolcite", "svolcites", "tvolcite", "tvolcites",
     "avolcite", "avolcites", "citep", "citet", "citealp", "citealt",
-    "citeyearpar", "citenum",
+    "citeyearpar", "citenum", "citename", "citelist", "notecite",
+    "pnotecite", "fnotecite", "supercites", "footcitetexts",
+    "citetalias", "citepalias", "bibentry",
 }
-CITATION_RE = re.compile(
-    r"\\(?P<command>" + "|".join(
-        sorted((re.escape(item) for item in CITATION_COMMANDS), key=len, reverse=True)
-    ) + r")\*?(?![A-Za-z])"
-    r"(?P<arguments>(?:(?:\s*\[[^\]]*\]){0,2}\s*\{[^}]+\})+)",
+CITATION_COMMAND_PATTERN = "|".join(
+    sorted((re.escape(item) for item in CITATION_COMMANDS), key=len, reverse=True)
+)
+CITATION_COMMAND_TOKEN_RE = re.compile(
+    r"\\(?P<command>" + CITATION_COMMAND_PATTERN + r")\*?(?![A-Za-z])",
     flags=re.IGNORECASE,
 )
-CITATION_FAMILY_RE = re.compile(r"\\(?P<command>[A-Za-z@]*cite[A-Za-z@]*)\*?")
+CITATION_FAMILY_RE = re.compile(
+    r"\\(?P<command>[A-Za-z@]*cite[A-Za-z@]*)\*?", flags=re.IGNORECASE
+)
+CQUOTE_COMMAND_TOKEN_RE = re.compile(
+    r"\\(?P<command>(?:(?:foreign)?(?:text|block)|"
+    r"hyphen(?:text|block)|hybridblock)cquote)\*?(?![A-Za-z])",
+    flags=re.IGNORECASE,
+)
+CQUOTE_FAMILY_RE = re.compile(
+    r"\\(?P<command>[A-Za-z@]*cquote[A-Za-z@]*)\*?", flags=re.IGNORECASE
+)
 CITE_KEY_RE = re.compile(r"^[A-Za-z0-9_:.+/-]+$")
-NON_OCCURRENCE_CITATION_COMMANDS = {"nocite", "citestyle", "setcitestyle"}
+NON_OCCURRENCE_CITATION_COMMANDS = {
+    "nocite", "citestyle", "setcitestyle", "defcitealias", "citetext",
+}
 RUNTIME_ENV_KEYS = {
     "LANG", "LANGUAGE", "LC_ALL", "LC_CTYPE", "TZ", "TERM",
     "SSL_CERT_FILE", "SSL_CERT_DIR", "REQUESTS_CA_BUNDLE", "CURL_CA_BUNDLE",
@@ -98,13 +114,16 @@ def project_lock(root: Path) -> Iterable[None]:
     """Serialize every utility command for one project."""
     global _LOCK_DESCRIPTOR
     _, process_log = project_path(root, "process_log")
-    if not process_log.is_dir():
-        raise EvidenceError("process_log/ must be a real directory")
+    process_log_descriptor = _open_directory_path(process_log)
     flags = os.O_RDWR | os.O_CREAT | getattr(os, "O_NOFOLLOW", 0)
     try:
-        descriptor = os.open(process_log / Path(LOCK_PATH).name, flags, 0o600)
+        descriptor = os.open(
+            Path(LOCK_PATH).name, flags, 0o600, dir_fd=process_log_descriptor
+        )
     except OSError as exc:
+        os.close(process_log_descriptor)
         raise EvidenceError(f"cannot open results pipeline lock: {exc}") from exc
+    os.close(process_log_descriptor)
     try:
         info = os.fstat(descriptor)
         if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
@@ -122,49 +141,265 @@ def _reject_constant(value: str) -> None:
     raise EvidenceError(f"non-finite JSON number is forbidden: {value}")
 
 
-def load_json(path: Path) -> Any:
+def _forbidden_part(part: str) -> bool:
+    folded = part.casefold()
+    return folded == ".git" or folded.startswith(".env")
+
+
+def _validate_descendant_name(name: str, parent: Path) -> None:
+    """Reject names that cannot be represented safely in receipt path fields."""
     try:
-        with path.open("r", encoding="utf-8") as handle:
-            return json.load(handle, parse_constant=_reject_constant)
-    except (OSError, json.JSONDecodeError) as exc:
+        name.encode("utf-8", errors="strict")
+    except UnicodeError as exc:
+        raise EvidenceError(
+            f"directory entry name is not valid UTF-8 under {parent}"
+        ) from exc
+    if "\\" in name or any(ord(character) < 32 for character in name):
+        raise EvidenceError(
+            "control characters and backslashes are forbidden in directory entries: "
+            f"{parent / name}"
+        )
+
+
+def _open_directory_path(path: Path) -> int:
+    """Open a directory through held no-follow descriptors for every component."""
+    absolute = Path(os.path.abspath(path))
+    flags = (os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) |
+             getattr(os, "O_NOFOLLOW", 0))
+    descriptor = os.open(os.sep, flags)
+    try:
+        for part in absolute.parts[1:]:
+            expected = os.stat(part, dir_fd=descriptor, follow_symlinks=False)
+            if not stat.S_ISDIR(expected.st_mode):
+                raise EvidenceError(f"directory path component is not a directory: {path}")
+            child = os.open(part, flags, dir_fd=descriptor)
+            opened = os.fstat(child)
+            if ((opened.st_dev, opened.st_ino) !=
+                    (expected.st_dev, expected.st_ino)):
+                os.close(child)
+                raise EvidenceError(f"directory changed while opening: {path}")
+            os.close(descriptor)
+            descriptor = child
+        return descriptor
+    except BaseException as exc:
+        os.close(descriptor)
+        if isinstance(exc, EvidenceError):
+            raise
+        if isinstance(exc, OSError):
+            raise EvidenceError(f"cannot open directory without following links {path}: {exc}") from exc
+        raise
+
+
+def _open_or_create_directory_path(path: Path) -> int:
+    """Open/create a directory tree through held no-follow descriptors."""
+    absolute = Path(os.path.abspath(path))
+    flags = (os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) |
+             getattr(os, "O_NOFOLLOW", 0))
+    descriptor = os.open(os.sep, flags)
+    try:
+        for part in absolute.parts[1:]:
+            try:
+                expected = os.stat(part, dir_fd=descriptor, follow_symlinks=False)
+            except FileNotFoundError:
+                os.mkdir(part, 0o777, dir_fd=descriptor)
+                os.fsync(descriptor)
+                expected = os.stat(part, dir_fd=descriptor, follow_symlinks=False)
+            if not stat.S_ISDIR(expected.st_mode):
+                raise EvidenceError(f"directory path component is not a directory: {path}")
+            child = os.open(part, flags, dir_fd=descriptor)
+            opened = os.fstat(child)
+            if ((opened.st_dev, opened.st_ino) !=
+                    (expected.st_dev, expected.st_ino)):
+                os.close(child)
+                raise EvidenceError(f"directory changed while opening: {path}")
+            os.close(descriptor)
+            descriptor = child
+        return descriptor
+    except BaseException as exc:
+        os.close(descriptor)
+        if isinstance(exc, EvidenceError):
+            raise
+        if isinstance(exc, OSError):
+            raise EvidenceError(
+                f"cannot create/open directory without following links {path}: {exc}"
+            ) from exc
+        raise
+
+
+def _open_entry_read(path: Path) -> int:
+    """Open a file or directory while anchoring every ancestor descriptor."""
+    parent = _open_directory_path(path.parent)
+    descriptor: int | None = None
+    try:
+        expected = os.stat(path.name, dir_fd=parent, follow_symlinks=False)
+        flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0) | getattr(os, "O_NONBLOCK", 0)
+        if stat.S_ISDIR(expected.st_mode):
+            flags |= getattr(os, "O_DIRECTORY", 0)
+        descriptor = os.open(path.name, flags, dir_fd=parent)
+        opened = os.fstat(descriptor)
+        if ((opened.st_dev, opened.st_ino) != (expected.st_dev, expected.st_ino)):
+            raise EvidenceError(f"path changed while opening: {path}")
+        return descriptor
+    except BaseException as exc:
+        if descriptor is not None:
+            os.close(descriptor)
+        if isinstance(exc, EvidenceError):
+            raise
+        if isinstance(exc, OSError):
+            raise EvidenceError(f"cannot open path without following links {path}: {exc}") from exc
+        raise
+    finally:
+        os.close(parent)
+
+
+def _open_regular_read(path: Path) -> int:
+    """Open one non-symlink regular file without blocking on a FIFO."""
+    try:
+        descriptor = _open_entry_read(path)
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise EvidenceError(f"expected one non-aliased regular file: {path}")
+        return descriptor
+    except BaseException as exc:
+        if "descriptor" in locals():
+            os.close(descriptor)
+        if isinstance(exc, EvidenceError):
+            raise EvidenceError(
+                f"cannot open one non-aliased regular file {path}: {exc}"
+            ) from exc
+        if isinstance(exc, OSError):
+            raise EvidenceError(
+                f"cannot open one non-aliased regular file {path}: {exc}"
+            ) from exc
+        raise
+
+
+def read_utf8(path: Path, label: str) -> str:
+    try:
+        descriptor = _open_regular_read(path)
+        with os.fdopen(descriptor, "r", encoding="utf-8") as handle:
+            return handle.read()
+    except EvidenceError:
+        raise
+    except (OSError, UnicodeError) as exc:
+        raise EvidenceError(f"cannot read {label} from {path}: {exc}") from exc
+
+
+def load_json(path: Path) -> Any:
+    def unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+        value: dict[str, Any] = {}
+        for key, item in pairs:
+            if key in value:
+                raise EvidenceError(f"duplicate JSON object key: {key!r}")
+            value[key] = item
+        return value
+
+    try:
+        return json.loads(
+            read_utf8(path, "JSON"), parse_constant=_reject_constant,
+            object_pairs_hook=unique_object,
+        )
+    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
         raise EvidenceError(f"cannot read valid JSON from {path}: {exc}") from exc
 
 
+def fsync_directory(path: Path) -> None:
+    """Make one directory-entry update durable, with controlled failures."""
+    descriptor: int | None = None
+    try:
+        descriptor = os.open(path, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+        os.fsync(descriptor)
+    except OSError as exc:
+        raise EvidenceError(f"cannot durably synchronize directory {path}: {exc}") from exc
+    finally:
+        if descriptor is not None:
+            os.close(descriptor)
+
+
+def ensure_directory_durable(path: Path) -> None:
+    """Create a directory tree and durably publish every new ancestor."""
+    missing: list[Path] = []
+    current = path
+    while not current.exists():
+        missing.append(current)
+        parent = current.parent
+        if parent == current:
+            break
+        current = parent
+    try:
+        path.mkdir(parents=True, exist_ok=True)
+    except OSError as exc:
+        raise EvidenceError(f"cannot create directory {path}: {exc}") from exc
+    if not path.is_dir() or path.is_symlink():
+        raise EvidenceError(f"expected a real directory: {path}")
+    for created in reversed(missing):
+        fsync_directory(created)
+        fsync_directory(created.parent)
+
+
 def atomic_json(path: Path, value: Any) -> None:
-    path.parent.mkdir(parents=True, exist_ok=True)
     try:
         payload = json.dumps(value, indent=2, sort_keys=True, ensure_ascii=False,
                              allow_nan=False) + "\n"
     except (TypeError, ValueError) as exc:
         raise EvidenceError(f"cannot serialize receipt {path}: {exc}") from exc
-    fd, temporary = tempfile.mkstemp(prefix=f".{path.name}.", dir=path.parent)
+    parent_descriptor: int | None = None
+    temporary: str | None = None
     try:
+        _validate_descendant_name(path.name, path.parent)
+        if path.name in {"", ".", ".."}:
+            raise EvidenceError(f"invalid JSON publication name: {path.name!r}")
+        parent_descriptor = _open_or_create_directory_path(path.parent)
+        temporary = f".{path.name}.{secrets.token_hex(16)}"
+        fd = os.open(
+            temporary,
+            os.O_WRONLY | os.O_CREAT | os.O_EXCL | getattr(os, "O_NOFOLLOW", 0),
+            0o600,
+            dir_fd=parent_descriptor,
+        )
         with os.fdopen(fd, "w", encoding="utf-8") as handle:
             handle.write(payload)
             handle.flush()
             os.fsync(handle.fileno())
-        os.replace(temporary, path)
-        directory_fd = os.open(path.parent, os.O_RDONLY | getattr(os, "O_DIRECTORY", 0))
+        current_parent = _open_directory_path(path.parent)
         try:
-            os.fsync(directory_fd)
+            anchored = os.fstat(parent_descriptor)
+            current = os.fstat(current_parent)
+            if ((anchored.st_dev, anchored.st_ino) !=
+                    (current.st_dev, current.st_ino)):
+                raise EvidenceError(f"publication directory changed: {path.parent}")
         finally:
-            os.close(directory_fd)
+            os.close(current_parent)
+        os.replace(
+            temporary, path.name,
+            src_dir_fd=parent_descriptor, dst_dir_fd=parent_descriptor,
+        )
+        os.fsync(parent_descriptor)
+    except (OSError, UnicodeError) as exc:
+        raise EvidenceError(f"cannot publish receipt {path}: {exc}") from exc
     finally:
-        try:
-            os.unlink(temporary)
-        except FileNotFoundError:
-            pass
+        if temporary is not None and parent_descriptor is not None:
+            try:
+                os.unlink(temporary, dir_fd=parent_descriptor)
+            except FileNotFoundError:
+                pass
+        if parent_descriptor is not None:
+            os.close(parent_descriptor)
 
 
 def project_path(root: Path, raw: str, *, must_exist: bool = True) -> tuple[str, Path]:
     if not isinstance(raw, str) or not raw:
         raise EvidenceError("paths must be non-empty strings")
+    if any(ord(character) < 32 for character in raw):
+        raise EvidenceError(f"control characters are forbidden in project paths: {raw!r}")
     posix = PurePosixPath(raw.replace("\\", "/"))
     if posix.is_absolute() or ".." in posix.parts or "." in posix.parts:
         raise EvidenceError(f"path must be project-relative without traversal: {raw!r}")
-    if any(part in FORBIDDEN_PARTS for part in posix.parts):
+    if any(_forbidden_part(part) for part in posix.parts):
         raise EvidenceError(f"credential-bearing path may not enter a result receipt: {raw!r}")
     normalized = posix.as_posix()
+    if normalized == ".":
+        raise EvidenceError(f"path must name a project entry, not the project root: {raw!r}")
     candidate = root.joinpath(*posix.parts)
     current = root
     for part in posix.parts:
@@ -179,7 +414,9 @@ def project_path(root: Path, raw: str, *, must_exist: bool = True) -> tuple[str,
 
 
 def reject_audit_namespace(raw: str, where: str) -> None:
-    if raw == AUDIT_NAMESPACE or raw.startswith(AUDIT_NAMESPACE + "/"):
+    folded = raw.casefold()
+    namespace = AUDIT_NAMESPACE.casefold()
+    if folded == namespace or folded.startswith(namespace + "/"):
         raise EvidenceError(
             f"{where} may not use reserved audit namespace {AUDIT_NAMESPACE}/"
         )
@@ -187,31 +424,147 @@ def reject_audit_namespace(raw: str, where: str) -> None:
 
 def sha256_file(path: Path) -> str:
     digest = hashlib.sha256()
-    with path.open("rb") as handle:
-        for chunk in iter(lambda: handle.read(1024 * 1024), b""):
-            digest.update(chunk)
+    try:
+        descriptor = _open_regular_read(path)
+        with os.fdopen(descriptor, "rb") as handle:
+            for chunk in iter(lambda: handle.read(1024 * 1024), b""):
+                digest.update(chunk)
+    except OSError as exc:
+        raise EvidenceError(f"cannot fingerprint regular file {path}: {exc}") from exc
     return f"sha256:{digest.hexdigest()}"
+
+
+def walk_directory(path: Path, *, hash_files: bool = False, root_fd: int | None = None
+                   ) -> list[tuple[str, Path, os.stat_result, str | None]]:
+    """Enumerate through held no-follow descriptors with depth-bounded FD use."""
+    flags = (os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) |
+             getattr(os, "O_NOFOLLOW", 0))
+    root_fd = os.dup(root_fd) if root_fd is not None else _open_directory_path(path)
+    found: list[tuple[str, Path, os.stat_result, str | None]] = []
+    try:
+        root_names = sorted(os.listdir(root_fd))
+    except OSError as exc:
+        os.close(root_fd)
+        raise EvidenceError(f"cannot inspect declared directory {path}: {exc}") from exc
+    stack: list[tuple[int, PurePosixPath, list[str], int]] = [
+        (root_fd, PurePosixPath(), root_names, 0)
+    ]
+    try:
+        while stack:
+            directory_fd, prefix, names, index = stack[-1]
+            if index >= len(names):
+                os.close(directory_fd)
+                stack.pop()
+                continue
+            name = names[index]
+            stack[-1] = (directory_fd, prefix, names, index + 1)
+            _validate_descendant_name(name, path / prefix)
+            relative = prefix / name
+            child = path.joinpath(*relative.parts)
+            try:
+                info = os.stat(name, dir_fd=directory_fd, follow_symlinks=False)
+            except OSError as exc:
+                raise EvidenceError(f"cannot inspect directory entry {child}: {exc}") from exc
+            digest: str | None = None
+            if stat.S_ISDIR(info.st_mode):
+                try:
+                    child_fd = os.open(name, flags, dir_fd=directory_fd)
+                except OSError as exc:
+                    raise EvidenceError(f"cannot open declared directory {child}: {exc}") from exc
+                try:
+                    opened = os.fstat(child_fd)
+                    if ((opened.st_dev, opened.st_ino) != (info.st_dev, info.st_ino)):
+                        raise EvidenceError(f"directory changed while inspecting {child}")
+                    found.append((relative.as_posix(), child, info, None))
+                    try:
+                        child_names = sorted(os.listdir(child_fd))
+                    except OSError as exc:
+                        os.close(child_fd)
+                        raise EvidenceError(
+                            f"cannot inspect declared directory {child}: {exc}"
+                        ) from exc
+                    stack.append((child_fd, relative, child_names, 0))
+                except BaseException:
+                    if not any(frame[0] == child_fd for frame in stack):
+                        try:
+                            os.close(child_fd)
+                        except OSError:
+                            pass
+                    raise
+                continue
+            if hash_files and stat.S_ISREG(info.st_mode):
+                file_flags = (os.O_RDONLY | os.O_NONBLOCK |
+                              getattr(os, "O_NOFOLLOW", 0))
+                try:
+                    file_fd = os.open(name, file_flags, dir_fd=directory_fd)
+                except OSError as exc:
+                    raise EvidenceError(f"cannot fingerprint {child}: {exc}") from exc
+                try:
+                    opened = os.fstat(file_fd)
+                    if ((opened.st_dev, opened.st_ino) != (info.st_dev, info.st_ino)
+                            or opened.st_nlink != 1):
+                        raise EvidenceError(
+                            "file changed or is not one non-aliased regular file "
+                            f"while fingerprinting {child}"
+                        )
+                    file_digest = hashlib.sha256()
+                    for chunk in iter(lambda: os.read(file_fd, 1024 * 1024), b""):
+                        file_digest.update(chunk)
+                    digest = f"sha256:{file_digest.hexdigest()}"
+                finally:
+                    os.close(file_fd)
+            found.append((relative.as_posix(), child, info, digest))
+    except BaseException:
+        for descriptor, *_ in stack:
+            try:
+                os.close(descriptor)
+            except OSError:
+                pass
+        raise
+    return sorted(found, key=lambda entry: entry[0])
 
 
 def fingerprint(root: Path, raw: str) -> dict[str, Any]:
     normalized, path = project_path(root, raw)
-    mode = path.lstat().st_mode
-    if stat.S_ISREG(mode):
-        return {"path": normalized, "kind": "file", "sha256": sha256_file(path)}
-    if not stat.S_ISDIR(mode):
-        raise EvidenceError(f"only regular files/directories may be fingerprinted: {normalized}")
-    entries: list[dict[str, Any]] = []
-    for child in sorted(path.rglob("*"), key=lambda item: item.relative_to(path).as_posix()):
-        relative = child.relative_to(path).as_posix()
-        if child.is_symlink():
-            raise EvidenceError(f"symlink inside declared directory is forbidden: {normalized}/{relative}")
-        child_mode = child.lstat().st_mode
-        if stat.S_ISDIR(child_mode):
-            entries.append({"path": relative, "kind": "directory"})
-            continue
-        if not stat.S_ISREG(child_mode):
-            raise EvidenceError(f"special file inside declared directory: {normalized}/{relative}")
-        entries.append({"path": relative, "kind": "file", "sha256": sha256_file(child)})
+    descriptor = _open_entry_read(path)
+    try:
+        info = os.fstat(descriptor)
+        if stat.S_ISREG(info.st_mode):
+            if info.st_nlink != 1:
+                raise EvidenceError(
+                    f"expected one non-aliased regular file while fingerprinting: {normalized}"
+                )
+            digest = hashlib.sha256()
+            for chunk in iter(lambda: os.read(descriptor, 1024 * 1024), b""):
+                digest.update(chunk)
+            return {"path": normalized, "kind": "file",
+                    "sha256": f"sha256:{digest.hexdigest()}"}
+        if not stat.S_ISDIR(info.st_mode):
+            raise EvidenceError(f"only regular files/directories may be fingerprinted: {normalized}")
+        entries: list[dict[str, Any]] = []
+        for relative, child, child_info, child_digest in walk_directory(
+                path, hash_files=True, root_fd=descriptor):
+            if any(_forbidden_part(part) for part in PurePosixPath(relative).parts):
+                raise EvidenceError(
+                    f"credential-bearing descendant may not enter result provenance: "
+                    f"{normalized}/{relative}"
+                )
+            if stat.S_ISLNK(child_info.st_mode):
+                raise EvidenceError(
+                    f"symlink inside declared directory is forbidden: {normalized}/{relative}"
+                )
+            child_mode = child_info.st_mode
+            if stat.S_ISDIR(child_mode):
+                entries.append({"path": relative, "kind": "directory"})
+                continue
+            if not stat.S_ISREG(child_mode):
+                raise EvidenceError(
+                    f"special file inside declared directory: {normalized}/{relative}"
+                )
+            assert child_digest is not None
+            entries.append({"path": relative, "kind": "file", "sha256": child_digest})
+    finally:
+        os.close(descriptor)
     encoded = json.dumps(entries, sort_keys=True, separators=(",", ":")).encode("utf-8")
     return {
         "path": normalized,
@@ -302,7 +655,8 @@ def validate_bundle(bundle: Any, root: Path) -> dict[str, Any]:
         raise EvidenceError("producer.code contains normalized duplicates")
     if len(producer["inputs"]) != len(set(producer["inputs"])):
         raise EvidenceError("producer.inputs contains normalized duplicates")
-    if producer["reproducibility"] not in {"exact", "bounded", "captured"}:
+    if (not isinstance(producer["reproducibility"], str) or
+            producer["reproducibility"] not in {"exact", "bounded", "captured"}):
         raise EvidenceError("producer.reproducibility must be exact, bounded, or captured")
     if "notes" in producer and not isinstance(producer["notes"], str):
         raise EvidenceError("producer.notes must be a string")
@@ -389,7 +743,8 @@ def validate_bundle(bundle: Any, root: Path) -> dict[str, Any]:
         if exhibit_id in exhibit_ids:
             raise EvidenceError(f"duplicate exhibit id: {exhibit_id}")
         exhibit_ids.add(exhibit_id)
-        if exhibit["kind"] not in {"table", "figure"}:
+        if (not isinstance(exhibit["kind"], str) or
+                exhibit["kind"] not in {"table", "figure"}):
             raise EvidenceError(f"exhibits[{index}].kind must be table or figure")
         if not isinstance(exhibit["description"], str) or not exhibit["description"]:
             raise EvidenceError(f"exhibits[{index}].description must be non-empty")
@@ -443,10 +798,14 @@ def actual_command(values: list[str]) -> list[str]:
 
 
 def supervised_command(command: list[str], *, cwd: Path,
-                       environment: dict[str, str]) -> int:
-    """Run one process group under a lock-free supervisor tied to this parent."""
+                       environment: dict[str, str]
+                       ) -> tuple[int, bytes, bytes, bool]:
+    """Run one process group, capturing bounded output under a parent-death guard."""
     if not hasattr(os, "fork"):
         raise EvidenceError("isolated results execution requires POSIX process supervision")
+    capture_limit = 1024 * 1024
+    stdout_capture = tempfile.TemporaryFile()
+    stderr_capture = tempfile.TemporaryFile()
     read_fd, write_fd = os.pipe()
     supervisor = os.fork()
     if supervisor == 0:
@@ -457,14 +816,21 @@ def supervised_command(command: list[str], *, cwd: Path,
             child = subprocess.Popen(
                 command, cwd=cwd, env=environment, close_fds=True,
                 start_new_session=True, stdin=subprocess.DEVNULL,
+                stdout=subprocess.PIPE, stderr=subprocess.PIPE,
             )
+            assert child.stdout is not None and child.stderr is not None
+            streams = {
+                child.stdout.fileno(): stdout_capture.fileno(),
+                child.stderr.fileno(): stderr_capture.fileno(),
+            }
+            totals = {descriptor: 0 for descriptor in streams}
+            overflow = False
+            for descriptor in streams:
+                os.set_blocking(descriptor, False)
             while True:
-                returncode = child.poll()
-                if returncode is not None:
-                    os._exit(min(returncode, 253) if returncode >= 0
-                             else min(128 - returncode, 253))
-                readable, _, _ = select.select([read_fd], [], [], 0.02)
-                if readable and os.read(read_fd, 1) == b"":
+                watched = [read_fd, *streams]
+                readable, _, _ = select.select(watched, [], [], 0.02)
+                if read_fd in readable and os.read(read_fd, 1) == b"":
                     try:
                         os.killpg(child.pid, signal.SIGKILL)
                     except ProcessLookupError:
@@ -472,6 +838,29 @@ def supervised_command(command: list[str], *, cwd: Path,
                     child.wait()
                     remove_abandoned_workspace(cwd)
                     os._exit(254)
+                for descriptor in list(streams):
+                    if descriptor not in readable:
+                        continue
+                    try:
+                        chunk = os.read(descriptor, 65536)
+                    except BlockingIOError:
+                        continue
+                    if not chunk:
+                        streams.pop(descriptor)
+                        continue
+                    remaining = capture_limit - totals[descriptor]
+                    if remaining > 0:
+                        written = chunk[:remaining]
+                        os.write(streams[descriptor], written)
+                        totals[descriptor] += len(written)
+                    if len(chunk) > max(0, remaining):
+                        overflow = True
+                returncode = child.poll()
+                if returncode is not None and not streams:
+                    if overflow:
+                        os._exit(252)
+                    os._exit(min(returncode, 251) if returncode >= 0
+                             else min(128 - returncode, 251))
         except BaseException:
             os._exit(253)
     os.close(read_fd)
@@ -479,7 +868,15 @@ def supervised_command(command: list[str], *, cwd: Path,
         _, status = os.waitpid(supervisor, 0)
     finally:
         os.close(write_fd)
-    return os.waitstatus_to_exitcode(status)
+    stdout_capture.seek(0)
+    stderr_capture.seek(0)
+    stdout = stdout_capture.read()
+    stderr = stderr_capture.read()
+    stdout_capture.close()
+    stderr_capture.close()
+    return os.waitstatus_to_exitcode(status), stdout, stderr, (
+        os.waitstatus_to_exitcode(status) == 252
+    )
 
 
 def _inside(path: Path, parent: Path) -> bool:
@@ -497,7 +894,7 @@ def venv_base_roots(venv: Path, root: Path) -> list[Path]:
         return []
     home: Path | None = None
     try:
-        for line in config.read_text(encoding="utf-8").splitlines():
+        for line in read_utf8(config, "venv configuration").splitlines():
             key, separator, value = line.partition("=")
             if separator and key.strip().lower() == "home":
                 candidate = Path(value.strip())
@@ -519,10 +916,45 @@ def venv_base_roots(venv: Path, root: Path) -> list[Path]:
     roots: list[Path] = []
     for candidate in candidates:
         candidate = candidate.resolve()
+        home = Path.home().resolve()
+        user_runtime_prefixes = (
+            home / ".local/share/uv/python",
+            home / "Library/Application Support/uv/python",
+        )
+        homebrew_prefixes = (Path("/opt/homebrew"), Path("/usr/local"))
+        runtime_root = candidate
+        if any(_inside(candidate, prefix) for prefix in user_runtime_prefixes):
+            runtime_root = next(
+                prefix for prefix in user_runtime_prefixes if _inside(candidate, prefix)
+            )
+        elif any(_inside(candidate, prefix) for prefix in homebrew_prefixes):
+            # Homebrew Python loads sibling formula libraries by absolute path,
+            # so binding only the Python keg is insufficient.
+            runtime_root = next(
+                prefix for prefix in homebrew_prefixes if _inside(candidate, prefix)
+            )
         if candidate == Path("/") or _inside(candidate, root) or _inside(root, candidate):
             raise EvidenceError("project venv base runtime must not expose the project root")
-        if candidate.exists() and candidate not in roots:
-            roots.append(candidate)
+        # pyvenv.cfg and the venv's interpreter links are project-writable.
+        # Apart from the explicit uv/Homebrew runtime families above, accept
+        # only protected system runtime trees; otherwise `home = /tmp` would
+        # expose arbitrary host files inside the evidence sandbox.
+        if candidate.exists() and runtime_root == candidate:
+            current = candidate
+            while True:
+                info = current.stat()
+                if (os.access(current, os.W_OK) or
+                        info.st_mode & (stat.S_IWGRP | stat.S_IWOTH)):
+                    raise EvidenceError(
+                        "project venv base runtime must be a protected system path"
+                    )
+                if current.parent == current:
+                    break
+                current = current.parent
+        if runtime_root.exists() and runtime_root not in roots:
+            if _inside(root, runtime_root):
+                raise EvidenceError("project must not live beneath an allowed runtime prefix")
+            roots.append(runtime_root)
     return roots
 
 
@@ -585,22 +1017,64 @@ def isolated_runtime(command: list[str], root: Path, cwd: Path,
     return rewritten, clean, (venv if has_venv else None), runtime_roots
 
 
-def reject_credential_leak(workspace: Path, environment: dict[str, str]) -> None:
-    """Reject literal provider credentials in any staged source or output byte stream."""
-    secrets = {value.encode() for key, value in environment.items()
-               if key in SECRET_ENV_KEYS and len(value) >= 8}
+def credential_literals(environment: dict[str, str]) -> set[str]:
+    """Return every literal spelling of an ambient provider/proxy credential."""
+    literals = {
+        value for key, value in environment.items()
+        if key in SECRET_ENV_KEYS and value
+    }
     for key in ("HTTP_PROXY", "HTTPS_PROXY", "ALL_PROXY", "http_proxy",
                 "https_proxy", "all_proxy", "BUNDLE_HTTP_PROXY",
                 "BUNDLE_HTTPS_PROXY"):
         raw = environment.get(key)
-        if raw:
-            try:
-                encoded_password = urlsplit(raw).password
-                password = unquote(encoded_password) if encoded_password else None
-            except ValueError:
-                password = None
-            if password and len(password) >= 8:
-                secrets.add(password.encode())
+        if not raw:
+            continue
+        try:
+            parsed = urlsplit(raw)
+            encoded_username = parsed.username
+            encoded_password = parsed.password
+        except ValueError:
+            encoded_username = None
+            encoded_password = None
+        userinfo = [
+            value for value in (encoded_username, encoded_password) if value
+        ]
+        if userinfo:
+            literals.add(raw)
+            for value in userinfo:
+                literals.add(value)
+                literals.add(unquote(value))
+    return literals
+
+
+def reject_captured_credential_leak(stdout: bytes, stderr: bytes,
+                                    environment: dict[str, str]) -> None:
+    """Never release a child stream containing an ambient credential literal."""
+    secrets = [value.encode() for value in credential_literals(environment) if value]
+    if any(secret in stream for secret in secrets for stream in (stdout, stderr)):
+        raise EvidenceError("producer/renderer output contains a literal provider credential")
+
+
+def emit_captured_output(stdout: bytes, stderr: bytes) -> None:
+    """Keep the command's stdout machine-readable while preserving safe diagnostics."""
+    sink = sys.stderr.buffer
+    for label, payload in ((b"producer/renderer stdout", stdout),
+                           (b"producer/renderer stderr", stderr)):
+        if not payload:
+            continue
+        sink.write(b"[" + label + b"]\n")
+        sink.write(payload)
+        if not payload.endswith(b"\n"):
+            sink.write(b"\n")
+    sink.flush()
+
+
+def reject_credential_leak(workspace: Path, environment: dict[str, str]) -> None:
+    """Reject literal provider credentials in any staged source or output byte stream."""
+    secrets = {
+        value.encode() for value in credential_literals(environment)
+        if len(value) >= 8
+    }
     if not secrets:
         return
     for path in workspace.rglob("*"):
@@ -624,6 +1098,31 @@ def reject_credential_leak(workspace: Path, environment: dict[str, str]) -> None
             raise EvidenceError(f"cannot scan staged evidence for credentials: {path}: {exc}") from exc
 
 
+def reject_command_credential_leak(command: list[str],
+                                   environment: dict[str, str]) -> None:
+    """Never serialize provider credentials or proxy passwords in command argv."""
+    secrets = credential_literals(environment)
+    if any(secret in argument for secret in secrets for argument in command):
+        raise EvidenceError("command arguments contain a literal provider credential")
+
+
+def trusted_sandbox_executable(name: str) -> str | None:
+    """Resolve containment only from immutable system locations, never ambient PATH."""
+    expected = {
+        "bwrap": "/usr/bin/bwrap" if sys.platform.startswith("linux") else None,
+        "sandbox-exec": "/usr/bin/sandbox-exec" if sys.platform == "darwin" else None,
+    }.get(name)
+    if expected is None:
+        return None
+    try:
+        metadata = os.lstat(expected)
+    except OSError:
+        return None
+    if not stat.S_ISREG(metadata.st_mode) or not os.access(expected, os.X_OK):
+        return None
+    return expected
+
+
 def selected_dotenv_credentials(project_root: Path,
                                  selected: set[str]) -> dict[str, str]:
     """Read only explicitly authorized provider secrets from the project .env."""
@@ -639,7 +1138,7 @@ def selected_dotenv_credentials(project_root: Path,
     if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
         raise EvidenceError("project .env must be a regular non-symlink file")
     try:
-        lines = dotenv.read_text(encoding="utf-8").splitlines()
+        lines = read_utf8(dotenv, "project .env").splitlines()
     except (OSError, UnicodeError) as exc:
         raise EvidenceError(f"cannot read project .env: {exc}") from exc
     values: dict[str, str] = {}
@@ -685,6 +1184,24 @@ def selected_dotenv_credentials(project_root: Path,
     return values
 
 
+def ambient_network_is_denied() -> bool:
+    """Return true only when inherited policy forbids IPv4 and IPv6 sockets."""
+    for family in (socket.AF_INET, socket.AF_INET6):
+        try:
+            probe = socket.socket(family, socket.SOCK_STREAM)
+        except PermissionError:
+            continue
+        except OSError as exc:
+            if exc.errno in {errno.EAFNOSUPPORT, errno.EPROTONOSUPPORT}:
+                continue
+            # Other failures are not evidence of a kernel deny; require the
+            # private namespace and fail closed if bwrap cannot create it.
+            return False
+        probe.close()
+        return False
+    return True
+
+
 def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
             extra_environment: dict[str, str] | None = None,
             project_root: Path | None = None,
@@ -705,6 +1222,14 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
                 project_root, selected_credentials).items():
             if not environment.get(key):
                 environment[key] = value
+    # Preserve the complete host-side secret vocabulary for the post-run scan.
+    # Capability stripping below controls what the child receives; it must not
+    # also erase the literals that staged evidence is forbidden to contain.
+    credential_scan_environment = environment.copy()
+    # Check before authority is stripped: renderers receive no credentials in
+    # their environment, but their immutable command record must not disclose
+    # a credential inherited by the host process either.
+    reject_command_credential_leak(command, environment)
     for key in SECRET_ENV_KEYS:
         if key not in selected_credentials:
             environment.pop(key, None)
@@ -718,13 +1243,15 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
             command, project_root, cwd, environment
         )
     sandboxed_command: list[str]
-    bubblewrap = shutil.which("bwrap")
-    sandbox_exec = shutil.which("sandbox-exec")
+    bubblewrap = trusted_sandbox_executable("bwrap")
+    sandbox_exec = trusted_sandbox_executable("sandbox-exec")
     if project_root is not None and bubblewrap is not None:
         sandboxed_command = [
             bubblewrap, "--die-with-parent", "--new-session", "--unshare-pid",
             "--as-pid-1",
         ]
+        if not allow_network and not ambient_network_is_denied():
+            sandboxed_command.append("--unshare-net")
         system_roots = [Path(raw) for raw in
                         ("/usr", "/bin", "/sbin", "/lib", "/lib64", "/etc")]
         for path in system_roots:
@@ -742,11 +1269,14 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
                 sandboxed_command.extend(
                     ["--ro-bind", str(runtime_root), str(runtime_root)]
                 )
-        runtime_home = Path(environment["HOME"])
-        for relative in (".local/state/zeropaper/wrds", ".cache/zeropaper/wrds"):
-            service_path = runtime_home / relative
-            if service_path.exists() and not service_path.is_symlink():
-                sandboxed_command.extend(["--ro-bind", str(service_path), str(service_path)])
+        if allow_network:
+            runtime_home = Path(environment["HOME"])
+            for relative in (".local/state/zeropaper/wrds", ".cache/zeropaper/wrds"):
+                service_path = runtime_home / relative
+                if service_path.exists() and not service_path.is_symlink():
+                    sandboxed_command.extend(
+                        ["--ro-bind", str(service_path), str(service_path)]
+                    )
         sandboxed_command.extend(["--tmpfs", str(project_root)])
         sandboxed_command.extend([
             "--bind", str(cwd), str(cwd), "--chdir", str(cwd), "--", *command
@@ -773,21 +1303,22 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
             command = [item.replace("/results-runtime-venv", str(runtime_venv))
                        for item in command]
         read_roots.extend(str(path) for path in runtime_roots)
-        runtime_home = Path(environment["HOME"])
-        for relative in (".local/state/zeropaper/wrds", ".cache/zeropaper/wrds"):
-            service_path = runtime_home / relative
-            if service_path.exists() and not service_path.is_symlink():
-                if (_inside(project_root, service_path) or
-                        _inside(service_path, project_root)):
-                    raise EvidenceError(
-                        "macOS WRDS runtime path must not overlap the project root"
-                    )
-                read_roots.append(str(service_path))
+        if allow_network:
+            runtime_home = Path(environment["HOME"])
+            for relative in (".local/state/zeropaper/wrds", ".cache/zeropaper/wrds"):
+                service_path = runtime_home / relative
+                if service_path.exists() and not service_path.is_symlink():
+                    if (_inside(project_root, service_path) or
+                            _inside(service_path, project_root)):
+                        raise EvidenceError(
+                            "macOS WRDS runtime path must not overlap the project root"
+                        )
+                    read_roots.append(str(service_path))
         read_rules = " ".join(f'(subpath "{literal(raw)}")' for raw in read_roots)
         profile = (
             '(version 1) (deny default) (allow process*) '
             + ('(allow network*) ' if allow_network else '') +
-            '(allow sysctl-read) (allow mach-lookup) (allow ipc-posix-shm) '
+            '(allow sysctl-read) (allow ipc-posix-shm) '
             f'(allow file-read* {read_rules} (subpath "{literal(str(cwd))}")) '
             f'(allow file-write* (subpath "{literal(str(cwd))}"))'
         )
@@ -798,10 +1329,18 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
         )
     else:
         sandboxed_command = command
-    returncode = supervised_command(sandboxed_command, cwd=cwd, environment=environment)
+    returncode, captured_stdout, captured_stderr, output_overflow = supervised_command(
+        sandboxed_command, cwd=cwd, environment=environment
+    )
+    reject_captured_credential_leak(
+        captured_stdout, captured_stderr, credential_scan_environment
+    )
+    if output_overflow:
+        raise EvidenceError("producer/renderer output exceeded the 1 MiB per-stream limit")
+    emit_captured_output(captured_stdout, captured_stderr)
     if returncode != 0:
         raise EvidenceError(f"command failed with exit {returncode}: {command!r}")
-    reject_credential_leak(cwd, environment)
+    reject_credential_leak(cwd, credential_scan_environment)
 
 
 def command_entrypoint(command: list[str]) -> str:
@@ -841,14 +1380,15 @@ def command_uses_declared_code(command: list[str], code_paths: list[str], where:
 
 
 def temporary_absent_path(path: Path, label: str) -> Path:
-    path.parent.mkdir(parents=True, exist_ok=True)
+    ensure_directory_durable(path.parent)
     fd, raw = tempfile.mkstemp(prefix=f".{path.name}.{label}.", dir=path.parent)
     os.close(fd)
     os.unlink(raw)
     return Path(raw)
 
 
-def validate_run_plan(value: Any, root: Path) -> dict[str, Any]:
+def validate_run_plan(value: Any, root: Path, *, require_live_sources: bool = True
+                      ) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise EvidenceError("run plan must be a JSON object")
     required = {"plan_version", "producer_code", "producer_inputs", "artifacts",
@@ -861,7 +1401,9 @@ def validate_run_plan(value: Any, root: Path) -> dict[str, Any]:
     for key in ("producer_code", "producer_inputs", "renderer_code"):
         paths = _string_list(value[key], f"run plan.{key}",
                              nonempty=(key == "producer_code"))
-        value[key] = [project_path(root, raw)[0] for raw in paths]
+        value[key] = [
+            project_path(root, raw, must_exist=require_live_sources)[0] for raw in paths
+        ]
         if len(value[key]) != len(set(value[key])):
             raise EvidenceError(f"run plan.{key} contains normalized duplicates")
     for key in ("artifacts", "exhibits"):
@@ -888,41 +1430,261 @@ def validate_run_plan(value: Any, root: Path) -> dict[str, Any]:
     return value
 
 
-def remove_generated_path(path: Path) -> None:
-    if path.is_symlink() or path.is_file():
-        path.unlink()
-    elif path.is_dir():
-        shutil.rmtree(path)
+def _remove_entry_at(parent_fd: int, name: str) -> None:
+    """Remove one entry beneath an already anchored directory without following links."""
+    try:
+        info = os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+    except FileNotFoundError:
+        return
+    if not stat.S_ISDIR(info.st_mode):
+        os.unlink(name, dir_fd=parent_fd)
+        return
+    flags = (os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) |
+             getattr(os, "O_NOFOLLOW", 0))
+    child_fd = os.open(name, flags, dir_fd=parent_fd)
+    try:
+        opened = os.fstat(child_fd)
+        if ((opened.st_dev, opened.st_ino) != (info.st_dev, info.st_ino)):
+            raise EvidenceError("directory changed during secure removal")
+        for child in os.listdir(child_fd):
+            _remove_entry_at(child_fd, child)
+    finally:
+        os.close(child_fd)
+    os.rmdir(name, dir_fd=parent_fd)
 
 
-def _copy_evidence_path(source: Path, destination: Path) -> None:
-    """Copy with copy-on-write cloning where the filesystem supports it."""
-    def clone_file(raw_source: str, raw_destination: str) -> str:
-        source_path = Path(raw_source)
-        destination_path = Path(raw_destination)
-        try:
-            source_fd = os.open(source_path, os.O_RDONLY)
+def _copy_evidence_path(source: Path, destination: Path, *, source_fd: int | None = None,
+                        destination_parent_fd: int | None = None,
+                        destination_name: str | None = None) -> None:
+    """Durably copy evidence with reflinks and depth-bounded descriptor use."""
+    source_root_fd = os.dup(source_fd) if source_fd is not None else _open_entry_read(source)
+    destination_root_parent_fd = (
+        os.dup(destination_parent_fd)
+        if destination_parent_fd is not None
+        else _open_directory_path(destination.parent)
+    )
+    source_info = os.fstat(source_root_fd)
+    target_name = destination_name if destination_name is not None else destination.name
+    if (not target_name or target_name in {".", ".."} or "/" in target_name
+            or "\\" in target_name):
+        os.close(source_root_fd)
+        os.close(destination_root_parent_fd)
+        raise EvidenceError("copy destination must be one directory entry")
+    try:
+        if stat.S_ISREG(source_info.st_mode):
+            if source_info.st_nlink != 1:
+                raise EvidenceError(f"source is not one non-aliased regular file: {source}")
+            destination_fd: int | None = None
             try:
                 destination_fd = os.open(
-                    destination_path, os.O_WRONLY | os.O_CREAT | os.O_EXCL, 0o600
+                    target_name,
+                    os.O_WRONLY | os.O_CREAT | os.O_EXCL |
+                    getattr(os, "O_NOFOLLOW", 0),
+                    0o600, dir_fd=destination_root_parent_fd,
                 )
                 try:
-                    fcntl.ioctl(destination_fd, 0x40049409, source_fd)  # Linux FICLONE
-                finally:
-                    os.close(destination_fd)
+                    fcntl.ioctl(destination_fd, 0x40049409, source_root_fd)
+                except OSError:
+                    os.ftruncate(destination_fd, 0)
+                    os.lseek(source_root_fd, 0, os.SEEK_SET)
+                    while True:
+                        chunk = os.read(source_root_fd, 1024 * 1024)
+                        if not chunk:
+                            break
+                        view = memoryview(chunk)
+                        while view:
+                            written = os.write(destination_fd, view)
+                            if written <= 0:
+                                raise EvidenceError("short write while copying declared evidence")
+                            view = view[written:]
+                os.fchmod(destination_fd, stat.S_IMODE(source_info.st_mode))
+                os.fsync(destination_fd)
             finally:
-                os.close(source_fd)
-            shutil.copystat(source_path, destination_path, follow_symlinks=False)
-        except OSError:
-            destination_path.unlink(missing_ok=True)
-            shutil.copy2(source_path, destination_path)
-        return str(destination_path)
+                if destination_fd is not None:
+                    os.close(destination_fd)
+            os.fsync(destination_root_parent_fd)
+            return
+        if not stat.S_ISDIR(source_info.st_mode):
+            raise EvidenceError(
+                f"expected one non-aliased regular file or real directory: {source}"
+            )
 
-    if source.is_dir():
-        shutil.copytree(source, destination, copy_function=clone_file)
-    else:
-        destination.parent.mkdir(parents=True, exist_ok=True)
-        clone_file(str(source), str(destination))
+        source_flags = (os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) |
+                        getattr(os, "O_NOFOLLOW", 0))
+        os.mkdir(target_name, 0o700, dir_fd=destination_root_parent_fd)
+        destination_root_fd = os.open(
+            target_name, source_flags, dir_fd=destination_root_parent_fd
+        )
+        try:
+            root_names = sorted(os.listdir(source_root_fd))
+        except BaseException:
+            os.close(destination_root_fd)
+            raise
+        stack: list[tuple[int, int, PurePosixPath, list[str], int, int]] = [
+            (source_root_fd, destination_root_fd, PurePosixPath(),
+             root_names, 0, stat.S_IMODE(source_info.st_mode) | stat.S_IRWXU)
+        ]
+        source_root_fd = -1
+        try:
+            while stack:
+                current_source_fd, current_destination_fd, prefix, names, index, directory_mode = stack[-1]
+                if index >= len(names):
+                    os.fchmod(current_destination_fd, directory_mode)
+                    os.fsync(current_destination_fd)
+                    os.close(current_source_fd)
+                    os.close(current_destination_fd)
+                    stack.pop()
+                    continue
+                name = names[index]
+                stack[-1] = (
+                    current_source_fd, current_destination_fd, prefix, names,
+                    index + 1, directory_mode,
+                )
+                _validate_descendant_name(name, source / prefix)
+                relative = prefix / name
+                if _forbidden_part(name):
+                    raise EvidenceError(
+                        "credential-bearing descendant may not enter result provenance: "
+                        f"{source / relative}"
+                    )
+                info = os.stat(name, dir_fd=current_source_fd, follow_symlinks=False)
+                if stat.S_ISDIR(info.st_mode):
+                    child_source_fd = os.open(name, source_flags, dir_fd=current_source_fd)
+                    opened = os.fstat(child_source_fd)
+                    if ((opened.st_dev, opened.st_ino) != (info.st_dev, info.st_ino)):
+                        os.close(child_source_fd)
+                        raise EvidenceError(f"directory changed while copying {source / relative}")
+                    os.mkdir(name, 0o700, dir_fd=current_destination_fd)
+                    child_destination_fd = os.open(
+                        name, source_flags, dir_fd=current_destination_fd
+                    )
+                    try:
+                        child_names = sorted(os.listdir(child_source_fd))
+                    except BaseException:
+                        os.close(child_source_fd)
+                        os.close(child_destination_fd)
+                        raise
+                    stack.append((
+                        child_source_fd, child_destination_fd, relative, child_names, 0,
+                        stat.S_IMODE(opened.st_mode) | stat.S_IRWXU,
+                    ))
+                    continue
+                if not stat.S_ISREG(info.st_mode):
+                    raise EvidenceError(f"unsupported entry while copying evidence: {source / relative}")
+                child_source_fd = os.open(
+                    name, os.O_RDONLY | os.O_NONBLOCK | getattr(os, "O_NOFOLLOW", 0),
+                    dir_fd=current_source_fd,
+                )
+                child_destination_fd: int | None = None
+                try:
+                    opened = os.fstat(child_source_fd)
+                    if ((opened.st_dev, opened.st_ino) != (info.st_dev, info.st_ino)
+                            or opened.st_nlink != 1):
+                        raise EvidenceError(
+                            f"file changed or is aliased while copying {source / relative}"
+                        )
+                    child_destination_fd = os.open(
+                        name, os.O_WRONLY | os.O_CREAT | os.O_EXCL |
+                        getattr(os, "O_NOFOLLOW", 0), 0o600,
+                        dir_fd=current_destination_fd,
+                    )
+                    try:
+                        fcntl.ioctl(child_destination_fd, 0x40049409, child_source_fd)
+                    except OSError:
+                        while True:
+                            chunk = os.read(child_source_fd, 1024 * 1024)
+                            if not chunk:
+                                break
+                            view = memoryview(chunk)
+                            while view:
+                                written = os.write(child_destination_fd, view)
+                                if written <= 0:
+                                    raise EvidenceError("short write while copying declared evidence")
+                                view = view[written:]
+                    os.fchmod(child_destination_fd, stat.S_IMODE(opened.st_mode))
+                    os.fsync(child_destination_fd)
+                finally:
+                    if child_destination_fd is not None:
+                        os.close(child_destination_fd)
+                    os.close(child_source_fd)
+        except BaseException:
+            for current_source_fd, current_destination_fd, *_ in stack:
+                os.close(current_source_fd)
+                os.close(current_destination_fd)
+            raise
+        os.fsync(destination_root_parent_fd)
+    except BaseException:
+        try:
+            _remove_entry_at(destination_root_parent_fd, target_name)
+        except (EvidenceError, OSError):
+            pass
+        raise
+    finally:
+        if source_root_fd >= 0:
+            os.close(source_root_fd)
+        os.close(destination_root_parent_fd)
+
+
+def _open_relative_parent(root: Path, normalized: str, *, create: bool,
+                          repair_non_directories: bool = False) -> tuple[int, str]:
+    """Anchor a lexical project-relative parent through no-follow descriptors."""
+    parts = PurePosixPath(normalized).parts
+    descriptor = _open_directory_path(root)
+    flags = (os.O_RDONLY | getattr(os, "O_DIRECTORY", 0) |
+             getattr(os, "O_NOFOLLOW", 0))
+    try:
+        for part in parts[:-1]:
+            try:
+                expected = os.stat(part, dir_fd=descriptor, follow_symlinks=False)
+            except FileNotFoundError:
+                if not create:
+                    raise EvidenceError(f"project directory does not exist: {normalized}")
+                os.mkdir(part, 0o755, dir_fd=descriptor)
+                os.fsync(descriptor)
+                expected = os.stat(part, dir_fd=descriptor, follow_symlinks=False)
+            if not stat.S_ISDIR(expected.st_mode):
+                if not repair_non_directories:
+                    raise EvidenceError(
+                        f"project path ancestor is not a directory: {normalized}"
+                    )
+                _remove_entry_at(descriptor, part)
+                os.mkdir(part, 0o755, dir_fd=descriptor)
+                os.fsync(descriptor)
+                expected = os.stat(part, dir_fd=descriptor, follow_symlinks=False)
+            child = os.open(part, flags, dir_fd=descriptor)
+            opened = os.fstat(child)
+            if ((opened.st_dev, opened.st_ino) !=
+                    (expected.st_dev, expected.st_ino)):
+                os.close(child)
+                raise EvidenceError(f"project path ancestor changed: {normalized}")
+            os.close(descriptor)
+            descriptor = child
+        return descriptor, parts[-1]
+    except BaseException:
+        os.close(descriptor)
+        raise
+
+
+def _open_project_parent(root: Path, raw: str, *, create: bool) -> tuple[int, str]:
+    """Validate a project path, then anchor its parent without following links."""
+    normalized, _ = project_path(root, raw, must_exist=False)
+    return _open_relative_parent(root, normalized, create=create)
+
+
+def _remove_project_path(root: Path, raw: str) -> None:
+    """Remove one validated project-relative entry through an anchored parent."""
+    normalized, _ = project_path(root, raw, must_exist=False)
+    try:
+        parent_fd, name = _open_relative_parent(root, normalized, create=False)
+    except EvidenceError as exc:
+        if "does not exist" in str(exc):
+            return
+        raise
+    try:
+        _remove_entry_at(parent_fd, name)
+        os.fsync(parent_fd)
+    finally:
+        os.close(parent_fd)
 
 
 def workspace_exists(workspace: Path) -> bool:
@@ -1068,13 +1830,45 @@ def isolated_workspace(root: Path, source_paths: Iterable[str],
         raise EvidenceError(
             "isolated workspace sources must not overlap: " + " / ".join(overlap)
         )
-    workspace = Path(tempfile.mkdtemp(prefix="results-workspace-"))
+    # macOS commonly spells its physical temp tree through `/var`, a symlink
+    # to `/private/var`. Canonicalize this trusted freshly-created directory
+    # before the no-follow walker anchors every component.
+    workspace = Path(tempfile.mkdtemp(prefix="results-workspace-")).resolve(strict=True)
     with workspace_cleanup_guard(workspace):
         try:
+            canonical_root = root.resolve(strict=True)
+            try:
+                workspace.relative_to(canonical_root)
+            except ValueError:
+                pass
+            else:
+                raise EvidenceError(
+                    "isolated workspace temp root must be outside the project"
+                )
+            try:
+                canonical_root.relative_to(workspace)
+            except ValueError:
+                pass
+            else:
+                raise EvidenceError(
+                    "isolated workspace temp root must not contain the project"
+                )
             for raw in normalized_sources:
                 _, source = project_path(root, raw)
                 destination = workspace.joinpath(*PurePosixPath(raw).parts)
-                _copy_evidence_path(source, destination)
+                source_descriptor = _open_entry_read(source)
+                destination_parent_descriptor, destination_name = _open_project_parent(
+                    workspace, raw, create=True
+                )
+                try:
+                    _copy_evidence_path(
+                        source, destination, source_fd=source_descriptor,
+                        destination_parent_fd=destination_parent_descriptor,
+                        destination_name=destination_name,
+                    )
+                finally:
+                    os.close(destination_parent_descriptor)
+                    os.close(source_descriptor)
             for raw in dict.fromkeys(output_paths):
                 normalized, destination = project_path(workspace, raw, must_exist=False)
                 if destination.exists() or destination.is_symlink():
@@ -1088,40 +1882,60 @@ def isolated_workspace(root: Path, source_paths: Iterable[str],
 def publish_workspace_path(root: Path, workspace: Path, raw: str) -> None:
     """Copy one isolated output beside its final target, then publish atomically."""
     normalized, source = project_path(workspace, raw)
-    _, destination = project_path(root, normalized, must_exist=False)
-    if destination.exists() or destination.is_symlink():
-        raise EvidenceError(f"publication target appeared during isolated run: {normalized}")
-    destination.parent.mkdir(parents=True, exist_ok=True)
-    staged = temporary_absent_path(destination, "publish")
+    source_descriptor = _open_entry_read(source)
+    parent_descriptor, destination_name = _open_project_parent(
+        root, normalized, create=True
+    )
+    staged_name = f".{destination_name}.publish.{secrets.token_hex(16)}"
     try:
-        _copy_evidence_path(source, staged)
-        _, checked = project_path(root, normalized, must_exist=False)
-        if checked.exists() or checked.is_symlink():
+        try:
+            os.stat(destination_name, dir_fd=parent_descriptor, follow_symlinks=False)
+        except FileNotFoundError:
+            pass
+        else:
+            raise EvidenceError(f"publication target appeared during isolated run: {normalized}")
+        _copy_evidence_path(
+            source, Path(staged_name), source_fd=source_descriptor,
+            destination_parent_fd=parent_descriptor, destination_name=staged_name,
+        )
+        try:
+            os.stat(destination_name, dir_fd=parent_descriptor, follow_symlinks=False)
+        except FileNotFoundError:
+            pass
+        else:
             raise EvidenceError(f"publication target changed before commit: {normalized}")
-        os.replace(staged, checked)
+        os.replace(
+            staged_name, destination_name,
+            src_dir_fd=parent_descriptor, dst_dir_fd=parent_descriptor,
+        )
+        os.fsync(parent_descriptor)
     finally:
-        if staged.exists() or staged.is_symlink():
-            remove_generated_path(staged)
+        try:
+            _remove_entry_at(parent_descriptor, staged_name)
+        except (EvidenceError, OSError):
+            pass
+        os.close(parent_descriptor)
+        os.close(source_descriptor)
 
 
-def _safe_restore_destination(root: Path, destination: Path) -> None:
-    """Prepare a project-contained destination without following child-made links."""
+def _safe_restore_destination(root: Path, destination: Path) -> tuple[int, str]:
+    """Prepare and anchor a restore destination without following hostile links."""
     try:
         relative = destination.relative_to(root)
     except ValueError as exc:
         raise EvidenceError(f"restore target escapes project root: {destination}") from exc
     if not relative.parts:
         raise EvidenceError("refusing to restore over the project root")
-    current = root
-    for part in relative.parts[:-1]:
-        candidate = current / part
-        if candidate.is_symlink() or (candidate.exists() and not candidate.is_dir()):
-            remove_generated_path(candidate)
-        if not candidate.exists():
-            candidate.mkdir()
-        current = candidate
-    if destination.exists() or destination.is_symlink():
-        remove_generated_path(destination)
+    parent_fd, name = _open_relative_parent(
+        root, relative.as_posix(), create=True, repair_non_directories=True
+    )
+    try:
+        _remove_entry_at(parent_fd, name)
+        os.fsync(parent_fd)
+        return parent_fd, name
+    except BaseException:
+        os.close(parent_fd)
+        raise
 
 
 def _restore_target(root: Path, raw: str) -> tuple[str, Path]:
@@ -1131,24 +1945,45 @@ def _restore_target(root: Path, raw: str) -> tuple[str, Path]:
     posix = PurePosixPath(raw.replace("\\", "/"))
     if posix.is_absolute() or ".." in posix.parts or "." in posix.parts:
         raise EvidenceError(f"invalid path in results transaction journal: {raw!r}")
-    if any(part in FORBIDDEN_PARTS for part in posix.parts):
+    if any(_forbidden_part(part) for part in posix.parts):
         raise EvidenceError(f"credential path in results transaction journal: {raw!r}")
     normalized = posix.as_posix()
     return normalized, root.joinpath(*posix.parts)
 
 
+def _validate_transaction_evidence_path(root: Path, raw: str) -> tuple[str, Path]:
+    """Restrict crash recovery to result-owned output paths.
+
+    The journal lives in the project and is therefore not an authentication
+    boundary.  Even a structurally valid forged journal must never authorize
+    deletion or restoration of paper, code, data, or process-control files.
+    """
+    normalized, path = _restore_target(root, raw)
+    if not normalized.startswith("output/") or normalized == AUDIT_NAMESPACE or \
+            normalized.startswith(AUDIT_NAMESPACE + "/"):
+        raise EvidenceError(
+            "results transaction path is outside the result-owned output namespace: "
+            f"{normalized}"
+        )
+    return normalized, path
+
+
 def _restore_evidence_path(root: Path, source: Path, destination: Path) -> None:
-    _safe_restore_destination(root, destination)
-    _copy_evidence_path(source, destination)
+    parent_fd, name = _safe_restore_destination(root, destination)
+    source_fd = _open_entry_read(source)
+    try:
+        _copy_evidence_path(
+            source, destination, source_fd=source_fd,
+            destination_parent_fd=parent_fd, destination_name=name,
+        )
+    finally:
+        os.close(source_fd)
+        os.close(parent_fd)
 
 
 def _clear_transaction_files(root: Path) -> None:
-    _, journal = project_path(root, TRANSACTION_PATH, must_exist=False)
-    _, backup = project_path(root, TRANSACTION_BACKUP_PATH, must_exist=False)
-    if backup.exists() or backup.is_symlink():
-        remove_generated_path(backup)
-    if journal.exists() or journal.is_symlink():
-        remove_generated_path(journal)
+    _remove_project_path(root, TRANSACTION_BACKUP_PATH)
+    _remove_project_path(root, TRANSACTION_PATH)
 
 
 def recover_transaction(root: Path) -> None:
@@ -1169,12 +2004,13 @@ def recover_transaction(root: Path) -> None:
     if (isinstance(value["transaction_version"], bool) or
             not isinstance(value["transaction_version"], int) or
             value["transaction_version"] != 1 or
+            not isinstance(value["phase"], str) or
             value["phase"] not in {"preparing", "prepared", "committed", "rolled_back"}):
         raise EvidenceError("unsupported results transaction journal; operator recovery required")
     if not isinstance(value["cleanup_paths"], list) or not isinstance(value["backups"], list):
         raise EvidenceError("malformed results transaction journal; operator recovery required")
     for raw in value["cleanup_paths"]:
-        _restore_target(root, raw)
+        _validate_transaction_evidence_path(root, raw)
     backup_names: list[str] = []
     for item in value["backups"]:
         if (not isinstance(item, dict) or set(item) != {"path", "backup"} or
@@ -1182,7 +2018,7 @@ def recover_transaction(root: Path) -> None:
                 not isinstance(item["backup"], str) or
                 not re.fullmatch(r"[0-9]+", item["backup"])):
             raise EvidenceError("malformed results transaction journal; operator recovery required")
-        _restore_target(root, item["path"])
+        _validate_transaction_evidence_path(root, item["path"])
         backup_names.append(item["backup"])
     if len(backup_names) != len(set(backup_names)):
         raise EvidenceError("duplicate results transaction backups; operator recovery required")
@@ -1201,16 +2037,23 @@ def rollback_lifecycle_transaction(root: Path, value: dict[str, Any]) -> None:
     """Roll back with the parent's trusted in-memory transaction description."""
     _, backup_root = project_path(root, TRANSACTION_BACKUP_PATH, must_exist=False)
     for raw in value["cleanup_paths"]:
-        normalized, destination = _restore_target(root, raw)
-        _safe_restore_destination(root, destination)
-        if destination.exists() or destination.is_symlink():
-            raise EvidenceError(f"failed to remove interrupted output: {normalized}")
+        normalized, destination = _validate_transaction_evidence_path(root, raw)
+        parent_fd, name = _safe_restore_destination(root, destination)
+        try:
+            try:
+                os.stat(name, dir_fd=parent_fd, follow_symlinks=False)
+            except FileNotFoundError:
+                pass
+            else:
+                raise EvidenceError(f"failed to remove interrupted output: {normalized}")
+        finally:
+            os.close(parent_fd)
     for item in value["backups"]:
         if (not isinstance(item, dict) or not isinstance(item.get("path"), str) or
                 not isinstance(item.get("backup"), str) or
                 not re.fullmatch(r"[0-9]+", item["backup"])):
             raise EvidenceError("malformed path in results transaction journal")
-        _, destination = _restore_target(root, item["path"])
+        _, destination = _validate_transaction_evidence_path(root, item["path"])
         source = backup_root / item["backup"]
         if not source.exists() or source.is_symlink():
             raise EvidenceError("results transaction backup is missing; operator recovery required")
@@ -1251,7 +2094,9 @@ def prepare_lifecycle_transaction(root: Path, *, cleanup_paths: Iterable[str],
     }
     atomic_json(journal, transaction)
     try:
-        backup_root.mkdir(mode=0o700)
+        ensure_directory_durable(backup_root)
+        os.chmod(backup_root, 0o700)
+        fsync_directory(backup_root)
         for index, source in enumerate(restore_sources):
             backup = backup_root / str(index)
             _copy_evidence_path(source, backup)
@@ -1337,9 +2182,7 @@ def execute_fresh_exhibits(command: list[str], root: Path, bundle: dict[str, Any
                     raise EvidenceError(f"fresh render differs from recorded bytes at {raw}")
         if publish:
             for raw, _ in paths:
-                _, destination = project_path(root, raw, must_exist=False)
-                if destination.exists() or destination.is_symlink():
-                    remove_generated_path(destination)
+                _remove_project_path(root, raw)
                 publish_workspace_path(root, stage, raw)
     return [raw for raw, _ in paths]
 
@@ -1358,6 +2201,7 @@ def snapshot_bundle(root: Path, bundle: dict[str, Any], bundle_path: str,
         "inputs": input_snapshot,
         "renderer_code": renderer_snapshot,
         "artifacts": fingerprint_many(root, artifacts),
+        "exhibits": [entry["path"] for entry in bundle["exhibits"]],
         "reproducibility": bundle["producer"]["reproducibility"],
     }
 
@@ -1398,6 +2242,9 @@ def result_receipt_supersedes(root: Path, receipt_raw: str,
 def compare_snapshot(root: Path, recorded: list[dict[str, Any]], label: str) -> list[str]:
     failures: list[str] = []
     for expected in recorded:
+        if not isinstance(expected, dict):
+            failures.append(f"{label}: receipt entry is not a fingerprint object")
+            continue
         raw = expected.get("path")
         if not isinstance(raw, str):
             failures.append(f"{label}: receipt entry has no path")
@@ -1412,15 +2259,177 @@ def compare_snapshot(root: Path, recorded: list[dict[str, Any]], label: str) -> 
     return failures
 
 
-def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool) -> dict[str, Any]:
+def validate_snapshot_record(root: Path, value: Any, where: str) -> str:
+    if not isinstance(value, dict):
+        raise EvidenceError(f"{where} must be a fingerprint object")
+    kind = value.get("kind")
+    expected = {"path", "kind", "sha256"} | ({"entries"} if kind == "directory" else set())
+    if (not isinstance(kind, str) or kind not in {"file", "directory"} or
+            set(value) != expected):
+        raise EvidenceError(f"{where} has malformed fingerprint keys")
+    raw = value.get("path")
+    if not isinstance(raw, str):
+        raise EvidenceError(f"{where}.path must be a string")
+    normalized, _ = project_path(root, raw, must_exist=False)
+    if normalized != raw:
+        raise EvidenceError(f"{where}.path is not normalized")
+    digest = value.get("sha256")
+    if (not isinstance(digest, str) or
+            re.fullmatch(r"sha256:[0-9a-f]{64}", digest) is None):
+        raise EvidenceError(f"{where}.sha256 is malformed")
+    if kind == "directory":
+        entries = value["entries"]
+        if not isinstance(entries, list):
+            raise EvidenceError(f"{where}.entries must be an array")
+        prior = ""
+        entry_kinds: dict[str, str] = {}
+        for index, entry in enumerate(entries):
+            entry_where = f"{where}.entries[{index}]"
+            if (not isinstance(entry, dict) or
+                    not isinstance(entry.get("kind"), str) or
+                    entry.get("kind") not in {"file", "directory"}):
+                raise EvidenceError(f"{entry_where} is malformed")
+            entry_expected = {"path", "kind"} | (
+                {"sha256"} if entry["kind"] == "file" else set()
+            )
+            if set(entry) != entry_expected:
+                raise EvidenceError(f"{entry_where} has malformed keys")
+            entry_path = entry.get("path")
+            entry_posix = PurePosixPath(entry_path) if isinstance(entry_path, str) else None
+            if (entry_posix is None or not entry_path or entry_path == "." or
+                    "\\" in entry_path or any(ord(character) < 32 for character in entry_path) or
+                    entry_posix.is_absolute() or
+                    "." in entry_posix.parts or ".." in entry_posix.parts or
+                    entry_posix.as_posix() != entry_path or
+                    any(_forbidden_part(part) for part in entry_posix.parts) or
+                    entry_path <= prior):
+                raise EvidenceError(f"{entry_where}.path is malformed or unsorted")
+            for depth in range(1, len(entry_posix.parts)):
+                parent = PurePosixPath(*entry_posix.parts[:depth]).as_posix()
+                if entry_kinds.get(parent) != "directory":
+                    raise EvidenceError(
+                        f"{entry_where}.path has a missing or non-directory parent {parent}"
+                    )
+            prior = entry_path
+            entry_kinds[entry_path] = entry["kind"]
+            if entry["kind"] == "file" and (
+                    not isinstance(entry.get("sha256"), str) or
+                    re.fullmatch(r"sha256:[0-9a-f]{64}", entry["sha256"]) is None):
+                raise EvidenceError(f"{entry_where}.sha256 is malformed")
+        encoded = json.dumps(entries, sort_keys=True, separators=(",", ":")).encode("utf-8")
+        expected_digest = f"sha256:{hashlib.sha256(encoded).hexdigest()}"
+        if digest != expected_digest:
+            raise EvidenceError(f"{where}.sha256 does not match its directory entries")
+    return raw
+
+
+def validate_receipt_contract(root: Path, receipt_path: Path) -> dict[str, Any]:
     receipt = load_json(receipt_path)
+    if (not isinstance(receipt, dict) or receipt.get("kind") != "result" or
+            isinstance(receipt.get("receipt_version"), bool) or
+            receipt.get("receipt_version") != RECEIPT_VERSION or
+            set(receipt) != {"kind", "receipt_version", "supersedes",
+                             "producer_run", "render_run"}):
+        raise EvidenceError(f"not a structurally valid results receipt v{RECEIPT_VERSION}")
+    receipt_raw = receipt_path.relative_to(root).as_posix()
+    result_receipt_supersedes(root, receipt_raw, receipt)
+    producer = receipt.get("producer_run")
+    producer_keys = {"command", "plan", "bundle", "code", "inputs",
+                     "renderer_code", "artifacts", "exhibits", "reproducibility"}
+    if not isinstance(producer, dict) or set(producer) != producer_keys:
+        raise EvidenceError("receipt producer_run has unexpected or missing keys")
+    command = producer["command"]
+    if (not isinstance(command, list) or not command or
+            any(not isinstance(item, str) for item in command)):
+        raise EvidenceError("producer_run.command is malformed")
+    recorded_paths: dict[str, list[str]] = {}
+    for key in ("code", "inputs", "renderer_code", "artifacts"):
+        values = producer[key]
+        if not isinstance(values, list):
+            raise EvidenceError(f"producer_run.{key} must be an array")
+        recorded_paths[key] = [
+            validate_snapshot_record(root, value, f"producer_run.{key}[{index}]")
+            for index, value in enumerate(values)
+        ]
+    exhibits = producer["exhibits"]
+    if (not isinstance(exhibits, list) or
+            any(not isinstance(value, str) for value in exhibits)):
+        raise EvidenceError("producer_run.exhibits must be an array of paths")
+    recorded_paths["exhibits"] = []
+    for index, value in enumerate(exhibits):
+        normalized, _ = project_path(root, value, must_exist=False)
+        if not normalized.startswith("output/"):
+            raise EvidenceError(f"producer_run.exhibits[{index}] must be under output/")
+        reject_audit_namespace(normalized, f"producer_run.exhibits[{index}]")
+        recorded_paths["exhibits"].append(normalized)
+    if len(recorded_paths["exhibits"]) != len(set(recorded_paths["exhibits"])):
+        raise EvidenceError("producer_run.exhibits contains duplicate paths")
+    plan_raw = validate_snapshot_record(root, producer["plan"], "producer_run.plan")
+    validate_snapshot_record(root, producer["bundle"], "producer_run.bundle")
+    for key in ("plan", "bundle"):
+        if producer[key].get("kind") != "file":
+            raise EvidenceError(f"producer_run.{key} must fingerprint one file")
+    _, live_plan_path = project_path(root, plan_raw, must_exist=False)
+    if live_plan_path.exists():
+        plan = validate_run_plan(
+            load_json(live_plan_path), root, require_live_sources=False
+        )
+        expected_paths = {
+            "code": plan["producer_code"], "inputs": plan["producer_inputs"],
+            "renderer_code": plan["renderer_code"], "artifacts": plan["artifacts"],
+            "exhibits": plan["exhibits"],
+        }
+        for key, expected in expected_paths.items():
+            if recorded_paths[key] != expected:
+                raise EvidenceError(f"producer_run.{key} inventory differs from the plan")
+    if (not isinstance(producer["reproducibility"], str) or
+            producer["reproducibility"] not in {"exact", "bounded", "captured"}):
+        raise EvidenceError("producer_run.reproducibility is malformed")
+    command_uses_declared_code(command, recorded_paths["code"], "producer")
+    render = receipt["render_run"]
+    if render is not None:
+        if not isinstance(render, dict) or set(render) != {"command", "code", "exhibits"}:
+            raise EvidenceError("render_run is malformed")
+        render_command = render["command"]
+        if (not isinstance(render_command, list) or not render_command or
+                any(not isinstance(item, str) for item in render_command)):
+            raise EvidenceError("render_run.command is malformed")
+        render_code = render["code"]
+        render_exhibits = render["exhibits"]
+        if not isinstance(render_code, list) or not isinstance(render_exhibits, list):
+            raise EvidenceError("render_run snapshot arrays are malformed")
+        code_paths = [validate_snapshot_record(root, item, f"render_run.code[{index}]")
+                      for index, item in enumerate(render_code)]
+        exhibit_paths = [
+            validate_snapshot_record(root, item, f"render_run.exhibits[{index}]")
+            for index, item in enumerate(render_exhibits)
+        ]
+        if code_paths != recorded_paths["renderer_code"]:
+            raise EvidenceError("render_run code inventory differs from producer_run")
+        if len(exhibit_paths) != len(set(exhibit_paths)):
+            raise EvidenceError("render_run exhibit inventory contains duplicates")
+        if exhibit_paths != recorded_paths["exhibits"]:
+            raise EvidenceError("render_run exhibit inventory differs from producer_run")
+        command_uses_declared_code(render_command, code_paths, "renderer")
+    return receipt
+
+
+def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool) -> dict[str, Any]:
+    receipt = validate_receipt_contract(root, receipt_path)
     if (not isinstance(receipt, dict) or receipt.get("kind") != "result" or
             isinstance(receipt.get("receipt_version"), bool) or
             receipt.get("receipt_version") != RECEIPT_VERSION):
         raise EvidenceError(f"not a results receipt v{RECEIPT_VERSION}: {receipt_path}")
+    if set(receipt) != {"kind", "receipt_version", "supersedes",
+                       "producer_run", "render_run"}:
+        raise EvidenceError(f"results receipt has unexpected or missing keys: {receipt_path}")
     producer = receipt.get("producer_run")
     if not isinstance(producer, dict):
         raise EvidenceError(f"receipt missing producer_run: {receipt_path}")
+    producer_keys = {"command", "plan", "bundle", "code", "inputs",
+                     "renderer_code", "artifacts", "exhibits", "reproducibility"}
+    if set(producer) != producer_keys:
+        raise EvidenceError(f"receipt producer_run has unexpected or missing keys: {receipt_path}")
     receipt_raw = receipt_path.relative_to(root).as_posix()
     result_receipt_supersedes(root, receipt_raw, receipt)
     failures: list[str] = []
@@ -1446,6 +2455,30 @@ def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool) -> dict[st
                     [entry["path"] for entry in bundle["artifacts"]] != plan["artifacts"] or
                     [entry["path"] for entry in bundle["exhibits"]] != plan["exhibits"]):
                 failures.append("producer bundle no longer matches its pre-run plan")
+            expected_snapshots = {
+                "code": plan["producer_code"],
+                "inputs": plan["producer_inputs"],
+                "renderer_code": plan["renderer_code"],
+                "artifacts": plan["artifacts"],
+            }
+            for key, expected_paths in expected_snapshots.items():
+                recorded = producer.get(key)
+                recorded_paths = ([entry.get("path") for entry in recorded]
+                                  if isinstance(recorded, list) and
+                                  all(isinstance(entry, dict) for entry in recorded)
+                                  else None)
+                if recorded_paths != expected_paths:
+                    failures.append(
+                        f"producer_run.{key}: path inventory differs from plan/bundle"
+                    )
+            if producer.get("exhibits") != plan["exhibits"]:
+                failures.append(
+                    "producer_run.exhibits: path inventory differs from plan/bundle"
+                )
+            if producer.get("reproducibility") != bundle["producer"]["reproducibility"]:
+                failures.append(
+                    "producer_run.reproducibility differs from the validated bundle"
+                )
             producer_command = producer.get("command")
             if (not isinstance(producer_command, list) or not producer_command or
                     any(not isinstance(item, str) for item in producer_command)):
@@ -1462,6 +2495,8 @@ def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool) -> dict[st
         if not isinstance(render, dict):
             failures.append("render_run: missing for bundle with declared exhibits")
         else:
+            if set(render) != {"command", "code", "exhibits"}:
+                failures.append("render_run: unexpected or missing receipt keys")
             render_command = render.get("command")
             if (not isinstance(render_command, list) or not render_command or
                     any(not isinstance(item, str) for item in render_command)):
@@ -1479,6 +2514,20 @@ def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool) -> dict[st
                     failures.append(f"render_run.{key}: malformed receipt field")
                 else:
                     failures.extend(compare_snapshot(root, entries, f"render_run.{key}"))
+            expected_render_paths = {
+                "code": bundle["renderer"]["code"],
+                "exhibits": [entry["path"] for entry in bundle["exhibits"]],
+            }
+            for key, expected_paths in expected_render_paths.items():
+                recorded = render.get(key)
+                recorded_paths = ([entry.get("path") for entry in recorded]
+                                  if isinstance(recorded, list) and
+                                  all(isinstance(entry, dict) for entry in recorded)
+                                  else None)
+                if recorded_paths != expected_paths:
+                    failures.append(f"render_run.{key}: path inventory differs from bundle")
+    elif render is not None:
+        failures.append("render_run must be null when the bundle declares no exhibits")
     if failures:
         return {"receipt": str(receipt_path.relative_to(root)), "status": "STALE",
                 "failures": failures}
@@ -1712,7 +2761,15 @@ def command_init_registry(args: argparse.Namespace) -> int:
     if path.exists():
         raise EvidenceError(f"result registry already exists: {REGISTRY_PATH}")
     _, output = project_path(root, "output")
-    if any(output.rglob("*results.receipt.json")):
+    receipt_entries = [entry for entry in walk_directory(output)
+                       if entry[0].endswith("results.receipt.json")]
+    for relative, _, info, _ in receipt_entries:
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise EvidenceError(
+                f"result receipt-shaped path is not one regular non-aliased file: "
+                f"output/{relative}"
+            )
+    if receipt_entries:
         raise EvidenceError("cannot initialize registry after result receipts exist")
     atomic_json(path, empty_registry())
     print(json.dumps({"status": "INITIALIZED", "registry": REGISTRY_PATH}, sort_keys=True))
@@ -1810,7 +2867,7 @@ def lifecycle_reserved_paths(root: Path, registry: dict[str, Any], *,
     reserved = set(receipt_paths)
     for receipt_raw in receipt_paths:
         _, receipt = project_path(root, receipt_raw)
-        value = load_json(receipt)
+        value = validate_receipt_contract(root, receipt)
         producer = value.get("producer_run") if isinstance(value, dict) else None
         if not isinstance(producer, dict):
             raise EvidenceError(f"lifecycle receipt is malformed: {receipt_raw}")
@@ -1824,6 +2881,10 @@ def lifecycle_reserved_paths(root: Path, registry: dict[str, Any], *,
         reserved |= snapshot_paths(producer.get("inputs"))
         reserved |= snapshot_paths(producer.get("renderer_code"))
         reserved |= snapshot_paths(producer.get("artifacts"))
+        exhibits = producer.get("exhibits")
+        if not isinstance(exhibits, list) or any(not isinstance(raw, str) for raw in exhibits):
+            raise EvidenceError(f"lifecycle receipt has malformed exhibit inventory: {receipt_raw}")
+        reserved.update(exhibits)
         render = value.get("render_run")
         if isinstance(render, dict):
             reserved |= snapshot_paths(render.get("code"))
@@ -2130,6 +3191,14 @@ def command_verify(args: argparse.Namespace) -> int:
     return 0 if result["status"] == "PASS" else 1
 
 
+def command_validate_receipt(args: argparse.Namespace) -> int:
+    root = resolve_root(args.project_root)
+    _, target = result_receipt_path(root, args.receipt)
+    validate_receipt_contract(root, target)
+    print(json.dumps({"status": "VALID", "receipt": args.receipt}, sort_keys=True))
+    return 0
+
+
 def command_verify_all(args: argparse.Namespace) -> int:
     root = resolve_root(args.project_root)
     paths = discover_result_receipts(root)
@@ -2159,7 +3228,17 @@ def discover_result_receipts(root: Path) -> list[Path]:
     _, output = project_path(root, "output")
     if not output.is_dir():
         raise EvidenceError("output/ must be a real directory")
-    candidates = sorted(output.rglob("*results.receipt.json"))
+    candidates: list[Path] = []
+    for relative, child, info, _ in walk_directory(output):
+        if not relative.endswith("results.receipt.json"):
+            continue
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise EvidenceError(
+                f"result receipt-shaped path is not one regular non-aliased file: "
+                f"output/{relative}"
+            )
+        candidates.append(child)
+    candidates.sort()
     disk_paths = {path.relative_to(root).as_posix(): path for path in candidates}
     active = set(registry["active"])
     pending = {entry["receipt"] for entry in registry["pending"]}
@@ -2195,7 +3274,8 @@ def discover_result_receipts(root: Path) -> list[Path]:
                 invalid_handoffs.append(f"{replacement} -> {predecessor}")
     if incomplete_handoffs:
         raise EvidenceError(
-            "activated replacement handoff is incomplete; update the stage pointer and "
+            "activated replacement handoff is incomplete; complete the caller/stage "
+            "handoff and "
             "retire each predecessor with --superseded-by: " +
             ", ".join(incomplete_handoffs)
         )
@@ -2215,12 +3295,291 @@ def discover_result_receipts(root: Path) -> list[Path]:
 
 
 def uncomment_latex(text: str) -> str:
-    return "\n".join(re.split(r"(?<!\\)%", line, maxsplit=1)[0]
-                     for line in text.splitlines())
+    """Remove TeX comments while masking literal/verbatim content.
+
+    Static dependency and citation scans must neither stop at a literal percent
+    inside ``\\verb`` nor inventory commands printed as examples.
+    """
+    def masked(raw: str) -> str:
+        return "".join("\n" if character == "\n" else " " for character in raw)
+
+    def remove_option_comments(raw: str) -> str:
+        """Apply TeX percent-comment parity inside a known option/settings group."""
+        cleaned: list[str] = []
+        position = 0
+        while position < len(raw):
+            if raw[position] == "%":
+                backslashes = 0
+                cursor = position - 1
+                while cursor >= 0 and raw[cursor] == "\\":
+                    backslashes += 1
+                    cursor -= 1
+                if backslashes % 2 == 0:
+                    newline = raw.find("\n", position)
+                    if newline < 0:
+                        break
+                    cleaned.append("\n")
+                    position = newline + 1
+                    continue
+            cleaned.append(raw[position])
+            position += 1
+        return "".join(cleaned)
+
+    def balanced_end(start: int, opening: str, closing: str, *,
+                     tex_comments: bool = False) -> int | None:
+        if start >= len(text) or text[start] != opening:
+            return None
+        depth = 0
+        index = start
+        while index < len(text):
+            if tex_comments and text[index] == "%":
+                preceding = index - 1
+                backslashes = 0
+                while preceding >= 0 and text[preceding] == "\\":
+                    backslashes += 1
+                    preceding -= 1
+                if backslashes % 2 == 0:
+                    newline = text.find("\n", index)
+                    if newline < 0:
+                        return None
+                    index = newline + 1
+                    continue
+            preceding = index - 1
+            backslashes = 0
+            while preceding >= 0 and text[preceding] == "\\":
+                backslashes += 1
+                preceding -= 1
+            escaped = backslashes % 2 == 1
+            if text[index] == opening and not escaped:
+                depth += 1
+            elif text[index] == closing and not escaped:
+                depth -= 1
+                if depth == 0:
+                    return index + 1
+            index += 1
+        return None
+
+    def url_delimited_end(start: int) -> int | None:
+        """Find a url.sty delimiter, ignoring escaped control-symbol delimiters."""
+        if start >= len(text):
+            return None
+        delimiter = text[start]
+        position = start + 1
+        while position < len(text):
+            closing = text.find(delimiter, position)
+            if closing < 0:
+                return None
+            preceding = closing - 1
+            backslashes = 0
+            while preceding >= 0 and text[preceding] == "\\":
+                backslashes += 1
+                preceding -= 1
+            if backslashes % 2 == 0:
+                return closing + 1
+            position = closing + 1
+        return None
+
+    def skip_tex_space_and_comments(start: int) -> int:
+        """Skip TeX-ignored whitespace and unescaped percent comments."""
+        position = start
+        while position < len(text):
+            while position < len(text) and text[position].isspace():
+                position += 1
+            if position >= len(text) or text[position] != "%":
+                return position
+            preceding = position - 1
+            backslashes = 0
+            while preceding >= 0 and text[preceding] == "\\":
+                backslashes += 1
+                preceding -= 1
+            if backslashes % 2 == 1:
+                return position
+            newline = text.find("\n", position)
+            if newline < 0:
+                return len(text)
+            position = newline + 1
+        return position
+
+    output: list[str] = []
+    index = 0
+    while index < len(text):
+        if text[index] == "\\":
+            run_end = index
+            while run_end < len(text) and text[run_end] == "\\":
+                run_end += 1
+            count = run_end - index
+            paired = count - (count % 2)
+            if paired:
+                # Every pair is TeX's ``\\`` control symbol, not the start of
+                # a second control word. Mask it so regex scanners cannot begin
+                # a false command match at the pair's final backslash.
+                output.append(" " * paired)
+                index += paired
+            if count % 2 == 0:
+                continue
+            command_start = index
+            name_end = command_start + 1
+            while name_end < len(text) and text[name_end].isalpha():
+                name_end += 1
+            command = text[command_start + 1:name_end]
+            starred_end = name_end + (name_end < len(text) and text[name_end] == "*")
+
+            if command in {"DefineShortVerb", "MakeShortVerb", "lstMakeShortInline",
+                           "lstDeleteShortInline"}:
+                raise EvidenceError(
+                    f"unsupported stateful TeX short-verbatim command: \\{command}"
+                )
+            if command == "lstdefinestyle":
+                raise EvidenceError(
+                    "unsupported stateful TeX listings style definition: \\lstdefinestyle"
+                )
+            if command in {"lstset", "fvset", "setminted", "setmintedinline"}:
+                settings_start = skip_tex_space_and_comments(starred_end)
+                if command in {"setminted", "setmintedinline"}:
+                    language_end = balanced_end(
+                        settings_start, "[", "]", tex_comments=True
+                    )
+                    if language_end is not None:
+                        settings_start = skip_tex_space_and_comments(language_end)
+                settings_end = balanced_end(
+                    settings_start, "{", "}", tex_comments=True
+                )
+                settings = remove_option_comments(
+                    text[settings_start + 1:settings_end - 1]
+                    if settings_end is not None else ""
+                )
+                if re.search(
+                        r"(?:commandchars|escapechar|escapeinside|escapebegin|escapeend|aftersave|style|"
+                        r"texcl|texcomments|mathescape|literate|basicstyle|identifierstyle|"
+                        r"commentstyle|stringstyle|keywordstyle|numberstyle|emphstyle|moredelim|"
+                        r"prebreak|postbreak)(?:\s*=|\s*(?:,|$))|\\[A-Za-z@]+",
+                        settings, flags=re.IGNORECASE):
+                    raise EvidenceError(
+                        f"unsupported stateful TeX literal/escape configuration: \\{command}"
+                    )
+
+            begin_end: int | None = None
+            environment: str | None = None
+            if command == "begin":
+                environment_start = skip_tex_space_and_comments(starred_end)
+                begin_end = balanced_end(environment_start, "{", "}")
+                if begin_end is not None:
+                    candidate = text[environment_start + 1:begin_end - 1]
+                    if re.fullmatch(r"verbatim\*?|Verbatim|lstlisting|minted", candidate):
+                        environment = candidate
+            if environment is not None and begin_end is not None:
+                option_start = skip_tex_space_and_comments(begin_end)
+                option_end = balanced_end(
+                    option_start, "[", "]", tex_comments=True
+                )
+                if option_end is not None:
+                    options = remove_option_comments(text[option_start + 1:option_end - 1])
+                    if re.search(
+                            r"(?:commandchars|escapechar|escapeinside|escapebegin|escapeend|aftersave|style|"
+                            r"texcl|texcomments|mathescape|literate|basicstyle|identifierstyle|"
+                            r"commentstyle|stringstyle|keywordstyle|numberstyle|emphstyle|moredelim|"
+                            r"prebreak|postbreak)(?:\s*=|\s*(?:,|$))|\\[A-Za-z@]+",
+                            options, flags=re.IGNORECASE):
+                        raise EvidenceError(
+                            f"escape-enabled {environment} environment is unsupported "
+                            "by the paper dependency audit"
+                        )
+                closing_token = f"\\end{{{environment}}}"
+                closing_match = re.search(
+                    rf"(?m)^[ \t]*{re.escape(closing_token)}",
+                    text[begin_end:],
+                )
+                if closing_match is None:
+                    end = len(text)
+                else:
+                    end = begin_end + closing_match.end()
+                output.append(masked(text[command_start:end]))
+                index = end
+                continue
+
+            literal_start = starred_end
+            if command in {"lstinline", "Verb", "mintinline", "SaveVerb"}:
+                literal_start = skip_tex_space_and_comments(literal_start)
+                option_end = balanced_end(literal_start, "[", "]")
+                if option_end is not None:
+                    raise EvidenceError(
+                        f"options on \\{command} are unsupported by the paper dependency audit"
+                    )
+                    literal_start = option_end
+                    while literal_start < len(text) and text[literal_start].isspace():
+                        literal_start += 1
+            if command == "mintinline":
+                language_end = balanced_end(literal_start, "{", "}")
+                if language_end is not None:
+                    literal_start = skip_tex_space_and_comments(language_end)
+            if command == "SaveVerb":
+                if option_end is not None:
+                    raise EvidenceError(
+                        "SaveVerb options are unsupported by the paper dependency audit"
+                    )
+                name_end = balanced_end(literal_start, "{", "}")
+                if name_end is not None:
+                    literal_start = skip_tex_space_and_comments(name_end)
+                    if literal_start < len(text) and text[literal_start] not in "\r\n":
+                        delimiter = text[literal_start]
+                        closing = text.find(delimiter, literal_start + 1)
+                        literal_end = None if closing == -1 else closing + 1
+                        if literal_end is not None:
+                            output.append(masked(text[command_start:literal_end]))
+                            index = literal_end
+                            continue
+            if command in {"verb", "Verb", "lstinline", "mintinline"}:
+                if literal_start < len(text) and text[literal_start] not in "\r\n":
+                    if text[literal_start] == "{":
+                        literal_end = balanced_end(literal_start, "{", "}")
+                    else:
+                        delimiter = text[literal_start]
+                        closing = text.find(delimiter, literal_start + 1)
+                        literal_end = None if closing == -1 else closing + 1
+                    if literal_end is not None:
+                        output.append(masked(text[command_start:literal_end]))
+                        index = literal_end
+                        continue
+
+            if command in {"url", "path", "nolinkurl", "href"}:
+                argument_start = skip_tex_space_and_comments(starred_end)
+                if argument_start < len(text) and text[argument_start] == "{":
+                    argument_end = balanced_end(argument_start, "{", "}")
+                elif (command != "href" and argument_start < len(text) and
+                      text[argument_start] not in "\r\n"):
+                    argument_end = url_delimited_end(argument_start)
+                else:
+                    argument_end = None
+                if argument_end is not None:
+                    output.append(masked(text[command_start:argument_end]))
+                    index = argument_end
+                    continue
+            output.append("\\")
+            index += 1
+            continue
+        if text[index] == "%":
+            preceding = index - 1
+            backslashes = 0
+            while preceding >= 0 and text[preceding] == "\\":
+                backslashes += 1
+                preceding -= 1
+            if backslashes % 2 == 0:
+                newline = text.find("\n", index)
+                if newline == -1:
+                    break
+                output.append("\n")
+                index = newline + 1
+                continue
+        output.append(text[index])
+        index += 1
+    return "".join(output)
 
 
 def resolve_latex_dependency(root: Path, paper: Path, current: Path, raw: str,
-                             extensions: tuple[str, ...], *, required: bool) -> Path | None:
+                             extensions: tuple[str, ...], *, required: bool,
+                             append_extension: bool = False,
+                             reject_raw_collision: bool = True,
+                             preserve_explicit_suffix: bool = False) -> Path | None:
     raw = raw.strip()
     if not raw or any(token in raw for token in ("\\", "{", "}", "#")):
         if required:
@@ -2229,8 +3588,26 @@ def resolve_latex_dependency(root: Path, paper: Path, current: Path, raw: str,
     candidates: list[Path] = []
     for base in (paper, current.parent):
         candidate = base / raw
-        choices = ([candidate] if candidate.suffix else
-                   [candidate, *(candidate.with_suffix(ext) for ext in extensions)])
+        if append_extension:
+            # TeX commands such as \includegraphics, \usepackage, and
+            # \bibliography append a command-specific suffix before opening.
+            # A dot in a package basename is not necessarily its TeX suffix:
+            # `\usepackage{foo.bar}` opens `foo.bar.sty`, not `foo.bar`.
+            if (preserve_explicit_suffix and candidate.suffix) or \
+                    candidate.suffix.lower() in extensions:
+                choices = [candidate]
+            else:
+                choices = [Path(str(candidate) + ext) for ext in extensions]
+            if (reject_raw_collision and candidate not in choices and
+                    candidate.exists() and any(choice.exists() for choice in choices)):
+                raise EvidenceError(
+                    "ambiguous extensionless and suffixed LaTeX dependency cannot be "
+                    f"audited safely: {raw}"
+                )
+        elif candidate.suffix:
+            choices = [candidate]
+        else:
+            choices = [candidate, *(candidate.with_suffix(ext) for ext in extensions)]
         candidates.extend(choices)
     for candidate in candidates:
         if candidate.exists():
@@ -2248,43 +3625,393 @@ def resolve_latex_dependency(root: Path, paper: Path, current: Path, raw: str,
     return None
 
 
+def _latex_skip_space(text: str, position: int) -> int:
+    while position < len(text) and text[position].isspace():
+        position += 1
+    return position
+
+
+def _latex_balanced_group(text: str, position: int,
+                          opening: str) -> tuple[str, int] | None:
+    """Parse a static TeX group, honoring brace protection inside options."""
+    closing_for = {"{": "}", "[": "]", "(": ")"}
+    if opening not in closing_for or position >= len(text) or text[position] != opening:
+        return None
+    stack = [opening]
+    cursor = position + 1
+    while cursor < len(text):
+        preceding = cursor - 1
+        backslashes = 0
+        while preceding >= position and text[preceding] == "\\":
+            backslashes += 1
+            preceding -= 1
+        if backslashes % 2:
+            cursor += 1
+            continue
+        character = text[cursor]
+        current = stack[-1]
+        # TeX braces protect `]`/`)` inside optional arguments. Parentheses
+        # and square brackets inside a brace group are ordinary characters;
+        # treating all three delimiter families as mutually nested rejects
+        # standard listings options such as escapeinside={(*@}{@*)}.
+        if character == "{":
+            stack.append("{")
+        elif character == closing_for[current]:
+            stack.pop()
+            if not stack:
+                return text[position + 1:cursor], cursor + 1
+        cursor += 1
+    return None
+
+
+def _latex_command_groups(text: str, token: re.Match[str], count: int,
+                          *, optional: bool = True) -> tuple[list[str], int] | None:
+    """Parse optional arguments followed by a fixed number of braced arguments."""
+    cursor = _latex_skip_space(text, token.end())
+    if optional:
+        while cursor < len(text) and text[cursor] == "[":
+            parsed = _latex_balanced_group(text, cursor, "[")
+            if parsed is None:
+                return None
+            _, cursor = parsed
+            cursor = _latex_skip_space(text, cursor)
+    groups: list[str] = []
+    for _ in range(count):
+        parsed = _latex_balanced_group(text, cursor, "{")
+        if parsed is None:
+            return None
+        value, cursor = parsed
+        groups.append(value)
+        cursor = _latex_skip_space(text, cursor)
+    return groups, cursor
+
+
+def _latex_command_parts(text: str, token: re.Match[str], count: int
+                         ) -> tuple[list[str], list[str], int] | None:
+    """Return balanced optional and required groups for one static command."""
+    cursor = _latex_skip_space(text, token.end())
+    options: list[str] = []
+    while cursor < len(text) and text[cursor] == "[":
+        parsed = _latex_balanced_group(text, cursor, "[")
+        if parsed is None:
+            return None
+        value, cursor = parsed
+        options.append(value)
+        cursor = _latex_skip_space(text, cursor)
+    groups: list[str] = []
+    for _ in range(count):
+        parsed = _latex_balanced_group(text, cursor, "{")
+        if parsed is None:
+            return None
+        value, cursor = parsed
+        groups.append(value)
+        cursor = _latex_skip_space(text, cursor)
+    return options, groups, cursor
+
+
+def _iter_latex_group_commands(text: str, command_pattern: str, count: int,
+                               *, optional: bool = True
+                               ) -> Iterable[tuple[re.Match[str], list[str], int]]:
+    token_pattern = re.compile(
+        r"\\(?:" + command_pattern + r")\*?(?![A-Za-z])"
+    )
+    for token in token_pattern.finditer(text):
+        parsed = _latex_command_groups(text, token, count, optional=optional)
+        if parsed is not None:
+            groups, end = parsed
+            yield token, groups, end
+
+
+def _iter_latex_command_parts(text: str, command_pattern: str, count: int
+                              ) -> Iterable[tuple[re.Match[str], list[str], list[str], int]]:
+    token_pattern = re.compile(r"\\(?:" + command_pattern + r")\*?(?![A-Za-z])")
+    for token in token_pattern.finditer(text):
+        parsed = _latex_command_parts(text, token, count)
+        if parsed is not None:
+            options, groups, end = parsed
+            yield token, options, groups, end
+
+
+UNSAFE_EXTERNAL_LITERAL_OPTION_RE = re.compile(
+    r"(?:commandchars|escapechar|escapeinside|escapebegin|escapeend|aftersave|style|"
+    r"texcl|texcomments|mathescape|literate|basicstyle|identifierstyle|"
+    r"commentstyle|stringstyle|keywordstyle|numberstyle|emphstyle|moredelim|"
+    r"prebreak|postbreak)(?:\s*=|\s*(?:,|$))|\\[A-Za-z@]+",
+    flags=re.IGNORECASE,
+)
+
+
+def reject_external_literal_options(token: re.Match[str], options: list[str],
+                                    relative: str) -> None:
+    if any(UNSAFE_EXTERNAL_LITERAL_OPTION_RE.search(option) for option in options):
+        line = token.string.count("\n", 0, token.start()) + 1
+        raise EvidenceError(
+            f"escape-enabled external literal input is unsupported at {relative}:{line}"
+        )
+
+
+def _iter_addplot_reads(text: str) -> Iterable[tuple[re.Match[str], str]]:
+    token_pattern = re.compile(r"\\addplot(?:3)?\+?(?![A-Za-z])")
+    for token in token_pattern.finditer(text):
+        cursor = _latex_skip_space(text, token.end())
+        if cursor < len(text) and text[cursor] == "[":
+            parsed = _latex_balanced_group(text, cursor, "[")
+            if parsed is None:
+                continue
+            _, cursor = parsed
+            cursor = _latex_skip_space(text, cursor)
+        kind_match = re.match(r"(?:table|file)(?![A-Za-z])", text[cursor:])
+        if kind_match is None:
+            continue
+        cursor = _latex_skip_space(text, cursor + kind_match.end())
+        if cursor < len(text) and text[cursor] == "[":
+            parsed = _latex_balanced_group(text, cursor, "[")
+            if parsed is None:
+                continue
+            _, cursor = parsed
+            cursor = _latex_skip_space(text, cursor)
+        parsed = _latex_balanced_group(text, cursor, "{")
+        if parsed is not None:
+            raw, _ = parsed
+            yield token, raw
+
+
+def _parse_citation_token(text: str, token: re.Match[str]
+                          ) -> tuple[list[str], int] | None:
+    """Parse supported biblatex/natbib citation items without mining note braces."""
+    command = token.group("command").lower()
+    cursor = _latex_skip_space(text, token.end())
+    if cursor < len(text) and text[cursor] == "(":
+        for _ in range(2):
+            parsed = _latex_balanced_group(text, cursor, "(")
+            if parsed is None:
+                return None
+            _, cursor = parsed
+            cursor = _latex_skip_space(text, cursor)
+    plural = command.endswith("cites") or command == "footcitetexts"
+    volume = command.endswith("volcite") or command.endswith("volcites")
+    metadata = command in {"citefield", "citename", "citelist"}
+    key_groups: list[str] = []
+    while True:
+        for _ in range(2):
+            if cursor >= len(text) or text[cursor] != "[":
+                break
+            parsed = _latex_balanced_group(text, cursor, "[")
+            if parsed is None:
+                return None
+            _, cursor = parsed
+            cursor = _latex_skip_space(text, cursor)
+        if volume:
+            parsed = _latex_balanced_group(text, cursor, "{")
+            if parsed is None:
+                return None
+            _, cursor = parsed
+            cursor = _latex_skip_space(text, cursor)
+            for _ in range(2):
+                if cursor >= len(text) or text[cursor] != "[":
+                    break
+                parsed = _latex_balanced_group(text, cursor, "[")
+                if parsed is None:
+                    return None
+                _, cursor = parsed
+                cursor = _latex_skip_space(text, cursor)
+        parsed = _latex_balanced_group(text, cursor, "{")
+        if parsed is None:
+            return None
+        key_group, cursor = parsed
+        key_groups.append(key_group)
+        cursor = _latex_skip_space(text, cursor)
+        if metadata:
+            parsed = _latex_balanced_group(text, cursor, "{")
+            if parsed is None:
+                return None
+            _, cursor = parsed
+            cursor = _latex_skip_space(text, cursor)
+        if not plural or cursor >= len(text) or text[cursor] not in "[{":
+            break
+    return key_groups, cursor
+
+
 def citation_occurrences(text: str, relative: str) -> list[dict[str, Any]]:
     """Inventory supported citation commands and reject every unknown cite-family command."""
     recognized_spans: list[tuple[int, int]] = []
     citations: list[dict[str, Any]] = []
-    for ordinal, match in enumerate(CITATION_RE.finditer(text), start=1):
-        recognized_spans.append(match.span())
+    citation_ordinal = 0
+    for match in CITATION_COMMAND_TOKEN_RE.finditer(text):
         line_number = text.count("\n", 0, match.start()) + 1
-        groups = re.findall(r"\{([^}]+)\}", match.group("arguments"))
         command = match.group("command").lower()
-        if command == "citefield":
-            if len(groups) != 2:
-                raise EvidenceError(
-                    f"malformed citefield command at {relative}:{line_number}"
-                )
-            groups = groups[:1]
-        elif command.endswith("volcite") or command.endswith("volcites"):
-            if len(groups) < 2 or len(groups) % 2:
-                raise EvidenceError(
-                    f"malformed volume citation at {relative}:{line_number}"
-                )
-            groups = groups[1::2]
+        parsed = _parse_citation_token(text, match)
+        if parsed is None:
+            raise EvidenceError(f"malformed {command} command at {relative}:{line_number}")
+        groups, command_end = parsed
+        recognized_spans.append((match.start(), command_end))
+        citation_ordinal += 1
         keys = [key.strip() for group in groups
                 for key in group.split(",") if key.strip()]
         if not keys or any(not CITE_KEY_RE.fullmatch(key) for key in keys):
             raise EvidenceError(
                 f"dynamic or malformed citation key at {relative}:{line_number}"
             )
-        paragraph_start = text.rfind("\n\n", 0, match.start()) + 2
-        paragraph_end = text.find("\n\n", match.end())
+        separator = text.rfind("\n\n", 0, match.start())
+        paragraph_start = 0 if separator < 0 else separator + 2
+        paragraph_end = text.find("\n\n", command_end)
         if paragraph_end < 0:
             paragraph_end = len(text)
         claim_text = re.sub(r"\s+", " ", text[paragraph_start:paragraph_end]).strip()
         citations.append({
-            "occurrence_id": f"{relative}:{line_number}:cite{ordinal}",
+            "occurrence_id": f"{relative}:{line_number}:cite{citation_ordinal}",
             "cite_keys": keys,
             "claim_text": claim_text,
+            "_position": match.start(),
         })
+    cquote_spans: list[tuple[int, int]] = []
+    cquote_ordinal = 0
+    for match in CQUOTE_COMMAND_TOKEN_RE.finditer(text):
+        line_number = text.count("\n", 0, match.start()) + 1
+        command = match.group("command").lower()
+        language_first = command.startswith(("foreign", "hyphen", "hybrid"))
+        cursor = _latex_skip_space(text, match.end())
+        groups: list[str] = []
+        parsed = True
+        if language_first:
+            language = _latex_balanced_group(text, cursor, "{")
+            if language is None:
+                parsed = None
+            else:
+                language_value, cursor = language
+                groups.append(language_value)
+                cursor = _latex_skip_space(text, cursor)
+        while parsed is not None and cursor < len(text) and text[cursor] == "[":
+            note = _latex_balanced_group(text, cursor, "[")
+            if note is None:
+                parsed = None
+                break
+            _, cursor = note
+            cursor = _latex_skip_space(text, cursor)
+        if parsed is not None:
+            key_group = _latex_balanced_group(text, cursor, "{")
+            if key_group is None:
+                parsed = None
+            else:
+                key_value, cursor = key_group
+                groups.append(key_value)
+                cursor = _latex_skip_space(text, cursor)
+        if parsed is not None and cursor < len(text) and text[cursor] == "[":
+            punctuation = _latex_balanced_group(text, cursor, "[")
+            if punctuation is None:
+                parsed = None
+            else:
+                _, cursor = punctuation
+                cursor = _latex_skip_space(text, cursor)
+        if parsed is not None:
+            quotation = _latex_balanced_group(text, cursor, "{")
+            if quotation is None:
+                parsed = None
+            else:
+                quotation_value, command_end = quotation
+                groups.append(quotation_value)
+        if parsed is None:
+            raise EvidenceError(
+                f"malformed citation-bearing cquote at {relative}:{line_number}"
+            )
+        cquote_spans.append((match.start(), command_end))
+        cquote_ordinal += 1
+        key_index = 1 if language_first else 0
+        key = groups[key_index].strip()
+        if not CITE_KEY_RE.fullmatch(key):
+            raise EvidenceError(
+                f"dynamic or malformed citation key at {relative}:{line_number}"
+            )
+        separator = text.rfind("\n\n", 0, match.start())
+        paragraph_start = 0 if separator < 0 else separator + 2
+        paragraph_end = text.find("\n\n", command_end)
+        if paragraph_end < 0:
+            paragraph_end = len(text)
+        claim_text = re.sub(r"\s+", " ", text[paragraph_start:paragraph_end]).strip()
+        citations.append({
+            "occurrence_id": f"{relative}:{line_number}:cquote{cquote_ordinal}",
+            "cite_keys": [key],
+            "claim_text": claim_text,
+            "_position": match.start(),
+        })
+    display_pattern = re.compile(
+        r"\\begin\s*\{(?P<environment>(?:foreign|hyphen)?displaycquote)\}",
+        flags=re.IGNORECASE,
+    )
+    display_spans: list[tuple[int, int]] = []
+    for match in display_pattern.finditer(text):
+        line_number = text.count("\n", 0, match.start()) + 1
+        environment = match.group("environment").lower()
+        language_first = environment.startswith(("foreign", "hyphen"))
+        cursor = _latex_skip_space(text, match.end())
+        if language_first:
+            language = _latex_balanced_group(text, cursor, "{")
+            if language is None:
+                raise EvidenceError(
+                    f"malformed citation-bearing {environment} at {relative}:{line_number}"
+                )
+            _, cursor = language
+            cursor = _latex_skip_space(text, cursor)
+        while cursor < len(text) and text[cursor] == "[":
+            note = _latex_balanced_group(text, cursor, "[")
+            if note is None:
+                raise EvidenceError(
+                    f"malformed citation-bearing {environment} at {relative}:{line_number}"
+                )
+            _, cursor = note
+            cursor = _latex_skip_space(text, cursor)
+        key_group = _latex_balanced_group(text, cursor, "{")
+        if key_group is None:
+            raise EvidenceError(
+                f"malformed citation-bearing {environment} at {relative}:{line_number}"
+            )
+        key, cursor = key_group
+        cursor = _latex_skip_space(text, cursor)
+        if cursor < len(text) and text[cursor] == "[":
+            punctuation = _latex_balanced_group(text, cursor, "[")
+            if punctuation is None:
+                raise EvidenceError(
+                    f"malformed citation-bearing {environment} at {relative}:{line_number}"
+                )
+            _, cursor = punctuation
+        closing = re.search(
+            rf"\\end\s*\{{{re.escape(environment)}\}}", text[cursor:],
+            flags=re.IGNORECASE,
+        )
+        if closing is None:
+            raise EvidenceError(
+                f"unterminated citation-bearing {environment} at {relative}:{line_number}"
+            )
+        command_end = cursor + closing.end()
+        display_spans.append((match.start(), command_end))
+        cquote_ordinal += 1
+        key = key.strip()
+        if not CITE_KEY_RE.fullmatch(key):
+            raise EvidenceError(
+                f"dynamic or malformed citation key at {relative}:{line_number}"
+            )
+        separator = text.rfind("\n\n", 0, match.start())
+        paragraph_start = 0 if separator < 0 else separator + 2
+        paragraph_end = text.find("\n\n", command_end)
+        if paragraph_end < 0:
+            paragraph_end = len(text)
+        claim_text = re.sub(r"\s+", " ", text[paragraph_start:paragraph_end]).strip()
+        citations.append({
+            "occurrence_id": f"{relative}:{line_number}:cquote{cquote_ordinal}",
+            "cite_keys": [key],
+            "claim_text": claim_text,
+            "_position": match.start(),
+        })
+    for match in re.finditer(
+            r"\\begin\s*\{(?P<environment>[A-Za-z@]*cquote[A-Za-z@]*)\}",
+            text, flags=re.IGNORECASE):
+        if not any(start <= match.start() < end
+                   for start, end in display_spans):
+            line_number = text.count("\n", 0, match.start()) + 1
+            raise EvidenceError(
+                "unsupported citation-bearing cquote environment "
+                f"{match.group('environment')} at {relative}:{line_number}"
+            )
     for match in CITATION_FAMILY_RE.finditer(text):
         command = match.group("command").lower()
         if command in NON_OCCURRENCE_CITATION_COMMANDS:
@@ -2295,7 +4022,178 @@ def citation_occurrences(text: str, relative: str) -> list[dict[str, Any]]:
                 f"unsupported citation-family command \\{command} at "
                 f"{relative}:{line_number}"
             )
+    for match in CQUOTE_FAMILY_RE.finditer(text):
+        if not any(start <= match.start() < end for start, end in cquote_spans):
+            line_number = text.count("\n", 0, match.start()) + 1
+            raise EvidenceError(
+                f"unsupported citation-bearing cquote command "
+                f"\\{match.group('command').lower()} at {relative}:{line_number}"
+            )
+    citations.sort(key=lambda item: item["_position"])
+    for citation in citations:
+        citation.pop("_position")
     return citations
+
+
+def reject_citation_macro_definitions(text: str, relative: str) -> None:
+    """Fail closed on common user-defined citation-command aliases.
+
+    Static occurrence binding cannot soundly expand arbitrary TeX. Rejecting
+    the ordinary LaTeX definition forms prevents a citation hidden behind a
+    convenient local alias from being counted only at its definition site.
+    """
+    # Keep every historical definition. TeX command names are case-sensitive,
+    # and a later safe redefinition must not erase evidence that an earlier
+    # citation-bearing definition could have been invoked.
+    definitions: list[tuple[str, str, int]] = []
+    command_pattern = re.compile(
+        r"\\(?:newcommand|renewcommand|providecommand|DeclareRobustCommand|"
+        r"newrobustcmd|renewrobustcmd|providerobustcmd)\*?",
+        flags=re.IGNORECASE,
+    )
+    for match in command_pattern.finditer(text):
+        cursor = _latex_skip_space(text, match.end())
+        name: str | None = None
+        if cursor < len(text) and text[cursor] == "{":
+            parsed_name = _latex_balanced_group(text, cursor, "{")
+            if parsed_name is not None and re.fullmatch(
+                    r"\s*\\[A-Za-z@]+\s*", parsed_name[0]):
+                name = parsed_name[0].strip()
+                cursor = _latex_skip_space(text, parsed_name[1])
+        else:
+            bare = re.match(r"\\[A-Za-z@]+", text[cursor:])
+            if bare is not None:
+                name = bare.group(0)
+                cursor = _latex_skip_space(text, cursor + bare.end())
+        if name is None:
+            continue
+        for _ in range(2):
+            if cursor >= len(text) or text[cursor] != "[":
+                break
+            parsed_option = _latex_balanced_group(text, cursor, "[")
+            if parsed_option is None:
+                break
+            _, cursor = parsed_option
+            cursor = _latex_skip_space(text, cursor)
+        parsed_body = _latex_balanced_group(text, cursor, "{")
+        if parsed_body is None:
+            raise EvidenceError(
+                f"malformed citation-relevant macro definition at {relative}:"
+                f"{text.count(chr(10), 0, match.start()) + 1}"
+            )
+        definitions.append((
+            name,
+            parsed_body[0],
+            text.count("\n", 0, match.start()) + 1,
+        ))
+    xparse_pattern = re.compile(
+        r"\\(?:New|Renew|Provide|Declare)(?:Expandable)?DocumentCommand"
+    )
+    for match in xparse_pattern.finditer(text):
+        cursor = _latex_skip_space(text, match.end())
+        name = None
+        if cursor < len(text) and text[cursor] == "{":
+            parsed_name = _latex_balanced_group(text, cursor, "{")
+            if parsed_name is not None and re.fullmatch(
+                    r"\s*\\[A-Za-z@]+\s*", parsed_name[0]):
+                name = parsed_name[0].strip()
+                cursor = _latex_skip_space(text, parsed_name[1])
+        else:
+            bare = re.match(r"\\[A-Za-z@]+", text[cursor:])
+            if bare is not None:
+                name = bare.group(0)
+                cursor = _latex_skip_space(text, cursor + bare.end())
+        if name is None:
+            continue
+        parsed_spec = _latex_balanced_group(text, cursor, "{")
+        if parsed_spec is None:
+            raise EvidenceError(
+                f"malformed citation-relevant macro definition at {relative}:"
+                f"{text.count(chr(10), 0, match.start()) + 1}"
+            )
+        cursor = _latex_skip_space(text, parsed_spec[1])
+        parsed_body = _latex_balanced_group(text, cursor, "{")
+        if parsed_body is None:
+            raise EvidenceError(
+                f"malformed citation-relevant macro definition at {relative}:"
+                f"{text.count(chr(10), 0, match.start()) + 1}"
+            )
+        definitions.append((
+            name,
+            parsed_body[0],
+            text.count("\n", 0, match.start()) + 1,
+        ))
+    primitive_pattern = re.compile(
+        r"\\(?:def|gdef|edef|xdef)\s*(\\[A-Za-z@]+)[^\{]*\{",
+        flags=re.IGNORECASE,
+    )
+    for match in primitive_pattern.finditer(text):
+        body_start = match.end() - 1
+        parsed_body = _latex_balanced_group(text, body_start, "{")
+        if parsed_body is None:
+            raise EvidenceError(
+                f"malformed citation-relevant macro definition at {relative}:"
+                f"{text.count(chr(10), 0, match.start()) + 1}"
+            )
+        definitions.append((
+            match.group(1),
+            parsed_body[0],
+            text.count("\n", 0, match.start()) + 1,
+        ))
+    for match in re.finditer(
+            r"\\let\s*(\\[A-Za-z@]+)\s*=?\s*(\\[A-Za-z@]+)", text,
+            flags=re.IGNORECASE):
+        definitions.append((
+            match.group(1), match.group(2),
+            text.count("\n", 0, match.start()) + 1,
+        ))
+    declared = re.search(
+        r"\\DeclareCiteCommand\*?\s*\{\s*(\\[A-Za-z@]+)\s*\}", text,
+        flags=re.IGNORECASE,
+    )
+    if declared:
+        raise EvidenceError(
+            f"user-defined citation command {declared.group(1)} is unsupported at "
+            f"{relative}:{text.count(chr(10), 0, declared.start()) + 1}"
+        )
+
+    bearing: set[str] = set()
+    supported_names = {"\\" + command.lower() for command in CITATION_COMMANDS}
+    for name, _body, line in definitions:
+        if name.lower() in supported_names:
+            raise EvidenceError(
+                f"redefinition of supported citation command {name} is unsupported at "
+                f"{relative}:{line}"
+            )
+    changed = True
+    while changed:
+        changed = False
+        for name, body, _ in definitions:
+            if name in bearing:
+                continue
+            direct = (
+                CITATION_COMMAND_TOKEN_RE.search(body) is not None
+                or any(
+                    match.group("command").lower()
+                    not in NON_OCCURRENCE_CITATION_COMMANDS
+                    for match in CITATION_FAMILY_RE.finditer(body)
+                )
+                or CQUOTE_FAMILY_RE.search(body) is not None
+            )
+            alias = any(re.search(re.escape(other) + r"(?![A-Za-z@])", body)
+                        for other in bearing)
+            if direct or alias:
+                bearing.add(name)
+                changed = True
+    if bearing:
+        name = sorted(bearing)[0]
+        line_number = min(
+            line for defined_name, _body, line in definitions if defined_name == name
+        )
+        raise EvidenceError(
+            f"user-defined citation command {name} is unsupported at "
+            f"{relative}:{line_number}; use a supported citation command directly"
+        )
 
 
 def paper_dependency_graph(root: Path) -> tuple[list[str], list[dict[str, Any]]]:
@@ -2320,11 +4218,12 @@ def paper_dependency_graph(root: Path) -> tuple[list[str], list[dict[str, Any]]]
         seen_sources.add(current)
         project_path(root, relative)
         paths.add(relative)
-        text = uncomment_latex(current.read_text(encoding="utf-8"))
+        text = uncomment_latex(read_utf8(current, "LaTeX source"))
+        reject_citation_macro_definitions(text, relative)
         citations.extend(citation_occurrences(text, relative))
         unsupported = re.search(
             r"\\(?:(?:import|subimport|inputfrom|includefrom|subinputfrom|subincludefrom|"
-            r"graphicspath|DTLloaddb|loadglsentries)\s*\{|"
+            r"graphicspath|DeclareGraphicsExtensions|DTLloaddb|loadglsentries)\s*\{|"
             r"CatchFile(?:Def|Edef)(?![A-Za-z@])|openin(?![A-Za-z@]))",
             text,
         )
@@ -2338,29 +4237,31 @@ def paper_dependency_graph(root: Path) -> tuple[list[str], list[dict[str, Any]]]
             # dependencies are followed. Parameterized macro bodies are
             # ignored (for example a wrapper's `\includegraphics{#1}`), since
             # their concrete invocation is visible in a document source.
-            for match in re.finditer(
-                    r"\\(?:usepackage|RequirePackage)\s*(?:\[[^\]]*\]\s*)?\{([^}]+)\}", text):
-                for raw in match.group(1).split(","):
+            for _, groups, _ in _iter_latex_group_commands(
+                    text, r"usepackage|RequirePackage(?:WithOptions)?", 1):
+                for raw in groups[0].split(","):
                     raw = raw.strip()
                     if any(token in raw for token in ("\\", "{", "}", "#")):
                         raise EvidenceError(
                             f"dynamic local package dependency in {relative}: {raw!r}"
                         )
                     dependency = resolve_latex_dependency(
-                        root, paper, current, raw, (".sty",), required=False
+                        root, paper, current, raw, (".sty",), required=False,
+                        append_extension=True,
                     )
                     if dependency is not None:
                         paths.add(dependency.relative_to(root).as_posix())
                         pending.append(dependency)
-            for match in re.finditer(
-                    r"\\documentclass\s*(?:\[[^\]]*\]\s*)?\{([^}]+)\}", text):
-                raw = match.group(1).strip()
+            for _, groups, _ in _iter_latex_group_commands(
+                    text, r"documentclass|LoadClass(?:WithOptions)?", 1):
+                raw = groups[0].strip()
                 if any(token in raw for token in ("\\", "{", "}", "#")):
                     raise EvidenceError(
                         f"dynamic local class dependency in {relative}: {raw!r}"
                     )
                 dependency = resolve_latex_dependency(
-                    root, paper, current, raw, (".cls",), required=False
+                    root, paper, current, raw, (".cls",), required=False,
+                    append_extension=True,
                 )
                 if dependency is not None:
                     paths.add(dependency.relative_to(root).as_posix())
@@ -2377,37 +4278,57 @@ def paper_dependency_graph(root: Path) -> tuple[list[str], list[dict[str, Any]]]
                 dependency = resolve_latex_dependency(
                     root, paper, current, raw,
                     (".tex", ".sty", ".cls", ".cfg", ".def", ".bib", ".pdf", ".png"),
-                    required=False,
+                    required=False, append_extension=True,
+                    reject_raw_collision=False, preserve_explicit_suffix=True,
                 )
                 if dependency is not None:
                     paths.add(dependency.relative_to(root).as_posix())
                     if dependency.suffix.lower() in {".tex", ".sty", ".cls", ".cfg", ".def"}:
                         pending.append(dependency)
-            static_patterns: tuple[tuple[str, tuple[str, ...]], ...] = (
-                (r"\\(?:input|include|subfile)(?![A-Za-z])\s*\{([^}]+)\}",
-                 (".tex", ".sty", ".cls", ".cfg", ".def")),
-                (r"\\(?:lstinputlisting|VerbatimInput)\s*(?:\[[^\]]*\]\s*)?\{([^}]+)\}",
-                 (".tex", ".txt", ".csv", ".tsv", ".json", ".py", ".r")),
-                (r"\\inputminted\s*(?:\[[^\]]*\]\s*)?\{[^}]+\}\s*\{([^}]+)\}",
-                 (".tex", ".txt", ".csv", ".tsv", ".json", ".py", ".r")),
-                (r"\\(?:csvreader|pgfplotstableread|pgfplotstabletypeset)"
-                 r"\s*(?:\[[^\]]*\]\s*)?\{([^}]+)\}",
-                 (".csv", ".tsv", ".txt", ".dat")),
-                (r"\\addplot(?:3)?\+?(?:\s*\[[^\]]*\])?\s+table"
-                 r"(?:\s*\[[^\]]*\])?\s*\{([^}]+)\}",
-                 (".csv", ".tsv", ".txt", ".dat")),
-                (r"\\addplot(?:3)?\+?(?:\s*\[[^\]]*\])?\s+file\s*\{([^}]+)\}",
-                 (".csv", ".tsv", ".txt", ".dat")),
-                (r"\\includegraphics\*?\s*(?:\[[^\]]*\]\s*)?\{([^}]+)\}",
-                 (".pdf", ".png", ".jpg", ".jpeg", ".svg", ".eps")),
-                (r"\\includepdf\s*(?:\[[^\]]*\]\s*)?\{([^}]+)\}",
-                 (".pdf",)),
+            static_commands: tuple[
+                tuple[str, int, int, tuple[str, ...], bool, bool], ...
+            ] = (
+                (r"input|include|subfile", 1, 0,
+                 (".tex",), True, False),
+                (r"lstinputlisting|VerbatimInput", 1, 0,
+                 (".tex", ".txt", ".csv", ".tsv", ".json", ".py", ".r"), False, True),
+                (r"inputminted", 2, 1,
+                 (".tex", ".txt", ".csv", ".tsv", ".json", ".py", ".r"), False, True),
+                (r"csvreader|pgfplotstableread|pgfplotstabletypeset", 1, 0,
+                 (".csv", ".tsv", ".txt", ".dat"), False, True),
+                (r"includegraphics", 1, 0,
+                 (".pdf", ".png", ".jpg", ".jpeg", ".svg", ".eps"), True, True),
+                (r"includepdf", 1, 0, (".pdf",), True, True),
             )
-            for pattern, extensions in static_patterns:
-                for match in re.finditer(pattern, text):
-                    raw = match.group(1).strip()
+            parsed_reads: list[
+                tuple[re.Match[str], str, tuple[str, ...], bool, bool]
+            ] = []
+            for (command_pattern, count, path_index, extensions,
+                 append_extension, reject_raw_collision) in static_commands:
+                for token, options, groups, _ in _iter_latex_command_parts(
+                        text, command_pattern, count):
+                    if command_pattern in {
+                            r"lstinputlisting|VerbatimInput", r"inputminted"}:
+                        reject_external_literal_options(token, options, relative)
+                    parsed_reads.append(
+                        (token, groups[path_index], extensions, append_extension,
+                         reject_raw_collision)
+                    )
+            parsed_reads.extend(
+                (token, raw, (".csv", ".tsv", ".txt", ".dat"), False, True)
+                for token, raw in _iter_addplot_reads(text)
+            )
+            for match in re.finditer(
+                    r"\\(?:input|include|subfile)(?![A-Za-z])\s*"
+                    r"(?:\{([^}]+)\}|([^\s%{}]+))", text):
+                parsed_reads.append(
+                    (match, match.group(1) or match.group(2), (".tex",), True, False)
+                )
+            for (token, raw_value, extensions, append_extension,
+                 reject_raw_collision) in parsed_reads:
+                    raw = raw_value.strip()
                     if any(token in raw for token in ("\\", "{", "}", "#")):
-                        definition_prefix = text[max(0, match.start() - 24):match.start()]
+                        definition_prefix = text[max(0, token.start() - 24):token.start()]
                         if re.search(r"\\(?:g|x|e)?def\s*$", definition_prefix):
                             # This is the command token being defined, not a
                             # file read (for example `\def\includegraphics`).
@@ -2417,16 +4338,20 @@ def paper_dependency_graph(root: Path) -> tuple[list[str], list[dict[str, Any]]]
                             f"{relative}: {raw!r}"
                         )
                     dependency = resolve_latex_dependency(
-                        root, paper, current, raw, extensions, required=False
+                        root, paper, current, raw, extensions, required=False,
+                        append_extension=append_extension,
+                        reject_raw_collision=reject_raw_collision,
+                        preserve_explicit_suffix=(
+                            append_extension and extensions == (".tex",)
+                        ),
                     )
                     if dependency is not None:
                         paths.add(dependency.relative_to(root).as_posix())
                         if dependency.suffix.lower() in {".tex", ".sty", ".cls", ".cfg", ".def"}:
                             pending.append(dependency)
-            for match in re.finditer(
-                    r"\\(?:bibliography|addbibresource)\s*"
-                    r"(?:\[[^\]]*\]\s*)?\{([^}]+)\}", text):
-                for raw in match.group(1).split(","):
+            for _, groups, _ in _iter_latex_group_commands(
+                    text, r"bibliography|nobibliography|addbibresource|addglobalbib|addsectionbib", 1):
+                for raw in groups[0].split(","):
                     raw = raw.strip()
                     if not raw or any(token in raw for token in ("\\", "{", "}", "#")):
                         raise EvidenceError(
@@ -2436,7 +4361,8 @@ def paper_dependency_graph(root: Path) -> tuple[list[str], list[dict[str, Any]]]
                         not PurePosixPath(raw).suffix and f"{raw}.bib" in guarded_files
                     )
                     dependency = resolve_latex_dependency(
-                        root, paper, current, raw, (".bib",), required=not guarded
+                        root, paper, current, raw, (".bib",), required=not guarded,
+                        append_extension=True,
                     )
                     if dependency is not None:
                         paths.add(dependency.relative_to(root).as_posix())
@@ -2446,7 +4372,8 @@ def paper_dependency_graph(root: Path) -> tuple[list[str], list[dict[str, Any]]]
                 r"(?:\{([^}]+)\}|([^\s%{}]+))", text):
             dependency = resolve_latex_dependency(
                 root, paper, current, match.group(1) or match.group(2),
-                (".tex",), required=True
+                (".tex",), required=True, append_extension=True,
+                reject_raw_collision=False, preserve_explicit_suffix=True,
             )
             assert dependency is not None
             pending.append(dependency)
@@ -2460,52 +4387,58 @@ def paper_dependency_graph(root: Path) -> tuple[list[str], list[dict[str, Any]]]
             guarded_files.add(PurePosixPath(raw).as_posix())
             dependency = resolve_latex_dependency(
                 root, paper, current, raw,
-                (".tex", ".bib", ".sty", ".cls", ".pdf", ".png"), required=False
+                (".tex", ".bib", ".sty", ".cls", ".pdf", ".png"),
+                required=False, append_extension=True,
+                reject_raw_collision=False, preserve_explicit_suffix=True,
             )
             if dependency is not None:
                 paths.add(dependency.relative_to(root).as_posix())
                 if dependency.suffix.lower() in {".tex", ".sty", ".cls", ".cfg", ".def"}:
                     pending.append(dependency)
-        data_patterns: tuple[tuple[str, tuple[str, ...]], ...] = (
-            (r"\\(?:lstinputlisting|VerbatimInput)\s*(?:\[[^\]]*\]\s*)?\{([^}]+)\}",
+        data_commands: tuple[tuple[str, int, int, tuple[str, ...]], ...] = (
+            (r"lstinputlisting|VerbatimInput", 1, 0,
              (".tex", ".txt", ".csv", ".tsv", ".json", ".py", ".r")),
-            (r"\\inputminted\s*(?:\[[^\]]*\]\s*)?\{[^}]+\}\s*\{([^}]+)\}",
+            (r"inputminted", 2, 1,
              (".tex", ".txt", ".csv", ".tsv", ".json", ".py", ".r")),
-            (r"\\(?:csvreader|pgfplotstableread|pgfplotstabletypeset)"
-             r"\s*(?:\[[^\]]*\]\s*)?\{([^}]+)\}",
-             (".csv", ".tsv", ".txt", ".dat")),
-            (r"\\addplot(?:3)?\+?(?:\s*\[[^\]]*\])?\s+table"
-             r"(?:\s*\[[^\]]*\])?\s*\{([^}]+)\}",
-             (".csv", ".tsv", ".txt", ".dat")),
-            (r"\\addplot(?:3)?\+?(?:\s*\[[^\]]*\])?\s+file\s*\{([^}]+)\}",
+            (r"csvreader|pgfplotstableread|pgfplotstabletypeset", 1, 0,
              (".csv", ".tsv", ".txt", ".dat")),
         )
-        for pattern, extensions in data_patterns:
-            for match in re.finditer(pattern, text):
+        for command_pattern, count, path_index, extensions in data_commands:
+            for token, options, groups, _ in _iter_latex_command_parts(
+                    text, command_pattern, count):
+                if command_pattern in {
+                        r"lstinputlisting|VerbatimInput", r"inputminted"}:
+                    reject_external_literal_options(token, options, relative)
                 dependency = resolve_latex_dependency(
-                    root, paper, current, match.group(1), extensions, required=True
+                    root, paper, current, groups[path_index], extensions, required=True
                 )
                 assert dependency is not None
                 paths.add(dependency.relative_to(root).as_posix())
-        for match in re.finditer(
-                r"\\includegraphics\*?\s*(?:\[[^\]]*\]\s*)?\{([^}]+)\}", text):
+        for _, raw in _iter_addplot_reads(text):
             dependency = resolve_latex_dependency(
-                root, paper, current, match.group(1),
-                (".pdf", ".png", ".jpg", ".jpeg", ".svg", ".eps"), required=True
+                root, paper, current, raw,
+                (".csv", ".tsv", ".txt", ".dat"), required=True,
             )
             assert dependency is not None
             paths.add(dependency.relative_to(root).as_posix())
-        for match in re.finditer(
-                r"\\includepdf\s*(?:\[[^\]]*\]\s*)?\{([^}]+)\}", text):
+        for _, groups, _ in _iter_latex_group_commands(text, r"includegraphics", 1):
             dependency = resolve_latex_dependency(
-                root, paper, current, match.group(1), (".pdf",), required=True
+                root, paper, current, groups[0],
+                (".pdf", ".png", ".jpg", ".jpeg", ".svg", ".eps"), required=True,
+                append_extension=True,
             )
             assert dependency is not None
             paths.add(dependency.relative_to(root).as_posix())
-        for match in re.finditer(
-                r"\\(?:bibliography|addbibresource)\s*"
-                r"(?:\[[^\]]*\]\s*)?\{([^}]+)\}", text):
-            for raw in match.group(1).split(","):
+        for _, groups, _ in _iter_latex_group_commands(text, r"includepdf", 1):
+            dependency = resolve_latex_dependency(
+                root, paper, current, groups[0], (".pdf",), required=True,
+                append_extension=True,
+            )
+            assert dependency is not None
+            paths.add(dependency.relative_to(root).as_posix())
+        for _, groups, _ in _iter_latex_group_commands(
+                text, r"bibliography|nobibliography|addbibresource|addglobalbib|addsectionbib", 1):
+            for raw in groups[0].split(","):
                 raw = raw.strip()
                 if not raw or any(token in raw for token in ("\\", "{", "}", "#")):
                     raise EvidenceError(
@@ -2515,14 +4448,14 @@ def paper_dependency_graph(root: Path) -> tuple[list[str], list[dict[str, Any]]]
                     not PurePosixPath(raw).suffix and f"{raw}.bib" in guarded_files
                 )
                 dependency = resolve_latex_dependency(
-                    root, paper, current, raw, (".bib",), required=not guarded
+                    root, paper, current, raw, (".bib",), required=not guarded,
+                    append_extension=True,
                 )
                 if dependency is not None:
                     paths.add(dependency.relative_to(root).as_posix())
-        for match in re.finditer(
-                r"\\(?:usepackage|RequirePackage)\s*"
-                r"(?:\[[^\]]*\]\s*)?\{([^}]+)\}", text):
-            for raw in match.group(1).split(","):
+        for _, groups, _ in _iter_latex_group_commands(
+                text, r"usepackage|RequirePackage(?:WithOptions)?", 1):
+            for raw in groups[0].split(","):
                 raw = raw.strip()
                 if not raw or any(token in raw for token in ("\\", "{", "}", "#")):
                     raise EvidenceError(
@@ -2530,19 +4463,21 @@ def paper_dependency_graph(root: Path) -> tuple[list[str], list[dict[str, Any]]]
                     )
                 explicit_local = "/" in raw or PurePosixPath(raw).suffix == ".sty"
                 dependency = resolve_latex_dependency(
-                    root, paper, current, raw, (".sty",), required=explicit_local
+                    root, paper, current, raw, (".sty",), required=explicit_local,
+                    append_extension=True,
                 )
                 if dependency is not None:
                     paths.add(dependency.relative_to(root).as_posix())
                     pending.append(dependency)
-        for match in re.finditer(
-                r"\\documentclass\s*(?:\[[^\]]*\]\s*)?\{([^}]+)\}", text):
-            raw = match.group(1).strip()
+        for _, groups, _ in _iter_latex_group_commands(
+                text, r"documentclass|LoadClass(?:WithOptions)?", 1):
+            raw = groups[0].strip()
             if not raw or any(token in raw for token in ("\\", "{", "}", "#")):
                 raise EvidenceError(f"dynamic class dependency in {relative}: {raw!r}")
             explicit_local = "/" in raw or PurePosixPath(raw).suffix == ".cls"
             dependency = resolve_latex_dependency(
-                root, paper, current, raw, (".cls",), required=explicit_local
+                root, paper, current, raw, (".cls",), required=explicit_local,
+                append_extension=True,
             )
             if dependency is not None:
                 paths.add(dependency.relative_to(root).as_posix())
@@ -2555,7 +4490,8 @@ def paper_dependency_graph(root: Path) -> tuple[list[str], list[dict[str, Any]]]
                 )
             explicit_local = "/" in raw or PurePosixPath(raw).suffix == ".bst"
             dependency = resolve_latex_dependency(
-                root, paper, current, raw, (".bst",), required=explicit_local
+                root, paper, current, raw, (".bst",), required=explicit_local,
+                append_extension=True,
             )
             if dependency is not None:
                 paths.add(dependency.relative_to(root).as_posix())
@@ -2610,7 +4546,8 @@ def validate_audit_input(root: Path, path: Path, checkpoint: str) -> dict[str, A
     failures.extend(compare_snapshot(root, [registry], "audit input results_registry"))
     current_receipts = [path.relative_to(root).as_posix()
                         for path in discover_result_receipts(root)]
-    recorded_receipts = [entry.get("path") for entry in value["result_receipts"]]
+    recorded_receipts = [entry.get("path") for entry in value["result_receipts"]
+                         if isinstance(entry, dict)]
     if sorted(recorded_receipts) != sorted(current_receipts):
         failures.append("active result receipt inventory changed after audit preparation")
     current_paper, current_citations = paper_dependency_graph(root)
@@ -2682,24 +4619,133 @@ def command_verify_audit_input(args: argparse.Namespace) -> int:
 def validate_audit_report(path: Path, checkpoint: str, audit_input_digest: str,
                           label: str) -> None:
     try:
-        lines = [line.strip() for line in path.read_text(encoding="utf-8").splitlines()
-                 if line.strip()]
-    except OSError as exc:
+        raw_lines = [
+            line.strip()
+            for line in read_utf8(path, f"{label} audit report").splitlines()
+        ]
+        lines = [line for line in raw_lines if line]
+    except (OSError, UnicodeError) as exc:
         raise EvidenceError(f"cannot read {label} audit report: {exc}") from exc
-    verdict_lines = [line for line in lines if line.startswith("VERDICT:")]
-    checkpoint_lines = [line for line in lines if line.startswith("CHECKPOINT:")]
-    digest_lines = [line for line in lines if line.startswith("AUDIT_INPUT_DIGEST:")]
     expected = ["VERDICT: PASS", f"CHECKPOINT: {checkpoint}",
                 f"AUDIT_INPUT_DIGEST: {audit_input_digest}"]
-    if (lines[:3] != expected or verdict_lines != [expected[0]] or
-            checkpoint_lines != [expected[1]] or digest_lines != [expected[2]]):
+    marker_values = {"VERDICT": [], "CHECKPOINT": [], "AUDIT_INPUT_DIGEST": []}
+    prefix_re = re.compile(
+        r"^(?:>\s*|#{1,6}\s+|[-+*]\s+|\d+[.)]\s+|\[[ xX]\]\s+)"
+    )
+
+    def strip_markdown_prefixes(line: str) -> str:
+        candidate = line.strip()
+        while True:
+            stripped = prefix_re.sub("", candidate, count=1)
+            if stripped == candidate:
+                return candidate
+            candidate = stripped.strip()
+
+    def normalized_marker_label(raw: str) -> str:
+        candidate = re.sub(r"\s+#+\s*$", "", raw.strip())
+        candidate = candidate.strip("*_` ")
+        candidate = candidate.rstrip(":").strip().strip("*_` ")
+        return re.sub(r"\s+", "_", candidate.upper())
+
+    def markdown_table_cells(line: str) -> list[str] | None:
+        candidate = strip_markdown_prefixes(line)
+        if "|" not in candidate:
+            return None
+        has_outer_pipe = candidate.startswith("|") or candidate.endswith("|")
+        if candidate.startswith("|"):
+            candidate = candidate[1:]
+        if candidate.endswith("|"):
+            candidate = candidate[:-1]
+        cells = [cell.strip() for cell in candidate.split("|")]
+        return cells if len(cells) >= 2 or (has_outer_pipe and len(cells) == 1) else None
+
+    def is_table_separator(cells: list[str] | None) -> bool:
+        return bool(cells) and all(
+            re.fullmatch(r":?-{3,}:?", cell.replace(" ", "")) is not None
+            for cell in cells
+        )
+
+    def markdown_label_value(line: str) -> tuple[str, str] | None:
+        candidate = strip_markdown_prefixes(line)
+        label, separator, value = candidate.partition(":")
+        if not separator:
+            return None
+        normalized_label = normalized_marker_label(label)
+        if normalized_label not in marker_values:
+            return None
+        return normalized_label, value.strip().strip("*_` ")
+
+    for line in lines:
+        marker = markdown_label_value(line)
+        if marker is not None:
+            marker_values[marker[0]].append(marker[1])
+
+    def record_horizontal_table_markers(row: list[str]) -> None:
+        for column, cell in enumerate(row[:-1]):
+            key = normalized_marker_label(cell)
+            if key in marker_values:
+                marker_values[key].append(row[column + 1].strip("*_` "))
+
+    # Parse every adjacent GFM header/delimiter pair rather than assuming a
+    # pipe-containing run begins at its header: CommonMark permits a table to
+    # interrupt a preceding pipe-bearing paragraph without a blank line.
+    for line_index, raw_line in enumerate(raw_lines):
+        cells = markdown_table_cells(raw_line)
+        if cells is None or is_table_separator(cells):
+            continue
+        next_cells = (
+            markdown_table_cells(raw_lines[line_index + 1])
+            if line_index + 1 < len(raw_lines)
+            else None
+        )
+        if is_table_separator(next_cells):
+            marker_columns = [
+                (column, normalized_marker_label(cell))
+                for column, cell in enumerate(cells)
+                if normalized_marker_label(cell) in marker_values
+            ]
+            body_rows: list[list[str]] = []
+            body_index = line_index + 2
+            while body_index < len(raw_lines) and raw_lines[body_index]:
+                body_cells = markdown_table_cells(raw_lines[body_index])
+                if body_cells is None or is_table_separator(body_cells):
+                    break
+                body_rows.append(body_cells)
+                body_index += 1
+            if body_rows:
+                for row in body_rows:
+                    for column, key in marker_columns:
+                        value = row[column] if column < len(row) else ""
+                        marker_values[key].append(value.strip("*_` "))
+            else:
+                for column, key in marker_columns:
+                    value = cells[column + 1] if column + 1 < len(cells) else ""
+                    marker_values[key].append(value.strip("*_` "))
+        else:
+            record_horizontal_table_markers(cells)
+    if (lines[:3] != expected or marker_values["VERDICT"] != ["PASS"] or
+            marker_values["CHECKPOINT"] != [checkpoint] or
+            marker_values["AUDIT_INPUT_DIGEST"] != [audit_input_digest]):
         raise EvidenceError(
             f"{label} audit report must contain one consistent PASS/checkpoint/digest header"
         )
-    for index, line in enumerate(lines[:-1]):
-        if re.fullmatch(r"#{1,6}\s+verdict", line, flags=re.IGNORECASE):
-            if lines[index + 1].upper() != "PASS":
-                raise EvidenceError(f"{label} audit report contains a conflicting verdict")
+    heading_expected = {
+        "VERDICT": "PASS",
+        "CHECKPOINT": checkpoint,
+        "AUDIT_INPUT_DIGEST": audit_input_digest,
+    }
+    for index, line in enumerate(lines):
+        candidate = strip_markdown_prefixes(line)
+        key = normalized_marker_label(candidate)
+        if ":" in candidate or key not in heading_expected:
+            continue
+        if index + 1 >= len(lines):
+            raise EvidenceError(f"{label} audit report contains a conflicting {key.lower()}")
+        next_value = strip_markdown_prefixes(lines[index + 1]).strip("*_` ")
+        matches = (next_value.upper() == "PASS" if key == "VERDICT"
+                   else next_value == heading_expected[key])
+        if not matches:
+            raise EvidenceError(f"{label} audit report contains a conflicting {key.lower()}")
 
 
 def validate_audit_summary(value: Any, checkpoint: str, *, label: str = "evidence") -> None:
@@ -2721,8 +4767,7 @@ def validate_audit_summary(value: Any, checkpoint: str, *, label: str = "evidenc
 
 def validate_citation_summary(value: Any, checkpoint: str, audit_input_path: str,
                               audit_input_digest: str,
-                              expected_occurrences: list[dict[str, Any]],
-                              prior_claims: list[dict[str, Any]]) -> None:
+                              expected_occurrences: list[dict[str, Any]]) -> None:
     validate_audit_summary(value, checkpoint, label="citation")
     assert isinstance(value, dict)
     required = {"verdict", "checkpoint", "blocking_findings", "audit_input_path",
@@ -2738,13 +4783,7 @@ def validate_citation_summary(value: Any, checkpoint: str, audit_input_path: str
     seen_occurrences: set[str] = set()
     expected_by_id = {entry["occurrence_id"]: entry
                       for entry in expected_occurrences}
-    prior_signatures = {
-        object_digest({key: claim.get(key) for key in
-                       ("claim_text", "cite_keys", "status", "sources")})
-        for claim in prior_claims if isinstance(claim, dict)
-    }
     fresh = 0
-    reused = 0
     for index, claim in enumerate(claims):
         where = f"citation_claims[{index}]"
         if not isinstance(claim, dict):
@@ -2766,7 +4805,8 @@ def validate_citation_summary(value: Any, checkpoint: str, audit_input_path: str
             raise EvidenceError(f"{where}.cite_keys do not match the LaTeX citation occurrence")
         if claim["claim_text"] != expected["claim_text"]:
             raise EvidenceError(f"{where}.claim_text does not match the audited paper paragraph")
-        if claim["status"] not in {"FAITHFUL", "TOPICAL"}:
+        if (not isinstance(claim["status"], str) or
+                claim["status"] not in {"FAITHFUL", "TOPICAL"}):
             raise EvidenceError(f"{where}.status cannot appear in a PASS audit")
         sources = claim["sources"]
         if not isinstance(sources, list) or len(sources) != len(cite_keys):
@@ -2797,16 +4837,8 @@ def validate_citation_summary(value: Any, checkpoint: str, audit_input_path: str
         seen_occurrences.add(occurrence)
         if claim["verification"] == "fresh":
             fresh += 1
-        elif claim["verification"] == "reused":
-            signature = object_digest({key: claim.get(key) for key in
-                                       ("claim_text", "cite_keys", "status", "sources")})
-            if signature not in prior_signatures:
-                raise EvidenceError(
-                    f"{where} claims reuse but has no byte-bound prior characterization"
-                )
-            reused += 1
         else:
-            raise EvidenceError(f"{where}.verification must be fresh or reused")
+            raise EvidenceError(f"{where}.verification must be fresh")
     for key in ("fresh_checks", "reused_bound_checks"):
         if isinstance(value[key], bool) or not isinstance(value[key], int) or value[key] < 0:
             raise EvidenceError(f"{key} must be a non-negative integer")
@@ -2814,7 +4846,7 @@ def validate_citation_summary(value: Any, checkpoint: str, audit_input_path: str
         raise EvidenceError(
             "fresh_checks + reused_bound_checks must equal citation_claims length"
         )
-    if value["fresh_checks"] != fresh or value["reused_bound_checks"] != reused:
+    if value["fresh_checks"] != fresh or value["reused_bound_checks"] != 0:
         raise EvidenceError("citation check counts do not match per-claim verification labels")
     if seen_occurrences != set(expected_by_id):
         missing = sorted(set(expected_by_id) - seen_occurrences)
@@ -2865,6 +4897,29 @@ def command_bind_paper(args: argparse.Namespace) -> int:
     citation_report_raw, citation_report_path = evidence_artifact_path(
         root, args.citation_report, must_exist=True
     )
+    audit_artifacts = {
+        audit_input_raw, summary_raw, report_raw,
+        citation_summary_raw, citation_report_raw,
+    }
+    if len(audit_artifacts) != 5:
+        raise EvidenceError(
+            "audit input, evidence summary/report, and citation summary/report "
+            "must be five distinct files"
+        )
+    audit_identities: list[tuple[int, int]] = []
+    for path in (audit_input_path, summary_path, report_path,
+                 citation_summary_path, citation_report_path):
+        descriptor = _open_regular_read(path)
+        try:
+            info = os.fstat(descriptor)
+            audit_identities.append((info.st_dev, info.st_ino))
+        finally:
+            os.close(descriptor)
+    if len(set(audit_identities)) != 5:
+        raise EvidenceError(
+            "audit input, evidence summary/report, and citation summary/report "
+            "must be five distinct file identities"
+        )
     result_paths = discover_result_receipts(root)
     result_reports = [verify_receipt(root, path, rerender=True) for path in result_paths]
     failures = [f"{item['receipt']}: {failure}" for item in result_reports
@@ -2879,25 +4934,9 @@ def command_bind_paper(args: argparse.Namespace) -> int:
         audit_input["included_result_exhibits"]
     )
     validate_audit_report(report_path, args.checkpoint, audit_input["digest"], "evidence")
-    _, target = receipt_path(root, PAPER_RECEIPT_PATH)
-    prior_claims: list[dict[str, Any]] = []
-    if target.exists():
-        prior_receipt = load_json(target)
-        prior_summary = None
-        if (isinstance(prior_receipt, dict) and
-                prior_receipt.get("kind") == "paper_evidence" and
-                not isinstance(prior_receipt.get("receipt_version"), bool) and
-                prior_receipt.get("receipt_version") == PAPER_RECEIPT_VERSION):
-            prior_summary = prior_receipt.get("citation_audit_summary")
-        if isinstance(prior_summary, dict) and not compare_snapshot(
-                root, [prior_summary], "prior citation audit summary"):
-            prior_value = load_json(root / prior_summary["path"])
-            if isinstance(prior_value, dict) and isinstance(prior_value.get("citation_claims"), list):
-                prior_claims = prior_value["citation_claims"]
     validate_citation_summary(
         load_json(citation_summary_path), args.checkpoint,
-        audit_input_raw, audit_input["digest"], audit_input["citation_occurrences"],
-        prior_claims
+        audit_input_raw, audit_input["digest"], audit_input["citation_occurrences"]
     )
     validate_audit_report(citation_report_path, args.checkpoint, audit_input["digest"],
                           "citation")
@@ -2906,6 +4945,7 @@ def command_bind_paper(args: argparse.Namespace) -> int:
         raise EvidenceError(
             "evidence audit receipt inventory does not match discovered result receipts"
         )
+    _, target = receipt_path(root, PAPER_RECEIPT_PATH)
     receipt = {
         "kind": "paper_evidence",
         "receipt_version": PAPER_RECEIPT_VERSION,
@@ -2942,6 +4982,13 @@ def verify_paper_receipt(root: Path, path: Path, *, rerender: bool) -> dict[str,
             isinstance(receipt.get("receipt_version"), bool) or
             receipt.get("receipt_version") != PAPER_RECEIPT_VERSION):
         raise EvidenceError(f"not a paper-evidence receipt v{PAPER_RECEIPT_VERSION}: {path}")
+    expected_keys = {
+        "kind", "receipt_version", "checkpoint", "audit_input", "audit_summary",
+        "audit_report", "citation_audit_summary", "citation_audit_report",
+        "results_registry", "paper_sources", "result_receipts",
+    }
+    if set(receipt) != expected_keys:
+        raise EvidenceError("paper-evidence receipt has unexpected or missing keys")
     failures: list[str] = []
     audit_fields = {"audit_input", "audit_summary", "audit_report",
                     "citation_audit_summary", "citation_audit_report",
@@ -2955,18 +5002,54 @@ def verify_paper_receipt(root: Path, path: Path, *, rerender: bool) -> dict[str,
             failures.append(f"{key}: malformed receipt field")
         else:
             failures.extend(compare_snapshot(root, entries, key))
+    def validate_bound_audits() -> list[str]:
+        checkpoint = receipt.get("checkpoint")
+        if not isinstance(checkpoint, str) or not checkpoint:
+            raise EvidenceError("paper receipt checkpoint must be a non-empty string")
+        audit_input_raw = receipt["audit_input"]["path"]
+        audit_input = validate_audit_input(root, root / audit_input_raw, checkpoint)
+        for key in ("results_registry", "paper_sources", "result_receipts"):
+            if receipt[key] != audit_input[key]:
+                raise EvidenceError(
+                    f"paper receipt {key} inventory differs from its bound audit input"
+                )
+        checked = validate_evidence_summary(
+            load_json(root / receipt["audit_summary"]["path"]), checkpoint,
+            audit_input_raw, audit_input["digest"],
+            audit_input["included_result_exhibits"],
+        )
+        validate_audit_report(
+            root / receipt["audit_report"]["path"], checkpoint,
+            audit_input["digest"], "evidence",
+        )
+        citation_value = load_json(root / receipt["citation_audit_summary"]["path"])
+        validate_citation_summary(
+            citation_value, checkpoint, audit_input_raw, audit_input["digest"],
+            audit_input["citation_occurrences"],
+        )
+        validate_audit_report(
+            root / receipt["citation_audit_report"]["path"], checkpoint,
+            audit_input["digest"], "citation",
+        )
+        expected = sorted(entry["path"] for entry in audit_input["result_receipts"])
+        if sorted(checked) != expected:
+            raise EvidenceError(
+                "evidence audit receipt inventory does not match bound result receipts"
+            )
+        return expected
+
+    bound_result_paths: list[str] = []
     if not failures:
         try:
-            audit_input_path = root / receipt["audit_input"]["path"]
-            validate_audit_input(root, audit_input_path, receipt.get("checkpoint"))
+            bound_result_paths = validate_bound_audits()
         except (EvidenceError, KeyError, TypeError) as exc:
-            failures.append(f"audit_input: {exc}")
-    if not failures and rerender:
-        for result_entry in receipt["result_receipts"]:
-            raw = result_entry["path"]
+            failures.append(f"audit semantics: {exc}")
+    if not failures:
+        for raw in bound_result_paths:
             _, result_path = project_path(root, raw)
-            report = verify_receipt(root, result_path, rerender=True)
+            report = verify_receipt(root, result_path, rerender=rerender)
             failures.extend(f"{raw}: {failure}" for failure in report["failures"])
+    if not failures and rerender:
         if not failures:
             for key in ("audit_input", "audit_summary", "audit_report",
                         "citation_audit_summary", "citation_audit_report",
@@ -2976,10 +5059,9 @@ def verify_paper_receipt(root: Path, path: Path, *, rerender: bool) -> dict[str,
                 failures.extend(compare_snapshot(root, entries, f"post-render {key}"))
         if not failures:
             try:
-                validate_audit_input(root, root / receipt["audit_input"]["path"],
-                                     receipt.get("checkpoint"))
+                validate_bound_audits()
             except (EvidenceError, KeyError, TypeError) as exc:
-                failures.append(f"post-render audit_input: {exc}")
+                failures.append(f"post-render audit semantics: {exc}")
     return {"receipt": str(path.relative_to(root)),
             "checkpoint": receipt.get("checkpoint"),
             "status": "PASS" if not failures else "STALE", "failures": failures}
@@ -3042,6 +5124,17 @@ def build_parser() -> argparse.ArgumentParser:
     verify.add_argument("--rerender", action="store_true")
     verify.set_defaults(func=command_verify)
 
+    validate_receipt_parser = subparsers.add_parser(
+        "validate-receipt", help="validate immutable receipt structure without requiring live sources"
+    )
+    validate_receipt_parser.add_argument("--project-root", default=".")
+    validate_receipt_parser.add_argument("--receipt", required=True)
+    validate_receipt_parser.add_argument(
+        "--read-only", action="store_true",
+        help="validate without creating a project lock or recovering transactions",
+    )
+    validate_receipt_parser.set_defaults(func=command_validate_receipt)
+
     verify_all = subparsers.add_parser("verify-all", help="verify all result receipts under output/")
     verify_all.add_argument("--project-root", default=".")
     verify_all.add_argument("--rerender", action="store_true")
@@ -3083,6 +5176,10 @@ def build_parser() -> argparse.ArgumentParser:
     verify_paper.add_argument("--project-root", default=".")
     verify_paper.add_argument("--receipt", required=True)
     verify_paper.add_argument("--rerender", action="store_true")
+    verify_paper.add_argument(
+        "--read-only", action="store_true",
+        help="verify without creating the project lock or recovering transactions",
+    )
     verify_paper.set_defaults(func=command_verify_paper)
     return parser
 
@@ -3092,10 +5189,16 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         root = resolve_root(args.project_root)
+        if args.subcommand in {"verify-paper", "validate-receipt"} and args.read_only:
+            if getattr(args, "rerender", False):
+                raise EvidenceError("--read-only cannot be combined with --rerender")
+            return args.func(args)
         if args.subcommand == "init-registry":
             _, process_log = project_path(root, "process_log", must_exist=False)
             if not process_log.exists():
-                process_log.mkdir(mode=0o700)
+                ensure_directory_durable(process_log)
+                process_log.chmod(0o700)
+                fsync_directory(process_log)
         with project_lock(root):
             recover_transaction(root)
             return args.func(args)

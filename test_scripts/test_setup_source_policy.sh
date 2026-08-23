@@ -4,7 +4,11 @@ set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd -P)"
 scratch="$(mktemp -d "${TMPDIR:-/tmp}/setup-source-policy.XXXXXX")"
-trap 'rm -rf "$scratch"' EXIT
+cleanup_scratch() {
+    chmod -R u+rwX "$scratch" 2>/dev/null || true
+    rm -rf "$scratch"
+}
+trap cleanup_scratch EXIT
 source_checkout="$scratch/template"
 
 fail() {
@@ -40,6 +44,8 @@ expect_failure() {
 git clone -q "$repo_root" "$source_checkout"
 cp "$repo_root/setup.sh" "$source_checkout/setup.sh"
 cp "$repo_root/update.sh" "$source_checkout/update.sh"
+cp "$repo_root/test_scripts/update_with_manifest_selectors.py" \
+    "$source_checkout/test_scripts/update_with_manifest_selectors.py"
 cp "$repo_root/scripts/update_coordinator.sh" \
     "$source_checkout/scripts/update_coordinator.sh"
 cp "$repo_root/deploy_assets/scripts/setup/"*.sh \
@@ -63,10 +69,624 @@ git -C "$source_checkout" remote set-url origin \
     'https://user:secret@github.com/example/zeropaper.git?token=secret'
 
 setup="$source_checkout/setup.sh"
+
+# Setup's externally recorded command authenticates the updater launcher, which
+# captures and verifies the complete build-input snapshot before any coordinator
+# or setup module can execute. A later checkout edit must fail first.
+attested_target="$scratch/attested-update-project"
+attested_log="$scratch/attested-setup.log"
+"$setup" "$attested_target" --assemble-only --no-model-probe >"$attested_log" 2>&1
+attested_command="$(awk '/Trusted update attestation/{getline; sub(/^  /, ""); print; exit}' "$attested_log")"
+[ -n "$attested_command" ] || fail "setup did not print an attested update command"
+/bin/bash -c "$attested_command --dry-run --no-model-probe" \
+    >"$scratch/attested-update-success.log" 2>&1 \
+    || { cat "$scratch/attested-update-success.log" >&2; fail "attested update command did not execute"; }
+# Ambient TMPDIR is untrusted. It must not redirect the updater's source
+# snapshot into either the target or a recursively copied build-input tree.
+env TMPDIR="$attested_target" /bin/bash -c \
+    "$attested_command --dry-run --no-model-probe" \
+    >"$scratch/target-tmpdir-update.log" 2>&1 \
+    || { cat "$scratch/target-tmpdir-update.log" >&2; fail "updater trusted target TMPDIR"; }
+env TMPDIR="$source_checkout/deploy_assets" /bin/bash -c \
+    "$attested_command --dry-run --no-model-probe" \
+    >"$scratch/source-tmpdir-update.log" 2>&1 \
+    || { cat "$scratch/source-tmpdir-update.log" >&2; fail "updater trusted source TMPDIR"; }
+[ -z "$(find "$attested_target" "$source_checkout/deploy_assets" \
+    -name 'zeropaper-update-source-*' -print -quit)" ] \
+    || fail "updater created its source snapshot beneath an ambient TMPDIR"
+fakebin="$scratch/fake-update-path"
+mkdir "$fakebin"
+fake_bash_marker="$scratch/fake-bash-ran"
+printf '%s\n' '#!/bin/sh' ": > '$fake_bash_marker'" 'exec /bin/bash "$@"' \
+    > "$fakebin/bash"
+chmod +x "$fakebin/bash"
+PATH="$fakebin:/usr/bin:/bin" /bin/bash -c \
+    "$attested_command --dry-run --no-model-probe" \
+    >"$scratch/fixed-bash-update.log" 2>&1 \
+    || { cat "$scratch/fixed-bash-update.log" >&2; fail "fixed-Bash update failed"; }
+[ ! -e "$fake_bash_marker" ] || fail "updater executed caller-controlled bash"
+coordinator_canary="$scratch/changed-update-coordinator-ran"
+coordinator_path="$source_checkout/scripts/update_coordinator.sh"
+cp "$coordinator_path" "$scratch/update-coordinator.before"
+{
+    printf '%s\n' '#!/bin/bash' ": > '$coordinator_canary'"
+    tail -n +2 "$scratch/update-coordinator.before"
+} > "$coordinator_path"
+chmod +x "$coordinator_path"
+if /bin/bash -c "$attested_command --no-model-probe" \
+    >"$scratch/changed-update-coordinator.log" 2>&1; then
+    fail "attested command executed changed updater bytes"
+fi
+grep -Fq 'does not match the operator-attested trusted setup digest' "$scratch/changed-update-coordinator.log" \
+    || { cat "$scratch/changed-update-coordinator.log" >&2; fail "changed updater refusal was unclear"; }
+[ ! -e "$coordinator_canary" ] || fail "changed update coordinator executed before attestation"
+cp "$scratch/update-coordinator.before" "$coordinator_path"
+
+# The verified updater must authenticate and pin every build input before the
+# fresh-assembly setup launcher can execute. Authenticating only update.sh and
+# its coordinator would still let a changed setup.sh obtain host authority.
+setup_canary="$scratch/unattested-setup-ran"
+setup_path="$source_checkout/setup.sh"
+cp "$setup_path" "$scratch/setup.before-attested-update"
+{
+    head -n 1 "$scratch/setup.before-attested-update"
+    printf '%s\n' "import pathlib; pathlib.Path('$setup_canary').write_text('ran\\n')"
+    tail -n +2 "$scratch/setup.before-attested-update"
+} > "$setup_path"
+chmod +x "$setup_path"
+if /bin/bash -c "$attested_command --dry-run --no-model-probe" \
+    >"$scratch/changed-setup.log" 2>&1; then
+    fail "attested command accepted changed setup bytes"
+fi
+grep -Fq 'does not match the operator-attested trusted setup digest' \
+    "$scratch/changed-setup.log" \
+    || { cat "$scratch/changed-setup.log" >&2; fail "changed setup refusal was unclear"; }
+[ ! -e "$setup_canary" ] || fail "changed setup executed before full-source attestation"
+cp "$scratch/setup.before-attested-update" "$setup_path"
+
+# Operator .env is intentionally outside build provenance, but update must
+# transport a private point-in-time copy so newly configured keys can merge.
+# It remains the primary source while missing attested .env.example keys are
+# appended exactly as they are during fresh setup.
+printf 'SOURCE_POLICY_OPERATOR_KEY=from-updated-env\n' > "$source_checkout/.env"
+/usr/bin/python3 -I - "$attested_target/.env" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+lines = path.read_text(encoding="utf-8").splitlines(keepends=True)
+path.write_text(
+    "".join(line for line in lines if not line.startswith("OPENALEX_API_KEY=")),
+    encoding="utf-8",
+)
+PY
+if grep -Fq 'OPENALEX_API_KEY=' "$attested_target/.env"; then
+    fail "test setup did not remove the example-only environment key"
+fi
+/bin/bash -c "$attested_command --dry-run --no-model-probe" \
+    >"$scratch/operator-env-dry-run.log" 2>&1 \
+    || { cat "$scratch/operator-env-dry-run.log" >&2; fail "operator .env dry-run failed"; }
+grep -Fq 'OPENALEX_API_KEY=' "$attested_target/.env" \
+    && fail "operator .env dry-run mutated the target environment"
+/bin/bash -c "$attested_command --no-model-probe" \
+    >"$scratch/operator-env-update.log" 2>&1 \
+    || { cat "$scratch/operator-env-update.log" >&2; fail "operator .env update failed"; }
+grep -Fq 'SOURCE_POLICY_OPERATOR_KEY=from-updated-env' "$attested_target/.env" \
+    || fail "same-snapshot update did not merge a new source .env key"
+grep -Fq 'OPENALEX_API_KEY=' "$attested_target/.env" \
+    || fail "operator .env update did not restore a missing .env.example key"
+
+# Special-file substitutions must fail promptly rather than block while the
+# project-wide update lock is held. Both the operator .env transport and the
+# externally recorded launcher authentication open before their type check.
+mv "$source_checkout/.env" "$scratch/operator-env.regular"
+mkfifo "$source_checkout/.env"
+ATTESTED_FIFO_COMMAND="$attested_command --dry-run --no-model-probe" \
+    /usr/bin/python3 -I - <<'PY' >"$scratch/fifo-env-update.log" 2>&1 \
+    || fail "FIFO source .env blocked or succeeded unexpectedly"
+import os
+import subprocess
+
+command = os.environ["ATTESTED_FIFO_COMMAND"]
+try:
+    result = subprocess.run(["/bin/bash", "-c", command], timeout=3)
+except subprocess.TimeoutExpired as error:
+    raise SystemExit("FIFO source .env blocked the updater") from error
+if result.returncode == 0:
+    raise SystemExit("FIFO source .env was accepted")
+PY
+rm "$source_checkout/.env"
+mv "$scratch/operator-env.regular" "$source_checkout/.env"
+
+mv "$source_checkout/update.sh" "$scratch/update-launcher.regular"
+mkfifo "$source_checkout/update.sh"
+ATTESTED_FIFO_COMMAND="$attested_command --dry-run --no-model-probe" \
+    /usr/bin/python3 -I - <<'PY' >"$scratch/fifo-launcher-update.log" 2>&1 \
+    || fail "FIFO attested update launcher blocked or succeeded unexpectedly"
+import os
+import subprocess
+
+command = os.environ["ATTESTED_FIFO_COMMAND"]
+try:
+    result = subprocess.run(["/bin/bash", "-c", command], timeout=3)
+except subprocess.TimeoutExpired as error:
+    raise SystemExit("FIFO update launcher blocked authentication") from error
+if result.returncode == 0:
+    raise SystemExit("FIFO update launcher was accepted")
+PY
+rm "$source_checkout/update.sh"
+mv "$scratch/update-launcher.regular" "$source_checkout/update.sh"
+
+# If a refresh child fails while leaving a descendant alive, the updater must
+# not tell its detached guardian that the process group completed. Instrument
+# a private same-source checkout so setup's coordinator kills its Python parent
+# only during the update-time fresh assembly and leaves a sleeper behind.
+guardian_checkout="$scratch/guardian-template"
+git clone -q "$source_checkout" "$guardian_checkout"
+/usr/bin/python3 -I - "$guardian_checkout/setup.sh" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text()
+anchor = '''import os
+import stat
+import sys
+'''
+injection = '''import os
+import stat
+import sys
+import pathlib as _lock_test_pathlib
+if os.environ.get("ZEROPAPER_TEST_LOCK_FD_MARKER"):
+    _root = os.path.realpath(os.environ["ZEROPAPER_TEST_PROJECT_ROOT"])
+    _root_info = os.stat(_root)
+    _leaked = False
+    for _descriptor in range(3, 256):
+        try:
+            _descriptor_info = os.fstat(_descriptor)
+        except OSError:
+            continue
+        if (_descriptor_info.st_dev, _descriptor_info.st_ino) == (_root_info.st_dev, _root_info.st_ino):
+            _leaked = True
+            break
+    _lock_test_pathlib.Path(os.environ["ZEROPAPER_TEST_LOCK_FD_MARKER"]).write_text(
+        "leaked\\n" if _leaked else "clean\\n"
+    )
+'''
+if text.count(anchor) != 1:
+    raise SystemExit("setup launcher prologue changed")
+path.write_text(text.replace(anchor, injection, 1))
+PY
+/usr/bin/python3 -I - "$guardian_checkout/deploy_assets/scripts/setup/coordinator.sh" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text()
+anchor = 'set -e\n'
+injection = '''set -e
+if [ "${ZEROPAPER_TEST_FAIL_REFRESH_CHILD:-0}" = "1" ]; then
+    sleep 120 &
+    printf '%s\\n' "$!" > "${ZEROPAPER_TEST_DESCENDANT_PID:?}"
+    kill -KILL "$PPID"
+    exit 97
+fi
+if [ "${ZEROPAPER_TEST_LINGER_REFRESH_CHILD:-0}" = "1" ]; then
+    sleep 120 &
+    printf '%s\\n' "$!" > "${ZEROPAPER_TEST_LINGER_PID:?}"
+fi
+'''
+if text.count(anchor) != 1:
+    raise SystemExit("setup coordinator prologue changed")
+path.write_text(text.replace(anchor, injection, 1))
+text = path.read_text()
+final_anchor = '''if [ "$ASSEMBLE_ONLY" = "1" ]; then
+    finalize_assemble_only_setup
+    exit 0
+fi
+'''
+final_injection = '''if [ "$ASSEMBLE_ONLY" = "1" ]; then
+    finalize_assemble_only_setup
+    if [ "${ZEROPAPER_TEST_PAUSE_REFRESH:-0}" = "1" ]; then
+        : > "${ZEROPAPER_TEST_PAUSE_MARKER:?}"
+        while [ ! -e "${ZEROPAPER_TEST_PAUSE_RELEASE:?}" ]; do sleep 0.02; done
+        if [ -n "${ZEROPAPER_TEST_POST_PAUSE_MARKER:-}" ]; then
+            : > "$ZEROPAPER_TEST_POST_PAUSE_MARKER"
+        fi
+    fi
+    exit 0
+fi
+'''
+if text.count(final_anchor) != 1:
+    raise SystemExit("setup assemble-only finalizer changed")
+path.write_text(text.replace(final_anchor, final_injection, 1))
+PY
+/usr/bin/python3 -I - "$guardian_checkout/scripts/update_coordinator.sh" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+text = path.read_text()
+anchor = '''fi
+exec 7>&-
+if wait "$_update_body_pid"; then
+'''
+replacement = '''fi
+if [ "${ZEROPAPER_TEST_KILL_ARMING_PARENT:-0}" = "1" ]; then
+    kill -KILL "$BASHPID"
+fi
+exec 7>&-
+if wait "$_update_body_pid"; then
+'''
+if text.count(anchor) != 1:
+    raise SystemExit("update guardian arming boundary changed")
+path.write_text(text.replace(anchor, replacement, 1))
+PY
+/usr/bin/python3 -I - "$guardian_checkout/update.sh" \
+    "$scratch/pre-status-enable" "$scratch/pre-status-snapshot-created" \
+    "$scratch/pre-status-release" <<'PY'
+from pathlib import Path
+import sys
+
+path = Path(sys.argv[1])
+pre_status_enable = sys.argv[2]
+pre_status_marker = sys.argv[3]
+pre_status_release = sys.argv[4]
+text = path.read_text()
+owner_anchor = '''    snapshot = tempfile.mkdtemp(prefix="zeropaper-update-source-", dir=temp_root)
+    os.write(status_fd, (snapshot + "\\n").encode("utf-8"))
+'''
+owner_replacement = '''    snapshot = tempfile.mkdtemp(prefix="zeropaper-update-source-", dir=temp_root)
+    if os.path.exists({enable!r}):
+        with open({marker!r}, "w", encoding="utf-8"):
+            pass
+        while not os.path.exists({release!r}):
+            import time
+            time.sleep(0.02)
+    os.write(status_fd, (snapshot + "\\n").encode("utf-8"))
+'''.format(
+    enable=pre_status_enable,
+    marker=pre_status_marker,
+    release=pre_status_release,
+)
+if text.count(owner_anchor) != 1:
+    raise SystemExit("snapshot-owner pre-status boundary changed")
+text = text.replace(owner_anchor, owner_replacement, 1)
+anchor = '''for protected_root in (project_candidate, live_checkout_root):
+'''
+replacement = '''if os.environ.get("ZEROPAPER_TEST_PAUSE_SNAPSHOT_OWNER") == "1":
+    import time
+    with open(os.environ["ZEROPAPER_TEST_SNAPSHOT_OWNER_MARKER"], "w", encoding="utf-8"):
+        pass
+    while not os.path.exists(os.environ["ZEROPAPER_TEST_SNAPSHOT_OWNER_RELEASE"]):
+        time.sleep(0.02)
+''' + anchor
+if text.count(anchor) != 1:
+    raise SystemExit("snapshot-owner startup boundary changed")
+path.write_text(text.replace(anchor, replacement, 1))
+PY
+# Preserve a valid read-only build-input directory in the pinned snapshot.
+# Cleanup must repair only its private copy rather than silently leaking it.
+mkdir "$guardian_checkout/deploy_assets/readonly_cleanup_probe"
+printf 'read-only snapshot cleanup probe\n' \
+    > "$guardian_checkout/deploy_assets/readonly_cleanup_probe/value.txt"
+chmod 0555 "$guardian_checkout/deploy_assets/readonly_cleanup_probe"
+guardian_target="$scratch/guardian-project"
+guardian_setup_log="$scratch/guardian-setup.log"
+printf 'SOURCE_POLICY_NAMED_SECRET=must-not-enter-refresh\n' > "$guardian_checkout/.env"
+"$guardian_checkout/setup.sh" "$guardian_target" --assemble-only --no-model-probe \
+    >"$guardian_setup_log" 2>&1
+guardian_command="$(awk '/Trusted update attestation/{getline; sub(/^  /, ""); print; exit}' "$guardian_setup_log")"
+[ -n "$guardian_command" ] || fail "guardian fixture omitted update attestation"
+
+# Kill before the cleanup owner can report its newly created snapshot path.
+# Broken status-pipe publication must enter the owner's own cleanup path; the
+# public launcher has not learned the path yet and cannot help.
+pre_status_enable="$scratch/pre-status-enable"
+pre_status_marker="$scratch/pre-status-snapshot-created"
+touch "$pre_status_enable"
+find /tmp -maxdepth 1 -type d -name 'zeropaper-update-source-*' -print \
+    | sort > "$scratch/pre-status-snapshots.before"
+/bin/bash -c "exec $guardian_command --dry-run --no-model-probe" \
+    >"$scratch/pre-status-death.log" 2>&1 &
+pre_status_pid=$!
+for _ in $(seq 1 1500); do
+    [ -e "$pre_status_marker" ] && break
+    kill -0 "$pre_status_pid" 2>/dev/null || break
+    sleep 0.02
+done
+[ -e "$pre_status_marker" ] \
+    || { cat "$scratch/pre-status-death.log" >&2; \
+         kill "$pre_status_pid" 2>/dev/null || true; \
+         fail "pre-status snapshot fixture did not reach its pause"; }
+find /tmp -maxdepth 1 -type d -name 'zeropaper-update-source-*' -print \
+    | sort > "$scratch/pre-status-snapshots.during"
+pre_status_snapshot="$(comm -13 "$scratch/pre-status-snapshots.before" \
+    "$scratch/pre-status-snapshots.during")"
+[ -n "$pre_status_snapshot" ] \
+    && [ "$(printf '%s\n' "$pre_status_snapshot" | wc -l)" -eq 1 ] \
+    || fail "pre-status fixture did not isolate one source snapshot"
+kill -KILL "$pre_status_pid"
+wait "$pre_status_pid" 2>/dev/null || true
+rm -f "$pre_status_enable"
+touch "$scratch/pre-status-release"
+for _ in $(seq 1 1500); do
+    [ ! -e "$pre_status_snapshot" ] && break
+    sleep 0.02
+done
+[ ! -e "$pre_status_snapshot" ] \
+    || fail "pre-status launcher death leaked its source snapshot"
+
+pause_marker="$scratch/refresh-paused"
+pause_release="$scratch/refresh-release"
+find /tmp -maxdepth 1 -type d -name 'zeropaper-update-source-*' -print \
+    | sort > "$scratch/normal-source-snapshots.before"
+ZEROPAPER_TEST_PAUSE_REFRESH=1 \
+ZEROPAPER_TEST_PAUSE_MARKER="$pause_marker" \
+ZEROPAPER_TEST_PAUSE_RELEASE="$pause_release" \
+/bin/bash -c "$guardian_command --dry-run --no-model-probe" \
+    >"$scratch/anonymous-env-update.log" 2>&1 &
+pause_update_pid=$!
+for _ in $(seq 1 1500); do
+    [ -e "$pause_marker" ] && break
+    sleep 0.02
+done
+[ -e "$pause_marker" ] \
+    || { kill "$pause_update_pid" 2>/dev/null || true; \
+         cat "$scratch/anonymous-env-update.log" >&2; \
+         fail "fresh assembly did not reach environment-residue probe"; }
+if grep -R -l --include='.env' 'SOURCE_POLICY_NAMED_SECRET=must-not-enter-refresh' \
+       /tmp/zeropaper-update.* 2>/dev/null | grep -q .; then
+    touch "$pause_release"
+    wait "$pause_update_pid" || true
+    fail "operator environment was materialized in the named refresh workspace"
+fi
+touch "$pause_release"
+wait "$pause_update_pid" \
+    || { cat "$scratch/anonymous-env-update.log" >&2; fail "environment-residue probe update failed"; }
+find /tmp -maxdepth 1 -type d -name 'zeropaper-update-source-*' -print \
+    | sort > "$scratch/normal-source-snapshots.after"
+cmp -s "$scratch/normal-source-snapshots.before" "$scratch/normal-source-snapshots.after" \
+    || fail "successful update leaked a read-only pinned source snapshot"
+
+# Kill the public launcher immediately after the cleanup owner creates the
+# snapshot but before source copying or execution-supervisor handoff.  Because
+# the owner creates the directory, there is no earlier mkdtemp-to-guardian gap.
+pre_handoff_marker="$scratch/pre-handoff-snapshot-created"
+pre_handoff_release="$scratch/pre-handoff-release"
+find /tmp -maxdepth 1 -type d -name 'zeropaper-update-source-*' -print \
+    | sort > "$scratch/pre-handoff-snapshots.before"
+ZEROPAPER_TEST_PAUSE_SNAPSHOT_OWNER=1 \
+ZEROPAPER_TEST_SNAPSHOT_OWNER_MARKER="$pre_handoff_marker" \
+ZEROPAPER_TEST_SNAPSHOT_OWNER_RELEASE="$pre_handoff_release" \
+/bin/bash -c "exec $guardian_command --dry-run --no-model-probe" \
+    >"$scratch/pre-handoff-death.log" 2>&1 &
+pre_handoff_pid=$!
+for _ in $(seq 1 1500); do
+    [ -e "$pre_handoff_marker" ] && break
+    kill -0 "$pre_handoff_pid" 2>/dev/null || break
+    sleep 0.02
+done
+[ -e "$pre_handoff_marker" ] \
+    || { cat "$scratch/pre-handoff-death.log" >&2; \
+         kill "$pre_handoff_pid" 2>/dev/null || true; \
+         fail "pre-handoff snapshot fixture did not reach its pause"; }
+find /tmp -maxdepth 1 -type d -name 'zeropaper-update-source-*' -print \
+    | sort > "$scratch/pre-handoff-snapshots.during"
+pre_handoff_snapshot="$(comm -13 "$scratch/pre-handoff-snapshots.before" \
+    "$scratch/pre-handoff-snapshots.during")"
+[ -n "$pre_handoff_snapshot" ] \
+    && [ "$(printf '%s\n' "$pre_handoff_snapshot" | wc -l)" -eq 1 ] \
+    || fail "pre-handoff fixture did not isolate one source snapshot"
+kill -KILL "$pre_handoff_pid"
+wait "$pre_handoff_pid" 2>/dev/null || true
+for _ in $(seq 1 1500); do
+    [ ! -e "$pre_handoff_snapshot" ] && break
+    sleep 0.02
+done
+[ ! -e "$pre_handoff_snapshot" ] \
+    || fail "pre-handoff launcher death leaked its read-only source snapshot"
+
+# SIGKILL of the public Python launcher is observable as EOF by the trusted
+# supervisor.  It must cancel the coordinator before the paused fresh setup
+# can publish a later mutation, drain the project lock, and remove the pinned
+# source snapshot without relying on launcher atexit/finally handlers.
+launcher_pause_marker="$scratch/launcher-death-refresh-paused"
+launcher_pause_release="$scratch/launcher-death-refresh-release"
+launcher_post_marker="$scratch/launcher-death-post-pause"
+find /tmp -maxdepth 1 -type d -name 'zeropaper-update-source-*' -print \
+    | sort > "$scratch/source-snapshots.before"
+ZEROPAPER_TEST_PAUSE_REFRESH=1 \
+ZEROPAPER_TEST_PAUSE_MARKER="$launcher_pause_marker" \
+ZEROPAPER_TEST_PAUSE_RELEASE="$launcher_pause_release" \
+ZEROPAPER_TEST_POST_PAUSE_MARKER="$launcher_post_marker" \
+/bin/bash -c "exec $guardian_command --dry-run --no-model-probe" \
+    >"$scratch/public-launcher-death.log" 2>&1 &
+public_launcher_pid=$!
+for _ in $(seq 1 1500); do
+    [ -e "$launcher_pause_marker" ] && break
+    kill -0 "$public_launcher_pid" 2>/dev/null || break
+    sleep 0.02
+done
+[ -e "$launcher_pause_marker" ] \
+    || { cat "$scratch/public-launcher-death.log" >&2; \
+         kill "$public_launcher_pid" 2>/dev/null || true; \
+         fail "public-launcher death fixture did not reach its pause"; }
+find /tmp -maxdepth 1 -type d -name 'zeropaper-update-source-*' -print \
+    | sort > "$scratch/source-snapshots.during"
+launcher_snapshot="$(comm -13 "$scratch/source-snapshots.before" "$scratch/source-snapshots.during")"
+[ -n "$launcher_snapshot" ] && [ "$(printf '%s\n' "$launcher_snapshot" | wc -l)" -eq 1 ] \
+    || fail "public-launcher death fixture did not isolate one pinned source snapshot"
+kill -KILL "$public_launcher_pid"
+wait "$public_launcher_pid" 2>/dev/null || true
+for _ in $(seq 1 1500); do
+    [ ! -e "$launcher_snapshot" ] && break
+    sleep 0.02
+done
+[ ! -e "$launcher_snapshot" ] \
+    || fail "public-launcher death leaked its pinned source snapshot"
+[ ! -e "$launcher_post_marker" ] \
+    || fail "public-launcher death allowed the paused refresh to continue"
+/usr/bin/python3 -I - "$guardian_target" <<'PY'
+import fcntl
+import os
+import sys
+
+fd = os.open(sys.argv[1], os.O_RDONLY | os.O_DIRECTORY)
+try:
+    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+finally:
+    os.close(fd)
+PY
+
+# The execution supervisor is not itself an irreplaceable cleanup owner.
+# After handoff, kill only that child while the coordinator is paused. The
+# independent snapshot owner must wait for the coordinator/guardian lock to
+# drain and remove the pinned source tree even though the public launcher lives.
+if [ -r "/proc/$$/task/$$/children" ]; then
+    supervisor_pause_marker="$scratch/supervisor-death-refresh-paused"
+    supervisor_pause_release="$scratch/supervisor-death-refresh-release"
+    find /tmp -maxdepth 1 -type d -name 'zeropaper-update-source-*' -print \
+        | sort > "$scratch/supervisor-snapshots.before"
+    ZEROPAPER_TEST_PAUSE_REFRESH=1 \
+    ZEROPAPER_TEST_PAUSE_MARKER="$supervisor_pause_marker" \
+    ZEROPAPER_TEST_PAUSE_RELEASE="$supervisor_pause_release" \
+    /bin/bash -c "exec $guardian_command --dry-run --no-model-probe" \
+        >"$scratch/supervisor-death.log" 2>&1 &
+    supervisor_launcher_pid=$!
+    supervisor_pid=""
+    for _ in $(seq 1 1500); do
+        if [ -e "$supervisor_pause_marker" ]; then
+            supervisor_pid="$(/usr/bin/python3 -I - "$supervisor_launcher_pid" <<'PY'
+from pathlib import Path
+import sys
+
+parent = sys.argv[1]
+children_path = Path(f"/proc/{parent}/task/{parent}/children")
+try:
+    children = children_path.read_text(encoding="ascii").split()
+except OSError:
+    children = []
+for child in children:
+    try:
+        command = Path(f"/proc/{child}/cmdline").read_bytes()
+    except OSError:
+        continue
+    if b"def stop_child():" in command:
+        print(child)
+        break
+PY
+)"
+            [ -n "$supervisor_pid" ] && break
+        fi
+        kill -0 "$supervisor_launcher_pid" 2>/dev/null || break
+        sleep 0.02
+    done
+    [ -n "$supervisor_pid" ] \
+        || { cat "$scratch/supervisor-death.log" >&2; \
+             kill "$supervisor_launcher_pid" 2>/dev/null || true; \
+             fail "execution-supervisor death fixture did not find the supervisor"; }
+    find /tmp -maxdepth 1 -type d -name 'zeropaper-update-source-*' -print \
+        | sort > "$scratch/supervisor-snapshots.during"
+    supervisor_snapshot="$(comm -13 "$scratch/supervisor-snapshots.before" \
+        "$scratch/supervisor-snapshots.during")"
+    [ -n "$supervisor_snapshot" ] \
+        && [ "$(printf '%s\n' "$supervisor_snapshot" | wc -l)" -eq 1 ] \
+        || fail "execution-supervisor fixture did not isolate one source snapshot"
+    kill -KILL "$supervisor_pid"
+    wait "$supervisor_launcher_pid" 2>/dev/null || true
+    for _ in $(seq 1 1500); do
+        [ ! -e "$supervisor_snapshot" ] && break
+        sleep 0.02
+    done
+    [ ! -e "$supervisor_snapshot" ] \
+        || fail "execution-supervisor death leaked its pinned source snapshot"
+fi
+
+descendant_pid_file="$scratch/failed-refresh-descendant.pid"
+lock_fd_marker="$scratch/refresh-lock-fd.marker"
+if ZEROPAPER_TEST_FAIL_REFRESH_CHILD=1 \
+   ZEROPAPER_TEST_DESCENDANT_PID="$descendant_pid_file" \
+   ZEROPAPER_TEST_LOCK_FD_MARKER="$lock_fd_marker" \
+   ZEROPAPER_TEST_PROJECT_ROOT="$guardian_target" \
+   /bin/bash -c "$guardian_command --no-model-probe" \
+   >"$scratch/guardian-failure.log" 2>&1; then
+    fail "instrumented failed refresh unexpectedly succeeded"
+fi
+[ -s "$descendant_pid_file" ] || { cat "$scratch/guardian-failure.log" >&2; fail "failed refresh did not create descendant fixture"; }
+[ "$(cat "$lock_fd_marker")" = "clean" ] \
+    || fail "refresh body inherited the trusted project-lock descriptor"
+failed_descendant_pid="$(cat "$descendant_pid_file")"
+if kill -0 "$failed_descendant_pid" 2>/dev/null; then
+    fail "failed refresh descendant survived guardian teardown"
+fi
+/usr/bin/python3 -I - "$guardian_target" <<'PY'
+import fcntl
+import os
+import sys
+
+fd = os.open(sys.argv[1], os.O_RDONLY | os.O_DIRECTORY)
+try:
+    fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+finally:
+    os.close(fd)
+PY
+
+lingering_pid_file="$scratch/successful-refresh-descendant.pid"
+if ! ZEROPAPER_TEST_LINGER_REFRESH_CHILD=1 \
+   ZEROPAPER_TEST_LINGER_PID="$lingering_pid_file" \
+   /bin/bash -c "$guardian_command --no-model-probe" \
+   >"$scratch/guardian-success.log" 2>&1; then
+    cat "$scratch/guardian-success.log" >&2
+    fail "instrumented successful refresh failed"
+fi
+[ -s "$lingering_pid_file" ] \
+    || { cat "$scratch/guardian-success.log" >&2; fail "successful refresh omitted descendant fixture"; }
+lingering_pid="$(cat "$lingering_pid_file")"
+if kill -0 "$lingering_pid" 2>/dev/null; then
+    fail "successful refresh descendant survived guardian drain"
+fi
+
+# Once the guardian reports armed it, rather than the visible coordinator,
+# has already released the body. Killing the coordinator at that boundary
+# must not strand the body or retain LOCK_EX forever.
+if ZEROPAPER_TEST_KILL_ARMING_PARENT=1 \
+   /bin/bash -c "$guardian_command --dry-run --no-model-probe" \
+   >"$scratch/guardian-arming-parent-death.log" 2>&1; then
+    fail "arming-parent death fixture unexpectedly succeeded"
+fi
+grep -Fq 'Dry run complete. No files modified.' \
+    "$scratch/guardian-arming-parent-death.log" \
+    || { cat "$scratch/guardian-arming-parent-death.log" >&2; \
+         fail "guardian did not keep the source snapshot alive through body completion"; }
+/usr/bin/python3 -I - "$guardian_target" <<'PY'
+import fcntl
+import os
+import sys
+import time
+
+deadline = time.monotonic() + 15
+while True:
+    fd = os.open(sys.argv[1], os.O_RDONLY | os.O_DIRECTORY)
+    try:
+        try:
+            fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
+        except BlockingIOError:
+            if time.monotonic() >= deadline:
+                raise SystemExit("guardian retained project lock after arming-parent death")
+            time.sleep(0.05)
+            continue
+        break
+    finally:
+        os.close(fd)
+PY
+
 expect_failure "update target overlaps template source checkout" \
-    "$source_checkout/update.sh" "$source_checkout" --variant finance --no-model-probe
+    "$source_checkout/test_scripts/update_with_manifest_selectors.py" \
+    "$source_checkout" --variant finance --no-model-probe
 expect_failure "update target overlaps template source checkout" \
-    "$source_checkout/update.sh" "$scratch" --variant finance --no-model-probe
+    "$source_checkout/test_scripts/update_with_manifest_selectors.py" \
+    "$scratch" --variant finance --no-model-probe
 [ ! -e "$source_checkout/process_log" ] \
     || fail "rejected checkout update created process_log in template source"
 [ ! -e "$scratch/process_log" ] \
@@ -388,7 +1008,24 @@ jq -e --arg commit "$expected_commit" '
     and (.source.content_digest | test("^sha256:[0-9a-f]{64}$"))
     and .source.update_channel == "checkout"
 ' "$clean_output/.deploy_manifest.json" >/dev/null \
-    || fail "clean assembly manifest has incorrect source provenance"
+    || { jq '.source' "$clean_output/.deploy_manifest.json" >&2;
+         git -C "$source_checkout" status --short >&2;
+         fail "clean assembly manifest has incorrect source provenance"; }
+
+# The isolated launcher fixes the process umask, so setup bytes and executable
+# modes are independent of the caller and updates can converge exactly.
+umask_output_022="$scratch/umask-022-assembly"
+umask_output_077="$scratch/umask-077-assembly"
+(umask 022; "$setup" "$umask_output_022" --assemble-only --no-model-probe \
+    >"$scratch/umask-022.log" 2>&1)
+(umask 077; "$setup" "$umask_output_077" --assemble-only --no-model-probe \
+    >"$scratch/umask-077.log" 2>&1)
+[ "$(file_mode "$umask_output_022/launch.sh")" = \
+  "$(file_mode "$umask_output_077/launch.sh")" ] \
+    || fail "setup launch mode depends on caller umask"
+[ "$(file_mode "$umask_output_022/CLAUDE.md")" = \
+  "$(file_mode "$umask_output_077/CLAUDE.md")" ] \
+    || fail "setup managed-file mode depends on caller umask"
 
 # Ambient Git repository/path configuration cannot redirect shell-level source
 # identity or cleanliness checks away from the checkout containing setup.sh.
@@ -661,37 +1298,15 @@ jq -e '.source.dirty == true' "$coordinator_output/.deploy_manifest.json" >/dev/
 git -C "$source_checkout" restore deploy_assets/scripts/setup/coordinator.sh
 
 # update.sh must consume only the completed fresh assembly after setup's source
-# stability check. Mutating the live checkout immediately after that assembly
-# must not change the applied version, venv guard, or dependency specifications.
+# stability check. Mutating the live checkout after that assembly must not
+# change the applied version or dependency specifications. The updater
+# deliberately never mutates an existing project virtualenv.
 expected_update_version="$(jq -r '.template_version' "$clean_output/.deploy_manifest.json")"
-expected_guard="$scratch/expected-pipeline-dotenv-guard.py"
 expected_core_deps="$scratch/expected-core-deps.txt"
-cp "$clean_output/.arpipeline/update_inputs/pipeline_dotenv_guard.py" "$expected_guard"
 cp "$clean_output/.arpipeline/update_inputs/deps/core.txt" "$expected_core_deps"
 fake_site_packages="$clean_output/.venv/lib/python3.12/site-packages"
 mkdir -p "$fake_site_packages"
 printf 'stale guard\n' > "$fake_site_packages/_pipeline_dotenv_guard.py"
-update_coordinator="$source_checkout/scripts/update_coordinator.sh"
-python3 -I - "$update_coordinator" <<'PY'
-from pathlib import Path
-import sys
-
-path = Path(sys.argv[1])
-text = path.read_text()
-needle = 'echo "  ✓ fresh deploy ok ($(wc -l < "$TMP/deploy.log") log lines)"\n'
-inject = r'''if [ -n "${SOURCE_POLICY_UPDATE_MUTATED:-}" ]; then
-    printf '99.99.99\n' > "$SOURCE_POLICY_UPDATE_ROOT/VERSION"
-    printf 'raise RuntimeError("live guard leaked")\n' \
-        > "$SOURCE_POLICY_UPDATE_ROOT/deploy_assets/templates/utils/pipeline_dotenv_guard.py"
-    printf 'live-dependency-leak\n' \
-        > "$SOURCE_POLICY_UPDATE_ROOT/deploy_assets/templates/deps/core.txt"
-    : > "$SOURCE_POLICY_UPDATE_MUTATED"
-fi
-'''
-if text.count(needle) != 1:
-    raise SystemExit("update post-assembly injection point changed")
-path.write_text(text.replace(needle, needle + inject))
-PY
 post_assembly_hook="$scratch/post-assembly-update-hook.sh"
 cat > "$post_assembly_hook" <<'SH'
 cp() {
@@ -712,15 +1327,42 @@ fi
 exec /usr/bin/python3 "$@"
 SH
 chmod +x "$hostile_update_bin/python3"
-SOURCE_POLICY_UPDATE_ROOT="$source_checkout" \
-SOURCE_POLICY_UPDATE_MUTATED="$scratch/update-source-mutated" \
+python3 -I - "$clean_output/process_log/.opencode-control" "$source_checkout" \
+    "$scratch/update-source-mutated" <<'PY' &
+import glob
+import os
+import sys
+import time
+
+control, source, marker = sys.argv[1:]
+deadline = time.monotonic() + 60
+while time.monotonic() < deadline:
+    if glob.glob(os.path.join(control, "update.*", "refresh", ".deploy_manifest.json")):
+        with open(os.path.join(source, "VERSION"), "w", encoding="utf-8") as handle:
+            handle.write("99.99.99\n")
+        with open(os.path.join(source, "deploy_assets/templates/utils/pipeline_dotenv_guard.py"),
+                  "w", encoding="utf-8") as handle:
+            handle.write('raise RuntimeError("live guard leaked")\n')
+        with open(os.path.join(source, "deploy_assets/templates/deps/core.txt"),
+                  "w", encoding="utf-8") as handle:
+            handle.write("live-dependency-leak\n")
+        with open(marker, "w", encoding="utf-8") as handle:
+            handle.write("mutated\n")
+        raise SystemExit
+    time.sleep(0.005)
+raise SystemExit("timed out waiting for completed fresh update assembly")
+PY
+post_assembly_watcher=$!
 SOURCE_POLICY_UPDATE_OUTPUT="$clean_output" \
 SOURCE_POLICY_UPDATE_LAUNCHER="$source_checkout/update.sh" \
 SOURCE_POLICY_UPDATE_PYTHON_MARKER="$hostile_update_python_marker" \
 BASH_ENV="$post_assembly_hook" \
 PATH="$hostile_update_bin:$PATH" \
-    "$source_checkout/update.sh" "$clean_output" --no-model-probe \
-    >"$scratch/update-source-consistency.log" 2>&1
+    "$source_checkout/test_scripts/update_with_manifest_selectors.py" \
+    "$clean_output" --no-model-probe \
+    >"$scratch/update-source-consistency.log" 2>&1 \
+    || { cat "$scratch/update-source-consistency.log" >&2; fail "pinned-source update failed"; }
+wait "$post_assembly_watcher" || fail "post-assembly source watcher failed"
 [ -e "$scratch/update-source-mutated" ] \
     || fail "post-assembly update source hook did not fire"
 if grep -Fq 'UPDATE_BASH_ENV_LEAK' "$clean_output/CLAUDE.md"; then
@@ -731,12 +1373,11 @@ fi
 [ "$(jq -r '.template_version' "$clean_output/.deploy_manifest.json")" = \
   "$expected_update_version" ] \
     || fail "update version was reread from live source after fresh assembly"
-cmp -s "$fake_site_packages/_pipeline_dotenv_guard.py" "$expected_guard" \
-    || fail "update installed a live post-assembly guard instead of the verified copy"
+grep -Fxq 'stale guard' "$fake_site_packages/_pipeline_dotenv_guard.py" \
+    || fail "update mutated the existing project virtualenv"
 cmp -s "$clean_output/.arpipeline/update_inputs/deps/core.txt" "$expected_core_deps" \
     || fail "update applied live post-assembly dependency bytes"
 git -C "$source_checkout" restore VERSION \
-    scripts/update_coordinator.sh \
     deploy_assets/templates/utils/pipeline_dotenv_guard.py \
     deploy_assets/templates/deps/core.txt
 rm -rf "$clean_output/.venv"
