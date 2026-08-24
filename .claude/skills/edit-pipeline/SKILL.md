@@ -1,6 +1,6 @@
 ---
 name: edit-pipeline
-description: Reference for editing this template repo itself — repository layout, how setup.sh assembles a deployment, the runtime-agnostic core vs runtime-specific packaging split, the full agent roster and its shared/variant/extension classification, subagent model pinning and fallback/heal, and the step-by-step procedures for adding a new variant, a new mode, an agent, a skill, or a vocab placeholder. Use when modifying setup.sh, update.sh, deploy_assets/ (templates/, extensions/, scripts/), agent metadata or bodies, vocab.json, or fragments — and before adding any new deployed path, agent, or placeholder.
+description: Reference for editing this template repo itself — repository layout, how setup.sh assembles a deployment, the runtime-agnostic core vs runtime-specific packaging split, the full agent roster and its shared/variant/extension classification, subagent model pinning and fallback/heal, and the step-by-step procedures for adding a new variant, mode, extension, agent, skill, or vocab placeholder. Use when modifying setup.sh, update.sh, deploy_assets/ (templates/, extensions/, scripts/), agent metadata or bodies, vocab.json, or fragments — and before adding any new deployed path, agent, or placeholder.
 ---
 
 # Editing the pipeline template
@@ -31,7 +31,7 @@ A load-bearing block of rule text that must read **byte-identically** across man
 
 ### Vocab placeholders
 
-Since v2.9.0, **every** body — shared `{id}.md`, variant `{id}-core.md`, and extension bodies — resolves against the same layered vocab chain, later wins: `agent_bodies/shared/vocab.json` (defaults) → `agents/{variant}/vocab.json` (domain overrides) → tier vocab → mode overlay. (The extension appliers layer shared → variant → mode the same way.) When adding a new `{{KEY}}` placeholder anywhere, put its **default** in the shared vocab — or in every variant vocab — then add per-variant overrides only where the domain wording differs. A key defined in only *some* variant vocabs with no shared default breaks setup for the other variants.
+Since v2.9.0, **every** body — shared `{id}.md`, variant `{id}-core.md`, and extension bodies — resolves against the same layered vocab chain, later wins: `agent_bodies/shared/vocab.json` (defaults) → `agents/{variant}/vocab.json` (domain overrides) → tier vocab → mode overlay. Extension appliers receive and preserve that same four-layer order. When adding a new `{{KEY}}` placeholder anywhere, put its **default** in the shared vocab — or in every variant vocab — then add per-variant overrides only where the domain wording differs. A key defined in only *some* variant vocabs with no shared default breaks setup for the other variants.
 
 `deploy_assets/scripts/agent_body_loader.py` raises `KeyError` on unresolved placeholders — fail-loud is what enforces the rule. Because the layers merge before substitution, a key must live in exactly one *default* home (shared vocab OR all variant vocabs); do not author the same default in both, and never reuse a shared-vocab key name for an unrelated variant concept — the variant value would silently capture every shared-body use of the key.
 
@@ -236,7 +236,7 @@ Root `setup.sh` is an isolated Python launcher; the fail-fast Bash coordinator i
 4. `runtime_documents.sh:setup_runtime_documents` resolves mode overlays, installs runtime settings, and assembles CLAUDE.md, AGENTS.md, GEMINI.md, and session documents from the runtime-agnostic core plus runtime-specific guidance.
 5. `base_agents.sh:setup_base_agents` resolves Claude fallbacks and assembles shared + variant agents across all five runtimes. `extensions_and_injections.sh:setup_core_agent_injections_and_pruning` then applies core flag/mode pruning and context injection.
 6. `project_bootstrap.sh` initializes mutable project structure, paper skeletons, fingerprint/state/log files, seed material, and `.env`. `infrastructure_docs.sh` installs template-owned stage documents between the bootstrap phases, preserving the historical producer order. Bootstrap outputs never enter replacement ownership; `.env` alone is registered for merge.
-7. `provisioning.sh:setup_python_environment` creates the production-only `.venv`, installs core dependencies, and installs the dotenv guard from manifest-owned verified inputs. `skills_and_utilities.sh:setup_skills_and_utilities` assembles core skills/utilities and invokes the same provisioning module for variant-gated SSJ dependencies. Root `update.sh` first enters its distinct coordinator through an isolated `/usr/bin/python3 -I` launcher that removes Bash startup hooks, exported functions, and active virtual/Conda environment paths. It rejects targets at/above its template checkout or inside `deploy_assets/` before mutation, consumes only completed fresh assemblies, pins their source digest/version across every verification assembly, and removes any newly created empty control directories on exit. It never executes or mutates the project-owned `.venv`; adding extension dependencies to an existing environment requires a fresh deployment. Every update invocation must state the complete current selector explicitly, and that operator-attested selector plus the exact source version/digest must match a trusted fresh assembly. A dry-run stages its trusted assemblies outside the target and creates no temporary target path. Every supported deployed `launch.sh` keeps a shared `fcntl` lock on a parent-Bash-owned project-directory descriptor for the runtime lifetime; update acquires the exclusive side before creating any target path. The trusted parent waits while the complete runtime/update body executes in a child subshell with the descriptor closed, so descendants can neither unlock nor leak it. Validation/replacement is quiescent against supported agents without a pathname lock, holder process, or readiness file; non-launcher same-UID writers remain the documented #259 boundary. Update is same-version only: v2.29.1 accepts only a complete manifest-backed v2.29.1 deployment, validates its ownership inventory against a trusted assembly, and never sniffs old layouts or creates/migrates historical counters, halts, evidence, ownership, or selectors. Every selector dimension is immutable in place; any selector or source change requires a fresh deployment. Obsolete selector journals fail closed and are never interpreted. A general fsynced update marker makes every launcher refuse a crash-partial refresh until update completes.
+7. `provisioning.sh:setup_python_environment` creates the production-only `.venv`, installs core dependencies, and installs the dotenv guard from manifest-owned verified inputs. `skills_and_utilities.sh:setup_skills_and_utilities` assembles core skills/utilities and invokes the same provisioning module for variant-gated SSJ dependencies. Root `update.sh` first enters its distinct coordinator through an isolated `/usr/bin/python3 -I` launcher that removes Bash startup hooks, exported functions, and active virtual/Conda environment paths. It rejects targets at/above its template checkout or inside `deploy_assets/` before mutation, consumes only completed fresh assemblies, pins their source digest/version across every verification assembly, and removes any newly created empty control directories on exit. It never executes or mutates the project-owned `.venv`; adding extension dependencies to an existing environment requires a fresh deployment. Every update invocation must state the complete current selector explicitly, and that operator-attested selector plus the exact source version/digest must match a trusted fresh assembly. A dry-run stages its trusted assemblies outside the target and creates no temporary target path. Every supported deployed `launch.sh` keeps a shared `fcntl` lock on a parent-Bash-owned project-directory descriptor for the runtime lifetime; update acquires the exclusive side before creating any target path. The trusted parent waits while the complete runtime/update body executes in a child subshell with the descriptor closed, so descendants can neither unlock nor leak it. Validation/replacement is quiescent against supported agents without a pathname lock, holder process, or readiness file; non-launcher same-UID writers remain the documented #259 boundary. Update is same-version only: v2.29.2 accepts only a complete manifest-backed v2.29.2 deployment, validates its ownership inventory against a trusted assembly, and never sniffs old layouts or creates/migrates historical counters, halts, evidence, ownership, or selectors. Every selector dimension is immutable in place; any selector or source change requires a fresh deployment. Obsolete selector journals fail closed and are never interpreted. A general fsynced update marker makes every launcher refuse a crash-partial refresh until update completes.
 The updater's source authority is the complete resolved canonical update command printed by every setup path and recorded outside the project; its mandatory `--source-digest`, implied extensions, and selector flags may never be reconstructed from the project-writable manifest.
 
 8. `extensions_and_injections.sh:setup_extensions_injections_and_pruning` applies extensions in resolved user order, assembles their agents/skills/utilities/docs, appends bootstrap `.env` keys, calls `provision_extension_dependencies` once per extension, performs extension pruning/injections, resolves markers, and applies the final Claude model remap. Extension appliers use the exported ownership registries for their infrastructure writes.
@@ -390,43 +390,124 @@ A *mode* re-frames the pipeline's orchestration (theory-first → identification
 7. **Tests:** `./setup.sh /tmp/test_{mode} --variant {variant} --mode {mode} --assemble-only` should resolve cleanly with `✓ All placeholders resolved` and no `{{KEY}}` leakage. Inspect the deployed CLAUDE.md and `.claude/agents/*.md` for marker leakage (`grep -c '{MODE}_FIRST_START'` should be 0).
 8. **Document:** add a one-line row to the "Supported modes" table in CLAUDE.md, then write the mode's full semantics (stage/gate changes, pruned agents, cross-variant compatibility nuances, auto-implied extensions, mutual exclusions with other flags) as a `### --mode {slug}` section in the `deploy-project` skill, parallel to the `--mode empirical-first` section there. Add an invocation example to that skill's command block too.
 
-## Adding a new extension — no written procedure (known gap)
+## Adding a new extension
 
-Variants and modes have step-by-step procedures above; extensions do not. Nothing has been
-written down for adding a third `--ext`, even though the two existing ones establish the shape.
+An extension is an optional capability selected by the repeatable `--ext {slug}` flag. It may
+add agents, skills, utilities, dependencies, stage documents, state fields, and orchestrator
+instructions. Unlike a variant or mode, it is deliberately **not self-contained** under
+`deploy_assets/extensions/{slug}/`: configuration, provisioning, skills, assembly, pruning,
+ownership, tests, and user documentation all have separate integration points. Use
+`theory_llm` as the smaller reference and `empirical` as the full-size reference.
 
-**Failure mode:** an extension added by pattern-matching `deploy_assets/extensions/empirical/` will probably
-get the agent metadata and bodies right (those are the visible parts) and miss the dispersed
-wiring — the `.env` key append, the ordered `EXTENSIONS` deduplication in `deploy_assets/scripts/setup/resolve_config.sh`, dependency installation through `provision_extension_dependencies`, the per-mode pruning lists
-(`_setup_extensions_prune_report_mode_agents`, `_setup_extensions_prune_non_empirical_first_agents` in `extensions_and_injections.sh`), write-site ownership registration for every new deployed infrastructure unit, and the faithful-mode developing-vs-evaluator
-categorization that decides which new agents receive the contract pointer. Each of those is
-silent when missed: assembly still succeeds, and the defect surfaces at run time or only in
-`--faithful` / `--mode report` deployments.
+1. **Define the composition contract before adding files.** Decide which variants support the
+   extension; whether any variant or mode implies it; whether it coexists with every existing
+   extension and whether application order matters; and what it means under `--manual`,
+   `--mode report`, every other mode, `--faithful`, and `--light`. Report mode may be
+   install-only (skills/utilities kept, pipeline-native agents and stage outputs pruned), as it
+   is for both current extensions. Manual mode may expose tools and catalog entries without
+   creating autonomous-stage state. Record any intentionally unsupported composition as a
+   validation error, not a runtime surprise. Also decide runtime coverage explicitly: base
+   agents assemble for five runtimes, but extension agents currently assemble for Claude,
+   Codex, Gemini, and OpenCode only; Grok extension-agent assembly remains the documented
+   limitation. A new extension must not silently imply that the Grok gap is closed.
+2. **Create only the assets the contract needs.** Put extension-owned agents, utilities, docs,
+   dependency input, and orchestrator fragments under `deploy_assets/extensions/{slug}/`:
+   `agent_metadata/`, `agent_bodies/`, `utils/` or flat utilities, `docs/`, `deps.txt`, and
+   `*_inject.md` as applicable. Shared-agent metadata/body layouts can follow `theory_llm`;
+   shared plus per-variant agents can follow `empirical`. If there are no Python dependencies,
+   either ship an intentionally empty/comment-only `deps.txt` through the standard path or
+   omit the dependency path and its provisioning call together—never leave one side wired.
+3. **If it adds skills, put them in the global template skill tree, not inside the extension.** Extension skill
+   metadata lives at `deploy_assets/templates/skill_metadata/{slug}_skills.json`; bodies live
+   at `deploy_assets/templates/skill_bodies/{slug}/`. The extension applier assembles Claude
+   skills, while the extension case in `setup_extensions_injections_and_pruning` assembles the
+   corresponding Codex skills. Add utilities backing those skills under the extension or
+   template utility tree according to who owns them, and deploy them through the ownership
+   helpers in step 6.
+4. **Author metadata, bodies, and vocab as one cross-runtime contract.** Every agent metadata
+   entry needs the correct `category` (`developing` or `evaluator`), tools, ideal Claude model,
+   matching Codex capability tier/effort, and any Gemini/OpenCode overrides. Category is
+   behavioral: only `developing` agents receive the faithful-contract pointer. Use metadata
+   `modes` overrides when a mode changes an agent description. Extension bodies receive the
+   same shared → variant → tier → mode vocab semantics as base bodies; add every new
+   placeholder default to shared vocab (or every variant vocab), with mode/variant overrides
+   only where meaning differs. Fragment byte-identical rules instead of copying them.
+5. **Register and validate the flag in `deploy_assets/scripts/setup/resolve_config.sh`.** Update
+   the `usage` line, missing-value diagnostic, and `reject_unknown_extension` availability
+   diagnostic. `_setup_config_parse_arguments` intentionally accepts an arbitrary `--ext`
+   value and the application boundary rejects unknown values, so the new case in step 7 is
+   part of validation. Put variant/mode compatibility and auto-implication in
+   `_setup_config_resolve_variant_and_modes` or `_setup_config_resolve_variant_descriptors`.
+   Use `_setup_config_add_extension` at every alias/implied-add site; explicit `--ext` values
+   enter in parser order, and the canonical final pass deduplicates the combined explicit,
+   legacy, and implied list while preserving first occurrence. Do not add a second deduplication
+   scheme.
+6. **Create `deploy_assets/scripts/apply_extension_{slug}.sh`.** Thread the active mode body
+   overlay, mode vocab overlay, base variant vocab, generated tier vocab, active variant/agent
+   directory (when the extension has per-variant agents), underscored mode slug, manual flag,
+   and light-model override through the applier just as the existing appliers do. Assemble the
+   supported runtime agents and Claude skills, and copy extension utilities. Preserve the
+   shared → variant → tier → mode vocab order. Source
+   `deploy_assets/scripts/setup/ownership.sh` and use `infrastructure_dir`,
+   `infrastructure_copy_file`, `infrastructure_file`, or `infrastructure_optional_file` at the
+   write site for every template-owned replacement unit. Use `bootstrap_*` or a plain visible
+   bootstrap write for project-owned state/output only. Credential placeholders belong in
+   `.env`: append missing keys idempotently, never replace operator values; `.env` is registered
+   once by project bootstrap through `bootstrap_env_merge`, not as extension infrastructure.
+   Do not register build-time-only source assets.
+7. **Add one application case to `setup_extensions_injections_and_pruning`.** In the ordered
+   `for ext in "${EXTENSIONS[@]}"` / `case` block: when dependencies exist, copy their verified input to
+   `.arpipeline/update_inputs/deps/extensions/{slug}.txt` with
+   `infrastructure_copy_file` and call `provision_extension_dependencies {slug}` exactly once;
+   call the applier with every runtime output and overlay argument; assemble Codex skills when
+   the extension has skills; install/register stage docs and utilities; apply runtime-doc/stage/state
+   injections; and run the faithful, Bash-background, efficiency, and core-bypass injections
+   required by the new agents. Derive developing and Bash-capable lists from metadata with
+   `list_agents_by_category.py` instead of maintaining parallel name lists. Add explicit
+   per-mode pruning and remove any stage docs/output directories that the mode promises do not
+   exist. If shared docs or bodies contain new extension-conditional markers/placeholders,
+   add both their enabled substitution and their disabled cleanup to the final marker pass—an
+   absent extension must leave no literal marker or dead prose.
+8. **When dependencies exist, wire provisioning as a closed pair.** Add the `{slug})` policy to
+   `provision_extension_dependencies` in `deploy_assets/scripts/setup/provisioning.sh`, reading
+   only the manifest-owned dependency copy created in step 7. Provisioning is skipped under
+   `--assemble-only`; failures should print an actionable manual install command. The updater
+   deliberately never executes or mutates the project `.venv`, so a dependency change requires
+   a fresh deployment—do not document update as installing it later. An extension with no
+   dependency input has no copy, provisioning call, or provisioning policy.
+9. **Update every behavior that enumerates extensions.** Search for `empirical`, `theory_llm`,
+   `EXTENSIONS`, and `Available extensions:` rather than assuming the configuration and
+   application cases are the only lists. Check canonical update-command reconstruction,
+   deployment-manifest selectors, manual catalogs, model-heal metadata discovery, runtime
+   pruning, placeholder cleanup, launch/runtime utility permissions, and any extension-order
+   assumptions. Prefer generic discovery only when it preserves the characterized order and
+   fails closed on unknown input; otherwise add the explicit case.
+10. **Test the composition matrix, not just the default build.** Add config tests for explicit,
+    duplicate, implied, incompatible, missing-value, and unknown-extension behavior. Extend
+    `test_scripts/test_setup_characterization.py` with every newly supported
+    variant × mode × extension-set shape, both orders when the new extension composes with an
+    existing one, plus material `--manual` / `--faithful` / `--light` interactions. Add focused
+    assertions for the agents, skills, utilities, state fields, docs, injections, pruned paths,
+    manifest ownership, and absence of unresolved placeholders. Run at least:
 
-**An extension is not self-contained — `deploy_assets/extensions/<ext>/` is only part of it.** Two pieces
-live outside that directory entirely:
+    ```bash
+    bash test_scripts/test_setup_config.sh
+    python3 test_scripts/test_setup_characterization.py
+    bash test_scripts/test_setup_ownership.sh
+    ```
 
-- **Skills.** There is no `skills/` dir under `deploy_assets/extensions/`. An extension's skills live in
-  `deploy_assets/templates/skill_metadata/<ext>_skills.json` + `deploy_assets/templates/skill_bodies/<ext>/`, wired in by
-  `deploy_assets/scripts/apply_extension_<ext>.sh` — the same place core skills live.
-- **Orchestrator injections.** The `*_inject.md` files at the root of `deploy_assets/extensions/<ext>/`
-  splice extension-specific stages, gates, and `pipeline_state.json` fields into the
-  assembled runtime doc (they fill `{{EXTENSION_STAGES}}`,
-  `{{EMPIRICAL_STAGE3A_GATE_ADDENDUM}}`, `{{EMPIRICAL_STATE_FIELDS}}`,
-  `{{EMPIRICAL_LOOP_FIELDS}}` and friends). All eight for empirical: `stages_inject.md`,
-  `stage2_rerun_inject.md`, `stage3a_gate_inject.md`, `state_fields_inject.md`,
-  `state_loop_fields_inject.md` (the audit-loop counters), `state3a_doc_inject.md`,
-  `playbook_inject.md`, `scorer_fertility_inject.md`. An extension whose agents assemble
-  correctly but whose injects are missing produces agents the orchestrator never calls.
-
-**Reference implementations:** `deploy_assets/extensions/empirical/` (the full-size case: agent metadata +
-bodies for shared and both variants, `utils/`, `docs/`, `deps.txt`, and eight `*_inject.md`
-fragments) and `deploy_assets/extensions/theory_llm/` (the minimal case: shared agents only, `llm_client.py`,
-`docs/`, `deps.txt`, five `*_inject.md` fragments).
-
-**To close it:** trace one extension end-to-end through `deploy_assets/scripts/setup/extensions_and_injections.sh` and its applier, then write the procedure in
-the form used by "Adding a new variant" / "Adding a new mode" above, including a
-composability checklist (does the new extension compose with `--manual`, `--mode report`
-install-only, `--faithful`, `--light`?).
+    If the extension provisions dependencies or changes publication behavior, also run
+    `bash test_scripts/test_setup_publish.sh`. Run the extension's own utility/unit tests and a
+    direct development assembly for each supported composition, for example
+    `./setup.sh /tmp/test_{slug} --variant finance --ext {slug} --assemble-only --no-model-probe`.
+    A successful assembly must report `✓ All placeholders resolved`; inspect all supported
+    runtime agent/skill trees rather than only `.claude/`.
+11. **Document and mirror the shipped interface.** Add the extension to the Supported
+    Extensions table in canonical `CLAUDE.md`, and document its flags, implied behavior,
+    supported/unsupported compositions, required credentials, and post-setup use in the
+    `deploy-project` skill. Update `README.md` and `.env.example` when operators need new setup
+    or credentials. If any architectural gap remains, add the required `LIMITATIONS.md` +
+    linked GitHub issue pair. Finally run `scripts/sync_dev_instructions.sh` so `AGENTS.md` and
+    `.agents/skills/` mirror the canonical developer instructions and skills.
 
 > Pointers in this file use grep-able anchors rather than line numbers on purpose — the previous line-number references had drifted by hundreds of lines before anyone noticed. If you add a pointer, name a searchable string.

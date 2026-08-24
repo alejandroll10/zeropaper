@@ -71,7 +71,7 @@ One thing worth knowing without loading it, because it also applies to template-
 assembles a deployment, the runtime-agnostic-core vs runtime-specific-packaging split,
 the full agent roster and classification, subagent model pinning / fallback / launch-heal,
 the core-skill catalog, and the step-by-step procedures for adding a variant, a mode, an
-agent, a skill, or a vocab placeholder.
+extension, an agent, a skill, or a vocab placeholder.
 
 ## Supported variants
 

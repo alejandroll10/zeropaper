@@ -3,7 +3,7 @@ set -e
 
 # Mode threading: positional $11 = MODE_BODIES_OVERLAY, $12 = MODE_VOCAB_OVERLAY,
 # $13 = base variant vocab path, $14 = active underscored mode slug,
-# $15 = manual-mode flag. The variant vocab supplies default values for
+# $15 = manual-mode flag, $16 = generated tier vocab. The variant vocab supplies default values for
 # placeholders the extension bodies use (e.g. {{EMPIRICS_AUDITOR_MODE_BLOCK}}
 # is empty in the base vocab and populated only by the empirical-first
 # overlay). The base vocab MUST be passed even outside mode-empirical-first
@@ -31,13 +31,16 @@ EXT_MODE_VOCAB_OVERLAY="${12}"
 EXT_BASE_VOCAB="${13}"
 EXT_MODE="${14}"
 EXT_MANUAL="${15}"
+EXT_TIER_VOCAB="${16}"
 
-# Build vocab args: shared defaults first, then base variant vocab, then mode
-# overlay (last-write-wins) — same layering as the base assemblers in setup.sh.
+# Build vocab args: shared defaults first, then base variant vocab, generated
+# tier vocab, then mode overlay (last-write-wins) — the same layering as the
+# base assemblers.
 EXT_VOCAB_ARGS=()
 EXT_SHARED_VOCAB="$TEMPLATE_ROOT/templates/agent_bodies/shared/vocab.json"
 [ -f "$EXT_SHARED_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_SHARED_VOCAB")
 [ -n "$EXT_BASE_VOCAB" ] && [ -f "$EXT_BASE_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_BASE_VOCAB")
+[ -n "$EXT_TIER_VOCAB" ] && [ -f "$EXT_TIER_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_TIER_VOCAB")
 [ -n "$EXT_MODE_VOCAB_OVERLAY" ] && [ -f "$EXT_MODE_VOCAB_OVERLAY" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_MODE_VOCAB_OVERLAY")
 
 # Build both body-tier args: a mode directory may contain `{id}.md` for a

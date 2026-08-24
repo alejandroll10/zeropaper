@@ -2,9 +2,10 @@
 set -e
 
 # Mode threading uses the same trailing contract as the empirical applier:
-# mode bodies, mode vocab, base variant vocab, then the active mode slug.
+# mode bodies, mode vocab, base variant vocab, active mode slug, manual flag,
+# then the generated tier vocab.
 # This gives extension agents the same body/vocab/metadata overlay semantics as
-# base agents: shared defaults -> variant -> mode, later vocab layers winning.
+# base agents: shared defaults -> variant -> tier -> mode, later vocab layers winning.
 #
 # NOTE on per-variant metadata (forward-compat gap): the assemble_* calls below
 # hardcode agent_metadata/agents.json, while setup.sh's model-heal emitter probes
@@ -28,16 +29,18 @@ if [ -n "$9" ]; then
 fi
 # $10 = MODE_BODIES_OVERLAY, $11 = MODE_VOCAB_OVERLAY,
 # $12 = base variant vocab path, $13 = active underscored mode slug,
-# $14 = manual-mode flag.
+# $14 = manual-mode flag, $15 = generated tier vocab.
 EXT_MODE_BODIES_OVERLAY="${10}"
 EXT_MODE_VOCAB_OVERLAY="${11}"
 EXT_BASE_VOCAB="${12}"
 EXT_MODE="${13}"
 EXT_MANUAL="${14}"
+EXT_TIER_VOCAB="${15}"
 EXT_VOCAB_ARGS=()
 EXT_SHARED_VOCAB="$TEMPLATE_ROOT/templates/agent_bodies/shared/vocab.json"
 [ -f "$EXT_SHARED_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_SHARED_VOCAB")
 [ -n "$EXT_BASE_VOCAB" ] && [ -f "$EXT_BASE_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_BASE_VOCAB")
+[ -n "$EXT_TIER_VOCAB" ] && [ -f "$EXT_TIER_VOCAB" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_TIER_VOCAB")
 [ -n "$EXT_MODE_VOCAB_OVERLAY" ] && [ -f "$EXT_MODE_VOCAB_OVERLAY" ] && EXT_VOCAB_ARGS+=(--vocab "$EXT_MODE_VOCAB_OVERLAY")
 
 EXT_SHARED_ARGS=()

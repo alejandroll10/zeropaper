@@ -3,6 +3,7 @@
 set -euo pipefail
 
 repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+current_template_version="$(<"$repo_root/VERSION")"
 scratch="$(mktemp -d "${TMPDIR:-/tmp}/setup-ownership-integration.XXXXXX")"
 trap 'rm -rf "$scratch"' EXIT
 target="$scratch/project"
@@ -334,7 +335,8 @@ env PATH=/usr/bin:/bin "$repo_root/test_scripts/update_with_manifest_selectors.p
 [ ! -e "$killed_marker" ] \
     || { echo "FAIL: killed update recovery retained its marker" >&2; exit 1; }
 
-# update.sh intentionally supports only the current v2.28 manifest generation.
+# update.sh intentionally supports only the current template version and
+# manifest generation.
 # Older and pre-manifest deployments fail before managed infrastructure changes.
 unsupported_target="$scratch/unsupported-generation-project"
 env PATH=/usr/bin:/bin "$repo_root/setup.sh" "$unsupported_target" \
@@ -348,7 +350,7 @@ if env PATH=/usr/bin:/bin "$repo_root/test_scripts/update_with_manifest_selector
     --no-model-probe >"$scratch/unsupported-generation-update.log" 2>&1; then
     echo "FAIL: updater accepted an older deployment generation" >&2; exit 1
 fi
-grep -Fq 'update requires a 2.29.1 deployment' \
+grep -Fq "update requires a $current_template_version deployment" \
     "$scratch/unsupported-generation-update.log" \
     || { echo "FAIL: older-generation rejection was unclear" >&2; exit 1; }
 [ "$(ls -di "$unsupported_target/CLAUDE.md")" = "$unsupported_claude_inode" ] \
@@ -374,7 +376,7 @@ if env PATH=/usr/bin:/bin "$repo_root/test_scripts/update_with_manifest_selector
     --no-model-probe >"$scratch/unsupported-adjacent-update.log" 2>&1; then
     echo "FAIL: updater accepted an adjacent template version" >&2; exit 1
 fi
-grep -Fq 'update requires a 2.29.1 deployment' \
+grep -Fq "update requires a $current_template_version deployment" \
     "$scratch/unsupported-adjacent-update.log" \
     || { echo "FAIL: adjacent-version rejection was unclear" >&2; exit 1; }
 rm "$unsupported_target/.deploy_manifest.json"

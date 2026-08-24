@@ -15,7 +15,18 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.29.1] — 2026-08-23 (current)
+## [2.29.2] — 2026-08-24 (current)
+
+**The extension-development path is now documented end to end (#195).** The canonical
+`edit-pipeline` skill covers composition decisions, asset layout, flag resolution, agent and
+skill assembly, ownership, dependency provisioning, mode pruning, state/doc injections,
+cross-runtime coverage, test matrices, and developer-mirror synchronization. Extension agent
+bodies now receive the same shared → variant → generated-tier → mode vocab precedence as base
+agents; characterization tests enforce that order for theory and empirical extensions across
+Claude, Codex, Gemini, and OpenCode, including modeless bodies. Implied-extension additions also
+use the canonical ordered/deduplicated helper.
+
+## [2.29.1] — 2026-08-23
 
 **Large declared input files no longer require per-attempt copies on Linux (#269).** The computed-results runner now descriptor-pins each declared regular-file producer/renderer source, acquires a kernel read lease, and exposes it at the same workspace-relative path through a Bubblewrap read-only binding. A filesystem that cannot enforce the lease falls back to the existing snapshot copy; a host-side writer against a leased file interrupts the attempt, releases the blocked writer only after the sandbox is killed, and prevents publication even if the writer restores the original bytes. Declared directories retain the snapshot-copy path so their membership cannot change during execution. The writable workspace otherwise contains only empty mount points plus fresh outputs and the rest of the project remains hidden. This removes temporary disk and copy I/O for the common multi-gigabyte-file case even across filesystems without weakening the declared-source boundary. Platforms without Bubblewrap retain the reflink-first physical-copy fallback and the same normal/crash cleanup guardian. Regressions cover a 4 MiB zero-copy input, a transient `A → B → A` host rewrite, source mutation, undeclared-file isolation, copy fallback, and cleanup.
 

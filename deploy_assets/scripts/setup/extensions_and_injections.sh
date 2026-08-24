@@ -414,7 +414,8 @@ for ext in "${EXTENSIONS[@]}"; do
                 "$MODE_VOCAB_OVERLAY" \
                 "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json" \
                 "${MODE//-/_}" \
-                "$MANUAL"
+                "$MANUAL" \
+                "$TIER_VOCAB_FILE"
             provision_extension_dependencies theory_llm
 
             python3 "$TEMPLATE_ROOT/scripts/assemble_codex_skills.py" \
@@ -575,7 +576,8 @@ PYEOF
                 "$MODE_VOCAB_OVERLAY" \
                 "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json" \
                 "${MODE//-/_}" \
-                "$MANUAL"
+                "$MANUAL" \
+                "$TIER_VOCAB_FILE"
             # Privileged OpenCode SRT gatekeeper: deploy under the model-immutable
             # runtime, never beside model-writable empirical service code.
             infrastructure_copy_file 295 \

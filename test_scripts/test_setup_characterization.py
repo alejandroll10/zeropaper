@@ -337,6 +337,8 @@ def assert_extension_mode_overlay_contract() -> None:
         shared_vocab = json.loads(shared_vocab_path.read_text())
         shared_vocab["EXTENSION_MODE_TOKEN"] = "SHARED_VOCAB_SENTINEL"
         shared_vocab["EMPIRICAL_MODE_TOKEN"] = "EMPIRICAL_SHARED_SENTINEL"
+        shared_vocab["TIER_LIST_INLINE"] = "SHARED_TIER_LIST_SENTINEL"
+        shared_vocab["TIER_LADDER_PROSE"] = "SHARED_TIER_LADDER_SENTINEL"
         shared_vocab_path.write_text(json.dumps(shared_vocab, indent=2) + "\n")
 
         variant_vocab_path = (
@@ -344,6 +346,8 @@ def assert_extension_mode_overlay_contract() -> None:
         )
         variant_vocab = json.loads(variant_vocab_path.read_text())
         variant_vocab["EXTENSION_MODE_TOKEN"] = "VARIANT_VOCAB_SENTINEL"
+        variant_vocab["TIER_LIST_INLINE"] = "VARIANT_TIER_LIST_SENTINEL"
+        variant_vocab["TIER_LADDER_PROSE"] = "VARIANT_TIER_LADDER_SENTINEL"
         variant_vocab_path.write_text(json.dumps(variant_vocab, indent=2) + "\n")
 
         vocab_path = (
@@ -352,6 +356,7 @@ def assert_extension_mode_overlay_contract() -> None:
         )
         vocab = json.loads(vocab_path.read_text())
         vocab["EXTENSION_MODE_TOKEN"] = "MODE_VOCAB_SENTINEL"
+        vocab["TIER_LADDER_PROSE"] = "MODE_TIER_LADDER_SENTINEL"
         vocab_path.write_text(json.dumps(vocab, indent=2) + "\n")
 
         body_path = (
@@ -359,7 +364,10 @@ def assert_extension_mode_overlay_contract() -> None:
             / "deploy_assets/templates/agent_bodies/shared_modes/measurement_first"
             / "experiment-reviewer.md"
         )
-        body_path.write_text("MODE_BODY_SENTINEL {{EXTENSION_MODE_TOKEN}}\n")
+        body_path.write_text(
+            "MODE_BODY_SENTINEL {{EXTENSION_MODE_TOKEN}}\n"
+            "TIER_VOCAB_SENTINEL {{TIER_LIST_INLINE}} / {{TIER_LADDER_PROSE}}\n"
+        )
         core_body_path = (
             source
             / "deploy_assets/templates/agent_bodies/shared_modes/measurement_first"
@@ -374,6 +382,7 @@ def assert_extension_mode_overlay_contract() -> None:
         base_theory_body_path.write_text(
             base_theory_body_path.read_text()
             + "\nMODELLESS_THEORY_PRECEDENCE_SENTINEL {{EXTENSION_MODE_TOKEN}}\n"
+            + "MODELLESS_TIER_SENTINEL {{TIER_LIST_INLINE}} / {{TIER_LADDER_PROSE}}\n"
         )
 
         modeless = run_case(
@@ -405,6 +414,11 @@ def assert_extension_mode_overlay_contract() -> None:
                 raise AssertionError(f"mode metadata/vocab overlay missing from {relative}")
             if body_sentinel not in active:
                 raise AssertionError(f"mode body/vocab overlay missing from {relative}")
+            if (
+                "TIER_VOCAB_SENTINEL `nature`, `top-ml`, `field`, `workshop` / "
+                "MODE_TIER_LADDER_SENTINEL"
+            ) not in active:
+                raise AssertionError(f"tier/mode vocab precedence missing from theory extension {relative}")
             if "SHARED_VOCAB_SENTINEL" in active:
                 raise AssertionError(f"shared vocab beat mode vocab in {relative}")
             if "VARIANT_VOCAB_SENTINEL" in active:
@@ -442,6 +456,11 @@ def assert_extension_mode_overlay_contract() -> None:
                 raise AssertionError(f"theory core mode body leaked into {relative}")
             if modeless_theory_sentinel not in inactive:
                 raise AssertionError(f"theory variant vocab did not beat shared in {relative}")
+            if (
+                "MODELLESS_TIER_SENTINEL `nature`, `top-ml`, `field`, `workshop` / "
+                "nature → top-ml → field → workshop"
+            ) not in inactive:
+                raise AssertionError(f"tier vocab missing from modeless theory extension {relative}")
             if "SHARED_VOCAB_SENTINEL" in inactive:
                 raise AssertionError(f"shared vocab beat theory variant vocab in {relative}")
 
@@ -486,6 +505,7 @@ def assert_extension_mode_overlay_contract() -> None:
         )
         empirical_core_body_path.write_text(
             "EMPIRICAL_CORE_BODY_SENTINEL {{EMPIRICAL_MODE_TOKEN}}\n"
+            "EMPIRICAL_TIER_SENTINEL {{TIER_LIST_INLINE}} / {{TIER_LADDER_PROSE}}\n"
         )
         base_empirical_body_path = (
             source / "deploy_assets/extensions/empirical/agent_bodies/finance/empiricist.md"
@@ -549,6 +569,11 @@ def assert_extension_mode_overlay_contract() -> None:
             active = (empirical_first / relative).read_text()
             if core_sentinel not in active:
                 raise AssertionError(f"empirical core body/mode precedence missing from {relative}")
+            if (
+                "EMPIRICAL_TIER_SENTINEL `top-5`, `top-3-fin`, `field`, `letters` / "
+                "top-5 → top-3-fin → field → letters"
+            ) not in active:
+                raise AssertionError(f"tier vocab missing from empirical extension {relative}")
             if "EMPIRICAL_SHARED_SENTINEL" in active:
                 raise AssertionError(f"shared vocab beat mode vocab in {relative}")
             if "EMPIRICAL_VARIANT_SENTINEL" in active:

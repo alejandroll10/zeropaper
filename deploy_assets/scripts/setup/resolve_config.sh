@@ -206,7 +206,7 @@ _setup_config_resolve_variant_and_modes() {
     # variant/mode composition where the extension is not implied.
     if [ "$VARIANT" = "llm_cognition" ] && [ "$MODE" != "report" ] \
         && ! _setup_config_extension_enabled theory_llm; then
-        EXTENSIONS+=("theory_llm")
+        _setup_config_add_extension theory_llm
         echo "Info: --variant llm_cognition implies --ext theory_llm (auto-added)."
     fi
 
@@ -231,7 +231,7 @@ _setup_config_resolve_variant_and_modes() {
                     exit 1
                 fi
                 if ! _setup_config_extension_enabled empirical; then
-                    EXTENSIONS+=("empirical")
+                    _setup_config_add_extension empirical
                     echo "Info: --mode empirical-first implies --ext empirical (auto-added)."
                 fi
                 ;;
