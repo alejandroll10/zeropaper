@@ -1,5 +1,8 @@
 ### Faithful-mode override (applies because `faithful: true` in `pipeline_state.json`; supersedes the seeded-mode override)
 
+<!-- DATA_FIRST_START -->
+**Data-first reading of this override.** **RECONCILE** = a construction-scope statement (the published result under its convention, this dataset's under ours, both reported); it is allowed unless the scoping excludes a contract invariant (e.g., collapses a contract-named event class to a trivial sub-case). **PIVOT remains forbidden** — promoting the failed replication to the paper's *headline* would replace the contract's stated contribution. The evidence itself is not suppressed: document the failed replication, with the side-by-side construction analysis as far as it was run, in the validation section as a non-replication and in `output/seed/limitations.md` — reporting it as an *additional finding* under the contract's headline is allowed and encouraged; re-headlining around it is not. **HONEST-NULL** remains the dominant fallback.
+<!-- DATA_FIRST_END -->
 The triager's verdict table is modified in faithful mode:
 
 - **NORMAL-PROCEED**: unchanged.

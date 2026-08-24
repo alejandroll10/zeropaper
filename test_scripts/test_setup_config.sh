@@ -42,6 +42,10 @@ assert_equal "empirical-first implication and descriptors" \
     $'Info: --mode empirical-first implies --ext empirical (auto-added).\nresolved|paper|finance|empirical-first|1|finance|top-3-fin|Autonomous Empirical Paper Pipeline|automated-papers-produced|private|empirical' \
     "$(resolve_summary paper --variant finance --mode empirical-first --assemble-only)"
 
+assert_equal "data-first implication and descriptors" \
+    $'Info: --mode data-first implies --ext empirical (auto-added).\nresolved|paper|finance|data-first|1|finance|top-3-fin|Autonomous Data Paper Pipeline|automated-papers-produced|private|empirical' \
+    "$(resolve_summary paper --variant finance --mode data-first --assemble-only)"
+
 assert_equal "llm cognition implication" \
     $'Info: --variant llm_cognition implies --ext theory_llm (auto-added).\nresolved||llm_cognition||0|llm_cognition|top-ml|Autonomous Theory Paper Pipeline|automated-papers-produced|private|theory_llm' \
     "$(resolve_summary --variant llm_cognition)"

@@ -85,6 +85,12 @@ or
 [continue to positions 4 and 5 in the same format when 4–5 viable approaches qualify]
 <!-- EMPIRICAL_FIRST_END -->
 
+<!-- DATA_FIRST_START -->
+1. **[Architecture name]** — if this wins the tournament, the Stage 2 spec writer should focus on: [specific spec-development instructions — the inclusion rules to pin down first, the class whose second source needs securing, the rights classification to verify, the adjudication target to design the schema around, the coverage boundary to state honestly]. Do NOT request proofs, mechanisms, or an identification strategy — Stage 2 produces a dataset specification (schema + conventions + rules + validation plan + fact portfolio), not a model.
+2. **[Architecture name]** — if this wins, the Stage 2 spec writer should focus on: [specific spec-development instructions, same constraints]
+3. **[Architecture name]** — if this wins, the Stage 2 spec writer should focus on: [specific spec-development instructions, same constraints]
+[continue to positions 4 and 5 in the same format when 4–5 viable architectures qualify]
+<!-- DATA_FIRST_END -->
 **Carry a portfolio of backups, not just the must-win pick.** The ADVANCE list is the pre-vetted candidate pool the rest of Stage 1 draws on (the screening gates, the tiebreak, and — critically — the runner-up re-advance on a later theory failure). **Advance at least 3 approaches whenever at least 3 are *viable*** (well-posed / not *proven* dead — the same floor as the Tractability axis), even if positions 2–3 are weaker than #1: parallel screening is cheap and a pre-vetted runner-up is the pipeline's main recovery mechanism, so a carried backup is insurance, not filler. Carry up to **5** when 4–5 are viable. Advance **fewer than 3 only if genuinely fewer than 3 viable approaches exist this round** — where a viable approach is one that is well-posed / not proven dead *and* not a substantive duplicate of one already carried (a near-identical mechanism adds no backup value). Never drop a genuinely distinct viable approach just to keep the list short. Do **not** manufacture filler beyond the viable set. Position 1 is your strongest pick; ordering is the final tiebreak if parallel screening cannot separate candidates on novelty and non-obviousness alone. Carrying backups never lowers the winner's quality — the tiebreak still selects on ceiling.
 ```
 

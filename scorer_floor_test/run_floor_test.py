@@ -57,7 +57,7 @@ EMPIRICAL_FIRST_VOCAB = ASSETS / "templates" / "agents" / "finance_modes" / "emp
 # and theory-first under-serves it. The pipeline does not target descriptive papers,
 # so such a fixture is OUT OF SCOPE — scored theory-first for reference but excluded
 # from the breach verdict (its low score is out-of-distribution, not a rubric bias).
-ROUTES = {"theory-first", "empirical-first", "descriptive"}
+ROUTES = {"theory-first", "empirical-first", "data-first", "descriptive"}
 
 DIMENSIONS = ["Importance", "Novelty", "Surprise", "Rigor", "Parsimony", "Fertility"]
 # #102 names the judgment dimensions (Rigor is stipulated-pass for published papers,

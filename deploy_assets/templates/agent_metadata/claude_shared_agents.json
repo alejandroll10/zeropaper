@@ -225,6 +225,11 @@
   "implications-deriver": {
     "name": "implications-deriver",
     "description": "Derives the theory's testable implications at Stage 3 Step 1. Launched once per Stage 3 (re-)run on the current theory draft (re-fires whenever the theory revises \u2014 Stage 2 rework, Stage 2b re-centering, PIVOT/RECONCILE). Reasons purely from the committed theory \u2014 web-blind by design; the orchestrator lit-checks each returned implication via gap-scout (Step 2) and does the tagging and routing. Writes the untagged implication list to output/stage3/implications_derived.md, which seeds output/stage3/implications.md.",
+    "modes": {
+      "data_first": {
+        "description": "Derives the fact portfolio at Stage 3 Step 1 from the committed dataset specification. Launched once per Stage 3 (re-)run on the current spec (re-fires whenever the spec revises \u2014 Stage 2 rework, PIVOT/RECONCILE). Sharpens each planned target into a precisely testable item across four families: replication targets (expected sign/magnitude with the spec's citation), adjudication targets (the construction difference to isolate), new-fact candidates, and construction-sensitivity checks for every headline candidate. Web-blind by design; the orchestrator lit-checks each returned item via gap-scout (Step 2) and does the tagging and routing. Writes output/stage3/implications_derived.md."
+      }
+    },
     "category": "developing",
     "tools": "Read, Write",
     "model": "fable",
@@ -279,6 +284,9 @@
     "name": "referee-mechanism",
     "description": "Mechanism-focused referee at Stage 6. Evaluates whether the paper's {{MECHANISM_QUALIFIER}} mechanism delivers the claimed result for the claimed reason \u2014 not whether the math is correct (math-auditor handles that) or whether the paper fits the journal (referee-freeform handles that). Returns a verdict on mechanism validity: VALID / PARTIAL / MISATTRIBUTED / DECORATIVE. Runs in parallel with the other two referees; sees neither their output nor prior reports.",
     "modes": {
+      "data_first": {
+        "description": "Fact-validity referee at Stage 6 (data-first mode). Evaluates whether the paper's documented facts survive its own construction choices \u2014 headline facts robust to the natural alternative conventions, coverage claims within what the sources support, validation quantitative and genuinely independent, adjudications earned by side-by-side construction analysis, facts stated descriptively \u2014 not whether the build code is correct (audited upstream) or whether the paper fits the journal (referee-freeform handles that). Returns a verdict on construction validity: VALID / PARTIAL / MISATTRIBUTED / DECORATIVE. Runs in parallel with the other two referees; sees neither their output nor prior reports."
+      },
       "report": {
         "description": "Mechanism-focused referee on the external submission in submission/: does the claimed {{MECHANISM_QUALIFIER}} mechanism deliver the claimed result for the claimed reason? Verdict MECHANISM-VALID / PARTIAL / MISATTRIBUTED / DECORATIVE to audits/referee_mechanism.md. Reads cold, in parallel with the other referees."
       }
@@ -381,6 +389,11 @@
   "puzzle-triager": {
     "name": "puzzle-triager",
     "description": "Triages contradictions between theory predictions and empirical/experimental results. Launched only when results contradict an implication. Produces a verdict (PIVOT / FIX-EMPIRICS / RECONCILE / BACK-TO-IDEA / HONEST-NULL) that routes the pipeline. A PIVOT verdict promotes the contradiction to the central question and instructs theory-generator to revise around the puzzle.",
+    "modes": {
+      "data_first": {
+        "description": "Triages contradictions between the fact portfolio's expectations and the built dataset \u2014 canonically a replication target that failed to reproduce. Launched only when the build contradicts a portfolio item. Produces a verdict (PIVOT / FIX-EMPIRICS / RECONCILE / BACK-TO-IDEA / HONEST-NULL) that routes the pipeline. A PIVOT verdict requires the side-by-side construction isolation in hand and promotes the adjudication (the published fact is an artifact of the old data's construction) to the paper's headline finding."
+      }
+    },
     "category": "evaluator",
     "tools": "Read, Write",
     "model": "fable",
@@ -561,6 +574,9 @@
     "name": "polish-identification",
     "description": "Hunts identification-coherence failures in the rendered paper: estimand-vs-claim mismatches, diagnostics-vs-design coverage, cluster level vs. variation level, faithfulness to the applicable Stage 1 or Stage 3a design artifact, heterogeneity-population coherence, and out-of-scope structural claims. Symmetric counterpart to polish-equilibria for empirical papers. Carries finance and macro identification checks inherited from the variant's identification-designer / identification-auditor. Distinct from identification-auditor, which audited the empiricist's plan before execution. Stage 9 polish agent. Writes output/polish_identification_r{N}.md where N is the current loops.polish.round. Produces an N/A report on papers without an empirical identification design.",
     "modes": {
+      "data_first": {
+        "description": "Data-first causal-overreach and estimand-discipline backstop at Stage 9. Reads the rendered paper against the binding dataset spec and the coverage audit: causal language on descriptive facts, coverage claims beyond what the validation established, robustness adjectives with no sensitivity panel behind them, adjudications asserted without their side-by-side exhibit, release claims that cross the restricted-source boundary. The identification artifacts of other modes do not exist here by design \u2014 their absence is never grounds for an N/A report; the paper's own claims are the audit object. Writes output/polish_identification_r{N}.md."
+      },
       "report": {
         "description": "Audits the external submission's identification claims against its own stated design: estimand-vs-claim alignment (says ATE, design recovers LATE on compliers), 2026-standard diagnostic coverage, cluster level vs. variation level, heterogeneity-population coherence, structural claims on reduced-form coefficients. Scope is decided by the submission's content, never by this deployment's flags; N/A only for a pure theory submission with no empirical section. Reads submission/ (read-only); writes audits/identification_polish.md."
       }

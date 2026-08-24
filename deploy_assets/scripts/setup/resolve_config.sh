@@ -31,7 +31,7 @@ committed build inputs. Publishing stays off unless --publish is explicit.
 Core options:
   --variant finance|macro|llm_cognition
   --ext empirical|theory_llm             Repeatable
-  --mode empirical-first|measurement-first|report
+  --mode empirical-first|measurement-first|data-first|report
   --seed | --faithful | --manual
   --light
   --halt-on-core-bypass
@@ -125,7 +125,7 @@ _setup_config_parse_arguments() {
         exit 1
     fi
     if [ "$_setup_config_next_is_mode" = "1" ]; then
-        echo "Error: --mode requires a value (empirical-first, measurement-first, report)"
+        echo "Error: --mode requires a value (empirical-first, measurement-first, data-first, report)"
         exit 1
     fi
 }
@@ -235,6 +235,26 @@ _setup_config_resolve_variant_and_modes() {
                     echo "Info: --mode empirical-first implies --ext empirical (auto-added)."
                 fi
                 ;;
+            data-first)
+                if [ "$VARIANT" != "finance" ]; then
+                    echo "Error: --mode data-first is finance-only in v1."
+                    case "$VARIANT" in
+                        macro)
+                            echo "  Macro data papers are coherent, but this mode still requires macro-specific"
+                            echo "  scorer/referee calibration and an empirical-extension macro composition pass (issue #279)."
+                            ;;
+                        llm_cognition)
+                            echo "  --ext empirical (which this mode implies) is gated off for llm_cognition;"
+                            echo "  a benchmark-contribution analogue would be a separate mode."
+                            ;;
+                    esac
+                    exit 1
+                fi
+                if ! _setup_config_extension_enabled empirical; then
+                    _setup_config_add_extension empirical
+                    echo "Info: --mode data-first implies --ext empirical (auto-added)."
+                fi
+                ;;
             measurement-first)
                 if [ "$VARIANT" != "llm_cognition" ]; then
                     echo "Error: --mode measurement-first is llm_cognition-only."
@@ -257,7 +277,7 @@ _setup_config_resolve_variant_and_modes() {
                 ;;
             *)
                 echo "Unknown mode: $MODE"
-                echo "Available modes: empirical-first, measurement-first, report"
+                echo "Available modes: empirical-first, measurement-first, data-first, report"
                 exit 1
                 ;;
         esac
@@ -372,6 +392,14 @@ _setup_config_apply_mode_descriptors() {
                 PAPER_TYPE="causal-identification empirical finance paper"
                 DOMAIN_AREAS="empirical finance — asset pricing, corporate finance, information economics, market design, financial intermediation, or behavioral finance — with the contribution resting on a credibly-identified causal estimand plus a prose+DAG mechanism"
                 DOC_SUBTITLE="Autonomous Empirical Paper Pipeline"
+                ;;
+        esac
+    elif [ "$MODE" = "data-first" ]; then
+        case "$VARIANT" in
+            finance)
+                PAPER_TYPE="data-contribution finance paper"
+                DOMAIN_AREAS="empirical finance data infrastructure — the contribution is an open, documented, validated dataset (with full per-source provenance, explicit construction and dating conventions, and cross-source coverage triangulation) plus a portfolio of facts established on it: replications of known results, adjudications of published disagreements traceable to data construction, and new descriptive facts. In scope: any dataset serving asset pricing, corporate finance, market microstructure, financial intermediation, household finance, or macro-finance research."
+                DOC_SUBTITLE="Autonomous Data Paper Pipeline"
                 ;;
         esac
     elif [ "$MODE" = "measurement-first" ]; then

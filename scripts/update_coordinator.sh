@@ -130,7 +130,7 @@ if [ "$NEXT_IS_VARIANT" = "1" ]; then
     echo "Error: --variant requires a value (finance, macro, llm_cognition)"; exit 1
 fi
 if [ "$NEXT_IS_MODE" = "1" ]; then
-    echo "Error: --mode requires a value (empirical-first, measurement-first, report), or use --no-mode"; exit 1
+    echo "Error: --mode requires a value (empirical-first, measurement-first, data-first, report), or use --no-mode"; exit 1
 fi
 if [ "$NEXT_IS_EXT" = "1" ]; then
     echo "Error: --ext requires a value (empirical, theory_llm)"; exit 1
@@ -422,7 +422,7 @@ if recorded_digest != attested_source_digest:
 variant = manifest.get("variant")
 if not isinstance(variant, str) or variant not in {"finance", "macro", "llm_cognition"}:
     raise SystemExit("ERROR: deployment manifest has an invalid variant")
-if manifest.get("mode") not in {"", "empirical-first", "measurement-first", "report"}:
+if manifest.get("mode") not in {"", "empirical-first", "measurement-first", "data-first", "report"}:
     raise SystemExit("ERROR: deployment manifest mode must be a string")
 extensions = manifest.get("extensions")
 if (not isinstance(extensions, list)

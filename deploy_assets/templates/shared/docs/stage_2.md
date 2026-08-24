@@ -16,6 +16,9 @@
 <!-- EMPIRICAL_FIRST_START -->
    Pass the negative-results file to `self-attacker` at Stage 4 too. (`math-auditor` is not launched in empirical-first mode — the math-audit form of Gate 2 below is replaced by the mechanism-plausibility gate — so prior `math_audit_v*.md` / `freeform_audit_v*.md` files do not exist; theory-generator on a mutate/pivot relaunch should instead consult the prior `output/stage2/mechanism_audit_v*.md` files for recurring plausibility-failure patterns, plus the most recent `referee-mechanism` report at Stage 6 and any `self_attack_v*.md` for prior content failures.)
 <!-- EMPIRICAL_FIRST_END -->
+<!-- DATA_FIRST_START -->
+   Pass the negative-results file to `self-attacker` at Stage 4 too. (`math-auditor` is not launched in data-first mode — the math-audit form of Gate 2 below is replaced by the dataset-specification audit gate — so prior `math_audit_v*.md` / `freeform_audit_v*.md` files do not exist; theory-generator on a mutate/pivot relaunch should instead consult the prior `output/stage2/mechanism_audit_v*.md` files for recurring spec-failure patterns, plus the most recent `referee-mechanism` report at Stage 6 and any `self_attack_v*.md` for prior content failures.)
+<!-- DATA_FIRST_END -->
 4. Save result to `output/stage2/theory_draft_vN.md` where **N = `theory_version`** from `pipeline_state.json`. On a fresh `theory_attempt`, reset `theory_version` to 1 and atomically apply the fresh-theory identity reset in `core.md` before any gate can resume. On each mutation (including re-launches after Gate 2 FAIL within the same attempt), increment `theory_version` and save to the new version file. N is a within-attempt counter: it resets and can collide across attempts, so prior filenames may be overwritten while durable result receipts remain as history; the acceptance-version reset is what prevents same-number evidence from the abandoned attempt from satisfying a current gate.
 5. Commit: `artifact: theory draft v{N}`
 
@@ -81,6 +84,32 @@ So empirical-first replaces the skipped math audit with a **lightweight plan-tim
 
 **Re-launch on later revision.** When `referee-mechanism`, `self-attacker`, or `scorer` flags a content failure that requires the mechanism to be revised downstream, re-launch `theory-generator` in **mutate** mode with the relevant report attached, then **re-run this Gate 2 plausibility check** on the revised mechanism (which re-sets `stage2_mechanism_version` per step 4) before re-entering Stage 3 / Stage 3a — a mutate that changes the channel must re-pass the gate just as the first version did (on a post-Stage-3a re-fire the auditor uses the documented coefficients for its magnitude check). The version-counter rules (`theory_version`, `theory_attempt`) carry over.
 <!-- EMPIRICAL_FIRST_END -->
+<!-- DATA_FIRST_START -->
+## Gate 2: Dataset Specification Audit (data-first)
+
+**Agent:** `mechanism-auditor` (spec-audit role)
+
+In data-first mode `theory-generator` runs in **dataset-spec mode** and produces the binding dataset specification — schema, dating conventions, inclusion/reconciliation rules, validation plan, redistribution-rights inventory, fact-portfolio plan. There are no derivations, so `math-auditor` / `math-auditor-freeform` have nothing to re-derive and are **not** launched. But a spec can be broken before any build: an inclusion rule a third party cannot operationalize, a "triangulation" whose second source is a mirror of the first, an `open` rights classification resting on assumption, a replication target with no expected value, a coverage claim the Stage 1 pilot contradicted. Those defects do not need a build to detect; catching them now costs one read, catching them at Stage 3a costs a full build against a broken spec.
+
+So data-first replaces the skipped math audit with a **plan-time specification audit** — the data-first analogue of Gate 2. It checks the build-independent dimensions (rules operational, conventions complete, triangulation real, rights cleared, portfolio checkable, incumbent comparison honest, claims pilot-consistent); the *post-build* dimensions (does the built dataset conform to the spec, was the triangulation executed) belong to the Stage 3a audit chain (`empirics-auditor`, `data-selection-auditor`, `coverage-auditor`).
+
+1. Launch `mechanism-auditor` with explicit paths (the body has no hardcoded defaults): the dataset specification `output/stage2/theory_draft_vN.md`, the pilot-build report `output/stage1/idea_prototype.md`, the problem statement `output/stage0/problem_statement.md`, and — **only if construction results already exist** (a mutate/pivot re-fire after Stage 3a) — the exact build report at `pipeline_state.json:stage3a_analysis_path` for the build-anchored coverage-count check. Name the output path `output/stage2/mechanism_audit_vN.md`.
+2. Save result to `output/stage2/mechanism_audit_vN.md`.
+3. Commit: `artifact: dataset spec audit v{N} — {PLAUSIBLE/REVISE}`.
+4. Route:
+   - **PLAUSIBLE:** set `pipeline_state.json:dataset_spec_version = theory_version` and reset `loops.spec_audit_revision.round` to 0, then proceed to Gate 3 (novelty check).
+   - **REVISE:** increment `loops.spec_audit_revision.round`, re-launch `theory-generator` in **mutate** mode with `mechanism_audit_vN.md` attached, increment `theory_version`, and re-run this gate on the new version. **Hard cap: `loops.spec_audit_revision.cap` (3) consecutive REVISEs on the same spec.** At the cap, re-mutating the current spec again is not an option — escalate, either by incrementing `theory_attempt`, resetting `theory_version` to 1, and atomically applying the fresh-theory identity reset from `core.md`, or by swapping sketches per the authority below. Below the cap, where a fix tightens a rule or narrows a coverage promise and the spec makes the same move at more than one site, tighten every site rather than only the flagged one. The escalation machinery from the theory-first Gate 2 FAIL path applies here with the same triggers: the **branch-manager every-3rd-version trigger** (`theory_version % 3 == 0`, launched with the current spec + audit + architecture sketches + literature map) and the **pre-Stage-5 sketch-swap authority** (after 3 consecutive REVISEs on the same spec OR any branch-manager RESTRUCTURE verdict, evaluate swapping to a different Round-1 architecture on equal footing with continuing — record the evaluation in the commit message: name the candidate sketch(es), why continuing might still work, and the decision; continuation must be justified by specific evidence the alternative is worse, not sunk cost).
+
+{{SEED_OVERRIDE_STAGE_2_GATE_2}}
+
+**Seeded runs only — data-first reading of the seeded Gate-2 override.** When `seeded: true`, the seeded-mode override (injected above on seeded deployments) applies with this reading: The Gate 2 negative verdict here is **REVISE in the dataset-specification audit**; the cap is 3 consecutive REVISEs on the same spec (`loops.spec_audit_revision.cap`); "theory/mechanism" throughout means the dataset specification. The ship-honest check's narrowing moves are dataset-native: drop or explicitly waive an untriangulable event class, narrow a coverage promise to the span the sources actually support, reclassify an unverifiable `open` right as `restricted` (build-from-source-only), or demote an adjudication target to a documented discrepancy — each applied to *every* site of the same shape in the spec, and each acceptable only while what the seed pins (the dataset gap and its core event classes) still ships. Only if the seed's core classes themselves cannot be built and validated does the abandon-report branch fire.
+
+**Gate 4 enforcement.** Before any Gate 4 advance, the orchestrator must verify `dataset_spec_version == theory_version` — a stale spec audit is a hard block, parallel to the `stage3a_theory_version` rule for the build (`docs/stage_3a_empirical.md` "Gate 4 enforcement") and the empirical-first `stage2_mechanism_version` rule. A `theory_version` that advanced without re-passing this gate cannot reach the scorer. (`stage2_mechanism_version` stays null in this mode — the spec audit's acceptance pointer is `dataset_spec_version`.)
+
+**Bypass recording.** This gate is a designated core step. Skipping it, advancing past a REVISE without a re-fire, or running its task via a substitute agent is a core bypass unless this doc sanctions it — record a `gate-skipped` / `agent-substituted` row in `process_log/degradation_ledger.md` before continuing (`docs/core_bypass.md`).
+
+**Re-launch on later revision.** When `referee-mechanism`, `self-attacker`, `scorer`, or `puzzle-triager` (a PIVOT rewriting the fact portfolio) flags a content failure that requires the spec to be revised downstream, re-launch `theory-generator` in **mutate** (or **pivot**) mode with the relevant report attached, then **re-run this Gate 2 spec audit** on the revised spec (which re-sets `dataset_spec_version` per step 4) before re-entering Stage 3 / Stage 3a — a revision that changes rules, conventions, coverage promises, or the fact portfolio must re-pass the gate just as the first version did (on a post-Stage-3a re-fire the auditor uses the observed build counts for its coverage check). The version-counter rules (`theory_version`, `theory_attempt`) carry over.
+<!-- DATA_FIRST_END -->
 <!-- MEASUREMENT_FIRST_START -->
 ## Gate 2: Design Plausibility (measurement-first)
 
@@ -129,6 +158,17 @@ So measurement-first replaces the Stage-2-time math audit with a **binding plan-
 5. If NOVEL: proceed to Stage 2b (theory exploration)
 6. Commit: `artifact: novelty check v{N} — {NOVEL/INCREMENTAL/KNOWN}`
 
+<!-- DATA_FIRST_START -->
+## Stage 2b: Theory Exploration — skipped in data-first mode
+
+The dataset specification has no equilibrium objects to compute, no parameter space to grid-search, and no diagnostic plots that aren't already produced by the construction analysis at Stage 3a. The Stage 1 pilot build already played the exploratory role on real source slices. `theory-explorer` is not launched.
+
+The data-first analogue of "does the result hold at calibration?" is the sanity check rule already inside the spec body: the spec's expected per-class coverage counts must match the pilot's observed counts (first launch) or the build report's actual counts at `pipeline_state.json:stage3a_analysis_path` (mutate/pivot re-launch). The Gate-4-blocking `stage2b_theory_version` rule from theory-first mode does not apply here; the analogous Gate 4 rules under data-first are `dataset_spec_version == theory_version` (see Gate 2 above) and `stage3a_theory_version == theory_version` (see `docs/stage_3a_empirical.md` "Gate 4 enforcement").
+
+**On Gate 3 INCREMENTAL re-work:** the unguarded INCREMENTAL routing instruction earlier in this file says "re-run Stage 2b (exploration) AND Stage 3 (implications)." Under data-first, **skip the Stage 2b re-run** (already permanently skipped per this section). The INCREMENTAL re-work re-fires `theory-generator` (mutate), which re-enters **Gate 2 (spec audit)** on the revised spec — that gate must re-pass and re-set `dataset_spec_version` before proceeding — then re-run Gate 3 + Stage 3 + Stage 3a. The theory-version increment + the `dataset_spec_version` and `stage3a_theory_version` Gate-4 blocks handle staleness on both the spec and build sides.
+
+Proceed directly from Gate 3 (novelty check on the spec) to Stage 3 (implications).
+<!-- DATA_FIRST_END -->
 <!-- NO_MODE_START -->
 ## Stage 2b: Theory Exploration
 
