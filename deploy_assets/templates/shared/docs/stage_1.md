@@ -128,6 +128,9 @@ Purpose: late-bind the final idea selection. Instead of committing to idea-revie
 <!-- THEORY_FIRST_START -->
 7. Commit: `pipeline: stage 1 complete — winner selected from {K} candidates`.
 <!-- THEORY_FIRST_END -->
+<!-- DATA_FIRST_START -->
+7. Commit: `pipeline: stage 1 complete — winner selected from {K} candidates`. (Data-first has no Stage 1 identification-design step — the identification agents are not part of this mode; the winning architecture proceeds directly to Stage 2, where `theory-generator` writes the dataset specification from the selected architecture and the pilot report.)
+<!-- DATA_FIRST_END -->
 <!-- EMPIRICAL_FIRST_START -->
 7. **Set `pipeline_state.json:current_stage = "stage_1_identification_design"`** — this is the resume marker. The session-level resume path reads `current_stage` and routes to Step 4 below as long as it holds this value. Without setting this, an interruption between this commit and Step 4 would leave `current_stage = "stage_1"` and the orchestrator could plausibly re-run the whole tiebreak or skip to Stage 2 reading the commit message alone.
 8. Commit: `pipeline: stage 1 tiebreak complete — winner selected from {K} candidates; identification design pending`. (The "stage 1 complete" commit is held until Step 4 below finishes — a resume between this commit and Step 4 must therefore re-enter Stage 1 at Step 4, not skip ahead to Stage 2; `current_stage` makes that routing automatic.)

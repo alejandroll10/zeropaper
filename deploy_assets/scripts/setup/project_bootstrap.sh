@@ -139,11 +139,14 @@ elif [ "$MODE" = "report" ]; then
     :
 else
     # Stage 2b (theory exploration) is permanently skipped under
-    # --mode empirical-first and --mode measurement-first (piloting is part
-    # of the design step there); don't create the empty dir in either.
+    # --mode empirical-first, --mode measurement-first, and --mode data-first
+    # (piloting is part of the design step there); don't create the empty dir.
     STAGE2B_DIRS=()
-    [ "$MODE" != "empirical-first" ] && [ "$MODE" != "measurement-first" ] && STAGE2B_DIRS=("$P/output/stage2b/figures")
+    [ "$MODE" != "empirical-first" ] && [ "$MODE" != "measurement-first" ] && [ "$MODE" != "data-first" ] && STAGE2B_DIRS=("$P/output/stage2b/figures")
     mkdir -p "$P/output/stage0" "$P/output/stage1" "$P/output/stage2" "${STAGE2B_DIRS[@]}" "$P/output/stage3" "$P/output/stage4" "$P/output/puzzle_triage" "$P/output/post_pipeline"
+    # Data-first: the versioned public data artifact + build manifest land here
+    # (design #278 item 11). Bootstrap content — project-owned, no manifest entry.
+    [ "$MODE" = "data-first" ] && mkdir -p "$P/output/dataset"
     bootstrap_dir "output/evidence"
     mkdir -p "$P/process_log/sessions" "$P/process_log/decisions"
 fi

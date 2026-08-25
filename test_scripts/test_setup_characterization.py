@@ -121,6 +121,17 @@ CASES: dict[str, tuple[str, ...]] = {
     "llm_cognition_report_theory_llm": (
         "--variant", "llm_cognition", "--mode", "report", "--ext", "theory_llm",
     ),
+    "finance_data_first": ("--variant", "finance", "--mode", "data-first"),
+    "finance_data_first_seed": (
+        "--variant", "finance", "--mode", "data-first", "--seed",
+    ),
+    "finance_data_first_faithful_light_halt": (
+        "--variant", "finance", "--mode", "data-first", "--faithful",
+        "--light", "--halt-on-core-bypass",
+    ),
+    "finance_data_first_manual": (
+        "--variant", "finance", "--mode", "data-first", "--manual",
+    ),
     "finance_seed": ("--variant", "finance", "--seed"),
     "finance_faithful_empirical_light_halt": (
         "--variant", "finance", "--ext", "empirical", "--faithful",
@@ -177,6 +188,8 @@ CLI_FAILURE_CASES: dict[str, tuple[str, ...]] = {
     "report_and_manual": ("--variant", "finance", "--mode", "report", "--manual"),
     "report_and_seed": ("--variant", "finance", "--mode", "report", "--seed"),
     "macro_empirical_first": ("--variant", "macro", "--mode", "empirical-first"),
+    "macro_data_first": ("--variant", "macro", "--mode", "data-first"),
+    "llm_cognition_data_first": ("--variant", "llm_cognition", "--mode", "data-first"),
     "finance_measurement_first": ("--variant", "finance", "--mode", "measurement-first"),
     "llm_cognition_empirical": ("--variant", "llm_cognition", "--ext", "empirical"),
     "publish_and_assemble_only": ("--variant", "finance", "--publish"),

@@ -41,9 +41,11 @@ FIXTURES = ROOT / "fixtures"
 REPORT = ROOT / "report.md"
 
 SCORER_CORE = ASSETS / "templates" / "agent_bodies" / "shared"
+SHARED_VOCAB = ASSETS / "templates" / "agent_bodies" / "shared" / "vocab.json"
 FINANCE_BODIES = ASSETS / "templates" / "agents" / "finance"
 FINANCE_VOCAB = ASSETS / "templates" / "agents" / "finance" / "vocab.json"
 EMPIRICAL_FIRST_VOCAB = ASSETS / "templates" / "agents" / "finance_modes" / "empirical_first" / "vocab.json"
+DATA_FIRST_VOCAB = ASSETS / "templates" / "agents" / "finance_modes" / "data_first" / "vocab.json"
 
 # Each fixture is scored by the scorer config its pipeline route would use, read
 # from meta.json's "route". The pipeline has exactly two scoring routes:
@@ -57,7 +59,7 @@ EMPIRICAL_FIRST_VOCAB = ASSETS / "templates" / "agents" / "finance_modes" / "emp
 # and theory-first under-serves it. The pipeline does not target descriptive papers,
 # so such a fixture is OUT OF SCOPE — scored theory-first for reference but excluded
 # from the breach verdict (its low score is out-of-distribution, not a rubric bias).
-ROUTES = {"theory-first", "empirical-first", "descriptive"}
+ROUTES = {"theory-first", "empirical-first", "data-first", "descriptive"}
 
 DIMENSIONS = ["Importance", "Novelty", "Surprise", "Rigor", "Parsimony", "Fertility"]
 # #102 names the judgment dimensions (Rigor is stipulated-pass for published papers,
@@ -75,7 +77,7 @@ def weighted_total(scores):
     return sum(WEIGHTS[d] * scores[d] for d in WEIGHTS)
 
 
-def resolve_markers(body, empirical_first=False, ext_empirical=False):
+def resolve_markers(body, empirical_first=False, ext_empirical=False, data_first=False):
     """Replicate setup.sh's post-assembly marker resolution so the floor test scores
     the SAME prompt a real deployment ships — load_body() alone leaves the
     <!-- THEORY_FIRST / EMPIRICAL_FIRST / EXT_EMPIRICAL --> markers unresolved, which
@@ -90,9 +92,23 @@ def resolve_markers(body, empirical_first=False, ext_empirical=False):
     if empirical_first:
         body = re.sub(r"<!-- THEORY_FIRST_START -->\n.*?<!-- THEORY_FIRST_END -->\n{0,2}", "", body, flags=re.DOTALL)
         body = re.sub(r"<!-- EMPIRICAL_FIRST_(?:START|END) -->\n?", "", body)
+    elif data_first:
+        body = re.sub(r"<!-- THEORY_FIRST_START -->\n.*?<!-- THEORY_FIRST_END -->\n{0,2}", "", body, flags=re.DOTALL)
+        body = re.sub(r"<!-- EMPIRICAL_FIRST_START -->\n.*?<!-- EMPIRICAL_FIRST_END -->\n{0,2}", "", body, flags=re.DOTALL)
     else:
         body = re.sub(r"<!-- EMPIRICAL_FIRST_START -->\n.*?<!-- EMPIRICAL_FIRST_END -->\n{0,2}", "", body, flags=re.DOTALL)
         body = re.sub(r"<!-- THEORY_FIRST_(?:START|END) -->\n?", "", body)
+    # MANUAL/AUTONOMOUS families: the floor test models an autonomous deployment
+    # (the only kind the Gate-4 scorer runs in), so AUTONOMOUS blocks are kept
+    # (markers stripped) and MANUAL blocks removed — mirror of keep() with manual=0.
+    body = re.sub(r"<!-- MANUAL_START -->\n.*?<!-- MANUAL_END -->\n{0,2}", "", body, flags=re.DOTALL)
+    body = re.sub(r"<!-- AUTONOMOUS_(?:START|END) -->\n?", "", body)
+    # DATA_FIRST family (v2.30.0): kept only on the data-first route, removed
+    # wholesale on every other route — mirror of setup.sh's keep() semantics.
+    if data_first:
+        body = re.sub(r"<!-- DATA_FIRST_(?:START|END) -->\n?", "", body)
+    else:
+        body = re.sub(r"<!-- DATA_FIRST_START -->\n.*?<!-- DATA_FIRST_END -->\n{0,2}", "", body, flags=re.DOTALL)
     if ext_empirical:
         body = re.sub(r"<!-- EXT_EMPIRICAL_(?:START|END) -->\n?", "", body)
     else:
@@ -123,15 +139,24 @@ def assemble_scorer(route="theory-first"):
     theory-first / descriptive → base finance vocab, ef=False xe=False.
     empirical-first            → finance + empirical_first vocab overlay (later
                                  layer wins on duplicate keys), ef=True xe=True.
+    data-first                 → finance + data_first vocab overlay, df=True
+                                 xe=True (the mode auto-implies --ext empirical).
     (A descriptive fixture is scored with the theory-first scorer for reference.)
     """
     sys.path.insert(0, str(ASSETS / "scripts"))
     from agent_body_loader import load_body, load_vocab
     ef = route == "empirical-first"
-    vocab_paths = [str(FINANCE_VOCAB)] + ([str(EMPIRICAL_FIRST_VOCAB)] if ef else [])
+    df = route == "data-first"
+    # shared → variant → mode, later wins — same layering as setup.sh (v2.9.0+;
+    # scorer-core consumes shared-vocab domain defaults like POLICY_MAP_AXES).
+    vocab_paths = [str(SHARED_VOCAB), str(FINANCE_VOCAB)]
+    if ef:
+        vocab_paths.append(str(EMPIRICAL_FIRST_VOCAB))
+    elif df:
+        vocab_paths.append(str(DATA_FIRST_VOCAB))
     vocab = load_vocab(vocab_paths)
     body = load_body("scorer", [str(FINANCE_BODIES)], [str(SCORER_CORE)], vocab)
-    return resolve_markers(body, empirical_first=ef, ext_empirical=ef)
+    return resolve_markers(body, empirical_first=ef, ext_empirical=ef or df, data_first=df)
 
 
 _AUDIT_INPUTS = {
@@ -149,11 +174,23 @@ _AUDIT_INPUTS = {
         "- Data-selection audit (Stage 3a): output/stage3a/data_selection_audit.md\n"
         "- (No math audit — empirical-first has no derivations to audit.)"
     ),
+    # Data-first skips the math audit and the identification chain; H3 keys on
+    # the construction/validation audit chain plus spec-audit freshness.
+    "data-first": (
+        "- Dataset specification (Stage 2): theory/theory_v1.md (the spec IS the theory draft)\n"
+        "- Delivered build/analysis report (Stage 3a): output/stage3a/empirical_analysis.md\n"
+        "- Empirics audit (Stage 3a): output/stage3a/empirics_audit.md\n"
+        "- Data-integrity audit (Stage 3a): output/stage3a/data_integrity_audit.md\n"
+        "- Data-selection audit (Stage 3a): output/stage3a/data_selection_audit.md\n"
+        "- Coverage audit (Stage 3a): output/stage3a/coverage_audit.md\n"
+        "- Dataset spec audit (Gate 2): output/stage2/mechanism_audit_v1.md\n"
+        "- (No math audit and no identification audit — data-first has neither.)"
+    ),
 }
 
 
 def build_task(route):
-    audits = _AUDIT_INPUTS["empirical-first" if route == "empirical-first" else "theory-first"]
+    audits = _AUDIT_INPUTS.get(route, _AUDIT_INPUTS["theory-first"])
     return f"""\
 You are running as the pipeline's Gate-4 scorer on a finance paper (route: {route}).
 Follow your instructions below exactly. Score this version independently.

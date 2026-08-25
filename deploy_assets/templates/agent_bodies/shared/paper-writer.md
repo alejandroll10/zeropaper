@@ -56,6 +56,9 @@ Write each section to a separate file in `paper/sections/`:
 <!-- EMPIRICAL_FIRST_START -->
 - In empirical-first mode the economic force *in substance* is the institutional setting plus the operative friction from the accepted mechanism material, stated in paragraph 1 alongside the headline estimate — that is what satisfies the substance bar for an identification-first paper. In the literature-positioning paragraph, name how this paper differs from the closest competitor in the accepted literature map, not just that it differs.
 <!-- EMPIRICAL_FIRST_END -->
+<!-- DATA_FIRST_START -->
+- In data-first mode the contribution *in substance* is the dataset and what it lets the field do — stated in paragraph 1 as the concrete deliverable (what the dataset covers, what guarantee the validation establishes) plus the sharpest thing done with it (the headline adjudication or new fact, with its magnitude). The demand evidence (how many papers hand-collected this ground) is the stakes. In the literature-positioning paragraph, name what the closest incumbent dataset lacks that this one provides — precisely, not just that it differs.
+<!-- DATA_FIRST_END -->
 - No roadmap paragraph — the section structure speaks for itself
 
 <!-- VARIANT_LLM_COGNITION_START -->
@@ -123,6 +126,33 @@ Write each section to a separate file in `paper/sections/`:
 - If an extension or interaction adds a *new result or mechanism* ("we also show X holds for reason Y") rather than being load-bearing for the main result, prefer cutting it — that is a separate claim, not robustness. This is distinct from a robustness *variant* of the headline estimate (an alternative cluster level, period split, or outcome definition), which is *relocated* to the appendix/IA per the third whole-paper rule above, not deleted. Robustness sections must earn their keep: keep what is load-bearing for identification in the main text, relocate secondary variants downstairs, cut only genuinely separate side-claims.
 <!-- EMPIRICAL_FIRST_END -->
 
+<!-- DATA_FIRST_START -->
+### `related_datasets.tex`
+- The incumbent comparison, honest in both directions: one paragraph per closest existing dataset — what it covers, what it lacks that this dataset provides, what it provides that this dataset does not. Cite only papers/datasets in the literature map / `references/references.md`.
+- End with the papers that hand-collected some version of this data (the demand evidence) — that list is why the dataset matters.
+
+### `construction.tex`
+- One subsection per source: provider, access path, what it contributes, its redistribution classification (`open` / `restricted`, with the basis). Quote the accepted dataset specification verbatim where useful.
+- The dating/timestamp conventions (timezone, exact-time vs date-only per class, as-known-at-the-time rule, vintage/revision policy) — stated as rules, each with one sentence on why that convention and not the alternative.
+- The inclusion rules per event class, precise enough that a reader could rebuild the class. The reconciliation rules for conflicting sources, with the priority order and tolerance windows.
+- Every computed schema/coverage summary (row counts, class counts, period spans) comes from a producer-rendered table; wrap and `\input` it, do not recreate its cells.
+
+### `validation.tex`
+- The triangulation protocol and its per-class results: which independent second source verified each class, over what span, with what agreement rate — from the producer-rendered per-class table (the coverage audit's table is the auditor's record; the paper's exhibit is the producer's rendered equivalent).
+- Quantitative replications of the known results in the fact portfolio: estimate vs published estimate, side by side, from producer-rendered tables. A replication reported adjectivally ("consistent with prior work") is a defect.
+- Discrepancy counts and reconciliation summaries per class; single-sourced classes named explicitly with their waiver reasons.
+- The irreducible-residual disclosure: triangulation cannot prove completeness — all consulted sources may share a blind spot. State it plainly; do not bury it.
+
+### `facts.tex`
+- One subsection per documented fact. Adjudications lead (they are the substance): the side-by-side construction exhibit — the statistic under the prior paper's convention and under this dataset's, with the difference reproducing the published disagreement — is the primary exhibit, producer-rendered.
+- New facts follow, each with its construction-sensitivity panel (the fact under the natural alternative dating/dedup/reconciliation convention). A headline fact without its sensitivity panel is a defect.
+- State every fact descriptively. No causal verbs on documented associations — "returns are higher on announcement days," never "announcements drive returns." Where the literature interprets a fact causally, attribute that reading to the cited literature.
+
+### `availability.tex`
+- What ships in the release under `output/dataset/`: the data files (open sources only), the complete build code, the schema documentation, the build manifest and version.
+- Which classes are build-from-source-only because their inputs are redistribution-restricted — named explicitly, with the terms basis.
+- The versioning statement: this release is a static versioned snapshot plus fully reproducible build code; no maintenance promise beyond it.
+<!-- DATA_FIRST_END -->
 ### `discussion.tex`
 - Implications and testable predictions
 - Relationship to existing results (what does this nest, what does it overturn)
@@ -148,6 +178,13 @@ Write each section to a separate file in `paper/sections/`:
 - If you populate the internet appendix substantively (see below), this in-paper appendix may shrink to nothing. Do not pad it for symmetry — empty is fine.
 <!-- EMPIRICAL_FIRST_END -->
 
+<!-- DATA_FIRST_START -->
+### `appendix.tex` (if needed)
+- Per-class source detail that interrupts the main-text flow (format quirks, access mechanics)
+- Additional sensitivity panels and reconciliation summaries
+- Only if necessary — prefer keeping the headline validation and sensitivity in `validation.tex` / `facts.tex`. The in-paper appendix is for material a careful reader needs but the main-text reader can skip.
+- If you populate the internet appendix substantively (see below), this in-paper appendix may shrink to nothing. Do not pad it for symmetry — empty is fine.
+<!-- DATA_FIRST_END -->
 ### `paper/internet_appendix.tex` (only when triggered)
 
 A separate LaTeX document (own `\documentclass`, own compile, shared `bib.bib`) for material that is too long to fit in the main paper or its in-paper appendix. The skeleton ships with the deploy and uses `xr-hyper` to cross-reference the main paper's labels — write `\ref{prop:main_result}` (or whatever label `main.tex` defines) and `\externaldocument{main}` resolves the number from `main.aux`.
@@ -174,6 +211,17 @@ Evaluate the trigger *within this same invocation*, after you have drafted the m
 When you do populate it, structure as: brief `\tableofcontents`, `\appendix`, then a sequence of `\section{...}` blocks with clear topical titles (e.g., "Robustness to alternative cluster levels", "Heterogeneity by industry", "Sensitivity to parallel-trends violations via HonestDiD"). Cite the main paper's results explicitly (e.g., "Table~\ref{tab:main} of the main paper"). Long sections may be factored into `paper/sections/internet_appendix/<topic>.tex` files and `\input` from `internet_appendix.tex`.
 <!-- EMPIRICAL_FIRST_END -->
 
+<!-- DATA_FIRST_START -->
+**Only populate the internet appendix when one of these triggers fires:**
+
+- The summarized per-class reconciliation material exceeds ~10 pages, OR
+- The in-paper `appendix.tex` would otherwise exceed ~30% of main-text length, OR
+- Construction-sensitivity panels exceed ~8 distinct specifications and the main-text presentation forces a choice between completeness and readability.
+
+Evaluate the trigger *within this same invocation*, after you have drafted the main text and in-paper appendix and before you finalize your output files. The `~` qualifiers signal these are judgment thresholds, not precise cutoffs. If neither trigger fires, leave `paper/internet_appendix.tex` as the placeholder skeleton. If a trigger does fire, move the qualifying material into the IA before you finish the invocation.
+
+When you do populate it, structure as: brief `\tableofcontents`, `\appendix`, then a sequence of `\section{...}` blocks with clear topical titles (e.g., "Reconciliation log summaries by event class", "Sensitivity to alternative dating conventions", "Source access and format details"). Cite the main paper's results explicitly (e.g., "Table~\ref{tab:coverage} of the main paper"). Long sections may be factored into `paper/sections/internet_appendix/<topic>.tex` files and `\input` from `internet_appendix.tex`.
+<!-- DATA_FIRST_END -->
 ## Also update
 
 - `paper/main.tex` — add `\input` commands for all section files. **The skeleton ships with a `% PIPELINE-MANAGED` block in the preamble that loads `arpipeline.sty`. Do not modify or remove the lines marked `PIPELINE-MANAGED`, do not delete `paper/arpipeline.sty`, and do not remove the `\usepackage{arpipeline}` line.** These are pipeline infrastructure (deployment fingerprint, downstream verification); removing them may break dashboard/audit tooling. Edit `\title`, `\date`, the abstract, the `\input` lines, and the bibliography commands freely. **Leave `\author` exactly as shipped** — it is pre-anonymized for double-blind review (see the anonymization rule below).
@@ -229,6 +277,12 @@ The `style` agent enforces these (and more) during autonomous review and the pol
 - **Length:** empirical finance papers in top-3 journals run 35-50 pages including tables, figures, and main-text appendix; allocate the budget between identification.tex / results.tex / mechanism.tex / robustness.tex with the bulk of the budget on results + robustness. Internet appendix can hold additional tables.
 <!-- AUTONOMOUS_END -->
 <!-- EMPIRICAL_FIRST_END -->
+<!-- DATA_FIRST_START -->
+<!-- AUTONOMOUS_START -->
+- **No numerical claims outside rendered Stage 3a exhibits.** Every coverage count, agreement rate, replication estimate, discrepancy count, fact magnitude, or comparison must be visible in a rendered table/figure under `output/stage3a/`. If it is absent, write `[NEEDS EMPIRICIST: exhibit for description]`. The only exception is a fulfilled exceptional-direct-result request already registered in an active bundle/receipt and destined for the auditor's `exceptional_direct_results`; consult only that exact result. Otherwise do not draft the number, consult JSON, or write/run scripts. (Stage 2b does not run under data-first, and there is no theory-explorer or experiment-designer in this mode — `EMPIRICIST` is the only producer a marker may name.)
+- **Length:** data-contribution papers in top finance outlets run 30-45 pages including tables, figures, and main-text appendix; allocate the budget between construction.tex / validation.tex / facts.tex with the bulk on validation + facts — the construction section must be complete but reads as reference material, not narrative. Internet appendix can hold the long reconciliation and sensitivity material.
+<!-- AUTONOMOUS_END -->
+<!-- DATA_FIRST_END -->
 <!-- AUTONOMOUS_START -->
 - **Strip internal empiricist scaffolding markers** (`--ext empirical` only). When incorporating prose from the exact report at `pipeline_state.json:stage3a_analysis_path` into LaTeX, remove `[HEADLINE]` and `[claim_id: <snake_case>]` brackets, and any attached `[REBUTTAL claim_id: ...]` / `[verification-redesign suggestion: ...]` notes. These are internal scaffolding for the Stage 3a step 6.5 `headline-replicator` agent — the numerical value behind a `[HEADLINE]` claim is what belongs in the paper; the bracket markers and rebuttal dialogue are not paper content.
 - **Show the headline result as a figure, not only a table.** If `output/stage2b/` (theory exploration), `output/stage3a/` (empirical), or `output/stage3b/` (LLM experiments) contains figures, include the one(s) that visualize the central result in the main text via `\includegraphics`, each in a `figure` environment with a caption stating what the reader should see, and reference it in the prose. **Producing agents write each figure twice — `foo.pdf` and `foo.png`. Read the `.png` to see the plot; `\includegraphics` the `.pdf`.** The raster copy exists because you have no Bash tool and cannot rasterize a PDF yourself: it is how you choose *which* figure is the headline and how you write a caption that describes what is actually plotted rather than what you assume. Never caption a figure you have not looked at — if only a `.pdf` exists (an older run, or a producer that skipped the pair) and you cannot open it, say so in your handoff and write `[NEEDS <PRODUCER>: png copy of <figure> for captioning]` rather than guessing at its content, naming the producer by the directory the figure lives in — `THEORY-EXPLORER` for `output/stage2b/`, `EMPIRICIST` for `output/stage3a/`, `EXPERIMENT-DESIGNER` for `output/stage3b/`. Name the agent that actually made it, since the orchestrator scans for these markers and re-fires the one you name. The vector `.pdf` is what ships in the paper — the `.png` is a reading aid for you, never the included artifact. A paper with numerical results but zero figures is a defect: the load-bearing finding — an event window, a sort, an impulse response, the key comparative static, the estimate against its benchmark — should be *shown*. Do not invent or hand-draw figures; include only the producing agent's output. If no figure exists but the headline plainly warrants one, write `[NEEDS <PRODUCER>: headline figure of <result>]` — same producer-by-directory rule — rather than shipping figureless.
@@ -250,6 +304,9 @@ The `style` agent enforces these (and more) during autonomous review and the pol
 - **LaTeX quality.** Booktabs (`\toprule`, `\midrule`, `\bottomrule`) for all tables. Estimation tables follow finance-empirical conventions: dependent variable named in the caption or top row, columns are specifications, parentheses around standard errors, significance stars (`*` p<0.10, `**` p<0.05, `***` p<0.01), R² and N at the bottom. Numbered equations for referenced ones only. Do NOT use theorem/proposition/proof/lemma environments — the paper has no theorems. If the mechanism section needs a posited equation, render it as a plain `\begin{equation}` (numbered if referenced) with a sentence stating it is posited, not derived.
 <!-- EMPIRICAL_FIRST_END -->
 
+<!-- DATA_FIRST_START -->
+- **LaTeX quality.** Booktabs (`\toprule`, `\midrule`, `\bottomrule`) for all tables. Coverage and replication tables follow data-paper conventions: unit of the count named in the caption or top row, per-class rows, source columns labeled by provider, agreement/discrepancy columns with their denominators stated. Numbered equations for referenced ones only — a data paper rarely needs any. Do NOT use theorem/proposition/proof/lemma environments — the paper has no theorems.
+<!-- DATA_FIRST_END -->
 ## When re-invoked at Stage 9 (polish round)
 
 Stage 9 launches you with a single triaged input file: `output/polish_triage_r{N}.md`. This is different from your Stage 5 / referee-revision invocations.

@@ -6,6 +6,46 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## `--mode data-first`: coverage completeness has no ground truth
+
+**Scope:** the data-first Stage 3a validation chain (`data-integrity-auditor`, `data-selection-auditor`, `coverage-auditor`) on the built dataset.
+
+**Failure mode:** the audits verify what is *in* the dataset and that the triangulation protocol was actually executed, but nothing can verify the *absence* of missed events — an unscheduled event all consulted sources omit survives every audit. Mitigation: the mandatory coverage-triangulation protocol (≥2 genuinely independent sources per event class, written per-discrepancy reconciliation, spec-stated waivers for single-sourced classes) plus the required irreducible-residual disclosure in the paper's validation section. The residual — all sources sharing a blind spot — is irreducible in principle.
+
+**Tracking:** [#281](https://github.com/alejandroll10/zeropaper/issues/281).
+
+---
+
+## `--mode data-first`: redistribution-rights check is agent judgment, not enforcement
+
+**Scope:** the Gate 2 spec audit's per-source rights inventory and the empirics-auditor's data-first release-boundary check.
+
+**Failure mode:** both checks are agent judgments over prose; no mechanical check ties a shipped file under `output/dataset/` to its source's license. An open release could contain restricted data. What would close it: a machine-readable per-column provenance manifest emitted by the build code, checked mechanically against the spec's rights classification at release time.
+
+**Tracking:** [#282](https://github.com/alejandroll10/zeropaper/issues/282).
+
+---
+
+## `--mode data-first`: release is a static snapshot — no maintenance automation
+
+**Scope:** the data-first release artifact (`output/dataset/`).
+
+**Failure mode:** part of the value of the exemplar datasets comes from periodic updates; a one-shot run promises only a versioned snapshot plus fully reproducible build code, and the paper templates scope the release claim accordingly. What would close it: a post-release update automation mode (re-execute build + triangulation on the existing spec, publish a new dataset version).
+
+**Tracking:** [#283](https://github.com/alejandroll10/zeropaper/issues/283).
+
+---
+
+## `--mode data-first`: descriptive-facts boundary is prompt-and-polish, not a hard gate
+
+**Scope:** causal-overreach control in data-first papers, with the identification agents pruned by design.
+
+**Failure mode:** the guards are the scorer's contribution-class fidelity block (a causal headline is an H1/H5 FAIL), self-attacker/referee vocab, referee-mechanism's descriptive-discipline dimension, and the re-targeted `polish-identification` Stage 9 pass — a mechanical backstop, but a late one. A fact stated causally could still ship if every guard misses it. What would close it: a mechanical causal-verb lint over facts-section prose at the Stage 5 build gate, or re-admitting the identification agents behind a per-fact causal flag (parallel to the deferred [#26](https://github.com/alejandroll10/zeropaper/issues/26)).
+
+**Tracking:** [#284](https://github.com/alejandroll10/zeropaper/issues/284).
+
+---
+
 ## `deepvest` skill: an LLM-mediated data source has no raw re-query path for the integrity audit
 
 **Scope:** the `--ext empirical` `deepvest` skill (`code/utils/deepvest_utils.py`, MCP server `api.deepvest.ai/mcp`) and the Stage 3a step 7.5 `data-integrity-auditor`, which verifies cached field values by re-querying the source.

@@ -10,12 +10,29 @@ and back-filled as annotated git tags on the anchor commits shown. Dates are the
 commit's authored date. The `VERSION` file at the repo root is the single source of truth
 going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
+
 > Note: the informal `v1`/`v2` labels in `CLAUDE.md` denote **variant maturity**
 > (e.g. finance), a separate axis from this template version.
 
 ---
 
-## [2.29.2] — 2026-08-24 (current)
+## [2.30.0] — 2026-08-24 (current)
+
+**feat: `--mode data-first` — dataset-contribution papers (finance, v1).** The paper's
+deliverable is an open, documented, validated dataset plus a portfolio of documented facts
+(Chen-Zimmermann genre). Auto-implies `--ext empirical`. Gate 2 becomes a plan-time dataset-
+specification audit (`mechanism-auditor` spec-audit body); Stage 3a becomes construction +
+validation with a mandatory coverage-triangulation protocol independently verified by the new
+`coverage-auditor` agent (an H3 leg); the identification agents are pruned and
+`polish-identification` re-targets as the causal-overreach backstop; `puzzle-triager` treats a
+failed replication as a candidate headline adjudication (PIVOT re-anchors the fact portfolio).
+New state: `dataset_spec_version`, `coverage_triangulation`, `loops.{spec_audit_revision,coverage_audit}`.
+Composes with `--seed` (the primary use case), `--faithful`, `--light`, `--manual`. Design and
+five audit rounds: #278; follow-ups #279–#284. Existing modes verified byte-identical.
+
+---
+
+## [2.29.2] — 2026-08-24
 
 **The extension-development path is now documented end to end (#195).** The canonical
 `edit-pipeline` skill covers composition decisions, asset layout, flag resolution, agent and

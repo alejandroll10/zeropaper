@@ -6,6 +6,9 @@
 <!-- EMPIRICAL_FIRST_START -->
    Under empirical-first, also explicitly name `output/stage1/identification_design.md` and `output/stage2/theory_draft_vN.md` (the mechanism document — not a generic "theory draft") in the paper-writer's input list.
 <!-- EMPIRICAL_FIRST_END -->
+<!-- DATA_FIRST_START -->
+   Under data-first, also explicitly name `output/stage2/theory_draft_vN.md` (the dataset specification — not a generic "theory draft"), the exact build report at `pipeline_state.json:stage3a_analysis_path` with its bound receipt, and `output/stage3a/coverage_audit.md` in the paper-writer's input list.
+<!-- DATA_FIRST_END -->
    The paper-writer produces `paper/outline.md` with: section-by-section plan, what goes where, how to address self-attack weaknesses, how to incorporate scorer presentation notes, which results to highlight, target length per section.
 2. **Review the outline.** Check: does it address the self-attack points? Is the positioning against the literature accurate? Is the structure appropriate for the target journal? If not, provide feedback and re-launch.
 3. **Write.** Launch paper-writer with the approved outline + all inputs. Paper-writer creates files in `paper/sections/`:
@@ -27,6 +30,13 @@
    - `mechanism.tex` (channel + DAG + reduced-form posit, competing channels)
    - `robustness.tex` (alternative specifications, sensitivity to identifying-assumption violations) — only when robustness checks exceed what fits in `results.tex`
 <!-- EMPIRICAL_FIRST_END -->
+<!-- DATA_FIRST_START -->
+   - `related_datasets.tex` (the incumbent comparison: what each existing dataset covers and lacks — honest in both directions)
+   - `construction.tex` (sources with provenance, dating/timestamp conventions, inclusion rules, reconciliation rules)
+   - `validation.tex` (the triangulation protocol and its per-class results, quantitative replications of known facts, discrepancy/reconciliation summaries, the irreducible-residual disclosure)
+   - `facts.tex` (the documented facts: replications beyond validation duty, adjudications with their side-by-side construction exhibits, new facts — each with its construction-sensitivity panel)
+   - `availability.tex` (data and code availability: what ships open in the release, what is build-from-source due to restricted inputs, versioning and build manifest)
+<!-- DATA_FIRST_END -->
    - `discussion.tex`
    - `conclusion.tex`
    - `appendix.tex` (if needed)
@@ -39,6 +49,9 @@
 <!-- EMPIRICAL_FIRST_START -->
    Paper-writer may *also* populate the internet appendix (`paper/internet_appendix.tex`, a separate compile that ships with the deploy) when robustness analysis exceeds ~10 specifications, the in-paper appendix would otherwise exceed ~30% of main-text length, or heterogeneity covers more than ~5 sub-population dimensions. If no trigger fires, the IA file stays as the placeholder skeleton.
 <!-- EMPIRICAL_FIRST_END -->
+<!-- DATA_FIRST_START -->
+   Paper-writer may *also* populate the internet appendix (`paper/internet_appendix.tex`, a separate compile that ships with the deploy) when the per-class reconciliation logs exceed ~10 pages of summarized material, construction-sensitivity panels exceed ~8 specifications, or the in-paper appendix would otherwise exceed ~30% of main-text length. If no trigger fires, the IA file stays as the placeholder skeleton.
+<!-- DATA_FIRST_END -->
 4. Paper-writer **updates** `paper/main.tex` (a skeleton with a `% PIPELINE-MANAGED` block already exists from setup.sh) — adds `\input` commands for each section file, fills `\title{...}` and the abstract, and adjusts the bibliography commands (the `\author` ships pre-anonymized for double-blind review and is left as-is). **Do not overwrite from scratch and do not delete or modify the `% PIPELINE-MANAGED` block** (the `\usepackage{arpipeline}` line and surrounding markers); these are the deployment fingerprint that downstream tooling depends on. The same `% PIPELINE-MANAGED` discipline applies to `paper/internet_appendix.tex`'s preamble if the IA is populated.
 5. **Scan for `[NEEDS <PRODUCER>: ...]` markers.** Paper-writer flags any numerical claim it cannot source from a producing agent's output directory, naming the producer that owns that directory (see its "No numerical claims outside ..." rule). Scan the draft for markers of **every** producer form, not just the one this mode uses most — the deployment's active extensions decide which can appear, and a marker you do not scan for ships as a placeholder.
 

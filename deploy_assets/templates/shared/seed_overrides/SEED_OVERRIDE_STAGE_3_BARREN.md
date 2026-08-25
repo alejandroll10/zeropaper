@@ -1,5 +1,8 @@
 ### Seeded-mode override (applies because `seeded: true` in `pipeline_state.json`)
 
+<!-- DATA_FIRST_START -->
+**Data-first reading of this override.** Apply the barren flag to the adjudication and new-fact families only (replication targets are SUPPORTED by design — see the stage doc's data-first block). "A non-obvious result within the same model" reads as portfolio sharpening **within the same dataset**: an overlooked construction-difference adjudication, a slice or timestamp precision only this data supports, a cross-class fact the incumbent cannot compute. The three-strike bound and the no-reset rules apply as written; after the third consecutive infrastructure-only outcome, ship with the replication-plus-infrastructure limitation documented honestly in `output/seed/limitations.md` — the demand evidence, not the fact portfolio, carries the contribution then.
+<!-- DATA_FIRST_END -->
 **Barren-model (all-SUPPORTED) does NOT route to Stage 1 — Stage-1 re-entry is forbidden under a seed.** An all-SUPPORTED outcome here is the implications-stage form of a novelty-KNOWN signal, so apply the seed's KNOWN rule (`seed.md`): report the concern and proceed on execution/proof depth; do **not** abandon, and do **not** reshape the seed's mechanism (mechanism reshaping is the puzzle-triage PIVOT path, which requires an actual contradiction — an all-SUPPORTED confirmation is not one). Concretely:
 
 1. Extend the base two-strike bound to a **three-strike** bound: up to *three* consecutive all-SUPPORTED outcomes each return to Stage 2 to find a non-obvious result **within the same model** (a deeper corollary, a sharper comparative static, a knife-edge case) — this is exactly the base doc's first-strike search, repeated, not a mechanism change.

@@ -38,13 +38,33 @@ _setup_extensions_prune_report_mode_agents() {
 
 # Mode-conditional ADDITION (inverse of _setup_extensions_prune_report_mode_agents): an agent that
 # is assembled for all --ext empirical deploys (it lives in the empirical
-# extension metadata) but is meaningful ONLY under --mode empirical-first — the
-# prose+DAG mechanism it audits exists only in that mode. We assemble it
-# unconditionally with the rest of the empirical agents, then delete its output
-# files in every other mode. This keeps the agent off the theory-first /
-# macro / report build surface without adding a mode-conditional metadata path.
-_setup_extensions_prune_non_empirical_first_agents() {
+# extension metadata) but is meaningful ONLY under an evidence-first mode with a
+# plan-time Gate 2 (--mode empirical-first: the prose+DAG mechanism audit;
+# --mode data-first: the dataset-spec audit via the same agent slot with a mode
+# body overlay). We assemble it unconditionally with the rest of the empirical
+# agents, then delete its output files in every other mode. This keeps the agent
+# off the theory-first / macro / report build surface without adding a
+# mode-conditional metadata path.
+_setup_extensions_prune_non_evidence_first_agents() {
     [ "$MODE" = "empirical-first" ] && return 0
+    [ "$MODE" = "data-first" ] && return 0
+    _setup_extensions_prune_agents "$@"
+}
+
+# coverage-auditor exists ONLY under --mode data-first (it verifies the
+# coverage-triangulation protocol that only that mode's Stage 3a performs).
+# Same assemble-then-prune pattern as above, narrower gate.
+_setup_extensions_prune_non_data_first_agents() {
+    [ "$MODE" = "data-first" ] && return 0
+    _setup_extensions_prune_agents "$@"
+}
+
+# Inverse gate: agents pruned ONLY under --mode data-first. The identification
+# pair is meaningless there — the facts are documented as descriptive, the
+# construction/validation gates replace the identification gates, and the
+# causal-overreach backstop is the re-targeted polish-identification pass.
+_setup_extensions_prune_data_first_mode_agents() {
+    [ "$MODE" = "data-first" ] || return 0
     _setup_extensions_prune_agents "$@"
 }
 
@@ -734,6 +754,37 @@ if os.path.exists(state_path):
         f.write("\n")
 PYEOF
 
+            # Data-first state: spec-audit acceptance pointer, triangulation
+            # status, and the two data-first audit loops. Mode-gated so every
+            # other shape's state file stays byte-identical to its baseline.
+            if [ "$MODE" = "data-first" ]; then
+                python3 -I - "$P/process_log/pipeline_state.json" <<'PYEOF'
+import json, os, sys
+state_path = sys.argv[1]
+if os.path.exists(state_path):
+    with open(state_path) as f:
+        data = json.load(f)
+    # dataset_spec_version mirrors stage2_mechanism_version (the theory_version
+    # last passed by the plan-time Gate 2 audit — here the spec audit);
+    # coverage_triangulation is the empiricist-reported protocol status that
+    # coverage-auditor independently verifies.
+    if "dataset_spec_version" not in data:
+        new = {}
+        for k, v in data.items():
+            new[k] = v
+            if k == "stage2_mechanism_version":
+                new["dataset_spec_version"] = None
+                new["coverage_triangulation"] = None
+        data = new
+    data.setdefault("loops", {})
+    for _lid in ("spec_audit_revision", "coverage_audit"):
+        data["loops"].setdefault(_lid, {"round": 0, "cap": 3})
+    with open(state_path, "w") as f:
+        json.dump(data, f, indent=2)
+        f.write("\n")
+PYEOF
+            fi
+
             # Empirical extension developing agents — from metadata.
             # Variant-aware via $AGENT_DIR (finance and macro metadata add their
             # domain-specific identification pair). The metadata is the source of truth.
@@ -762,7 +813,7 @@ PYEOF
             # Efficiency mandate (issue #74): the empirical agents that load/run
             # large tables — the source of every documented OOM. method-checker is
             # excluded because it reads code rather than running analyses.
-            _empirical_heavy_agents=(empiricist empirics-auditor headline-replicator data-integrity-auditor data-selection-auditor)
+            _empirical_heavy_agents=(empiricist empirics-auditor headline-replicator data-integrity-auditor data-selection-auditor coverage-auditor)
             _setup_extensions_inject_efficiency_into_agents "${_empirical_heavy_agents[@]}"
 
             # Core-bypass guard: empirical agents that read a binding data source
@@ -772,7 +823,7 @@ PYEOF
             _setup_extensions_inject_core_bypass_into_agents \
                 empiricist empirics-auditor headline-replicator \
                 data-integrity-auditor data-selection-auditor method-checker \
-                identification-auditor
+                identification-auditor coverage-auditor
 
             # Report mode: --ext empirical is install-only (WRDS/FRED/Census/SEC
             # skills + utility scripts). All audit agents that ship with the
@@ -787,15 +838,22 @@ PYEOF
                 empiricist identification-designer \
                 empirics-auditor identification-auditor \
                 data-integrity-auditor data-selection-auditor method-checker \
-                mechanism-auditor \
+                mechanism-auditor coverage-auditor \
                 headline-replicator
-            # mechanism-auditor is meaningful only under --mode empirical-first
-            # (it audits the prose+DAG mechanism that only that mode produces).
-            # Assembled with the empirical agents above; removed in every other
-            # mode (theory-first, macro, report — report is already covered by
-            # the report prune list above, but the non-empirical-first prune is
-            # the canonical guard).
-            _setup_extensions_prune_non_empirical_first_agents mechanism-auditor
+            # mechanism-auditor is meaningful only under the evidence-first
+            # modes' plan-time Gate 2 (empirical-first: prose+DAG mechanism;
+            # data-first: dataset spec, via body overlay). Assembled with the
+            # empirical agents above; removed in every other mode (theory-first,
+            # macro, report — report is already covered by the report prune list
+            # above, but the non-evidence-first prune is the canonical guard).
+            _setup_extensions_prune_non_evidence_first_agents mechanism-auditor
+            # coverage-auditor verifies data-first's coverage triangulation;
+            # pruned everywhere else (same assemble-then-prune pattern).
+            _setup_extensions_prune_non_data_first_agents coverage-auditor
+            # Data-first documents facts descriptively: the identification pair
+            # is pruned there (see docs/stage_3a_empirical.md DATA_FIRST steps).
+            _setup_extensions_prune_data_first_mode_agents \
+                identification-designer identification-auditor
             # Empirical extension also creates output/stage3a/ unconditionally
             # and copies stage_3a_empirical.md into docs/. Both are pipeline-
             # workflow artifacts irrelevant to report mode — remove them.
@@ -918,7 +976,7 @@ EXT_EMPIRICAL_ON="$EMPIRICAL_ENABLED"
 python3 -I - "$MODE" "$EXT_EMPIRICAL_ON" "$VARIANT" "$MANUAL" "$P/docs/"*.md "$CLAUDE_MD_OUT" "$AGENTS_MD_OUT" "$GEMINI_MD_OUT" \
     "$AGENTS_OUT"/*.md "$CODEX_AGENTS_OUT"/*.toml "$GEMINI_AGENTS_OUT"/*.md "$GROK_AGENTS_OUT"/*.md "$OPENCODE_AGENTS_OUT"/*.md <<'PYEOF'
 import os, re, sys
-mode = sys.argv[1]  # "", "empirical-first", "measurement-first", "report"
+mode = sys.argv[1]  # "", "empirical-first", "measurement-first", "data-first", "report"
 xe = sys.argv[2] == "1"
 variant = sys.argv[3].upper()
 manual = sys.argv[4] == "1"
@@ -943,6 +1001,8 @@ def keep(name):
     # review methods, and section-writing guidance that manual callers need.
     if mode == "empirical-first":
         return name == "EMPIRICAL_FIRST"
+    if mode == "data-first":
+        return name == "DATA_FIRST"
     if mode == "measurement-first":
         return name in ("THEORY_FIRST", "MEASUREMENT_FIRST")
     return name in ("THEORY_FIRST", "NO_MODE")
@@ -962,8 +1022,8 @@ patterns = []  # list of (regex, replacement) applied in order
 # of family order, so adding a mode block at an existing site cannot perturb the
 # other modes' output.
 _families = (
-    "THEORY_FIRST", "EMPIRICAL_FIRST", "MEASUREMENT_FIRST", "NO_MODE",
-    "MANUAL", "AUTONOMOUS",
+    "THEORY_FIRST", "EMPIRICAL_FIRST", "MEASUREMENT_FIRST", "DATA_FIRST",
+    "NO_MODE", "MANUAL", "AUTONOMOUS",
 )
 for fam in _families:
     if not keep(fam):

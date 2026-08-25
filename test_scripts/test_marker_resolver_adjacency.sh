@@ -78,6 +78,27 @@ else
     fail "llm_cognition --mode measurement-first build failed"
 fi
 
+if build finance --mode data-first; then
+    assert_blank_before "test_output/finance/.claude/agents/idea-reviewer.md" \
+        '^1\. \*\*\[Architecture name\]\*\*' "data-first: ranked list keeps its paragraph break"
+    # v2.30.0 added a fourth sibling family (DATA_FIRST) at several existing
+    # multi-block sites — scorer-core's fidelity blocks, the idea-reviewer
+    # ADVANCE site, the stage-2 gate chain. Any leaked marker here means the
+    # family pairing broke rather than the ordering.
+    if grep -rqE '<!-- (THEORY_FIRST|EMPIRICAL_FIRST|MEASUREMENT_FIRST|DATA_FIRST|NO_MODE)_(START|END) -->' \
+        test_output/finance 2>/dev/null; then
+        fail "data-first: mode markers leaked into the deployment"
+    else
+        pass "data-first: no mode markers leaked"
+    fi
+    # scorer-core carries adjacent EMPIRICAL_FIRST/DATA_FIRST fidelity blocks;
+    # the kept data-first block must render with its paragraph break intact.
+    assert_blank_before "test_output/finance/.claude/agents/scorer.md" \
+        '^\*\*Data-first supersedes the own-design-critique' "data-first: scorer fidelity block keeps its paragraph break"
+else
+    fail "finance --mode data-first build failed"
+fi
+
 echo
 if [ "$FAILS" -gt 0 ]; then
     echo "FAILED: $FAILS check(s)"

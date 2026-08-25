@@ -32,6 +32,11 @@
   "idea-generator": {
     "name": "idea-generator",
     "description": "Brainstorms candidate mechanisms and model ideas for a given problem. The orchestrator launches this agent at Stage 1 of the pipeline. Produces developed sketches \u2014 not full theories, but enough to evaluate.",
+    "modes": {
+      "data_first": {
+        "description": "Brainstorms candidate dataset architectures for the fixed dataset gap. The orchestrator launches this agent at Stage 1 of the pipeline. Produces developed sketches \u2014 scope, per-class source plan with independent second sources, identifier/time spine, redistribution posture, and the fact portfolio each architecture enables \u2014 not full specifications, but enough to evaluate."
+      }
+    },
     "category": "developing",
     "tools": "Read, Write",
     "model": "fable",

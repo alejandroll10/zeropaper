@@ -1,5 +1,8 @@
 ### Seeded-mode override (applies because `seeded: true` in `pipeline_state.json`)
 
+<!-- DATA_FIRST_START -->
+**Data-first reading of this override.** The verdict semantics are the data-first ones (see the data-first mode note in this stage doc and the triager's data-first body): **PIVOT remains allowed and encouraged**, and here it promotes a failed replication — with its side-by-side construction isolation in hand — to the paper's headline adjudication. That preserves the seed exactly as the nested-case language above intends: the *published* fact becomes the "what the old data said" baseline, the seed's dataset stays the deliverable, and the spec's fact-portfolio plan is rewritten around the adjudication. Note the pivot in `output/seed/pivot_note.md`; the 2-pivot cap applies. **RECONCILE** adds a construction-scope statement (both results stand, each under its convention). **BACK-TO-IDEA** remains forbidden; **HONEST-NULL** documents the failed replication in the validation section as a non-replication with the audit chain passed.
+<!-- DATA_FIRST_END -->
 The triager's verdict table is modified in seeded mode:
 
 - **NORMAL-PROCEED**: unchanged.

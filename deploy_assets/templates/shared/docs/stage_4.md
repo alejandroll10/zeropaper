@@ -32,6 +32,14 @@
    - Mechanism plausibility audit: `output/stage2/mechanism_audit_v{N}.md` (the empirical-first Gate 2 verdict; **context, not an H3 hard gate in v1** — H3 still gates on the four audits above). Read it so the holistic score reflects the plan-time channel verdict, and **confirm the gate is current**: the audit file for the version being scored must exist with a PLAUSIBLE verdict and `pipeline_state.json:stage2_mechanism_version` must equal `theory_version`. If it is missing or stale, the mechanism gate was bypassed — do not advance; flag it and route back to Gate 2 (this mirrors the orchestrator's own Gate-4 enforcement and gives the scorer an independent second line on it). Folding mechanism-plausibility into the H3 hard requirement is the deferred #142 Stage-4 item ([#142]).
    - (Math audit and theory exploration files do not exist under empirical-first; do NOT attempt to read `output/stage2/math_audit_*.md` or `output/stage2b/exploration.md`.)
 <!-- EMPIRICAL_FIRST_END -->
+<!-- DATA_FIRST_START -->
+   - Empirics audit: `output/stage3a/empirics_audit.md` (H3 gates on this — includes the spec-conformance block)
+   - Data-integrity audit: `output/stage3a/data_integrity_audit.md` (H3 gates on this — step 7.5)
+   - Data-selection audit: `output/stage3a/data_selection_audit.md` (H3 gates on this — step 7.5)
+   - Coverage audit: `output/stage3a/coverage_audit.md` (H3 gates on this — the triangulation verification)
+   - Dataset spec audit: `output/stage2/mechanism_audit_v{N}.md` (the data-first Gate 2 verdict). H3 gates on its **freshness**: the audit file for the version being scored must exist with a PLAUSIBLE verdict and `pipeline_state.json:dataset_spec_version` must equal `theory_version`. If it is missing or stale, the spec gate was bypassed — do not advance; flag it and route back to Gate 2 (this mirrors the orchestrator's own Gate-4 enforcement and gives the scorer an independent second line on it).
+   - (Math audit and theory exploration files do not exist under data-first; do NOT attempt to read `output/stage2/math_audit_*.md` or `output/stage2b/exploration.md`. The identification audit does not exist either — the identification agents are pruned in this mode.)
+<!-- DATA_FIRST_END -->
 <!-- MEASUREMENT_FIRST_START -->
    - Design review: `output/stage2/design_review_v{N}.md` (the plan-time Gate 2 verdict; H3 gates on it, together with the math audits above — which fire on the post-experiment characterization in this mode — and the Stage 3b chain). **Confirm the gate is current**: `pipeline_state.json:stage2_design_version` must equal `theory_version`; if missing or stale, the design gate was bypassed — do not advance; flag it and route back to Gate 2.
 <!-- MEASUREMENT_FIRST_END -->
@@ -50,6 +58,9 @@
 <!-- EMPIRICAL_FIRST_START -->
    - **Structured scorer only, on revisions (N ≥ 2):** also pass the prior theory draft (`output/stage2/theory_draft_v{N-1}.md`) and the prior identification, empirics, data-integrity, and data-selection audit reports if they were re-fired alongside the theory revision. (Empirical-first has no math audit's `## Unverified claims` section to read; the analogous "what was unresolved last round" content lives in the prior audit REVISE notes from `output/stage3a/`.) Do NOT pass any prior scorer output or prior score to either agent.
 <!-- EMPIRICAL_FIRST_END -->
+<!-- DATA_FIRST_START -->
+   - **Structured scorer only, on revisions (N ≥ 2):** also pass the prior theory draft (`output/stage2/theory_draft_v{N-1}.md` — the prior spec version) and the prior empirics, data-integrity, data-selection, and coverage audit reports if they were re-fired alongside the spec revision. (Data-first has no math audit's `## Unverified claims` section to read; the analogous "what was unresolved last round" content lives in the prior audit REVISE notes from `output/stage3a/` and the prior spec audits under `output/stage2/mechanism_audit_v*.md`.) Do NOT pass any prior scorer output or prior score to either agent.
+<!-- DATA_FIRST_END -->
 2. Save results to `output/stage4/scorer_decision_vN.md` and `output/stage4/scorer_freeform_vN.md`
 3. Commit: `artifact: scorer decisions v{N} (structured + freeform)`
 
