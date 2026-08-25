@@ -86,6 +86,7 @@ or
 <!-- EMPIRICAL_FIRST_END -->
 
 <!-- DATA_FIRST_START -->
+
 1. **[Architecture name]** — if this wins the tournament, the Stage 2 spec writer should focus on: [specific spec-development instructions — the inclusion rules to pin down first, the class whose second source needs securing, the rights classification to verify, the adjudication target to design the schema around, the coverage boundary to state honestly]. Do NOT request proofs, mechanisms, or an identification strategy — Stage 2 produces a dataset specification (schema + conventions + rules + validation plan + fact portfolio), not a model.
 2. **[Architecture name]** — if this wins, the Stage 2 spec writer should focus on: [specific spec-development instructions, same constraints]
 3. **[Architecture name]** — if this wins, the Stage 2 spec writer should focus on: [specific spec-development instructions, same constraints]

@@ -8449,8 +8449,8 @@
         },
         ".claude/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "9d3f1ed3b43de43a8b4a14be97a81ca9b8178d727f302892134d9e8779a3b8ea",
-          "size": 14586,
+          "sha256": "52390e6167c1a09afaec59f5a958d2ca80933b5f9095dffe462e4e9de2b6829d",
+          "size": 14587,
           "type": "file"
         },
         ".claude/agents/implications-deriver.md": {
@@ -9069,8 +9069,8 @@
         },
         ".codex/agents/idea-reviewer.toml": {
           "mode": "0644",
-          "sha256": "554b529e3ab570b4f42df92b841aaf9ed6905957a29af4d86446fd436a67545f",
-          "size": 14692,
+          "sha256": "193fb126c2228e304057bacd487c210d5b3abf4a2e4450dd76772fc266b7006e",
+          "size": 14693,
           "type": "file"
         },
         ".codex/agents/implications-deriver.toml": {
@@ -9371,8 +9371,8 @@
         },
         ".gemini/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "b6a4c8336f41ade3b10f8c6fb80debd7fcde594f5c798dcce4e1b23446568a10",
-          "size": 14635,
+          "sha256": "6c5a9020c584c675237bb210ae2302776b2336465e1046d616acaa594760bc1c",
+          "size": 14636,
           "type": "file"
         },
         ".gemini/agents/implications-deriver.md": {
@@ -9637,8 +9637,8 @@
         },
         ".grok/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "27fe7fbacdfcbf81c68b6aeadfb271d69bd38a9d61a67419c24836d621343a10",
-          "size": 14677,
+          "sha256": "55b57b72fdadafacf5fabc03f308dc00e96146c1d32fe5adb7d3652e011b3f28",
+          "size": 14678,
           "type": "file"
         },
         ".grok/agents/implications-deriver.md": {
@@ -9921,8 +9921,8 @@
         },
         ".opencode/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "93e2137c2c25da94b79d3c21a60a499c32f95183919d8683a2deee6a5750716c",
-          "size": 14727,
+          "sha256": "f2f7720672c41fbd0b1e63ae5f249d66160f1b5e796743177da3e4b3de5071ae",
+          "size": 14728,
           "type": "file"
         },
         ".opencode/agents/implications-deriver.md": {
@@ -11349,8 +11349,8 @@
         },
         ".claude/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "09377e94e430bd9724d3127ecc93228164a9c288b8ea1eb20e2fe5471e77eafc",
-          "size": 14573,
+          "sha256": "235ee9b3fc8e94d7af75d20912ed3318dbe4e4461734822bffe46e5388dd79cc",
+          "size": 14574,
           "type": "file"
         },
         ".claude/agents/implications-deriver.md": {
@@ -11975,8 +11975,8 @@
         },
         ".codex/agents/idea-reviewer.toml": {
           "mode": "0644",
-          "sha256": "0fa58a2ad9411c667e4cdc788c607ba8c3e756c9d6d72c4f8dc8b451b9351f62",
-          "size": 14659,
+          "sha256": "8175ed72c6565f57d7e5c6d27e81dc4ed546819476a489960676bd3f04578561",
+          "size": 14660,
           "type": "file"
         },
         ".codex/agents/implications-deriver.toml": {
@@ -12283,8 +12283,8 @@
         },
         ".gemini/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "eb5c2b929d39999dbed27d58eff9b6c7b0b65a9b33e776e5ca9d30b0d4966139",
-          "size": 14641,
+          "sha256": "b6ab7b759bd8ff2644c9bb46f15f5086ff123de7b52585061c2989ab6c177908",
+          "size": 14642,
           "type": "file"
         },
         ".gemini/agents/implications-deriver.md": {
@@ -12555,8 +12555,8 @@
         },
         ".grok/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "27fe7fbacdfcbf81c68b6aeadfb271d69bd38a9d61a67419c24836d621343a10",
-          "size": 14677,
+          "sha256": "55b57b72fdadafacf5fabc03f308dc00e96146c1d32fe5adb7d3652e011b3f28",
+          "size": 14678,
           "type": "file"
         },
         ".grok/agents/implications-deriver.md": {
@@ -12845,8 +12845,8 @@
         },
         ".opencode/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "93e2137c2c25da94b79d3c21a60a499c32f95183919d8683a2deee6a5750716c",
-          "size": 14727,
+          "sha256": "f2f7720672c41fbd0b1e63ae5f249d66160f1b5e796743177da3e4b3de5071ae",
+          "size": 14728,
           "type": "file"
         },
         ".opencode/agents/implications-deriver.md": {
@@ -14281,8 +14281,8 @@
         },
         ".claude/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "9d3f1ed3b43de43a8b4a14be97a81ca9b8178d727f302892134d9e8779a3b8ea",
-          "size": 14586,
+          "sha256": "52390e6167c1a09afaec59f5a958d2ca80933b5f9095dffe462e4e9de2b6829d",
+          "size": 14587,
           "type": "file"
         },
         ".claude/agents/implications-deriver.md": {
@@ -14901,8 +14901,8 @@
         },
         ".codex/agents/idea-reviewer.toml": {
           "mode": "0644",
-          "sha256": "554b529e3ab570b4f42df92b841aaf9ed6905957a29af4d86446fd436a67545f",
-          "size": 14692,
+          "sha256": "193fb126c2228e304057bacd487c210d5b3abf4a2e4450dd76772fc266b7006e",
+          "size": 14693,
           "type": "file"
         },
         ".codex/agents/implications-deriver.toml": {
@@ -15203,8 +15203,8 @@
         },
         ".gemini/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "b6a4c8336f41ade3b10f8c6fb80debd7fcde594f5c798dcce4e1b23446568a10",
-          "size": 14635,
+          "sha256": "6c5a9020c584c675237bb210ae2302776b2336465e1046d616acaa594760bc1c",
+          "size": 14636,
           "type": "file"
         },
         ".gemini/agents/implications-deriver.md": {
@@ -15469,8 +15469,8 @@
         },
         ".grok/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "27fe7fbacdfcbf81c68b6aeadfb271d69bd38a9d61a67419c24836d621343a10",
-          "size": 14677,
+          "sha256": "55b57b72fdadafacf5fabc03f308dc00e96146c1d32fe5adb7d3652e011b3f28",
+          "size": 14678,
           "type": "file"
         },
         ".grok/agents/implications-deriver.md": {
@@ -15753,8 +15753,8 @@
         },
         ".opencode/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "93e2137c2c25da94b79d3c21a60a499c32f95183919d8683a2deee6a5750716c",
-          "size": 14727,
+          "sha256": "f2f7720672c41fbd0b1e63ae5f249d66160f1b5e796743177da3e4b3de5071ae",
+          "size": 14728,
           "type": "file"
         },
         ".opencode/agents/implications-deriver.md": {
@@ -17106,8 +17106,8 @@
         },
         ".claude/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "9d3f1ed3b43de43a8b4a14be97a81ca9b8178d727f302892134d9e8779a3b8ea",
-          "size": 14586,
+          "sha256": "52390e6167c1a09afaec59f5a958d2ca80933b5f9095dffe462e4e9de2b6829d",
+          "size": 14587,
           "type": "file"
         },
         ".claude/agents/implications-deriver.md": {
@@ -17726,8 +17726,8 @@
         },
         ".codex/agents/idea-reviewer.toml": {
           "mode": "0644",
-          "sha256": "554b529e3ab570b4f42df92b841aaf9ed6905957a29af4d86446fd436a67545f",
-          "size": 14692,
+          "sha256": "193fb126c2228e304057bacd487c210d5b3abf4a2e4450dd76772fc266b7006e",
+          "size": 14693,
           "type": "file"
         },
         ".codex/agents/implications-deriver.toml": {
@@ -18028,8 +18028,8 @@
         },
         ".gemini/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "b6a4c8336f41ade3b10f8c6fb80debd7fcde594f5c798dcce4e1b23446568a10",
-          "size": 14635,
+          "sha256": "6c5a9020c584c675237bb210ae2302776b2336465e1046d616acaa594760bc1c",
+          "size": 14636,
           "type": "file"
         },
         ".gemini/agents/implications-deriver.md": {
@@ -18294,8 +18294,8 @@
         },
         ".grok/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "27fe7fbacdfcbf81c68b6aeadfb271d69bd38a9d61a67419c24836d621343a10",
-          "size": 14677,
+          "sha256": "55b57b72fdadafacf5fabc03f308dc00e96146c1d32fe5adb7d3652e011b3f28",
+          "size": 14678,
           "type": "file"
         },
         ".grok/agents/implications-deriver.md": {
@@ -18578,8 +18578,8 @@
         },
         ".opencode/agents/idea-reviewer.md": {
           "mode": "0644",
-          "sha256": "93e2137c2c25da94b79d3c21a60a499c32f95183919d8683a2deee6a5750716c",
-          "size": 14727,
+          "sha256": "f2f7720672c41fbd0b1e63ae5f249d66160f1b5e796743177da3e4b3de5071ae",
+          "size": 14728,
           "type": "file"
         },
         ".opencode/agents/implications-deriver.md": {

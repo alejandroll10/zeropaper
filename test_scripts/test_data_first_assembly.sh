@@ -85,10 +85,21 @@ else
     [ -f "$E/.claude/agents/identification-designer.md" ] \
         && pass "empirical-first control: identification-designer present" \
         || fail "empirical-first control: identification-designer missing"
-    if grep -rl "data-first" "$E/docs" >/dev/null 2>&1; then
+    if grep -rli "data-first" "$E/docs" >/dev/null 2>&1; then
         fail "empirical-first control: data-first prose leaked into docs"
     else
         pass "empirical-first control: no data-first prose leak"
+    fi
+    if grep -rlE '<!-- (THEORY_FIRST|EMPIRICAL_FIRST|MEASUREMENT_FIRST|DATA_FIRST|NO_MODE|MANUAL|AUTONOMOUS)_(START|END) -->' \
+            "$E/docs" "$E/CLAUDE.md" "$E/.claude/agents" >/dev/null 2>&1; then
+        fail "empirical-first control: mode-family marker leaked"
+    else
+        pass "empirical-first control: no marker leakage"
+    fi
+    if grep -rl "DATA_FIRST" "$E/.claude/agents" >/dev/null 2>&1; then
+        fail "empirical-first control: DATA_FIRST content leaked into agents"
+    else
+        pass "empirical-first control: agents clean of DATA_FIRST content"
     fi
     python3 - "$E" <<'PY' && pass "empirical-first control: no data-first state fields" || fail "empirical-first control: data-first state fields leaked"
 import json, sys
