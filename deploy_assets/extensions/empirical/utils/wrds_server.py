@@ -141,6 +141,10 @@ MAX_RESULT_ROWS = 1_000_000
 MAX_GET_TABLE_ROWS = 100_000
 QUERY_TIMEOUT_SECONDS = 300
 RECOVERY_GRACE_SECONDS = 60
+# Budget for one ping-triggered health probe (SELECT 1 + at most one tiered
+# recovery). Deliberately far below QUERY_TIMEOUT_SECONDS: a health probe that
+# cannot finish quickly is itself the answer.
+HEALTHCHECK_TIMEOUT_SECONDS = 60
 CLIENT_IO_TIMEOUT = 15
 # Response writes must not inherit CLIENT_IO_TIMEOUT: that short deadline is
 # for reading an untrusted request frame. Large, valid responses cross either
@@ -1095,6 +1099,26 @@ def connect_wrds(attempt_prearmed=False):
             wrds_password=wrds_pass,
             autoconnect=False,
         )
+        # Socket-level dead-peer guards: a connection that goes half-open in a
+        # network flap must surface a socket error within about a minute, not
+        # block whichever thread touches it until the kernel TCP timeout —
+        # while that thread holds the state lock, every ping reports the
+        # service unreachable (issue #291). Server-side statement_timeout
+        # cannot cover this case: setting it travels over the same dead
+        # socket. On an OS lacking a keepalive socket option libpq silently
+        # ignores that parameter, but a libpq older than PostgreSQL 12
+        # rejects tcp_user_timeout as an unknown parameter outright — hence
+        # the psycopg2-binary floor in this extension's requirements. Copy
+        # before mutating — the wrds package's default _connect_args is a
+        # shared module-level dict. Deliberately no connect_timeout here: the
+        # first login may wait on an interactive Duo approval, and a cap
+        # would convert a slow human into a permanent latch. Recovery
+        # reconnects set their own deadline-derived connect_timeout.
+        connect_args = dict(getattr(db, '_connect_args', {}) or {})
+        connect_args.update(
+            keepalives=1, keepalives_idle=30, keepalives_interval=10,
+            keepalives_count=3, tcp_user_timeout=60_000)
+        db._connect_args = connect_args
         _connect_once(db)
         _install_reconnect_guard(db)
         db.load_library_list()
@@ -1141,6 +1165,19 @@ class WrdsState:
             self._lock_owner = None
             self._lock_owner_deadline = None
 
+    def _extend_lock_owner_deadline(self, new_deadline):
+        """Push the recorded owner deadline forward, never backward.
+
+        Tier-2 recovery grants itself a fresh verification budget after a
+        spent-and-successful login; without this, _busy_health() would report
+        the still-working owner as having exceeded its deadline. A None
+        recorded deadline means unbounded and is left alone."""
+        with self._owner_guard:
+            if (self._lock_owner is not None and
+                    self._lock_owner_deadline is not None and
+                    new_deadline > self._lock_owner_deadline):
+                self._lock_owner_deadline = new_deadline
+
     def _busy_health(self):
         with self._owner_guard:
             owner = self._lock_owner
@@ -1150,8 +1187,11 @@ class WrdsState:
             return True, 'busy: bounded query command in progress'
         if owner == 'command':
             return False, 'query command exceeded its operation deadline'
+        if owner == 'healthcheck' and (
+                deadline is not None and time.monotonic() <= deadline):
+            return False, 'busy: WRDS healthcheck in progress'
         if owner == 'healthcheck':
-            return False, 'prior WRDS healthcheck is still in progress'
+            return False, 'prior WRDS healthcheck exceeded its deadline'
         if owner == 'unblock':
             return False, 'operator WRDS unblock is still in progress'
         return False, 'WRDS database lock has an unknown owner'
@@ -1176,6 +1216,12 @@ class WrdsState:
                         deadline, QUERY_TIMEOUT_SECONDS))
             _safe_raw_sql(db, 'SELECT 1')
             return True
+        except WrdsOperationTimeout:
+            # An already-expired caller deadline says nothing about the
+            # connection. Propagate it as a timeout; returning False here
+            # would send a healthy connection into _recover() and spend a
+            # login on wall-clock expiry.
+            raise
         except Exception as e:
             # A lazy driver may not authenticate until the first statement.
             # Never turn that rejection into False and then call _recover(),
@@ -1259,6 +1305,20 @@ class WrdsState:
         # leaked.
         if deadline is not None:
             _remaining_operation_seconds(deadline)
+            # libpq enforces connect_timeout across TCP/TLS/authentication.
+            # Compute the reconnect budget BEFORE the write-ahead login
+            # marker: a deadline already expired here must abort as an
+            # ordinary timeout with no armed marker and no spent login. This
+            # ordering is load-bearing — inside the try below, an exhausted
+            # caller deadline would reach _latch_login_failure and brand a
+            # working credential as rejected.
+            connect_args = dict(getattr(db, '_connect_args', {}) or {})
+            connect_args['connect_timeout'] = _remaining_attempt_timeout(
+                deadline, RECOVERY_GRACE_SECONDS)
+            db._connect_args = connect_args
+        # deadline is None has no live caller (every recovery route supplies
+        # one). If one ever appears, note that it would reuse whatever
+        # connect_timeout the previous bounded recovery left behind.
         try:
             try:
                 db.connection.close()
@@ -1270,16 +1330,20 @@ class WrdsState:
             except Exception:
                 pass
             _begin_login_attempt()
-            if deadline is not None:
-                # libpq enforces this across TCP/TLS/authentication. Keep the
-                # guarded one-attempt reconnect within the command deadline.
-                connect_args = dict(getattr(db, '_connect_args', {}) or {})
-                connect_args['connect_timeout'] = _remaining_attempt_timeout(
-                    deadline, RECOVERY_GRACE_SECONDS)
-                db._connect_args = connect_args
             _connect_once(db)  # exactly one login; public connect() may retry
-            if deadline is not None:
-                _remaining_operation_seconds(deadline)
+            # From here the one login is spent and SUCCEEDED. The caller's
+            # deadline is deliberately no longer consulted: aborting the
+            # verify-and-clear lifecycle now would strand the write-ahead
+            # marker or falsely latch a working credential. Verification runs
+            # on a live connection under its own short, fresh budget; a
+            # caller whose deadline has meanwhile expired surfaces that
+            # immediately after recovery returns. A verification failure or
+            # timeout inside this budget is a genuinely ambiguous login
+            # outcome and latches by design.
+            verify_deadline = time.monotonic() + RECOVERY_GRACE_SECONDS
+            # Keep _busy_health() truthful about the extended budget: the
+            # owning healthcheck/command is still legitimately working.
+            self._extend_lock_owner_deadline(verify_deadline)
             _install_reconnect_guard(db)
             # Rebuilding the connection does NOT refresh db.insp; the inspector still
             # points at the old, closed connection, which would re-poison
@@ -1288,7 +1352,7 @@ class WrdsState:
             # is itself bad, so the one-attempt handler latches and stops.
             import sqlalchemy as sa
             db.insp = sa.inspect(db.connection)
-            if self._healthy(db, deadline=deadline):
+            if self._healthy(db, deadline=verify_deadline):
                 _clear_auth_block(preserve_compat=True)
                 return 'pool_rebuilt'
             raise RuntimeError('connection remained unhealthy after one reconnect')
@@ -1368,12 +1432,20 @@ class WrdsState:
             return False, self.auth_failed
         if not self.lock.acquire(blocking=False):
             return self._busy_health()
-        self._set_lock_owner('healthcheck')
+        # Bound the whole probe. The deadline caps the server-side statement
+        # timeout and the recovery reconnect; the socket guards installed in
+        # connect_wrds() cover the dead-socket case a statement timeout cannot
+        # reach. Without both, one half-open connection held this lock until
+        # the kernel gave up, and every ping reported the service unreachable
+        # (issue #291).
+        deadline = (time.monotonic() + HEALTHCHECK_TIMEOUT_SECONDS +
+                    RECOVERY_GRACE_SECONDS)
+        self._set_lock_owner('healthcheck', deadline)
         try:
             try:
-                if self._healthy(self.db):
+                if self._healthy(self.db, deadline=deadline):
                     return True, 'ok'
-                tier = self._recover()
+                tier = self._recover(deadline=deadline)
                 return True, f'recovered:{tier}'
             except WrdsAuthError as e:
                 return False, str(e)

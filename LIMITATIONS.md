@@ -46,15 +46,27 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## WRDS daemon: a deadline-less healthcheck can wedge the singleton permanently after an upstream flap
+## Stage 3a freshness gate is not lifecycle-aware
+
+**Scope:** `--ext empirical`'s all-analysis freshness gate (`empirical_input_manifest.py check-all`, stage doc step 6.5) over `output/stage3a/empirical_analysis*.md`.
+
+**Failure mode:** the gate has no concept of analysis lifecycle — every enumerated analysis, including superseded attempts whose verify results were never finalized, must stay code-surface-fresh forever. A retired attempt becomes a permanent ERROR entry: the refresh batch re-fires `headline-replicator` on claims produced by retired code, which can only re-verify by accident, looping or forcing fresh-attempt transitions on a dead analysis; and every code change re-fires replication for all historical attempts, linearly wasted work. v2.30.1 fixed the adjacent false-collision halt (results triples / candidates / `__pycache__` misflagged as pollution) but not this. A live run (eventcal, project commit `108efb2`) produced a working registry-driven repair whose upstream caveats (registry-absent contract, orphan-detection scope, characterization-suite compatibility) are catalogued in the issue.
+
+**What would close it:** a lifecycle-aware check-all that partitions analyses live/pending/historical from `process_log/results_registry.json` + receipt `producer_run.artifacts`, with the registry-absent contract decided, pollution detection preserved for artifacts belonging to no registry entry, the template CI suite updated, and stage-doc prose aligned.
+
+**Tracking:** [#288](https://github.com/alejandroll10/zeropaper/issues/288).
+
+---
+
+## WRDS daemon: a deadline-less healthcheck can wedge the singleton permanently after an upstream flap — CLOSED in v2.30.6
 
 **Scope:** `--ext empirical`'s shared WRDS daemon (`deploy_assets/extensions/empirical/utils/wrds_server.py`), specifically `healthcheck()` and the `_busy_health()` ping path.
 
 **Failure mode:** `healthcheck()` holds the daemon's state lock while running `SELECT 1` via `_healthy(self.db)` with `deadline=None`, so a connection that went half-open during a transient upstream outage blocks the check indefinitely at the socket layer. Every later ping then fails fast with "prior WRDS healthcheck is still in progress" while `wrds_auth_error()` stays empty, which the Stage 3a preflight reads as WRDS-unreachable: a seconds-long network flap becomes a persistent `halted_wrds_unreachable` that survives upstream recovery. The runtime doc's recovery notes then point the operator at the wrong repair ("restore the WRDS service") — the service is up; the daemon is wedged. SIGTERM cannot clear it (graceful shutdown waits on the same lock) and `start_services.sh` correctly refuses to replace a live singleton, so recovery requires SIGKILL of the recorded PID plus a service restart. Observed twice in one day on a live run (eventcal, 2026-08-26, project commits `e762cde`/`5c8aedc`).
 
-**What would close it:** a bounded deadline on the healthcheck's `_healthy`/`_recover` calls plus a socket-level guard (TCP keepalives in `connect_args`, or an external watchdog that closes `self.db`), a deadline on `_busy_health()`'s `healthcheck` branch mirroring the existing `command` branch so a stuck check reports expiry (and can be reaped) instead of "in progress" forever, and a distinct client-visible wedged-daemon diagnostic so the preflight halt names the correct operator repair.
+**Closed in v2.30.2:** the daemon installs libpq socket guards (TCP keepalives + `tcp_user_timeout=60s`) into `_connect_args` at first login, so a half-open socket surfaces a socket error within about a minute instead of blocking until the kernel gives up; `healthcheck()` bounds its probe with a real deadline recorded in the lock-owner metadata, and `_busy_health()`'s healthcheck branch distinguishes in-progress from past-deadline like the command branch. Closing the wedge exposed a latent false-latch hazard in tier-2 recovery (an exhausted caller deadline after a spent-and-successful login reached `_latch_login_failure` and branded a working credential as rejected — pre-existing on the command path too); fixed by computing the reconnect budget before the write-ahead marker (expiry aborts as a timeout with no marker and no login) and running post-login verification under a fresh grace budget that also extends the recorded owner deadline. `psycopg2-binary>=2.9` floor pinned (older libpq hard-rejects `tcp_user_timeout`). Regression scenarios [8a]/[8b]/[8c] in `test_wrds_auth_latch.sh` cover the slow-successful reconnect, the expired deadline, and the discriminating sub-second-deadline pre-marker abort. The one-login-attempt invariant is preserved on every path. What remains open by design: a ping during an active in-budget healthcheck still reports not-ready (a probe mid-recovery does not prove DB health), and the preflight halt text still names generic unreachability rather than a distinct wedged-daemon diagnostic — with the wedge now self-healing in ~2 minutes, that diagnostic no longer has a persistent state to name.
 
-**Tracking:** [#291](https://github.com/alejandroll10/zeropaper/issues/291).
+**Tracking:** [#291](https://github.com/alejandroll10/zeropaper/issues/291) (closed).
 
 ---
 

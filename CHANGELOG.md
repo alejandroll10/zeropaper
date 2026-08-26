@@ -16,7 +16,24 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.5] — 2026-08-26 (current)
+## [2.30.6] — 2026-08-26 (current)
+
+**fix: WRDS daemon wedged permanently by a deadline-less healthcheck on a half-open socket (#291).**
+A transient upstream flap left `SELECT 1` blocking indefinitely inside `healthcheck()` while it
+held the state lock, so every later ping reported the service unreachable with an empty auth
+diagnostic and Stage 3a preflights halted a healthy host (observed three times in one day on a
+live run). The daemon now installs libpq socket guards (TCP keepalives + `tcp_user_timeout`) at
+first login, bounds the health probe with a real deadline recorded in the lock-owner metadata,
+and reorders tier-2 recovery so a deadline expiry aborts pre-marker/pre-login as a timeout —
+never as a false credential latch; after a spent-and-successful login, verification runs under a
+fresh grace budget and extends the recorded owner deadline so concurrent pings stay truthful.
+`psycopg2-binary>=2.9` floor added (older libpq hard-rejects `tcp_user_timeout`); the setup
+fallback message now points at the requirements file instead of a flattened list that would
+shell-mangle the pin. Three regression scenarios added to `test_wrds_auth_latch.sh`
+([8a] slow-successful reconnect, [8b] expired deadline, [8c] sub-second deadline pre-marker
+abort). Three review rounds; one-login-attempt invariant preserved throughout.
+
+## [2.30.5] — 2026-08-26
 
 **fix: data-first Stage 2 commits name the dataset specification.**
 The versioned Stage 2 artifact commit label now resolves through the same layered vocab order

@@ -59,7 +59,7 @@ provision_extension_dependencies() {
             ;;
         empirical)
             "$SETUP_TOOL_UV" pip install --python "$P/.venv" -r "$P/.arpipeline/update_inputs/deps/extensions/empirical.txt" -q 2>/dev/null \
-                || echo "Note: empirical deps failed; install manually: source $P/.venv/bin/activate && uv pip install $(grep -vE '^[[:space:]]*(#|$)' "$P/.arpipeline/update_inputs/deps/extensions/empirical.txt" | tr '\n' ' ')"
+                || echo "Note: empirical deps failed; install manually: source $P/.venv/bin/activate && uv pip install -r $P/.arpipeline/update_inputs/deps/extensions/empirical.txt"
             ;;
         *)
             echo "Error: no dependency provisioning policy for extension '$ext'" >&2

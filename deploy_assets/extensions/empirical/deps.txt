@@ -32,6 +32,12 @@ pandas-datareader
 # invokes 3.5.0's private, one-attempt engine primitive and regression-tests
 # its implementation; do not upgrade without re-auditing that contract.
 wrds==3.5.0
+# utils/wrds_server.py passes tcp_user_timeout in connect_args (#291). A libpq
+# older than PostgreSQL 12 rejects it as an unknown parameter (a hard connect
+# error, not an ignored option). psycopg2-binary>=2.9 bundles libpq 13+, so
+# the OS libpq never decides this. wrds already depends on psycopg2-binary;
+# this floor only forbids silently resolving an old one.
+psycopg2-binary>=2.9
 edgartools
 openassetpricing
 gdown

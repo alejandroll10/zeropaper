@@ -100,6 +100,13 @@ class FakeDB:
         def close():
             pass
 
+        @staticmethod
+        def execute(statement):
+            # healthcheck now applies a bounded statement deadline before its
+            # SELECT 1 (#291); accept the SET LOCAL so the fake exercises the
+            # same path a live connection does.
+            return True
+
     engine = None
 
     def _Connection__make_sa_engine_conn(self, raise_err=False):
@@ -249,6 +256,58 @@ except S.WrdsAuthError:
 check("operation calls", calls["n"], 2)
 check("post-retry failure latched", st4.auth_blocked(), True)
 check("extra logins after post-retry auth", logins["n"], 0)
+
+print("\n[8a] a slow-but-successful tier-2 reconnect must not latch (#291)")
+import time as _time
+S._clear_auth_block()
+S._safe_raw_sql = fake_raw
+fixed["ok"] = True
+logins["n"] = 0
+class SlowGoodDB(FakeDB):
+    def _Connection__make_sa_engine_conn(self, raise_err=False):
+        logins["n"] += 1
+        _time.sleep(3.0)  # the login outlives the caller's whole deadline
+st5 = S.WrdsState(SlowGoodDB())
+with mock.patch.object(S, '_install_reconnect_guard'), \
+     mock.patch.object(S, '_set_query_deadline'), \
+     mock.patch('sqlalchemy.inspect', return_value=None):
+    tier = st5._recover(deadline=_time.monotonic() + 1.9)
+check("slow reconnect completes", tier, 'pool_rebuilt')
+check("slow reconnect spends one login", logins["n"], 1)
+check("slow reconnect leaves no latch", st5.auth_blocked(), False)
+check("slow reconnect clears the write-ahead marker",
+      bool(S._read_auth_block()), False)
+
+print("\n[8b] an expired deadline aborts recovery before marker or login")
+logins["n"] = 0
+st6 = S.WrdsState(FakeDB())
+try:
+    st6._recover(deadline=_time.monotonic() - 1)
+    expired_is_timeout = False
+except S.WrdsOperationTimeout:
+    expired_is_timeout = True
+check("expired deadline raises timeout", expired_is_timeout, True)
+check("expired deadline spends no login", logins["n"], 0)
+check("expired deadline leaves no latch", st6.auth_blocked(), False)
+check("expired deadline arms no marker", bool(S._read_auth_block()), False)
+
+print("\n[8c] a sub-second deadline aborts tier 2 pre-marker, not post-marker")
+# The discriminating case for the #291 reordering: 0 < remaining < 1s passes
+# the loose >0 entry checks but fails _remaining_attempt_timeout's floor()<1
+# check. Pre-fix, that strict check ran only after _begin_login_attempt(),
+# inside the try — arming the marker and then latching on pure clock slop.
+logins["n"] = 0
+st7 = S.WrdsState(FakeDB())
+try:
+    st7._recover(deadline=_time.monotonic() + 0.5)
+    sub_second_is_timeout = False
+except S.WrdsOperationTimeout:
+    sub_second_is_timeout = True
+check("sub-1s deadline raises timeout", sub_second_is_timeout, True)
+check("sub-1s deadline never begins a login attempt", logins["n"], 0)
+check("sub-1s deadline leaves no latch", st7.auth_blocked(), False)
+check("sub-1s deadline arms no marker", bool(S._read_auth_block()), False)
+fixed["ok"] = False
 
 print("\n[9] every client API preserves the terminal auth signal")
 auth_response = {'status': 'error', 'msg': 'latched', 'error_kind': 'auth',
