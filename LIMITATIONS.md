@@ -46,6 +46,18 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## Stage 3a freshness gate is not lifecycle-aware
+
+**Scope:** `--ext empirical`'s all-analysis freshness gate (`empirical_input_manifest.py check-all`, stage doc step 6.5) over `output/stage3a/empirical_analysis*.md`.
+
+**Failure mode:** the gate has no concept of analysis lifecycle — every enumerated analysis, including superseded attempts whose verify results were never finalized, must stay code-surface-fresh forever. A retired attempt becomes a permanent ERROR entry: the refresh batch re-fires `headline-replicator` on claims produced by retired code, which can only re-verify by accident, looping or forcing fresh-attempt transitions on a dead analysis; and every code change re-fires replication for all historical attempts, linearly wasted work. v2.30.1 fixed the adjacent false-collision halt (results triples / candidates / `__pycache__` misflagged as pollution) but not this. A live run (eventcal, project commit `108efb2`) produced a working registry-driven repair whose upstream caveats (registry-absent contract, orphan-detection scope, characterization-suite compatibility) are catalogued in the issue.
+
+**What would close it:** a lifecycle-aware check-all that partitions analyses live/pending/historical from `process_log/results_registry.json` + receipt `producer_run.artifacts`, with the registry-absent contract decided, pollution detection preserved for artifacts belonging to no registry entry, the template CI suite updated, and stage-doc prose aligned.
+
+**Tracking:** [#288](https://github.com/alejandroll10/zeropaper/issues/288).
+
+---
+
 ## `deepvest` skill: an LLM-mediated data source has no raw re-query path for the integrity audit
 
 **Scope:** the `--ext empirical` `deepvest` skill (`code/utils/deepvest_utils.py`, MCP server `api.deepvest.ai/mcp`) and the Stage 3a step 7.5 `data-integrity-auditor`, which verifies cached field values by re-querying the source.
