@@ -11,7 +11,9 @@
 #      untouched in an empirical-first control build.
 #   4. State fields — dataset_spec_version / coverage_triangulation / the two
 #      data-first loops must be injected (and absent from the control build).
-#   5. Updater allowlist — scripts/update_coordinator.sh enumerates modes in two
+#   5. Stage 2 artifact label — the shared filename remains theory_draft_vN.md,
+#      but the operator-facing commit label must call it a dataset spec here.
+#   6. Updater allowlist — scripts/update_coordinator.sh enumerates modes in two
 #      hardcoded sites independently of resolve_config.sh; losing data-first
 #      there makes deployed data-first projects un-updatable (static check).
 # Build-time only (test_scripts/ is removed on deploy).
@@ -73,6 +75,9 @@ PY
 grep -q "output/dataset/manifest.json" "$D/docs/stage_3a_empirical.md" \
     && pass "data-first: release-assembly producer step present in stage_3a doc" \
     || fail "data-first: no release-assembly producer step in stage_3a doc"
+grep -Fq 'Commit: `artifact: dataset spec v{N}`' "$D/docs/stage_2.md" \
+    && pass "data-first: Stage 2 commit labels the dataset spec" \
+    || fail "data-first: Stage 2 commit still mislabels the artifact"
 
 # Control build: empirical-first must be unaffected.
 if ! ./setup.sh test_output/ef --variant finance --mode empirical-first --assemble-only --no-model-probe >/dev/null 2>&1; then
@@ -107,9 +112,12 @@ d = json.load(open(sys.argv[1] + "/process_log/pipeline_state.json"))
 assert "dataset_spec_version" not in d and "coverage_triangulation" not in d
 assert "spec_audit_revision" not in d["loops"] and "coverage_audit" not in d["loops"]
 PY
+    grep -Fq 'Commit: `artifact: theory draft v{N}`' "$E/docs/stage_2.md" \
+        && pass "empirical-first control: Stage 2 commit label unchanged" \
+        || fail "empirical-first control: Stage 2 commit label changed"
 fi
 
-# 5. Updater allowlist static check (both hardcoded sites).
+# 6. Updater allowlist static check (both hardcoded sites).
 grep -q 'empirical-first, measurement-first, data-first, report.*--no-mode' scripts/update_coordinator.sh \
     && pass "updater: --mode diagnostic lists data-first" \
     || fail "updater: --mode diagnostic missing data-first"

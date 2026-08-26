@@ -17,6 +17,36 @@ if [ "$MODE" != "report" ]; then
         sed -i.bak "s|{{DOMAIN_AREAS}}|$DOMAIN_AREAS|g; s|{{PAPER_TYPE}}|$PAPER_TYPE|g; s|{{TARGET_JOURNALS}}|$TARGET_JOURNALS|g; s|{{INITIAL_TIER}}|$INITIAL_TIER|g; s|{{TIER_LADDER_PROSE}}|$TIER_LADDER_PROSE|g; s|{{TIER_LIST_INLINE}}|$TIER_LIST_INLINE|g; s|{{TIER_DOWNGRADE_EXAMPLES}}|$TIER_DOWNGRADE_EXAMPLES|g; s|{{MECHANISM_QUALIFIER_AN}}|$MECHANISM_QUALIFIER_AN|g; s|{{MECHANISM_QUALIFIER}}|$MECHANISM_QUALIFIER|g; s|{{MECHANISM_DISCIPLINE}}|$MECHANISM_DISCIPLINE|g; s|{{PRINCIPLED_MECHANISM_PHRASE}}|$PRINCIPLED_MECHANISM_PHRASE|g" "$_docfile" && rm "${_docfile}.bak"
     done
 
+    # Stage-doc vocab uses the same shared → variant → tier → mode
+    # precedence as agent assembly. Keep this substitution deliberately scoped
+    # to the Stage 2 commit-label key: other stage-doc placeholders belong to
+    # the variant-descriptor, extension-injection, and seed-override passes.
+    python3 -I - \
+        "$P/docs/stage_2.md" \
+        "$TEMPLATE_ROOT/templates/agent_bodies/shared/vocab.json" \
+        "$TEMPLATE_ROOT/templates/agents/${AGENT_DIR}/vocab.json" \
+        "$TIER_VOCAB_FILE" \
+        "$MODE_VOCAB_OVERLAY" <<'PYEOF'
+import json
+import sys
+from pathlib import Path
+
+doc = Path(sys.argv[1])
+vocab = {}
+for raw_path in sys.argv[2:]:
+    if raw_path:
+        vocab.update(json.loads(Path(raw_path).read_text()))
+
+key = "STAGE2_ARTIFACT_LABEL"
+marker = "{{" + key + "}}"
+if key not in vocab or not isinstance(vocab[key], str):
+    raise SystemExit(f"Error: missing string vocab key {marker} for {doc}")
+text = doc.read_text()
+if marker not in text:
+    raise SystemExit(f"Error: expected vocab marker {marker} not found in {doc}")
+doc.write_text(text.replace(marker, vocab[key]))
+PYEOF
+
     # Inject the variant-specific tier table into stage_4.md (multi-line content via sed -r)
     TIER_TABLE_FILE="$TEMPLATE_ROOT/templates/shared/tier_tables/${VARIANT}.md"
     if [ -f "$TIER_TABLE_FILE" ] && [ -f "$P/docs/stage_4.md" ]; then

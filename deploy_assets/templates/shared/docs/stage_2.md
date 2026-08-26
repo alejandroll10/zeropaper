@@ -20,7 +20,7 @@
    Pass the negative-results file to `self-attacker` at Stage 4 too. (`math-auditor` is not launched in data-first mode — the math-audit form of Gate 2 below is replaced by the dataset-specification audit gate — so prior `math_audit_v*.md` / `freeform_audit_v*.md` files do not exist; theory-generator on a mutate/pivot relaunch should instead consult the prior `output/stage2/mechanism_audit_v*.md` files for recurring spec-failure patterns, plus the most recent `referee-mechanism` report at Stage 6 and any `self_attack_v*.md` for prior content failures.)
 <!-- DATA_FIRST_END -->
 4. Save result to `output/stage2/theory_draft_vN.md` where **N = `theory_version`** from `pipeline_state.json`. On a fresh `theory_attempt`, reset `theory_version` to 1 and atomically apply the fresh-theory identity reset in `core.md` before any gate can resume. On each mutation (including re-launches after Gate 2 FAIL within the same attempt), increment `theory_version` and save to the new version file. N is a within-attempt counter: it resets and can collide across attempts, so prior filenames may be overwritten while durable result receipts remain as history; the acceptance-version reset is what prevents same-number evidence from the abandoned attempt from satisfying a current gate.
-5. Commit: `artifact: theory draft v{N}`
+5. Commit: `artifact: {{STAGE2_ARTIFACT_LABEL}} v{N}`
 
 <!-- NO_MODE_START -->
 ## Gate 2: Math Audit (structured + free-form)

@@ -16,7 +16,15 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.4] — 2026-08-26 (current)
+## [2.30.5] — 2026-08-26 (current)
+
+**fix: data-first Stage 2 commits name the dataset specification.**
+The versioned Stage 2 artifact commit label now resolves through the same layered vocab order
+as agent assembly. Data-first renders `artifact: dataset spec v{N}` while every existing
+variant and mode retains `artifact: theory draft v{N}` byte-for-byte; focused assembly checks
+and full-tree characterization fixtures protect both paths. Closes #289.
+
+## [2.30.4] — 2026-08-26
 
 **fix: parallel CI jobs retain their sandbox prerequisites.**
 The computed-results and empirical-binding jobs now load Ubuntu's scoped Bubblewrap AppArmor
