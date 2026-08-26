@@ -16,7 +16,21 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.0] — 2026-08-24 (current)
+## [2.30.1] — 2026-08-26 (current)
+
+**fix: Stage 3a all-analysis freshness gate halted on its own mandated artifacts.**
+`empirical_input_manifest.py check-all` flagged every analysis's results triple
+(`<stem>_results{,.plan,.receipt}.json` — the names the stage doc itself derives),
+finalize-pass's documented `.candidate` intermediate, and `__pycache__` execution
+byproducts as reserved-namespace pollution, guaranteeing
+`halted_replication_artifact_collision` on the first full empirical analysis of every
+deployment (first observed in a live data-first run). The scan now exempts exactly those
+expected artifacts — symlink/non-regular-file hardening retained on every exempted name,
+and the code-surface bytecode-detection posture deliberately unchanged — and the finalize
+verifier subprocess runs with `-B` so it cannot seed the cache poison itself. Seven new
+regression tests in `deploy_assets/scripts/test_empirical_input_manifest.py` (CI-run).
+
+## [2.30.0] — 2026-08-24
 
 **feat: `--mode data-first` — dataset-contribution papers (finance, v1).** The paper's
 deliverable is an open, documented, validated dataset plus a portfolio of documented facts

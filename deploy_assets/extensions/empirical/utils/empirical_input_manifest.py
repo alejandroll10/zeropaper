@@ -81,6 +81,25 @@ def _validated_analysis_path(value: str | Path) -> Path:
     return Path(*candidate.parts)
 
 
+# Results-pipeline artifacts that the stage doc derives from each analysis
+# stem by replacing ".md" (RESULT_PLAN / RESULT_BUNDLE / RESULT_RECEIPT).
+# They necessarily share the analysis-name prefix and are first-class
+# evidence, not namespace pollution. Longest suffixes first.
+_RESULT_SIBLING_SUFFIXES = (
+    "_results.receipt.json",
+    "_results.plan.json",
+    "_results.json",
+)
+
+
+def _is_analysis_results_sibling(name: str) -> bool:
+    for suffix in _RESULT_SIBLING_SUFFIXES:
+        if name.endswith(suffix):
+            stem = name[: -len(suffix)]
+            return ANALYSIS_NAME.fullmatch(f"{stem}.md") is not None
+    return False
+
+
 def artifact_paths(analysis_path: Path) -> dict[str, str]:
     analysis_path = _validated_analysis_path(analysis_path)
     stem = analysis_path.stem
@@ -127,6 +146,10 @@ def _validate_verification_namespace(project_root: Path) -> None:
     for entry in entries:
         relative = entry.relative_to(project_root).as_posix()
         metadata = entry.lstat()
+        if entry.name == "__pycache__" and stat.S_ISDIR(metadata.st_mode):
+            # An execution byproduct of running/importing a verifier, not a
+            # hidden dependency: verifiers never read bytecode caches.
+            continue
         if (
             stat.S_ISLNK(metadata.st_mode)
             or not stat.S_ISREG(metadata.st_mode)
@@ -461,7 +484,7 @@ def finalize_pass(
     manifest_before_run = build_manifest(project_root, analysis_path)
     try:
         completed = subprocess.run(
-            [sys.executable, str(verifier_absolute)],
+            [sys.executable, "-B", str(verifier_absolute)],
             cwd=project_root,
             check=False,
             stdout=subprocess.PIPE,
@@ -669,6 +692,22 @@ def check_all(project_root: Path) -> dict[str, Any]:
     for candidate in (
         entry for entry in stage_entries if entry.name.startswith("empirical_analysis")
     ):
+        if _is_analysis_results_sibling(candidate.name):
+            # The analysis's own RESULT_PLAN/BUNDLE/RECEIPT triple: content
+            # integrity is owned by the results pipeline's receipt checks,
+            # but a planted non-regular object is still namespace pollution.
+            relative = candidate.relative_to(project_root)
+            try:
+                metadata = candidate.lstat()
+                if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
+                    raise ManifestError(
+                        "analysis results artifact is not a real regular file"
+                    )
+            except (ManifestError, OSError) as exc:
+                artifact_errors.append(
+                    {"path": relative.as_posix(), "error": str(exc)}
+                )
+            continue
         relative = candidate.relative_to(project_root)
         try:
             metadata = candidate.lstat()
@@ -706,6 +745,11 @@ def check_all(project_root: Path) -> dict[str, Any]:
             entry = {**paths, "status": status, "error": str(exc)}
         all_unchanged = all_unchanged and status == "UNCHANGED"
         checks.append(entry)
+    # A "<verify_result>.candidate" is finalize-pass's documented intermediate:
+    # written on replicator PASS, unlinked on successful finalization, and
+    # legitimately present between those two points (or after a failed
+    # finalize, which the per-analysis ERROR entry already surfaces).
+    expected_candidates = {f"{result}.candidate" for result in expected_results}
     for candidate in (
         entry for entry in stage_entries if entry.name.startswith("empirics_verify_result")
     ):
@@ -715,7 +759,9 @@ def check_all(project_root: Path) -> dict[str, Any]:
             regular = stat.S_ISREG(metadata.st_mode) and not stat.S_ISLNK(metadata.st_mode)
         except OSError:
             regular = False
-        if relative not in expected_results or not regular:
+        if (
+            relative not in expected_results and relative not in expected_candidates
+        ) or not regular:
             artifact_errors.append(
                 {"path": relative, "error": "orphan or invalid verifier result artifact"}
             )
@@ -748,6 +794,8 @@ def check_all(project_root: Path) -> dict[str, Any]:
             try:
                 metadata = candidate.lstat()
                 regular = stat.S_ISREG(metadata.st_mode) and not stat.S_ISLNK(metadata.st_mode)
+                if candidate.name == "__pycache__" and stat.S_ISDIR(metadata.st_mode):
+                    continue
             except OSError:
                 regular = False
             if (

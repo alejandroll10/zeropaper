@@ -308,6 +308,92 @@ class EmpiricalInputManifestTests(unittest.TestCase):
             invalid.relative_to(self.project).as_posix(),
         )
 
+    def test_check_all_accepts_results_pipeline_sibling_artifacts(self) -> None:
+        # The stage doc derives RESULT_PLAN/BUNDLE/RECEIPT from the analysis
+        # stem, so these share the reserved prefix by design (regression:
+        # halted_replication_artifact_collision on every first full analysis).
+        stage = self.project / "output" / "stage3a"
+        for sibling in ("_results.json", "_results.plan.json", "_results.receipt.json"):
+            (stage / f"empirical_analysis{sibling}").write_text("{}\n")
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["artifact_errors"], [])
+        self.assertEqual(inventory["status"], "UNCHANGED")
+
+    def test_check_all_rejects_foreign_stem_results_sibling(self) -> None:
+        invalid = (
+            self.project / "output" / "stage3a" / "empirical_analysis_notes_results.json"
+        )
+        invalid.write_text("{}\n")
+        inventory = self.run_tool("check-all")
+        self.assertIn(
+            invalid.relative_to(self.project).as_posix(),
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+
+    def test_check_all_rejects_symlinked_results_sibling(self) -> None:
+        target = self.project / "outside_payload.json"
+        target.write_text("{}\n")
+        planted = (
+            self.project / "output" / "stage3a" / "empirical_analysis_results.json"
+        )
+        planted.symlink_to(target)
+        inventory = self.run_tool("check-all")
+        self.assertIn(
+            planted.relative_to(self.project).as_posix(),
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+
+    def test_check_all_accepts_expected_pending_candidate(self) -> None:
+        # finalize-pass's documented intermediate: written on replicator PASS,
+        # unlinked on successful finalization, legitimately present between.
+        candidate = (
+            self.project / "output" / "stage3a" / "empirics_verify_result.json.candidate"
+        )
+        candidate.write_text("{}\n")
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["artifact_errors"], [])
+        self.assertEqual(inventory["status"], "UNCHANGED")
+
+    def test_check_all_rejects_candidate_for_unknown_analysis(self) -> None:
+        orphan = (
+            self.project
+            / "output"
+            / "stage3a"
+            / "empirics_verify_result_v9.json.candidate"
+        )
+        orphan.write_text("{}\n")
+        inventory = self.run_tool("check-all")
+        self.assertIn(
+            orphan.relative_to(self.project).as_posix(),
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+
+    def test_check_all_and_snapshot_tolerate_verification_pycache(self) -> None:
+        # An execution byproduct of importing a verifier module, not a hidden
+        # dependency; it previously poisoned finalize-pass and check-all both.
+        pycache = (
+            self.project / "output" / "stage3a" / "verification" / "__pycache__"
+        )
+        pycache.mkdir()
+        (pycache / "empirics_verify.cpython-312.pyc").write_bytes(b"\x00")
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["artifact_errors"], [])
+        self.assertEqual(inventory["status"], "UNCHANGED")
+        self.run_tool("snapshot")
+
+    def test_check_all_rejects_symlinked_verification_pycache(self) -> None:
+        outside = self.project / "outside_cache"
+        outside.mkdir()
+        planted = (
+            self.project / "output" / "stage3a" / "verification" / "__pycache__"
+        )
+        planted.symlink_to(outside, target_is_directory=True)
+        inventory = self.run_tool("check-all")
+        self.assertIn(
+            planted.relative_to(self.project).as_posix(),
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+
     def test_check_all_classifies_valid_named_nonregular_artifacts(self) -> None:
         self.result.unlink()
         self.result.mkdir()
