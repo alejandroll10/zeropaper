@@ -16,7 +16,16 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.3] — 2026-08-26 (current)
+## [2.30.4] — 2026-08-26 (current)
+
+**fix: parallel CI jobs retain their sandbox prerequisites.**
+The computed-results and empirical-binding jobs now load Ubuntu's scoped Bubblewrap AppArmor
+profile and verify both namespace creation and the required zero-copy `--ro-bind-fd` capability,
+fixing Ubuntu 24.04 runner denials without weakening the production sandbox. Evidence and
+setup-integration jobs explicitly install the Bubblewrap prerequisite they previously inherited
+from the monolithic workflow. Topology regressions protect the complete runner setup. Fixes #287.
+
+## [2.30.3] — 2026-08-26
 
 **fix: parallel CI test topology cuts feedback latency without dropping coverage.**
 The dev-instruction workflow now runs mirrors, computed-results provenance, evidence assembly,

@@ -141,6 +141,47 @@ class CiWorkflowTest(unittest.TestCase):
             owners[command] = matching[0]
         self.assertEqual(len(set(owners.values())), len(owners), owners)
 
+    def test_bubblewrap_suites_keep_their_runner_prerequisites(self):
+        jobs = load_jobs()
+        sandbox_install = """sudo apt-get update
+sudo apt-get install --no-install-recommends apparmor-profiles bubblewrap
+sudo install -m 0644 /usr/share/apparmor/extra-profiles/bwrap-userns-restrict /etc/apparmor.d/bwrap-userns-restrict
+sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict"""
+        sandbox_probe = """/usr/bin/bwrap --help | grep -Fq -- "--ro-bind-fd"
+/usr/bin/bwrap --ro-bind / / -- /usr/bin/true"""
+        test_steps = {
+            "results_pipeline": "Test computed-results provenance utility",
+            "evidence_assembly": "Test empirical replication input binding",
+        }
+        for job_id, test_step in test_steps.items():
+            with self.subTest(job=job_id):
+                self.assertEqual(jobs[job_id]["runs-on"], "ubuntu-latest")
+                steps = jobs[job_id]["steps"]
+                names = [step["name"] for step in steps]
+                self.assertEqual(names.count("Install Bubblewrap sandbox profile"), 1)
+                self.assertEqual(names.count("Verify Bubblewrap sandbox capability"), 1)
+                install_index = names.index("Install Bubblewrap sandbox profile")
+                probe_index = names.index("Verify Bubblewrap sandbox capability")
+                test_index = names.index(test_step)
+                self.assertEqual(steps[install_index]["run"].strip(), sandbox_install)
+                self.assertEqual(steps[probe_index]["run"].strip(), sandbox_probe)
+                self.assertLess(install_index, probe_index)
+                self.assertLess(probe_index, test_index)
+
+        setup_steps = jobs["setup_integration"]["steps"]
+        setup_names = [step["name"] for step in setup_steps]
+        self.assertEqual(setup_names.count("Install setup prerequisite"), 1)
+        setup_install_index = setup_names.index("Install setup prerequisite")
+        setup_test_index = setup_names.index(
+            "Test production provisioning and publication"
+        )
+        self.assertEqual(
+            setup_steps[setup_install_index]["run"].strip(),
+            "sudo apt-get update\n"
+            "sudo apt-get install --no-install-recommends bubblewrap",
+        )
+        self.assertLess(setup_install_index, setup_test_index)
+
     def test_aggregate_gate_requires_every_parallel_job(self):
         jobs = load_jobs()
         self.assertEqual(set(jobs) - {"verify"}, TEST_JOBS)
