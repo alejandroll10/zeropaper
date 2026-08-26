@@ -10,10 +10,95 @@ permissions:
   contents: read
 
 jobs:
-  verify:
-    name: Verify generated mirrors
+  mirrors:
+    name: Generated mirrors
     runs-on: ubuntu-latest
-    timeout-minutes: 30
+    timeout-minutes: 5
+    steps:
+      - name: Check out the proposed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install mirror test dependency
+        run: python -m pip install --disable-pip-version-check PyYAML==6.0.3
+
+      - name: Test CI workflow topology
+        run: python -m unittest -v test_scripts.test_ci_workflow
+
+      - name: Test mirror synchronization
+        run: python -m unittest -v test_scripts.test_sync_dev_instructions
+
+      - name: Regenerate the mirrors
+        run: bash scripts/sync_dev_instructions.sh
+
+      - name: Require the committed mirrors to match
+        shell: bash
+        run: |
+          git add -A -f -- AGENTS.md .agents/skills
+          if ! git diff --cached --exit-code HEAD -- AGENTS.md .agents/skills; then
+            echo "::error::Generated dev-instruction mirrors are stale. Run bash scripts/sync_dev_instructions.sh, commit the result, and push again."
+            exit 1
+          fi
+
+  results_pipeline:
+    name: Computed-results provenance
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the proposed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install bubblewrap
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends bubblewrap
+
+      - name: Test computed-results provenance utility
+        run: python3 test_scripts/test_results_pipeline.py
+
+  evidence_assembly:
+    name: Evidence and setup contracts
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the proposed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Test fast setup contracts
+        run: |
+          bash test_scripts/test_setup_config.sh
+          bash test_scripts/test_setup_cleanup.sh
+
+      - name: Test computed-results cross-shape assembly
+        run: bash test_scripts/test_results_evidence_assembly.sh
+
+      - name: Test empirical replication input binding
+        run: python3 deploy_assets/scripts/test_empirical_input_manifest.py
+
+  runtime:
+    name: Runtime integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
     steps:
       - name: Check out the proposed commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -30,40 +115,11 @@ jobs:
           python -m pip install --disable-pip-version-check
           PyYAML==6.0.3 pandas python-dotenv wrds==3.5.0 openai anthropic
 
-      - name: Install LaTeX table-gate dependencies
-        run: |
-          sudo apt-get update
-          sudo apt-get install --no-install-recommends bubblewrap texlive-latex-extra
-
-      - name: Test rendered-table source gate
-        run: bash test_scripts/test_table_legibility.sh
-
-      - name: Test setup configuration resolution
-        run: bash test_scripts/test_setup_config.sh
-
-      - name: Test setup cleanup ownership
-        run: bash test_scripts/test_setup_cleanup.sh
-
-      - name: Test checkout-local setup source policy
-        run: bash test_scripts/test_setup_source_policy.sh
-
-      - name: Test infrastructure/bootstrap ownership
-        run: bash test_scripts/test_setup_ownership.sh
-
-      - name: Test computed-results provenance utility
-        run: python3 test_scripts/test_results_pipeline.py
-
-      - name: Test computed-results cross-shape assembly
-        run: bash test_scripts/test_results_evidence_assembly.sh
-
       - name: Test DeepVest parsers without paid calls
         env:
           DEEPVEST_TEST_OFFLINE: "1"
           PYTHONPATH: deploy_assets/extensions/empirical
         run: python3 test_scripts/test_deepvest.py
-
-      - name: Test empirical replication input binding
-        run: python3 deploy_assets/scripts/test_empirical_input_manifest.py
 
       - name: Test theory_llm client backend resolution (offline)
         run: python -m unittest -v test_scripts.test_llm_client_backends
@@ -88,6 +144,80 @@ jobs:
       - name: Test IBES skill guidance
         run: python3 deploy_assets/scripts/test_ibes_skill.py
 
+  table_gate:
+    name: Rendered-table gate
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the proposed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Install LaTeX table-gate dependencies
+        run: |
+          sudo apt-get update
+          sudo apt-get install --no-install-recommends bubblewrap texlive-latex-extra
+
+      - name: Test rendered-table source gate
+        run: bash test_scripts/test_table_legibility.sh
+
+  source_policy:
+    name: Checkout-local source policy
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the proposed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Test checkout-local setup source policy
+        run: bash test_scripts/test_setup_source_policy.sh
+
+  ownership:
+    name: Infrastructure and bootstrap ownership
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the proposed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
+      - name: Test infrastructure/bootstrap ownership
+        run: bash test_scripts/test_setup_ownership.sh
+
+  setup_integration:
+    name: Setup integration tests
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the proposed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
+
       - name: Test production provisioning and publication
         run: bash test_scripts/test_setup_publish.sh
 
@@ -96,6 +226,21 @@ jobs:
 
       - name: Test Stage 0 discovery cap
         run: bash test_scripts/test_stage0_discovery_cap.sh
+
+  characterization:
+    name: Setup characterization
+    runs-on: ubuntu-latest
+    timeout-minutes: 10
+    steps:
+      - name: Check out the proposed commit
+        uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
+        with:
+          persist-credentials: false
+
+      - name: Set up Python
+        uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
+        with:
+          python-version: "3.12"
 
       - name: Characterize setup assembly
         run: >-
@@ -115,17 +260,30 @@ jobs:
           if-no-files-found: warn
           retention-days: 14
 
-      - name: Test mirror synchronization
-        run: python -m unittest -v test_scripts.test_sync_dev_instructions
-
-      - name: Regenerate the mirrors
-        run: bash scripts/sync_dev_instructions.sh
-
-      - name: Require the committed mirrors to match
-        shell: bash
+  verify:
+    name: Verify generated mirrors
+    if: ${{ always() }}
+    needs:
+      - mirrors
+      - results_pipeline
+      - evidence_assembly
+      - runtime
+      - table_gate
+      - source_policy
+      - ownership
+      - setup_integration
+      - characterization
+    runs-on: ubuntu-latest
+    timeout-minutes: 2
+    steps:
+      - name: Require every test job to pass
+        env:
+          TEST_JOB_RESULTS: ${{ toJSON(needs) }}
         run: |
-          git add -A -f -- AGENTS.md .agents/skills
-          if ! git diff --cached --exit-code HEAD -- AGENTS.md .agents/skills; then
-            echo "::error::Generated dev-instruction mirrors are stale. Run bash scripts/sync_dev_instructions.sh, commit the result, and push again."
+          failures="$(jq -r 'to_entries[] | select(.value.result != "success") | "\(.key): \(.value.result)"' <<<"$TEST_JOB_RESULTS")"
+          if [[ -n "$failures" ]]; then
+            echo "::error::One or more test jobs did not pass:"
+            echo "$failures"
             exit 1
           fi
+          echo "All test jobs passed."

@@ -654,7 +654,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "4a32a268800e4896ba9e812d244b13a57c7c095ec0385d3d6586b143264302f3",
+          "sha256": "571173de181eb776c050903e90c56f13d0d2857b148fefb8dd587637fa625889",
           "size": 1859,
           "type": "file"
         },
@@ -1812,7 +1812,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -1945,7 +1945,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -3295,7 +3295,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f8bf3bd206b4b48d7dcd99b87d40a4d6a59c73fff295c3fddae905ff457edb74",
+          "sha256": "561f16cc6173fa20dbbedc53058fd07e8f1171e32862df1b22c866944dfcece4",
           "size": 3117,
           "type": "file"
         },
@@ -4797,7 +4797,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -4963,7 +4963,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -6313,7 +6313,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "aa1cc7fa77d5f46ab264f5ff2ccc5a76bae2a290b1695a1dcafd114defb433d7",
+          "sha256": "aa094448aa38fc8cf031ec9c5b4e54ca140928f48e86c5585e69c04df307b268",
           "size": 3117,
           "type": "file"
         },
@@ -7815,7 +7815,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -7981,7 +7981,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -9267,7 +9267,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2b6a8f5a0e1424a824f4959dcafbbc91d2ffd4f00e414e3b79f8d2258bc59e5a",
+          "sha256": "0767f93cad8160544587ce9e4551af35de644c34277731b31069ad4c52ea7a36",
           "size": 3020,
           "type": "file"
         },
@@ -10709,7 +10709,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -10872,7 +10872,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -12173,7 +12173,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ad0ae09decada90d41999a8c188639b8c3bc3ebb3e3a3b390134acb29a52c770",
+          "sha256": "9e83af24a89836749c3d5fc9f9fe1189fbd003ef8f986c9f6d90aaca6b6d9177",
           "size": 3016,
           "type": "file"
         },
@@ -13643,7 +13643,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -13812,7 +13812,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -15099,7 +15099,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b7b55eca6a1f620da6eee9feca90ddd1cd3f3115d33e6ae4e1f91980aef96cbd",
+          "sha256": "d111d2880b48ff148fc02a9cbcbd598d2fe956027727b487b7f4404afbbc0404",
           "size": 2995,
           "type": "file"
         },
@@ -16495,7 +16495,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "633d2c6e0aada5d8341fdb1af71f3466628d43671eb19de2207281c02fe70e74",
+          "sha256": "b35fef5257f237b8cabe68de01d6d53cbb94243bb9a44b433fda96ce07c5e8c2",
           "size": 15387,
           "type": "file"
         },
@@ -16637,7 +16637,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -17924,7 +17924,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1ff79d728878bb8d7cbf8fa83c0ef19100e38bd513ff994a0fd0dc5ee08d44e8",
+          "sha256": "54785156ffe84b0fd1e52c1cfb7928e69d222ffc48e61859e5f82d4eb901dd22",
           "size": 3019,
           "type": "file"
         },
@@ -19376,7 +19376,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -19539,7 +19539,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -20194,7 +20194,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "4a32a268800e4896ba9e812d244b13a57c7c095ec0385d3d6586b143264302f3",
+          "sha256": "571173de181eb776c050903e90c56f13d0d2857b148fefb8dd587637fa625889",
           "size": 1859,
           "type": "file"
         },
@@ -21352,7 +21352,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -21485,7 +21485,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -22838,7 +22838,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f8bf3bd206b4b48d7dcd99b87d40a4d6a59c73fff295c3fddae905ff457edb74",
+          "sha256": "561f16cc6173fa20dbbedc53058fd07e8f1171e32862df1b22c866944dfcece4",
           "size": 3117,
           "type": "file"
         },
@@ -24340,7 +24340,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -24506,7 +24506,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -25792,7 +25792,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "baf368524f2ee7c62009d6976f91bb13440d1bccb03daad74b553c0be752e0bf",
+          "sha256": "37badd746802b71a657d68d6005b0256dee0b53be89180bfd559ef73824672dd",
           "size": 3010,
           "type": "file"
         },
@@ -27238,7 +27238,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -27401,7 +27401,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -28699,7 +28699,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e6c2b1e43ba54272e6533733dde636c6f9ec201f88be6e5bace11fbce2e7eb93",
+          "sha256": "c84e259a01e423d4f27a19d5a5c7e2c0f537123ee63a219196067f51fb51f50e",
           "size": 3025,
           "type": "file"
         },
@@ -30149,7 +30149,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -30312,7 +30312,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -31674,7 +31674,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "69e337487c7f2c27273e205acf58086bd4dcaedf12cdc05ef559f260fc3d0a5d",
+          "sha256": "4ac7fd6838ca71e8c4ac8737803df2f06a636ed1d7c9625f2a2db7fb6c1e8751",
           "size": 3132,
           "type": "file"
         },
@@ -33180,7 +33180,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -33346,7 +33346,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -34005,7 +34005,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "4a32a268800e4896ba9e812d244b13a57c7c095ec0385d3d6586b143264302f3",
+          "sha256": "571173de181eb776c050903e90c56f13d0d2857b148fefb8dd587637fa625889",
           "size": 1859,
           "type": "file"
         },
@@ -35163,7 +35163,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -35296,7 +35296,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -36597,7 +36597,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e138d886745313768e4c1b41e98f463847ce49e02cfebb30c14c57024d00bdee",
+          "sha256": "2c462db7108625aa84a8e65c56dc416f1574900bd281e60129d463fcb3e0b7b6",
           "size": 3006,
           "type": "file"
         },
@@ -38071,7 +38071,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -38240,7 +38240,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -38899,7 +38899,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ff8d5b27d5f0a227056ba01480b05e728a4f5ddacf3225d60ae0d16b472dee99",
+          "sha256": "c240cf56b1c32d82fbc1de55131a5ae9ef6f1cccef9e6c03b429742035d7ca4b",
           "size": 1858,
           "type": "file"
         },
@@ -40057,7 +40057,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -40190,7 +40190,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -40915,7 +40915,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d13558816daf8c64c42601c68e6aa6029e3d2a1c474b1abca3d56575a31d41dc",
+          "sha256": "7beeecf3cbe10cde1a4942319e69bc50986c9ad8f2ad51e9dd04ad6fd63996d7",
           "size": 1968,
           "type": "file"
         },
@@ -42129,7 +42129,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -42266,7 +42266,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -42990,7 +42990,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d13558816daf8c64c42601c68e6aa6029e3d2a1c474b1abca3d56575a31d41dc",
+          "sha256": "7beeecf3cbe10cde1a4942319e69bc50986c9ad8f2ad51e9dd04ad6fd63996d7",
           "size": 1968,
           "type": "file"
         },
@@ -44204,7 +44204,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -44341,7 +44341,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -45000,7 +45000,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "12288d50081ef5f4c2c84b65289a209538a6e00397c95983a1d4166717d413c6",
+          "sha256": "97c616bf16dd605d1a07afc26af307217557e2d2fd5708b9040a84f084819f73",
           "size": 1858,
           "type": "file"
         },
@@ -46158,7 +46158,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -46291,7 +46291,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -47642,7 +47642,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5ddda2bb7c5c63ef56d417b5a7d7c2fcd5f7df940e87d6d53a2e9a40974689b2",
+          "sha256": "72f877970cb482af985d0b1031379a38650a16316e27f4d48127def319e2c36d",
           "size": 3092,
           "type": "file"
         },
@@ -49086,7 +49086,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "633d2c6e0aada5d8341fdb1af71f3466628d43671eb19de2207281c02fe70e74",
+          "sha256": "b35fef5257f237b8cabe68de01d6d53cbb94243bb9a44b433fda96ce07c5e8c2",
           "size": 15387,
           "type": "file"
         },
@@ -49231,7 +49231,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -49651,7 +49651,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "426cf66b3e3bf9f3e02b759a1e8a0fb79bfa9c93a066893c1185915d4e33a90f",
+          "sha256": "d6a21547d9e7788d7fe9984b5f633d1f2f26735f488da614b2f0466f9198a06f",
           "size": 1841,
           "type": "file"
         },
@@ -50395,7 +50395,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -51375,7 +51375,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "79ed9eb0637579e33591dba90c3476b319ee2cdd8c94ff6a4b1eb4eccc94f796",
+          "sha256": "be4c6465f17a5fb5d3d4f0e273fad973ad83b3817b204141ce9c2ab826bf6e79",
           "size": 3099,
           "type": "file"
         },
@@ -52336,7 +52336,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -53316,7 +53316,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0398c95f8430514e63c7b4f1c6c115e68f326339eacfa72405a2b75a6fd16ca6",
+          "sha256": "61b857975d3624591a837edba95a166c9247d4dcf026d87e9c9ffae12b2b4ae1",
           "size": 3099,
           "type": "file"
         },
@@ -54277,7 +54277,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -55229,7 +55229,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "89449d61f67f07d30cc74ffebe290dfd60127f2629120300d9d7baa8c739cf3d",
+          "sha256": "e79b7689f0b80f92b9277e0da6ba67208f2078b7f6190a215b9b49d95095338f",
           "size": 2992,
           "type": "file"
         },
@@ -56181,7 +56181,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -56602,7 +56602,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "158d20cd90f73dfc4d37511aff0740a0f6917a81207b751470d044eebdda3be5",
+          "sha256": "55361c62342c14496ed3c622373ed8b2c937745f34c10e7775587b9984dae534",
           "size": 1840,
           "type": "file"
         },
@@ -57346,7 +57346,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -57798,7 +57798,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "688f3f6f55c2f01167a176556fa5cf14c5d9be15299e2984c197bf57ef4cd0e8",
+          "sha256": "6e0619592d4a1bef44103ac98c082959506197b8102108020ff108f2af240fdc",
           "size": 1950,
           "type": "file"
         },
@@ -58552,7 +58552,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -59211,7 +59211,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "63cfe86804cc76de5f66473edaa96389d1b311694178fabccb50e7d6d890e232",
+          "sha256": "255bfde41633de153bac5b09dc729625ef47ea6f72157c4c34da4d254eda39e5",
           "size": 1858,
           "type": "file"
         },
@@ -60379,7 +60379,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -60512,7 +60512,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -61798,7 +61798,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "baf368524f2ee7c62009d6976f91bb13440d1bccb03daad74b553c0be752e0bf",
+          "sha256": "37badd746802b71a657d68d6005b0256dee0b53be89180bfd559ef73824672dd",
           "size": 3010,
           "type": "file"
         },
@@ -63244,7 +63244,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -63407,7 +63407,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -64133,7 +64133,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d13558816daf8c64c42601c68e6aa6029e3d2a1c474b1abca3d56575a31d41dc",
+          "sha256": "7beeecf3cbe10cde1a4942319e69bc50986c9ad8f2ad51e9dd04ad6fd63996d7",
           "size": 1968,
           "type": "file"
         },
@@ -65347,7 +65347,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -65484,7 +65484,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -66168,7 +66168,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c4e1622f21d906c7038f355b31ffdb660ec680f6db88c5b0f42a4e15bdb8f18a",
+          "sha256": "a05243c59cb72aa4265a36b08b6895cb2097bbed207957f6a44dfcaa54feb2e0",
           "size": 1918,
           "type": "file"
         },
@@ -67356,7 +67356,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -67491,7 +67491,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -68188,7 +68188,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d37b2f636df8d4182f92cf7574eb68a87243447aac076f8e33063ede28abea1c",
+          "sha256": "ea0d75803ec6e49cc2b72e3ed536180ef19042605e232fec199daa64c5d81b22",
           "size": 1916,
           "type": "file"
         },
@@ -69404,7 +69404,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -69545,7 +69545,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -70231,7 +70231,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8ab69145236aeb75fec8ae42c6c5354557213e3f4661b6e8ae07d47fd7013dfa",
+          "sha256": "946a0431dfa2660a97c222d345268b5a31951126c8893686d2b3e9f9a62d60d1",
           "size": 1916,
           "type": "file"
         },
@@ -71419,7 +71419,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -71554,7 +71554,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -72239,7 +72239,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "25358b5ca6d569fd4636c7e6a57948deb6bcbea8d4f2af3ae085114cea57901c",
+          "sha256": "af35621cdb421fada488f9d1488d88ba0a5fa796c8fdcc6f6cfa31d2c413817f",
           "size": 1893,
           "type": "file"
         },
@@ -73377,7 +73377,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "633d2c6e0aada5d8341fdb1af71f3466628d43671eb19de2207281c02fe70e74",
+          "sha256": "b35fef5257f237b8cabe68de01d6d53cbb94243bb9a44b433fda96ce07c5e8c2",
           "size": 15387,
           "type": "file"
         },
@@ -73491,7 +73491,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -74177,7 +74177,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2508d1c0612c9fbe1fbcf407b0424abec52d1384b5430bdab63107df1411476a",
+          "sha256": "6f9753884e544ac661ceea10c2abe8ed4b83e9def7055a41bcbb1b55af3fd702",
           "size": 1935,
           "type": "file"
         },
@@ -75357,7 +75357,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -75492,7 +75492,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -75872,7 +75872,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5387a4d9d20bd64fdae202d65710a8363d513aa15a3d437e1d9495120557e317",
+          "sha256": "df52910c9dd139e38755acaee76c77e4c3096e3a30048a2ad09c344395b4ebdf",
           "size": 1791,
           "type": "file"
         },
@@ -76588,7 +76588,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -77000,7 +77000,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ef6c43f98b74b4296f36c077b25e260654ce0e8f96d16216997c70de6d448a7a",
+          "sha256": "effa28de20d43d2181a5bc251a0b719298291d64fcbd5f24148f1f079c87a114",
           "size": 1900,
           "type": "file"
         },
@@ -77726,7 +77726,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -78384,7 +78384,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "05cec0a6526bed245ec7d07eb6e6e9481151a19e7ebd46876c0a8f8558a0f19d",
+          "sha256": "3e70986bcbc6c4fac60368493f4585611808206b0f47a879afb85a19bebe2abf",
           "size": 1857,
           "type": "file"
         },
@@ -79542,7 +79542,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -79675,7 +79675,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -81025,7 +81025,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ee8205100f09a0c278f33ac2531835dad0612c0c63e643e531b20be3f107f241",
+          "sha256": "c3dc5dba7ce5871b0d9ae429696eabed4e6668e89cc9d8dbd05d13db75233c8d",
           "size": 3115,
           "type": "file"
         },
@@ -82527,7 +82527,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -82693,7 +82693,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -83979,7 +83979,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8e2de1e80ac20fa9fa0709480a1316b9823b14f3e0a0501db4b2813101ee1d8f",
+          "sha256": "774371764be460c4be4e0950e7dbaed33912ae5cbc9397fb61bcc8722fba70b8",
           "size": 3008,
           "type": "file"
         },
@@ -85425,7 +85425,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -85588,7 +85588,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -86008,7 +86008,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "dbbc2b05d463752ee300b0f97705918e4f5c5b58cf8361324f18e83607580194",
+          "sha256": "06ed6a35d00746022add17033a433b5462e1cdb8f3bb321cbbe2e18cb1863857",
           "size": 1839,
           "type": "file"
         },
@@ -86752,7 +86752,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -87732,7 +87732,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d8a22c2e4c993cc9253fb5c1399be3c905999a2027f3585233335f85b83834a6",
+          "sha256": "0c7f54e118bf8e159c6dd72a17cd0424391fdd7437f908b3220e55b3221f0366",
           "size": 3097,
           "type": "file"
         },
@@ -88693,7 +88693,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -89645,7 +89645,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bb928d329be0548a42dcce0e2f85a933d7e68fcab9db7ba05baeca5d77215762",
+          "sha256": "52afb7b6cca58f5fbfc2303aacad75bc70b004900bf37bfa6c0db1d56592a60d",
           "size": 2990,
           "type": "file"
         },
@@ -90597,7 +90597,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -91049,7 +91049,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b15a75aafc7c098c7fb0ae98c59b4cc7d24b9a796702bca0a2d0c162df5e84bb",
+          "sha256": "92566c84763e03f0e440f0c7dd147c46086ebda82ffba7483976e34942599b00",
           "size": 1948,
           "type": "file"
         },
@@ -91803,7 +91803,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -92529,7 +92529,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9e9c787b2305b477876a656a4c456e14feec94a62da3df592d405662ebe17da6",
+          "sha256": "e3ac3bfdd40d8699334037cdb09c03cc3489bd6d32bb857d8da856339ff09298",
           "size": 1966,
           "type": "file"
         },
@@ -93743,7 +93743,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
+          "sha256": "4f1d0acb9cfd761495bc4c5c49e4300fab7207e1a9be42783d958357b2c19b16",
           "size": 15378,
           "type": "file"
         },
@@ -93880,7 +93880,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.2+<GIT_REVISION>",
+        "template_version": "2.30.3+<GIT_REVISION>",
         "variant": "macro"
       }
     }

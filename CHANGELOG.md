@@ -16,7 +16,20 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.2] — 2026-08-26 (current)
+## [2.30.3] — 2026-08-26 (current)
+
+**fix: parallel CI test topology cuts feedback latency without dropping coverage.**
+The dev-instruction workflow now runs mirrors, computed-results provenance, evidence assembly,
+runtime integration, rendered-table validation, source policy, ownership, setup integration,
+and the complete 43-shape setup characterization concurrently instead of serializing them in
+one 15–16 minute job. A final aggregate retains the existing `Verify generated mirrors` check
+name for branch-protection compatibility and fails on any failed, cancelled, or skipped suite.
+New topology regressions require every pre-split command exactly once, keep the expensive suites
+on independent runners, require every test job in the aggregate, and exercise both aggregate
+success and failure. Measured pre-change ownership is the expected 5–6 minute critical path;
+the complete workflow targets under seven minutes. Closes #286.
+
+## [2.30.2] — 2026-08-26
 
 **fix: Stage 3a freshness now follows result-receipt lifecycle.**
 `empirical_input_manifest.py check-all` now resolves analysis ownership through the durable
