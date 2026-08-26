@@ -46,6 +46,18 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## WRDS daemon: a deadline-less healthcheck can wedge the singleton permanently after an upstream flap
+
+**Scope:** `--ext empirical`'s shared WRDS daemon (`deploy_assets/extensions/empirical/utils/wrds_server.py`), specifically `healthcheck()` and the `_busy_health()` ping path.
+
+**Failure mode:** `healthcheck()` holds the daemon's state lock while running `SELECT 1` via `_healthy(self.db)` with `deadline=None`, so a connection that went half-open during a transient upstream outage blocks the check indefinitely at the socket layer. Every later ping then fails fast with "prior WRDS healthcheck is still in progress" while `wrds_auth_error()` stays empty, which the Stage 3a preflight reads as WRDS-unreachable: a seconds-long network flap becomes a persistent `halted_wrds_unreachable` that survives upstream recovery. The runtime doc's recovery notes then point the operator at the wrong repair ("restore the WRDS service") — the service is up; the daemon is wedged. SIGTERM cannot clear it (graceful shutdown waits on the same lock) and `start_services.sh` correctly refuses to replace a live singleton, so recovery requires SIGKILL of the recorded PID plus a service restart. Observed twice in one day on a live run (eventcal, 2026-08-26, project commits `e762cde`/`5c8aedc`).
+
+**What would close it:** a bounded deadline on the healthcheck's `_healthy`/`_recover` calls plus a socket-level guard (TCP keepalives in `connect_args`, or an external watchdog that closes `self.db`), a deadline on `_busy_health()`'s `healthcheck` branch mirroring the existing `command` branch so a stuck check reports expiry (and can be reaped) instead of "in progress" forever, and a distinct client-visible wedged-daemon diagnostic so the preflight halt names the correct operator repair.
+
+**Tracking:** [#291](https://github.com/alejandroll10/zeropaper/issues/291).
+
+---
+
 ## `deepvest` skill: an LLM-mediated data source has no raw re-query path for the integrity audit
 
 **Scope:** the `--ext empirical` `deepvest` skill (`code/utils/deepvest_utils.py`, MCP server `api.deepvest.ai/mcp`) and the Stage 3a step 7.5 `data-integrity-auditor`, which verifies cached field values by re-querying the source.
