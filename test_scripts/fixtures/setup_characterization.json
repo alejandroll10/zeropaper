@@ -654,7 +654,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9c3917298a86d527632346ad0d4f5e82695b53aee7b4d6bfb67f325b6d992235",
+          "sha256": "4a32a268800e4896ba9e812d244b13a57c7c095ec0385d3d6586b143264302f3",
           "size": 1859,
           "type": "file"
         },
@@ -1578,8 +1578,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -1812,7 +1812,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -1945,7 +1945,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -2389,8 +2389,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "b43b6cda60a576bf7c4e74e208777f6c73cfcac56a697034204ff29144a3513f",
-          "size": 20186,
+          "sha256": "b78a88f44ceda41b09214b8d385a4bdf4f55d1ff45bca39a2bfc9401230ad2cb",
+          "size": 20192,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -2419,8 +2419,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -3037,8 +3037,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "b8ff8d680ce281c76621db899e476e11f9bac70093462d85c2b673984415c2ac",
-          "size": 20307,
+          "sha256": "e1279cdab4497a416cee61e1ab7f5fd1517749f8e1e7b355d1543726c2a76266",
+          "size": 20313,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -3067,8 +3067,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "697342cadaf0592d1509973db203451b328f40538971bccc99499718f30a1018",
-          "size": 19834,
+          "sha256": "f2ab71bb8b7da8511e6bcf76edbd8ef583332b05d789f4881ee6ffc21194d761",
+          "size": 19904,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -3295,7 +3295,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8212192498745886ac278ee9fbef99a50489d5b41455499523e9790d783fe8c4",
+          "sha256": "f8bf3bd206b4b48d7dcd99b87d40a4d6a59c73fff295c3fddae905ff457edb74",
           "size": 3117,
           "type": "file"
         },
@@ -3357,8 +3357,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "1d7d3f31f9539f7b782bbda47b4a3160b8a6aaa91733d1db79fdd95b0a149e56",
-          "size": 20264,
+          "sha256": "f7d2d5f3d9da94bcf0532cf622204e5f7b994b637ae68bb5590ee12c1442b98f",
+          "size": 20270,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -3387,8 +3387,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "21941e5b92ff3a191b6fecf19dbb2ded257d1255b2f27eec4fb263cf23565fed",
-          "size": 19790,
+          "sha256": "3750660573dcf90cc6f9fc6cad35b281dac507abba3f1f6adec2c6d2bdb8fe8f",
+          "size": 19860,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -3925,8 +3925,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6502740f052e447943606cb718cd108742af72048fdc3ed9e1b0de129196735a",
-          "size": 20369,
+          "sha256": "6dc8f316abf86ba3233b40ebfa7b63bfe9bb30e13e541fbc7ac04bfe3e199a90",
+          "size": 20375,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -3955,8 +3955,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -4213,20 +4213,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "514972ecc4e0952bd8955c88b5d8fefe50326e9a2f30160e22c1987215d7928d",
-          "size": 78432,
+          "sha256": "e1fa1f5a3d2d21c950efb69e25ac86bfd3cdd97704c724455f2d79b5ba3ba953",
+          "size": 78582,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "f4423bd288a6055e9595ed1fa9a7beb14c84b3e71fe2312752327ed86d8f8738",
-          "size": 68082,
+          "sha256": "6a5664ef7a523fdab1929aeabb7d7ca9c401e9652cc55584d143b8b63119fccd",
+          "size": 68232,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "846d9d85b7480bc8d61b9422766040815571c47f544b8ed934723ef92a3aedfd",
-          "size": 73254,
+          "sha256": "0a3a99be533514938591a30656bb1a436831c48420e5f400a6fa677f5a015c47",
+          "size": 73404,
           "type": "file"
         },
         "code": {
@@ -4359,8 +4359,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -4459,8 +4459,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -4631,8 +4631,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "168ea1b85c8576370fc88dbacc052f5d05d865a3d9782650a8f87c84422dec6d",
-          "size": 45961,
+          "sha256": "47d5a5ac87fbead80314631563c04c377036f1a2e84242a9081052bc7681d409",
+          "size": 46497,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -4797,7 +4797,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -4963,7 +4963,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -5407,8 +5407,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "b43b6cda60a576bf7c4e74e208777f6c73cfcac56a697034204ff29144a3513f",
-          "size": 20186,
+          "sha256": "b78a88f44ceda41b09214b8d385a4bdf4f55d1ff45bca39a2bfc9401230ad2cb",
+          "size": 20192,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -5437,8 +5437,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -6055,8 +6055,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "b8ff8d680ce281c76621db899e476e11f9bac70093462d85c2b673984415c2ac",
-          "size": 20307,
+          "sha256": "e1279cdab4497a416cee61e1ab7f5fd1517749f8e1e7b355d1543726c2a76266",
+          "size": 20313,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -6085,8 +6085,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "697342cadaf0592d1509973db203451b328f40538971bccc99499718f30a1018",
-          "size": 19834,
+          "sha256": "f2ab71bb8b7da8511e6bcf76edbd8ef583332b05d789f4881ee6ffc21194d761",
+          "size": 19904,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -6313,7 +6313,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ab4b853f3dad1af86dd9f16c4d0f6b172e49cdae148ea49cd8c5404e264c90ec",
+          "sha256": "aa1cc7fa77d5f46ab264f5ff2ccc5a76bae2a290b1695a1dcafd114defb433d7",
           "size": 3117,
           "type": "file"
         },
@@ -6375,8 +6375,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "1d7d3f31f9539f7b782bbda47b4a3160b8a6aaa91733d1db79fdd95b0a149e56",
-          "size": 20264,
+          "sha256": "f7d2d5f3d9da94bcf0532cf622204e5f7b994b637ae68bb5590ee12c1442b98f",
+          "size": 20270,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -6405,8 +6405,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "21941e5b92ff3a191b6fecf19dbb2ded257d1255b2f27eec4fb263cf23565fed",
-          "size": 19790,
+          "sha256": "3750660573dcf90cc6f9fc6cad35b281dac507abba3f1f6adec2c6d2bdb8fe8f",
+          "size": 19860,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -6943,8 +6943,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6502740f052e447943606cb718cd108742af72048fdc3ed9e1b0de129196735a",
-          "size": 20369,
+          "sha256": "6dc8f316abf86ba3233b40ebfa7b63bfe9bb30e13e541fbc7ac04bfe3e199a90",
+          "size": 20375,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -6973,8 +6973,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -7231,20 +7231,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "c63fd48a117b9642b59d0fdf8bd4cc7b7085adb232d8219a5d9b8df7b9236c95",
-          "size": 78432,
+          "sha256": "271778848d97d4ab328e672fb3fa81908c7ce5be19fb36402e3bc9b465a7084a",
+          "size": 78582,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "5b59702a7342946ff60f39dd0798c09c35fd3ba418f4166767ae2c0867062468",
-          "size": 68082,
+          "sha256": "7fdef46b50801f2295421b4a39fc92f0e870c1aef3e8225bdc16ac296ad97498",
+          "size": 68232,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "24033cff29e5c9c8e2396e682c0a4d79166dee64560375763bdb0da9fe8d55a9",
-          "size": 73254,
+          "sha256": "de9a26549ec58193a94c831d9bf38716a3eb5c2567ed35755cc8e2434a1210f3",
+          "size": 73404,
           "type": "file"
         },
         "code": {
@@ -7377,8 +7377,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -7477,8 +7477,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -7649,8 +7649,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "168ea1b85c8576370fc88dbacc052f5d05d865a3d9782650a8f87c84422dec6d",
-          "size": 45961,
+          "sha256": "47d5a5ac87fbead80314631563c04c377036f1a2e84242a9081052bc7681d409",
+          "size": 46497,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -7815,7 +7815,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -7981,7 +7981,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -8413,8 +8413,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "659efa81c8b295a20e4de6040b170bb730381848b66cf5a1a716871bee2f56fd",
-          "size": 22366,
+          "sha256": "9ec769f9a9ada6c967236874bc9d0d549e3c30d5339e6593929f344514a7fa1c",
+          "size": 22372,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -8431,8 +8431,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -9033,8 +9033,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "e6a6eb4560dd9d7e21c9f11be53939524bc28e7f32b5d4ff8de2f91b26ff3d99",
-          "size": 22487,
+          "sha256": "e84fefda907f45f5573fd072345fe2fccfd9c4a85541eff95d26b85d7c12b941",
+          "size": 22493,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -9051,8 +9051,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "697342cadaf0592d1509973db203451b328f40538971bccc99499718f30a1018",
-          "size": 19834,
+          "sha256": "f2ab71bb8b7da8511e6bcf76edbd8ef583332b05d789f4881ee6ffc21194d761",
+          "size": 19904,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -9267,7 +9267,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "de06d00af965ad5a97846ca87b4e4779b3695cb360b69ee06854adfb350196de",
+          "sha256": "2b6a8f5a0e1424a824f4959dcafbbc91d2ffd4f00e414e3b79f8d2258bc59e5a",
           "size": 3020,
           "type": "file"
         },
@@ -9335,8 +9335,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "3376b640f8bab9a179624d42af33fc3affa1fe4862f2b18d1ddd4f2691c31ecb",
-          "size": 22444,
+          "sha256": "761e4aa4844c65feb5e0a944eef7fb91de7085c7829d05a6d52a8e6941b89ac6",
+          "size": 22450,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -9353,8 +9353,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "21941e5b92ff3a191b6fecf19dbb2ded257d1255b2f27eec4fb263cf23565fed",
-          "size": 19790,
+          "sha256": "3750660573dcf90cc6f9fc6cad35b281dac507abba3f1f6adec2c6d2bdb8fe8f",
+          "size": 19860,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -9885,8 +9885,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9eb6d73b8d1451fecadccb94d40bed911c9c2bd580d5b6df9d2fc27ca9041870",
-          "size": 22549,
+          "sha256": "64d94a8ce1589ab90af19236b818983df78411d177d72afec9bc4f9cf244b1ba",
+          "size": 22555,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -9903,8 +9903,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -10149,20 +10149,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "214a5fbc07123d34c30a9a8f1b0259ee52d32e1b31a677e9d6bef44c9789cf4a",
-          "size": 74516,
+          "sha256": "4c6fec24243519f5bb6441e0164a421922028a506e0cfb92f461462ea6da0b4e",
+          "size": 74666,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "9af6ac23e76c2bf80c7b0bf9ef3a76d786d3904d0652a9d041ca5bb32dfd8c03",
-          "size": 64166,
+          "sha256": "125228d19a3891f4986cdd23f66e0cc7b6f32a68529b258cd8050d49613bd2c9",
+          "size": 64316,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "c0d276b5e599a96296ca57614862548997f015b73adccb1fd201975873d47ff3",
-          "size": 69338,
+          "sha256": "b99d70f39fac37808567920cf5e6ca75b8e9ffa05da0c58588e987f775129ad9",
+          "size": 69488,
           "type": "file"
         },
         "code": {
@@ -10295,8 +10295,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -10395,8 +10395,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -10567,8 +10567,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "8794c7167c6d586a8b537017f74972577865e08d4d3b230a995ad8009ffd5a13",
-          "size": 47906,
+          "sha256": "4df23368dd95afa169687a9327990e58a6f1d77b1a54a1da85712539bb661ca9",
+          "size": 48442,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -10709,7 +10709,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -10872,7 +10872,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -11307,8 +11307,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "a7186fb31b71523f58e517528d6a2f47911aad64e9488efa15f6f5a5a13d098c",
-          "size": 22368,
+          "sha256": "f56816e1070c012aef499c534a409aab6e18638d5219ebcc96d4309ab2b9e52f",
+          "size": 22374,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -11331,8 +11331,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -11933,8 +11933,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "8f5f249126847fd9e56003f3e1cffc56d5ffcb69e8db45870e24f2d13cfc6942",
-          "size": 22454,
+          "sha256": "367758c795f5e6dda5eacf38d9325f1bb905f95714c8e5dc280bea3d7a98a55c",
+          "size": 22460,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -11957,8 +11957,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "8b981d6bc46a8b06f83609fdfafe11c5b4e6d4a742c7b766b2daa5ab6941130d",
-          "size": 19800,
+          "sha256": "a0060edc9a8da5215cb00c0860b9821ca0ca9ad837c3529c93929799c1c9622a",
+          "size": 19870,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -12173,7 +12173,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "437866433c419cd06a45060712b50e8edfa2bf40aa1d63f85ebc46005ff318d7",
+          "sha256": "ad0ae09decada90d41999a8c188639b8c3bc3ebb3e3a3b390134acb29a52c770",
           "size": 3016,
           "type": "file"
         },
@@ -12241,8 +12241,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6e6a49634d300cc93801bae2910f495602138f671327193a18d6898e0353d014",
-          "size": 22450,
+          "sha256": "4eff262b1d3df90953c859bd4842e8f2cb41d02bb8e2f39e7d9b562b3e8a02ca",
+          "size": 22456,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -12265,8 +12265,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "379d10afe4d35f96d5407261f1b3c8cb8520c7a72d703beb7838a45de82fbb52",
-          "size": 19796,
+          "sha256": "4187851670a4c1d5d0dbef5ba85ea8368426e3f83f2533beb4de7c30fb886c7f",
+          "size": 19866,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -12803,8 +12803,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9eb6d73b8d1451fecadccb94d40bed911c9c2bd580d5b6df9d2fc27ca9041870",
-          "size": 22549,
+          "sha256": "64d94a8ce1589ab90af19236b818983df78411d177d72afec9bc4f9cf244b1ba",
+          "size": 22555,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -12827,8 +12827,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -13073,20 +13073,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "7160e543d3d1aee0623c23c97babc0c1edb54fb1febeebbb4911055a05690b72",
-          "size": 98539,
+          "sha256": "471a35894ebc3233cb0d1f2db91a04891aa7490f7f2ac7371447227626d51d64",
+          "size": 98689,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "02ac7adc574e3b37e0133dd1c11239207ac82fd3937655706fae2fa29687f908",
-          "size": 88189,
+          "sha256": "c8e5980db95bf0dc19b7d9b0f1d9495d66c3b19352f0f5f34fbe617d4fcad661",
+          "size": 88339,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "4c30b3944b6112c788f891a5d595a905127a800a3baf773b9603e9a82ac693c4",
-          "size": 93361,
+          "sha256": "53906756aca036daa80738556a99d3371c393b53c568b492103e443891452f77",
+          "size": 93511,
           "type": "file"
         },
         "code": {
@@ -13219,8 +13219,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -13319,8 +13319,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -13491,8 +13491,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "78edaf8776331ecee8a19f6c20ff0b12c6f4b08ce6f0ec29022047613d922f97",
-          "size": 48872,
+          "sha256": "33a68e2afaf625648d73556f2aaf9af0b60a9eff24179a73ea6a61f7d35af278",
+          "size": 49408,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -13643,7 +13643,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -13812,7 +13812,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -14245,8 +14245,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "b3c7c023723e442b725d8583ffc05cfac8737a25c80e6a98b8d1021370449ec7",
-          "size": 23114,
+          "sha256": "cfee1ce5c06d9e5bd7b932ce443aaa968ec619e42b7c806165790c865a6ee428",
+          "size": 23120,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -14263,8 +14263,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "ca1220850fe84d0711d694396ef210af711234abb304a9bf94e98cf16942efb8",
-          "size": 20462,
+          "sha256": "99878f5e72d64551bba20d883993890b9b22895b6e17273cf1cc0d57fdbee3d7",
+          "size": 20532,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -14865,8 +14865,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "e9d3a519d958817caa40a103f7bc11653a892ff95e2d5aeab9b58492dde809fb",
-          "size": 23235,
+          "sha256": "c0cd412b1141fa8f61f54cd072595144070906417bf2c7161794e3afd96b6fbd",
+          "size": 23241,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -14883,8 +14883,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "29755acc3b35cad5bc3abc0be4fea0f4464bbe1e4a739cd510d31a1c410a0beb",
-          "size": 20582,
+          "sha256": "a8ac4ac10e0d888234aa29ff61cbc8f799d88d4f40f2ac2dea6dda9c7b33c98d",
+          "size": 20652,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -15099,7 +15099,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "dbca122573818e315217c53956d7840343e3b5e09f12b2340625ec2a3e7b3aa3",
+          "sha256": "b7b55eca6a1f620da6eee9feca90ddd1cd3f3115d33e6ae4e1f91980aef96cbd",
           "size": 2995,
           "type": "file"
         },
@@ -15167,8 +15167,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "a0b51830400ac5fec2bb95f98a53d8897f306af6804be092cb309b86ebf6767f",
-          "size": 23192,
+          "sha256": "4aaafb79205f422d45709feb5040ef3db95f1a0de418101483c9953e46e618d7",
+          "size": 23198,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -15185,8 +15185,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "ab861b9b66e81cc505d64d27ea58a93e753a96ece74c13e8a29f7131970accd3",
-          "size": 20538,
+          "sha256": "6b474a0f7de9c507a5e304d41b9cdfe2953a09b44e7f2232530b9318d34e2677",
+          "size": 20608,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -15717,8 +15717,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "e14a13047afdba020df405ab10d9499aa77765e6c617d6ef43a02c1785587fc8",
-          "size": 23297,
+          "sha256": "7ccb7ffe04fe244811bebf555cc57d2c5d48a7a90de528878df883f44227ce94",
+          "size": 23303,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -15735,8 +15735,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "c9638fc595986bcf7e58d53496e892b4a5c1d620e52720e72792352455d65585",
-          "size": 20640,
+          "sha256": "41c189ab864d23121bb6fb4ad36dc87bc4716ae046b51b2986c987100f6ed494",
+          "size": 20710,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -16127,8 +16127,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -16227,8 +16227,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -16393,8 +16393,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "8794c7167c6d586a8b537017f74972577865e08d4d3b230a995ad8009ffd5a13",
-          "size": 47906,
+          "sha256": "4df23368dd95afa169687a9327990e58a6f1d77b1a54a1da85712539bb661ca9",
+          "size": 48442,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -16495,7 +16495,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "39f87ffd1379125f8d4874b53313ff839b95ffd633397871730266723aa3a3c8",
+          "sha256": "633d2c6e0aada5d8341fdb1af71f3466628d43671eb19de2207281c02fe70e74",
           "size": 15387,
           "type": "file"
         },
@@ -16637,7 +16637,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -17070,8 +17070,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "659efa81c8b295a20e4de6040b170bb730381848b66cf5a1a716871bee2f56fd",
-          "size": 22366,
+          "sha256": "9ec769f9a9ada6c967236874bc9d0d549e3c30d5339e6593929f344514a7fa1c",
+          "size": 22372,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -17088,8 +17088,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -17690,8 +17690,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "e6a6eb4560dd9d7e21c9f11be53939524bc28e7f32b5d4ff8de2f91b26ff3d99",
-          "size": 22487,
+          "sha256": "e84fefda907f45f5573fd072345fe2fccfd9c4a85541eff95d26b85d7c12b941",
+          "size": 22493,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -17708,8 +17708,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "697342cadaf0592d1509973db203451b328f40538971bccc99499718f30a1018",
-          "size": 19834,
+          "sha256": "f2ab71bb8b7da8511e6bcf76edbd8ef583332b05d789f4881ee6ffc21194d761",
+          "size": 19904,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -17924,7 +17924,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "84e15c78224b587b2aa4346c7f1beb4846bbfcad6b3581c1aba80832e7598d13",
+          "sha256": "1ff79d728878bb8d7cbf8fa83c0ef19100e38bd513ff994a0fd0dc5ee08d44e8",
           "size": 3019,
           "type": "file"
         },
@@ -17992,8 +17992,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "3376b640f8bab9a179624d42af33fc3affa1fe4862f2b18d1ddd4f2691c31ecb",
-          "size": 22444,
+          "sha256": "761e4aa4844c65feb5e0a944eef7fb91de7085c7829d05a6d52a8e6941b89ac6",
+          "size": 22450,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -18010,8 +18010,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "21941e5b92ff3a191b6fecf19dbb2ded257d1255b2f27eec4fb263cf23565fed",
-          "size": 19790,
+          "sha256": "3750660573dcf90cc6f9fc6cad35b281dac507abba3f1f6adec2c6d2bdb8fe8f",
+          "size": 19860,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -18542,8 +18542,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9eb6d73b8d1451fecadccb94d40bed911c9c2bd580d5b6df9d2fc27ca9041870",
-          "size": 22549,
+          "sha256": "64d94a8ce1589ab90af19236b818983df78411d177d72afec9bc4f9cf244b1ba",
+          "size": 22555,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -18560,8 +18560,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -18806,20 +18806,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "a37a08396447f60f12e7c4d15a8225b01d7cbf999bd66b39da37c1330ae43b5b",
-          "size": 80727,
+          "sha256": "3b5877775c7ad4442f551bfd818cb94500eff23dd4fb50ab41867acc66ea579d",
+          "size": 80877,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "8b5d73379a91ad069cbc934a44da05fe97a409c05897cfb94c9cffebfc2478f3",
-          "size": 70377,
+          "sha256": "4a2d24e87e49a5296d632faf39bb4ea826a6f01a6ef2a7c6548496e111f320e0",
+          "size": 70527,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "f9608cd3efe4339f45ceb84799c79bc4896a5eec445338f286e41e82d0780332",
-          "size": 75549,
+          "sha256": "96ab6c0f3fa808e72162f821638654cf7dd1108a80176513702ac1d209654f56",
+          "size": 75699,
           "type": "file"
         },
         "code": {
@@ -18952,8 +18952,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -19052,8 +19052,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -19224,8 +19224,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "78edaf8776331ecee8a19f6c20ff0b12c6f4b08ce6f0ec29022047613d922f97",
-          "size": 48872,
+          "sha256": "33a68e2afaf625648d73556f2aaf9af0b60a9eff24179a73ea6a61f7d35af278",
+          "size": 49408,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -19376,7 +19376,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -19539,7 +19539,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -20194,7 +20194,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9c3917298a86d527632346ad0d4f5e82695b53aee7b4d6bfb67f325b6d992235",
+          "sha256": "4a32a268800e4896ba9e812d244b13a57c7c095ec0385d3d6586b143264302f3",
           "size": 1859,
           "type": "file"
         },
@@ -21118,8 +21118,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -21352,7 +21352,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -21485,7 +21485,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -21932,8 +21932,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "b43b6cda60a576bf7c4e74e208777f6c73cfcac56a697034204ff29144a3513f",
-          "size": 20186,
+          "sha256": "b78a88f44ceda41b09214b8d385a4bdf4f55d1ff45bca39a2bfc9401230ad2cb",
+          "size": 20192,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -21962,8 +21962,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -22580,8 +22580,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "b8ff8d680ce281c76621db899e476e11f9bac70093462d85c2b673984415c2ac",
-          "size": 20307,
+          "sha256": "e1279cdab4497a416cee61e1ab7f5fd1517749f8e1e7b355d1543726c2a76266",
+          "size": 20313,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -22610,8 +22610,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "697342cadaf0592d1509973db203451b328f40538971bccc99499718f30a1018",
-          "size": 19834,
+          "sha256": "f2ab71bb8b7da8511e6bcf76edbd8ef583332b05d789f4881ee6ffc21194d761",
+          "size": 19904,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -22838,7 +22838,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8212192498745886ac278ee9fbef99a50489d5b41455499523e9790d783fe8c4",
+          "sha256": "f8bf3bd206b4b48d7dcd99b87d40a4d6a59c73fff295c3fddae905ff457edb74",
           "size": 3117,
           "type": "file"
         },
@@ -22900,8 +22900,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "1d7d3f31f9539f7b782bbda47b4a3160b8a6aaa91733d1db79fdd95b0a149e56",
-          "size": 20264,
+          "sha256": "f7d2d5f3d9da94bcf0532cf622204e5f7b994b637ae68bb5590ee12c1442b98f",
+          "size": 20270,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -22930,8 +22930,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "21941e5b92ff3a191b6fecf19dbb2ded257d1255b2f27eec4fb263cf23565fed",
-          "size": 19790,
+          "sha256": "3750660573dcf90cc6f9fc6cad35b281dac507abba3f1f6adec2c6d2bdb8fe8f",
+          "size": 19860,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -23468,8 +23468,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6502740f052e447943606cb718cd108742af72048fdc3ed9e1b0de129196735a",
-          "size": 20369,
+          "sha256": "6dc8f316abf86ba3233b40ebfa7b63bfe9bb30e13e541fbc7ac04bfe3e199a90",
+          "size": 20375,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -23498,8 +23498,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -23756,20 +23756,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "514972ecc4e0952bd8955c88b5d8fefe50326e9a2f30160e22c1987215d7928d",
-          "size": 78432,
+          "sha256": "e1fa1f5a3d2d21c950efb69e25ac86bfd3cdd97704c724455f2d79b5ba3ba953",
+          "size": 78582,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "f4423bd288a6055e9595ed1fa9a7beb14c84b3e71fe2312752327ed86d8f8738",
-          "size": 68082,
+          "sha256": "6a5664ef7a523fdab1929aeabb7d7ca9c401e9652cc55584d143b8b63119fccd",
+          "size": 68232,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "846d9d85b7480bc8d61b9422766040815571c47f544b8ed934723ef92a3aedfd",
-          "size": 73254,
+          "sha256": "0a3a99be533514938591a30656bb1a436831c48420e5f400a6fa677f5a015c47",
+          "size": 73404,
           "type": "file"
         },
         "code": {
@@ -23902,8 +23902,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -24002,8 +24002,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -24174,8 +24174,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "168ea1b85c8576370fc88dbacc052f5d05d865a3d9782650a8f87c84422dec6d",
-          "size": 45961,
+          "sha256": "47d5a5ac87fbead80314631563c04c377036f1a2e84242a9081052bc7681d409",
+          "size": 46497,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -24340,7 +24340,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -24506,7 +24506,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -24932,8 +24932,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "b43b6cda60a576bf7c4e74e208777f6c73cfcac56a697034204ff29144a3513f",
-          "size": 20186,
+          "sha256": "b78a88f44ceda41b09214b8d385a4bdf4f55d1ff45bca39a2bfc9401230ad2cb",
+          "size": 20192,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -24950,8 +24950,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -25552,8 +25552,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "b8ff8d680ce281c76621db899e476e11f9bac70093462d85c2b673984415c2ac",
-          "size": 20307,
+          "sha256": "e1279cdab4497a416cee61e1ab7f5fd1517749f8e1e7b355d1543726c2a76266",
+          "size": 20313,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -25570,8 +25570,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "697342cadaf0592d1509973db203451b328f40538971bccc99499718f30a1018",
-          "size": 19834,
+          "sha256": "f2ab71bb8b7da8511e6bcf76edbd8ef583332b05d789f4881ee6ffc21194d761",
+          "size": 19904,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -25792,7 +25792,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "735cf46df3cdd3b2a8acf6cd92a3ddb544bdf840290e1981531f10e5d2449a48",
+          "sha256": "baf368524f2ee7c62009d6976f91bb13440d1bccb03daad74b553c0be752e0bf",
           "size": 3010,
           "type": "file"
         },
@@ -25854,8 +25854,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "1d7d3f31f9539f7b782bbda47b4a3160b8a6aaa91733d1db79fdd95b0a149e56",
-          "size": 20264,
+          "sha256": "f7d2d5f3d9da94bcf0532cf622204e5f7b994b637ae68bb5590ee12c1442b98f",
+          "size": 20270,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -25872,8 +25872,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "21941e5b92ff3a191b6fecf19dbb2ded257d1255b2f27eec4fb263cf23565fed",
-          "size": 19790,
+          "sha256": "3750660573dcf90cc6f9fc6cad35b281dac507abba3f1f6adec2c6d2bdb8fe8f",
+          "size": 19860,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -26404,8 +26404,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6502740f052e447943606cb718cd108742af72048fdc3ed9e1b0de129196735a",
-          "size": 20369,
+          "sha256": "6dc8f316abf86ba3233b40ebfa7b63bfe9bb30e13e541fbc7ac04bfe3e199a90",
+          "size": 20375,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -26422,8 +26422,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -26674,20 +26674,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "8973e95c43895dd9f987e470072758407d8f7c7ce66bbc8f53004ddb4b1a7456",
-          "size": 77194,
+          "sha256": "efdd5fb4a15102385d7336c66a911f6f86278e0a545dfa0032db54c8611578d6",
+          "size": 77344,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "3bb94a45c2c86bc5c63bb7f3bad57f65195b33540086284c33a1799168090431",
-          "size": 66844,
+          "sha256": "ada841c605b4dab0ab8ec263e24dd1467fe4d2fc6cdb5afe7381258f3a3d3c5f",
+          "size": 66994,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "4592b5edb68e346780f620539fa5c1d52e837da52804451989dd5ddb25bb3750",
-          "size": 72016,
+          "sha256": "9afbd06df937e0faa3c40b2541f505a077919853fd0742c72176fb244cc4c24d",
+          "size": 72166,
           "type": "file"
         },
         "code": {
@@ -26820,8 +26820,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -26920,8 +26920,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -27092,8 +27092,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "168ea1b85c8576370fc88dbacc052f5d05d865a3d9782650a8f87c84422dec6d",
-          "size": 45961,
+          "sha256": "47d5a5ac87fbead80314631563c04c377036f1a2e84242a9081052bc7681d409",
+          "size": 46497,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -27238,7 +27238,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -27401,7 +27401,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -27827,8 +27827,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "c110b05c9b77b98e66628abca9400b661af0380bf0d44dbf7c380dad13951426",
-          "size": 23008,
+          "sha256": "04a20eb60fb57f53cefccca4d9ccd01ec634a88a12356e0aea636e53e5816d2d",
+          "size": 23014,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -27845,8 +27845,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -28453,8 +28453,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "32d102ae14bb8e15770d0cdeffb3991227348cd4d4f23f72e6fda70c06991ef8",
-          "size": 23129,
+          "sha256": "397214c59558af08da18f176f8dd90328f816498458375ec9e2a8d2b955107c0",
+          "size": 23135,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -28471,8 +28471,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "697342cadaf0592d1509973db203451b328f40538971bccc99499718f30a1018",
-          "size": 19834,
+          "sha256": "f2ab71bb8b7da8511e6bcf76edbd8ef583332b05d789f4881ee6ffc21194d761",
+          "size": 19904,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -28699,7 +28699,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "64f7380903ab23bf7d10d8b8e9430e10f16f3499ab7043b126cec01092038e7f",
+          "sha256": "e6c2b1e43ba54272e6533733dde636c6f9ec201f88be6e5bace11fbce2e7eb93",
           "size": 3025,
           "type": "file"
         },
@@ -28761,8 +28761,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "3d99f5e3f67821c250c8718517cb056ef245f10bd759f5b8e90cbb1dd021b5f6",
-          "size": 23086,
+          "sha256": "497082a1b2de1755b864449ad9d34c4f693fedae1da55de5086e7fe7da3adfc1",
+          "size": 23092,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -28779,8 +28779,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "21941e5b92ff3a191b6fecf19dbb2ded257d1255b2f27eec4fb263cf23565fed",
-          "size": 19790,
+          "sha256": "3750660573dcf90cc6f9fc6cad35b281dac507abba3f1f6adec2c6d2bdb8fe8f",
+          "size": 19860,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -29317,8 +29317,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "3993bee0f5d097f6e5a3d07d30fdf6dbf2d9d4cd90fab4aa727bb3829bc39c18",
-          "size": 23191,
+          "sha256": "2131eb0aeca7467da24cdddab38b5a604d735a6cce6c4e2889822629e20ac591",
+          "size": 23197,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -29335,8 +29335,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -29593,20 +29593,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "01becd47136c483a919d652509176fffbe8122e5824325579c41937ce2038fb2",
-          "size": 79532,
+          "sha256": "286725b12f5d1d16096d08acb65d9f7814ab1cdd14a2747b93e45dc685fed5f4",
+          "size": 79682,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "238987cf53df3a0670257b75e3e5c6a1635da937b1fa81c49b7bcce06d50b75e",
-          "size": 69182,
+          "sha256": "53bbcaac686cffe0a6c866f315aa7d2ad7dc20bdfa1253945bc1faf839473698",
+          "size": 69332,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "06177fa4120e786a926ac6b356fe4b49742f94137f71e732c0684418e421467e",
-          "size": 74354,
+          "sha256": "c801a3aae9bbba7d8a089360776ae1e3b3d3d4f1474602a6a17f5e31bcefe327",
+          "size": 74504,
           "type": "file"
         },
         "code": {
@@ -29739,8 +29739,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -29839,8 +29839,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -30011,8 +30011,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "b148c3113eeb67bc91ae1cd07bda19d962b8ac0ae6333b48c3afd2733a604b6f",
-          "size": 48674,
+          "sha256": "cb9139d782a7f52b3cca4462d91f562e86bd995f5011fc6daaa744547dcca47b",
+          "size": 49210,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -30149,7 +30149,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -30312,7 +30312,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -30756,8 +30756,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "c110b05c9b77b98e66628abca9400b661af0380bf0d44dbf7c380dad13951426",
-          "size": 23008,
+          "sha256": "04a20eb60fb57f53cefccca4d9ccd01ec634a88a12356e0aea636e53e5816d2d",
+          "size": 23014,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -30786,8 +30786,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -31410,8 +31410,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "32d102ae14bb8e15770d0cdeffb3991227348cd4d4f23f72e6fda70c06991ef8",
-          "size": 23129,
+          "sha256": "397214c59558af08da18f176f8dd90328f816498458375ec9e2a8d2b955107c0",
+          "size": 23135,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -31440,8 +31440,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "697342cadaf0592d1509973db203451b328f40538971bccc99499718f30a1018",
-          "size": 19834,
+          "sha256": "f2ab71bb8b7da8511e6bcf76edbd8ef583332b05d789f4881ee6ffc21194d761",
+          "size": 19904,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -31674,7 +31674,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "4d420c5125180527b1639beae5a4bd32b25d8fe998e166402350ab07f4b98f75",
+          "sha256": "69e337487c7f2c27273e205acf58086bd4dcaedf12cdc05ef559f260fc3d0a5d",
           "size": 3132,
           "type": "file"
         },
@@ -31736,8 +31736,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "3d99f5e3f67821c250c8718517cb056ef245f10bd759f5b8e90cbb1dd021b5f6",
-          "size": 23086,
+          "sha256": "497082a1b2de1755b864449ad9d34c4f693fedae1da55de5086e7fe7da3adfc1",
+          "size": 23092,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -31766,8 +31766,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "21941e5b92ff3a191b6fecf19dbb2ded257d1255b2f27eec4fb263cf23565fed",
-          "size": 19790,
+          "sha256": "3750660573dcf90cc6f9fc6cad35b281dac507abba3f1f6adec2c6d2bdb8fe8f",
+          "size": 19860,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -32310,8 +32310,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "3993bee0f5d097f6e5a3d07d30fdf6dbf2d9d4cd90fab4aa727bb3829bc39c18",
-          "size": 23191,
+          "sha256": "2131eb0aeca7467da24cdddab38b5a604d735a6cce6c4e2889822629e20ac591",
+          "size": 23197,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -32340,8 +32340,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -32604,20 +32604,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "73f294a09c4afc868b8fd1c5801868049b776a86d158ee9ac306caf70489b78d",
-          "size": 80770,
+          "sha256": "72bc017b21e3fd6c2ad7064dbbb658abfea1b36be136498f4e99b2cebccd5965",
+          "size": 80920,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "feb1d85dc772dd6e1e376a2a1618a0ed936d304c09867cf665a034f8782bbe06",
-          "size": 70420,
+          "sha256": "35f9ffa5ee9754d55f1c7e6032ca0cfdf7cb68735695af8f6cce975bc733dc23",
+          "size": 70570,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "a4723484d7279e731346f288893c24a74492348668cbfc9d9b867da6ee00e9e5",
-          "size": 75592,
+          "sha256": "f75aee5a2eb54c5e3c281b14843782e91d3fa8ddaaa0f0642d71934634f70ca2",
+          "size": 75742,
           "type": "file"
         },
         "code": {
@@ -32750,8 +32750,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -32850,8 +32850,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -33022,8 +33022,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "b148c3113eeb67bc91ae1cd07bda19d962b8ac0ae6333b48c3afd2733a604b6f",
-          "size": 48674,
+          "sha256": "cb9139d782a7f52b3cca4462d91f562e86bd995f5011fc6daaa744547dcca47b",
+          "size": 49210,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -33180,7 +33180,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -33346,7 +33346,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -34005,7 +34005,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9c3917298a86d527632346ad0d4f5e82695b53aee7b4d6bfb67f325b6d992235",
+          "sha256": "4a32a268800e4896ba9e812d244b13a57c7c095ec0385d3d6586b143264302f3",
           "size": 1859,
           "type": "file"
         },
@@ -34929,8 +34929,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -35163,7 +35163,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -35296,7 +35296,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -35725,8 +35725,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "d50f1f7b1b905a3ead9b068bcc57b4360811c7f6851e13d432310e28feab8e28",
-          "size": 20188,
+          "sha256": "395c0a63781f2599e69004b1b1368955c0297e76434825834f0c7b5cac13a870",
+          "size": 20194,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -35749,8 +35749,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -36351,8 +36351,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "db4fd17bf37a367540490a0292794c9df831310a2c4d41e0a58538a2ce98ee29",
-          "size": 20274,
+          "sha256": "73d6dd6706b601f7c4c9ef30ede99459076e6cc8cef2a30a75997fda64756874",
+          "size": 20280,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -36375,8 +36375,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "8b981d6bc46a8b06f83609fdfafe11c5b4e6d4a742c7b766b2daa5ab6941130d",
-          "size": 19800,
+          "sha256": "a0060edc9a8da5215cb00c0860b9821ca0ca9ad837c3529c93929799c1c9622a",
+          "size": 19870,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -36597,7 +36597,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "39652ac141e0456d48d4ed595c6124b10335b9b4bd8aef1c4c1c0ce58e4702c2",
+          "sha256": "e138d886745313768e4c1b41e98f463847ce49e02cfebb30c14c57024d00bdee",
           "size": 3006,
           "type": "file"
         },
@@ -36659,8 +36659,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6fe6343afaa414ed98833ee958849f1c9aa913e2e8cd1fbb46a25bc4b5e67aa9",
-          "size": 20270,
+          "sha256": "7c0c49814772cc404b75a6001dc34a73991b2ea7952dc7428108b3a1efeb2a9b",
+          "size": 20276,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -36683,8 +36683,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "379d10afe4d35f96d5407261f1b3c8cb8520c7a72d703beb7838a45de82fbb52",
-          "size": 19796,
+          "sha256": "4187851670a4c1d5d0dbef5ba85ea8368426e3f83f2533beb4de7c30fb886c7f",
+          "size": 19866,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -37221,8 +37221,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6502740f052e447943606cb718cd108742af72048fdc3ed9e1b0de129196735a",
-          "size": 20369,
+          "sha256": "6dc8f316abf86ba3233b40ebfa7b63bfe9bb30e13e541fbc7ac04bfe3e199a90",
+          "size": 20375,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -37245,8 +37245,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -37497,20 +37497,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "000b959ad0aaa37769b599037662d2da2bc5f1bf57280cf7965ac06bf18566c1",
-          "size": 101217,
+          "sha256": "60eeda3ecac8ddceb498af73af010226b663796a2d02fe498cd771f8671578b2",
+          "size": 101367,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "1bceb5de4643e03cdb38a057ecb751365c180b25ffdfd4b18934ff6cfda05647",
-          "size": 90867,
+          "sha256": "4a5ac67ecdd67b4d0754d3fb75f1a1809a13d66db19b4ac77921ed6318c0afd2",
+          "size": 91017,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "2ba1730b8cbc483c30285660fce9a427d27185538df337db9cbb27226124600f",
-          "size": 96039,
+          "sha256": "c7cd9d8653f9eb195eae448a6ab93365f46cc2a4ee119b63fb17519ac368c32d",
+          "size": 96189,
           "type": "file"
         },
         "code": {
@@ -37643,8 +37643,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -37743,8 +37743,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -37915,8 +37915,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "e1429bab0cd9b156e8ab713d27e30e14dc211b3ed0dba571e4fd6080c60d3ba5",
-          "size": 46927,
+          "sha256": "e39d5eabcc37f0962a2201d32398b2e7da121044ead5e064b07970903108be5d",
+          "size": 47463,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -38071,7 +38071,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -38240,7 +38240,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -38899,7 +38899,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a515f5ab1e308267ed06786f202e41538ca1c0822ebe8dc885dfe08dc5f0bbe8",
+          "sha256": "ff8d5b27d5f0a227056ba01480b05e728a4f5ddacf3225d60ae0d16b472dee99",
           "size": 1858,
           "type": "file"
         },
@@ -39823,8 +39823,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -40057,7 +40057,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -40190,7 +40190,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -40915,7 +40915,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e2f860b55508c6c6fb4103d23087b9f383599fd990901e5b0bf7b4517a9d085a",
+          "sha256": "d13558816daf8c64c42601c68e6aa6029e3d2a1c474b1abca3d56575a31d41dc",
           "size": 1968,
           "type": "file"
         },
@@ -41875,8 +41875,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -42129,7 +42129,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -42266,7 +42266,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -42990,7 +42990,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e2f860b55508c6c6fb4103d23087b9f383599fd990901e5b0bf7b4517a9d085a",
+          "sha256": "d13558816daf8c64c42601c68e6aa6029e3d2a1c474b1abca3d56575a31d41dc",
           "size": 1968,
           "type": "file"
         },
@@ -43950,8 +43950,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -44204,7 +44204,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -44341,7 +44341,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -45000,7 +45000,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0bf789ed62b82f4769756dd3291563ace982c14ab51c29e99036a86e588eeb33",
+          "sha256": "12288d50081ef5f4c2c84b65289a209538a6e00397c95983a1d4166717d413c6",
           "size": 1858,
           "type": "file"
         },
@@ -45924,8 +45924,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -46158,7 +46158,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -46291,7 +46291,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -46736,8 +46736,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "512e9a70fd9e619f006225f4797f31004bcf50d6f53c348787a5592eff553260",
-          "size": 20934,
+          "sha256": "238f2d46d39cdf8df535bfd587b6cd953c0e6b9d5f334e1fcba60b7ee6cbe611",
+          "size": 20940,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -46766,8 +46766,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "ca1220850fe84d0711d694396ef210af711234abb304a9bf94e98cf16942efb8",
-          "size": 20462,
+          "sha256": "99878f5e72d64551bba20d883993890b9b22895b6e17273cf1cc0d57fdbee3d7",
+          "size": 20532,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -47384,8 +47384,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "704c752b7712ca98853d521d1313cfb66ac9e28001aecea59bd058e82cd73f83",
-          "size": 21055,
+          "sha256": "0ad9b8efd6d48f3490f578b5dbfa46c0a9862581a39aaf63d8082ffce7153e4f",
+          "size": 21061,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -47414,8 +47414,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "29755acc3b35cad5bc3abc0be4fea0f4464bbe1e4a739cd510d31a1c410a0beb",
-          "size": 20582,
+          "sha256": "a8ac4ac10e0d888234aa29ff61cbc8f799d88d4f40f2ac2dea6dda9c7b33c98d",
+          "size": 20652,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -47642,7 +47642,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bf64b00fee98fa9d75de47818c7235f641a2eb39cfc997d9edd30c95bfc1bad7",
+          "sha256": "5ddda2bb7c5c63ef56d417b5a7d7c2fcd5f7df940e87d6d53a2e9a40974689b2",
           "size": 3092,
           "type": "file"
         },
@@ -47704,8 +47704,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "76824e7e93d6fe56209571c4e9484c82668bf6bee3f09b9fb93c7bd0bb0ef0d3",
-          "size": 21012,
+          "sha256": "213eb0f2ef5da0ca779e751392f56e2f28d1389eb88b43355752507cbbfa07c1",
+          "size": 21018,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -47734,8 +47734,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "ab861b9b66e81cc505d64d27ea58a93e753a96ece74c13e8a29f7131970accd3",
-          "size": 20538,
+          "sha256": "6b474a0f7de9c507a5e304d41b9cdfe2953a09b44e7f2232530b9318d34e2677",
+          "size": 20608,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -48272,8 +48272,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "36cda7c8b5fcb0e05a224ce5495989aa76b389195be1bfa30daa2654e49b428d",
-          "size": 21117,
+          "sha256": "028ab0016db19d006ca9b2d50b12d3b1cefdb08a37dace1e9b25f89b6aa4615e",
+          "size": 21123,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -48302,8 +48302,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "c9638fc595986bcf7e58d53496e892b4a5c1d620e52720e72792352455d65585",
-          "size": 20640,
+          "sha256": "41c189ab864d23121bb6fb4ad36dc87bc4716ae046b51b2986c987100f6ed494",
+          "size": 20710,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -48706,8 +48706,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -48806,8 +48806,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -48972,8 +48972,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "168ea1b85c8576370fc88dbacc052f5d05d865a3d9782650a8f87c84422dec6d",
-          "size": 45961,
+          "sha256": "47d5a5ac87fbead80314631563c04c377036f1a2e84242a9081052bc7681d409",
+          "size": 46497,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -49086,7 +49086,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "39f87ffd1379125f8d4874b53313ff839b95ffd633397871730266723aa3a3c8",
+          "sha256": "633d2c6e0aada5d8341fdb1af71f3466628d43671eb19de2207281c02fe70e74",
           "size": 15387,
           "type": "file"
         },
@@ -49231,7 +49231,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -49651,7 +49651,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "91fb9b96ad66de6e205cd1ace879ed69f674e42f6aaa879ffb7901653a6ace8a",
+          "sha256": "426cf66b3e3bf9f3e02b759a1e8a0fb79bfa9c93a066893c1185915d4e33a90f",
           "size": 1841,
           "type": "file"
         },
@@ -50203,8 +50203,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -50395,7 +50395,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -51375,7 +51375,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e273adfdf8166575c89a8ee076939c2cd45b7925469e1bd69ac74af9ceaf5edf",
+          "sha256": "79ed9eb0637579e33591dba90c3476b319ee2cdd8c94ff6a4b1eb4eccc94f796",
           "size": 3099,
           "type": "file"
         },
@@ -51935,8 +51935,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -52035,8 +52035,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -52336,7 +52336,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -53316,7 +53316,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "13abd157cf4f1d122a141071a2f4ba2bebe853656d60c20dca1b2a259cee4bc0",
+          "sha256": "0398c95f8430514e63c7b4f1c6c115e68f326339eacfa72405a2b75a6fd16ca6",
           "size": 3099,
           "type": "file"
         },
@@ -53876,8 +53876,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -53976,8 +53976,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -54277,7 +54277,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -55229,7 +55229,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "565e3f7d6752c0be24e367047bbe99348dca19463c9abf47d2760950564e9751",
+          "sha256": "89449d61f67f07d30cc74ffebe290dfd60127f2629120300d9d7baa8c739cf3d",
           "size": 2992,
           "type": "file"
         },
@@ -55789,8 +55789,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -55889,8 +55889,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -56181,7 +56181,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -56602,7 +56602,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5117645a7fb2161bfc7135624b47c41c005a90ee2b6fa18e1b7036b2ad8ca02d",
+          "sha256": "158d20cd90f73dfc4d37511aff0740a0f6917a81207b751470d044eebdda3be5",
           "size": 1840,
           "type": "file"
         },
@@ -57154,8 +57154,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -57346,7 +57346,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -57798,7 +57798,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8acb3d93eb08a3e42395dd8e2b146d018e5062968936cd7fef1cc96f47d10758",
+          "sha256": "688f3f6f55c2f01167a176556fa5cf14c5d9be15299e2984c197bf57ef4cd0e8",
           "size": 1950,
           "type": "file"
         },
@@ -58350,8 +58350,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -58552,7 +58552,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -59211,7 +59211,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "350fbaed67ca92149e794deef973003153f82c3eedece37143d187c4cdaf1248",
+          "sha256": "63cfe86804cc76de5f66473edaa96389d1b311694178fabccb50e7d6d890e232",
           "size": 1858,
           "type": "file"
         },
@@ -60135,8 +60135,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -60379,7 +60379,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -60512,7 +60512,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -60938,8 +60938,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "b43b6cda60a576bf7c4e74e208777f6c73cfcac56a697034204ff29144a3513f",
-          "size": 20186,
+          "sha256": "b78a88f44ceda41b09214b8d385a4bdf4f55d1ff45bca39a2bfc9401230ad2cb",
+          "size": 20192,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -60956,8 +60956,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -61558,8 +61558,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "b8ff8d680ce281c76621db899e476e11f9bac70093462d85c2b673984415c2ac",
-          "size": 20307,
+          "sha256": "e1279cdab4497a416cee61e1ab7f5fd1517749f8e1e7b355d1543726c2a76266",
+          "size": 20313,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -61576,8 +61576,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "697342cadaf0592d1509973db203451b328f40538971bccc99499718f30a1018",
-          "size": 19834,
+          "sha256": "f2ab71bb8b7da8511e6bcf76edbd8ef583332b05d789f4881ee6ffc21194d761",
+          "size": 19904,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -61798,7 +61798,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "735cf46df3cdd3b2a8acf6cd92a3ddb544bdf840290e1981531f10e5d2449a48",
+          "sha256": "baf368524f2ee7c62009d6976f91bb13440d1bccb03daad74b553c0be752e0bf",
           "size": 3010,
           "type": "file"
         },
@@ -61860,8 +61860,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "1d7d3f31f9539f7b782bbda47b4a3160b8a6aaa91733d1db79fdd95b0a149e56",
-          "size": 20264,
+          "sha256": "f7d2d5f3d9da94bcf0532cf622204e5f7b994b637ae68bb5590ee12c1442b98f",
+          "size": 20270,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -61878,8 +61878,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "21941e5b92ff3a191b6fecf19dbb2ded257d1255b2f27eec4fb263cf23565fed",
-          "size": 19790,
+          "sha256": "3750660573dcf90cc6f9fc6cad35b281dac507abba3f1f6adec2c6d2bdb8fe8f",
+          "size": 19860,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -62410,8 +62410,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6502740f052e447943606cb718cd108742af72048fdc3ed9e1b0de129196735a",
-          "size": 20369,
+          "sha256": "6dc8f316abf86ba3233b40ebfa7b63bfe9bb30e13e541fbc7ac04bfe3e199a90",
+          "size": 20375,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -62428,8 +62428,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -62680,20 +62680,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "8973e95c43895dd9f987e470072758407d8f7c7ce66bbc8f53004ddb4b1a7456",
-          "size": 77194,
+          "sha256": "efdd5fb4a15102385d7336c66a911f6f86278e0a545dfa0032db54c8611578d6",
+          "size": 77344,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "3bb94a45c2c86bc5c63bb7f3bad57f65195b33540086284c33a1799168090431",
-          "size": 66844,
+          "sha256": "ada841c605b4dab0ab8ec263e24dd1467fe4d2fc6cdb5afe7381258f3a3d3c5f",
+          "size": 66994,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "4592b5edb68e346780f620539fa5c1d52e837da52804451989dd5ddb25bb3750",
-          "size": 72016,
+          "sha256": "9afbd06df937e0faa3c40b2541f505a077919853fd0742c72176fb244cc4c24d",
+          "size": 72166,
           "type": "file"
         },
         "code": {
@@ -62826,8 +62826,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -62926,8 +62926,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -63098,8 +63098,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "168ea1b85c8576370fc88dbacc052f5d05d865a3d9782650a8f87c84422dec6d",
-          "size": 45961,
+          "sha256": "47d5a5ac87fbead80314631563c04c377036f1a2e84242a9081052bc7681d409",
+          "size": 46497,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -63244,7 +63244,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -63407,7 +63407,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -64133,7 +64133,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e2f860b55508c6c6fb4103d23087b9f383599fd990901e5b0bf7b4517a9d085a",
+          "sha256": "d13558816daf8c64c42601c68e6aa6029e3d2a1c474b1abca3d56575a31d41dc",
           "size": 1968,
           "type": "file"
         },
@@ -65093,8 +65093,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -65347,7 +65347,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -65484,7 +65484,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -66168,7 +66168,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e5cb0b4fe47064a6f46c5fab50d17c0d5b9178d4f1b1a48a9ef66fedf19a9b40",
+          "sha256": "c4e1622f21d906c7038f355b31ffdb660ec680f6db88c5b0f42a4e15bdb8f18a",
           "size": 1918,
           "type": "file"
         },
@@ -67118,8 +67118,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -67356,7 +67356,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -67491,7 +67491,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -68188,7 +68188,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2170483e3658bd512643e8e0c02bfbcc7253072acc7fd8b33e1e3e419eada93f",
+          "sha256": "d37b2f636df8d4182f92cf7574eb68a87243447aac076f8e33063ede28abea1c",
           "size": 1916,
           "type": "file"
         },
@@ -69156,8 +69156,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -69404,7 +69404,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -69545,7 +69545,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -70231,7 +70231,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "55196ad570e32dbfd34f6fac952fa98a90542c5c5e09ee05abaa8a3bcb17ad35",
+          "sha256": "8ab69145236aeb75fec8ae42c6c5354557213e3f4661b6e8ae07d47fd7013dfa",
           "size": 1916,
           "type": "file"
         },
@@ -71181,8 +71181,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -71419,7 +71419,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -71554,7 +71554,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -72239,7 +72239,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "de6632c15ac6e9a8ed622d5266d012d85aab97d065cd55b4bf239e3ff99771f0",
+          "sha256": "25358b5ca6d569fd4636c7e6a57948deb6bcbea8d4f2af3ae085114cea57901c",
           "size": 1893,
           "type": "file"
         },
@@ -73189,8 +73189,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -73377,7 +73377,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "39f87ffd1379125f8d4874b53313ff839b95ffd633397871730266723aa3a3c8",
+          "sha256": "633d2c6e0aada5d8341fdb1af71f3466628d43671eb19de2207281c02fe70e74",
           "size": 15387,
           "type": "file"
         },
@@ -73491,7 +73491,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -74177,7 +74177,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6e7fc428550be70f7aa062adba6a9a29fdcf0349bea59fb8c2587e7f07583786",
+          "sha256": "2508d1c0612c9fbe1fbcf407b0424abec52d1384b5430bdab63107df1411476a",
           "size": 1935,
           "type": "file"
         },
@@ -75127,8 +75127,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -75357,7 +75357,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -75492,7 +75492,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -75872,7 +75872,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "56944858dc9804b4f93be15120d81dbe07658379c2e9430157f903ecbaf06fab",
+          "sha256": "5387a4d9d20bd64fdae202d65710a8363d513aa15a3d437e1d9495120557e317",
           "size": 1791,
           "type": "file"
         },
@@ -76414,8 +76414,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -76588,7 +76588,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -77000,7 +77000,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "54fc5eee3410bc414bcb0ecf0b2329abf29b32203f6aaf34fd70ad2fd8ecfea0",
+          "sha256": "ef6c43f98b74b4296f36c077b25e260654ce0e8f96d16216997c70de6d448a7a",
           "size": 1900,
           "type": "file"
         },
@@ -77542,8 +77542,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -77726,7 +77726,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -78384,7 +78384,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "50cd0b46a22979948a47b7c2754bf027a57af8bbca876d26170a0d2b21c6398b",
+          "sha256": "05cec0a6526bed245ec7d07eb6e6e9481151a19e7ebd46876c0a8f8558a0f19d",
           "size": 1857,
           "type": "file"
         },
@@ -79308,8 +79308,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -79542,7 +79542,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -79675,7 +79675,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -80119,8 +80119,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "b43b6cda60a576bf7c4e74e208777f6c73cfcac56a697034204ff29144a3513f",
-          "size": 20186,
+          "sha256": "b78a88f44ceda41b09214b8d385a4bdf4f55d1ff45bca39a2bfc9401230ad2cb",
+          "size": 20192,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -80149,8 +80149,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -80767,8 +80767,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "b8ff8d680ce281c76621db899e476e11f9bac70093462d85c2b673984415c2ac",
-          "size": 20307,
+          "sha256": "e1279cdab4497a416cee61e1ab7f5fd1517749f8e1e7b355d1543726c2a76266",
+          "size": 20313,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -80797,8 +80797,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "697342cadaf0592d1509973db203451b328f40538971bccc99499718f30a1018",
-          "size": 19834,
+          "sha256": "f2ab71bb8b7da8511e6bcf76edbd8ef583332b05d789f4881ee6ffc21194d761",
+          "size": 19904,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -81025,7 +81025,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "041ca5180451ec4916a36ab257826d63116943a3144830d0ceff139ee25bdb29",
+          "sha256": "ee8205100f09a0c278f33ac2531835dad0612c0c63e643e531b20be3f107f241",
           "size": 3115,
           "type": "file"
         },
@@ -81087,8 +81087,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "1d7d3f31f9539f7b782bbda47b4a3160b8a6aaa91733d1db79fdd95b0a149e56",
-          "size": 20264,
+          "sha256": "f7d2d5f3d9da94bcf0532cf622204e5f7b994b637ae68bb5590ee12c1442b98f",
+          "size": 20270,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -81117,8 +81117,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "21941e5b92ff3a191b6fecf19dbb2ded257d1255b2f27eec4fb263cf23565fed",
-          "size": 19790,
+          "sha256": "3750660573dcf90cc6f9fc6cad35b281dac507abba3f1f6adec2c6d2bdb8fe8f",
+          "size": 19860,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -81655,8 +81655,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6502740f052e447943606cb718cd108742af72048fdc3ed9e1b0de129196735a",
-          "size": 20369,
+          "sha256": "6dc8f316abf86ba3233b40ebfa7b63bfe9bb30e13e541fbc7ac04bfe3e199a90",
+          "size": 20375,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -81685,8 +81685,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -81943,20 +81943,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "e18a30c82ffb6474732fba17ffba72b966eb9702d8668a6d54c68330fa329c0b",
-          "size": 78461,
+          "sha256": "ce6a8e4fe3e52e3d9872f15470b6f753778e176cdcf4b3b9b3fd578777a34e19",
+          "size": 78611,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "ec320a47dc63de0d8117dac119c113591d744e218222bccfb07acc887b03c24a",
-          "size": 68111,
+          "sha256": "d925c6cba8cfbc3ec165106897df1583f174d49f2ecfe8e07b7972ff9d1a660f",
+          "size": 68261,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "41cb4ef968cb3c71917b25920365efd94d3e144cca64b5943c19fff7ebeac635",
-          "size": 73283,
+          "sha256": "d509143d19280ea0127d37ca3ca7005c7577124e524b3f24bfd8c0fcd6b52888",
+          "size": 73433,
           "type": "file"
         },
         "code": {
@@ -82089,8 +82089,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -82189,8 +82189,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -82361,8 +82361,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "168ea1b85c8576370fc88dbacc052f5d05d865a3d9782650a8f87c84422dec6d",
-          "size": 45961,
+          "sha256": "47d5a5ac87fbead80314631563c04c377036f1a2e84242a9081052bc7681d409",
+          "size": 46497,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -82527,7 +82527,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -82693,7 +82693,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -83119,8 +83119,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "b43b6cda60a576bf7c4e74e208777f6c73cfcac56a697034204ff29144a3513f",
-          "size": 20186,
+          "sha256": "b78a88f44ceda41b09214b8d385a4bdf4f55d1ff45bca39a2bfc9401230ad2cb",
+          "size": 20192,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -83137,8 +83137,8 @@
         },
         ".claude/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "287acd09e262c98cb7447aa624361567be927cc32b1e616e8ab2eb3b11f8823a",
-          "size": 19714,
+          "sha256": "bc81ded890d7019ef31a0132771c047bd0b9de2f019be62acaf9fef739ffb6dc",
+          "size": 19784,
           "type": "file"
         },
         ".claude/agents/idea-generator.md": {
@@ -83739,8 +83739,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "b8ff8d680ce281c76621db899e476e11f9bac70093462d85c2b673984415c2ac",
-          "size": 20307,
+          "sha256": "e1279cdab4497a416cee61e1ab7f5fd1517749f8e1e7b355d1543726c2a76266",
+          "size": 20313,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -83757,8 +83757,8 @@
         },
         ".codex/agents/headline-replicator.toml": {
           "mode": "0644",
-          "sha256": "697342cadaf0592d1509973db203451b328f40538971bccc99499718f30a1018",
-          "size": 19834,
+          "sha256": "f2ab71bb8b7da8511e6bcf76edbd8ef583332b05d789f4881ee6ffc21194d761",
+          "size": 19904,
           "type": "file"
         },
         ".codex/agents/idea-generator.toml": {
@@ -83979,7 +83979,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e1d8bb5f0516ada7391fa4b2032df4a0569a91e883fac915e7dc4bc24606219e",
+          "sha256": "8e2de1e80ac20fa9fa0709480a1316b9823b14f3e0a0501db4b2813101ee1d8f",
           "size": 3008,
           "type": "file"
         },
@@ -84041,8 +84041,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "1d7d3f31f9539f7b782bbda47b4a3160b8a6aaa91733d1db79fdd95b0a149e56",
-          "size": 20264,
+          "sha256": "f7d2d5f3d9da94bcf0532cf622204e5f7b994b637ae68bb5590ee12c1442b98f",
+          "size": 20270,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -84059,8 +84059,8 @@
         },
         ".gemini/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "21941e5b92ff3a191b6fecf19dbb2ded257d1255b2f27eec4fb263cf23565fed",
-          "size": 19790,
+          "sha256": "3750660573dcf90cc6f9fc6cad35b281dac507abba3f1f6adec2c6d2bdb8fe8f",
+          "size": 19860,
           "type": "file"
         },
         ".gemini/agents/idea-generator.md": {
@@ -84591,8 +84591,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6502740f052e447943606cb718cd108742af72048fdc3ed9e1b0de129196735a",
-          "size": 20369,
+          "sha256": "6dc8f316abf86ba3233b40ebfa7b63bfe9bb30e13e541fbc7ac04bfe3e199a90",
+          "size": 20375,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -84609,8 +84609,8 @@
         },
         ".opencode/agents/headline-replicator.md": {
           "mode": "0644",
-          "sha256": "513cbb12bedb4baf4106adf949a1ae86a2123765a2e4304928848129bcdbd801",
-          "size": 19892,
+          "sha256": "e2514b9d16bb1b868a489b81df5abce5ce3e49967ea8b6e9149040be5964c332",
+          "size": 19962,
           "type": "file"
         },
         ".opencode/agents/idea-generator.md": {
@@ -84861,20 +84861,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "eb40748cd24ad1a2bd257252b20eee420155802c1ccbccb3f6897bb3ab8473bb",
-          "size": 77223,
+          "sha256": "28c186936421d2102381f2691b61685652505bf513e15512e27170f67fcb7b47",
+          "size": 77373,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "c7f8467dafa828e24ec88f1f42b3dd5e9f9834386f48fc8311dc33db856c9c06",
-          "size": 66873,
+          "sha256": "f4478f5ec4395f629961aa35b5c2dad89462ab532a5a59ce0e2019331009d0e1",
+          "size": 67023,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "a3395248d5ba3347bd1c88f276d175add2add051cc3ee46926186423e73206a2",
-          "size": 72045,
+          "sha256": "cb3cf664ca1dc71c2e558eaed024e62e2b6788ea41a23d8eb3a8b56c434e590b",
+          "size": 72195,
           "type": "file"
         },
         "code": {
@@ -85007,8 +85007,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -85107,8 +85107,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -85279,8 +85279,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "168ea1b85c8576370fc88dbacc052f5d05d865a3d9782650a8f87c84422dec6d",
-          "size": 45961,
+          "sha256": "47d5a5ac87fbead80314631563c04c377036f1a2e84242a9081052bc7681d409",
+          "size": 46497,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -85425,7 +85425,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -85588,7 +85588,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -86008,7 +86008,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7c33d4f92ed8a35bb33f7280b753bdfc099d2c739264cfe3aab95350281a7b41",
+          "sha256": "dbbc2b05d463752ee300b0f97705918e4f5c5b58cf8361324f18e83607580194",
           "size": 1839,
           "type": "file"
         },
@@ -86560,8 +86560,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -86752,7 +86752,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -87732,7 +87732,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c6a0f221ae2d94647b22fa2c869ba675b915f0641b41d8eaeac33970dfd8f4ca",
+          "sha256": "d8a22c2e4c993cc9253fb5c1399be3c905999a2027f3585233335f85b83834a6",
           "size": 3097,
           "type": "file"
         },
@@ -88292,8 +88292,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -88392,8 +88392,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -88693,7 +88693,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -89645,7 +89645,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a322c662d1af4d4068d6e89e10a5d462be739e652b2a59a47a716f3646a1b14c",
+          "sha256": "bb928d329be0548a42dcce0e2f85a933d7e68fcab9db7ba05baeca5d77215762",
           "size": 2990,
           "type": "file"
         },
@@ -90205,8 +90205,8 @@
         },
         "code/utils/empirical_input_manifest.py": {
           "mode": "0644",
-          "sha256": "7200c80678542c766c62c71d2dd7f1a5fad81280bffdcd7d9f74326d066ee791",
-          "size": 35844,
+          "sha256": "b808ba4359e8e1f98215fcfb1fb54a1b048687a28ba310e3a826305a37204378",
+          "size": 48071,
           "type": "file"
         },
         "code/utils/form_5500_utils.py": {
@@ -90305,8 +90305,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -90597,7 +90597,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -91049,7 +91049,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7f31a035eedc5f2dcd9c120bb02675866604b60ff5f3200647e75bbaa6f785bd",
+          "sha256": "b15a75aafc7c098c7fb0ae98c59b4cc7d24b9a796702bca0a2d0c162df5e84bb",
           "size": 1948,
           "type": "file"
         },
@@ -91601,8 +91601,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -91803,7 +91803,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -92529,7 +92529,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "27d6959048f2cf09acc6545638c7859bbc9e459f8a1166d33f4f9e4ee61795f9",
+          "sha256": "9e9c787b2305b477876a656a4c456e14feec94a62da3df592d405662ebe17da6",
           "size": 1966,
           "type": "file"
         },
@@ -93489,8 +93489,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "20c99d904950542677927c688eaf2574c8437e1211572b502d3ff98ef0968f8a",
-          "size": 299067,
+          "sha256": "e1b0add045bd28f20df008de7cc842e722613ae5d5aca900801a8b438755c1a7",
+          "size": 302780,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -93743,7 +93743,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ba09a063f0e94d2c99d2bfe1899f2780fccea8cd16d3ba2c338aea1524891abe",
+          "sha256": "a42cab34f3a9f2e9477ac5afa2ec25633c74dda698922c5d5a0b185176901447",
           "size": 15378,
           "type": "file"
         },
@@ -93880,7 +93880,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.30.0+<GIT_REVISION>",
+        "template_version": "2.30.2+<GIT_REVISION>",
         "variant": "macro"
       }
     }

@@ -3,11 +3,14 @@
 
 from __future__ import annotations
 
+import hashlib
 import json
 from pathlib import Path
+import shutil
 import subprocess
 import sys
 import tempfile
+import time
 import unittest
 
 
@@ -18,6 +21,13 @@ SCRIPT = (
     / "utils"
     / "empirical_input_manifest.py"
 )
+RESULTS_UTILITY = (
+    Path(__file__).resolve().parents[1]
+    / "templates"
+    / "utils"
+    / "results_pipeline"
+    / "results_pipeline.py"
+)
 
 
 class EmpiricalInputManifestTests(unittest.TestCase):
@@ -25,6 +35,15 @@ class EmpiricalInputManifestTests(unittest.TestCase):
         self.temporary = tempfile.TemporaryDirectory()
         self.project = Path(self.temporary.name)
         (self.project / "code" / "utils").mkdir(parents=True)
+        (self.project / "code" / "utils" / "results_pipeline").mkdir()
+        shutil.copy2(
+            RESULTS_UTILITY,
+            self.project / "code" / "utils" / "results_pipeline" / "results_pipeline.py",
+        )
+        self.script = self.project / "code" / "utils" / "empirical_input_manifest.py"
+        shutil.copy2(SCRIPT, self.script)
+        (self.project / "process_log").mkdir()
+        (self.project / "process_log" / "results_pipeline.lock").write_bytes(b"")
         (self.project / "output" / "stage3a").mkdir(parents=True)
         (self.project / "output" / "stage3a" / "verification").mkdir()
         (self.project / "code" / "empirical.py").write_text(
@@ -35,14 +54,31 @@ class EmpiricalInputManifestTests(unittest.TestCase):
             "def estimate():\n    return 1.0\n"
         )
         (self.project / "code" / "unrelated.py").write_text("VALUE = 1\n")
-        self.report = self.project / "output" / "stage3a" / "empirical_analysis.md"
-        self.report.write_text(
+        self.report_text = (
             "# Analysis\n\n"
             "## Methodology\n\nOriginal method prose.\n\n"
             "## Headline claims\n\n"
             "- [HEADLINE] [claim_id: main] [reported_value: 1.0] [tolerance_class: returns_spreads_coefficients] The estimate is 1.0.\n\n"
             "### Detail\n\nThis detail is part of the headline section.\n\n"
             "## Assessment\n\nOriginal assessment.\n"
+        )
+        self.report = self.project / "output" / "stage3a" / "empirical_analysis.md"
+        self.report.write_text(self.report_text)
+        (self.project / "code" / "generate_empirical_result.py").write_text(
+            "import json, os, pathlib\n"
+            "root = pathlib.Path.cwd()\n"
+            f"(root / 'output/stage3a/empirical_analysis.md').write_text({self.report_text!r})\n"
+            "bundle = {\n"
+            "  'schema_version': 1,\n"
+            "  'producer': {'name': 'integration-test',\n"
+            "               'code': ['code/generate_empirical_result.py'],\n"
+            "               'inputs': [], 'reproducibility': 'captured'},\n"
+            "  'results': {'main.estimate': {'description': 'Main estimate', 'value': '1.0'}},\n"
+            "  'artifacts': [{'path': 'output/stage3a/empirical_analysis.md',\n"
+            "                 'description': 'Analysis report', 'media_type': 'text/markdown'}],\n"
+            "  'renderer': {'code': []}, 'exhibits': []\n"
+            "}\n"
+            "(root / os.environ['RESULTS_BUNDLE_PATH']).write_text(json.dumps(bundle) + '\\n')\n"
         )
         self.result = self.project / "output" / "stage3a" / "empirics_verify_result.json"
         self.verifier = (
@@ -51,6 +87,8 @@ class EmpiricalInputManifestTests(unittest.TestCase):
         self.verifier.write_text("print('main', 1.0, 1.0, 0.0)\n")
         manifest = self.run_tool("snapshot")
         self.write_pass_result(self.result, manifest)
+        self.write_empty_registry()
+        self.register_analysis("output/stage3a/empirical_analysis.md", "active")
 
     def tearDown(self) -> None:
         self.temporary.cleanup()
@@ -59,7 +97,9 @@ class EmpiricalInputManifestTests(unittest.TestCase):
         completed = subprocess.run(
             [
                 sys.executable,
-                str(SCRIPT),
+                "-I",
+                "-S",
+                str(self.script),
                 "--project-root",
                 str(self.project),
                 *arguments,
@@ -73,6 +113,32 @@ class EmpiricalInputManifestTests(unittest.TestCase):
             self.fail(f"tool failed ({completed.returncode}): {completed.stderr}")
         if not check:
             return {"returncode": completed.returncode, "stderr": completed.stderr}
+        return json.loads(completed.stdout)
+
+    def run_results_pipeline(self, *arguments: str) -> dict[str, object]:
+        completed = subprocess.run(
+            [
+                sys.executable,
+                str(
+                    self.project
+                    / "code"
+                    / "utils"
+                    / "results_pipeline"
+                    / "results_pipeline.py"
+                ),
+                *arguments,
+            ],
+            cwd=self.project,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            check=False,
+        )
+        if completed.returncode != 0:
+            self.fail(
+                f"results pipeline failed ({completed.returncode}): "
+                f"{completed.stdout}{completed.stderr}"
+            )
         return json.loads(completed.stdout)
 
     def compare(self) -> dict[str, object]:
@@ -127,6 +193,152 @@ class EmpiricalInputManifestTests(unittest.TestCase):
     def refresh_result(self) -> None:
         manifest = self.run_tool("snapshot")
         self.write_pass_result(self.result, manifest)
+
+    def file_fingerprint(self, relative: str) -> dict[str, str]:
+        data = (self.project / relative).read_bytes()
+        return {
+            "path": relative,
+            "kind": "file",
+            "sha256": f"sha256:{hashlib.sha256(data).hexdigest()}",
+        }
+
+    def write_empty_registry(self) -> None:
+        (self.project / "process_log" / "results_registry.json").write_text(
+            json.dumps(
+                {
+                    "kind": "result_registry",
+                    "registry_version": 1,
+                    "active": [],
+                    "pending": [],
+                    "retired": [],
+                    "receipt_fingerprints": {},
+                },
+                indent=2,
+            )
+            + "\n"
+        )
+
+    def synthetic_environment(self, command: list[str]) -> dict[str, object]:
+        executable = str(Path(sys.executable).resolve())
+        manifest = {
+            "launcher": {
+                "requested": command[0],
+                "executable": {
+                    "path": executable,
+                    "resolved_path": executable,
+                    "sha256": "sha256:" + "0" * 64,
+                    "size": 0,
+                },
+            },
+            "platform": {
+                "system": "",
+                "release": "",
+                "version": "",
+                "machine": "",
+                "libc": {"name": "", "version": ""},
+                "os_release": None,
+            },
+            "runtime_environment": {},
+            "project_environment": {
+                "python_venv": None,
+                "dependency_manifests": [],
+            },
+        }
+        encoded = json.dumps(manifest, sort_keys=True, separators=(",", ":")).encode()
+        return {
+            "capture_version": 1,
+            "sha256": f"sha256:{hashlib.sha256(encoded).hexdigest()}",
+            "manifest": manifest,
+        }
+
+    def register_analysis(
+        self,
+        analysis: str,
+        lifecycle: str,
+        *,
+        receipt: str | None = None,
+        supersedes: list[str] | None = None,
+        plan: str | None = None,
+        bundle: str | None = None,
+    ) -> str:
+        analysis_path = Path(analysis)
+        receipt = receipt or (
+            analysis_path.parent / f"{analysis_path.stem}_results.receipt.json"
+        ).as_posix()
+        plan = plan or (
+            analysis_path.parent / f"{analysis_path.stem}_results.plan.json"
+        ).as_posix()
+        bundle = bundle or (
+            analysis_path.parent / f"{analysis_path.stem}_results.json"
+        ).as_posix()
+        plan_path = self.project / plan
+        bundle_path = self.project / bundle
+        plan_path.parent.mkdir(parents=True, exist_ok=True)
+        bundle_path.parent.mkdir(parents=True, exist_ok=True)
+        plan_path.write_text(
+            json.dumps(
+                {
+                    "plan_version": 1,
+                    "producer_code": ["code/empirical.py"],
+                    "producer_inputs": [],
+                    "artifacts": [analysis],
+                    "renderer_code": [],
+                    "exhibits": [],
+                }
+            )
+            + "\n"
+        )
+        bundle_path.write_text("{}\n")
+        command = [sys.executable, "code/empirical.py"]
+        receipt_path = self.project / receipt
+        receipt_path.parent.mkdir(parents=True, exist_ok=True)
+        receipt_path.write_text(
+            json.dumps(
+                {
+                    "kind": "result",
+                    "receipt_version": 2,
+                    "supersedes": supersedes or [],
+                    "producer_run": {
+                        "command": command,
+                        "plan": self.file_fingerprint(plan),
+                        "bundle": self.file_fingerprint(bundle),
+                        "code": [self.file_fingerprint("code/empirical.py")],
+                        "inputs": [],
+                        "renderer_code": [],
+                        "artifacts": [self.file_fingerprint(analysis)],
+                        "exhibits": [],
+                        "reproducibility": "captured",
+                        "environment": self.synthetic_environment(command),
+                    },
+                    "render_run": None,
+                },
+                indent=2,
+            )
+            + "\n"
+        )
+        registry_path = self.project / "process_log" / "results_registry.json"
+        registry = json.loads(registry_path.read_text())
+        fingerprint = self.file_fingerprint(receipt)
+        if lifecycle == "active":
+            registry["active"].append(receipt)
+            registry["receipt_fingerprints"][receipt] = fingerprint
+        elif lifecycle == "pending":
+            registry["pending"].append(
+                {"receipt": receipt, "supersedes": supersedes or []}
+            )
+            registry["receipt_fingerprints"][receipt] = fingerprint
+        elif lifecycle == "retired":
+            registry["retired"].append(
+                {
+                    "receipt": receipt,
+                    "reason": "retired test attempt",
+                    "last_fingerprint": fingerprint,
+                }
+            )
+        else:
+            self.fail(f"unsupported lifecycle: {lifecycle}")
+        registry_path.write_text(json.dumps(registry, indent=2) + "\n")
+        return receipt
 
     def test_unchanged_inputs(self) -> None:
         comparison = self.compare()
@@ -258,6 +470,7 @@ class EmpiricalInputManifestTests(unittest.TestCase):
             self.project / "output" / "stage3a" / "empirics_verify_result_v2.json"
         )
         self.write_pass_result(versioned_result, manifest)
+        self.register_analysis(analysis, "active")
         empirical = self.project / "code" / "empirical.py"
         empirical.write_text(empirical.read_text() + "# final repair\n")
         inventory = self.run_tool("check-all")
@@ -312,9 +525,12 @@ class EmpiricalInputManifestTests(unittest.TestCase):
         # The stage doc derives RESULT_PLAN/BUNDLE/RECEIPT from the analysis
         # stem, so these share the reserved prefix by design (regression:
         # halted_replication_artifact_collision on every first full analysis).
-        stage = self.project / "output" / "stage3a"
-        for sibling in ("_results.json", "_results.plan.json", "_results.receipt.json"):
-            (stage / f"empirical_analysis{sibling}").write_text("{}\n")
+        self.assertTrue(
+            (self.project / "output/stage3a/empirical_analysis_results.plan.json").is_file()
+        )
+        self.assertTrue(
+            (self.project / "output/stage3a/empirical_analysis_results.json").is_file()
+        )
         inventory = self.run_tool("check-all")
         self.assertEqual(inventory["artifact_errors"], [])
         self.assertEqual(inventory["status"], "UNCHANGED")
@@ -334,7 +550,7 @@ class EmpiricalInputManifestTests(unittest.TestCase):
         target = self.project / "outside_payload.json"
         target.write_text("{}\n")
         planted = (
-            self.project / "output" / "stage3a" / "empirical_analysis_results.json"
+            self.project / "output" / "stage3a" / "empirical_analysis_vghost_results.json"
         )
         planted.symlink_to(target)
         inventory = self.run_tool("check-all")
@@ -342,6 +558,371 @@ class EmpiricalInputManifestTests(unittest.TestCase):
             planted.relative_to(self.project).as_posix(),
             {item["path"] for item in inventory["artifact_errors"]},
         )
+
+    def test_check_all_excludes_retired_analysis_without_verifier(self) -> None:
+        analysis = "output/stage3a/empirical_analysis_v1_a1.md"
+        (self.project / analysis).write_text(self.report.read_text())
+        self.register_analysis(analysis, "retired")
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "UNCHANGED")
+        entries = {item["analysis"]: item for item in inventory["analyses"]}
+        self.assertEqual(entries[analysis]["status"], "EXCLUDED_RETIRED")
+        self.assertEqual(entries[analysis]["lifecycle"], "retired")
+
+    def test_check_all_checks_pending_analysis(self) -> None:
+        analysis = "output/stage3a/empirical_analysis_v2_a2.md"
+        (self.project / analysis).write_text(self.report.read_text())
+        paths = self.run_tool("paths", "--analysis", analysis)
+        (self.project / str(paths["verify_script"])).write_text("print('main', 1.0)\n")
+        manifest = self.run_tool("snapshot", "--analysis", analysis)
+        self.write_pass_result(self.project / str(paths["verify_result"]), manifest)
+        self.register_analysis(analysis, "pending")
+        inventory = self.run_tool("check-all")
+        entries = {item["analysis"]: item for item in inventory["analyses"]}
+        self.assertEqual(entries[analysis]["status"], "UNCHANGED")
+        self.assertEqual(entries[analysis]["lifecycle"], "pending")
+
+    def test_check_all_rejects_missing_registry(self) -> None:
+        (self.project / "process_log" / "results_registry.json").unlink()
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertEqual(
+            inventory["artifact_errors"][0]["path"],
+            "process_log/results_registry.json",
+        )
+
+    def test_check_all_rejects_registry_with_duplicate_json_key(self) -> None:
+        registry_path = self.project / "process_log/results_registry.json"
+        registry_path.write_text(
+            registry_path.read_text().replace(
+                '"active": [', '"active": [],\n  "active": [', 1
+            )
+        )
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertIn(
+            "duplicate JSON object key",
+            inventory["artifact_errors"][0]["error"],
+        )
+
+    def test_check_all_rejects_prepared_results_transaction(self) -> None:
+        registry = json.loads(
+            (self.project / "process_log/results_registry.json").read_text()
+        )
+        (self.project / "process_log/.results_pipeline-transaction-backup").mkdir()
+        (self.project / "process_log/results_pipeline.transaction.json").write_text(
+            json.dumps(
+                {
+                    "transaction_version": 1,
+                    "phase": "prepared",
+                    "cleanup_paths": [],
+                    "backups": [],
+                    "registry_before": registry,
+                }
+            )
+            + "\n"
+        )
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertIn(
+            "transaction recovery is required",
+            inventory["artifact_errors"][0]["error"],
+        )
+
+    def test_check_all_rejects_receipt_outside_canonical_v2_contract(self) -> None:
+        receipt_raw = "output/stage3a/empirical_analysis_results.receipt.json"
+        receipt_path = self.project / receipt_raw
+        receipt = json.loads(receipt_path.read_text())
+        del receipt["producer_run"]["command"]
+        receipt_path.write_text(json.dumps(receipt) + "\n")
+        registry_path = self.project / "process_log/results_registry.json"
+        registry = json.loads(registry_path.read_text())
+        registry["receipt_fingerprints"][receipt_raw] = self.file_fingerprint(receipt_raw)
+        registry_path.write_text(json.dumps(registry) + "\n")
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertIn(
+            "producer_run has unexpected or missing keys",
+            inventory["artifact_errors"][0]["error"],
+        )
+
+    def test_check_all_rejects_stale_registry_receipt_fingerprint(self) -> None:
+        receipt = self.project / "output/stage3a/empirical_analysis_results.receipt.json"
+        receipt.write_text(receipt.read_text() + "\n")
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertIn(
+            "receipt bytes are stale",
+            inventory["artifact_errors"][0]["error"],
+        )
+
+    def test_check_all_rejects_changed_declared_bundle(self) -> None:
+        bundle = self.project / "output/stage3a/empirical_analysis_results.json"
+        bundle.write_text('{"tampered": true}\n')
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertIn(
+            "receipt bundle fingerprint does not match current bytes",
+            inventory["artifact_errors"][0]["error"],
+        )
+
+    def test_check_all_rejects_missing_declared_plan(self) -> None:
+        plan = self.project / "output/stage3a/empirical_analysis_results.plan.json"
+        plan.unlink()
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertIn(
+            "declared path does not exist",
+            inventory["artifact_errors"][0]["error"],
+        )
+
+    def test_check_all_rejects_duplicate_analysis_ownership(self) -> None:
+        self.register_analysis(
+            "output/stage3a/empirical_analysis.md",
+            "retired",
+            receipt="output/stage3a/duplicate_results.receipt.json",
+        )
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertIn(
+            "owned by multiple result receipts",
+            inventory["artifact_errors"][0]["error"],
+        )
+
+    def test_check_all_rejects_unregistered_analysis(self) -> None:
+        orphan = self.project / "output/stage3a/empirical_analysis_vorphan.md"
+        orphan.write_text(self.report.read_text())
+        inventory = self.run_tool("check-all")
+        self.assertIn(
+            orphan.relative_to(self.project).as_posix(),
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+
+    def test_check_all_rejects_valid_stem_orphan_results_sibling(self) -> None:
+        orphan = self.project / "output/stage3a/empirical_analysis_vghost_results.json"
+        orphan.write_text("{}\n")
+        inventory = self.run_tool("check-all")
+        self.assertIn(
+            orphan.relative_to(self.project).as_posix(),
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+
+    def test_check_all_rejects_undeclared_sibling_for_registered_analysis(self) -> None:
+        analysis = "output/stage3a/empirical_analysis_vowned.md"
+        (self.project / analysis).write_text(self.report.read_text())
+        paths = self.run_tool("paths", "--analysis", analysis)
+        (self.project / str(paths["verify_script"])).write_text("print('main', 1.0)\n")
+        manifest = self.run_tool("snapshot", "--analysis", analysis)
+        self.write_pass_result(self.project / str(paths["verify_result"]), manifest)
+        self.register_analysis(
+            analysis,
+            "active",
+            receipt="output/stage3a/custom_results.receipt.json",
+            plan="output/stage3a/custom_results.plan.json",
+            bundle="output/stage3a/custom_results.json",
+        )
+        orphan = self.project / "output/stage3a/empirical_analysis_vowned_results.json"
+        orphan.write_text("{}\n")
+        inventory = self.run_tool("check-all")
+        self.assertIn(
+            orphan.relative_to(self.project).as_posix(),
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+
+    def test_check_all_accepts_receipt_generated_by_results_pipeline(self) -> None:
+        self.write_empty_registry()
+        for relative in (
+            "output/stage3a/empirical_analysis.md",
+            "output/stage3a/empirical_analysis_results.json",
+            "output/stage3a/empirical_analysis_results.receipt.json",
+        ):
+            path = self.project / relative
+            if path.exists():
+                path.unlink()
+        plan = self.project / "output/stage3a/empirical_analysis_results.plan.json"
+        plan.write_text(
+            json.dumps(
+                {
+                    "plan_version": 1,
+                    "producer_code": ["code/generate_empirical_result.py"],
+                    "producer_inputs": [],
+                    "artifacts": ["output/stage3a/empirical_analysis.md"],
+                    "renderer_code": [],
+                    "exhibits": [],
+                }
+            )
+            + "\n"
+        )
+        run = self.run_results_pipeline(
+            "run",
+            "--plan",
+            "output/stage3a/empirical_analysis_results.plan.json",
+            "--bundle",
+            "output/stage3a/empirical_analysis_results.json",
+            "--receipt",
+            "output/stage3a/empirical_analysis_results.receipt.json",
+            "--",
+            sys.executable,
+            "code/generate_empirical_result.py",
+        )
+        self.assertEqual(run["status"], "PENDING_ACTIVATION")
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["artifact_errors"], [])
+        self.assertEqual(inventory["status"], "UNCHANGED")
+        self.assertEqual(inventory["analyses"][0]["lifecycle"], "pending")
+
+    def test_check_all_holds_publication_lock_through_verdict(self) -> None:
+        analysis = "output/stage3a/empirical_analysis_vconcurrent.md"
+        plan = "output/concurrent_empirical_results.plan.json"
+        bundle = "output/stage3a/empirical_analysis_vconcurrent_results.json"
+        receipt = "output/stage3a/empirical_analysis_vconcurrent_results.receipt.json"
+        producer = self.project / "code/generate_concurrent_result.py"
+        producer.write_text(
+            "import json, os, pathlib\n"
+            "root = pathlib.Path.cwd()\n"
+            f"(root / {analysis!r}).write_text({self.report_text!r})\n"
+            "payload = {\n"
+            "  'schema_version': 1,\n"
+            "  'producer': {'name': 'concurrent-test',\n"
+            "               'code': ['code/generate_concurrent_result.py'],\n"
+            "               'inputs': [], 'reproducibility': 'captured'},\n"
+            "  'results': {'main.estimate': {'description': 'Main estimate', 'value': '1.0'}},\n"
+            f"  'artifacts': [{{'path': {analysis!r}, 'description': 'Analysis report',\n"
+            "                 'media_type': 'text/markdown'}],\n"
+            "  'renderer': {'code': []}, 'exhibits': []\n"
+            "}\n"
+            "(root / os.environ['RESULTS_BUNDLE_PATH']).write_text(json.dumps(payload) + '\\n')\n"
+        )
+        (self.project / plan).write_text(
+            json.dumps(
+                {
+                    "plan_version": 1,
+                    "producer_code": ["code/generate_concurrent_result.py"],
+                    "producer_inputs": [],
+                    "artifacts": [analysis],
+                    "renderer_code": [],
+                    "exhibits": [],
+                }
+            )
+            + "\n"
+        )
+        registry_path = self.project / "process_log/results_registry.json"
+        registry = json.loads(registry_path.read_text())
+        prior_receipt = registry["active"].pop()
+        prior_fingerprint = registry["receipt_fingerprints"].pop(prior_receipt)
+        registry["retired"].append(
+            {
+                "receipt": prior_receipt,
+                "reason": "concurrency fixture baseline",
+                "last_fingerprint": prior_fingerprint,
+            }
+        )
+        registry_path.write_text(json.dumps(registry, indent=2) + "\n")
+
+        # Pause after namespace enumeration. Without a lease covering the
+        # remaining comparisons, the publisher can commit an unseen analysis.
+        source = self.script.read_text()
+        needle = "        stage_entries = sorted(stage_root.iterdir())\n"
+        self.assertIn(needle, source)
+        self.script.write_text(
+            source.replace(
+                needle,
+                needle
+                + "        (project_root / 'process_log/check_all_scan_ready').write_text('ready\\n')\n"
+                + "        __import__('time').sleep(1.0)\n",
+                1,
+            )
+        )
+        self.refresh_result()
+        marker = self.project / "process_log/check_all_scan_ready"
+        marker.unlink(missing_ok=True)
+
+        checker = subprocess.Popen(
+            [
+                sys.executable,
+                "-I",
+                "-S",
+                str(self.script),
+                "--project-root",
+                str(self.project),
+                "check-all",
+            ],
+            cwd=self.project,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        self.addCleanup(lambda: checker.kill() if checker.poll() is None else None)
+        deadline = time.monotonic() + 5
+        while not marker.exists() and time.monotonic() < deadline:
+            time.sleep(0.01)
+        self.assertTrue(marker.exists(), "check-all did not reach the scan boundary")
+
+        publisher = subprocess.Popen(
+            [
+                sys.executable,
+                str(
+                    self.project
+                    / "code/utils/results_pipeline/results_pipeline.py"
+                ),
+                "run",
+                "--plan",
+                plan,
+                "--bundle",
+                bundle,
+                "--receipt",
+                receipt,
+                "--",
+                sys.executable,
+                "code/generate_concurrent_result.py",
+            ],
+            cwd=self.project,
+            text=True,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+        )
+        self.addCleanup(lambda: publisher.kill() if publisher.poll() is None else None)
+        time.sleep(0.2)
+        self.assertIsNone(publisher.poll(), "publisher bypassed check-all's shared lease")
+        self.assertFalse((self.project / analysis).exists())
+
+        checker_stdout, checker_stderr = checker.communicate(timeout=10)
+        self.assertEqual(checker.returncode, 0, checker_stderr)
+        inventory = json.loads(checker_stdout)
+        self.assertEqual(inventory["status"], "UNCHANGED")
+        self.assertNotIn(analysis, {entry["analysis"] for entry in inventory["analyses"]})
+        publisher_stdout, publisher_stderr = publisher.communicate(timeout=10)
+        self.assertEqual(publisher.returncode, 0, publisher_stdout + publisher_stderr)
+        self.assertEqual(json.loads(publisher_stdout)["status"], "PENDING_ACTIVATION")
+        self.assertTrue((self.project / analysis).is_file())
+
+    def test_deployed_check_all_does_not_import_project_shadow_module(self) -> None:
+        shadow = self.project / "code/utils/secrets.py"
+        marker = self.project / "shadow-imported"
+        shadow.write_text(
+            "from pathlib import Path\nPath('shadow-imported').write_text('executed\\n')\n"
+        )
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertFalse(marker.exists())
+        self.assertFalse((self.project / "code/utils/__pycache__").exists())
+
+    def test_retired_stale_verifier_does_not_block_live_analysis(self) -> None:
+        analysis = "output/stage3a/empirical_analysis_v1_a1.md"
+        (self.project / analysis).write_text(self.report.read_text())
+        paths = self.run_tool("paths", "--analysis", analysis)
+        (self.project / str(paths["verify_script"])).write_text("print('main', 1.0)\n")
+        manifest = self.run_tool("snapshot", "--analysis", analysis)
+        self.write_pass_result(self.project / str(paths["verify_result"]), manifest)
+        self.register_analysis(analysis, "retired")
+
+        empirical = self.project / "code/empirical.py"
+        empirical.write_text(empirical.read_text() + "# live repair\n")
+        self.refresh_result()
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "UNCHANGED")
+        entries = {item["analysis"]: item for item in inventory["analyses"]}
+        self.assertEqual(entries[analysis]["status"], "EXCLUDED_RETIRED")
 
     def test_check_all_accepts_expected_pending_candidate(self) -> None:
         # finalize-pass's documented intermediate: written on replicator PASS,
@@ -473,6 +1054,23 @@ class EmpiricalInputManifestTests(unittest.TestCase):
             comparison["changed_code_files"],
             ["code/__pycache__/dynamic.cpython-312.pyc"],
         )
+
+    def test_generated_bytecode_converges_after_one_refresh(self) -> None:
+        source = self.project / "code/generated_dependency.py"
+        source.write_text("VALUE = 1\n")
+        self.refresh_result()
+        compile_command = [
+            sys.executable,
+            "-c",
+            "import py_compile; py_compile.compile('code/generated_dependency.py', doraise=True)",
+        ]
+        subprocess.run(compile_command, cwd=self.project, check=True)
+        first = self.run_tool("check-all")
+        self.assertEqual(first["status"], "CHANGED")
+        self.refresh_result()
+        subprocess.run(compile_command, cwd=self.project, check=True)
+        converged = self.run_tool("check-all")
+        self.assertEqual(converged["status"], "UNCHANGED")
 
     def test_line_ending_normalization_is_the_only_text_normalization(self) -> None:
         self.report.write_bytes(self.report.read_text().replace("\n", "\r\n").encode())

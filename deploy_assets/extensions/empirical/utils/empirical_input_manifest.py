@@ -2,13 +2,16 @@
 """Fingerprint the inputs covered by a headline-replicator verdict.
 
 The manifest binds a replication result to the complete project-local code
-surface and the exact Headline claims section of the empirical report.  It
-never imports or executes project code.
+surface and the exact Headline claims section of the empirical report. It
+never imports or executes analyzed producer code; lifecycle checks invoke the
+template-owned canonical results validator in an isolated interpreter.
 """
 
 from __future__ import annotations
 
 import argparse
+from contextlib import contextmanager
+import fcntl
 import hashlib
 import json
 import math
@@ -19,13 +22,15 @@ import stat
 import subprocess
 import sys
 import tempfile
-from typing import Any
+from typing import Any, Callable, Iterable
 
 
 SCHEMA_VERSION = 3
 ALGORITHM = "sha256"
 DEFAULT_REPORT = Path("output/stage3a/empirical_analysis.md")
 DEFAULT_RESULT = Path("output/stage3a/empirics_verify_result.json")
+RESULTS_REGISTRY = Path("process_log/results_registry.json")
+RESULTS_LOCK = Path("process_log/results_pipeline.lock")
 ANALYSIS_NAME = re.compile(r"^empirical_analysis(?:_v[A-Za-z0-9][A-Za-z0-9_.-]*)?\.md$")
 VERIFIER_NAME = re.compile(r"^empirics_verify(?:_v[A-Za-z0-9][A-Za-z0-9_.-]*)?\.py$")
 TOLERANCE_CLASSES = {
@@ -60,6 +65,37 @@ def _regular_file_bytes(path: Path, project_root: Path) -> bytes:
     if not stat.S_ISREG(metadata.st_mode):
         raise ManifestError(f"input is not a regular file: {relative.as_posix()}")
     return path.read_bytes()
+
+
+@contextmanager
+def _results_read_lock(project_root: Path) -> Iterable[None]:
+    """Keep results publication outside a complete lifecycle/freshness verdict."""
+    process_log = project_root / RESULTS_LOCK.parent
+    directory_flags = (
+        os.O_RDONLY
+        | getattr(os, "O_DIRECTORY", 0)
+        | getattr(os, "O_NOFOLLOW", 0)
+    )
+    try:
+        directory_descriptor = os.open(process_log, directory_flags)
+    except OSError as exc:
+        raise ManifestError(f"cannot open results pipeline lock directory: {exc}") from exc
+    flags = os.O_RDONLY | getattr(os, "O_NOFOLLOW", 0)
+    try:
+        descriptor = os.open(RESULTS_LOCK.name, flags, dir_fd=directory_descriptor)
+    except OSError as exc:
+        os.close(directory_descriptor)
+        raise ManifestError(f"cannot open results pipeline lock: {exc}") from exc
+    os.close(directory_descriptor)
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise ManifestError("results pipeline lock must be one regular file")
+        fcntl.flock(descriptor, fcntl.LOCK_SH)
+        yield
+    finally:
+        fcntl.flock(descriptor, fcntl.LOCK_UN)
+        os.close(descriptor)
 
 
 def _sha256(data: bytes) -> str:
@@ -669,7 +705,133 @@ def compare_result(
     }
 
 
-def check_all(project_root: Path) -> dict[str, Any]:
+def _results_inventory(project_root: Path) -> list[dict[str, Any]]:
+    """Query the canonical validator in an import-isolated, bytecode-free process."""
+    utility = project_root / "code" / "utils" / "results_pipeline" / "results_pipeline.py"
+    _regular_file_bytes(utility, project_root)
+    try:
+        completed = subprocess.run(
+            [
+                sys.executable,
+                "-I",
+                "-S",
+                str(utility),
+                "inspect-registry",
+                "--project-root",
+                str(project_root),
+                "--artifact-prefix",
+                "output/stage3a/empirical_analysis",
+            ],
+            cwd=project_root,
+            stdin=subprocess.DEVNULL,
+            stdout=subprocess.PIPE,
+            stderr=subprocess.PIPE,
+            text=True,
+            timeout=60,
+            check=False,
+        )
+    except (OSError, subprocess.SubprocessError) as exc:
+        raise ManifestError(f"cannot run canonical results contract: {exc}") from exc
+    if completed.returncode != 0:
+        diagnostic = completed.stderr.strip() or completed.stdout.strip()
+        raise ManifestError(
+            f"canonical results contract rejected lifecycle evidence: {diagnostic}"
+        )
+    try:
+        inventory = json.loads(completed.stdout)
+    except json.JSONDecodeError as exc:
+        raise ManifestError("canonical results contract returned malformed JSON") from exc
+    if (
+        not isinstance(inventory, dict)
+        or set(inventory) != {"receipts"}
+        or not isinstance(inventory["receipts"], list)
+    ):
+        raise ManifestError("canonical results contract returned malformed inventory")
+    return inventory["receipts"]
+
+
+def _analysis_lifecycle(
+    project_root: Path,
+) -> tuple[dict[Path, dict[str, str]], dict[str, Path]]:
+    """Resolve analysis and result-sibling ownership through the canonical contract."""
+    try:
+        lifecycle: dict[Path, dict[str, str]] = {}
+        declared_results: dict[str, Path] = {}
+        for receipt in _results_inventory(project_root):
+            receipt_raw = receipt["receipt"]
+            state = receipt["lifecycle"]
+            if (
+                receipt["pending_supersedes"] is not None
+                and receipt["receipt_supersedes"] != receipt["pending_supersedes"]
+            ):
+                raise ManifestError(
+                    f"pending registry/receipt supersedes mismatch: {receipt_raw}"
+                )
+            empirical_artifacts: list[tuple[Path, dict[str, Any]]] = []
+            for artifact_entry in receipt["artifacts"]:
+                artifact = artifact_entry["recorded"]
+                raw_path = artifact["path"]
+                candidate = PurePosixPath(raw_path)
+                if (
+                    candidate.parts[:2] == ("output", "stage3a")
+                    and len(candidate.parts) == 3
+                    and ANALYSIS_NAME.fullmatch(candidate.name)
+                ):
+                    empirical_artifacts.append(
+                        (_validated_analysis_path(raw_path), artifact_entry)
+                    )
+                elif raw_path.startswith("output/stage3a/empirical_analysis"):
+                    raise ManifestError(
+                        f"receipt artifact occupies the reserved analysis namespace: {raw_path}"
+                    )
+            if not empirical_artifacts:
+                continue
+            if len(empirical_artifacts) != 1:
+                raise ManifestError(
+                    f"result receipt owns multiple empirical analyses: {receipt_raw}"
+                )
+            analysis_path, artifact_entry = empirical_artifacts[0]
+            if artifact_entry["current"] != artifact_entry["recorded"]:
+                raise ManifestError(
+                    f"receipt analysis fingerprint does not match current bytes: "
+                    f"{analysis_path.as_posix()}"
+                )
+            if analysis_path in lifecycle:
+                prior = lifecycle[analysis_path]["receipt"]
+                raise ManifestError(
+                    f"analysis is owned by multiple result receipts: "
+                    f"{analysis_path.as_posix()} ({prior}, {receipt_raw})"
+                )
+            lifecycle[analysis_path] = {
+                "lifecycle": state,
+                "receipt": receipt_raw,
+            }
+            for label in ("plan", "bundle"):
+                if receipt[label]["current"] != receipt[label]["recorded"]:
+                    raise ManifestError(
+                        f"receipt {label} fingerprint does not match current bytes: "
+                        f"{receipt[label]['recorded']['path']}"
+                    )
+            owned_results = {
+                receipt_raw,
+                receipt["plan"]["recorded"]["path"],
+                receipt["bundle"]["recorded"]["path"],
+            }
+            for result_path in owned_results:
+                prior_owner = declared_results.get(result_path)
+                if prior_owner is not None and prior_owner != analysis_path:
+                    raise ManifestError(
+                        f"result artifact is owned by multiple empirical analyses: {result_path}"
+                    )
+                declared_results[result_path] = analysis_path
+        return lifecycle, declared_results
+    except ManifestError:
+        raise
+    except Exception as exc:
+        raise ManifestError(f"canonical results contract rejected lifecycle evidence: {exc}") from exc
+
+
+def _check_all_locked(project_root: Path) -> dict[str, Any]:
     stage_root = project_root / "output" / "stage3a"
     analyses: list[Path] = []
     artifact_errors: list[dict[str, str]] = []
@@ -677,8 +839,33 @@ def check_all(project_root: Path) -> dict[str, Any]:
         stage_metadata = stage_root.lstat()
         if stat.S_ISLNK(stage_metadata.st_mode) or not stat.S_ISDIR(stage_metadata.st_mode):
             raise ManifestError("Stage 3a artifact namespace is not a real directory")
-        stage_entries = sorted(stage_root.iterdir())
     except (ManifestError, OSError) as exc:
+        return {
+            "status": "CHANGED",
+            "analyses": [],
+            "artifact_errors": [
+                {
+                    "path": "output/stage3a",
+                    "error": f"cannot enumerate Stage 3a artifact namespace: {exc}",
+                }
+            ],
+        }
+    try:
+        lifecycle, declared_results = _analysis_lifecycle(project_root)
+    except (ManifestError, OSError) as exc:
+        return {
+            "status": "CHANGED",
+            "analyses": [],
+            "artifact_errors": [
+                {
+                    "path": RESULTS_REGISTRY.as_posix(),
+                    "error": f"cannot resolve analysis lifecycle: {exc}",
+                }
+            ],
+        }
+    try:
+        stage_entries = sorted(stage_root.iterdir())
+    except OSError as exc:
         return {
             "status": "CHANGED",
             "analyses": [],
@@ -699,6 +886,15 @@ def check_all(project_root: Path) -> dict[str, Any]:
             relative = candidate.relative_to(project_root)
             try:
                 metadata = candidate.lstat()
+                for suffix in _RESULT_SIBLING_SUFFIXES:
+                    if candidate.name.endswith(suffix):
+                        analysis_name = candidate.name[: -len(suffix)] + ".md"
+                        break
+                analysis_path = relative.parent / analysis_name
+                if declared_results.get(relative.as_posix()) != analysis_path:
+                    raise ManifestError(
+                        "analysis results artifact is not declared by its owning receipt"
+                    )
                 if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
                     raise ManifestError(
                         "analysis results artifact is not a real regular file"
@@ -714,6 +910,10 @@ def check_all(project_root: Path) -> dict[str, Any]:
             validated = _validated_analysis_path(relative)
             if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
                 raise ManifestError("analysis artifact is not a real regular file")
+            if validated not in lifecycle:
+                raise ManifestError(
+                    "analysis artifact is absent from result-registry receipt artifacts"
+                )
             analyses.append(validated)
         except (ManifestError, OSError) as exc:
             artifact_errors.append(
@@ -732,6 +932,16 @@ def check_all(project_root: Path) -> dict[str, Any]:
         paths = artifact_paths(analysis)
         expected_results.add(paths["verify_result"])
         expected_scripts.add(paths["verify_script"])
+        lifecycle_entry = lifecycle[analysis]
+        if lifecycle_entry["lifecycle"] == "retired":
+            checks.append(
+                {
+                    **paths,
+                    **lifecycle_entry,
+                    "status": "EXCLUDED_RETIRED",
+                }
+            )
+            continue
         try:
             comparison = compare_result(
                 project_root,
@@ -739,10 +949,15 @@ def check_all(project_root: Path) -> dict[str, Any]:
                 analysis,
             )
             status = comparison["status"]
-            entry = {**paths, **comparison}
+            entry = {**paths, **lifecycle_entry, **comparison}
         except (ManifestError, OSError) as exc:
             status = "ERROR"
-            entry = {**paths, "status": status, "error": str(exc)}
+            entry = {
+                **paths,
+                **lifecycle_entry,
+                "status": status,
+                "error": str(exc),
+            }
         all_unchanged = all_unchanged and status == "UNCHANGED"
         checks.append(entry)
     # A "<verify_result>.candidate" is finalize-pass's documented intermediate:
@@ -814,6 +1029,40 @@ def check_all(project_root: Path) -> dict[str, Any]:
     }
 
 
+def check_all(
+    project_root: Path,
+    emit: Callable[[dict[str, Any]], None] | None = None,
+) -> dict[str, Any]:
+    """Check all analyses under one shared lease, including optional emission."""
+    project_root = project_root.resolve()
+    try:
+        with _results_read_lock(project_root):
+            output = _check_all_locked(project_root)
+            if emit is not None:
+                emit(output)
+            return output
+    except (ManifestError, OSError) as exc:
+        output = {
+            "status": "CHANGED",
+            "analyses": [],
+            "artifact_errors": [
+                {
+                    "path": RESULTS_LOCK.as_posix(),
+                    "error": f"cannot hold stable analysis lifecycle: {exc}",
+                }
+            ],
+        }
+        if emit is not None:
+            emit(output)
+        return output
+
+
+def _emit_json(output: dict[str, Any]) -> None:
+    json.dump(output, sys.stdout, indent=2, sort_keys=True)
+    sys.stdout.write("\n")
+    sys.stdout.flush()
+
+
 def _parser() -> argparse.ArgumentParser:
     parser = argparse.ArgumentParser(description=__doc__)
     parser.add_argument("--project-root", type=Path, default=Path.cwd())
@@ -849,12 +1098,12 @@ def main(argv: list[str] | None = None) -> int:
                 args.project_root, args.analysis, args.candidate, args.result
             )
         else:
-            output = check_all(args.project_root.resolve())
+            check_all(args.project_root.resolve(), emit=_emit_json)
+            return 0
     except (ManifestError, OSError) as exc:
         print(f"empirical_input_manifest: {exc}", file=sys.stderr)
         return 2
-    json.dump(output, sys.stdout, indent=2, sort_keys=True)
-    sys.stdout.write("\n")
+    _emit_json(output)
     return 0
 
 

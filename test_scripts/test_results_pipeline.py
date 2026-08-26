@@ -355,6 +355,28 @@ if (trigger_root / 'mutate-during-bind').exists():
         all_report = self.call("verify-all", "--require-one", "--rerender")
         self.assertEqual(json.loads(all_report.stdout)["status"], "PASS")
 
+    def test_inspect_registry_returns_validated_pending_ownership(self) -> None:
+        self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py",
+        )
+        report = self.call(
+            "inspect-registry", "--artifact-prefix", "output/stagex/detail"
+        )
+        receipts = json.loads(report.stdout)["receipts"]
+        self.assertEqual(len(receipts), 1)
+        self.assertEqual(receipts[0]["lifecycle"], "pending")
+        self.assertEqual(receipts[0]["receipt"], "output/stagex/results.receipt.json")
+        self.assertEqual(receipts[0]["plan"]["recorded"], receipts[0]["plan"]["current"])
+        self.assertEqual(
+            receipts[0]["bundle"]["recorded"], receipts[0]["bundle"]["current"]
+        )
+        self.assertEqual(
+            receipts[0]["artifacts"][0]["recorded"],
+            receipts[0]["artifacts"][0]["current"],
+        )
+
     def test_environment_capture_records_installed_metadata_and_detects_change(self) -> None:
         spec = importlib.util.spec_from_file_location("results_pipeline_capture", UTILITY)
         assert spec is not None and spec.loader is not None

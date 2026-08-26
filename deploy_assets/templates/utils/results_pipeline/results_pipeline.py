@@ -194,6 +194,22 @@ def project_lock(root: Path) -> Iterable[None]:
         os.close(descriptor)
 
 
+@contextmanager
+def project_read_lock(root: Path) -> Iterable[None]:
+    """Hold the shared side of the existing results lock without creating files."""
+    _, lock_path = project_path(root, LOCK_PATH)
+    descriptor = _open_entry_read(lock_path)
+    try:
+        info = os.fstat(descriptor)
+        if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+            raise EvidenceError("results pipeline lock must be one regular file")
+        fcntl.flock(descriptor, fcntl.LOCK_SH)
+        yield
+    finally:
+        fcntl.flock(descriptor, fcntl.LOCK_UN)
+        os.close(descriptor)
+
+
 def _reject_constant(value: str) -> None:
     raise EvidenceError(f"non-finite JSON number is forbidden: {value}")
 
@@ -4278,6 +4294,64 @@ def command_validate_receipt(args: argparse.Namespace) -> int:
     return 0
 
 
+def command_inspect_registry(args: argparse.Namespace) -> int:
+    """Return validated lifecycle metadata without executing or verifying producers."""
+    root = resolve_root(args.project_root)
+    prefix, _ = project_path(root, args.artifact_prefix, must_exist=False)
+    if not prefix.startswith("output/"):
+        raise EvidenceError("artifact inspection prefix must be under output/")
+    registry, _ = load_registry(root)
+    lifecycle_entries = [
+        *((raw, "active", None) for raw in registry["active"]),
+        *((entry["receipt"], "pending", entry["supersedes"])
+          for entry in registry["pending"]),
+        *((entry["receipt"], "retired", None) for entry in registry["retired"]),
+    ]
+    receipts: list[dict[str, Any]] = []
+    for receipt_raw, lifecycle, pending_supersedes in lifecycle_entries:
+        _, receipt_path_value = result_receipt_path(root, receipt_raw)
+        receipt = validate_receipt_contract(root, receipt_path_value)
+        matching_artifacts = []
+        for recorded in receipt["producer_run"]["artifacts"]:
+            if recorded["path"].startswith(prefix):
+                matching_artifacts.append({
+                    "recorded": recorded,
+                    "current": fingerprint(root, recorded["path"]),
+                })
+        receipts.append({
+            "receipt": receipt_raw,
+            "lifecycle": lifecycle,
+            "pending_supersedes": pending_supersedes,
+            "receipt_supersedes": receipt["supersedes"],
+            "plan": {
+                "recorded": receipt["producer_run"]["plan"],
+                "current": fingerprint(root, receipt["producer_run"]["plan"]["path"]),
+            },
+            "bundle": {
+                "recorded": receipt["producer_run"]["bundle"],
+                "current": fingerprint(root, receipt["producer_run"]["bundle"]["path"]),
+            },
+            "artifacts": matching_artifacts,
+        })
+    print(json.dumps({"receipts": receipts}, indent=2, sort_keys=True))
+    return 0
+
+
+def reject_unresolved_transaction(root: Path) -> None:
+    """Fail a read-only inspection when a normal command must recover state."""
+    _, journal = project_path(root, TRANSACTION_PATH, must_exist=False)
+    _, backup_root = project_path(root, TRANSACTION_BACKUP_PATH, must_exist=False)
+    if (
+        journal.exists()
+        or journal.is_symlink()
+        or backup_root.exists()
+        or backup_root.is_symlink()
+    ):
+        raise EvidenceError(
+            "results transaction recovery is required before registry inspection"
+        )
+
+
 def command_verify_all(args: argparse.Namespace) -> int:
     root = resolve_root(args.project_root)
     paths = discover_result_receipts(root)
@@ -6214,6 +6288,14 @@ def build_parser() -> argparse.ArgumentParser:
     )
     validate_receipt_parser.set_defaults(func=command_validate_receipt)
 
+    inspect_registry = subparsers.add_parser(
+        "inspect-registry",
+        help="validate registry/receipts and return selected lifecycle ownership metadata",
+    )
+    inspect_registry.add_argument("--project-root", default=".")
+    inspect_registry.add_argument("--artifact-prefix", required=True)
+    inspect_registry.set_defaults(func=command_inspect_registry)
+
     verify_all = subparsers.add_parser("verify-all", help="verify all result receipts under output/")
     verify_all.add_argument("--project-root", default=".")
     verify_all.add_argument("--rerender", action="store_true")
@@ -6268,6 +6350,10 @@ def main(argv: list[str] | None = None) -> int:
     args = parser.parse_args(argv)
     try:
         root = resolve_root(args.project_root)
+        if args.subcommand == "inspect-registry":
+            with project_read_lock(root):
+                reject_unresolved_transaction(root)
+                return args.func(args)
         if args.subcommand in {"verify-paper", "validate-receipt"} and args.read_only:
             if getattr(args, "rerender", False):
                 raise EvidenceError("--read-only cannot be combined with --rerender")

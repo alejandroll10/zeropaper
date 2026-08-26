@@ -16,7 +16,30 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.1] — 2026-08-26 (current)
+## [2.30.2] — 2026-08-26 (current)
+
+**fix: Stage 3a freshness now follows result-receipt lifecycle.**
+`empirical_input_manifest.py check-all` now resolves analysis ownership through the durable
+results registry and the canonical receipt-v2 validator in an import-isolated interpreter,
+freshness-checks only active and
+pending analyses, and reports retired attempts as `EXCLUDED_RETIRED`. Missing or malformed
+registry state, duplicate or absent ownership, and valid-looking orphan analysis/result/
+verifier artifacts fail closed instead of either blocking forever as dead work or escaping
+pollution detection. The registry-absent contract is deliberately strict because every
+paper-producing deployment initializes it. Eighteen lifecycle-focused regressions include a
+receipt emitted by the real results runner plus pending, retired, stale-retired, unregistered,
+malformed, crash-prepared, orphan-sibling, missing-registry, stale-fingerprint, and
+duplicate-ownership states. Read-only checking holds the results pipeline's shared lock through
+the complete emitted verdict, rejects unresolved publication journals rather than blessing
+crash-partial state, and verifies the receipt-declared plan and bundle still have their recorded
+bytes.
+The deployed-path regression also proves project modules cannot shadow standard-library imports
+or create bytecode during the check; another proves generated executable bytecode deliberately
+invalidates once and converges after a refresh. Stage 3a instructions now force-refresh
+active/pending analyses only and invoke the manifest utility with `-I -S`; the complete
+code-surface binding remains unchanged. Closes #288.
+
+## [2.30.1] — 2026-08-26
 
 **fix: Stage 3a all-analysis freshness gate halted on its own mandated artifacts.**
 `empirical_input_manifest.py check-all` flagged every analysis's results triple
