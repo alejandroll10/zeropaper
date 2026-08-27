@@ -5,6 +5,12 @@ on:
   push:
     branches:
       - main
+  workflow_dispatch:
+    inputs:
+      target_sha:
+        description: Full lowercase commit SHA to verify (defaults to the dispatch commit)
+        required: false
+        type: string
 
 permissions:
   contents: read
@@ -19,6 +25,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.target_sha }}
+
+      - name: Verify the tested commit
+        env:
+          TARGET_SHA: ${{ inputs.target_sha || github.sha }}
+        run: |
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::target_sha must be a full lowercase 40-hex commit SHA"
+            exit 1
+          fi
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            echo "::error::Checked out $actual_sha instead of target $TARGET_SHA"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -55,6 +76,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.target_sha }}
+
+      - name: Verify the tested commit
+        env:
+          TARGET_SHA: ${{ inputs.target_sha || github.sha }}
+        run: |
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::target_sha must be a full lowercase 40-hex commit SHA"
+            exit 1
+          fi
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            echo "::error::Checked out $actual_sha instead of target $TARGET_SHA"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -85,6 +121,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.target_sha }}
+
+      - name: Verify the tested commit
+        env:
+          TARGET_SHA: ${{ inputs.target_sha || github.sha }}
+        run: |
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::target_sha must be a full lowercase 40-hex commit SHA"
+            exit 1
+          fi
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            echo "::error::Checked out $actual_sha instead of target $TARGET_SHA"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -123,6 +174,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.target_sha }}
+
+      - name: Verify the tested commit
+        env:
+          TARGET_SHA: ${{ inputs.target_sha || github.sha }}
+        run: |
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::target_sha must be a full lowercase 40-hex commit SHA"
+            exit 1
+          fi
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            echo "::error::Checked out $actual_sha instead of target $TARGET_SHA"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -172,6 +238,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.target_sha }}
+
+      - name: Verify the tested commit
+        env:
+          TARGET_SHA: ${{ inputs.target_sha || github.sha }}
+        run: |
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::target_sha must be a full lowercase 40-hex commit SHA"
+            exit 1
+          fi
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            echo "::error::Checked out $actual_sha instead of target $TARGET_SHA"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -195,6 +276,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.target_sha }}
+
+      - name: Verify the tested commit
+        env:
+          TARGET_SHA: ${{ inputs.target_sha || github.sha }}
+        run: |
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::target_sha must be a full lowercase 40-hex commit SHA"
+            exit 1
+          fi
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            echo "::error::Checked out $actual_sha instead of target $TARGET_SHA"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -213,6 +309,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.target_sha }}
+
+      - name: Verify the tested commit
+        env:
+          TARGET_SHA: ${{ inputs.target_sha || github.sha }}
+        run: |
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::target_sha must be a full lowercase 40-hex commit SHA"
+            exit 1
+          fi
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            echo "::error::Checked out $actual_sha instead of target $TARGET_SHA"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -231,6 +342,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.target_sha }}
+
+      - name: Verify the tested commit
+        env:
+          TARGET_SHA: ${{ inputs.target_sha || github.sha }}
+        run: |
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::target_sha must be a full lowercase 40-hex commit SHA"
+            exit 1
+          fi
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            echo "::error::Checked out $actual_sha instead of target $TARGET_SHA"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0
@@ -260,6 +386,21 @@ jobs:
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
         with:
           persist-credentials: false
+          ref: ${{ inputs.target_sha }}
+
+      - name: Verify the tested commit
+        env:
+          TARGET_SHA: ${{ inputs.target_sha || github.sha }}
+        run: |
+          if [[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]; then
+            echo "::error::target_sha must be a full lowercase 40-hex commit SHA"
+            exit 1
+          fi
+          actual_sha="$(git rev-parse HEAD)"
+          if [[ "$actual_sha" != "$TARGET_SHA" ]]; then
+            echo "::error::Checked out $actual_sha instead of target $TARGET_SHA"
+            exit 1
+          fi
 
       - name: Set up Python
         uses: actions/setup-python@5fda3b95a4ea91299a34e894583c3862153e4b97 # v7.0.0

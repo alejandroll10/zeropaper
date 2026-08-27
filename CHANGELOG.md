@@ -16,7 +16,17 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.8] — 2026-08-27 (current)
+## [2.30.9] — 2026-08-27 (current)
+
+**fix: make attested historical-tree CI verification recoverable after a corrupted run (#290).**
+The Dev instruction mirrors workflow now supports manual dispatch against an explicit full
+commit SHA, and every constituent test job attests that its checked-out `HEAD` equals that same
+target. The Actions run remains associated with the dispatch commit, so the logs record both
+the run SHA and attested target SHA rather than claiming to replace a historical check suite.
+A topology regression prevents future job splits from silently using the dispatch tree or
+omitting the attestation. Normal push and pull-request checkouts retain their event defaults.
+
+## [2.30.8] — 2026-08-27
 
 **docs: mandate tracked long-allowance launches for `results_pipeline run` (#293).**
 The `run` contract never told the invoking agent that producer runs are long; the runner has no

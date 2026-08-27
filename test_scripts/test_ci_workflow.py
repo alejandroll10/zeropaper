@@ -84,9 +84,12 @@ PRE_SPLIT_INVOCATIONS = {
 }
 
 
+def load_workflow() -> dict[str, Any]:
+    return yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
+
+
 def load_jobs() -> dict[str, dict[str, Any]]:
-    workflow = yaml.safe_load(WORKFLOW_PATH.read_text(encoding="utf-8"))
-    return workflow["jobs"]
+    return load_workflow()["jobs"]
 
 
 def job_script(job: dict[str, Any]) -> str:
@@ -96,6 +99,88 @@ def job_script(job: dict[str, Any]) -> str:
 
 
 class CiWorkflowTest(unittest.TestCase):
+    def test_manual_dispatch_pins_every_test_job_to_the_target_sha(self):
+        workflow = load_workflow()
+        # PyYAML's YAML 1.1 resolver parses the unquoted GitHub key `on` as True.
+        triggers = workflow.get("on", workflow.get(True))
+        dispatch = triggers["workflow_dispatch"]
+        self.assertEqual(
+            dispatch["inputs"]["target_sha"],
+            {
+                "description": (
+                    "Full lowercase commit SHA to verify "
+                    "(defaults to the dispatch commit)"
+                ),
+                "required": False,
+                "type": "string",
+            },
+        )
+
+        for job_id in TEST_JOBS:
+            with self.subTest(job=job_id):
+                checkout_steps = [
+                    step for step in workflow["jobs"][job_id]["steps"]
+                    if str(step.get("uses", "")).startswith("actions/checkout@")
+                ]
+                self.assertEqual(len(checkout_steps), 1)
+                checkout = checkout_steps[0]
+                self.assertEqual(
+                    checkout["with"]["ref"],
+                    "${{ inputs.target_sha }}",
+                )
+                self.assertFalse(checkout["with"]["persist-credentials"])
+
+                steps = workflow["jobs"][job_id]["steps"]
+                checkout_index = steps.index(checkout)
+                verify = steps[checkout_index + 1]
+                self.assertEqual(verify["name"], "Verify the tested commit")
+                self.assertEqual(
+                    verify["env"],
+                    {"TARGET_SHA": "${{ inputs.target_sha || github.sha }}"},
+                )
+                self.assertIn(
+                    '[[ ! "$TARGET_SHA" =~ ^[0-9a-f]{40}$ ]]',
+                    verify["run"],
+                )
+                self.assertIn(
+                    'actual_sha="$(git rev-parse HEAD)"',
+                    verify["run"],
+                )
+                self.assertIn(
+                    '[[ "$actual_sha" != "$TARGET_SHA" ]]',
+                    verify["run"],
+                )
+
+    def test_commit_attestation_rejects_refs_and_wrong_shas(self):
+        script = load_jobs()["mirrors"]["steps"][1]["run"]
+        actual_sha = subprocess.run(
+            ["git", "rev-parse", "HEAD"],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=True,
+        ).stdout.strip()
+
+        for target, expected_returncode in (
+            (actual_sha, 0),
+            ("main", 1),
+            ("0" * 40, 1),
+        ):
+            with self.subTest(target=target):
+                completed = subprocess.run(
+                    ["bash", "-c", script],
+                    cwd=REPO_ROOT,
+                    capture_output=True,
+                    text=True,
+                    check=False,
+                    env=os.environ | {"TARGET_SHA": target},
+                )
+                self.assertEqual(
+                    completed.returncode,
+                    expected_returncode,
+                    completed.stdout + completed.stderr,
+                )
+
     def test_preserves_every_pre_split_invocation_exactly_once(self):
         lines = [
             line.strip()
