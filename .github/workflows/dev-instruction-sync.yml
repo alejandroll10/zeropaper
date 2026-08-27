@@ -110,7 +110,7 @@ jobs:
           /usr/bin/bwrap --ro-bind / / -- /usr/bin/true
 
       - name: Test computed-results provenance utility
-        run: python3 test_scripts/test_results_pipeline.py
+        run: /usr/bin/python3 test_scripts/test_results_pipeline.py
 
   evidence_assembly:
     name: Evidence and setup contracts
@@ -163,7 +163,7 @@ jobs:
         run: bash test_scripts/test_results_evidence_assembly.sh
 
       - name: Test empirical replication input binding
-        run: python3 deploy_assets/scripts/test_empirical_input_manifest.py
+        run: /usr/bin/python3 deploy_assets/scripts/test_empirical_input_manifest.py
 
   runtime:
     name: Runtime integration tests

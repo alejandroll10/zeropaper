@@ -16,7 +16,16 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.9] — 2026-08-27 (current)
+## [2.30.10] — 2026-08-27 (current)
+
+**fix: run confined CI producers with the sandbox-visible system interpreter (#290).**
+GitHub's Python setup action installs its interpreter under `/opt/hostedtoolcache`, which the
+production Bubblewrap namespace intentionally does not expose. The computed-results and
+empirical-binding entry points now use `/usr/bin/python3` explicitly, so their child producers
+execute inside the same confined filesystem the workflow probes. Topology tests bind both
+sandboxed entry points to that interpreter.
+
+## [2.30.9] — 2026-08-27
 
 **fix: make attested historical-tree CI verification recoverable after a corrupted run (#290).**
 The Dev instruction mirrors workflow now supports manual dispatch against an explicit full

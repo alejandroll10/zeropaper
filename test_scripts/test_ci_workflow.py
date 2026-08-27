@@ -27,7 +27,7 @@ TEST_JOBS = {
     "characterization",
 }
 
-PRE_SPLIT_INVOCATIONS = {
+REQUIRED_INVOCATIONS = {
     "bash test_scripts/test_table_legibility.sh":
         "bash test_scripts/test_table_legibility.sh",
     "bash test_scripts/test_setup_config.sh":
@@ -38,14 +38,14 @@ PRE_SPLIT_INVOCATIONS = {
         "bash test_scripts/test_setup_source_policy.sh",
     "bash test_scripts/test_setup_ownership.sh":
         "bash test_scripts/test_setup_ownership.sh",
-    "python3 test_scripts/test_results_pipeline.py":
-        "python3 test_scripts/test_results_pipeline.py",
+    "/usr/bin/python3 test_scripts/test_results_pipeline.py":
+        "/usr/bin/python3 test_scripts/test_results_pipeline.py",
     "bash test_scripts/test_results_evidence_assembly.sh":
         "bash test_scripts/test_results_evidence_assembly.sh",
     "python3 test_scripts/test_deepvest.py":
         "python3 test_scripts/test_deepvest.py",
-    "python3 deploy_assets/scripts/test_empirical_input_manifest.py":
-        "python3 deploy_assets/scripts/test_empirical_input_manifest.py",
+    "/usr/bin/python3 deploy_assets/scripts/test_empirical_input_manifest.py":
+        "/usr/bin/python3 deploy_assets/scripts/test_empirical_input_manifest.py",
     "python -m unittest -v test_scripts.test_llm_client_backends":
         "python -m unittest -v test_scripts.test_llm_client_backends",
     "python3 deploy_assets/scripts/test_assemble_codex_subagents.py":
@@ -181,14 +181,14 @@ class CiWorkflowTest(unittest.TestCase):
                     completed.stdout + completed.stderr,
                 )
 
-    def test_preserves_every_pre_split_invocation_exactly_once(self):
+    def test_preserves_every_required_invocation_exactly_once(self):
         lines = [
             line.strip()
             for job_id, job in load_jobs().items()
             if job_id != "verify"
             for line in job_script(job).splitlines()
         ]
-        for prefix, expected in PRE_SPLIT_INVOCATIONS.items():
+        for prefix, expected in REQUIRED_INVOCATIONS.items():
             with self.subTest(invocation=expected):
                 matching = [line for line in lines if line.startswith(prefix)]
                 self.assertEqual(matching, [expected])
@@ -235,10 +235,17 @@ sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict"""
         sandbox_probe = """/usr/bin/bwrap --help | grep -Fq -- "--ro-bind-fd"
 /usr/bin/bwrap --ro-bind / / -- /usr/bin/true"""
         test_steps = {
-            "results_pipeline": "Test computed-results provenance utility",
-            "evidence_assembly": "Test empirical replication input binding",
+            "results_pipeline": (
+                "Test computed-results provenance utility",
+                "/usr/bin/python3 test_scripts/test_results_pipeline.py",
+            ),
+            "evidence_assembly": (
+                "Test empirical replication input binding",
+                "/usr/bin/python3 "
+                "deploy_assets/scripts/test_empirical_input_manifest.py",
+            ),
         }
-        for job_id, test_step in test_steps.items():
+        for job_id, (test_step, test_command) in test_steps.items():
             with self.subTest(job=job_id):
                 self.assertEqual(jobs[job_id]["runs-on"], "ubuntu-latest")
                 steps = jobs[job_id]["steps"]
@@ -250,6 +257,7 @@ sudo apparmor_parser -r /etc/apparmor.d/bwrap-userns-restrict"""
                 test_index = names.index(test_step)
                 self.assertEqual(steps[install_index]["run"].strip(), sandbox_install)
                 self.assertEqual(steps[probe_index]["run"].strip(), sandbox_probe)
+                self.assertEqual(steps[test_index]["run"], test_command)
                 self.assertLess(install_index, probe_index)
                 self.assertLess(probe_index, test_index)
 
