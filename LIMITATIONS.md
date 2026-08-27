@@ -74,6 +74,18 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## `results_pipeline` runner inherits the caller's shell timeout — a short synchronous call silently destroys a long producer run
+
+**Scope:** `--ext empirical`'s trusted results runner (`results_pipeline.py run`), on every producer whose runtime exceeds the invoking agent's synchronous tool timeout — in practice every data-first acquisition build.
+
+**Failure mode:** `execute()` has no wall-clock allowance of its own, so the effective limit is whatever the invoking tool call happens to grant; an interruption discards the entire disposable isolated workspace by design (atomic publish, nothing resumable). A 30-second synchronous call therefore silently destroys a legitimate ~20-minute acquisition — observed on a live run (eventcal, Stage 3a v6/a14, 2026-08-27), costing a debug cycle plus a full rebuild for a launcher-pattern mistake. v2.30.7 closes the instruction gap: `results_evidence.md`'s `run` procedure now leads with the mandate to launch through a harness-tracked long-allowance job and poll it. The mechanism gap remains: an agent that ignores the mandate reproduces the total loss.
+
+**What would close it:** a runner-owned wall-clock allowance declared in the plan rather than inherited ambiently (insufficient alone — the runner cannot survive an external SIGKILL), receipt-safe acquisition checkpointing (a content-addressed source-cache layer a fresh attempt may re-verify and reuse without weakening the atomic-publish contract), or at minimum a startup stderr banner stating the expected duration and tracked-job requirement.
+
+**Tracking:** [#293](https://github.com/alejandroll10/zeropaper/issues/293).
+
+---
+
 ## `deepvest` skill: an LLM-mediated data source has no raw re-query path for the integrity audit
 
 **Scope:** the `--ext empirical` `deepvest` skill (`code/utils/deepvest_utils.py`, MCP server `api.deepvest.ai/mcp`) and the Stage 3a step 7.5 `data-integrity-auditor`, which verifies cached field values by re-querying the source.

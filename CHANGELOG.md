@@ -18,6 +18,7 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ## [2.30.7] — 2026-08-27 (current)
 
+<<<<<<< HEAD
 **fix: data-first releases enforce declared redistribution rights before publication.**
 Stage 2 now emits an audited machine-readable source-rights inventory. Stage 3a builds the
 public dataset in a separate offline, credential-free results run whose non-manifest inputs are
@@ -30,6 +31,15 @@ and release receipts activate or retire atomically with matching replacement lin
 bound through Gate 4 and paper writing. Focused runner and assembly regressions protect the
 release boundary. Addresses #282;
 license interpretation and provenance truthfulness remain documented audit judgments.
+=======
+**docs: mandate tracked long-allowance launches for `results_pipeline run` (#293).**
+The `run` contract never told the invoking agent that producer runs are long; the runner has no
+wall-clock allowance of its own, so a 30-second synchronous shell call silently destroyed a
+legitimate ~20-minute acquisition on a live run (eventcal v6/a14) — total workspace loss by
+design, one debug cycle wasted on a launcher-pattern mistake. `results_evidence.md`'s `run`
+procedure now leads with the tracked-job mandate. The mechanism gap (runner-owned allowance,
+receipt-safe acquisition checkpointing) is tracked in #293 with a LIMITATIONS entry.
+>>>>>>> f8e1512 (docs: results_pipeline run must be launched as a tracked long-allowance job (v2.30.7, #293))
 
 ## [2.30.6] — 2026-08-26
 
