@@ -2,22 +2,37 @@
 # Integration test for the infrastructure/bootstrap ownership boundary (#255).
 set -euo pipefail
 
-repo_root="$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)"
+repo_root="${OWNERSHIP_SOURCE_ROOT:-$(cd "$(dirname "${BASH_SOURCE[0]}")/.." && pwd)}"
+repo_root="$(cd "$repo_root" && pwd -P)"
 current_template_version="$(<"$repo_root/VERSION")"
-scratch="$(mktemp -d "${TMPDIR:-/tmp}/setup-ownership-integration.XXXXXX")"
+ownership_test_shard="${OWNERSHIP_TEST_SHARD:-all}"
+case "$ownership_test_shard" in
+    all|base|update_safety|evidence_state|routing_locking) ;;
+    *)
+        echo "FAIL: unknown ownership test shard '$ownership_test_shard'" >&2
+        exit 2
+        ;;
+esac
+run_shard() {
+    [ "$ownership_test_shard" = all ] || [ "$ownership_test_shard" = "$1" ]
+}
+
+scratch="$(mktemp -d "${TMPDIR:-/tmp}/setup-ownership-${ownership_test_shard}.XXXXXX")"
 trap 'rm -rf "$scratch"' EXIT
-target="$scratch/project"
+TMPDIR="$scratch"
+export TMPDIR
 finance_selectors=(
     --variant finance --no-mode --clear-ext --no-seeded --no-faithful
     --no-manual --no-light --no-halt-on-core-bypass
 )
 
+if run_shard base; then
+target="$scratch/project"
+
 # Ownership helpers must reject unsafe or non-canonical paths before touching
 # the filesystem. In particular, a copy destination that names a directory
 # must not fall back to cp's "copy inside directory" behavior.
 P="$scratch/ownership-api"
-TMPDIR="$scratch"
-export TMPDIR
 mkdir -p "$P"
 # shellcheck source=../deploy_assets/scripts/setup/ownership.sh
 source "$repo_root/deploy_assets/scripts/setup/ownership.sh"
@@ -276,7 +291,9 @@ grep -Fq 'does not match the operator-attested trusted setup record' \
     || { cat "$scratch/source-attestation-update.log" >&2; echo "FAIL: source-attestation refusal was unclear" >&2; exit 1; }
 [ ! -e "$source_attestation_target/process_log/.opencode-control/update-in-progress" ] \
     || { echo "FAIL: source-attestation preflight created a launch barrier" >&2; exit 1; }
+fi
 
+if run_shard update_safety; then
 # SIGKILL of the visible updater must not release LOCK_EX while an orphaned
 # refresh body can still write. The detached guardian kills/drains that body;
 # only then may a second exclusive lock be acquired.
@@ -610,7 +627,9 @@ jq -e '.extensions == ["empirical"]' "$extension_target/.deploy_manifest.json" >
     || { echo "FAIL: rejected extension addition created a launch barrier" >&2; exit 1; }
 [ ! -e "$venv_interpreter_marker" ] \
     || { echo "FAIL: updater executed the project-owned venv interpreter" >&2; exit 1; }
+fi
 
+if run_shard evidence_state; then
 # Current-generation projects must retain the complete receipt-backed state
 # schema; unsupported pre-receipt or recovery fields fail before replacement.
 completed_target="$scratch/completed-evidence-migration-project"
@@ -978,7 +997,9 @@ grep -Fq 'In-place selector changes are unsupported' \
     || { cat "$scratch/schema-started-update.log" >&2; echo "FAIL: started selector refusal was unclear" >&2; exit 1; }
 jq -e '.extensions == ["empirical"]' "$schema_target/.deploy_manifest.json" >/dev/null \
     || { echo "FAIL: rejected started selector migration changed manifest" >&2; exit 1; }
+fi
 
+if run_shard routing_locking; then
 # Cross-variant updates fail before mutation because project-owned paper/state
 # semantics cannot be reconciled safely in place.
 variant_target="$scratch/variant-project"
@@ -1471,5 +1492,6 @@ fd = os.open(sys.argv[1], os.O_RDONLY | os.O_DIRECTORY)
 fcntl.flock(fd, fcntl.LOCK_EX | fcntl.LOCK_NB)
 PY
 kill "$(cat "$fake_detached_pid_file")" 2>/dev/null || true
+fi
 
-echo "PASS: infrastructure refreshes and project bootstrap content is preserved"
+echo "PASS: ownership shard $ownership_test_shard"

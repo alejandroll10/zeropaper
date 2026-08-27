@@ -36,8 +36,8 @@ REQUIRED_INVOCATIONS = {
         "bash test_scripts/test_setup_cleanup.sh",
     "bash test_scripts/test_setup_source_policy.sh":
         "bash test_scripts/test_setup_source_policy.sh",
-    "bash test_scripts/test_setup_ownership.sh":
-        "bash test_scripts/test_setup_ownership.sh",
+    'bash "$OWNERSHIP_HARNESS"':
+        'bash "$OWNERSHIP_HARNESS"',
     "/usr/bin/python3 test_scripts/test_results_pipeline.py":
         "/usr/bin/python3 test_scripts/test_results_pipeline.py",
     "bash test_scripts/test_results_evidence_assembly.sh":
@@ -225,6 +225,67 @@ class CiWorkflowTest(unittest.TestCase):
             self.assertEqual(len(matching), 1, command)
             owners[command] = matching[0]
         self.assertEqual(len(set(owners.values())), len(owners), owners)
+
+    def test_ownership_suite_is_complete_and_historically_targeted(self):
+        ownership = load_jobs()["ownership"]
+        expected_shards = [
+            "base",
+            "update_safety",
+            "evidence_state",
+            "routing_locking",
+        ]
+        self.assertEqual(
+            ownership["strategy"],
+            {
+                "fail-fast": False,
+                "matrix": {"shard": expected_shards},
+            },
+        )
+        harness = (
+            REPO_ROOT / "test_scripts/test_setup_ownership.sh"
+        ).read_text(encoding="utf-8")
+        self.assertEqual(harness.count("if run_shard "), len(expected_shards))
+        for shard in expected_shards:
+            self.assertIn(f"if run_shard {shard}; then", harness)
+
+        steps = {step["name"]: step for step in ownership["steps"]}
+        prepare = steps["Prepare the ownership harness"]
+        self.assertEqual(
+            prepare["env"],
+            {
+                "HISTORICAL_TARGET": "${{ inputs.target_sha }}",
+                "WORKFLOW_SHA": "${{ github.sha }}",
+            },
+        )
+        self.assertIn(
+            'git show "$WORKFLOW_SHA:test_scripts/test_setup_ownership.sh"',
+            prepare["run"],
+        )
+        test_step = steps["Test infrastructure/bootstrap ownership"]
+        self.assertEqual(
+            test_step["env"],
+            {
+                "OWNERSHIP_SOURCE_ROOT": "${{ github.workspace }}",
+                "OWNERSHIP_TEST_SHARD": "${{ matrix.shard }}",
+                "TMPDIR": "/dev/shm",
+            },
+        )
+        self.assertEqual(test_step["run"], 'bash "$OWNERSHIP_HARNESS"')
+
+    def test_ownership_harness_rejects_unknown_shards(self):
+        completed = subprocess.run(
+            ["bash", str(REPO_ROOT / "test_scripts/test_setup_ownership.sh")],
+            cwd=REPO_ROOT,
+            capture_output=True,
+            text=True,
+            check=False,
+            env=os.environ | {
+                "OWNERSHIP_SOURCE_ROOT": str(REPO_ROOT),
+                "OWNERSHIP_TEST_SHARD": "unknown",
+            },
+        )
+        self.assertEqual(completed.returncode, 2)
+        self.assertIn("unknown ownership test shard 'unknown'", completed.stderr)
 
     def test_bubblewrap_suites_keep_their_runner_prerequisites(self):
         jobs = load_jobs()

@@ -301,9 +301,17 @@ jobs:
         run: bash test_scripts/test_setup_source_policy.sh
 
   ownership:
-    name: Infrastructure and bootstrap ownership
+    name: Infrastructure and bootstrap ownership (${{ matrix.shard }})
     runs-on: ubuntu-latest
     timeout-minutes: 10
+    strategy:
+      fail-fast: false
+      matrix:
+        shard:
+          - base
+          - update_safety
+          - evidence_state
+          - routing_locking
     steps:
       - name: Check out the proposed commit
         uses: actions/checkout@3d3c42e5aac5ba805825da76410c181273ba90b1 # v7.0.1
@@ -330,8 +338,27 @@ jobs:
         with:
           python-version: "3.12"
 
+      - name: Prepare the ownership harness
+        env:
+          HISTORICAL_TARGET: ${{ inputs.target_sha }}
+          WORKFLOW_SHA: ${{ github.sha }}
+        run: |
+          harness="$RUNNER_TEMP/test_setup_ownership.sh"
+          if [[ -n "$HISTORICAL_TARGET" ]]; then
+            git fetch --no-tags --depth=1 origin "$WORKFLOW_SHA"
+            git show "$WORKFLOW_SHA:test_scripts/test_setup_ownership.sh" > "$harness"
+          else
+            cp test_scripts/test_setup_ownership.sh "$harness"
+          fi
+          chmod 0555 "$harness"
+          echo "OWNERSHIP_HARNESS=$harness" >> "$GITHUB_ENV"
+
       - name: Test infrastructure/bootstrap ownership
-        run: bash test_scripts/test_setup_ownership.sh
+        env:
+          OWNERSHIP_SOURCE_ROOT: ${{ github.workspace }}
+          OWNERSHIP_TEST_SHARD: ${{ matrix.shard }}
+          TMPDIR: /dev/shm
+        run: bash "$OWNERSHIP_HARNESS"
 
   setup_integration:
     name: Setup integration tests

@@ -16,7 +16,17 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.10] — 2026-08-27 (current)
+## [2.30.11] — 2026-08-27 (current)
+
+**fix: shard ownership CI across independent target families (#290).**
+The ownership integration harness now exposes four exhaustive shards while retaining its
+single-process `all` mode. CI runs those shards as a fail-complete matrix on memory-backed
+scratch space. Historical verification loads the reviewed current harness but points every
+operation at the separately attested historical source checkout, so the test harness can be
+parallelized without changing the source tree under test. Topology regressions bind the shard
+set, historical harness selection, source root, and scratch policy.
+
+## [2.30.10] — 2026-08-27
 
 **fix: run confined CI producers with the sandbox-visible system interpreter (#290).**
 GitHub's Python setup action installs its interpreter under `/opt/hostedtoolcache`, which the
