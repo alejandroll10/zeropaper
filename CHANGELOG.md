@@ -16,7 +16,22 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.6] — 2026-08-26 (current)
+## [2.30.7] — 2026-08-27 (current)
+
+**fix: data-first releases enforce declared redistribution rights before publication.**
+Stage 2 now emits an audited machine-readable source-rights inventory. Stage 3a builds the
+public dataset in a separate offline, credential-free results run whose non-manifest inputs are
+classified as data or the paired-analysis control; the trusted parent rejects restricted source
+IDs, incomplete provenance, unlisted or
+mischecksummed release files, and any ordinary networked analysis that targets `output/dataset/`.
+The release plan is bound to Gate 2's accepted rights path, SHA-256, and current version in
+autonomous deployments, or to an explicit caller authority under `--manual`; analysis
+and release receipts activate or retire atomically with matching replacement lineage and remain
+bound through Gate 4 and paper writing. Focused runner and assembly regressions protect the
+release boundary. Addresses #282;
+license interpretation and provenance truthfulness remain documented audit judgments.
+
+## [2.30.6] — 2026-08-26
 
 **fix: WRDS daemon wedged permanently by a deadline-less healthcheck on a half-open socket (#291).**
 A transient upstream flap left `SELECT 1` blocking indefinitely inside `healthcheck()` while it

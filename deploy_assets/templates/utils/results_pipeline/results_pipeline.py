@@ -358,22 +358,51 @@ def read_utf8(path: Path, label: str) -> str:
         raise EvidenceError(f"cannot read {label} from {path}: {exc}") from exc
 
 
-def load_json(path: Path) -> Any:
-    def unique_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
-        value: dict[str, Any] = {}
-        for key, item in pairs:
-            if key in value:
-                raise EvidenceError(f"duplicate JSON object key: {key!r}")
-            value[key] = item
-        return value
+def _unique_json_object(pairs: list[tuple[str, Any]]) -> dict[str, Any]:
+    value: dict[str, Any] = {}
+    for key, item in pairs:
+        if key in value:
+            raise EvidenceError(f"duplicate JSON object key: {key!r}")
+        value[key] = item
+    return value
 
+
+def _parse_json_text(value: str, path: Path) -> Any:
     try:
         return json.loads(
-            read_utf8(path, "JSON"), parse_constant=_reject_constant,
-            object_pairs_hook=unique_object,
+            value, parse_constant=_reject_constant,
+            object_pairs_hook=_unique_json_object,
         )
-    except (OSError, UnicodeError, json.JSONDecodeError) as exc:
+    except (UnicodeError, json.JSONDecodeError) as exc:
         raise EvidenceError(f"cannot read valid JSON from {path}: {exc}") from exc
+
+
+def load_json(path: Path) -> Any:
+    return _parse_json_text(read_utf8(path, "JSON"), path)
+
+
+def load_json_snapshot(root: Path, raw: str) -> tuple[Any, dict[str, Any]]:
+    """Parse and fingerprint the same bytes from one anchored file descriptor."""
+    normalized, path = project_path(root, raw)
+    descriptor = _open_regular_read(path)
+    try:
+        chunks: list[bytes] = []
+        digest = hashlib.sha256()
+        for chunk in iter(lambda: os.read(descriptor, 1024 * 1024), b""):
+            chunks.append(chunk)
+            digest.update(chunk)
+    finally:
+        os.close(descriptor)
+    try:
+        text = b"".join(chunks).decode("utf-8")
+    except UnicodeError as exc:
+        raise EvidenceError(f"cannot read valid JSON from {path}: {exc}") from exc
+    snapshot = {
+        "path": normalized,
+        "kind": "file",
+        "sha256": f"sha256:{digest.hexdigest()}",
+    }
+    return _parse_json_text(text, path), snapshot
 
 
 def fsync_directory(path: Path) -> None:
@@ -2337,13 +2366,24 @@ def temporary_absent_path(path: Path, label: str) -> Path:
     return Path(raw)
 
 
+def _dataset_namespace_path(raw: str) -> bool:
+    """Reserve output/dataset case-insensitively for case-folding filesystems."""
+    folded = raw.casefold()
+    return folded == "output/dataset" or folded.startswith("output/dataset/")
+
+
 def validate_run_plan(value: Any, root: Path, *, require_live_sources: bool = True
                       ) -> dict[str, Any]:
     if not isinstance(value, dict):
         raise EvidenceError("run plan must be a JSON object")
     required = {"plan_version", "producer_code", "producer_inputs", "artifacts",
                 "renderer_code", "exhibits"}
-    _require_keys(value, required, required | {"provider_credentials"}, "run plan")
+    _require_keys(
+        value, required,
+        required | {"provider_credentials", "network_access", "requires_dataset_release",
+                    "dataset_release"},
+        "run plan",
+    )
     if (isinstance(value["plan_version"], bool) or
             not isinstance(value["plan_version"], int) or
             value["plan_version"] != RUN_PLAN_VERSION):
@@ -2373,11 +2413,566 @@ def validate_run_plan(value: Any, root: Path, *, require_live_sources: bool = Tr
     if (len(value["provider_credentials"]) != len(set(value["provider_credentials"])) or
             not set(value["provider_credentials"]).issubset(SECRET_ENV_KEYS)):
         raise EvidenceError("run plan.provider_credentials contains unsupported values")
+    network_access = value.get("network_access", True)
+    if not isinstance(network_access, bool):
+        raise EvidenceError("run plan.network_access must be a boolean")
+    value["network_access"] = network_access
+    requires_dataset_release = value.get("requires_dataset_release", False)
+    if not isinstance(requires_dataset_release, bool):
+        raise EvidenceError("run plan.requires_dataset_release must be a boolean")
+    value["requires_dataset_release"] = requires_dataset_release
     outputs = set(value["artifacts"]) | set(value["exhibits"])
     overlap = overlapping_pair(outputs, outputs, same=True)
     if overlap is not None:
         raise EvidenceError("run-plan output paths must be disjoint: " + " / ".join(overlap))
+    dataset_outputs = sorted(
+        raw for raw in outputs
+        if _dataset_namespace_path(raw)
+    )
+    release = value.get("dataset_release")
+    if release is None:
+        if dataset_outputs:
+            raise EvidenceError(
+                "outputs under output/dataset require run plan.dataset_release"
+            )
+        return value
+    if value["requires_dataset_release"]:
+        raise EvidenceError(
+            "a dataset release run may not itself require another dataset release"
+        )
+    if not isinstance(release, dict):
+        raise EvidenceError("run plan.dataset_release must be an object")
+    release_required = {
+        "artifact", "manifest", "rights_inventory", "rights_inventory_sha256",
+        "input_provenance", "rights_authority",
+        "dataset_version", "analysis_receipt", "producing_receipt",
+    }
+    _require_keys(release, release_required, release_required, "run plan.dataset_release")
+    for key in ("artifact", "manifest", "rights_inventory", "input_provenance",
+                "analysis_receipt", "producing_receipt"):
+        if not isinstance(release[key], str) or not release[key]:
+            raise EvidenceError(f"run plan.dataset_release.{key} must be a path string")
+    artifact, _ = project_path(root, release["artifact"], must_exist=False)
+    if (artifact.casefold() == "output/dataset" or
+            not artifact.casefold().startswith("output/dataset/") or
+            artifact != artifact.casefold()):
+        raise EvidenceError(
+            "run plan.dataset_release.artifact must be a fresh versioned directory "
+            "beneath output/dataset/"
+        )
+    manifest, _ = project_path(root, release["manifest"], must_exist=False)
+    if manifest != artifact + "/manifest.json":
+        raise EvidenceError(
+            "run plan.dataset_release.manifest must be <artifact>/manifest.json"
+        )
+    for key in ("rights_inventory", "input_provenance"):
+        release[key] = project_path(
+            root, release[key], must_exist=require_live_sources
+        )[0]
+        if release[key] not in value["producer_inputs"]:
+            raise EvidenceError(
+                f"run plan.dataset_release.{key} must be a declared producer input"
+            )
+    rights_digest = release["rights_inventory_sha256"]
+    if (not isinstance(rights_digest, str) or
+            re.fullmatch(r"sha256:[0-9a-f]{64}", rights_digest) is None):
+        raise EvidenceError(
+            "run plan.dataset_release.rights_inventory_sha256 must be a SHA-256 digest"
+        )
+    if release["rights_authority"] not in {"gate2-state", "manual-caller"}:
+        raise EvidenceError(
+            "run plan.dataset_release.rights_authority must be gate2-state or "
+            "manual-caller"
+        )
+    release["analysis_receipt"] = result_receipt_path(
+        root, release["analysis_receipt"]
+    )[0]
+    if release["analysis_receipt"] not in value["producer_inputs"]:
+        raise EvidenceError(
+            "run plan.dataset_release.analysis_receipt must be a declared producer input"
+        )
+    producing_receipt, _ = project_path(
+        root, release["producing_receipt"], must_exist=False
+    )
+    if not producing_receipt.startswith("output/"):
+        raise EvidenceError(
+            "run plan.dataset_release.producing_receipt must be beneath output/"
+        )
+    dataset_version = release["dataset_version"]
+    if (isinstance(dataset_version, bool) or not isinstance(dataset_version, int) or
+            dataset_version < 1):
+        raise EvidenceError(
+            "run plan.dataset_release.dataset_version must be a positive integer"
+        )
+    release["artifact"] = artifact
+    release["manifest"] = manifest
+    release["producing_receipt"] = producing_receipt
+    if dataset_outputs != [artifact]:
+        raise EvidenceError(
+            "dataset release runs must declare exactly their versioned release directory "
+            "under output/dataset and no dataset exhibits"
+        )
+    if value["artifacts"] != [artifact] or value["exhibits"]:
+        raise EvidenceError(
+            "dataset release runs must declare exactly one artifact (the release) "
+            "and no exhibits"
+        )
+    if value["network_access"]:
+        raise EvidenceError("dataset release runs must set network_access to false")
+    if value["provider_credentials"]:
+        raise EvidenceError("dataset release runs may not receive provider credentials")
     return value
+
+
+SOURCE_ID_RE = re.compile(r"[a-z][a-z0-9_-]{0,63}")
+RELEASE_FILE_KINDS = {"data", "code", "documentation"}
+CODE_INPUT_SUFFIXES = {
+    ".bash", ".c", ".cc", ".cpp", ".go", ".h", ".hpp", ".jl", ".js",
+    ".lua", ".m", ".pl", ".py", ".r", ".rb", ".rs", ".sh", ".sql",
+    ".ts", ".zsh",
+}
+
+
+def _release_relative_path(raw: Any, where: str) -> str:
+    if not isinstance(raw, str) or not raw or raw.startswith("/") or "\\" in raw:
+        raise EvidenceError(f"{where} must be a relative POSIX path")
+    path = PurePosixPath(raw)
+    if (path.as_posix() != raw or any(part in {"", ".", ".."} for part in path.parts) or
+            any(_forbidden_part(part) for part in path.parts) or
+            any(ord(character) < 32 for character in raw)):
+        raise EvidenceError(f"{where} is not a safe relative release path: {raw!r}")
+    return raw
+
+
+def _validate_dataset_rights_authority(plan: dict[str, Any], root: Path) -> None:
+    """Bind releases to autonomous Gate 2 or an explicit manual caller."""
+    release = plan.get("dataset_release")
+    if release is None:
+        return
+    deployment, _ = load_json_snapshot(root, ".deploy_manifest.json")
+    manifest_version = (
+        deployment.get("manifest_version") if isinstance(deployment, dict) else None
+    )
+    if (not isinstance(deployment, dict) or
+            isinstance(manifest_version, bool) or
+            not isinstance(manifest_version, int) or
+            manifest_version != 1 or
+            deployment.get("mode") != "data-first" or
+            not isinstance(deployment.get("flags"), dict) or
+            not isinstance(deployment["flags"].get("manual"), bool)):
+        raise EvidenceError(
+            "dataset releases require a valid data-first deployment manifest"
+        )
+    manual = deployment["flags"]["manual"]
+    expected_authority = "manual-caller" if manual else "gate2-state"
+    if release["rights_authority"] != expected_authority:
+        raise EvidenceError(
+            "dataset release rights_authority disagrees with the deployment mode: "
+            f"expected {expected_authority}"
+        )
+    _, state_path = project_path(
+        root, "process_log/pipeline_state.json", must_exist=False
+    )
+    if manual:
+        if state_path.exists():
+            raise EvidenceError(
+                "manual dataset releases may not invent process_log/pipeline_state.json"
+            )
+        _, rights_snapshot = load_json_snapshot(root, release["rights_inventory"])
+        if rights_snapshot["sha256"] != release["rights_inventory_sha256"]:
+            raise EvidenceError(
+                "manual caller's rights inventory differs from the accepted plan digest"
+            )
+        return
+    state, _ = load_json_snapshot(root, "process_log/pipeline_state.json")
+    if not isinstance(state, dict):
+        raise EvidenceError("pipeline state must be a JSON object for a dataset release")
+    path_value = state.get("dataset_rights_inventory")
+    if not isinstance(path_value, str) or not path_value:
+        raise EvidenceError("pipeline state has no Gate-2-accepted rights inventory")
+    accepted_path, _ = project_path(root, path_value)
+    if accepted_path != release["rights_inventory"]:
+        raise EvidenceError(
+            "release rights inventory differs from the Gate-2-accepted state pointer"
+        )
+    expected_digest = state.get("dataset_rights_inventory_sha256")
+    if (not isinstance(expected_digest, str) or
+            re.fullmatch(r"sha256:[0-9a-f]{64}", expected_digest) is None):
+        raise EvidenceError("pipeline state has no valid Gate-2 rights-inventory digest")
+    _, rights_snapshot = load_json_snapshot(root, accepted_path)
+    if rights_snapshot["sha256"] != expected_digest:
+        raise EvidenceError("Gate-2-accepted rights inventory bytes have changed")
+    if release["rights_inventory_sha256"] != expected_digest:
+        raise EvidenceError(
+            "release rights-inventory digest differs from the Gate-2-accepted state digest"
+        )
+    state_version = state.get("dataset_spec_version")
+    theory_version = state.get("theory_version")
+    for label, value in (("dataset_spec_version", state_version),
+                         ("theory_version", theory_version)):
+        if isinstance(value, bool) or not isinstance(value, int) or value < 1:
+            raise EvidenceError(f"pipeline state {label} must be a positive integer")
+    if state_version != theory_version or theory_version != release["dataset_version"]:
+        raise EvidenceError(
+            "release dataset version is not the current Gate-2-accepted theory version"
+        )
+
+
+def _validate_dataset_release_sources(
+        plan: dict[str, Any], root: Path,
+        *, expected_input_snapshots: list[dict[str, Any]] | None = None,
+                                      ) -> tuple[dict[str, str], set[str]]:
+    """Validate the accepted rights inventory and every isolated release-build input."""
+    release = plan.get("dataset_release")
+    if release is None:
+        return {}, set()
+    rights, rights_snapshot = load_json_snapshot(root, release["rights_inventory"])
+    if not isinstance(rights, dict):
+        raise EvidenceError("dataset rights inventory must be a JSON object")
+    rights_required = {"schema_version", "dataset_version", "sources"}
+    _require_keys(rights, rights_required, rights_required, "dataset rights inventory")
+    if (isinstance(rights["schema_version"], bool) or
+            not isinstance(rights["schema_version"], int) or
+            rights["schema_version"] != 1):
+        raise EvidenceError("dataset rights inventory schema_version must be 1")
+    if (isinstance(rights["dataset_version"], bool) or
+            not isinstance(rights["dataset_version"], int) or
+            rights["dataset_version"] != release["dataset_version"]):
+        raise EvidenceError("dataset rights inventory version differs from the release plan")
+    if not isinstance(rights["sources"], list) or not rights["sources"]:
+        raise EvidenceError("dataset rights inventory.sources must be a non-empty array")
+    classifications: dict[str, str] = {}
+    for index, source in enumerate(rights["sources"]):
+        where = f"dataset rights inventory.sources[{index}]"
+        if not isinstance(source, dict):
+            raise EvidenceError(f"{where} must be an object")
+        required = {"source_id", "redistribution", "evidence"}
+        _require_keys(source, required, required, where)
+        source_id = source["source_id"]
+        if not isinstance(source_id, str) or SOURCE_ID_RE.fullmatch(source_id) is None:
+            raise EvidenceError(f"{where}.source_id is invalid")
+        if source_id in classifications:
+            raise EvidenceError(f"duplicate dataset source_id: {source_id}")
+        classification = source["redistribution"]
+        if classification not in {"open", "restricted"}:
+            raise EvidenceError(f"{where}.redistribution must be open or restricted")
+        evidence = source["evidence"]
+        if not isinstance(evidence, dict):
+            raise EvidenceError(f"{where}.evidence must be an object")
+        evidence_required = {"url", "terms", "checked_at"}
+        _require_keys(evidence, evidence_required, evidence_required, f"{where}.evidence")
+        for key in sorted(evidence_required):
+            if not isinstance(evidence[key], str) or not evidence[key].strip():
+                raise EvidenceError(f"{where}.evidence.{key} must be non-empty")
+        classifications[source_id] = classification
+
+    if rights_snapshot["sha256"] != release["rights_inventory_sha256"]:
+        raise EvidenceError("dataset rights inventory differs from its release-plan digest")
+
+    provenance, provenance_snapshot = load_json_snapshot(
+        root, release["input_provenance"]
+    )
+    if expected_input_snapshots is not None:
+        expected_by_path = {
+            item.get("path"): item for item in expected_input_snapshots
+            if isinstance(item, dict)
+        }
+        for label, snapshot in (("rights inventory", rights_snapshot),
+                                ("input provenance", provenance_snapshot)):
+            if expected_by_path.get(snapshot["path"]) != snapshot:
+                raise EvidenceError(
+                    f"dataset {label} parsed bytes differ from producer input snapshot"
+                )
+    if not isinstance(provenance, dict):
+        raise EvidenceError("dataset input provenance must be a JSON object")
+    provenance_required = {
+        "schema_version", "dataset_version", "rights_inventory", "inputs",
+    }
+    _require_keys(
+        provenance, provenance_required, provenance_required, "dataset input provenance"
+    )
+    if (isinstance(provenance["schema_version"], bool) or
+            not isinstance(provenance["schema_version"], int) or
+            provenance["schema_version"] != 1):
+        raise EvidenceError("dataset input provenance schema_version must be 1")
+    if (isinstance(provenance["dataset_version"], bool) or
+            not isinstance(provenance["dataset_version"], int) or
+            provenance["dataset_version"] != release["dataset_version"]):
+        raise EvidenceError("dataset input provenance version differs from the release plan")
+    normalized_rights, _ = project_path(root, provenance["rights_inventory"])
+    if normalized_rights != release["rights_inventory"]:
+        raise EvidenceError(
+            "dataset input provenance names a different rights inventory"
+        )
+    if not isinstance(provenance["inputs"], list) or not provenance["inputs"]:
+        raise EvidenceError("dataset input provenance.inputs must be a non-empty array")
+    mapped_paths: set[str] = set()
+    mapped_roles: dict[str, str] = {}
+    used_open_sources: set[str] = set()
+    for index, item in enumerate(provenance["inputs"]):
+        where = f"dataset input provenance.inputs[{index}]"
+        if not isinstance(item, dict):
+            raise EvidenceError(f"{where} must be an object")
+        required = {"path", "role", "source_ids"}
+        _require_keys(item, required, required, where)
+        normalized, _ = project_path(root, item["path"])
+        if normalized in mapped_paths:
+            raise EvidenceError(f"duplicate dataset release input mapping: {normalized}")
+        mapped_paths.add(normalized)
+        role = item["role"]
+        if role not in {"data", "control"}:
+            raise EvidenceError(f"{where}.role must be data or control")
+        if role == "control" and normalized != release["analysis_receipt"]:
+            raise EvidenceError(
+                f"{where} only the paired analysis receipt may be a control input"
+            )
+        if (normalized != release["analysis_receipt"] and
+                PurePosixPath(normalized).suffix.casefold() in CODE_INPUT_SUFFIXES):
+            raise EvidenceError(
+                f"dataset release code-shaped input must be declared as producer code: "
+                f"{normalized}"
+            )
+        source_ids = _string_list(item["source_ids"], f"{where}.source_ids",
+                                  nonempty=(role == "data"))
+        if len(source_ids) != len(set(source_ids)):
+            raise EvidenceError(f"{where}.source_ids contains duplicates")
+        unknown = sorted(set(source_ids) - classifications.keys())
+        if unknown:
+            raise EvidenceError(f"{where} names unknown source ids: {', '.join(unknown)}")
+        if role == "control" and source_ids:
+            raise EvidenceError(f"{where} control inputs may not name data sources")
+        mapped_roles[normalized] = role
+        restricted = sorted(
+            source_id for source_id in source_ids
+            if classifications[source_id] != "open"
+        )
+        if restricted:
+            raise EvidenceError(
+                f"dataset release input {normalized} is restricted: {', '.join(restricted)}"
+            )
+        used_open_sources.update(source_ids)
+    expected_mapped = set(plan["producer_inputs"]) - {
+        release["rights_inventory"], release["input_provenance"],
+    }
+    if mapped_paths != expected_mapped:
+        missing = sorted(expected_mapped - mapped_paths)
+        extra = sorted(mapped_paths - expected_mapped)
+        raise EvidenceError(
+            "dataset input provenance must classify every non-manifest producer input "
+            f"exactly once (missing={missing}, extra={extra})"
+        )
+    if not used_open_sources:
+        raise EvidenceError("dataset release build has no rights-cleared data input")
+    if mapped_roles.get(release["analysis_receipt"]) != "control":
+        raise EvidenceError(
+            "dataset release analysis_receipt must be classified as a control input"
+        )
+    return classifications, used_open_sources
+
+
+def _validate_staged_dataset_release(plan: dict[str, Any], workspace: Path,
+                                     classifications: dict[str, str],
+                                     used_open_sources: set[str],
+                                     producer_code_snapshots: list[dict[str, Any]] | None = None,
+                                     producer_entrypoint: str | None = None,
+                                     ) -> None:
+    """Fail before publication unless every release byte has checked provenance."""
+    release = plan.get("dataset_release")
+    if release is None:
+        return
+    _, artifact = project_path(workspace, release["artifact"])
+    if not artifact.is_dir() or artifact.is_symlink():
+        raise EvidenceError("dataset release artifact must be a real directory")
+    _, manifest_path = project_path(workspace, release["manifest"])
+    manifest = load_json(manifest_path)
+    if not isinstance(manifest, dict):
+        raise EvidenceError("dataset release manifest must be a JSON object")
+    required = {
+        "schema_version", "dataset_version", "producing_receipt",
+        "analysis_receipt", "rights_inventory", "rights_inventory_sha256",
+        "input_provenance", "rights_authority", "files",
+        "build_sources", "build_entrypoints", "schema_document",
+    }
+    _require_keys(manifest, required, required, "dataset release manifest")
+    if (isinstance(manifest["schema_version"], bool) or
+            not isinstance(manifest["schema_version"], int) or
+            manifest["schema_version"] != 1):
+        raise EvidenceError("dataset release manifest schema_version must be 1")
+    if (isinstance(manifest["dataset_version"], bool) or
+            not isinstance(manifest["dataset_version"], int) or
+            manifest["dataset_version"] != release["dataset_version"]):
+        raise EvidenceError("dataset release manifest version differs from the release plan")
+    if manifest["rights_authority"] != release["rights_authority"]:
+        raise EvidenceError(
+            "dataset release manifest rights_authority differs from the release plan"
+        )
+    for key in ("analysis_receipt", "producing_receipt", "rights_inventory",
+                "rights_inventory_sha256", "input_provenance"):
+        if manifest[key] != release[key]:
+            raise EvidenceError(f"dataset release manifest.{key} differs from the release plan")
+    files = manifest["files"]
+    if not isinstance(files, list) or not files:
+        raise EvidenceError("dataset release manifest.files must be a non-empty array")
+    declared: dict[str, dict[str, Any]] = {}
+    declared_casefold: dict[str, str] = {}
+    data_files = 0
+    for index, item in enumerate(files):
+        where = f"dataset release manifest.files[{index}]"
+        if not isinstance(item, dict):
+            raise EvidenceError(f"{where} must be an object")
+        item_required = {"path", "kind", "sha256", "source_ids"}
+        _require_keys(item, item_required, item_required, where)
+        raw = _release_relative_path(item["path"], f"{where}.path")
+        folded = raw.casefold()
+        if folded == "manifest.json":
+            raise EvidenceError("dataset release manifest may not checksum itself")
+        if raw in declared:
+            raise EvidenceError(f"duplicate dataset release file: {raw}")
+        if folded in declared_casefold:
+            raise EvidenceError(
+                "case-fold-colliding dataset release files: "
+                f"{declared_casefold[folded]} / {raw}"
+            )
+        kind = item["kind"]
+        if kind not in RELEASE_FILE_KINDS:
+            raise EvidenceError(f"{where}.kind is invalid")
+        digest = item["sha256"]
+        if (not isinstance(digest, str) or
+                re.fullmatch(r"sha256:[0-9a-f]{64}", digest) is None):
+            raise EvidenceError(f"{where}.sha256 is invalid")
+        source_ids = _string_list(item["source_ids"], f"{where}.source_ids",
+                                  nonempty=(kind == "data"))
+        if len(source_ids) != len(set(source_ids)):
+            raise EvidenceError(f"{where}.source_ids contains duplicates")
+        if kind != "data" and source_ids:
+            raise EvidenceError(f"{where} non-data files may not name data sources")
+        if kind == "data":
+            data_files += 1
+            unknown = sorted(set(source_ids) - classifications.keys())
+            if unknown:
+                raise EvidenceError(f"{where} names unknown source ids: {', '.join(unknown)}")
+            restricted = sorted(
+                source_id for source_id in source_ids
+                if classifications[source_id] != "open"
+            )
+            if restricted:
+                raise EvidenceError(
+                    f"dataset release file {raw} names restricted sources: "
+                    + ", ".join(restricted)
+                )
+            undeclared = sorted(set(source_ids) - used_open_sources)
+            if undeclared:
+                raise EvidenceError(
+                    f"dataset release file {raw} names sources absent from release inputs: "
+                    + ", ".join(undeclared)
+                )
+        declared[raw] = item
+        declared_casefold[folded] = raw
+    if data_files == 0:
+        raise EvidenceError("dataset release must contain at least one rights-cleared data file")
+    actual: dict[str, str] = {}
+    for relative, _, info, digest in walk_directory(artifact, hash_files=True):
+        if stat.S_ISDIR(info.st_mode):
+            continue
+        if not stat.S_ISREG(info.st_mode) or digest is None:
+            raise EvidenceError(f"special file inside dataset release: {relative}")
+        if relative != "manifest.json":
+            actual[relative] = digest
+    if set(actual) != set(declared):
+        missing = sorted(set(actual) - set(declared))
+        absent = sorted(set(declared) - set(actual))
+        raise EvidenceError(
+            "dataset release manifest must enumerate every file exactly once "
+            f"(unlisted={missing}, absent={absent})"
+        )
+    for raw, digest in actual.items():
+        if declared[raw]["sha256"] != digest:
+            raise EvidenceError(f"dataset release checksum mismatch: {raw}")
+    entrypoints = _string_list(
+        manifest["build_entrypoints"], "dataset release manifest.build_entrypoints",
+        nonempty=True,
+    )
+    if len(entrypoints) != len(set(entrypoints)):
+        raise EvidenceError("dataset release build_entrypoints contains duplicates")
+    if len(entrypoints) != len({raw.casefold() for raw in entrypoints}):
+        raise EvidenceError(
+            "dataset release build_entrypoints contains case-fold collisions"
+        )
+    for index, raw in enumerate(entrypoints):
+        normalized = _release_relative_path(
+            raw, f"dataset release manifest.build_entrypoints[{index}]"
+        )
+        if normalized not in declared or declared[normalized]["kind"] != "code":
+            raise EvidenceError(
+                f"dataset release build entrypoint is not a declared code file: {normalized}"
+            )
+    if producer_code_snapshots is None:
+        producer_code_snapshots = fingerprint_many(workspace, plan["producer_code"])
+    if (not isinstance(producer_code_snapshots, list) or
+            any(not isinstance(item, dict) for item in producer_code_snapshots)):
+        raise EvidenceError("dataset release producer code snapshots are malformed")
+    source_records = {
+        item.get("path"): item for item in producer_code_snapshots
+        if item.get("kind") == "file" and isinstance(item.get("path"), str)
+    }
+    if set(source_records) != set(plan["producer_code"]):
+        raise EvidenceError(
+            "dataset release producer code snapshots do not cover the run plan"
+        )
+    build_sources = manifest["build_sources"]
+    if not isinstance(build_sources, dict) or set(build_sources) != set(source_records):
+        raise EvidenceError(
+            "dataset release build_sources must map every producer code file exactly once"
+        )
+    mapped_build_paths: list[str] = []
+    for source_raw in plan["producer_code"]:
+        mapped_raw = _release_relative_path(
+            build_sources[source_raw],
+            f"dataset release manifest.build_sources[{source_raw!r}]",
+        )
+        if mapped_raw != source_raw:
+            raise EvidenceError(
+                "dataset release build_sources must preserve producer code paths: "
+                f"{source_raw} -> {mapped_raw}"
+            )
+        if mapped_raw not in declared or declared[mapped_raw]["kind"] != "code":
+            raise EvidenceError(
+                "dataset release build source does not name a declared code file: "
+                + mapped_raw
+            )
+        if actual[mapped_raw] != source_records[source_raw].get("sha256"):
+            raise EvidenceError(
+                "dataset release build source is not byte-identical to producer code: "
+                f"{source_raw} -> {mapped_raw}"
+            )
+        mapped_build_paths.append(mapped_raw)
+    if (len(mapped_build_paths) != len(set(mapped_build_paths)) or
+            len(mapped_build_paths) != len({raw.casefold() for raw in mapped_build_paths})):
+        raise EvidenceError("dataset release build_sources targets must be unique")
+    declared_code = {
+        raw for raw, record in declared.items() if record["kind"] == "code"
+    }
+    if set(mapped_build_paths) != declared_code:
+        raise EvidenceError(
+            "dataset release declared code files must exactly equal the packaged build closure"
+        )
+    if producer_entrypoint not in build_sources:
+        raise EvidenceError(
+            "dataset release producer command entrypoint is absent from build_sources"
+        )
+    if build_sources[producer_entrypoint] not in entrypoints:
+        raise EvidenceError(
+            "dataset release build_entrypoints must include the mapped producer command "
+            "entrypoint"
+        )
+    schema_document = _release_relative_path(
+        manifest["schema_document"], "dataset release manifest.schema_document"
+    )
+    if (schema_document not in declared or
+            declared[schema_document]["kind"] != "documentation"):
+        raise EvidenceError(
+            "dataset release schema_document must name a declared documentation file"
+        )
 
 
 def _remove_entry_at(parent_fd: int, name: str) -> None:
@@ -3259,8 +3854,7 @@ def result_receipt_supersedes(root: Path, receipt_raw: str,
                               receipt: dict[str, Any] | None = None) -> list[str]:
     """Return the immutable replacement relation recorded by one result receipt."""
     if receipt is None:
-        _, receipt_path_value = project_path(root, receipt_raw)
-        receipt = load_json(receipt_path_value)
+        receipt = load_registered_result_receipt(root, receipt_raw)
     if not isinstance(receipt, dict):
         raise EvidenceError(f"malformed result receipt: {receipt_raw}")
     values = _string_list(receipt.get("supersedes"), f"result receipt {receipt_raw}.supersedes")
@@ -3277,6 +3871,20 @@ def result_receipt_supersedes(root: Path, receipt_raw: str,
     if len(normalized) != len(set(normalized)):
         raise EvidenceError(f"result receipt {receipt_raw}.supersedes contains duplicates")
     return normalized
+
+
+def load_registered_result_receipt(root: Path, receipt_raw: str) -> dict[str, Any]:
+    """Read exact receipt bytes and bind them to the durable registry fingerprint."""
+    registry, _ = load_registry(root)
+    expected = registry["receipt_fingerprints"].get(receipt_raw)
+    if expected is None:
+        raise EvidenceError(f"result receipt is not active or pending: {receipt_raw}")
+    receipt, snapshot = load_json_snapshot(root, receipt_raw)
+    if snapshot != expected:
+        raise EvidenceError(f"registered result receipt bytes are stale: {receipt_raw}")
+    if not isinstance(receipt, dict):
+        raise EvidenceError(f"malformed result receipt: {receipt_raw}")
+    return receipt
 
 
 def compare_snapshot(root: Path, recorded: list[dict[str, Any]], label: str) -> list[str]:
@@ -3479,7 +4087,9 @@ def validate_receipt_contract(root: Path, receipt_path: Path) -> dict[str, Any]:
     return receipt
 
 
-def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool) -> dict[str, Any]:
+def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool,
+                   enforce_current_dataset_authority: bool = True
+                   ) -> dict[str, Any]:
     receipt = validate_receipt_contract(root, receipt_path)
     if (not isinstance(receipt, dict) or receipt.get("kind") != "result" or
             isinstance(receipt.get("receipt_version"), bool) or
@@ -3554,7 +4164,26 @@ def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool) -> dict[st
             if (not isinstance(producer_command, list) or not producer_command or
                     any(not isinstance(item, str) for item in producer_command)):
                 failures.append("producer_run.command: malformed receipt field")
+                producer_entrypoint = None
             else:
+                producer_entrypoint = command_entrypoint(producer_command)
+            release = plan.get("dataset_release")
+            if release is not None:
+                if release["producing_receipt"] != receipt_raw:
+                    failures.append(
+                        "dataset release producing_receipt differs from its receipt path"
+                    )
+                classifications, used_sources = _validate_dataset_release_sources(
+                    plan, root, expected_input_snapshots=producer.get("inputs")
+                )
+                if enforce_current_dataset_authority:
+                    _validate_dataset_rights_authority(plan, root)
+                _validate_staged_dataset_release(
+                    plan, root, classifications, used_sources,
+                    producer_code_snapshots=producer.get("code"),
+                    producer_entrypoint=producer_entrypoint,
+                )
+            if producer_entrypoint is not None:
                 command_uses_declared_code(
                     producer_command, bundle["producer"]["code"], "producer"
                 )
@@ -3673,7 +4302,8 @@ def evidence_artifact_path(root: Path, raw: str, *, must_exist: bool = False) ->
 
 def empty_registry() -> dict[str, Any]:
     return {"kind": "result_registry", "registry_version": REGISTRY_VERSION,
-            "active": [], "pending": [], "retired": [],
+            "active": [], "active_dataset_release_pairs": {},
+            "pending": [], "retired": [],
             "receipt_fingerprints": {}}
 
 
@@ -3691,14 +4321,37 @@ def load_registry(root: Path, *, candidate: dict[str, Any] | None = None,
             isinstance(value.get("registry_version"), bool) or
             value.get("registry_version") != REGISTRY_VERSION):
         raise EvidenceError(f"malformed result registry: {REGISTRY_PATH}")
-    _require_keys(value, {"kind", "registry_version", "active", "pending", "retired",
+    had_active_pairs_field = "active_dataset_release_pairs" in value
+    # Registries created before paired releases existed have no active pairs.
+    value.setdefault("active_dataset_release_pairs", {})
+    _require_keys(value, {"kind", "registry_version", "active",
+                          "active_dataset_release_pairs", "pending", "retired",
                           "receipt_fingerprints"},
-                  {"kind", "registry_version", "active", "pending", "retired",
+                  {"kind", "registry_version", "active",
+                          "active_dataset_release_pairs", "pending", "retired",
                           "receipt_fingerprints"},
                   "result registry")
     active = _string_list(value["active"], "result registry.active")
     if len(active) != len(set(active)):
         raise EvidenceError("result registry.active contains duplicate receipts")
+    active_pairs = value["active_dataset_release_pairs"]
+    if not isinstance(active_pairs, dict):
+        raise EvidenceError("result registry.active_dataset_release_pairs must be an object")
+    active_pair_members: set[str] = set()
+    for analysis_raw, release_raw in active_pairs.items():
+        analysis, _ = result_receipt_path(root, analysis_raw)
+        release, _ = result_receipt_path(root, release_raw)
+        if analysis != analysis_raw or release != release_raw:
+            raise EvidenceError(
+                "result registry.active_dataset_release_pairs paths must be normalized"
+            )
+        if analysis == release or analysis not in active or release not in active:
+            raise EvidenceError(
+                "result registry active dataset pair must name two distinct active receipts"
+            )
+        if analysis in active_pair_members or release in active_pair_members:
+            raise EvidenceError("active dataset-release pair members must be unique")
+        active_pair_members.update({analysis, release})
     pending = value["pending"]
     if not isinstance(pending, list):
         raise EvidenceError("result registry.pending must be an array")
@@ -3707,7 +4360,10 @@ def load_registry(root: Path, *, candidate: dict[str, Any] | None = None,
         where = f"result registry.pending[{index}]"
         if not isinstance(entry, dict):
             raise EvidenceError(f"{where} must be an object")
-        _require_keys(entry, {"receipt", "supersedes"}, {"receipt", "supersedes"}, where)
+        _require_keys(
+            entry, {"receipt", "supersedes"},
+            {"receipt", "supersedes", "paired_analysis_receipt"}, where,
+        )
         normalized, _ = result_receipt_path(root, entry["receipt"])
         if normalized != entry["receipt"]:
             raise EvidenceError(f"{where}.receipt is not normalized")
@@ -3720,6 +4376,13 @@ def load_registry(root: Path, *, candidate: dict[str, Any] | None = None,
                 raise EvidenceError(f"{where}.supersedes names a non-active receipt")
         if normalized in supersedes:
             raise EvidenceError(f"{where} cannot supersede itself")
+        paired_analysis = entry.get("paired_analysis_receipt")
+        if paired_analysis is not None:
+            paired_normalized, _ = result_receipt_path(root, paired_analysis)
+            if paired_normalized != paired_analysis:
+                raise EvidenceError(f"{where}.paired_analysis_receipt is not normalized")
+            if paired_normalized == normalized:
+                raise EvidenceError(f"{where} cannot pair a receipt with itself")
         pending_paths.append(normalized)
     retired = value["retired"]
     if not isinstance(retired, list):
@@ -3782,29 +4445,92 @@ def load_registry(root: Path, *, candidate: dict[str, Any] | None = None,
                 raise EvidenceError(f"registered result receipt is unavailable: {exc}") from exc
             if current != expected:
                 raise EvidenceError(f"registered result receipt bytes are stale: {raw}")
+    if verify_receipt_bytes:
+        derived_active_pairs, _ = derive_registry_dataset_release_pairs(
+            root, active, pending, receipt_fingerprints
+        )
+        if not had_active_pairs_field and derived_active_pairs:
+            raise EvidenceError(
+                "result registry is missing active dataset-release pair identity"
+            )
+        if active_pairs != derived_active_pairs:
+            raise EvidenceError(
+                "result registry active dataset-release pair identity disagrees with receipts"
+            )
+        _, output = project_path(root, "output")
+        receipt_entries = [
+            (relative, info) for relative, _, info, _ in walk_directory(output)
+            if relative.endswith("results.receipt.json")
+        ]
+        for relative, info in receipt_entries:
+            if not stat.S_ISREG(info.st_mode) or info.st_nlink != 1:
+                raise EvidenceError(
+                    "result receipt-shaped path on disk is not one regular "
+                    f"non-aliased file: output/{relative}"
+                )
+        on_disk_receipts = {
+            f"output/{relative}" for relative, _ in receipt_entries
+        }
+        tracked_receipts = set(active) | set(pending_paths) | set(retired_paths)
+        if on_disk_receipts != tracked_receipts:
+            raise EvidenceError(
+                "result registry must exactly inventory every result receipt on disk "
+                f"(untracked={sorted(on_disk_receipts - tracked_receipts)}, "
+                f"missing={sorted(tracked_receipts - on_disk_receipts)})"
+            )
     return value, path
 
 
-def validate_registration_plan(root: Path, receipt_raw: str,
-                               supersedes: list[str]) -> tuple[dict[str, Any], Path, list[str]]:
+def validate_registration_plan(
+        root: Path, receipt_raw: str, supersedes: list[str],
+        *, paired_pending_receipt: str | None = None,
+        pair_role: str | None = None,
+        ) -> tuple[dict[str, Any], Path, list[str]]:
     registry, path = load_registry(root)
     active: list[str] = registry["active"]
     if registry["pending"]:
-        raise EvidenceError(
-            "retire or activate the existing pending result receipt before starting another run"
-        )
+        pending_paths = [entry["receipt"] for entry in registry["pending"]]
+        if paired_pending_receipt is None or pending_paths != [paired_pending_receipt]:
+            raise EvidenceError(
+                "retire or activate the existing pending result receipt before starting "
+                "another run (except its bound dataset-release pair)"
+            )
+        failures = verify_receipt(root, root / paired_pending_receipt, rerender=True)["failures"]
+        if failures:
+            raise EvidenceError(
+                "paired analysis receipt is not fresh and fully rendered: "
+                + "; ".join(failures)
+            )
+        paired_plan = result_receipt_run_plan(root, paired_pending_receipt)
+        if paired_plan.get("dataset_release") is not None:
+            raise EvidenceError("a dataset release cannot pair with another dataset release")
+        if not paired_plan["requires_dataset_release"]:
+            raise EvidenceError(
+                "paired analysis run plan must set requires_dataset_release to true"
+            )
     unavailable = (set(active) |
                    {entry["receipt"] for entry in registry["pending"]} |
                    {entry["receipt"] for entry in registry["retired"]})
     if receipt_raw in unavailable:
         raise EvidenceError(f"result receipt path already has lifecycle history: {receipt_raw}")
     normalized_supersedes: list[str] = []
+    active_pairs = registry["active_dataset_release_pairs"]
+    active_pair_analyses = set(active_pairs)
+    active_pair_releases = set(active_pairs.values())
     for raw in supersedes:
         normalized, _ = result_receipt_path(root, raw)
         if normalized == receipt_raw:
             raise EvidenceError("a receipt cannot supersede itself")
         if normalized not in active:
             raise EvidenceError(f"superseded receipt is not active: {normalized}")
+        if normalized in active_pair_analyses | active_pair_releases:
+            allowed = ((pair_role == "analysis" and normalized in active_pair_analyses) or
+                       (pair_role == "release" and normalized in active_pair_releases))
+            if not allowed:
+                raise EvidenceError(
+                    "dataset-release pair predecessors may only be superseded by the "
+                    "same member kind of a replacement pair"
+                )
         project_path(root, normalized)
         normalized_supersedes.append(normalized)
     if len(normalized_supersedes) != len(set(normalized_supersedes)):
@@ -3818,20 +4544,31 @@ def activate_result_receipt(root: Path, receipt_raw: str) -> None:
     if len(matches) != 1:
         raise EvidenceError(f"result receipt is not pending activation: {receipt_raw}")
     supersedes = matches[0]["supersedes"]
-    recorded_supersedes = result_receipt_supersedes(root, receipt_raw)
-    if recorded_supersedes != supersedes:
-        raise EvidenceError(
-            f"pending replacement relation disagrees with receipt: {receipt_raw}"
-        )
-    for raw in supersedes:
-        if raw not in registry["active"]:
-            raise EvidenceError(f"pending superseded receipt is no longer active: {raw}")
+    validate_pending_activation_relation(
+        root, receipt_raw, supersedes, set(registry["active"])
+    )
     registry["pending"] = [entry for entry in registry["pending"]
                            if entry["receipt"] != receipt_raw]
     registry["active"].append(receipt_raw)
     registry["active"].sort()
     load_registry(root, candidate=registry)
     atomic_json(path, registry)
+
+
+def validate_pending_activation_relation(
+        root: Path, receipt_raw: str, pending_supersedes: list[str],
+        active: set[str]) -> None:
+    """Bind a pending registry edge to its immutable receipt before activation."""
+    recorded_supersedes = result_receipt_supersedes(root, receipt_raw)
+    if recorded_supersedes != pending_supersedes:
+        raise EvidenceError(
+            f"pending replacement relation disagrees with receipt: {receipt_raw}"
+        )
+    unavailable = sorted(set(pending_supersedes) - active)
+    if unavailable:
+        raise EvidenceError(
+            f"pending superseded receipt is no longer active: {', '.join(unavailable)}"
+        )
 
 
 def command_init_registry(args: argparse.Namespace) -> int:
@@ -3864,6 +4601,18 @@ def command_retire(args: argparse.Namespace) -> int:
     pending_match = any(entry["receipt"] == receipt_raw for entry in registry["pending"])
     if receipt_raw not in registry["active"] and not pending_match:
         raise EvidenceError(f"cannot retire receipt outside active/pending state: {receipt_raw}")
+    pending_pairs = pending_dataset_release_pairs(root, registry)
+    paired_pending = set(pending_pairs) | set(pending_pairs.values())
+    if receipt_raw in paired_pending:
+        raise EvidenceError(
+            "pending dataset-release pair members must use retire-pair"
+        )
+    active_pairs = registry["active_dataset_release_pairs"]
+    paired_active = set(active_pairs) | set(active_pairs.values())
+    if receipt_raw in paired_active:
+        raise EvidenceError(
+            "active dataset-release pair members must use retire-pair"
+        )
     if receipt_raw in registry["active"]:
         blockers = [entry["receipt"] for entry in registry["pending"]
                     if receipt_raw in entry["supersedes"]]
@@ -3985,15 +4734,67 @@ def command_run(args: argparse.Namespace) -> int:
         raise EvidenceError("result bundle path must be under output/")
     reject_audit_namespace(bundle_raw, "result bundle")
     receipt_raw, target = result_receipt_path(root, args.receipt)
+    if _dataset_namespace_path(bundle_raw) or _dataset_namespace_path(receipt_raw):
+        raise EvidenceError(
+            "result bundle and receipt paths may not enter the output/dataset namespace"
+        )
     if bundle_target.exists():
         raise EvidenceError(f"new result bundle path already exists: {bundle_raw}")
     if target.exists():
         raise EvidenceError(f"new result receipt path already exists: {receipt_raw}")
     if bundle_raw == receipt_raw:
         raise EvidenceError("bundle and receipt paths must be different")
-    registry, registry_path, supersedes = validate_registration_plan(
-        root, receipt_raw, args.supersedes
+    release = plan.get("dataset_release")
+    if release is not None and release["producing_receipt"] != receipt_raw:
+        raise EvidenceError(
+            "run plan.dataset_release.producing_receipt must equal --receipt"
+        )
+    plan_snapshot = fingerprint(root, plan_raw)
+    code_snapshot = fingerprint_many(root, plan["producer_code"])
+    input_snapshot = fingerprint_many(root, plan["producer_inputs"])
+    renderer_snapshot = fingerprint_many(root, plan["renderer_code"])
+    release_classifications, release_input_sources = (
+        _validate_dataset_release_sources(
+            plan, root, expected_input_snapshots=input_snapshot
+        )
     )
+    _validate_dataset_rights_authority(plan, root)
+    paired_analysis_receipt = (
+        release["analysis_receipt"] if release is not None else None
+    )
+    registry, registry_path, supersedes = validate_registration_plan(
+        root, receipt_raw, args.supersedes,
+        paired_pending_receipt=paired_analysis_receipt,
+        pair_role=("release" if release is not None else
+                   "analysis" if plan["requires_dataset_release"] else None),
+    )
+    paired_analysis_supersedes: list[str] = []
+    if paired_analysis_receipt is not None:
+        paired_entry = next(
+            entry for entry in registry["pending"]
+            if entry["receipt"] == paired_analysis_receipt
+        )
+        paired_analysis_supersedes = paired_entry["supersedes"]
+    active_pairs = registry["active_dataset_release_pairs"]
+    active_release_receipts = set(active_pairs.values())
+    replaceable_receipts = set(supersedes) | set(paired_analysis_supersedes)
+    replaceable_release_receipts: set[str] = set()
+    if plan["requires_dataset_release"]:
+        for predecessor in supersedes:
+            paired_release = active_pairs.get(predecessor)
+            if paired_release is None:
+                raise EvidenceError(
+                    "replacement dataset analysis must supersede only active paired "
+                    f"analysis receipts: {predecessor}"
+                )
+            replaceable_receipts.add(paired_release)
+            replaceable_release_receipts.add(paired_release)
+    if release is not None and (supersedes or paired_analysis_supersedes):
+        validate_dataset_release_pair_supersession(
+            root, paired_analysis_supersedes, supersedes, set(registry["active"])
+        )
+        replaceable_release_receipts.update(supersedes)
+        replaceable_receipts.update(supersedes)
     reserved = lifecycle_reserved_paths(
         root, registry, include_active=True, include_pending=False, include_retired=False
     )
@@ -4031,10 +4832,6 @@ def command_run(args: argparse.Namespace) -> int:
         _, output = project_path(root, raw, must_exist=False)
         if output.exists():
             raise EvidenceError(f"declared run output already exists before analysis: {raw}")
-    plan_snapshot = fingerprint(root, plan_raw)
-    code_snapshot = fingerprint_many(root, plan["producer_code"])
-    input_snapshot = fingerprint_many(root, plan["producer_inputs"])
-    renderer_snapshot = fingerprint_many(root, plan["renderer_code"])
     registry_snapshot = fingerprint(root, REGISTRY_PATH)
     active_snapshots = [fingerprint(root, raw) for raw in registry["active"]]
     active_failures: list[str] = []
@@ -4042,11 +4839,31 @@ def command_run(args: argparse.Namespace) -> int:
         "producer_run.code:", "producer_run.inputs:",
         "producer_run.renderer_code:", "render_run.code:",
     )
+    def filter_replacement_failures(raw: str, failures: list[str]) -> list[str]:
+        if not replaceable_receipts or raw in active_release_receipts:
+            return failures
+        return [
+            item for item in failures
+            if not item.startswith(replaceable_prefixes)
+        ]
+
+    # A data-first predecessor pair deliberately remains active until both
+    # replacement halves pass.  After Gate 2 advances, its old release is no
+    # longer current-authority evidence, so verify that exact registry-derived
+    # predecessor intrinsically (receipt/plan/code/input/output/manifest bytes)
+    # while exempting only the moving Gate-2 pointer.  The shared-source waiver
+    # needed for sequential ordinary replacements never applies to any active
+    # dataset-release receipt, whether or not that release is being replaced.
+    # Every unrelated active release also receives the ordinary authority check.
     for raw in registry["active"]:
-        failures = verify_receipt(root, root / raw, rerender=False)["failures"]
-        if failures and (not supersedes or
-                         any(not item.startswith(replaceable_prefixes) for item in failures)):
-            active_failures.extend(f"{raw}: {item}" for item in failures)
+        failures = verify_receipt(
+            root, root / raw, rerender=False,
+            enforce_current_dataset_authority=(
+                raw not in replaceable_release_receipts
+            ),
+        )["failures"]
+        failures = filter_replacement_failures(raw, failures)
+        active_failures.extend(f"{raw}: {item}" for item in failures)
     if active_failures:
         raise EvidenceError("active evidence is stale before analysis: " + "; ".join(active_failures))
     registry_before = json.loads(json.dumps(registry))
@@ -4060,6 +4877,7 @@ def command_run(args: argparse.Namespace) -> int:
             read_only_bindings=read_only_bindings) as workspace:
         execute(
             command, workspace, bundle_path=bundle_raw, project_root=root,
+            allow_network=plan["network_access"],
             provider_credentials=set(plan["provider_credentials"]),
             read_only_bindings=read_only_bindings,
         )
@@ -4096,6 +4914,11 @@ def command_run(args: argparse.Namespace) -> int:
                 [entry["path"] for entry in bundle["artifacts"]] != plan["artifacts"] or
                 [entry["path"] for entry in bundle["exhibits"]] != plan["exhibits"]):
             raise EvidenceError("result bundle does not exactly match the pre-run plan")
+        _validate_staged_dataset_release(
+            plan, workspace, release_classifications, release_input_sources,
+            producer_code_snapshots=code_snapshot,
+            producer_entrypoint=entrypoint,
+        )
         own_paths = (set(bundle["producer"]["code"]) |
                      set(bundle["producer"]["inputs"]) |
                      {entry["path"] for entry in bundle["artifacts"]} |
@@ -4117,14 +4940,20 @@ def command_run(args: argparse.Namespace) -> int:
         precommit_failures.extend(compare_snapshot(root, [registry_snapshot], "results registry"))
         precommit_failures.extend(compare_snapshot(root, active_snapshots, "active receipt"))
         for raw in registry["active"]:
-            failures = verify_receipt(root, root / raw, rerender=False)["failures"]
-            if failures and (not supersedes or
-                             any(not item.startswith(replaceable_prefixes)
-                                 for item in failures)):
-                precommit_failures.extend(failures)
+            failures = verify_receipt(
+                root, root / raw, rerender=False,
+                enforce_current_dataset_authority=(
+                    raw not in replaceable_release_receipts
+                ),
+            )["failures"]
+            failures = filter_replacement_failures(raw, failures)
+            precommit_failures.extend(failures)
         if precommit_failures:
             raise EvidenceError("declared or active evidence changed during analysis: " +
                                 "; ".join(precommit_failures))
+        # Re-check the mutable orchestrator state immediately before publication;
+        # the rights inventory itself is already covered by the producer-input lease.
+        _validate_dataset_rights_authority(plan, root)
         transaction = prepare_lifecycle_transaction(
             root,
             cleanup_paths=[bundle_raw, receipt_raw, *plan["artifacts"]],
@@ -4147,7 +4976,11 @@ def command_run(args: argparse.Namespace) -> int:
                 "render_run": None,
             }
             atomic_json(target, receipt)
-            registry["pending"].append({"receipt": receipt_raw, "supersedes": supersedes})
+            registry["pending"].append({
+                "receipt": receipt_raw,
+                "supersedes": supersedes,
+                "paired_analysis_receipt": paired_analysis_receipt,
+            })
             registry["receipt_fingerprints"][receipt_raw] = fingerprint(root, receipt_raw)
             load_registry(root, candidate=registry)
             atomic_json(registry_path, registry)
@@ -4255,11 +5088,21 @@ def command_activate(args: argparse.Namespace) -> int:
     receipt_raw, target, is_pending = require_renderable_receipt(root, args.receipt)
     if not is_pending:
         raise EvidenceError(f"result receipt is already active: {receipt_raw}")
+    registry_before, _ = load_registry(root)
+    if result_receipt_run_plan(root, receipt_raw)["requires_dataset_release"]:
+        raise EvidenceError(
+            "analysis receipt requires its dataset release and must use activate-pair"
+        )
+    release_pairs = pending_dataset_release_pairs(root, registry_before)
+    paired_receipts = set(release_pairs) | set(release_pairs.values())
+    if receipt_raw in paired_receipts:
+        raise EvidenceError(
+            "paired analysis/release receipts require activate-pair"
+        )
     report = verify_receipt(root, target, rerender=False)
     if report["failures"]:
         raise EvidenceError("cannot activate stale result receipt: " +
                             "; ".join(report["failures"]))
-    registry_before, _ = load_registry(root)
     pending_entry = next(
         entry for entry in registry_before["pending"] if entry["receipt"] == receipt_raw
     )
@@ -4275,6 +5118,342 @@ def command_activate(args: argparse.Namespace) -> int:
     commit_lifecycle_transaction(root)
     print(json.dumps({"status": "ACTIVE", "receipt": receipt_raw,
                       "supersedes_to_retire": pending_entry["supersedes"]}, sort_keys=True))
+    return 0
+
+
+def receipt_bound_run_plan(root: Path, receipt_raw: str,
+                           expected_receipt: dict[str, Any]) -> dict[str, Any]:
+    """Read one plan from the exact registered receipt and plan bytes."""
+    receipt, receipt_snapshot = load_json_snapshot(root, receipt_raw)
+    if receipt_snapshot != expected_receipt:
+        raise EvidenceError(f"registered result receipt bytes are stale: {receipt_raw}")
+    producer = receipt.get("producer_run") if isinstance(receipt, dict) else None
+    plan_record = producer.get("plan") if isinstance(producer, dict) else None
+    plan_raw = plan_record.get("path") if isinstance(plan_record, dict) else None
+    if not isinstance(plan_raw, str):
+        raise EvidenceError(f"result receipt has no valid run plan: {receipt_raw}")
+    validate_snapshot_record(
+        root, plan_record, f"result receipt {receipt_raw}.producer_run.plan"
+    )
+    plan, plan_snapshot = load_json_snapshot(root, plan_raw)
+    if plan_snapshot != plan_record:
+        raise EvidenceError(f"result receipt run plan has stale bytes: {receipt_raw}")
+    return validate_run_plan(plan, root)
+
+
+def derive_registry_dataset_release_pairs(
+        root: Path, active: list[str], pending: list[dict[str, Any]],
+        receipt_fingerprints: dict[str, dict[str, Any]],
+        ) -> tuple[dict[str, str], dict[str, str]]:
+    """Derive pair identity from receipt-bound plans, never from mutable labels."""
+    active_plans = {
+        raw: receipt_bound_run_plan(root, raw, receipt_fingerprints[raw])
+        for raw in active
+    }
+    active_analyses = {
+        raw for raw, plan in active_plans.items()
+        if plan["requires_dataset_release"] and plan.get("dataset_release") is None
+    }
+    active_pairs: dict[str, str] = {}
+    for release_raw, plan in active_plans.items():
+        release = plan.get("dataset_release")
+        if release is None:
+            continue
+        analysis_raw = release["analysis_receipt"]
+        if analysis_raw not in active_analyses or analysis_raw in active_pairs:
+            raise EvidenceError(
+                "active dataset release has no unique active analysis receipt: "
+                f"{release_raw}"
+            )
+        active_pairs[analysis_raw] = release_raw
+    missing_active_releases = sorted(active_analyses - active_pairs.keys())
+    if missing_active_releases:
+        raise EvidenceError(
+            "active dataset-release-requiring analysis has no active release: "
+            + ", ".join(missing_active_releases)
+        )
+
+    pending_paths = [entry["receipt"] for entry in pending]
+    pending_set = set(pending_paths)
+    pending_pairs: dict[str, str] = {}
+    pending_release_receipts: set[str] = set()
+    for entry in pending:
+        raw = entry["receipt"]
+        plan = receipt_bound_run_plan(root, raw, receipt_fingerprints[raw])
+        release = plan.get("dataset_release")
+        stored_analysis = entry.get("paired_analysis_receipt")
+        if release is None:
+            if stored_analysis is not None:
+                raise EvidenceError(
+                    "non-release pending receipt carries dataset pair identity: " + raw
+                )
+            continue
+        analysis_raw = release["analysis_receipt"]
+        if stored_analysis != analysis_raw:
+            raise EvidenceError(
+                "pending dataset-release pair identity disagrees with receipt-bound plan: "
+                + raw
+            )
+        if analysis_raw not in pending_set or analysis_raw in pending_pairs:
+            raise EvidenceError(
+                "pending dataset release has no unique pending analysis: " + raw
+            )
+        pending_pairs[analysis_raw] = raw
+        pending_release_receipts.add(raw)
+    if set(pending_pairs) & pending_release_receipts:
+        raise EvidenceError("pending dataset releases may not form a release chain")
+    return active_pairs, pending_pairs
+
+
+def result_receipt_run_plan(root: Path, receipt_raw: str) -> dict[str, Any]:
+    """Load the fresh, receipt-bound run plan named by a live result receipt."""
+    registry, _ = load_registry(root)
+    expected = registry["receipt_fingerprints"].get(receipt_raw)
+    if expected is None:
+        raise EvidenceError(f"result receipt is not active or pending: {receipt_raw}")
+    return receipt_bound_run_plan(root, receipt_raw, expected)
+
+
+def pending_dataset_release_pairs(root: Path, registry: dict[str, Any]) -> dict[str, str]:
+    """Map each pending analysis receipt to its pending dataset-release receipt."""
+    _, pairs = derive_registry_dataset_release_pairs(
+        root, registry["active"], registry["pending"],
+        registry["receipt_fingerprints"],
+    )
+    return pairs
+
+
+def command_retire_pair(args: argparse.Namespace) -> int:
+    """Atomically retire both members of one pending or active dataset pair."""
+    root = resolve_root(args.project_root)
+    if not isinstance(args.reason, str) or not args.reason.strip():
+        raise EvidenceError("retirement reason must be non-empty")
+    analysis_raw, _ = result_receipt_path(root, args.analysis_receipt)
+    release_raw, _ = result_receipt_path(root, args.release_receipt)
+    if analysis_raw == release_raw:
+        raise EvidenceError("analysis and release receipts must be different")
+    registry_before, registry_path = load_registry(root)
+    pending_pairs = pending_dataset_release_pairs(root, registry_before)
+    is_pending = pending_pairs.get(analysis_raw) == release_raw
+    is_active = (
+        registry_before["active_dataset_release_pairs"].get(analysis_raw) == release_raw
+    )
+    if is_pending == is_active:
+        raise EvidenceError(
+            "receipts are not exactly one pending or active dataset-release pair"
+        )
+    superseded_by_analysis = args.superseded_by_analysis
+    superseded_by_release = args.superseded_by_release
+    if (superseded_by_analysis is None) != (superseded_by_release is None):
+        raise EvidenceError(
+            "paired retirement requires both replacement receipts or neither"
+        )
+    if is_pending and superseded_by_analysis is not None:
+        raise EvidenceError("pending pair retirement cannot name active replacements")
+    registry_after = json.loads(json.dumps(registry_before))
+    members = {analysis_raw, release_raw}
+    replacements: dict[str, str] = {}
+    if is_pending:
+        registry_after["pending"] = [
+            entry for entry in registry_after["pending"]
+            if entry["receipt"] not in members
+        ]
+    else:
+        blockers = [
+            entry["receipt"] for entry in registry_before["pending"]
+            if members & set(entry["supersedes"])
+        ]
+        if blockers:
+            raise EvidenceError(
+                "cannot retire an active pair while pending replacements supersede it: "
+                + ", ".join(sorted(blockers))
+            )
+        active = set(registry_before["active"])
+        active_replacements = {
+            raw: [
+                candidate for candidate in sorted(active - members)
+                if raw in result_receipt_supersedes(root, candidate)
+            ]
+            for raw in members
+        }
+        if any(active_replacements.values()):
+            if superseded_by_analysis is None or superseded_by_release is None:
+                raise EvidenceError(
+                    "retiring a superseded active pair requires both replacement receipts"
+                )
+            replacement_analysis, _ = result_receipt_path(
+                root, superseded_by_analysis
+            )
+            replacement_release, _ = result_receipt_path(root, superseded_by_release)
+            if (replacement_analysis not in active_replacements[analysis_raw] or
+                    replacement_release not in active_replacements[release_raw] or
+                    registry_before["active_dataset_release_pairs"].get(
+                        replacement_analysis
+                    ) != replacement_release):
+                raise EvidenceError(
+                    "--superseded-by pair must name the matching active replacement pair"
+                )
+            replacements = {
+                analysis_raw: replacement_analysis,
+                release_raw: replacement_release,
+            }
+        elif superseded_by_analysis is not None:
+            raise EvidenceError("active pair has no declared replacement pair")
+        registry_after["active"] = sorted(
+            set(registry_after["active"]) - members
+        )
+        del registry_after["active_dataset_release_pairs"][analysis_raw]
+    reason = args.reason.strip()
+    for raw in sorted(members):
+        retired_entry = {
+            "receipt": raw,
+            "reason": reason,
+            "last_fingerprint": registry_after["receipt_fingerprints"].pop(raw),
+        }
+        if raw in replacements:
+            retired_entry["superseded_by"] = replacements[raw]
+        registry_after["retired"].append(retired_entry)
+    load_registry(root, candidate=registry_after)
+    transaction = prepare_lifecycle_transaction(
+        root, cleanup_paths=[], restore_paths=[],
+        registry_before=json.loads(json.dumps(registry_before)),
+    )
+    try:
+        atomic_json(registry_path, registry_after)
+    except BaseException:
+        rollback_lifecycle_transaction(root, transaction)
+        raise
+    commit_lifecycle_transaction(root)
+    print(json.dumps({
+        "status": "RETIRED_PAIR",
+        "analysis_receipt": analysis_raw,
+        "release_receipt": release_raw,
+    }, sort_keys=True))
+    return 0
+
+
+def validate_dataset_release_pair_supersession(
+        root: Path, analysis_predecessors: list[str],
+        release_predecessors: list[str], active: set[str]) -> None:
+    """Require replacement analysis/release halves to preserve the same lineage."""
+    expected_release_predecessors: set[str] = set()
+    for predecessor in analysis_predecessors:
+        predecessor_plan = result_receipt_run_plan(root, predecessor)
+        if (predecessor_plan.get("dataset_release") is not None or
+                not predecessor_plan["requires_dataset_release"]):
+            raise EvidenceError(
+                "analysis supersession must name only dataset-release-requiring "
+                f"analysis receipts: {predecessor}"
+            )
+        matches = []
+        for active_raw in sorted(active):
+            active_plan = result_receipt_run_plan(root, active_raw)
+            active_release = active_plan.get("dataset_release")
+            if (active_release is not None and
+                    active_release["analysis_receipt"] == predecessor):
+                matches.append(active_raw)
+        if len(matches) != 1:
+            raise EvidenceError(
+                "superseded analysis does not have exactly one active release predecessor: "
+                f"{predecessor}"
+            )
+        expected_release_predecessors.add(matches[0])
+    for predecessor in release_predecessors:
+        predecessor_plan = result_receipt_run_plan(root, predecessor)
+        release = predecessor_plan.get("dataset_release")
+        if release is None or release["analysis_receipt"] not in analysis_predecessors:
+            raise EvidenceError(
+                "release supersession must name only releases paired with the "
+                f"analysis predecessors: {predecessor}"
+            )
+    if set(release_predecessors) != expected_release_predecessors:
+        raise EvidenceError(
+            "release supersession does not match the analysis pair lineage"
+        )
+
+
+def command_activate_pair(args: argparse.Namespace) -> int:
+    """Atomically activate one reviewed data-first analysis/release pair."""
+    root = resolve_root(args.project_root)
+    analysis_raw, analysis_path = result_receipt_path(root, args.analysis_receipt)
+    release_raw, release_path = result_receipt_path(root, args.release_receipt)
+    if analysis_raw == release_raw:
+        raise EvidenceError("analysis and release receipts must be different")
+    registry_before, registry_path = load_registry(root)
+    pairs = pending_dataset_release_pairs(root, registry_before)
+    if pairs.get(analysis_raw) != release_raw:
+        raise EvidenceError("receipts are not one pending dataset-release pair")
+    reports = {
+        analysis_raw: verify_receipt(root, analysis_path, rerender=True),
+        release_raw: verify_receipt(root, release_path, rerender=False),
+    }
+    failures = [
+        f"{raw}: {failure}"
+        for raw, report in reports.items()
+        for failure in report["failures"]
+    ]
+    if failures:
+        raise EvidenceError("cannot activate stale result pair: " + "; ".join(failures))
+    analysis_plan = result_receipt_run_plan(root, analysis_raw)
+    release_plan = result_receipt_run_plan(root, release_raw)
+    release = release_plan.get("dataset_release")
+    if (analysis_plan.get("dataset_release") is not None or
+            not analysis_plan["requires_dataset_release"]):
+        raise EvidenceError(
+            "paired analysis run plan must be a dataset-release-requiring analysis"
+        )
+    if release is None or release["analysis_receipt"] != analysis_raw:
+        raise EvidenceError(
+            "paired release run plan must name the exact analysis receipt"
+        )
+    _validate_dataset_rights_authority(release_plan, root)
+    pending_entries = {
+        entry["receipt"]: entry for entry in registry_before["pending"]
+    }
+    active = set(registry_before["active"])
+    validate_dataset_release_pair_supersession(
+        root,
+        pending_entries[analysis_raw]["supersedes"],
+        pending_entries[release_raw]["supersedes"],
+        active,
+    )
+    for raw in (analysis_raw, release_raw):
+        validate_pending_activation_relation(
+            root, raw, pending_entries[raw]["supersedes"], active
+        )
+    registry_after = json.loads(json.dumps(registry_before))
+    registry_after["pending"] = [
+        entry for entry in registry_after["pending"]
+        if entry["receipt"] not in {analysis_raw, release_raw}
+    ]
+    registry_after["active"] = sorted(
+        set(registry_after["active"]) | {analysis_raw, release_raw}
+    )
+    active_pairs = registry_after["active_dataset_release_pairs"]
+    if (analysis_raw in active_pairs or release_raw in active_pairs.values() or
+            analysis_raw in active_pairs.values() or release_raw in active_pairs):
+        raise EvidenceError("dataset-release pair member already has an active pairing")
+    active_pairs[analysis_raw] = release_raw
+    load_registry(root, candidate=registry_after)
+    transaction = prepare_lifecycle_transaction(
+        root, cleanup_paths=[], restore_paths=[],
+        registry_before=json.loads(json.dumps(registry_before)),
+    )
+    try:
+        atomic_json(registry_path, registry_after)
+    except BaseException:
+        rollback_lifecycle_transaction(root, transaction)
+        raise
+    commit_lifecycle_transaction(root)
+    print(json.dumps({
+        "status": "ACTIVE_PAIR",
+        "analysis_receipt": analysis_raw,
+        "release_receipt": release_raw,
+        "supersedes_to_retire": {
+            analysis_raw: pending_entries[analysis_raw]["supersedes"],
+            release_raw: pending_entries[release_raw]["supersedes"],
+        },
+    }, sort_keys=True))
     return 0
 
 
@@ -6261,6 +7440,27 @@ def build_parser() -> argparse.ArgumentParser:
     activate.add_argument("--project-root", default=".")
     activate.add_argument("--receipt", required=True)
     activate.set_defaults(func=command_activate)
+
+    activate_pair = subparsers.add_parser(
+        "activate-pair",
+        help="atomically activate one bound data-first analysis/release receipt pair",
+    )
+    activate_pair.add_argument("--project-root", default=".")
+    activate_pair.add_argument("--analysis-receipt", required=True)
+    activate_pair.add_argument("--release-receipt", required=True)
+    activate_pair.set_defaults(func=command_activate_pair)
+
+    retire_pair = subparsers.add_parser(
+        "retire-pair",
+        help="atomically retire one pending or active data-first receipt pair",
+    )
+    retire_pair.add_argument("--project-root", default=".")
+    retire_pair.add_argument("--analysis-receipt", required=True)
+    retire_pair.add_argument("--release-receipt", required=True)
+    retire_pair.add_argument("--reason", required=True)
+    retire_pair.add_argument("--superseded-by-analysis")
+    retire_pair.add_argument("--superseded-by-release")
+    retire_pair.set_defaults(func=command_retire_pair)
 
     retire = subparsers.add_parser(
         "retire", help="explicitly retire an active result receipt without deleting it"

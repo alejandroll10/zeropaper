@@ -9,7 +9,7 @@
 #   3. Mode-gated assembly — coverage-auditor must exist ONLY under data-first;
 #      the identification pair must NOT exist under data-first; both must be
 #      untouched in an empirical-first control build.
-#   4. State fields — dataset_spec_version / coverage_triangulation / the two
+#   4. State fields — the spec, triangulation, release pointers, and two
 #      data-first loops must be injected (and absent from the control build).
 #   5. Stage 2 artifact label — the shared filename remains theory_draft_vN.md,
 #      but the operator-facing commit label must call it a dataset spec here.
@@ -66,18 +66,64 @@ done
 python3 - "$D" <<'PY' && pass "data-first: state fields and loops injected" || fail "data-first: state fields/loops missing"
 import json, sys
 d = json.load(open(sys.argv[1] + "/process_log/pipeline_state.json"))
-assert "dataset_spec_version" in d and "coverage_triangulation" in d
+assert d["dataset_spec_version"] is None and d["dataset_spec_serial"] == 0
+assert d["dataset_rights_inventory"] is None
+assert d["dataset_rights_inventory_sha256"] is None and "coverage_triangulation" in d
+assert d["dataset_release_path"] is None and d["dataset_release_receipt"] is None
 assert "spec_audit_revision" in d["loops"] and "coverage_audit" in d["loops"]
 PY
 [ -d "$D/output/dataset" ] \
     && pass "data-first: output/dataset release dir bootstrapped" \
     || fail "data-first: output/dataset missing"
-grep -q "output/dataset/manifest.json" "$D/docs/stage_3a_empirical.md" \
-    && pass "data-first: release-assembly producer step present in stage_3a doc" \
-    || fail "data-first: no release-assembly producer step in stage_3a doc"
+if grep -q "output/stage2/source_rights_s{dataset_spec_serial}_vN.json" "$D/docs/stage_2.md" \
+        && grep -q 'pipeline_state.json:dataset_rights_inventory' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'dataset_rights_inventory_sha256' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'RELEASE_SUPERSEDES_ARGS' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'retire-pair' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'pipeline_state.json:dataset_rights_inventory' "$D/.claude/agents/empirics-auditor.md" \
+        && ! grep -q 'source_rights_s{dataset_spec_serial}' "$D/.claude/agents/empirics-auditor.md" \
+        && grep -q 'pipeline_state.json:dataset_rights_inventory' "$D/docs/stage_5.md" \
+        && grep -q 'network_access.*false' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'dataset_release' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'activate-pair' "$D/docs/stage_3a_empirical.md"; then
+    pass "data-first: rights inventory and trusted offline release contract assembled"
+else
+    fail "data-first: rights inventory or trusted offline release contract missing"
+fi
+for reset_doc in stage_0.md stage_1.md stage_puzzle_triage.md; do
+    grep -q 'dataset_spec_version' "$D/docs/$reset_doc" \
+        && pass "data-first: $reset_doc resets spec acceptance" \
+        || fail "data-first: $reset_doc omits spec-acceptance reset"
+done
 grep -Fq 'Commit: `artifact: dataset spec v{N}`' "$D/docs/stage_2.md" \
     && pass "data-first: Stage 2 commit labels the dataset spec" \
     || fail "data-first: Stage 2 commit still mislabels the artifact"
+
+# Manual composition keeps the scientific/release contract but has no autonomous state.
+if ! ./setup.sh test_output/df_manual --variant finance --mode data-first --manual --assemble-only --no-model-probe >/dev/null 2>&1; then
+    fail "data-first manual build failed"
+else
+    M="test_output/df_manual"
+    python3 - "$M" <<'PY' \
+        && pass "data-first manual: caller authority and registry handoff assembled" \
+        || fail "data-first manual: release authority still depends on pipeline state"
+import json, pathlib, sys
+root = pathlib.Path(sys.argv[1])
+manifest = json.loads((root / ".deploy_manifest.json").read_text())
+assert manifest["mode"] == "data-first"
+assert manifest["flags"]["manual"] is True
+assert not (root / "process_log/pipeline_state.json").exists()
+stage = (root / "docs/stage_3a_empirical.md").read_text()
+evidence = (root / "docs/results_evidence.md").read_text()
+auditor = (root / ".claude/agents/empirics-auditor.md").read_text()
+utility = (root / "code/utils/results_pipeline/results_pipeline.py").read_text()
+assert 'RIGHTS_AUTHORITY = "manual-caller"' in stage
+assert "Never create pipeline state" in stage
+assert "manual-caller" in evidence and "manual-caller" in auditor
+assert "rights_authority" in utility
+assert "require `FRESH`" not in auditor
+PY
+fi
 
 # Control build: empirical-first must be unaffected.
 if ! ./setup.sh test_output/ef --variant finance --mode empirical-first --assemble-only --no-model-probe >/dev/null 2>&1; then
@@ -109,7 +155,10 @@ else
     python3 - "$E" <<'PY' && pass "empirical-first control: no data-first state fields" || fail "empirical-first control: data-first state fields leaked"
 import json, sys
 d = json.load(open(sys.argv[1] + "/process_log/pipeline_state.json"))
-assert "dataset_spec_version" not in d and "coverage_triangulation" not in d
+assert "dataset_spec_version" not in d and "dataset_spec_serial" not in d
+assert "dataset_rights_inventory" not in d
+assert "dataset_rights_inventory_sha256" not in d and "coverage_triangulation" not in d
+assert "dataset_release_path" not in d and "dataset_release_receipt" not in d
 assert "spec_audit_revision" not in d["loops"] and "coverage_audit" not in d["loops"]
 PY
     grep -Fq 'Commit: `artifact: theory draft v{N}`' "$E/docs/stage_2.md" \

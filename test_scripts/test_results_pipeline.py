@@ -123,6 +123,185 @@ if (trigger_root / 'mutate-during-bind').exists():
             "exhibits": [prefix + "tables/main.tex"],
         }) + "\n", encoding="utf-8")
 
+    def write_dataset_release_fixture(
+            self, *, redistribution: str = "open", output_source_id: str = "public_source",
+            checksum: str | None = None, render_analysis: bool = True,
+            case_alias: bool = False, comment_only_build: bool = False,
+            unused_declared_build: bool = False,
+            renamed_build: bool = False, manual: bool = False) -> None:
+        release_path = "output/dataset/release_v1_a1"
+        receipt_path = "output/stagex/dataset_release_v1_a1_results.receipt.json"
+        rights_path = "output/stagex/source_rights_v1.json"
+        provenance_path = "output/stagex/release_inputs_v1_a1.json"
+        analysis_receipt = "output/stagex/results.receipt.json"
+        packaged_entrypoint = "build.py" if renamed_build else "code/release.py"
+        (self.root / "data/release_source.csv").write_text(
+            "event,value\na,1\n", encoding="utf-8"
+        )
+        (self.root / rights_path).write_text(json.dumps({
+            "schema_version": 1,
+            "dataset_version": 1,
+            "sources": [{
+                "source_id": "public_source",
+                "redistribution": redistribution,
+                "evidence": {
+                    "url": "https://example.invalid/terms",
+                    "terms": "Redistribution permitted for this test fixture.",
+                    "checked_at": "2026-08-26",
+                },
+            }, {
+                "source_id": "restricted_source",
+                "redistribution": "restricted",
+                "evidence": {
+                    "url": "https://example.invalid/restricted",
+                    "terms": "Redistribution prohibited for this test fixture.",
+                    "checked_at": "2026-08-26",
+                },
+            }],
+        }) + "\n", encoding="utf-8")
+        rights_digest = "sha256:" + hashlib.sha256(
+            (self.root / rights_path).read_bytes()
+        ).hexdigest()
+        (self.root / ".deploy_manifest.json").write_text(json.dumps({
+            "manifest_version": 1,
+            "mode": "data-first",
+            "flags": {"manual": manual},
+        }) + "\n", encoding="utf-8")
+        if not manual:
+            (self.root / "process_log/pipeline_state.json").write_text(json.dumps({
+                "theory_version": 1,
+                "dataset_spec_version": 1,
+                "dataset_rights_inventory": rights_path,
+                "dataset_rights_inventory_sha256": rights_digest,
+            }) + "\n", encoding="utf-8")
+        (self.root / provenance_path).write_text(json.dumps({
+            "schema_version": 1,
+            "dataset_version": 1,
+            "rights_inventory": rights_path,
+            "inputs": [{
+                "path": "data/release_source.csv",
+                "role": "data",
+                "source_ids": ["public_source"],
+            }, {
+                "path": analysis_receipt,
+                "role": "control",
+                "source_ids": [],
+            }],
+        }) + "\n", encoding="utf-8")
+        release_source = f'''import hashlib, json, os, pathlib, shutil
+root = pathlib.Path.cwd()
+release = root / {release_path!r}
+release.mkdir(parents=True)
+shutil.copyfile(root / "data/release_source.csv", release / "events.csv")
+if {case_alias!r}:
+    shutil.copyfile(root / "data/release_source.csv", release / "EVENTS.csv")
+if {comment_only_build!r}:
+    build = release / {packaged_entrypoint!r}
+    build.parent.mkdir(parents=True, exist_ok=True)
+    build.write_text("# claimed build entrypoint\\n")
+else:
+    build = release / {packaged_entrypoint!r}
+    build.parent.mkdir(parents=True, exist_ok=True)
+    shutil.copyfile(root / "code/release.py", build)
+(release / "schema.md").write_text("# Schema\\n\\n`event`, `value`\\n")
+def digest(path):
+    return "sha256:" + hashlib.sha256(path.read_bytes()).hexdigest()
+manifest = {{
+  "schema_version": 1,
+  "dataset_version": 1,
+  "analysis_receipt": {analysis_receipt!r},
+  "producing_receipt": {receipt_path!r},
+  "rights_inventory": {rights_path!r},
+  "rights_inventory_sha256": {rights_digest!r},
+  "rights_authority": {('manual-caller' if manual else 'gate2-state')!r},
+  "input_provenance": {provenance_path!r},
+  "files": [
+    {{"path": "events.csv", "kind": "data",
+     "sha256": {checksum!r} or digest(release / "events.csv"),
+     "source_ids": [{output_source_id!r}]}},
+    {{"path": {packaged_entrypoint!r}, "kind": "code",
+     "sha256": digest(release / {packaged_entrypoint!r}),
+     "source_ids": []}},
+    {{"path": "schema.md", "kind": "documentation",
+     "sha256": digest(release / "schema.md"), "source_ids": []}},
+  ],
+  "build_sources": {{"code/release.py": {packaged_entrypoint!r}}},
+  "build_entrypoints": [{packaged_entrypoint!r}],
+  "schema_document": "schema.md",
+}}
+if {case_alias!r}:
+    manifest["files"].append(
+      {{"path": "EVENTS.csv", "kind": "data",
+       "sha256": digest(release / "EVENTS.csv"), "source_ids": ["public_source"]}}
+    )
+(release / "manifest.json").write_text(json.dumps(manifest, indent=2) + "\\n")
+producer_code = ["code/release.py"]
+if {unused_declared_build!r}:
+    producer_code.append("code/noop.py")
+bundle = {{
+  "schema_version": 1,
+  "producer": {{"name": "dataset-release", "code": producer_code,
+               "inputs": ["data/release_source.csv", {analysis_receipt!r},
+                          {rights_path!r}, {provenance_path!r}],
+               "reproducibility": "captured"}},
+  "results": {{"release.files": {{"description": "Release file count", "value": "3"}}}},
+  "artifacts": [{{"path": {release_path!r}, "description": "Dataset release"}}],
+  "renderer": {{"code": []}},
+  "exhibits": [],
+}}
+(root / os.environ["RESULTS_BUNDLE_PATH"]).write_text(json.dumps(bundle, indent=2) + "\\n")
+'''
+        (self.root / "code/release.py").write_text(release_source, encoding="utf-8")
+        if unused_declared_build:
+            (self.root / "code/noop.py").write_text(
+                "# unused declared code cannot be the packaged build entrypoint\n",
+                encoding="utf-8",
+            )
+        producer_code = ["code/release.py"]
+        if unused_declared_build:
+            producer_code.append("code/noop.py")
+        (self.root / "output/stagex/dataset_release_v1_a1.plan.json").write_text(
+            json.dumps({
+                "plan_version": 1,
+                "producer_code": producer_code,
+                "producer_inputs": [
+                    "data/release_source.csv", analysis_receipt, rights_path,
+                    provenance_path,
+                ],
+                "artifacts": [release_path],
+                "renderer_code": [],
+                "exhibits": [],
+                "network_access": False,
+                "dataset_release": {
+                    "artifact": release_path,
+                    "manifest": release_path + "/manifest.json",
+                    "rights_inventory": rights_path,
+                    "rights_inventory_sha256": rights_digest,
+                    "rights_authority": (
+                        "manual-caller" if manual else "gate2-state"
+                    ),
+                    "input_provenance": provenance_path,
+                    "dataset_version": 1,
+                    "analysis_receipt": analysis_receipt,
+                    "producing_receipt": receipt_path,
+                },
+            }) + "\n", encoding="utf-8"
+        )
+        analysis_plan_path = self.root / "output/stagex/results.plan.json"
+        analysis_plan = json.loads(analysis_plan_path.read_text())
+        analysis_plan["requires_dataset_release"] = True
+        analysis_plan_path.write_text(json.dumps(analysis_plan) + "\n")
+        self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", analysis_receipt, "--",
+            sys.executable, "code/analyze.py",
+        )
+        if render_analysis:
+            self.call(
+                "render", "--receipt", analysis_receipt, "--",
+                sys.executable, "code/render.py",
+            )
+
     def record_and_render(self) -> None:
         self.call(
             "run", "--bundle", "output/stagex/results.json",
@@ -134,6 +313,1076 @@ if (trigger_root / 'mutate-during-bind').exists():
             sys.executable, "code/render.py",
         )
         self.call("activate", "--receipt", "output/stagex/results.receipt.json")
+
+    def test_dataset_release_is_validated_before_publication(self) -> None:
+        self.write_dataset_release_fixture()
+        premature = self.call(
+            "activate", "--receipt", "output/stagex/results.receipt.json", expected=2,
+        )
+        self.assertIn("analysis receipt requires its dataset release", premature.stderr)
+        self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py",
+        )
+        self.assertTrue((self.root / "output/dataset/release_v1_a1/manifest.json").is_file())
+        receipt = json.loads(
+            (self.root / "output/stagex/dataset_release_v1_a1_results.receipt.json").read_text()
+        )
+        self.assertEqual(
+            receipt["producer_run"]["artifacts"][0]["path"],
+            "output/dataset/release_v1_a1",
+        )
+        self.call(
+            "verify", "--receipt",
+            "output/stagex/dataset_release_v1_a1_results.receipt.json",
+        )
+        blocked = self.call(
+            "activate", "--receipt", "output/stagex/results.receipt.json", expected=2,
+        )
+        self.assertIn("analysis receipt requires its dataset release", blocked.stderr)
+        self.call(
+            "activate-pair",
+            "--analysis-receipt", "output/stagex/results.receipt.json",
+            "--release-receipt",
+            "output/stagex/dataset_release_v1_a1_results.receipt.json",
+        )
+        registry = json.loads(
+            (self.root / "process_log/results_registry.json").read_text()
+        )
+        self.assertEqual(registry["pending"], [])
+        self.assertEqual(
+            set(registry["active"]),
+            {
+                "output/stagex/results.receipt.json",
+                "output/stagex/dataset_release_v1_a1_results.receipt.json",
+            },
+        )
+
+    def test_manual_data_first_release_uses_explicit_caller_authority(self) -> None:
+        self.write_dataset_release_fixture(manual=True)
+        self.assertFalse((self.root / "process_log/pipeline_state.json").exists())
+        self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py",
+        )
+        verified = self.call(
+            "verify", "--receipt",
+            "output/stagex/dataset_release_v1_a1_results.receipt.json",
+        )
+        self.assertEqual(json.loads(verified.stdout)["status"], "PASS")
+        self.call(
+            "activate-pair",
+            "--analysis-receipt", "output/stagex/results.receipt.json",
+            "--release-receipt",
+            "output/stagex/dataset_release_v1_a1_results.receipt.json",
+        )
+
+    def test_dataset_release_authority_must_match_deployment_mode(self) -> None:
+        self.write_dataset_release_fixture()
+        plan_path = self.root / "output/stagex/dataset_release_v1_a1.plan.json"
+        plan = json.loads(plan_path.read_text())
+        plan["dataset_release"]["rights_authority"] = "manual-caller"
+        plan_path.write_text(json.dumps(plan) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("expected gate2-state", completed.stderr)
+
+    def test_manual_dataset_release_rejects_gate2_authority(self) -> None:
+        self.write_dataset_release_fixture(manual=True)
+        plan_path = self.root / "output/stagex/dataset_release_v1_a1.plan.json"
+        plan = json.loads(plan_path.read_text())
+        plan["dataset_release"]["rights_authority"] = "gate2-state"
+        plan_path.write_text(json.dumps(plan) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("expected manual-caller", completed.stderr)
+
+    def test_manual_data_first_release_rejects_invented_pipeline_state(self) -> None:
+        self.write_dataset_release_fixture(manual=True)
+        (self.root / "process_log/pipeline_state.json").write_text("{}\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("may not invent process_log/pipeline_state.json", completed.stderr)
+
+    def test_dataset_release_requires_data_first_deployment_manifest(self) -> None:
+        self.write_dataset_release_fixture()
+        (self.root / ".deploy_manifest.json").unlink()
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn(".deploy_manifest.json", completed.stderr)
+
+    def assert_dataset_release_rejects_manifest_version(self, value: object) -> None:
+        self.write_dataset_release_fixture(manual=True)
+        manifest_path = self.root / ".deploy_manifest.json"
+        manifest = json.loads(manifest_path.read_text())
+        manifest["manifest_version"] = value
+        manifest_path.write_text(json.dumps(manifest) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("valid data-first deployment manifest", completed.stderr)
+
+    def test_dataset_release_rejects_boolean_deployment_manifest_version(self) -> None:
+        self.assert_dataset_release_rejects_manifest_version(True)
+
+    def test_dataset_release_rejects_float_deployment_manifest_version(self) -> None:
+        self.assert_dataset_release_rejects_manifest_version(1.0)
+
+    def test_dataset_release_manifest_binds_rights_authority(self) -> None:
+        self.write_dataset_release_fixture()
+        source_path = self.root / "code/release.py"
+        source = source_path.read_text()
+        self.assertIn('"rights_authority": \'gate2-state\'', source)
+        source_path.write_text(source.replace(
+            '"rights_authority": \'gate2-state\'',
+            '"rights_authority": \'manual-caller\'',
+        ))
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn(
+            "manifest rights_authority differs from the release plan", completed.stderr
+        )
+
+    def test_active_dataset_pair_rejects_ordinary_lifecycle_commands(self) -> None:
+        self.write_dataset_release_fixture()
+        self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py",
+        )
+        analysis = "output/stagex/results.receipt.json"
+        release = "output/stagex/dataset_release_v1_a1_results.receipt.json"
+        self.call(
+            "activate-pair", "--analysis-receipt", analysis,
+            "--release-receipt", release,
+        )
+        registry_path = self.root / "process_log/results_registry.json"
+        intact_registry = json.loads(registry_path.read_text())
+        erased_registry = dict(intact_registry)
+        erased_registry.pop("active_dataset_release_pairs")
+        registry_path.write_text(json.dumps(erased_registry) + "\n")
+        erased = self.call(
+            "retire", "--receipt", release, "--reason", "erased pair identity",
+            expected=2,
+        )
+        self.assertIn("missing active dataset-release pair identity", erased.stderr)
+        registry_path.write_text(json.dumps(intact_registry) + "\n")
+        blocked_retire = self.call(
+            "retire", "--receipt", release, "--reason", "unsafe half-retirement",
+            expected=2,
+        )
+        self.assertIn("active dataset-release pair members must use retire-pair",
+                      blocked_retire.stderr)
+
+        (self.root / "output/ordinary").mkdir()
+        self.write_plan("output/ordinary/results.plan.json", prefix="output/ordinary/")
+        blocked_replacement = self.call(
+            "run", "--plan", "output/ordinary/results.plan.json",
+            "--bundle", "output/ordinary/results.json",
+            "--receipt", "output/ordinary/results.receipt.json",
+            "--supersedes", release, "--", sys.executable, "code/analyze.py",
+            expected=2,
+        )
+        self.assertIn("same member kind of a replacement pair",
+                      blocked_replacement.stderr)
+        self.call(
+            "retire-pair", "--analysis-receipt", analysis,
+            "--release-receipt", release, "--reason", "abandoned dataset pair",
+        )
+        registry = json.loads(
+            (self.root / "process_log/results_registry.json").read_text()
+        )
+        self.assertEqual(registry["active"], [])
+        self.assertEqual(registry["active_dataset_release_pairs"], {})
+
+    def test_active_dataset_pair_retires_with_matching_replacement_pair(self) -> None:
+        self.write_dataset_release_fixture()
+        self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py",
+        )
+        old_analysis = "output/stagex/results.receipt.json"
+        old_release = "output/stagex/dataset_release_v1_a1_results.receipt.json"
+        self.call(
+            "activate-pair", "--analysis-receipt", old_analysis,
+            "--release-receipt", old_release,
+        )
+
+        new_analysis = "output/stagex/v2/results.receipt.json"
+        new_release = "output/stagex/v2/dataset_release_results.receipt.json"
+        spec = importlib.util.spec_from_file_location(
+            "results_pipeline_active_pair_retirement", UTILITY
+        )
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        plan_pairs = (
+            ("output/stagex/results.plan.json", "output/stagex/v2/results.plan.json",
+             None),
+            ("output/stagex/dataset_release_v1_a1.plan.json",
+             "output/stagex/v2/dataset_release.plan.json", new_analysis),
+        )
+        for old_plan_raw, new_plan_raw, paired_analysis in plan_pairs:
+            new_plan_path = self.root / new_plan_raw
+            new_plan_path.parent.mkdir(parents=True, exist_ok=True)
+            plan = json.loads((self.root / old_plan_raw).read_text())
+            if paired_analysis is not None:
+                plan["dataset_release"]["analysis_receipt"] = paired_analysis
+                plan["dataset_release"]["producing_receipt"] = new_release
+                plan["producer_inputs"] = [
+                    paired_analysis if raw == old_analysis else raw
+                    for raw in plan["producer_inputs"]
+                ]
+            new_plan_path.write_text(json.dumps(plan) + "\n")
+        for source, destination, predecessor, new_plan_raw in (
+                (old_analysis, new_analysis, old_analysis,
+                 "output/stagex/v2/results.plan.json"),
+                (old_release, new_release, old_release,
+                 "output/stagex/v2/dataset_release.plan.json")):
+            target = self.root / destination
+            target.parent.mkdir(parents=True, exist_ok=True)
+            receipt = json.loads((self.root / source).read_text())
+            receipt["supersedes"] = [predecessor]
+            receipt["producer_run"]["plan"] = module.fingerprint(
+                self.root, new_plan_raw
+            )
+            target.write_text(json.dumps(receipt) + "\n")
+        registry_path = self.root / "process_log/results_registry.json"
+        registry = json.loads(registry_path.read_text())
+        registry["active"].extend([new_analysis, new_release])
+        registry["active"].sort()
+        registry["active_dataset_release_pairs"][new_analysis] = new_release
+        registry["receipt_fingerprints"][new_analysis] = module.fingerprint(
+            self.root, new_analysis
+        )
+        registry["receipt_fingerprints"][new_release] = module.fingerprint(
+            self.root, new_release
+        )
+        registry_path.write_text(json.dumps(registry) + "\n")
+
+        self.call(
+            "retire-pair", "--analysis-receipt", old_analysis,
+            "--release-receipt", old_release, "--reason", "superseded pair",
+            "--superseded-by-analysis", new_analysis,
+            "--superseded-by-release", new_release,
+        )
+        registry = json.loads(registry_path.read_text())
+        self.assertEqual(set(registry["active"]), {new_analysis, new_release})
+        self.assertEqual(
+            registry["active_dataset_release_pairs"], {new_analysis: new_release}
+        )
+        superseded_by = {
+            entry["receipt"]: entry.get("superseded_by")
+            for entry in registry["retired"]
+        }
+        self.assertEqual(superseded_by[old_analysis], new_analysis)
+        self.assertEqual(superseded_by[old_release], new_release)
+
+    def test_dataset_output_without_release_contract_is_rejected(self) -> None:
+        self.write_dataset_release_fixture()
+        plan_path = self.root / "output/stagex/dataset_release_v1_a1.plan.json"
+        plan = json.loads(plan_path.read_text())
+        plan.pop("dataset_release")
+        plan_path.write_text(json.dumps(plan) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("outputs under output/dataset require", completed.stderr)
+        self.assertFalse((self.root / "output/dataset/release_v1_a1").exists())
+
+    def test_pending_dataset_release_pair_retires_atomically(self) -> None:
+        self.write_dataset_release_fixture()
+        self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py",
+        )
+        blocked = self.call(
+            "retire", "--receipt", "output/stagex/results.receipt.json",
+            "--reason", "terminal audit failure", expected=2,
+        )
+        self.assertIn("pair members must use retire-pair", blocked.stderr)
+        registry_path = self.root / "process_log/results_registry.json"
+        intact_registry = json.loads(registry_path.read_text())
+        erased_registry = json.loads(json.dumps(intact_registry))
+        release_entry = next(
+            entry for entry in erased_registry["pending"]
+            if entry["receipt"].endswith("dataset_release_v1_a1_results.receipt.json")
+        )
+        release_entry["paired_analysis_receipt"] = None
+        registry_path.write_text(json.dumps(erased_registry) + "\n")
+        erased = self.call(
+            "retire", "--receipt", "output/stagex/results.receipt.json",
+            "--reason", "erased pending pair identity", expected=2,
+        )
+        self.assertIn("pair identity disagrees with receipt-bound plan", erased.stderr)
+        registry_path.write_text(json.dumps(intact_registry) + "\n")
+        missing_entry_registry = json.loads(json.dumps(intact_registry))
+        release_receipt = "output/stagex/dataset_release_v1_a1_results.receipt.json"
+        missing_entry_registry["pending"] = [
+            entry for entry in missing_entry_registry["pending"]
+            if entry["receipt"] != release_receipt
+        ]
+        del missing_entry_registry["receipt_fingerprints"][release_receipt]
+        registry_path.write_text(json.dumps(missing_entry_registry) + "\n")
+        missing_entry = self.call(
+            "retire", "--receipt", "output/stagex/results.receipt.json",
+            "--reason", "deleted pending release entry", expected=2,
+        )
+        self.assertIn("exactly inventory every result receipt on disk",
+                      missing_entry.stderr)
+        registry_path.write_text(json.dumps(intact_registry) + "\n")
+
+        # A stale live plan cannot hide the relationship from ordinary cleanup.
+        plan_path = self.root / "output/stagex/dataset_release_v1_a1.plan.json"
+        original_plan = plan_path.read_text()
+        plan = json.loads(original_plan)
+        plan.pop("dataset_release")
+        plan["artifacts"] = ["output/stagex/stale_release_artifact"]
+        plan_path.write_text(json.dumps(plan) + "\n")
+        still_blocked = self.call(
+            "retire", "--receipt", "output/stagex/results.receipt.json",
+            "--reason", "terminal audit failure", expected=2,
+        )
+        self.assertIn("result receipt run plan has stale bytes", still_blocked.stderr)
+        plan_path.write_text(original_plan)
+        self.call(
+            "retire-pair",
+            "--analysis-receipt", "output/stagex/results.receipt.json",
+            "--release-receipt",
+            "output/stagex/dataset_release_v1_a1_results.receipt.json",
+            "--reason", "terminal audit failure",
+        )
+        registry = json.loads(
+            (self.root / "process_log/results_registry.json").read_text()
+        )
+        self.assertEqual(registry["pending"], [])
+        self.assertEqual(
+            {entry["receipt"] for entry in registry["retired"]},
+            {
+                "output/stagex/results.receipt.json",
+                "output/stagex/dataset_release_v1_a1_results.receipt.json",
+            },
+        )
+
+    def test_pair_activation_rechecks_current_gate2_binding(self) -> None:
+        self.write_dataset_release_fixture()
+        self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py",
+        )
+        state_path = self.root / "process_log/pipeline_state.json"
+        state = json.loads(state_path.read_text())
+        state["theory_version"] = 2
+        state["dataset_spec_version"] = 2
+        state_path.write_text(json.dumps(state) + "\n")
+        stale_verify = self.call(
+            "verify", "--receipt",
+            "output/stagex/dataset_release_v1_a1_results.receipt.json",
+            expected=1,
+        )
+        self.assertIn(
+            "not the current Gate-2-accepted theory version", stale_verify.stdout
+        )
+        blocked = self.call(
+            "activate-pair",
+            "--analysis-receipt", "output/stagex/results.receipt.json",
+            "--release-receipt",
+            "output/stagex/dataset_release_v1_a1_results.receipt.json",
+            expected=2,
+        )
+        self.assertIn("not the current Gate-2-accepted theory version", blocked.stderr)
+
+    def test_dataset_pair_replacement_can_start_after_gate2_advances(self) -> None:
+        self.write_dataset_release_fixture()
+        old_analysis = "output/stagex/results.receipt.json"
+        old_release = "output/stagex/dataset_release_v1_a1_results.receipt.json"
+        self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", old_release, "--", sys.executable, "code/release.py",
+        )
+        self.call(
+            "activate-pair", "--analysis-receipt", old_analysis,
+            "--release-receipt", old_release,
+        )
+        state_path = self.root / "process_log/pipeline_state.json"
+        state = json.loads(state_path.read_text())
+        state["theory_version"] = 2
+        state["dataset_spec_version"] = 2
+        state_path.write_text(json.dumps(state) + "\n")
+
+        (self.root / "output/stagex/v2/tables").mkdir(parents=True)
+        (self.root / "code/analyze_v2.py").write_text(
+            self.analyze_source.replace(
+                "output/stagex/", "output/stagex/v2/"
+            ).replace(
+                "code/analyze.py", "code/analyze_v2.py"
+            ).replace(
+                "code/render.py", "code/render_v2.py"
+            )
+        )
+        (self.root / "code/render_v2.py").write_text(
+            (self.root / "code/render.py").read_text().replace(
+                "output/stagex/", "output/stagex/v2/"
+            )
+        )
+        plan_raw = "output/stagex/v2/results.plan.json"
+        self.write_plan(
+            plan_raw, prefix="output/stagex/v2/",
+            analyze="code/analyze_v2.py", render="code/render_v2.py",
+        )
+        blocked = self.call(
+            "run", "--plan", plan_raw,
+            "--bundle", "output/stagex/v2/results.json",
+            "--receipt", "output/stagex/v2/results.receipt.json", "--",
+            sys.executable, "code/analyze_v2.py", expected=2,
+        )
+        self.assertIn("active evidence is stale before analysis", blocked.stderr)
+
+        plan_path = self.root / plan_raw
+        plan = json.loads(plan_path.read_text())
+        plan["requires_dataset_release"] = True
+        plan_path.write_text(json.dumps(plan) + "\n")
+
+        release_code = self.root / "code/release.py"
+        original_release_code = release_code.read_bytes()
+        with release_code.open("a", encoding="utf-8") as handle:
+            handle.write("# tampered active release producer\n")
+        tampered_code = self.call(
+            "run", "--plan", plan_raw,
+            "--bundle", "output/stagex/v2/results.json",
+            "--receipt", "output/stagex/v2/results.receipt.json",
+            "--supersedes", old_analysis, "--",
+            sys.executable, "code/analyze_v2.py", expected=2,
+        )
+        self.assertIn(
+            "producer_run.code: stale bytes at code/release.py",
+            tampered_code.stderr,
+        )
+        self.assertFalse((self.root / "output/stagex/v2/detail.json").exists())
+        self.assertFalse((self.root / "output/stagex/v2/results.json").exists())
+        release_code.write_bytes(original_release_code)
+
+        release_input = self.root / "data/release_source.csv"
+        original_release_input = release_input.read_bytes()
+        release_input.write_text("tampered\n", encoding="utf-8")
+        tampered = self.call(
+            "run", "--plan", plan_raw,
+            "--bundle", "output/stagex/v2/results.json",
+            "--receipt", "output/stagex/v2/results.receipt.json",
+            "--supersedes", old_analysis, "--",
+            sys.executable, "code/analyze_v2.py", expected=2,
+        )
+        self.assertIn(
+            "producer_run.inputs: stale bytes at data/release_source.csv",
+            tampered.stderr,
+        )
+        self.assertFalse((self.root / "output/stagex/v2/detail.json").exists())
+        self.assertFalse((self.root / "output/stagex/v2/results.json").exists())
+        self.assertFalse(
+            (self.root / "output/stagex/v2/results.receipt.json").exists()
+        )
+        release_input.write_bytes(original_release_input)
+
+        self.call(
+            "run", "--plan", plan_raw,
+            "--bundle", "output/stagex/v2/results.json",
+            "--receipt", "output/stagex/v2/results.receipt.json",
+            "--supersedes", old_analysis, "--",
+            sys.executable, "code/analyze_v2.py",
+        )
+        registry = json.loads(
+            (self.root / "process_log/results_registry.json").read_text()
+        )
+        self.assertEqual(
+            [entry["receipt"] for entry in registry["pending"]],
+            ["output/stagex/v2/results.receipt.json"],
+        )
+        new_analysis = "output/stagex/v2/results.receipt.json"
+        new_release = "output/stagex/v2/dataset_release_results.receipt.json"
+        self.call(
+            "render", "--receipt", new_analysis, "--",
+            sys.executable, "code/render_v2.py",
+        )
+
+        old_rights_path = "output/stagex/source_rights_v1.json"
+        new_rights_path = "output/stagex/v2/source_rights_v2.json"
+        rights = json.loads((self.root / old_rights_path).read_text())
+        rights["dataset_version"] = 2
+        (self.root / new_rights_path).write_text(json.dumps(rights) + "\n")
+        old_digest = "sha256:" + hashlib.sha256(
+            (self.root / old_rights_path).read_bytes()
+        ).hexdigest()
+        new_digest = "sha256:" + hashlib.sha256(
+            (self.root / new_rights_path).read_bytes()
+        ).hexdigest()
+        state = json.loads(state_path.read_text())
+        state["dataset_rights_inventory"] = new_rights_path
+        state["dataset_rights_inventory_sha256"] = new_digest
+        state_path.write_text(json.dumps(state) + "\n")
+
+        old_provenance_path = "output/stagex/release_inputs_v1_a1.json"
+        new_provenance_path = "output/stagex/v2/release_inputs_v2.json"
+        provenance = json.loads((self.root / old_provenance_path).read_text())
+        provenance["dataset_version"] = 2
+        provenance["rights_inventory"] = new_rights_path
+        for item in provenance["inputs"]:
+            if item["path"] == old_analysis:
+                item["path"] = new_analysis
+        (self.root / new_provenance_path).write_text(json.dumps(provenance) + "\n")
+
+        new_release_artifact = "output/dataset/release_v2_a2"
+        release_source = (self.root / "code/release.py").read_text()
+        for old, new in (
+                ("output/dataset/release_v1_a1", new_release_artifact),
+                ("output/stagex/dataset_release_v1_a1_results.receipt.json",
+                 new_release),
+                (old_rights_path, new_rights_path),
+                (old_provenance_path, new_provenance_path),
+                (old_analysis, new_analysis),
+                (old_digest, new_digest),
+                ("code/release.py", "code/release_v2.py"),
+                ('"dataset_version": 1', '"dataset_version": 2')):
+            release_source = release_source.replace(old, new)
+        (self.root / "code/release_v2.py").write_text(release_source)
+
+        old_release_plan = json.loads(
+            (self.root / "output/stagex/dataset_release_v1_a1.plan.json").read_text()
+        )
+        old_release_plan["producer_code"] = ["code/release_v2.py"]
+        old_release_plan["producer_inputs"] = [
+            new_analysis if raw == old_analysis else
+            new_rights_path if raw == old_rights_path else
+            new_provenance_path if raw == old_provenance_path else raw
+            for raw in old_release_plan["producer_inputs"]
+        ]
+        old_release_plan["artifacts"] = [new_release_artifact]
+        release_contract = old_release_plan["dataset_release"]
+        release_contract.update({
+            "artifact": new_release_artifact,
+            "manifest": new_release_artifact + "/manifest.json",
+            "rights_inventory": new_rights_path,
+            "rights_inventory_sha256": new_digest,
+            "input_provenance": new_provenance_path,
+            "dataset_version": 2,
+            "analysis_receipt": new_analysis,
+            "producing_receipt": new_release,
+        })
+        new_release_plan = "output/stagex/v2/dataset_release.plan.json"
+        (self.root / new_release_plan).write_text(
+            json.dumps(old_release_plan) + "\n"
+        )
+        self.call(
+            "run", "--plan", new_release_plan,
+            "--bundle", "output/stagex/v2/dataset_release_results.json",
+            "--receipt", new_release, "--supersedes", old_release, "--",
+            sys.executable, "code/release_v2.py",
+        )
+        self.call(
+            "activate-pair", "--analysis-receipt", new_analysis,
+            "--release-receipt", new_release,
+        )
+        self.call(
+            "retire-pair", "--analysis-receipt", old_analysis,
+            "--release-receipt", old_release,
+            "--reason", "superseded dataset pair",
+            "--superseded-by-analysis", new_analysis,
+            "--superseded-by-release", new_release,
+        )
+        registry = json.loads(
+            (self.root / "process_log/results_registry.json").read_text()
+        )
+        self.assertEqual(set(registry["active"]), {new_analysis, new_release})
+
+    def test_unrelated_replacement_cannot_waive_dataset_release_input_tamper(self) -> None:
+        self.write_dataset_release_fixture()
+        analysis = "output/stagex/results.receipt.json"
+        release = "output/stagex/dataset_release_v1_a1_results.receipt.json"
+        self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", release, "--", sys.executable, "code/release.py",
+        )
+        self.call(
+            "activate-pair", "--analysis-receipt", analysis,
+            "--release-receipt", release,
+        )
+
+        def write_ordinary_attempt(version: int) -> tuple[str, str, str, str]:
+            prefix = f"output/ordinary/v{version}/"
+            analyze = f"code/ordinary_v{version}.py"
+            render = f"code/render_ordinary_v{version}.py"
+            (self.root / analyze).write_text(
+                self.analyze_source.replace(
+                    "output/stagex/", prefix
+                ).replace(
+                    "code/analyze.py", analyze
+                ).replace(
+                    "code/render.py", render
+                ),
+                encoding="utf-8",
+            )
+            (self.root / render).write_text(
+                (self.root / "code/render.py").read_text().replace(
+                    "output/stagex/", prefix
+                ),
+                encoding="utf-8",
+            )
+            plan = prefix + "results.plan.json"
+            self.write_plan(plan, prefix=prefix, analyze=analyze, render=render)
+            return plan, prefix + "results.json", prefix + "results.receipt.json", analyze
+
+        old_plan, old_bundle, old_receipt, old_code = write_ordinary_attempt(1)
+        self.call(
+            "run", "--plan", old_plan, "--bundle", old_bundle,
+            "--receipt", old_receipt, "--", sys.executable, old_code,
+        )
+        self.call(
+            "render", "--receipt", old_receipt, "--",
+            sys.executable, "code/render_ordinary_v1.py",
+        )
+        self.call("activate", "--receipt", old_receipt)
+
+        new_plan, new_bundle, new_receipt, new_code = write_ordinary_attempt(2)
+        (self.root / "data/release_source.csv").write_text(
+            "tampered\n", encoding="utf-8"
+        )
+        blocked = self.call(
+            "run", "--plan", new_plan, "--bundle", new_bundle,
+            "--receipt", new_receipt, "--supersedes", old_receipt, "--",
+            sys.executable, new_code, expected=2,
+        )
+        self.assertIn(
+            "producer_run.inputs: stale bytes at data/release_source.csv",
+            blocked.stderr,
+        )
+        self.assertFalse((self.root / "output/ordinary/v2/detail.json").exists())
+        self.assertFalse((self.root / new_bundle).exists())
+        self.assertFalse((self.root / new_receipt).exists())
+
+    def test_dataset_namespace_case_alias_without_contract_is_rejected(self) -> None:
+        self.write_dataset_release_fixture()
+        plan_path = self.root / "output/stagex/dataset_release_v1_a1.plan.json"
+        plan = json.loads(plan_path.read_text())
+        plan.pop("dataset_release")
+        plan["artifacts"] = ["output/DATASET/rogue"]
+        plan_path.write_text(json.dumps(plan) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("outputs under output/dataset require", completed.stderr)
+        self.assertFalse((self.root / "output/DATASET/rogue").exists())
+
+    def test_dataset_namespace_rejects_bundle_and_receipt_case_aliases(self) -> None:
+        completed = self.call(
+            "run", "--bundle", "output/DATASET/rogue.json",
+            "--receipt", "output/DATASET/rogue_results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertIn("bundle and receipt paths may not enter", completed.stderr)
+        self.assertFalse((self.root / "output/DATASET/rogue.json").exists())
+        self.assertFalse(
+            (self.root / "output/DATASET/rogue_results.receipt.json").exists()
+        )
+
+    def test_dataset_release_rejects_restricted_build_input(self) -> None:
+        self.write_dataset_release_fixture(redistribution="restricted")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("is restricted: public_source", completed.stderr)
+        self.assertFalse((self.root / "output/dataset/release_v1_a1").exists())
+
+    def test_dataset_release_rejects_additional_outputs(self) -> None:
+        self.write_dataset_release_fixture()
+        plan_path = self.root / "output/stagex/dataset_release_v1_a1.plan.json"
+        plan = json.loads(plan_path.read_text())
+        plan["artifacts"].append("output/stagex/unmanifested-extra.json")
+        plan_path.write_text(json.dumps(plan) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("exactly one artifact", completed.stderr)
+        self.assertFalse((self.root / "output/dataset/release_v1_a1").exists())
+
+    def test_dataset_release_rejects_case_fold_colliding_files(self) -> None:
+        self.write_dataset_release_fixture(case_alias=True)
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("case-fold-colliding dataset release files", completed.stderr)
+        self.assertFalse((self.root / "output/dataset/release_v1_a1").exists())
+
+    def test_dataset_release_rejects_nonproducer_build_entrypoint(self) -> None:
+        self.write_dataset_release_fixture(comment_only_build=True)
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("build source is not byte-identical to producer code", completed.stderr)
+        self.assertFalse((self.root / "output/dataset/release_v1_a1").exists())
+
+    def test_dataset_release_rejects_unused_declared_build_entrypoint(self) -> None:
+        self.write_dataset_release_fixture(unused_declared_build=True)
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn(
+            "build_sources must map every producer code file exactly once",
+            completed.stderr,
+        )
+        self.assertFalse((self.root / "output/dataset/release_v1_a1").exists())
+
+    def test_dataset_release_rejects_renamed_build_layout(self) -> None:
+        self.write_dataset_release_fixture(renamed_build=True)
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("build_sources must preserve producer code paths", completed.stderr)
+        self.assertFalse((self.root / "output/dataset/release_v1_a1").exists())
+
+    def test_dataset_release_rejects_restricted_output_provenance(self) -> None:
+        self.write_dataset_release_fixture(output_source_id="restricted_source")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("names restricted sources: restricted_source", completed.stderr)
+        self.assertFalse((self.root / "output/dataset/release_v1_a1").exists())
+
+    def test_dataset_release_rejects_checksum_mismatch_before_publication(self) -> None:
+        self.write_dataset_release_fixture(checksum="sha256:" + "0" * 64)
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("dataset release checksum mismatch: events.csv", completed.stderr)
+        self.assertFalse((self.root / "output/dataset/release_v1_a1").exists())
+
+    def test_dataset_release_requires_offline_credential_free_plan(self) -> None:
+        self.write_dataset_release_fixture()
+        plan_path = self.root / "output/stagex/dataset_release_v1_a1.plan.json"
+        plan = json.loads(plan_path.read_text())
+        plan["network_access"] = True
+        plan_path.write_text(json.dumps(plan) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("dataset release runs must set network_access to false", completed.stderr)
+        plan["network_access"] = False
+        plan["provider_credentials"] = ["OPENAI_API_KEY"]
+        plan_path.write_text(json.dumps(plan) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("dataset release runs may not receive provider credentials", completed.stderr)
+
+    def test_dataset_release_requires_fully_rendered_paired_analysis(self) -> None:
+        self.write_dataset_release_fixture(render_analysis=False)
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("paired analysis receipt is not fresh and fully rendered", completed.stderr)
+        self.assertFalse((self.root / "output/dataset/release_v1_a1").exists())
+
+    def test_dataset_rights_schema_rejects_boolean_version(self) -> None:
+        self.write_dataset_release_fixture()
+        rights_path = self.root / "output/stagex/source_rights_v1.json"
+        rights = json.loads(rights_path.read_text())
+        rights["schema_version"] = True
+        rights_path.write_text(json.dumps(rights) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("rights inventory schema_version must be 1", completed.stderr)
+
+    def test_dataset_authorization_parse_is_bound_to_input_snapshot(self) -> None:
+        self.write_dataset_release_fixture()
+        spec = importlib.util.spec_from_file_location(
+            "results_pipeline_authorization_snapshot", UTILITY
+        )
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        plan = json.loads(
+            (self.root / "output/stagex/dataset_release_v1_a1.plan.json").read_text()
+        )
+        snapshots = module.fingerprint_many(self.root, plan["producer_inputs"])
+        rights_path = plan["dataset_release"]["rights_inventory"]
+        for snapshot in snapshots:
+            if snapshot["path"] == rights_path:
+                snapshot["sha256"] = "sha256:" + "0" * 64
+        with self.assertRaisesRegex(
+                module.EvidenceError,
+                "rights inventory parsed bytes differ from producer input snapshot"):
+            module._validate_dataset_release_sources(
+                plan, self.root, expected_input_snapshots=snapshots
+            )
+
+    def test_dataset_release_rejects_code_shaped_producer_input(self) -> None:
+        self.write_dataset_release_fixture()
+        helper_raw = "code/release_helper.py"
+        (self.root / helper_raw).write_text("VALUE = 1\n")
+        plan_path = self.root / "output/stagex/dataset_release_v1_a1.plan.json"
+        plan = json.loads(plan_path.read_text())
+        plan["producer_inputs"].append(helper_raw)
+        provenance_path = self.root / plan["dataset_release"]["input_provenance"]
+        provenance = json.loads(provenance_path.read_text())
+        provenance["inputs"].append({
+            "path": helper_raw,
+            "role": "data",
+            "source_ids": ["public_source"],
+        })
+        provenance_path.write_text(json.dumps(provenance) + "\n")
+        plan_path.write_text(json.dumps(plan) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("code-shaped input must be declared as producer code",
+                      completed.stderr)
+
+    def test_dataset_release_requires_gate2_accepted_rights_path(self) -> None:
+        self.write_dataset_release_fixture()
+        state_path = self.root / "process_log/pipeline_state.json"
+        state = json.loads(state_path.read_text())
+        alternate = self.root / "output/stagex/alternate_rights.json"
+        alternate.write_bytes(
+            (self.root / "output/stagex/source_rights_v1.json").read_bytes()
+        )
+        state["dataset_rights_inventory"] = "output/stagex/alternate_rights.json"
+        state_path.write_text(json.dumps(state) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("differs from the Gate-2-accepted state pointer", completed.stderr)
+
+    def test_dataset_release_requires_gate2_accepted_rights_digest(self) -> None:
+        self.write_dataset_release_fixture()
+        state_path = self.root / "process_log/pipeline_state.json"
+        state = json.loads(state_path.read_text())
+        state["dataset_rights_inventory_sha256"] = "sha256:" + "0" * 64
+        state_path.write_text(json.dumps(state) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("Gate-2-accepted rights inventory bytes have changed", completed.stderr)
+
+    def test_dataset_release_requires_current_gate2_version(self) -> None:
+        self.write_dataset_release_fixture()
+        state_path = self.root / "process_log/pipeline_state.json"
+        state = json.loads(state_path.read_text())
+        state["dataset_spec_version"] = 2
+        state["theory_version"] = 2
+        state_path.write_text(json.dumps(state) + "\n")
+        completed = self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py", expected=2,
+        )
+        self.assertIn("not the current Gate-2-accepted theory version", completed.stderr)
+
+    def test_pair_activation_rejects_registry_receipt_supersedes_mismatch(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_pair", UTILITY)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        with mock.patch.object(
+                module, "result_receipt_supersedes",
+                return_value=["output/stagex/declared.receipt.json"]):
+            with self.assertRaisesRegex(
+                    module.EvidenceError,
+                    "pending replacement relation disagrees with receipt"):
+                module.validate_pending_activation_relation(
+                    self.root,
+                    "output/stagex/pending.receipt.json",
+                    [],
+                    {"output/stagex/declared.receipt.json"},
+                )
+
+    def test_pair_activation_requires_matching_release_supersession(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_pair_lineage", UTILITY)
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        old_analysis = "output/stagex/old_analysis.receipt.json"
+        old_release = "output/stagex/old_release.receipt.json"
+
+        def plan_for(_root, receipt):
+            if receipt == old_analysis:
+                return {"requires_dataset_release": True}
+            if receipt == old_release:
+                return {
+                    "requires_dataset_release": False,
+                    "dataset_release": {"analysis_receipt": old_analysis},
+                }
+            raise AssertionError(receipt)
+
+        with mock.patch.object(module, "result_receipt_run_plan", side_effect=plan_for):
+            with self.assertRaisesRegex(
+                    module.EvidenceError,
+                    "release supersession does not match the analysis pair lineage"):
+                module.validate_dataset_release_pair_supersession(
+                    self.root, [old_analysis], [], {old_analysis, old_release}
+                )
+            module.validate_dataset_release_pair_supersession(
+                self.root, [old_analysis], [old_release], {old_analysis, old_release}
+            )
+
+    def test_pair_lineage_rejects_mutated_active_predecessor_plan(self) -> None:
+        self.write_dataset_release_fixture()
+        self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py",
+        )
+        self.call(
+            "activate-pair",
+            "--analysis-receipt", "output/stagex/results.receipt.json",
+            "--release-receipt",
+            "output/stagex/dataset_release_v1_a1_results.receipt.json",
+        )
+        analysis_plan_path = self.root / "output/stagex/results.plan.json"
+        analysis_plan = json.loads(analysis_plan_path.read_text())
+        analysis_plan["requires_dataset_release"] = False
+        analysis_plan_path.write_text(json.dumps(analysis_plan) + "\n")
+
+        spec = importlib.util.spec_from_file_location(
+            "results_pipeline_stale_pair_lineage", UTILITY
+        )
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        old_analysis = "output/stagex/results.receipt.json"
+        old_release = "output/stagex/dataset_release_v1_a1_results.receipt.json"
+        with self.assertRaisesRegex(
+                module.EvidenceError, "result receipt run plan has stale bytes"):
+            module.validate_dataset_release_pair_supersession(
+                self.root,
+                [old_analysis],
+                [old_release],
+                {old_analysis, old_release},
+            )
+
+    def test_pair_lineage_rejects_cross_kind_supersession(self) -> None:
+        self.write_dataset_release_fixture()
+        self.call(
+            "run", "--plan", "output/stagex/dataset_release_v1_a1.plan.json",
+            "--bundle", "output/stagex/dataset_release_v1_a1_results.json",
+            "--receipt", "output/stagex/dataset_release_v1_a1_results.receipt.json", "--",
+            sys.executable, "code/release.py",
+        )
+        self.call(
+            "activate-pair",
+            "--analysis-receipt", "output/stagex/results.receipt.json",
+            "--release-receipt",
+            "output/stagex/dataset_release_v1_a1_results.receipt.json",
+        )
+        spec = importlib.util.spec_from_file_location(
+            "results_pipeline_cross_kind_lineage", UTILITY
+        )
+        self.assertIsNotNone(spec)
+        self.assertIsNotNone(spec.loader)
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        old_analysis = "output/stagex/results.receipt.json"
+        old_release = "output/stagex/dataset_release_v1_a1_results.receipt.json"
+        with self.assertRaisesRegex(
+                module.EvidenceError, "analysis supersession must name only"):
+            module.validate_dataset_release_pair_supersession(
+                self.root,
+                [old_release],
+                [],
+                {old_analysis, old_release},
+            )
 
     def interrupt_pending_render_publication(self, *, update_registry: bool) -> None:
         receipt_raw = "output/stagex/results.receipt.json"
@@ -3022,7 +4271,7 @@ if (trigger_root / 'mutate-during-bind').exists():
         self.record_and_render()
         (self.root / "output/stagex/extra_results.receipt.json").write_text("not json\n")
         completed = self.call("verify-all", expected=2)
-        self.assertIn("absent from registry", completed.stderr)
+        self.assertIn("exactly inventory every result receipt on disk", completed.stderr)
 
     def test_deleted_active_receipt_fails_closed(self) -> None:
         self.record_and_render()
@@ -3323,7 +4572,8 @@ bundle = {
         self.assertEqual(
             json.loads((self.root / "process_log/results_registry.json").read_text()),
             {"kind": "result_registry", "registry_version": 1,
-             "active": [], "pending": [], "retired": [],
+             "active": [], "active_dataset_release_pairs": {},
+             "pending": [], "retired": [],
              "receipt_fingerprints": {}},
         )
         self.assertFalse(

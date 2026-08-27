@@ -7,7 +7,7 @@
    Under empirical-first, also explicitly name `output/stage1/identification_design.md` and `output/stage2/theory_draft_vN.md` (the mechanism document — not a generic "theory draft") in the paper-writer's input list.
 <!-- EMPIRICAL_FIRST_END -->
 <!-- DATA_FIRST_START -->
-   Under data-first, also explicitly name `output/stage2/theory_draft_vN.md` (the dataset specification — not a generic "theory draft"), the exact build report at `pipeline_state.json:stage3a_analysis_path` with its bound receipt, and `output/stage3a/coverage_audit.md` in the paper-writer's input list.
+   Under data-first, also explicitly name `output/stage2/theory_draft_vN.md` (the dataset specification — not a generic "theory draft"), the exact accepted rights inventory resolved only from `pipeline_state.json:dataset_rights_inventory`, the exact build report at `pipeline_state.json:stage3a_analysis_path` with its bound receipt, the exact release directory/receipt resolved only from `pipeline_state.json:dataset_release_path` / `dataset_release_receipt`, and `output/stage3a/coverage_audit.md` in the paper-writer's input list. Verify both receipts before launch; never select an inventory or release by scanning sibling directories.
 <!-- DATA_FIRST_END -->
    The paper-writer produces `paper/outline.md` with: section-by-section plan, what goes where, how to address self-attack weaknesses, how to incorporate scorer presentation notes, which results to highlight, target length per section.
 2. **Review the outline.** Check: does it address the self-attack points? Is the positioning against the literature accurate? Is the structure appropriate for the target journal? If not, provide feedback and re-launch.

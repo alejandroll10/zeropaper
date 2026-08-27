@@ -767,15 +767,31 @@ if os.path.exists(state_path):
     # dataset_spec_version mirrors stage2_mechanism_version (the theory_version
     # last passed by the plan-time Gate 2 audit — here the spec audit);
     # coverage_triangulation is the empiricist-reported protocol status that
-    # coverage-auditor independently verifies.
+    # coverage-auditor independently verifies. dataset_spec_serial is a
+    # run-global, never-reset filename allocator; dataset_rights_inventory is
+    # the exact Gate-2-accepted path. dataset_release_path/receipt point to the
+    # separately built, offline, mechanically rights-gated release.
     if "dataset_spec_version" not in data:
         new = {}
         for k, v in data.items():
             new[k] = v
             if k == "stage2_mechanism_version":
                 new["dataset_spec_version"] = None
+                new["dataset_spec_serial"] = 0
+                new["dataset_rights_inventory"] = None
+                new["dataset_rights_inventory_sha256"] = None
                 new["coverage_triangulation"] = None
+                new["dataset_release_path"] = None
+                new["dataset_release_receipt"] = None
         data = new
+    # Existing data-first deployments may already have dataset_spec_version.
+    # Add new durable identity/pointer fields without disturbing their state.
+    data.setdefault("dataset_spec_serial", 0)
+    data.setdefault("dataset_rights_inventory", None)
+    data.setdefault("dataset_rights_inventory_sha256", None)
+    data.setdefault("coverage_triangulation", None)
+    data.setdefault("dataset_release_path", None)
+    data.setdefault("dataset_release_receipt", None)
     data.setdefault("loops", {})
     for _lid in ("spec_audit_revision", "coverage_audit"):
         data["loops"].setdefault(_lid, {"round": 0, "cap": 3})

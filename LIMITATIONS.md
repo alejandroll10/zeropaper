@@ -16,11 +16,13 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## `--mode data-first`: redistribution-rights check is agent judgment, not enforcement
+## `--mode data-first`: source-license interpretation and provenance semantics remain judgments
 
-**Scope:** the Gate 2 spec audit's per-source rights inventory and the empirics-auditor's data-first release-boundary check.
+**Scope:** the Gate 2 spec audit's machine-readable rights inventory and the offline data-release producer's input-provenance declarations.
 
-**Failure mode:** both checks are agent judgments over prose; no mechanical check ties a shipped file under `output/dataset/` to its source's license. An open release could contain restricted data. What would close it: a machine-readable per-column provenance manifest emitted by the build code, checked mechanically against the spec's rights classification at release time.
+**Closed mechanical gap:** the trusted results runner now prevents an ordinary networked analysis from publishing beneath `output/dataset/`. A dataset release is a separate offline, credential-free run whose plan must match Gate 2's accepted inventory path, SHA-256, and current theory version in an autonomous deployment. A manual data-first deployment instead declares explicit caller authority over the exact path, digest, and positive dataset version; the runner checks that authority against `.deploy_manifest.json` and rejects an invented manual `pipeline_state.json`. It classifies every non-manifest producer input as data or the single paired-analysis control. Before publishing any byte, the runner requires every data input and every released data file to map only to source IDs classified `open`, rejects restricted IDs, and verifies a complete role-labelled checksum manifest. Analysis and release receipts activate or retire atomically as a pair, and replacement halves must carry matching supersession lineage.
+
+**Residual failure mode:** no generic runner can determine whether the accepted license interpretation is legally correct, whether build code has embedded data constants, or whether a producer has hidden a runtime code dependency in a data-bearing input. The runner permits only the paired analysis receipt as a `control` input, rejects ordinary source-code suffixes in data inputs, and packages every declared code dependency byte-for-byte at its original path, but arbitrary dynamic loading is not decidable from declarations alone. The independent spec and empirics audits check those semantics, but they remain judgments. Closing that residual would require authoritative machine-verifiable license attestations at each source plus whole-program information-flow and runtime dependency tracing through the release program; a per-column manifest alone would merely move the same trust assertion downstream.
 
 **Tracking:** [#282](https://github.com/alejandroll10/zeropaper/issues/282).
 
@@ -30,7 +32,7 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 **Scope:** the data-first release artifact (`output/dataset/`).
 
-**Failure mode:** part of the value of the exemplar datasets comes from periodic updates; a one-shot run promises only a versioned snapshot plus fully reproducible build code, and the paper templates scope the release claim accordingly. What would close it: a post-release update automation mode (re-execute build + triangulation on the existing spec, publish a new dataset version).
+**Failure mode:** part of the value of the exemplar datasets comes from periodic updates; a one-shot run promises only a versioned snapshot plus the mechanically verified declared build-code closure, and the paper templates scope the release claim accordingly. What would close it: a post-release update automation mode (re-execute build + triangulation on the existing spec, publish a new dataset version).
 
 **Tracking:** [#283](https://github.com/alejandroll10/zeropaper/issues/283).
 

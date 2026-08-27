@@ -149,9 +149,9 @@ Write each section to a separate file in `paper/sections/`:
 - State every fact descriptively. No causal verbs on documented associations — "returns are higher on announcement days," never "announcements drive returns." Where the literature interprets a fact causally, attribute that reading to the cited literature.
 
 ### `availability.tex`
-- What ships in the release under `output/dataset/`: the data files (open sources only), the complete build code, the schema documentation, the build manifest and version.
+- Resolve the exact release only from `pipeline_state.json:dataset_release_path` and `dataset_release_receipt`; verify that receipt before writing. Describe what ships in that versioned directory beneath `output/dataset/`: rights-cleared data files, the byte-identical path-preserved closure of all declared producer code, schema documentation, and the mechanically checked manifest/version. Never describe an unpointed sibling candidate as the release.
 - Which classes are build-from-source-only because their inputs are redistribution-restricted — named explicitly, with the terms basis.
-- The versioning statement: this release is a static versioned snapshot plus fully reproducible build code; no maintenance promise beyond it.
+- The versioning statement: this release is a static versioned snapshot plus the mechanically verified declared build-code closure; do not claim that undeclared/dynamic dependencies are mechanically excluded, and make no maintenance promise beyond the snapshot.
 <!-- DATA_FIRST_END -->
 ### `discussion.tex`
 - Implications and testable predictions

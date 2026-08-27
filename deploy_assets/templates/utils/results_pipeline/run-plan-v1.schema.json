@@ -50,6 +50,40 @@
           "LOCAL_LLM_API_KEY"
         ]
       }
+    },
+    "network_access": {
+      "type": "boolean",
+      "description": "Whether the producer receives outbound network capability. Defaults to true for backward compatibility; dataset release builds must set false."
+    },
+    "requires_dataset_release": {
+      "type": "boolean",
+      "description": "Marks a data-first analysis receipt that may activate only with its bound dataset release. Defaults to false."
+    },
+    "dataset_release": {
+      "type": "object",
+      "additionalProperties": false,
+      "required": [
+        "artifact", "manifest", "rights_inventory", "rights_inventory_sha256",
+        "input_provenance", "rights_authority",
+        "dataset_version", "analysis_receipt", "producing_receipt"
+      ],
+      "properties": {
+        "artifact": {"$ref": "#/$defs/outputPath"},
+        "manifest": {"$ref": "#/$defs/outputPath"},
+        "rights_inventory": {"$ref": "#/$defs/projectPath"},
+        "rights_inventory_sha256": {
+          "type": "string",
+          "pattern": "^sha256:[0-9a-f]{64}$"
+        },
+        "rights_authority": {
+          "enum": ["gate2-state", "manual-caller"],
+          "description": "Autonomous releases bind to the Gate-2 state pointer; manual data-first releases bind to the caller's explicit path/digest/version declaration. The runner cross-checks this value against .deploy_manifest.json."
+        },
+        "input_provenance": {"$ref": "#/$defs/projectPath"},
+        "dataset_version": {"type": "integer", "minimum": 1},
+        "analysis_receipt": {"$ref": "#/$defs/outputPath"},
+        "producing_receipt": {"$ref": "#/$defs/outputPath"}
+      }
     }
   },
   "allOf": [

@@ -11,6 +11,9 @@
 3. **Reset state** so nothing bleeds from the abandoned theory into the regenerated one:
    - `theory_attempt → 1`, `theory_version → 1`
    - Apply the mandatory fresh-theory identity reset in `core.md`: before the state update retire active feasibility evidence for the abandoned identity, then set every present Stage-2/3 acceptance-version field to `null` (`stage2b_theory_version`, `stage2_mechanism_version`, `stage2_design_version`, `stage3a_theory_version`, `stage3b_theory_version`) while retaining accepted report/receipt pointers for cumulative replacement.
+<!-- DATA_FIRST_START -->
+   - In that same reset commit, also set `dataset_spec_version = null`; preserve the run-global `dataset_spec_serial` and accepted `dataset_rights_inventory` / `dataset_rights_inventory_sha256` binding.
+<!-- DATA_FIRST_END -->
    - `triaged_lit_implications → []`
    - **Every `loops.<id>.round → 0` except `loops.stage0_discovery.round`** (leave each `loops.<id>.cap` unchanged). Regenerating the theory is a fresh artifact version for every downstream audit loop, so per the generic **Audit-loop scoping** rule (`CLAUDE.md`) those loops start clean; `stage0_discovery` is not an artifact audit but the run-global broad-scan budget and never resets. This single instruction replaces the old hand-threaded per-counter reset list (`referee`, `reject_cosmetic`, `fix_empirics`, `headline_replication`, `data_integrity`, `method_check`, the claim loops, …). The regenerated paper thereby gets its own full Stage 6 `referee` budget and fresh empirical-audit budgets without reopening broad-scan capacity.
 4. Re-enter Stage 1: pass `learnings_r{N}.md` to **both** idea-generator and idea-reviewer alongside the lit map, and take the explicit **Regeneration short-circuit** at step 2 below — do not consult the runner-up or unused-sketch priorities; the existing portfolio is by assumption exhausted.

@@ -21,7 +21,29 @@ You are operating in **dataset-spec mode**. Read the rules below carefully — t
 
 ## What you produce
 
-A dataset specification saved to the path specified in your prompt (the standard `output/stage2/theory_draft_vN.md` versioning applies — the spec is this mode's Stage 2 draft). Structure:
+A dataset specification saved to the path specified in your prompt (the standard `output/stage2/theory_draft_vN.md` versioning applies — the spec is this mode's Stage 2 draft) **and** a machine-readable rights inventory at the exact companion path `output/stage2/source_rights_s{dataset_spec_serial}_vN.json`. Produce both in the same firing; neither is optional. The serial-qualified rights path never aliases an earlier active release when a fresh theory resets N to 1. The prose spec is the scientific contract. The JSON is the enforcement input consumed by the trusted offline release runner:
+
+```json
+{
+  "schema_version": 1,
+  "dataset_version": 1,
+  "sources": [
+    {
+      "source_id": "stable_lowercase_id",
+      "redistribution": "open",
+      "evidence": {
+        "url": "exact terms or license URL",
+        "terms": "the quoted or faithfully transcribed language supporting this classification",
+        "checked_at": "YYYY-MM-DD"
+      }
+    }
+  ]
+}
+```
+
+`dataset_version` is the current `theory_version`. Source IDs are stable lowercase `[a-z][a-z0-9_-]{0,63}` identifiers used verbatim by the Stage 3a input-provenance and release manifests. Every prose source-inventory entry appears exactly once in JSON and vice versa. Unverified rights are `restricted`; the JSON may never upgrade them merely to make the release build pass.
+
+The prose specification has this structure:
 
 ```markdown
 # [Dataset Name]
@@ -33,10 +55,10 @@ A dataset specification saved to the path specified in your prompt (the standard
 [What one row is (an event, an event-version, a source-record?), the entity/time coverage promised, and the explicit boundary: what neighboring content is deliberately OUT of scope and why.]
 
 ## Source inventory
-[One subsection per source. For each: provider, exact access path (URL/API/query), what it contributes, its native identifier and time convention, its known gaps, and its **redistribution status** — one of `open` (shipped in the release), `restricted` (feeds build-from-source code only; never appears in the release artifact), with the license or terms-of-use language that justifies the classification quoted or cited. A source whose rights are unverified is `restricted` by default.]
+[One subsection per source. Begin with its exact machine-readable `source_id`. For each: provider, exact access path (URL/API/query), what it contributes, its native identifier and time convention, its known gaps, and its **redistribution status** — one of `open` (eligible as an input to the offline release build), `restricted` (analysis/build-from-source only; mechanically barred from the release build), with the same license or terms-of-use language recorded in the exact serial-qualified rights JSON. A source whose rights are unverified is `restricted` by default.]
 
 ## Schema
-[The exact release schema: column, type, key structure, nullability, and for each column the source(s) it derives from. Every column must be consumed by the validation plan or the fact portfolio — a column nothing uses is scope creep; cut it.]
+[The exact release schema: column, type, key structure, nullability, and for each column the exact `source_id` values it derives from. Every column must be consumed by the validation plan or the fact portfolio — a column nothing uses is scope creep; cut it.]
 
 ## Dating and timestamp conventions
 [The binding conventions: timezone (and DST handling), exact-time vs date-only per event class, the as-known-at-the-time rule (which timestamp a contemporaneous observer had), vintage/revision policy (what happens when a source revises a date or time after the fact), and the convention for multi-part events (announcement vs release vs press conference). State each as a rule an auditor can check a row against.]
@@ -61,7 +83,7 @@ Each item is tagged with the event classes and columns it consumes — this is w
 [The closest existing datasets, stated honestly: what each covers, what it lacks that this dataset provides, and what it provides that this dataset does not. Understating incumbent overlap is the fastest route to rejection by a referee who built the incumbent.]
 
 ## Release plan
-[What ships in `output/dataset/`: the data files (open sources only), the complete build code (all sources), the schema documentation, and the build manifest. State explicitly which event classes are build-from-source-only due to restricted inputs.]
+[Define the separate offline release build. It receives only rights-cleared data inputs plus control documents, runs with no network or provider credentials, and emits one fresh versioned directory `output/dataset/release_vN_aK/`. Its `manifest.json` enumerates every file and checksum; each data file names the exact open `source_id` values that contributed to it; build code and documentation name no data source. State which event classes remain build-from-source-only because restricted inputs are mechanically absent from this release run.]
 ```
 
 ## Strategy-specific instructions
@@ -89,7 +111,7 @@ Each item is tagged with the event classes and columns it consumes — this is w
 
 - **Specify, don't model.** There are no theorems, no derivations, no equilibria here. If you write "FOC gives," "in equilibrium," or "optimization implies," you are writing the wrong paper — delete it.
 - **Every rule auditable.** Each inclusion, dating, and reconciliation rule must be checkable by a third party against the named sources. The `mechanism-auditor` (spec-audit role in this mode) will read the spec adversarially; the `data-selection-auditor` and `coverage-auditor` will later check the built dataset against these exact rules. A rule they cannot operationalize is a defect in the spec, not in the audit.
-- **Rights before release.** Every source is classified `open` or `restricted` with the license language quoted or cited. Unverified rights default to `restricted`. The release plan may never ship a field derived from a `restricted` source.
+- **Rights before release.** Every source is classified `open` or `restricted` with the license language quoted or cited in both the prose spec and the exact serial-qualified rights JSON. Unverified rights default to `restricted`. The networked analysis run may consume either class but may not write beneath `output/dataset/`. The separate offline release plan receives only `open` data inputs; the trusted runner rejects restricted inputs, undeclared source IDs, incomplete manifests, and checksum mismatches before publishing the release directory.
 - **Independence means independence.** Two mirrors of the same underlying collection do not triangulate each other. For each event class, name why the second source is genuinely independent.
 - **Parsimony above all.** Data papers fail by sprawling. A tightly-scoped calendar with complete, triangulated coverage beats a sprawling one with holes. Cut any class you cannot validate to the same standard as the rest.
 - **Sanity check before submitting.** State the expected coverage counts per event class per decade, derived from the sources' own documentation and the pilot slices. Two cases:
