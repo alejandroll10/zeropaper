@@ -24,7 +24,9 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 **Residual failure mode:** no generic runner can determine whether the accepted license interpretation is legally correct, whether build code has embedded data constants, or whether a producer has hidden a runtime code dependency in a data-bearing input. The runner permits only the paired analysis receipt as a `control` input, rejects ordinary source-code suffixes in data inputs, and packages every declared code dependency byte-for-byte at its original path, but arbitrary dynamic loading is not decidable from declarations alone. The independent spec and empirics audits check those semantics, but they remain judgments. Closing that residual would require authoritative machine-verifiable license attestations at each source plus whole-program information-flow and runtime dependency tracing through the release program; a per-column manifest alone would merely move the same trust assertion downstream.
 
-**Tracking:** [#282](https://github.com/alejandroll10/zeropaper/issues/282).
+**Mechanical enforcement shipped:** [#282](https://github.com/alejandroll10/zeropaper/issues/282).
+
+**Residual tracking (low priority):** [#292](https://github.com/alejandroll10/zeropaper/issues/292).
 
 ---
 
