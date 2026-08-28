@@ -16,7 +16,18 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.11] — 2026-08-27 (current)
+## [2.30.12] — 2026-08-28 (current)
+
+**fix: `results_pipeline run`/`render` announce their duration contract at startup (#293).**
+The #293 failure mode recurred in the field despite v2.30.8's doc mandate — a fresh deployment's
+empiricist killed a healthy producer three times with 30-second one-shot tool calls, seeing pure
+silence because child output is buffered until completion. The runner now prints an immediate
+unbuffered stderr banner on `run`/`render`: expected multi-minute duration, the tracked
+long-allowance launch requirement, and that interim silence is normal — so even a killed short
+call captures the explanation. The full mechanism gap (runner-owned allowance, receipt-safe
+acquisition checkpointing) remains open in #293.
+
+## [2.30.11] — 2026-08-27
 
 **fix: shard ownership CI across independent target families (#290).**
 The ownership integration harness now exposes four exhaustive shards while retaining its

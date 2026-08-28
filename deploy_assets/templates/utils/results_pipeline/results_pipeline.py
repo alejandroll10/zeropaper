@@ -7548,6 +7548,22 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
+    if args.subcommand in {"run", "render"}:
+        # Printed immediately (and unbuffered) so a caller that kills this
+        # process on a short tool timeout still captures the explanation.
+        # Child output is intentionally buffered until completion, so interim
+        # silence is normal while the run is healthy (#293).
+        print(
+            f"[results_pipeline] {args.subcommand}: this trusted execution can "
+            "take many minutes (networked acquisition builds routinely need "
+            "20+). Launch it via a harness-tracked long-allowance job and "
+            "poll to terminal status — a short synchronous tool call will "
+            "kill it mid-run and discard the whole isolated workspace. "
+            "Interim silence is normal: child output is released only at "
+            "completion.",
+            file=sys.stderr,
+            flush=True,
+        )
     try:
         root = resolve_root(args.project_root)
         if args.subcommand == "inspect-registry":
