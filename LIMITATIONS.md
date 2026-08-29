@@ -435,3 +435,17 @@ The trusted runner's preflight enforces that the result registry exactly invento
 **What would close it:** identify receipts by registry-recorded canonical path (the registry is already the authority) and treat suffix-matching files outside recorded paths as fatal only when their content does not match an already-registered receipt; or declare snapshot directories registry-exempt documentary zones in the runner contract; or mandate a non-receipt suffix for documentary copies in the evidence docs. Any fix must keep the fail-closed default for genuinely unknown receipt-suffixed files.
 
 **Tracking:** [#294](https://github.com/alejandroll10/zeropaper/issues/294).
+
+---
+
+## data-first: exact coverage predicates are negotiated one full pipeline cycle per unsatisfiable event
+
+**Scope:** `--mode data-first` (both field runs observed, 2026-08-29).
+
+A dataset spec may commit to an exact coverage predicate over an enumerable event set ("an explicit direct receipt for every non-waivable event"). Whether a specific event can satisfy the predicate is only discoverable by exhaustive Stage 3a acquisition, so each newly-discovered unprovable event triggers an honest scope repair that costs a full Stage 2 → Gate 2 spec audit → Gate 3 novelty re-check → Stage 3 portfolio re-derivation → fresh Stage 3a attempt cycle — O(k) full cycles for k gap events. Observed: four coverage-driven spec returns on one Nasdaq receipt scope in the tradingdays run (residue shrinking 15 → 4 → 2 events across rounds); the eventcal run's spec v6→v9 march after its a29 coverage-audit FAIL has the same shape.
+
+**Failure mode it produces:** not incorrect output — the honesty machinery works — but a convergence cost that multiplies wall-clock and re-runs gates invariant to the scope tweak (novelty re-checks returning the same INCREMENTAL verdict, portfolio re-derivations for an untouched portfolio). On archives with a long tail of unprovable events, the loop count is bounded only by the tail.
+
+**What would close it:** an acquisition census before predicate freeze (Gate 2 acceptance requires per-event acquirability evidence for enumerable committed sets); or ledger-form coverage commitments (measured coverage + versioned exception ledger the coverage-auditor audits for honesty, instead of exact-count predicates); or a machine-checkable portfolio-invariant amendment lane that re-enters at the spec audit without re-running novelty/portfolio stages. See the issue for trade-offs.
+
+**Tracking:** [#295](https://github.com/alejandroll10/zeropaper/issues/295).
