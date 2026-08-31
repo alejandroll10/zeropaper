@@ -38,6 +38,33 @@
       "type": "array", "uniqueItems": true,
       "items": {"$ref": "#/$defs/projectPath"}
     },
+    "renderer_inputs": {
+      "type": "array", "uniqueItems": true,
+      "description": "Declared artifact subset exposed to the renderer; empirical execution summaries must be excluded.",
+      "items": {"$ref": "#/$defs/outputPath"}
+    },
+    "analyses": {
+      "type": "object",
+      "minProperties": 1,
+      "propertyNames": {"pattern": "^[a-z0-9][a-z0-9._-]*$"},
+      "additionalProperties": {
+        "type": "object",
+        "additionalProperties": false,
+        "required": ["contract", "execution_summary", "input_bindings"],
+        "properties": {
+          "contract": {"$ref": "#/$defs/projectPath"},
+          "execution_summary": {"$ref": "#/$defs/outputPath"},
+          "input_bindings": {
+            "type": "object",
+            "propertyNames": {"pattern": "^[a-z0-9][a-z0-9._-]*$"},
+            "additionalProperties": {
+              "type": "array", "minItems": 1, "uniqueItems": true,
+              "items": {"$ref": "#/$defs/projectPath"}
+            }
+          }
+        }
+      }
+    },
     "exhibits": {
       "type": "array", "uniqueItems": true,
       "items": {"$ref": "#/$defs/outputPath"}

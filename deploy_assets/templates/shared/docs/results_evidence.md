@@ -16,6 +16,24 @@ Every active evidence producer writes one pre-run plan, one schema-v1 canonical 
 | empiricist | `empirical_feasibility_results.json` / `empirical_analysis_results.json` initially; fresh `<analysis-stem>_aK_results.json` on re-fire | matching `*results.receipt.json` sibling |
 | experiment-designer | `experiment_results.json` initially; fresh `experiment_results_vN_aK_results.json` on re-fire | matching `*results.receipt.json` sibling |
 
+### Empirical specification lineage
+
+Quick-feasibility, full Stage 3a, data-first analysis, manual empirical work, and empirical repair runs use `run-empirical`; theory, LLM experiments, and offline dataset-release packaging continue to use ordinary `run`. Empirical records live at fresh versioned paths under `output/analysis_specs/`: one deliberately small reusable project baseline and one contract per evidence module. The contract's open input/sample/variable/procedure/inference/output envelopes carry stable IDs, ordered sample steps, DAG references, fixed settings or predeclared adaptive decision rules, result ownership, and exact reasons for deviations from reusable baseline definitions. Modified baseline definitions receive new `variant_of` IDs; baseline IDs never change in place.
+
+The empirical run plan's `analyses` map binds each analysis ID to its contract, audit-only execution summary, and actual producer-input paths by input ID. Those bindings plus contract/baseline paths exactly cover all producer inputs. All analyses in one receipt share a baseline. The producer records observed periods, key uniqueness, step input/output flows, fingerprints, unit-bearing step/procedure counts, and procedure realizations in the execution summary; it does not pretend one global N describes a multi-stage or multi-sample analysis. Each bundle result has one analysis owner, and each exhibit's stable `elements` map has a duplicate-free union equal to its compatibility `result_ids`. Comparisons are ordinary producer-computed results with receipt-qualified operands, never renderer calculations. Historical operands remain eligible only through an accepted replacement chain ending in active evidence; verification follows their full nested operand closure, and retirement cannot strand an active dependent.
+
+Set `renderer_inputs` in the plan and matching `renderer.inputs` in the bundle to the smallest presentation-safe subset of individual regular-file artifacts. Do not select directories or files containing execution summaries, row manifests, raw inputs, or sensitive counts. This subset definition governs later shorthand references to renderer-visible “declared artifacts”; the renderer does not receive every producer artifact when a subset is present. Empirical receipt v3 preserves canonical paths and semantic digests for baseline, contract, and execution summary plus owned result IDs; ordinary receipts remain v2. `verify` recomputes v3 lineage, while paper audit-input v2 freezes one receipt-qualified analysis/result/element graph and rejects multiple active empirical baseline digests. This gives exact-byte provenance and comparison-stable scientific identity without imposing estimator taxonomies.
+
+Validate authoring records before execution, then use the empirical command:
+
+```bash
+python3 -I -S code/utils/results_pipeline/analysis_contract.py \
+  <contract> --baseline <baseline>
+python3 code/utils/results_pipeline/results_pipeline.py run-empirical \
+  --plan <plan> --bundle <bundle> --receipt <receipt> -- \
+  python3 <analysis-entrypoint>
+```
+
 The primary analysis command runs through:
 
 ```bash

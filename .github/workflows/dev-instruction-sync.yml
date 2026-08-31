@@ -112,6 +112,9 @@ jobs:
       - name: Test computed-results provenance utility
         run: /usr/bin/python3 test_scripts/test_results_pipeline.py
 
+      - name: Test empirical analysis-contract lineage
+        run: /usr/bin/python3 test_scripts/test_analysis_contract.py
+
   evidence_assembly:
     name: Evidence and setup contracts
     runs-on: ubuntu-latest

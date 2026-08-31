@@ -1,0 +1,44 @@
+{
+  "$schema": "https://json-schema.org/draft/2020-12/schema",
+  "$id": "https://github.com/institute-for-automated-research/auto-ai-research-template/schemas/analysis-execution-v1.schema.json",
+  "title": "Empirical analysis execution summary",
+  "$comment": "Audit-only realization record. analysis_contract.py is the canonical cross-contract validator.",
+  "type": "object",
+  "additionalProperties": false,
+  "required": ["schema_version", "analysis_id", "contract_digest", "samples", "procedures"],
+  "properties": {
+    "schema_version": {"const": 1},
+    "analysis_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"},
+    "contract_digest": {"type": "string", "pattern": "^sha256:[0-9a-f]{64}$"},
+    "samples": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["observed_time", "key_diagnostics", "steps"],
+        "properties": {
+          "observed_time": {"type": "object", "minProperties": 1},
+          "key_diagnostics": {
+            "type": "object",
+            "required": ["is_unique", "duplicate_key_count"]
+          },
+          "steps": {"type": "object", "minProperties": 1}
+        }
+      }
+    },
+    "procedures": {
+      "type": "object",
+      "minProperties": 1,
+      "additionalProperties": {
+        "type": "object",
+        "required": ["fixed_settings", "decisions", "counts"],
+        "properties": {
+          "fixed_settings": {"type": "object"},
+          "decisions": {"type": "object"},
+          "counts": {"type": "object", "minProperties": 1}
+        }
+      }
+    },
+    "notes": {"type": "string"}
+  }
+}

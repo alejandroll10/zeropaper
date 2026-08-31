@@ -45,6 +45,13 @@ for shape in finance empirical experiments; do
         && pass "$shape result schema installed" || fail "$shape result schema installed"
     [ -f "$P/code/utils/results_pipeline/run-plan-v1.schema.json" ] \
         && pass "$shape run-plan schema installed" || fail "$shape run-plan schema installed"
+    [ -x "$P/code/utils/results_pipeline/analysis_contract.py" ] \
+        && pass "$shape analysis-contract helper installed" \
+        || fail "$shape analysis-contract helper installed"
+    [ -f "$P/code/utils/results_pipeline/analysis-contract-v1.schema.json" ] \
+        && [ -f "$P/code/utils/results_pipeline/analysis-execution-v1.schema.json" ] \
+        && pass "$shape empirical lineage schemas installed" \
+        || fail "$shape empirical lineage schemas installed"
     [ -f "$P/docs/results_evidence.md" ] \
         && pass "$shape evidence procedure installed" || fail "$shape evidence procedure installed"
     jq -e '.loops.evidence == {"round": 0, "cap": 3}' \

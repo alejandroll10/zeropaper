@@ -40,6 +40,8 @@ REQUIRED_INVOCATIONS = {
         'bash "$OWNERSHIP_HARNESS"',
     "/usr/bin/python3 test_scripts/test_results_pipeline.py":
         "/usr/bin/python3 test_scripts/test_results_pipeline.py",
+    "/usr/bin/python3 test_scripts/test_analysis_contract.py":
+        "/usr/bin/python3 test_scripts/test_analysis_contract.py",
     "bash test_scripts/test_results_evidence_assembly.sh":
         "bash test_scripts/test_results_evidence_assembly.sh",
     "python3 test_scripts/test_deepvest.py":

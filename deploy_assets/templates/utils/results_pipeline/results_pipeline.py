@@ -12,6 +12,7 @@ import argparse
 import errno
 import fcntl
 import hashlib
+import importlib.util
 import json
 import os
 import re
@@ -32,11 +33,13 @@ from urllib.parse import unquote, urlsplit
 
 
 RECEIPT_VERSION = 2
+EMPIRICAL_RECEIPT_VERSION = 3
 ENVIRONMENT_CAPTURE_VERSION = 1
 RUN_PLAN_VERSION = 1
 PAPER_RECEIPT_VERSION = 4
 REGISTRY_VERSION = 1
 AUDIT_INPUT_VERSION = 1
+EMPIRICAL_AUDIT_INPUT_VERSION = 2
 REGISTRY_PATH = "process_log/results_registry.json"
 PAPER_RECEIPT_PATH = "process_log/paper_evidence.receipt.json"
 LOCK_PATH = "process_log/results_pipeline.lock"
@@ -694,6 +697,568 @@ def object_digest(value: Any) -> str:
     return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
 
 
+def _analysis_contract_module() -> Any:
+    """Load the sibling helper even when this script runs under python -I -S."""
+    path = Path(__file__).with_name("analysis_contract.py")
+    spec = importlib.util.spec_from_file_location("_iar_analysis_contract", path)
+    if spec is None or spec.loader is None:
+        raise EvidenceError(f"cannot load empirical contract validator: {path}")
+    module = importlib.util.module_from_spec(spec)
+    try:
+        spec.loader.exec_module(module)
+    except (OSError, RuntimeError) as exc:
+        raise EvidenceError(f"cannot load empirical contract validator: {exc}") from exc
+    return module
+
+
+def validate_empirical_plan(root: Path, plan: dict[str, Any], *, completed: bool
+                            ) -> tuple[dict[str, dict[str, Any]], list[dict[str, Any]]]:
+    """Validate contract/input closure and, after execution, realization summaries."""
+    analyses = plan.get("analyses")
+    if not isinstance(analyses, dict) or not analyses:
+        raise EvidenceError("empirical run plan.analyses must be a non-empty object")
+    helper = _analysis_contract_module()
+    validated: dict[str, dict[str, Any]] = {}
+    projections: list[dict[str, Any]] = []
+    covered_inputs: set[str] = set()
+    baseline_digests: set[str] = set()
+    summary_paths: set[str] = set()
+    for analysis_id, declaration in analyses.items():
+        if not isinstance(analysis_id, str) or RESULT_ID_RE.fullmatch(analysis_id) is None:
+            raise EvidenceError(f"invalid empirical analysis id: {analysis_id!r}")
+        where = f"run plan.analyses.{analysis_id}"
+        if not isinstance(declaration, dict):
+            raise EvidenceError(f"{where} must be an object")
+        _require_keys(
+            declaration, {"contract", "execution_summary", "input_bindings"},
+            {"contract", "execution_summary", "input_bindings"}, where,
+        )
+        contract_raw, contract_path = project_path(root, declaration["contract"])
+        summary_raw, summary_path = project_path(
+            root, declaration["execution_summary"], must_exist=completed
+        )
+        if contract_raw not in plan["producer_inputs"]:
+            raise EvidenceError(f"{where}.contract must be a producer input")
+        if summary_raw not in plan["artifacts"]:
+            raise EvidenceError(f"{where}.execution_summary must be a declared artifact")
+        if summary_raw in plan["renderer_inputs"]:
+            raise EvidenceError(f"{where}.execution_summary must be audit-only")
+        if summary_raw in summary_paths:
+            raise EvidenceError("each empirical analysis needs its own execution summary")
+        summary_paths.add(summary_raw)
+        try:
+            contract_value = load_json(contract_path)
+            baseline_ref = contract_value.get("baseline") if isinstance(contract_value, dict) else None
+            baseline_raw_value = baseline_ref.get("path") if isinstance(baseline_ref, dict) else None
+            baseline_raw, baseline_path = project_path(root, baseline_raw_value)
+            if baseline_raw not in plan["producer_inputs"]:
+                raise EvidenceError(f"{where} baseline must be a producer input")
+            baseline = load_json(baseline_path)
+            contract = helper.validate_contract(contract_value, baseline)
+        except (helper.ContractError, TypeError) as exc:
+            raise EvidenceError(f"{where}: {exc}") from exc
+        if contract["analysis_id"] != analysis_id:
+            raise EvidenceError(f"{where}.contract analysis_id differs from its plan key")
+        if contract["baseline"]["path"] != baseline_raw:
+            raise EvidenceError(f"{where}.contract baseline path is not normalized")
+        baseline_digests.add(contract["baseline"]["semantic_digest"])
+        covered_inputs.update({contract_raw, baseline_raw})
+        bindings = declaration["input_bindings"]
+        if not isinstance(bindings, dict) or set(bindings) != set(contract["effective"]["inputs"]):
+            raise EvidenceError(f"{where}.input_bindings must cover every contract input ID")
+        normalized_bindings: dict[str, list[str]] = {}
+        for input_id, paths in bindings.items():
+            values = _string_list(paths, f"{where}.input_bindings.{input_id}", nonempty=True)
+            normalized = [project_path(root, raw)[0] for raw in values]
+            if len(normalized) != len(set(normalized)):
+                raise EvidenceError(f"{where}.input_bindings.{input_id} has normalized duplicates")
+            missing = sorted(set(normalized) - set(plan["producer_inputs"]))
+            if missing:
+                raise EvidenceError(f"{where}.input_bindings names undeclared inputs: {', '.join(missing)}")
+            normalized_bindings[input_id] = normalized
+            covered_inputs.update(normalized)
+        declaration["contract"] = contract_raw
+        declaration["execution_summary"] = summary_raw
+        declaration["input_bindings"] = normalized_bindings
+        validated[analysis_id] = contract
+        if completed:
+            try:
+                execution = helper.validate_execution(load_json(summary_path), contract)
+            except helper.ContractError as exc:
+                raise EvidenceError(f"{where}.execution_summary: {exc}") from exc
+            projection = helper.lineage_projection(contract, execution, [])
+            projection.update({
+                "baseline_path": baseline_raw,
+                "contract_path": contract_raw,
+                "execution_summary_path": summary_raw,
+            })
+            projections.append(projection)
+    if len(baseline_digests) != 1:
+        raise EvidenceError("all analyses in one empirical run must use one baseline")
+    uncovered = sorted(set(plan["producer_inputs"]) - covered_inputs)
+    if uncovered:
+        raise EvidenceError(
+            "empirical producer inputs lack analysis/input ownership: " + ", ".join(uncovered)
+        )
+    if completed:
+        for raw in plan["renderer_inputs"]:
+            _, path = project_path(root, raw)
+            if path.is_symlink() or not path.is_file():
+                raise EvidenceError(
+                    "empirical renderer_inputs must name individual regular files: " + raw
+                )
+    return validated, projections
+
+
+def validate_empirical_execution(root: Path, plan: dict[str, Any],
+                                 contracts: dict[str, dict[str, Any]]
+                                 ) -> list[dict[str, Any]]:
+    """Validate fresh producer-owned summaries without reopening pinned inputs."""
+    helper = _analysis_contract_module()
+    projections: list[dict[str, Any]] = []
+    for analysis_id, contract in contracts.items():
+        summary_raw = plan["analyses"][analysis_id]["execution_summary"]
+        _, summary_path = project_path(root, summary_raw)
+        try:
+            execution = helper.validate_execution(load_json(summary_path), contract)
+        except helper.ContractError as exc:
+            raise EvidenceError(
+                f"run plan.analyses.{analysis_id}.execution_summary: {exc}"
+            ) from exc
+        projection = helper.lineage_projection(contract, execution, [])
+        projection.update({
+            "baseline_path": contract["baseline"]["path"],
+            "contract_path": plan["analyses"][analysis_id]["contract"],
+            "execution_summary_path": summary_raw,
+        })
+        projections.append(projection)
+    return projections
+
+
+def validate_empirical_bundle(bundle: dict[str, Any], contracts: dict[str, dict[str, Any]],
+                              projections: list[dict[str, Any]]) -> list[dict[str, Any]]:
+    ownership: dict[str, set[str]] = {analysis_id: set() for analysis_id in contracts}
+    for result_id, result in bundle["results"].items():
+        analysis_id = result.get("analysis_id")
+        if analysis_id not in contracts:
+            raise EvidenceError(f"results.{result_id}.analysis_id is missing or unknown")
+        ownership[analysis_id].add(result_id)
+    for analysis_id, contract in contracts.items():
+        expected = set(contract["effective"]["outputs"])
+        if ownership[analysis_id] != expected:
+            raise EvidenceError(
+                f"results owned by {analysis_id} differ from its contract outputs"
+            )
+        for result_id, output in contract["effective"]["outputs"].items():
+            result = bundle["results"][result_id]
+            expected_projection = {
+                "description": output["description"],
+                "unit": output["unit"],
+                "display": output["presentation"],
+            }
+            actual_projection = {
+                "description": result["description"],
+                "unit": result.get("unit"),
+                "display": result.get("display"),
+            }
+            if object_digest(actual_projection) != object_digest(expected_projection):
+                raise EvidenceError(
+                    f"results.{result_id} presentation differs from its contract output"
+                )
+    for index, exhibit in enumerate(bundle["exhibits"]):
+        elements = exhibit.get("elements")
+        if not isinstance(elements, dict) or not elements:
+            raise EvidenceError(f"exhibits[{index}].elements must be a non-empty object")
+        union: list[str] = []
+        for element_id, result_ids in elements.items():
+            if not isinstance(element_id, str) or RESULT_ID_RE.fullmatch(element_id) is None:
+                raise EvidenceError(f"exhibits[{index}].elements has invalid element ID")
+            union.extend(_string_list(
+                result_ids, f"exhibits[{index}].elements.{element_id}", nonempty=True
+            ))
+        if len(union) != len(set(union)):
+            raise EvidenceError(f"exhibits[{index}].elements assigns a result more than once")
+        if set(union) != set(exhibit["result_ids"]):
+            raise EvidenceError(f"exhibits[{index}].result_ids must equal the elements union")
+    by_id = {item["analysis_id"]: item for item in projections}
+    for analysis_id, result_ids in ownership.items():
+        by_id[analysis_id]["result_ids"] = sorted(result_ids)
+    return [by_id[analysis_id] for analysis_id in sorted(by_id)]
+
+
+def effective_renderer_inputs(bundle: dict[str, Any]) -> list[str]:
+    return bundle["renderer"].get(
+        "inputs", [artifact["path"] for artifact in bundle["artifacts"]]
+    )
+
+
+def extend_empirical_identity_index(
+        contracts: dict[str, dict[str, Any]],
+        identities: dict[tuple[str, str], str] | None = None,
+        *, scope: str) -> dict[tuple[str, str], str]:
+    """Make stable definition IDs mean one canonical object across analyses."""
+    if identities is None:
+        identities = {}
+    for contract in contracts.values():
+        for section, definitions in contract["effective"].items():
+            for definition_id, definition in definitions.items():
+                key = (section, definition_id)
+                digest = object_digest(definition)
+                prior = identities.get(key)
+                if prior is not None and prior != digest:
+                    raise EvidenceError(
+                        f"stable empirical ID {section}.{definition_id} has "
+                        f"conflicting definitions {scope}; use a new ID"
+                    )
+                identities[key] = digest
+    return identities
+
+
+def lifecycle_receipt(
+        root: Path, registry: dict[str, Any], receipt_raw: str) -> dict[str, Any]:
+    """Load receipt bytes against either their live or retired registry fingerprint."""
+    expected = registry["receipt_fingerprints"].get(receipt_raw)
+    if expected is None:
+        expected = next(
+            (entry["last_fingerprint"] for entry in registry["retired"]
+             if entry["receipt"] == receipt_raw),
+            None,
+        )
+    if expected is None:
+        raise EvidenceError(f"result receipt is not registered: {receipt_raw}")
+    receipt, snapshot = load_json_snapshot(root, receipt_raw)
+    if snapshot != expected:
+        raise EvidenceError(f"registered result receipt bytes are stale: {receipt_raw}")
+    if not isinstance(receipt, dict):
+        raise EvidenceError(f"malformed result receipt: {receipt_raw}")
+    return receipt
+
+
+def empirical_operand_handoff_terminals(
+        root: Path, registry: dict[str, Any]) -> dict[str, str]:
+    """Map every accepted receipt to the active receipt terminating its handoff chain."""
+    terminals = {raw: raw for raw in registry["active"]}
+    retired = {entry["receipt"]: entry for entry in registry["retired"]}
+    visiting: set[str] = set()
+
+    def terminal(raw: str) -> str | None:
+        if raw in terminals:
+            return terminals[raw]
+        entry = retired.get(raw)
+        if entry is None or "superseded_by" not in entry:
+            return None
+        if raw in visiting:
+            raise EvidenceError("retired empirical evidence handoff contains a cycle")
+        visiting.add(raw)
+        successor = entry["superseded_by"]
+        successor_receipt = lifecycle_receipt(root, registry, successor)
+        if raw not in result_receipt_supersedes(
+                root, successor, successor_receipt):
+            raise EvidenceError(
+                f"retired empirical evidence has an invalid handoff: {raw} -> {successor}"
+            )
+        result = terminal(successor)
+        visiting.remove(raw)
+        if result is not None:
+            terminals[raw] = result
+        return result
+
+    for raw in retired:
+        terminal(raw)
+    return terminals
+
+
+def empirical_operand_eligible_receipts(
+        root: Path, registry: dict[str, Any]) -> set[str]:
+    """Return active evidence plus retired evidence on an accepted handoff chain."""
+    return set(empirical_operand_handoff_terminals(root, registry))
+
+
+def empirical_operand_snapshot_failures(
+        root: Path, receipt: dict[str, Any], where: str) -> list[str]:
+    """Check the full intrinsic evidence closure behind an external operand."""
+    failures: list[str] = []
+    producer = receipt["producer_run"]
+    for key in ("plan", "bundle", "code", "inputs", "renderer_code", "artifacts"):
+        value = producer[key]
+        entries = [value] if key in {"plan", "bundle"} else value
+        failures.extend(compare_snapshot(root, entries, f"{where} producer_run.{key}"))
+    render = receipt["render_run"]
+    if render is not None:
+        for key in ("code", "exhibits"):
+            failures.extend(compare_snapshot(
+                root, render[key], f"{where} render_run.{key}"
+            ))
+    return failures
+
+
+def validate_empirical_relationships(root: Path, receipt_raw: str,
+                                     plan: dict[str, Any],
+                                     contracts: dict[str, dict[str, Any]], *,
+                                     eligible_receipts: Iterable[str] | None = None,
+                                     _validated_receipts: set[str] | None = None,
+                                     _visiting_receipts: set[str] | None = None) -> None:
+    """Resolve local analysis references and receipt-qualified comparison operands."""
+    extend_empirical_identity_index(contracts, scope="within one receipt")
+    current_results = {
+        result_id
+        for contract in contracts.values()
+        for result_id in contract["effective"]["outputs"]
+    }
+    reference_dependencies: dict[str, set[str]] = {
+        analysis_id: set() for analysis_id in contracts
+    }
+    result_dependencies: dict[str, set[str]] = {
+        result_id: set() for result_id in current_results
+    }
+    eligible = set(eligible_receipts) if eligible_receipts is not None else None
+    validated_receipts = (
+        _validated_receipts if _validated_receipts is not None else set()
+    )
+    visiting_receipts = (
+        _visiting_receipts if _visiting_receipts is not None else {receipt_raw}
+    )
+    external_cache: dict[str, dict[str, Any]] = {}
+    external_receipts: dict[str, dict[str, Any]] = {}
+    external_bundle_paths: dict[str, str] = {}
+    for analysis_id, contract in contracts.items():
+        reference_id = contract.get("reference_analysis_id")
+        if reference_id is not None and reference_id not in contracts:
+            raise EvidenceError(
+                f"analysis {analysis_id} reference_analysis_id is not an analysis "
+                "in the same receipt"
+            )
+        if reference_id is not None:
+            reference_dependencies[analysis_id].add(reference_id)
+        bound_paths = {
+            path
+            for paths in plan["analyses"][analysis_id]["input_bindings"].values()
+            for path in paths
+        }
+        for result_id, output in contract["effective"]["outputs"].items():
+            for index, operand in enumerate(output.get("operands", [])):
+                where = f"analysis {analysis_id} output {result_id} operand {index}"
+                operand_raw, operand_path = result_receipt_path(root, operand["receipt"])
+                if operand_raw != operand["receipt"]:
+                    raise EvidenceError(f"{where} receipt path is not normalized")
+                operand_result = operand["result_id"]
+                if operand_raw == receipt_raw:
+                    if operand_result == result_id:
+                        raise EvidenceError(f"{where} directly references its own result")
+                    if operand_result not in current_results:
+                        raise EvidenceError(f"{where} references an unknown current result")
+                    result_dependencies[result_id].add(operand_result)
+                    continue
+                if operand_raw not in bound_paths:
+                    raise EvidenceError(
+                        f"{where} receipt must be bound to this analysis input"
+                    )
+                if eligible is not None and operand_raw not in eligible:
+                    raise EvidenceError(
+                        f"{where} receipt is not eligible empirical comparison evidence"
+                    )
+                if operand_raw not in external_cache:
+                    if not operand_path.exists():
+                        raise EvidenceError(f"{where} receipt does not exist")
+                    operand_receipt = validate_receipt_contract(root, operand_path)
+                    external_receipts[operand_raw] = operand_receipt
+                    stale = empirical_operand_snapshot_failures(
+                        root, operand_receipt, f"{where} receipt"
+                    )
+                    if stale:
+                        raise EvidenceError(
+                            f"{where} receipt evidence is stale: " + "; ".join(stale)
+                        )
+                    if (operand_receipt["receipt_version"] == EMPIRICAL_RECEIPT_VERSION
+                            and operand_raw not in validated_receipts):
+                        if operand_raw in visiting_receipts:
+                            raise EvidenceError(
+                                f"{where} receipt comparison dependency contains a cycle"
+                            )
+                        operand_plan_path = operand_receipt["producer_run"]["plan"]["path"]
+                        operand_plan = validate_run_plan(
+                            load_json(root / operand_plan_path), root
+                        )
+                        operand_contracts, _ = validate_empirical_plan(
+                            root, operand_plan, completed=True
+                        )
+                        visiting_receipts.add(operand_raw)
+                        try:
+                            validate_empirical_relationships(
+                                root, operand_raw, operand_plan, operand_contracts,
+                                eligible_receipts=eligible,
+                                _validated_receipts=validated_receipts,
+                                _visiting_receipts=visiting_receipts,
+                            )
+                        finally:
+                            visiting_receipts.remove(operand_raw)
+                        validated_receipts.add(operand_raw)
+                    bundle_snapshot = operand_receipt["producer_run"]["bundle"]
+                    bundle_path = bundle_snapshot["path"]
+                    external_bundle_paths[operand_raw] = bundle_path
+                    operand_bundle, _, _ = bundle_and_path(root, bundle_path)
+                    external_cache[operand_raw] = operand_bundle["results"]
+                if external_bundle_paths[operand_raw] not in bound_paths:
+                    raise EvidenceError(
+                        f"{where} receipt bundle must be bound to this analysis input"
+                    )
+                if operand_result not in external_cache[operand_raw]:
+                    raise EvidenceError(f"{where} references an unknown result")
+                result = external_cache[operand_raw][operand_result]
+                if "value" not in result:
+                    artifact_raw = result["artifact"]
+                    if artifact_raw not in bound_paths:
+                        raise EvidenceError(
+                            f"{where} result artifact must be bound to this analysis input"
+                        )
+                    snapshots = [
+                        snapshot for snapshot in
+                        external_receipts[operand_raw]["producer_run"]["artifacts"]
+                        if snapshot.get("path") == artifact_raw
+                    ]
+                    if len(snapshots) != 1:
+                        raise EvidenceError(f"{where} result artifact lacks one receipt snapshot")
+                    stale_artifact = compare_snapshot(
+                        root, snapshots, f"{where} result artifact"
+                    )
+                    if stale_artifact:
+                        raise EvidenceError(
+                            f"{where} result artifact is stale: " +
+                            "; ".join(stale_artifact)
+                        )
+
+    def reject_cycles(graph: dict[str, set[str]], label: str) -> None:
+        visiting: set[str] = set()
+        visited: set[str] = set()
+
+        def visit(node: str) -> None:
+            if node in visiting:
+                raise EvidenceError(f"{label} cycle includes {node}")
+            if node in visited:
+                return
+            visiting.add(node)
+            for dependency in graph[node]:
+                visit(dependency)
+            visiting.remove(node)
+            visited.add(node)
+
+        for node in graph:
+            visit(node)
+
+    reject_cycles(reference_dependencies, "reference_analysis_id")
+    reject_cycles(result_dependencies, "current-receipt comparison operand")
+
+
+def empirical_operand_receipt_closure(
+        root: Path, registry: dict[str, Any], receipt_raw: str, *,
+        eligible: set[str], memo: dict[str, set[str]],
+        visiting: set[str] | None = None) -> set[str]:
+    """Return every external receipt below one empirical receipt's operand DAG."""
+    if receipt_raw in memo:
+        return memo[receipt_raw]
+    if visiting is None:
+        visiting = set()
+    if receipt_raw in visiting:
+        raise EvidenceError(
+            f"empirical receipt comparison dependency contains a cycle at {receipt_raw}"
+        )
+    visiting.add(receipt_raw)
+    receipt_value = lifecycle_receipt(root, registry, receipt_raw)
+    if receipt_value.get("receipt_version") != EMPIRICAL_RECEIPT_VERSION:
+        visiting.remove(receipt_raw)
+        memo[receipt_raw] = set()
+        return set()
+    _, receipt_path = result_receipt_path(root, receipt_raw)
+    receipt = validate_receipt_contract(root, receipt_path)
+    plan_snapshot = receipt["producer_run"]["plan"]
+    stale = compare_snapshot(
+        root, [plan_snapshot], f"empirical dependency {receipt_raw} plan"
+    )
+    if stale:
+        raise EvidenceError("; ".join(stale))
+    plan = validate_run_plan(load_json(root / plan_snapshot["path"]), root)
+    contracts, _ = validate_empirical_plan(root, plan, completed=True)
+    direct = {
+        operand["receipt"]
+        for contract in contracts.values()
+        for output in contract["effective"]["outputs"].values()
+        for operand in output.get("operands", [])
+        if operand["receipt"] != receipt_raw
+    }
+    ineligible = sorted(direct - eligible)
+    if ineligible:
+        raise EvidenceError(
+            f"active empirical dependency {receipt_raw} cites ineligible evidence: " +
+            ", ".join(ineligible)
+        )
+    closure = set(direct)
+    for cited_raw in direct:
+        closure.update(empirical_operand_receipt_closure(
+            root, registry, cited_raw, eligible=eligible, memo=memo,
+            visiting=visiting,
+        ))
+    visiting.remove(receipt_raw)
+    memo[receipt_raw] = closure
+    return closure
+
+
+def active_empirical_operand_dependents(
+        root: Path, registry: dict[str, Any], targets: Iterable[str]
+        ) -> dict[str, list[str]]:
+    """Find active empirical receipts whose complete operand DAG cites a target."""
+    target_set = set(targets)
+    dependents = {raw: [] for raw in target_set}
+    terminals = empirical_operand_handoff_terminals(root, registry)
+    eligible = set(terminals)
+    memo: dict[str, set[str]] = {}
+    for dependent_raw in registry["active"]:
+        if dependent_raw in target_set:
+            continue
+        cited = empirical_operand_receipt_closure(
+            root, registry, dependent_raw, eligible=eligible, memo=memo
+        )
+        for cited_raw in cited:
+            terminal = terminals.get(cited_raw)
+            if cited_raw in target_set:
+                dependents[cited_raw].append(dependent_raw)
+            elif terminal in target_set:
+                dependents[terminal].append(dependent_raw)
+    return dependents
+
+
+def enforce_empirical_spec_immutability(root: Path, spec_paths: Iterable[str],
+                                        registry: dict[str, Any]) -> None:
+    """Never let replacement waivers turn a baseline or contract path mutable."""
+    specs = set(spec_paths)
+    receipt_paths = list(registry["active"])
+    receipt_paths.extend(entry["receipt"] for entry in registry["pending"])
+    receipt_paths.extend(entry["receipt"] for entry in registry["retired"])
+    for receipt_raw in receipt_paths:
+        _, receipt_path_value = result_receipt_path(root, receipt_raw)
+        raw_receipt = load_json(receipt_path_value)
+        if (not isinstance(raw_receipt, dict) or
+                raw_receipt.get("receipt_version") != EMPIRICAL_RECEIPT_VERSION):
+            continue
+        receipt = validate_receipt_contract(root, receipt_path_value)
+        for item in receipt["lineage"]:
+            specs.update({item["baseline_path"], item["contract_path"]})
+    current = {raw: fingerprint(root, raw) for raw in specs}
+    for receipt_raw in receipt_paths:
+        _, receipt_path_value = result_receipt_path(root, receipt_raw)
+        raw_receipt = load_json(receipt_path_value)
+        if (not isinstance(raw_receipt, dict) or
+                raw_receipt.get("receipt_version") != EMPIRICAL_RECEIPT_VERSION):
+            continue
+        receipt = validate_receipt_contract(root, receipt_path_value)
+        for snapshot in receipt["producer_run"]["inputs"]:
+            raw = snapshot.get("path") if isinstance(snapshot, dict) else None
+            if raw in current and snapshot != current[raw]:
+                raise EvidenceError(
+                    f"empirical baseline/contract path changed in place after receipt "
+                    f"binding: {raw} (bound by {receipt_raw})"
+                )
+
+
 def _require_keys(obj: dict[str, Any], required: set[str], allowed: set[str], where: str) -> None:
     missing = sorted(required - obj.keys())
     extra = sorted(obj.keys() - allowed)
@@ -767,7 +1332,7 @@ def validate_bundle(bundle: Any, root: Path) -> dict[str, Any]:
     if not isinstance(results, dict) or not results:
         raise EvidenceError("results must be a non-empty object")
     result_allowed = {"description", "value", "unit", "display", "uncertainty",
-                      "artifact", "selector", "metadata"}
+                      "artifact", "selector", "metadata", "analysis_id"}
     for result_id, result in results.items():
         if not isinstance(result_id, str) or not RESULT_ID_RE.fullmatch(result_id):
             raise EvidenceError(f"invalid result id: {result_id!r}")
@@ -783,6 +1348,10 @@ def validate_bundle(bundle: Any, root: Path) -> dict[str, Any]:
         for string_key in ("unit", "selector"):
             if string_key in result and not isinstance(result[string_key], str):
                 raise EvidenceError(f"results.{result_id}.{string_key} must be a string")
+        if "analysis_id" in result and (
+                not isinstance(result["analysis_id"], str) or
+                RESULT_ID_RE.fullmatch(result["analysis_id"]) is None):
+            raise EvidenceError(f"results.{result_id}.analysis_id must be a stable ID")
         for object_key in ("display", "uncertainty", "metadata"):
             if object_key in result and not isinstance(result[object_key], dict):
                 raise EvidenceError(f"results.{result_id}.{object_key} must be an object")
@@ -820,13 +1389,20 @@ def validate_bundle(bundle: Any, root: Path) -> dict[str, Any]:
     renderer = bundle["renderer"]
     if not isinstance(renderer, dict):
         raise EvidenceError("renderer must be an object")
-    _require_keys(renderer, {"code"}, {"code", "notes"}, "renderer")
+    _require_keys(renderer, {"code"}, {"code", "notes", "inputs"}, "renderer")
     renderer_code = _string_list(renderer["code"], "renderer.code")
     renderer["code"] = [project_path(root, raw)[0] for raw in renderer_code]
     if len(renderer["code"]) != len(set(renderer["code"])):
         raise EvidenceError("renderer.code contains normalized duplicates")
     if "notes" in renderer and not isinstance(renderer["notes"], str):
         raise EvidenceError("renderer.notes must be a string")
+    if "inputs" in renderer:
+        renderer_inputs = _string_list(renderer["inputs"], "renderer.inputs")
+        renderer["inputs"] = [project_path(root, raw)[0] for raw in renderer_inputs]
+        if len(renderer["inputs"]) != len(set(renderer["inputs"])):
+            raise EvidenceError("renderer.inputs contains normalized duplicates")
+        if not set(renderer["inputs"]).issubset(artifact_paths):
+            raise EvidenceError("renderer.inputs must be a subset of artifacts")
 
     exhibits = bundle["exhibits"]
     if not isinstance(exhibits, list):
@@ -837,7 +1413,7 @@ def validate_bundle(bundle: Any, root: Path) -> dict[str, Any]:
         if not isinstance(exhibit, dict):
             raise EvidenceError(f"exhibits[{index}] must be an object")
         _require_keys(exhibit, {"id", "kind", "path", "description", "result_ids"},
-                      {"id", "kind", "path", "description", "result_ids"},
+                      {"id", "kind", "path", "description", "result_ids", "elements"},
                       f"exhibits[{index}]")
         exhibit_id = exhibit["id"]
         if not isinstance(exhibit_id, str) or not RESULT_ID_RE.fullmatch(exhibit_id):
@@ -2381,7 +2957,7 @@ def validate_run_plan(value: Any, root: Path, *, require_live_sources: bool = Tr
     _require_keys(
         value, required,
         required | {"provider_credentials", "network_access", "requires_dataset_release",
-                    "dataset_release"},
+                    "dataset_release", "renderer_inputs", "analyses"},
         "run plan",
     )
     if (isinstance(value["plan_version"], bool) or
@@ -2407,6 +2983,16 @@ def validate_run_plan(value: Any, root: Path, *, require_live_sources: bool = Tr
             raise EvidenceError(f"run plan.{key} contains normalized duplicates")
     if value["exhibits"] and not value["renderer_code"]:
         raise EvidenceError("run plan.renderer_code must be non-empty when exhibits are declared")
+    renderer_inputs = _string_list(
+        value.get("renderer_inputs", value["artifacts"]), "run plan.renderer_inputs"
+    )
+    value["renderer_inputs"] = [
+        project_path(root, raw, must_exist=False)[0] for raw in renderer_inputs
+    ]
+    if len(value["renderer_inputs"]) != len(set(value["renderer_inputs"])):
+        raise EvidenceError("run plan.renderer_inputs contains normalized duplicates")
+    if not set(value["renderer_inputs"]).issubset(value["artifacts"]):
+        raise EvidenceError("run plan.renderer_inputs must be a subset of artifacts")
     value["provider_credentials"] = _string_list(
         value.get("provider_credentials", []), "run plan.provider_credentials"
     )
@@ -3763,7 +4349,9 @@ def execute_fresh_exhibits(command: list[str], root: Path, bundle: dict[str, Any
                 raise EvidenceError(f"exhibit target must be a regular file: {raw}")
             live_exhibit_snapshots.append(fingerprint(root, raw))
         paths.append((raw, path))
-    artifact_paths = [entry["path"] for entry in bundle["artifacts"]]
+    artifact_paths = bundle["renderer"].get(
+        "inputs", [entry["path"] for entry in bundle["artifacts"]]
+    )
     sources = [bundle_path, *artifact_paths, *bundle["renderer"]["code"]]
     source_snapshots = fingerprint_many(root, sources)
     environment_capture = capture_execution_environment(root, command)
@@ -3990,12 +4578,41 @@ def validate_snapshot_record(root: Path, value: Any, where: str) -> str:
 
 def validate_receipt_contract(root: Path, receipt_path: Path) -> dict[str, Any]:
     receipt = load_json(receipt_path)
+    version = receipt.get("receipt_version") if isinstance(receipt, dict) else None
+    expected_keys = {"kind", "receipt_version", "supersedes", "producer_run", "render_run"}
+    if version == EMPIRICAL_RECEIPT_VERSION:
+        expected_keys.add("lineage")
     if (not isinstance(receipt, dict) or receipt.get("kind") != "result" or
-            isinstance(receipt.get("receipt_version"), bool) or
-            receipt.get("receipt_version") != RECEIPT_VERSION or
-            set(receipt) != {"kind", "receipt_version", "supersedes",
-                             "producer_run", "render_run"}):
-        raise EvidenceError(f"not a structurally valid results receipt v{RECEIPT_VERSION}")
+            isinstance(version, bool) or
+            version not in {RECEIPT_VERSION, EMPIRICAL_RECEIPT_VERSION} or
+            set(receipt) != expected_keys):
+        raise EvidenceError("not a structurally valid results receipt v2/v3")
+    if version == EMPIRICAL_RECEIPT_VERSION:
+        lineage = receipt["lineage"]
+        if not isinstance(lineage, list) or not lineage:
+            raise EvidenceError("empirical receipt lineage must be a non-empty array")
+        prior = ""
+        for index, item in enumerate(lineage):
+            where = f"lineage[{index}]"
+            if not isinstance(item, dict) or set(item) != {
+                    "analysis_id", "baseline_path", "baseline_digest",
+                    "contract_path", "contract_digest", "execution_summary_path",
+                    "execution_summary_digest", "result_ids"}:
+                raise EvidenceError(f"{where} is malformed")
+            analysis_id = item["analysis_id"]
+            if (not isinstance(analysis_id, str) or
+                    RESULT_ID_RE.fullmatch(analysis_id) is None or analysis_id <= prior):
+                raise EvidenceError("lineage must have unique sorted analysis IDs")
+            prior = analysis_id
+            for key in ("baseline_digest", "contract_digest", "execution_summary_digest"):
+                if (not isinstance(item[key], str) or
+                        re.fullmatch(r"sha256:[0-9a-f]{64}", item[key]) is None):
+                    raise EvidenceError(f"{where}.{key} is malformed")
+            for key in ("baseline_path", "contract_path", "execution_summary_path"):
+                normalized = project_path(root, item[key], must_exist=False)[0]
+                if normalized != item[key]:
+                    raise EvidenceError(f"{where}.{key} is not normalized")
+            _string_list(item["result_ids"], f"{where}.result_ids", nonempty=True)
     receipt_raw = receipt_path.relative_to(root).as_posix()
     result_receipt_supersedes(root, receipt_raw, receipt)
     producer = receipt.get("producer_run")
@@ -4091,13 +4708,7 @@ def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool,
                    enforce_current_dataset_authority: bool = True
                    ) -> dict[str, Any]:
     receipt = validate_receipt_contract(root, receipt_path)
-    if (not isinstance(receipt, dict) or receipt.get("kind") != "result" or
-            isinstance(receipt.get("receipt_version"), bool) or
-            receipt.get("receipt_version") != RECEIPT_VERSION):
-        raise EvidenceError(f"not a results receipt v{RECEIPT_VERSION}: {receipt_path}")
-    if set(receipt) != {"kind", "receipt_version", "supersedes",
-                       "producer_run", "render_run"}:
-        raise EvidenceError(f"results receipt has unexpected or missing keys: {receipt_path}")
+    version = receipt["receipt_version"]
     producer = receipt.get("producer_run")
     if not isinstance(producer, dict):
         raise EvidenceError(f"receipt missing producer_run: {receipt_path}")
@@ -4133,6 +4744,7 @@ def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool,
             if (bundle["producer"]["code"] != plan["producer_code"] or
                     bundle["producer"]["inputs"] != plan["producer_inputs"] or
                     bundle["renderer"]["code"] != plan["renderer_code"] or
+                    effective_renderer_inputs(bundle) != plan["renderer_inputs"] or
                     [entry["path"] for entry in bundle["artifacts"]] != plan["artifacts"] or
                     [entry["path"] for entry in bundle["exhibits"]] != plan["exhibits"]):
                 failures.append("producer bundle no longer matches its pre-run plan")
@@ -4167,6 +4779,21 @@ def verify_receipt(root: Path, receipt_path: Path, *, rerender: bool,
                 producer_entrypoint = None
             else:
                 producer_entrypoint = command_entrypoint(producer_command)
+            if version == EMPIRICAL_RECEIPT_VERSION:
+                contracts, projections = validate_empirical_plan(root, plan, completed=True)
+                registry, _ = load_registry(root)
+                validate_empirical_relationships(
+                    root, receipt_raw, plan, contracts,
+                    eligible_receipts=empirical_operand_eligible_receipts(root, registry),
+                )
+                derived = validate_empirical_bundle(bundle, contracts, projections)
+                if derived != receipt["lineage"]:
+                    failures.append("receipt lineage differs from live empirical evidence")
+                if ("inputs" not in bundle["renderer"] or
+                        bundle["renderer"]["inputs"] != plan["renderer_inputs"]):
+                    failures.append("empirical renderer input inventory differs from plan")
+            elif "analyses" in plan:
+                failures.append("empirical plan is bound to a non-empirical receipt")
             release = plan.get("dataset_release")
             if release is not None:
                 if release["producing_receipt"] != receipt_raw:
@@ -4478,6 +5105,7 @@ def load_registry(root: Path, *, candidate: dict[str, Any] | None = None,
                 f"(untracked={sorted(on_disk_receipts - tracked_receipts)}, "
                 f"missing={sorted(tracked_receipts - on_disk_receipts)})"
             )
+        enforce_empirical_spec_immutability(root, [], value)
     return value, path
 
 
@@ -4614,6 +5242,15 @@ def command_retire(args: argparse.Namespace) -> int:
             "active dataset-release pair members must use retire-pair"
         )
     if receipt_raw in registry["active"]:
+        dependents = active_empirical_operand_dependents(
+            root, registry, [receipt_raw]
+        )[receipt_raw]
+        if dependents and args.superseded_by is None:
+            raise EvidenceError(
+                "cannot reject or withdraw empirical evidence used by active "
+                "comparison receipts; first activate a replacement and retire with "
+                "--superseded-by: " + ", ".join(sorted(dependents))
+            )
         blockers = [entry["receipt"] for entry in registry["pending"]
                     if receipt_raw in entry["supersedes"]]
         if blockers:
@@ -4727,6 +5364,27 @@ def command_run(args: argparse.Namespace) -> int:
     plan_raw, plan_path = project_path(root, args.plan)
     reject_audit_namespace(plan_raw, "run plan")
     plan = validate_run_plan(load_json(plan_path), root)
+    empirical = bool(getattr(args, "empirical", False))
+    empirical_contracts: dict[str, dict[str, Any]] = {}
+    if empirical:
+        if plan.get("dataset_release") is not None:
+            raise EvidenceError("offline dataset release builds use run, not run-empirical")
+        empirical_contracts, _ = validate_empirical_plan(root, plan, completed=False)
+    else:
+        if "analyses" in plan:
+            raise EvidenceError("a plan with analyses must use run-empirical")
+        empirical_reports = [
+            raw for raw in plan["artifacts"]
+            if re.fullmatch(
+                r"output/stage3a/(?:empirical_analysis|empirical_feasibility)[^/]*\.md",
+                raw,
+            )
+        ]
+        if empirical_reports:
+            raise EvidenceError(
+                "autonomous empirical reports must use run-empirical: " +
+                ", ".join(empirical_reports)
+            )
     if entrypoint not in plan["producer_code"]:
         raise EvidenceError("producer command entrypoint is not declared in the pre-run plan")
     bundle_raw, bundle_target = project_path(root, args.bundle, must_exist=False)
@@ -4768,6 +5426,18 @@ def command_run(args: argparse.Namespace) -> int:
         pair_role=("release" if release is not None else
                    "analysis" if plan["requires_dataset_release"] else None),
     )
+    if empirical:
+        validate_empirical_relationships(
+            root, receipt_raw, plan, empirical_contracts,
+            eligible_receipts=empirical_operand_eligible_receipts(root, registry),
+        )
+        spec_paths = {
+            declaration["contract"] for declaration in plan["analyses"].values()
+        }
+        spec_paths.update(
+            contract["baseline"]["path"] for contract in empirical_contracts.values()
+        )
+        enforce_empirical_spec_immutability(root, spec_paths, registry)
     paired_analysis_supersedes: list[str] = []
     if paired_analysis_receipt is not None:
         paired_entry = next(
@@ -4907,10 +5577,22 @@ def command_run(args: argparse.Namespace) -> int:
                 "analysis wrote renderer-owned exhibit paths: " + ", ".join(created_exhibits)
             )
         bundle = validate_bundle(load_json(staged_bundle), workspace)
+        lineage: list[dict[str, Any]] | None = None
+        if empirical:
+            projections = validate_empirical_execution(
+                workspace, plan, empirical_contracts
+            )
+            lineage = validate_empirical_bundle(bundle, empirical_contracts, projections)
+            if ("inputs" not in bundle["renderer"] or
+                    bundle["renderer"]["inputs"] != plan["renderer_inputs"]):
+                raise EvidenceError(
+                    "empirical bundle renderer.inputs differs from run plan.renderer_inputs"
+                )
         command_uses_declared_code(command, bundle["producer"]["code"], "producer")
         if (bundle["producer"]["code"] != plan["producer_code"] or
                 bundle["producer"]["inputs"] != plan["producer_inputs"] or
                 bundle["renderer"]["code"] != plan["renderer_code"] or
+                effective_renderer_inputs(bundle) != plan["renderer_inputs"] or
                 [entry["path"] for entry in bundle["artifacts"]] != plan["artifacts"] or
                 [entry["path"] for entry in bundle["exhibits"]] != plan["exhibits"]):
             raise EvidenceError("result bundle does not exactly match the pre-run plan")
@@ -4966,7 +5648,9 @@ def command_run(args: argparse.Namespace) -> int:
             bundle, bundle_raw, _ = bundle_and_path(root, bundle_raw)
             receipt = {
                 "kind": "result",
-                "receipt_version": RECEIPT_VERSION,
+                "receipt_version": (
+                    EMPIRICAL_RECEIPT_VERSION if empirical else RECEIPT_VERSION
+                ),
                 "supersedes": supersedes,
                 "producer_run": snapshot_bundle(
                     root, bundle, bundle_raw, command, plan_raw,
@@ -4975,6 +5659,8 @@ def command_run(args: argparse.Namespace) -> int:
                 ),
                 "render_run": None,
             }
+            if lineage is not None:
+                receipt["lineage"] = lineage
             atomic_json(target, receipt)
             registry["pending"].append({
                 "receipt": receipt_raw,
@@ -5000,8 +5686,10 @@ def command_render(args: argparse.Namespace) -> int:
     receipt = load_json(target)
     if (not isinstance(receipt, dict) or receipt.get("kind") != "result" or
             isinstance(receipt.get("receipt_version"), bool) or
-            receipt.get("receipt_version") != RECEIPT_VERSION):
-        raise EvidenceError(f"not a results receipt v{RECEIPT_VERSION}: {args.receipt}")
+            receipt.get("receipt_version") not in {
+                RECEIPT_VERSION, EMPIRICAL_RECEIPT_VERSION
+            }):
+        raise EvidenceError(f"not a results receipt v2/v3: {args.receipt}")
     producer = receipt.get("producer_run")
     bundle_field = producer.get("bundle") if isinstance(producer, dict) else None
     if not isinstance(bundle_field, dict) or not isinstance(bundle_field.get("path"), str):
@@ -5259,6 +5947,20 @@ def command_retire_pair(args: argparse.Namespace) -> int:
             if entry["receipt"] not in members
         ]
     else:
+        dependents = active_empirical_operand_dependents(
+            root, registry_before, members
+        )
+        dependent_descriptions = [
+            f"{raw}: {', '.join(sorted(values))}"
+            for raw, values in sorted(dependents.items()) if values
+        ]
+        if dependent_descriptions and superseded_by_analysis is None:
+            raise EvidenceError(
+                "cannot reject or withdraw dataset evidence used by active "
+                "comparison receipts; first activate a replacement pair and retire "
+                "with --superseded-by-analysis/--superseded-by-release: " +
+                "; ".join(dependent_descriptions)
+            )
         blockers = [
             entry["receipt"] for entry in registry_before["pending"]
             if members & set(entry["supersedes"])
@@ -6850,6 +7552,98 @@ def expected_result_exhibits(root: Path, result_paths: list[Path],
     return sorted(expected)
 
 
+def derive_active_empirical_lineage(root: Path, result_paths: list[Path]
+                                    ) -> dict[str, Any] | None:
+    """Build one receipt-qualified graph for active empirical evidence."""
+    registry, _ = load_registry(root)
+    eligible_receipts = empirical_operand_eligible_receipts(root, registry)
+    analyses: list[dict[str, Any]] = []
+    elements: list[dict[str, Any]] = []
+    comparisons: list[dict[str, Any]] = []
+    unclassified: list[str] = []
+    baseline_digests: set[str] = set()
+    definition_identities: dict[tuple[str, str], str] = {}
+    for receipt_path_value in result_paths:
+        receipt_raw = receipt_path_value.relative_to(root).as_posix()
+        receipt = validate_receipt_contract(root, receipt_path_value)
+        if receipt["receipt_version"] != EMPIRICAL_RECEIPT_VERSION:
+            unclassified.append(receipt_raw)
+            continue
+        plan_path = receipt["producer_run"]["plan"]["path"]
+        plan = validate_run_plan(load_json(root / plan_path), root)
+        contracts, _ = validate_empirical_plan(root, plan, completed=True)
+        extend_empirical_identity_index(
+            contracts, definition_identities, scope="across active receipts"
+        )
+        validate_empirical_relationships(
+            root, receipt_raw, plan, contracts,
+            eligible_receipts=eligible_receipts,
+        )
+        bundle_path = receipt["producer_run"]["bundle"]["path"]
+        bundle, _, _ = bundle_and_path(root, bundle_path)
+        for item in receipt["lineage"]:
+            baseline_digests.add(item["baseline_digest"])
+            analysis = {"receipt": receipt_raw, **item}
+            reference_id = contracts[item["analysis_id"]].get("reference_analysis_id")
+            if reference_id is not None:
+                analysis["reference"] = {
+                    "receipt": receipt_raw, "analysis_id": reference_id,
+                }
+            analyses.append(analysis)
+        for exhibit in bundle["exhibits"]:
+            for element_id, result_ids in exhibit["elements"].items():
+                elements.append({
+                    "receipt": receipt_raw,
+                    "exhibit_id": exhibit["id"],
+                    "element_id": element_id,
+                    "results": [
+                        {"receipt": receipt_raw, "result_id": result_id}
+                        for result_id in result_ids
+                    ],
+                })
+        for analysis_id, contract in contracts.items():
+            for result_id, output in contract["effective"]["outputs"].items():
+                if "operands" in output:
+                    comparisons.append({
+                        "receipt": receipt_raw,
+                        "analysis_id": analysis_id,
+                        "result_id": result_id,
+                        "operands": output["operands"],
+                        "comparability": output["comparability"],
+                    })
+    if len(baseline_digests) > 1:
+        raise EvidenceError(
+            "active empirical receipts use multiple project baselines; complete the "
+            "cumulative migration before paper audit"
+        )
+    state_path = root / "process_log/pipeline_state.json"
+    if state_path.exists():
+        state = load_json(state_path)
+        stage3a = state.get("stage3a_result_receipt") if isinstance(state, dict) else None
+        if stage3a is not None:
+            if not isinstance(stage3a, str):
+                raise EvidenceError("pipeline_state stage3a_result_receipt is malformed")
+            if stage3a not in {path.relative_to(root).as_posix() for path in result_paths}:
+                raise EvidenceError("pipeline_state stage3a_result_receipt is not active")
+            pointed = load_json(root / stage3a)
+            if pointed.get("receipt_version") != EMPIRICAL_RECEIPT_VERSION:
+                raise EvidenceError(
+                    "pipeline_state stage3a_result_receipt lacks empirical v3 lineage"
+                )
+    if not analyses:
+        return None
+    analyses.sort(key=lambda item: (item["receipt"], item["analysis_id"]))
+    elements.sort(key=lambda item: (item["receipt"], item["exhibit_id"], item["element_id"]))
+    comparisons.sort(key=lambda item: (item["receipt"], item["analysis_id"], item["result_id"]))
+    return {
+        "baseline_digest": next(iter(baseline_digests)),
+        "analyses": analyses,
+        "elements": elements,
+        "comparisons": comparisons,
+        "unclassified_receipts": sorted(unclassified),
+    }
+
+
 def validate_audit_input(root: Path, path: Path, checkpoint: str) -> dict[str, Any]:
     value = load_json(path)
     if not isinstance(value, dict):
@@ -6857,11 +7651,16 @@ def validate_audit_input(root: Path, path: Path, checkpoint: str) -> dict[str, A
     required = {"kind", "audit_input_version", "checkpoint", "paper_sources",
                 "result_receipts", "results_registry", "citation_occurrences",
                 "included_result_exhibits", "digest"}
-    _require_keys(value, required, required, "audit input")
+    version = value.get("audit_input_version")
+    allowed = required | ({"empirical_lineage"}
+                          if version == EMPIRICAL_AUDIT_INPUT_VERSION else set())
+    _require_keys(value, required, allowed, "audit input")
     if (value["kind"] != "paper_audit_input" or
             isinstance(value["audit_input_version"], bool) or
-            value["audit_input_version"] != AUDIT_INPUT_VERSION):
-        raise EvidenceError(f"not a paper audit input v{AUDIT_INPUT_VERSION}")
+            version not in {AUDIT_INPUT_VERSION, EMPIRICAL_AUDIT_INPUT_VERSION}):
+        raise EvidenceError("not a paper audit input v1/v2")
+    if version == EMPIRICAL_AUDIT_INPUT_VERSION and "empirical_lineage" not in value:
+        raise EvidenceError("paper audit input v2 requires empirical_lineage")
     if value["checkpoint"] != checkpoint:
         raise EvidenceError("audit input checkpoint mismatch")
     unsigned = {key: item for key, item in value.items() if key != "digest"}
@@ -6892,6 +7691,11 @@ def validate_audit_input(root: Path, path: Path, checkpoint: str) -> dict[str, A
     if value["included_result_exhibits"] != expected_result_exhibits(
             root, [root / raw for raw in current_receipts], current_paper):
         failures.append("included result-exhibit inventory changed after audit preparation")
+    current_lineage = derive_active_empirical_lineage(
+        root, [root / raw for raw in current_receipts]
+    )
+    if value.get("empirical_lineage") != current_lineage:
+        failures.append("active empirical lineage changed after audit preparation")
     if failures:
         raise EvidenceError("audit input is stale: " + "; ".join(failures))
     return value
@@ -6917,9 +7721,13 @@ def command_prepare_audit(args: argparse.Namespace) -> int:
         raise EvidenceError("cannot prepare audit from stale results: " + "; ".join(failures))
     paper_sources, citation_occurrences = paper_dependency_graph(root)
     result_receipts = [path.relative_to(root).as_posix() for path in result_paths]
+    empirical_lineage = derive_active_empirical_lineage(root, result_paths)
     payload = {
         "kind": "paper_audit_input",
-        "audit_input_version": AUDIT_INPUT_VERSION,
+        "audit_input_version": (
+            EMPIRICAL_AUDIT_INPUT_VERSION if empirical_lineage is not None
+            else AUDIT_INPUT_VERSION
+        ),
         "checkpoint": args.checkpoint,
         "paper_sources": fingerprint_many(root, paper_sources),
         "result_receipts": fingerprint_many(root, result_receipts),
@@ -6929,6 +7737,8 @@ def command_prepare_audit(args: argparse.Namespace) -> int:
             root, result_paths, paper_sources
         ),
     }
+    if empirical_lineage is not None:
+        payload["empirical_lineage"] = empirical_lineage
     payload["digest"] = object_digest(payload)
     atomic_json(output_path, payload)
     validate_audit_input(root, output_path, args.checkpoint)
@@ -7426,7 +8236,20 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--receipt", required=True)
     run.add_argument("--supersedes", action="append", default=[])
     run.add_argument("command", nargs=argparse.REMAINDER)
+    run.set_defaults(empirical=False)
     run.set_defaults(func=command_run)
+
+    run_empirical = subparsers.add_parser(
+        "run-empirical",
+        help="execute empirical analysis with contracts and realization summaries",
+    )
+    run_empirical.add_argument("--project-root", default=".")
+    run_empirical.add_argument("--plan", required=True)
+    run_empirical.add_argument("--bundle", required=True)
+    run_empirical.add_argument("--receipt", required=True)
+    run_empirical.add_argument("--supersedes", action="append", default=[])
+    run_empirical.add_argument("command", nargs=argparse.REMAINDER)
+    run_empirical.set_defaults(func=command_run, empirical=True)
 
     render = subparsers.add_parser("render", help="execute a bundle-only renderer and record exhibits")
     render.add_argument("--project-root", default=".")
@@ -7548,7 +8371,7 @@ def build_parser() -> argparse.ArgumentParser:
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
-    if args.subcommand in {"run", "render"}:
+    if args.subcommand in {"run", "run-empirical", "render"}:
         # Printed immediately (and unbuffered) so a caller that kills this
         # process on a short tool timeout still captures the explanation.
         # Child output is intentionally buffered until completion, so interim

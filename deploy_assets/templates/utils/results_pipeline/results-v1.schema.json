@@ -59,6 +59,7 @@
           },
           "selector": {"type": "string"},
           "metadata": {"type": "object"}
+          ,"analysis_id": {"type": "string", "pattern": "^[a-z0-9][a-z0-9._-]*$"}
         },
         "anyOf": [
           {"required": ["value"]},
@@ -92,6 +93,10 @@
           "uniqueItems": true,
           "items": {"$ref": "#/$defs/projectPath"}
         },
+        "inputs": {
+          "type": "array", "uniqueItems": true,
+          "items": {"$ref": "#/$defs/outputPath"}
+        },
         "notes": {"type": "string"}
       }
     },
@@ -114,6 +119,14 @@
             "minItems": 1,
             "uniqueItems": true,
             "items": {"type": "string", "minLength": 1}
+          },
+          "elements": {
+            "type": "object", "minProperties": 1,
+            "propertyNames": {"pattern": "^[a-z0-9][a-z0-9._-]*$"},
+            "additionalProperties": {
+              "type": "array", "minItems": 1, "uniqueItems": true,
+              "items": {"type": "string", "minLength": 1}
+            }
           }
         }
       }

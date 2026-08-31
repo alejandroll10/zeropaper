@@ -16,10 +16,12 @@ In an **analysis-plan-only** launch, write only `output/stage3a/empirical_plan.m
 
 {{> result_bundle_contract }}
 
+{{> empirical_lineage_contract }}
+
 For quick feasibility, run:
 
 ```bash
-python3 code/utils/results_pipeline/results_pipeline.py run \
+python3 code/utils/results_pipeline/results_pipeline.py run-empirical \
   --plan "$RESULT_PLAN" --bundle "$RESULT_BUNDLE" --receipt "$RESULT_RECEIPT" \
   "${SUPERSEDES_ARGS[@]}" -- \
   python3 "$ANALYSIS_ENTRYPOINT" --analysis "$ANALYSIS_PATH"
@@ -30,7 +32,7 @@ python3 code/utils/results_pipeline/results_pipeline.py verify \
 For full execution, run the complete workflow through:
 
 ```bash
-python3 code/utils/results_pipeline/results_pipeline.py run \
+python3 code/utils/results_pipeline/results_pipeline.py run-empirical \
   --plan "$RESULT_PLAN" --bundle "$RESULT_BUNDLE" --receipt "$RESULT_RECEIPT" \
   "${SUPERSEDES_ARGS[@]}" -- \
   python3 "$ANALYSIS_ENTRYPOINT" --analysis "$ANALYSIS_PATH"
@@ -124,7 +126,7 @@ Final code is the exact launch-supplied `ANALYSIS_ENTRYPOINT`; scratch code belo
 - **Standard errors matter.** Always report them. A "consistent" result with t=0.8 is not evidence.
 - **Reproducible scripts — seed every stochastic operation.** Declare one integer constant at the top of every script (`SEED = 42`) and feed it to *every* source of randomness — not just `np.random.seed(SEED)` / `random.seed(SEED)`, but every library call that draws random numbers: bootstrap resampling (`scipy.stats.bootstrap(..., random_state=SEED)`, block/wild-cluster bootstraps, any `n_boot`/`reps` routine), cross-validation and data splits *that shuffle* (`KFold(shuffle=True, random_state=SEED)`, `StratifiedKFold(shuffle=True, random_state=SEED)`, `train_test_split(..., random_state=SEED)`; sequential splitters — `TimeSeriesSplit`, and `KFold(shuffle=False)` — are deterministic and take no seed), Monte-Carlo simulations and any sampling (`df.sample(..., random_state=SEED)`, `np.random.default_rng(SEED)`), stochastic optimizers / ML estimators (`random_state=SEED`), and R routines called via `rpy2`/`subprocess` (`set.seed(SEED)`). Prefer an explicit `rng = np.random.default_rng(SEED)` passed into each function over the global `np.random.seed`, which a library call can silently bypass. **Never derive the seed from `time`, `os.urandom`, a hash of the data, or process state** — it must be a literal constant. The goal is exact reproducibility: re-running the script from scratch with the cache cleared must reproduce every point estimate, standard error, and CI bound *bit-for-bit*, because a fixed seed fixes the draws. Log the input data file paths and date ranges used. The empirics-auditor will move your cache aside, re-run from scratch, and FAIL the audit on any non-zero delta in a stochastic spec.
 - **Declare irreducibly-stochastic methods.** A few methods stay non-deterministic even under a fixed seed — parallel/GPU reductions (CUDA kernels, multi-threaded BLAS), some solver fallbacks, hardware-dependent floating-point reduction order. If a load-bearing number comes from such a method, declare it: add an `irreducible_stochasticity` key to the relevant `output/stage3a/*.json` (and a matching note in the script docstring), using this exact schema so the auditor can parse the bound — `{{> irreducible_stochasticity_schema }}` (declare at least one of `max_abs_delta` / `max_rel_delta`, measured from re-running the method yourself a few times — the spread the auditor will hold you to). Use this sparingly and only when true — it exempts the spec from the auditor's exact-match rerun check, so a non-determinism *bug* mislabeled as irreducible will ship silently. The default is: it is reproducible, and you seeded it.
-- **Rendered output.** Put every paper-facing computed result in `RESULT_BUNDLE`; declare natural-format detail outputs as artifacts. The separate renderer produces every result-bearing standalone `.tex` table and `.pdf`+`.png` figure pair under the bundle-declared `output/stage3a/` paths. It reads only the bundle and declared artifacts.
+- **Rendered output.** Put every paper-facing computed result in `RESULT_BUNDLE`; declare natural-format detail outputs as artifacts. The separate renderer produces every result-bearing standalone `.tex` table and `.pdf`+`.png` figure pair under the bundle-declared `output/stage3a/` paths. It reads only the bundle and the explicit `renderer.inputs` subset.
 - **Produce at least one headline figure.** Tables are necessary but not sufficient: an empirical paper almost always carries a figure that *shows* the central result — an event-window time series, a sort/binscatter, an impulse response, a key comparative static, the estimate plotted against its benchmark. Produce at least one such figure for the load-bearing result and save it to `output/stage3a/figures/` as a `.pdf`+`.png` pair with labeled, titled axes and a self-contained meaning. The only acceptable reason to ship zero figures is that the headline genuinely cannot be visualized — if so, state that explicitly in `## Assessment`. (A figureless empirical paper reads as incomplete to field referees and is flagged downstream.)
 {{> figure_dual_format }}
 - **Tag headline claims explicitly.** Every load-bearing numerical claim — the long-short spread the contribution rests on, the calibration moment that closes the model, the headline regression coefficient the abstract will cite — must appear on one line in `## Headline claims` with `[HEADLINE]`, snake_case `[claim_id: …]`, the exact raw-unit `[reported_value: …]`, and `[tolerance_class: …]`. Choose exactly one fixed class: `returns_spreads_coefficients`, `moments`, `counts`, `bounded_statistics` (R²/adjusted R²/persistence), or `t_statistics`; the empirics auditor checks semantic classification. Typical count: 1-5; never more than 8. The downstream `headline-replicator` agent (Stage 3a step 6.5) recomputes each tagged claim via an independent aggregation path and FAILs the stage if any tagged claim disagrees under its mechanically fixed class threshold, if the script is absent, or if the analysis has no valid headline rows. Under-tagging and over-tagging both produce findings. These four tags are what the manifest binds to; without them the gate cannot fire.

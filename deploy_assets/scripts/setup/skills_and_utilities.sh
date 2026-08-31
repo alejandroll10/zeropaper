@@ -102,10 +102,14 @@ setup_skills_and_utilities() {
     # project output and are intentionally not manifested.
     infrastructure_dir 125 "code/utils/results_pipeline"
     cp "$TEMPLATE_ROOT/templates/utils/results_pipeline/results_pipeline.py" \
+        "$TEMPLATE_ROOT/templates/utils/results_pipeline/analysis_contract.py" \
+        "$TEMPLATE_ROOT/templates/utils/results_pipeline/analysis-contract-v1.schema.json" \
+        "$TEMPLATE_ROOT/templates/utils/results_pipeline/analysis-execution-v1.schema.json" \
         "$TEMPLATE_ROOT/templates/utils/results_pipeline/results-v1.schema.json" \
         "$TEMPLATE_ROOT/templates/utils/results_pipeline/run-plan-v1.schema.json" \
         "$P/code/utils/results_pipeline/"
-    chmod +x "$P/code/utils/results_pipeline/results_pipeline.py"
+    chmod +x "$P/code/utils/results_pipeline/results_pipeline.py" \
+        "$P/code/utils/results_pipeline/analysis_contract.py"
 
     # NBER conference agenda skill (loaded by literature-scout, gap-scout — the
     # pre-publication research frontier: who is presenting what, right now).

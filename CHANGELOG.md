@@ -16,7 +16,21 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.30.12] — 2026-08-28 (current)
+## [2.31.0] — 2026-08-31 (current)
+
+**feat: make empirical specifications and result lineage machine-comparable.**
+Empirical computations now use a parsimonious baseline/contract/execution-summary spine that
+records reusable definitions, exact deviations, samples and filters, variables, procedure and
+inference settings, adaptive choices, count flows, and result ownership without prescribing an
+estimator taxonomy. `results_pipeline run-empirical` validates those records, emits receipt v3,
+binds every result and displayed exhibit element to one analysis, freezes a receipt-qualified
+comparison graph for paper audit, and keeps ordinary theory/LLM/release computation on receipt
+v2. Historical comparison operands must belong to active or accepted replacement history; the
+runner verifies their complete nested evidence closure and prevents retirement from stranding an
+active dependent. The helper, schemas, empirical agents, manual/autonomous procedures, setup
+ownership, CI, and all runtime assembly shapes ship the same contract.
+
+## [2.30.12] — 2026-08-28
 
 **fix: `results_pipeline run`/`render` announce their duration contract at startup (#293).**
 The #293 failure mode recurred in the field despite v2.30.8's doc mandate — a fresh deployment's
