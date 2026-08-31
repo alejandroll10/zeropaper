@@ -418,6 +418,7 @@ bundle = {{
     def call(self, command: str, *, expected: int) -> subprocess.CompletedProcess[str]:
         completed = subprocess.run([
             sys.executable, str(RUNNER), command,
+            "--caller-allowance-seconds", "3600",
             "--plan", "output/stage3a/results.plan.json",
             "--bundle", "output/stage3a/results.json",
             "--receipt", "output/stage3a/results.receipt.json",
@@ -512,6 +513,7 @@ bundle = {{
         (self.root / "code/analyze_v2.py").write_text(source, encoding="utf-8")
         created = subprocess.run([
             sys.executable, str(RUNNER), "run-empirical", "--project-root", str(self.root),
+            "--caller-allowance-seconds", "3600",
             "--plan", "output/stage3a/results_v2.plan.json",
             "--bundle", "output/stage3a/results_v2.json",
             "--receipt", "output/stage3a/results_v2_results.receipt.json",
@@ -622,6 +624,7 @@ bundle = {{
         )
         rejected = subprocess.run([
             sys.executable, str(RUNNER), "run-empirical", "--project-root", str(self.root),
+            "--caller-allowance-seconds", "3600",
             "--plan", "output/stage3a/results_v2.plan.json",
             "--bundle", "output/stage3a/results_v2.json",
             "--receipt", "output/stage3a/results_v2_results.receipt.json",
@@ -715,6 +718,7 @@ bundle = {{
         )
         rejected = subprocess.run([
             sys.executable, str(RUNNER), "run-empirical", "--project-root", str(self.root),
+            "--caller-allowance-seconds", "3600",
             "--plan", "output/stage3a/results_v2.plan.json",
             "--bundle", "output/stage3a/results_v2.json",
             "--receipt", "output/stage3a/results_v2_results.receipt.json",

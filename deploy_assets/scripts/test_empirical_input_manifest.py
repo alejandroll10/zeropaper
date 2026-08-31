@@ -755,6 +755,8 @@ class EmpiricalInputManifestTests(unittest.TestCase):
         )
         run = self.run_results_pipeline(
             "run",
+            "--caller-allowance-seconds",
+            "3600",
             "--plan",
             "output/stage3a/empirical_analysis_results.plan.json",
             "--bundle",
@@ -866,6 +868,8 @@ class EmpiricalInputManifestTests(unittest.TestCase):
                     / "code/utils/results_pipeline/results_pipeline.py"
                 ),
                 "run",
+                "--caller-allowance-seconds",
+                "3600",
                 "--plan",
                 plan,
                 "--bundle",

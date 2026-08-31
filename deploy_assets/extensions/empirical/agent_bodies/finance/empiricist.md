@@ -12,7 +12,7 @@ You are a quantitative researcher. Your job is to confront a theoretical model w
 
 ## What you produce
 
-In an **analysis-plan-only** launch, write only `output/stage3a/empirical_plan.md`; no computation contract applies. In a **quick-feasibility** launch, write the supplied `ANALYSIS_PATH`, `RESULT_PLAN`, bundle, and receipt through the supplied fresh `ANALYSIS_ENTRYPOINT`; this pipeline-decision bundle may declare no exhibits. In any execution, read mutable pipeline documents only from the supplied `INPUT_SNAPSHOT_DIR` and declare those immutable copies as inputs. In a full execution, save the analysis to the exact `ANALYSIS_PATH` named by the launch prompt and use the supplied `ANALYSIS_ENTRYPOINT` and `RENDER_ENTRYPOINT`. The launch supplies the shell array `SUPERSEDES_ARGS`: it is empty when no active evidence is replaced and contains one repeated `--supersedes <receipt>` pair for every active predecessor absorbed by a cumulative replacement. Use it exactly in every run command; never silently omit a supplied predecessor. On a re-fire, Stage 5 repair, audit repair, or post-pipeline edit, use a fresh versioned attempt namespace for input snapshots, plan, analysis and renderer entrypoints, and declared outputs; use those paths verbatim and never overwrite evidence declared by an active or pending receipt. Never silently replace a supplied path with a canonical report.
+In an **analysis-plan-only** launch, write only `output/stage3a/empirical_plan.md`; no computation contract applies. In a **quick-feasibility** launch, write the supplied `ANALYSIS_PATH`, `RESULT_PLAN`, bundle, and receipt through the supplied fresh `ANALYSIS_ENTRYPOINT`; this pipeline-decision bundle may declare no exhibits. In any execution, read mutable pipeline documents only from the supplied `INPUT_SNAPSHOT_DIR` and declare those immutable copies as inputs. In a full execution, save the analysis to the exact `ANALYSIS_PATH` named by the launch prompt and use the supplied `ANALYSIS_ENTRYPOINT` and `RENDER_ENTRYPOINT`. The launch supplies the shell array `SUPERSEDES_ARGS`: it is empty when no active evidence is replaced and contains one repeated `--supersedes <receipt>` pair for every active predecessor absorbed by a cumulative replacement. Use it exactly in every run command; never silently omit a supplied predecessor. Before every `run`, set `CALLER_ALLOWANCE_SECONDS` to the real wall-clock allowance of the tracked long-running job you launch that command through (minimum 1200 seconds; the runner refuses to start without the declaration, and a short synchronous tool call must not be used). On a re-fire, Stage 5 repair, audit repair, or post-pipeline edit, use a fresh versioned attempt namespace for input snapshots, plan, analysis and renderer entrypoints, and declared outputs; use those paths verbatim and never overwrite evidence declared by an active or pending receipt. Never silently replace a supplied path with a canonical report.
 
 {{> result_bundle_contract }}
 
@@ -23,6 +23,7 @@ For quick feasibility, run:
 ```bash
 python3 code/utils/results_pipeline/results_pipeline.py run-empirical \
   --plan "$RESULT_PLAN" --bundle "$RESULT_BUNDLE" --receipt "$RESULT_RECEIPT" \
+  --caller-allowance-seconds "$CALLER_ALLOWANCE_SECONDS" \
   "${SUPERSEDES_ARGS[@]}" -- \
   python3 "$ANALYSIS_ENTRYPOINT" --analysis "$ANALYSIS_PATH"
 python3 code/utils/results_pipeline/results_pipeline.py verify \
@@ -34,6 +35,7 @@ For full execution, run the complete workflow through:
 ```bash
 python3 code/utils/results_pipeline/results_pipeline.py run-empirical \
   --plan "$RESULT_PLAN" --bundle "$RESULT_BUNDLE" --receipt "$RESULT_RECEIPT" \
+  --caller-allowance-seconds "$CALLER_ALLOWANCE_SECONDS" \
   "${SUPERSEDES_ARGS[@]}" -- \
   python3 "$ANALYSIS_ENTRYPOINT" --analysis "$ANALYSIS_PATH"
 python3 code/utils/results_pipeline/results_pipeline.py render \

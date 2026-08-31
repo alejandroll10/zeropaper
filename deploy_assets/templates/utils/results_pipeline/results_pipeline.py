@@ -36,6 +36,12 @@ RECEIPT_VERSION = 2
 EMPIRICAL_RECEIPT_VERSION = 3
 ENVIRONMENT_CAPTURE_VERSION = 1
 RUN_PLAN_VERSION = 1
+# Runs are refused unless the caller declares at least this wall-clock
+# lifetime for this process. The floor equals the tracked-long-job launch
+# mandate in docs/results_evidence.md: even a quick producer must be launched
+# through a mechanism that COULD let it run this long, because an interrupted
+# run discards the whole isolated workspace with nothing resumable (#293).
+MIN_RUN_CALLER_ALLOWANCE_SECONDS = 1200
 PAPER_RECEIPT_VERSION = 4
 REGISTRY_VERSION = 1
 AUDIT_INPUT_VERSION = 1
@@ -8235,6 +8241,17 @@ def build_parser() -> argparse.ArgumentParser:
     run.add_argument("--bundle", required=True)
     run.add_argument("--receipt", required=True)
     run.add_argument("--supersedes", action="append", default=[])
+    run.add_argument(
+        "--caller-allowance-seconds", type=int, default=None,
+        help=(
+            "wall-clock lifetime, in seconds, that the invoking mechanism "
+            "guarantees this process (required; minimum "
+            f"{MIN_RUN_CALLER_ALLOWANCE_SECONDS}). Declare the tracked "
+            "long-running job's real allowance — a run launched from a "
+            "short synchronous tool call must be re-launched through a "
+            "tracked job instead (#293)."
+        ),
+    )
     run.add_argument("command", nargs=argparse.REMAINDER)
     run.set_defaults(empirical=False)
     run.set_defaults(func=command_run)
@@ -8248,6 +8265,17 @@ def build_parser() -> argparse.ArgumentParser:
     run_empirical.add_argument("--bundle", required=True)
     run_empirical.add_argument("--receipt", required=True)
     run_empirical.add_argument("--supersedes", action="append", default=[])
+    run_empirical.add_argument(
+        "--caller-allowance-seconds", type=int, default=None,
+        help=(
+            "wall-clock lifetime, in seconds, that the invoking mechanism "
+            "guarantees this process (required; minimum "
+            f"{MIN_RUN_CALLER_ALLOWANCE_SECONDS}). Declare the tracked "
+            "long-running job's real allowance — a run launched from a "
+            "short synchronous tool call must be re-launched through a "
+            "tracked job instead (#293)."
+        ),
+    )
     run_empirical.add_argument("command", nargs=argparse.REMAINDER)
     run_empirical.set_defaults(func=command_run, empirical=True)
 
@@ -8368,6 +8396,36 @@ def build_parser() -> argparse.ArgumentParser:
     return parser
 
 
+def require_caller_allowance(declared: int | None, subcommand: str = "run") -> None:
+    """Refuse a run whose caller has not declared a sufficient lifetime.
+
+    Prompt-side mandates alone did not survive across orchestrator turns:
+    four field failures (#293) launched the trusted runner through ~30-second
+    synchronous tool calls that killed it mid-setup. Requiring the declaration
+    on every invocation forces the caller to confront the duration contract
+    at the moment of launch, and the refusal happens before any lock,
+    transaction recovery, or workspace work.
+    """
+    guidance = (
+        "launch the exact same command through your harness's tracked "
+        "long-running job mechanism (a background task you poll to terminal "
+        "status), never a short synchronous tool call, and pass that "
+        "mechanism's real wall-clock allowance as --caller-allowance-seconds "
+        f"(minimum {MIN_RUN_CALLER_ALLOWANCE_SECONDS}). An interrupted run "
+        "discards the whole isolated workspace with nothing published and "
+        "nothing resumable (#293)."
+    )
+    if declared is None:
+        raise EvidenceError(
+            f"{subcommand} requires --caller-allowance-seconds: " + guidance
+        )
+    if declared < MIN_RUN_CALLER_ALLOWANCE_SECONDS:
+        raise EvidenceError(
+            f"--caller-allowance-seconds {declared} is below the minimum "
+            f"{MIN_RUN_CALLER_ALLOWANCE_SECONDS}: " + guidance
+        )
+
+
 def main(argv: list[str] | None = None) -> int:
     parser = build_parser()
     args = parser.parse_args(argv)
@@ -8383,11 +8441,22 @@ def main(argv: list[str] | None = None) -> int:
             "poll to terminal status — a short synchronous tool call will "
             "kill it mid-run and discard the whole isolated workspace. "
             "Interim silence is normal: child output is released only at "
-            "completion.",
+            "completion."
+            + (
+                f" {args.subcommand} refuses to start unless "
+                "--caller-allowance-seconds declares at least "
+                f"{MIN_RUN_CALLER_ALLOWANCE_SECONDS} seconds of caller "
+                "lifetime."
+                if args.subcommand in {"run", "run-empirical"} else ""
+            ),
             file=sys.stderr,
             flush=True,
         )
     try:
+        if args.subcommand in {"run", "run-empirical"}:
+            require_caller_allowance(
+                args.caller_allowance_seconds, args.subcommand
+            )
         root = resolve_root(args.project_root)
         if args.subcommand == "inspect-registry":
             with project_read_lock(root):

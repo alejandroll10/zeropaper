@@ -103,6 +103,8 @@ if (trigger_root / 'mutate-during-bind').exists():
     def call(self, *args: str, expected: int = 0) -> subprocess.CompletedProcess[str]:
         if args and args[0] == "run" and "--plan" not in args:
             args = (args[0], "--plan", "output/stagex/results.plan.json", *args[1:])
+        if args and args[0] == "run" and "--caller-allowance-seconds" not in args:
+            args = (args[0], "--caller-allowance-seconds", "3600", *args[1:])
         completed = subprocess.run(
             [sys.executable, str(UTILITY), *args], cwd=self.root,
             text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE,
@@ -2105,7 +2107,8 @@ bundle = {{
             encoding="utf-8",
         )
         process = subprocess.Popen(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -2144,7 +2147,8 @@ bundle = {{
         environment = os.environ.copy()
         environment["OPENAI_API_KEY"] = "round15-temp-secret-264"
         process = subprocess.Popen(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -2212,7 +2216,8 @@ bundle = {{
         temp_root = Path(tempfile.gettempdir())
         before = set(temp_root.glob("results-workspace-*"))
         process = subprocess.Popen(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -2299,7 +2304,8 @@ bundle = {{
         temp_root = Path(tempfile.gettempdir())
         before = set(temp_root.glob("results-workspace-*"))
         run = subprocess.Popen(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -2348,6 +2354,7 @@ bundle = {{
     def test_linux_post_execution_writer_rolls_back_producer_publication(self) -> None:
         returncode, stderr = self.run_with_post_execution_writer(
             ["run", "--project-root", str(self.root),
+             "--caller-allowance-seconds", "3600",
              "--plan", "output/stagex/results.plan.json",
              "--bundle", "output/stagex/results.json",
              "--receipt", "output/stagex/results.receipt.json", "--",
@@ -2406,7 +2413,8 @@ bundle = {{
         temp_root = Path(tempfile.gettempdir())
         before = set(temp_root.glob("results-workspace-*"))
         completed = subprocess.run(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -2436,7 +2444,8 @@ bundle = {{
         environment = os.environ.copy()
         environment["OPENAI_API_KEY"] = "round17-root-secret-264"
         process = subprocess.Popen(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -2516,7 +2525,8 @@ bundle = {{
         environment = os.environ.copy()
         environment["OPENAI_API_KEY"] = "round16-deep-secret-264"
         process = subprocess.Popen(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -2680,7 +2690,8 @@ bundle = {{
         environment = os.environ.copy()
         environment["ROUND9_DUMMY_SECRET"] = "dummy-env-secret-264"
         completed = subprocess.run(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -2707,7 +2718,8 @@ bundle = {{
         environment = os.environ.copy()
         environment["OPENAI_API_KEY"] = "dummy-provider-secret-264"
         completed = subprocess.run(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -2728,7 +2740,8 @@ bundle = {{
         secret = "dummy-producer-argv-secret-264"
         environment["OPENAI_API_KEY"] = secret
         completed = subprocess.run(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -2773,7 +2786,8 @@ bundle = {{
             "https://proxy-user:dummy-proxy-argv-secret-264@proxy.example:8443"
         )
         completed = subprocess.run(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -2877,7 +2891,8 @@ bundle = {{
             encoding="utf-8",
         )
         run = subprocess.run(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -3057,7 +3072,8 @@ bundle = {{
         environment["UF_API_KEY"] = "selected-provider-key-264"
         environment["OPENAI_API_KEY"] = "unselected-provider-key-264"
         completed = subprocess.run(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -3088,7 +3104,8 @@ bundle = {{
         environment.pop("UF_API_KEY", None)
         environment.pop("OPENAI_API_KEY", None)
         completed = subprocess.run(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--",
@@ -3118,7 +3135,8 @@ bundle = {{
         environment["VIRTUAL_ENV"] = str(self.root / ".venv")
         environment["PATH"] = str(self.root / ".venv/bin") + os.pathsep + environment["PATH"]
         completed = subprocess.run(
-            [sys.executable, str(UTILITY), "run", "--plan",
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
              "output/stagex/results.plan.json", "--bundle",
              "output/stagex/results.json", "--receipt",
              "output/stagex/results.receipt.json", "--", "python3", "code/analyze.py"],
@@ -3154,7 +3172,8 @@ bundle = {{
                 str(self.root / ".venv/bin") + os.pathsep + environment["PATH"]
             )
             completed = subprocess.run(
-                [sys.executable, str(UTILITY), "run", "--plan",
+                [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
                  "output/stagex/results.plan.json", "--bundle",
                  "output/stagex/results.json", "--receipt",
                  "output/stagex/results.receipt.json", "--", "python3",
@@ -4505,7 +4524,8 @@ bundle = {
             plan_value["renderer_code"] = []
             plan_value["exhibits"] = []
             (self.root / plan).write_text(json.dumps(plan_value) + "\n")
-            command = [sys.executable, str(UTILITY), "run", "--plan", plan,
+            command = [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan", plan,
                        "--bundle", bundle, "--receipt", receipt, "--",
                        sys.executable, code_path]
             processes.append(subprocess.Popen(
@@ -5244,6 +5264,43 @@ bundle = {
             sys.executable, "code/analyze.py", expected=2,
         )
         self.assertIn("unsupported run plan version", completed.stderr)
+
+    def test_run_requires_caller_allowance_declaration(self) -> None:
+        # Direct subprocess call: the class helper injects a valid declaration,
+        # and this test needs the flag genuinely absent.
+        completed = subprocess.run(
+            [sys.executable, str(UTILITY), "run",
+             "--plan", "output/stagex/results.plan.json",
+             "--bundle", "output/stagex/results.json",
+             "--receipt", "output/stagex/results.receipt.json", "--",
+             sys.executable, "code/analyze.py"],
+            cwd=self.root, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        self.assertEqual(completed.returncode, 2, completed.stderr)
+        self.assertIn("requires --caller-allowance-seconds", completed.stderr)
+        self.assertIn("tracked", completed.stderr)
+        self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
+
+    def test_run_refuses_sub_minimum_caller_allowance(self) -> None:
+        completed = self.call(
+            "run", "--caller-allowance-seconds", "30",
+            "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertIn("below the minimum", completed.stderr)
+        self.assertIn("1200", completed.stderr)
+        self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
+
+    def test_run_accepts_minimum_caller_allowance(self) -> None:
+        self.call(
+            "run", "--caller-allowance-seconds", "1200",
+            "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py",
+        )
+        self.assertTrue((self.root / "output/stagex/results.receipt.json").exists())
 
     def test_run_plan_requires_renderer_when_exhibits_are_declared(self) -> None:
         plan = self.root / "output/stagex/results.plan.json"

@@ -16,7 +16,23 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.31.0] — 2026-08-31 (current)
+## [2.32.0] — 2026-08-31 (current)
+
+**feat: `results_pipeline run`/`run-empirical` refuse to start without a declared caller lifetime (#293).**
+The fourth field occurrence (tradingdays v8/a30: a ~30-second child exec killed the trusted
+runner during workspace setup, after that project's own a19 diagnostic had already prescribed
+tracked-job launches) proved prompt-side knowledge does not survive across orchestrator turns.
+`run` and `run-empirical` now require `--caller-allowance-seconds` — the invoking mechanism's real wall-clock
+lifetime, minimum 1200 seconds — and refuses before any lock, transaction recovery, or
+workspace work when it is absent or too small, with refusal text that carries the tracked-job
+launch instructions. The startup banner names the requirement; every documented invocation
+(results_evidence.md, stage_3a release run, empiricist/theory-explorer/experiment-designer
+bodies) passes the flag via `CALLER_ALLOWANCE_SECONDS`. The declaration is honor-system by
+construction — a caller can still overstate it — but it forces the duration contract into every
+launch decision instead of relying on remembered doc text; #293 stays open for receipt-safe
+acquisition checkpointing.
+
+## [2.31.0] — 2026-08-31
 
 **feat: make empirical specifications and result lineage machine-comparable.**
 Empirical computations now use a parsimonious baseline/contract/execution-summary spine that

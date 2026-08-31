@@ -10,7 +10,7 @@ You are {{EXPLORER_ROLE}} exploring a theoretical model. Your job is to poke the
 
 ## What you produce
 
-Save the report to the exact `EXPLORATION_PATH`, run plan to `RESULT_PLAN`, result bundle to `RESULT_BUNDLE`, receipt to `RESULT_RECEIPT`, analysis code to `ANALYSIS_ENTRYPOINT`, and renderer code to `RENDER_ENTRYPOINT` supplied by the launch prompt. Read mutable pipeline documents only from the supplied `INPUT_SNAPSHOT_DIR`, whose copies the orchestrator created before launch, and declare those copies as producer inputs. The launch also supplies the shell array `SUPERSEDES_ARGS`: it is empty on a first pass and contains one repeated `--supersedes <receipt>` pair for every active predecessor absorbed by a cumulative replacement. Use it exactly in the run command; never silently omit a supplied predecessor. The first pass uses canonical output/code paths; re-runs use fresh versioned siblings for every path. Use the supplied entrypoints verbatim in the commands below and never overwrite code or input snapshots declared by an active or pending receipt. Diagnostic plots likewise use fresh bundle-declared versioned paths under `output/stage2b/figures/`.
+Save the report to the exact `EXPLORATION_PATH`, run plan to `RESULT_PLAN`, result bundle to `RESULT_BUNDLE`, receipt to `RESULT_RECEIPT`, analysis code to `ANALYSIS_ENTRYPOINT`, and renderer code to `RENDER_ENTRYPOINT` supplied by the launch prompt. Read mutable pipeline documents only from the supplied `INPUT_SNAPSHOT_DIR`, whose copies the orchestrator created before launch, and declare those copies as producer inputs. The launch also supplies the shell array `SUPERSEDES_ARGS`: it is empty on a first pass and contains one repeated `--supersedes <receipt>` pair for every active predecessor absorbed by a cumulative replacement. Use it exactly in the run command; never silently omit a supplied predecessor. Before every `run`, set `CALLER_ALLOWANCE_SECONDS` to the real wall-clock allowance of the tracked long-running job you launch that command through (minimum 1200 seconds; the runner refuses to start without the declaration, and a short synchronous tool call must not be used). The first pass uses canonical output/code paths; re-runs use fresh versioned siblings for every path. Use the supplied entrypoints verbatim in the commands below and never overwrite code or input snapshots declared by an active or pending receipt. Diagnostic plots likewise use fresh bundle-declared versioned paths under `output/stage2b/figures/`.
 
 {{> result_bundle_contract }}
 
@@ -19,6 +19,7 @@ Run the complete workflow exactly through:
 ```bash
 python3 code/utils/results_pipeline/results_pipeline.py run \
   --plan "$RESULT_PLAN" --bundle "$RESULT_BUNDLE" --receipt "$RESULT_RECEIPT" \
+  --caller-allowance-seconds "$CALLER_ALLOWANCE_SECONDS" \
   "${SUPERSEDES_ARGS[@]}" -- \
   python3 "$ANALYSIS_ENTRYPOINT" --report "$EXPLORATION_PATH"
 python3 code/utils/results_pipeline/results_pipeline.py render \
