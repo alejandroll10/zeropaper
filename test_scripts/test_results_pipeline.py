@@ -103,7 +103,8 @@ if (trigger_root / 'mutate-during-bind').exists():
     def call(self, *args: str, expected: int = 0) -> subprocess.CompletedProcess[str]:
         if args and args[0] == "run" and "--plan" not in args:
             args = (args[0], "--plan", "output/stagex/results.plan.json", *args[1:])
-        if args and args[0] == "run" and "--caller-allowance-seconds" not in args:
+        if (args and args[0] in {"run", "run-empirical"}
+                and "--caller-allowance-seconds" not in args):
             args = (args[0], "--caller-allowance-seconds", "3600", *args[1:])
         completed = subprocess.run(
             [sys.executable, str(UTILITY), *args], cwd=self.root,
@@ -5280,6 +5281,23 @@ bundle = {
         self.assertEqual(completed.returncode, 2, completed.stderr)
         self.assertIn("requires --caller-allowance-seconds", completed.stderr)
         self.assertIn("tracked", completed.stderr)
+        self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
+
+    def test_run_empirical_requires_caller_allowance_declaration(self) -> None:
+        completed = subprocess.run(
+            [sys.executable, str(UTILITY), "run-empirical",
+             "--plan", "output/stagex/results.plan.json",
+             "--bundle", "output/stagex/results.json",
+             "--receipt", "output/stagex/results.receipt.json", "--",
+             sys.executable, "code/analyze.py"],
+            cwd=self.root, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        self.assertEqual(completed.returncode, 2, completed.stderr)
+        self.assertIn(
+            "run-empirical requires --caller-allowance-seconds",
+            completed.stderr,
+        )
         self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
 
     def test_run_refuses_sub_minimum_caller_allowance(self) -> None:
