@@ -5300,6 +5300,21 @@ bundle = {
         )
         self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
 
+    def test_call_helper_injects_allowance_for_run_empirical(self) -> None:
+        # An ordinary (non-empirical) plan is rejected by run-empirical, but
+        # only after the caller-allowance gate: the helper's injected flag
+        # must carry the invocation past the refusal, so the failure below
+        # must be a plan-shape error, never the allowance refusal.
+        completed = self.call(
+            "run-empirical",
+            "--plan", "output/stagex/results.plan.json",
+            "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py", expected=2,
+        )
+        self.assertNotIn("requires --caller-allowance-seconds", completed.stderr)
+        self.assertNotIn("below the minimum", completed.stderr)
+
     def test_run_refuses_sub_minimum_caller_allowance(self) -> None:
         completed = self.call(
             "run", "--caller-allowance-seconds", "30",
