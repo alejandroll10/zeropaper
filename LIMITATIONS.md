@@ -449,3 +449,17 @@ A dataset spec may commit to an exact coverage predicate over an enumerable even
 **What would close it:** an acquisition census before predicate freeze (Gate 2 acceptance requires per-event acquirability evidence for enumerable committed sets); or ledger-form coverage commitments (measured coverage + versioned exception ledger the coverage-auditor audits for honesty, instead of exact-count predicates); or a machine-checkable portfolio-invariant amendment lane that re-enters at the spec audit without re-running novelty/portfolio stages. See the issue for trade-offs.
 
 **Tracking:** [#295](https://github.com/alejandroll10/zeropaper/issues/295).
+
+---
+
+## Debugger single-shot probes cannot detect burst-triggered soft rate limits
+
+**Scope:** every deployment with live-source acquisition (empirical extension; observed in a data-first field run, 2026-08-31).
+
+The debugger's hypothesis-verification methodology probes a failed request once. A source that soft-throttles on request rate or count (e.g. Nasdaq's `RPCHandler.axd`: ~10 rapid RPC POSTs, then an HTTP-200 bot-challenge page instead of JSON, clearing after ~60 seconds) is invisible to any single probe by construction — the probe's success is exactly what misleads the debugger into rejecting the rate-limit hypothesis and diagnosing a retrieval-path defect instead.
+
+**Failure mode it produces:** producers fail closed at successive indexes mid-enumeration while every debugger re-probe succeeds; observed cost in the field was four burned build attempts, two operator halts, and hours of misdirected repair before a host-side probe reproducing the full burst shape found the throttle in one minute.
+
+**What would close it:** debugging guidance (debugger body + empirical docs) stating that bulk-enumeration failure plus isolated-re-probe success is itself the signature of burst-triggered throttling, and that a rate-limit hypothesis may only be rejected after reproducing the producer's full access shape (sequence, spacing, volume) and comparing response classes across the sequence.
+
+**Tracking:** [#299](https://github.com/alejandroll10/zeropaper/issues/299).
