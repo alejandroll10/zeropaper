@@ -13,6 +13,11 @@
     },
     "gemini": {
       "model": "gemini-3-preview"
+    },
+    "modes": {
+      "data_first": {
+        "description": "Builds and validates a data-first dataset and fact portfolio at Stage 3a. At Gate 2, the same agent may instead receive a coverage-census-only launch that exhaustively tests exact enumerable commitments and writes only the prompt-named certificate."
+      }
     }
   },
   "identification-designer": {

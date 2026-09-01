@@ -9,8 +9,9 @@
 #   3. Mode-gated assembly — coverage-auditor must exist ONLY under data-first;
 #      the identification pair must NOT exist under data-first; both must be
 #      untouched in an empirical-first control build.
-#   4. State fields — the spec, triangulation, release pointers, and two
-#      data-first loops must be injected (and absent from the control build).
+#   4. State fields — the spec, conditional coverage certificate, triangulation,
+#      release pointers, and three data-first loops must be injected (and absent
+#      from the control build).
 #   5. Stage 2 artifact label — the shared filename remains theory_draft_vN.md,
 #      but the operator-facing commit label must call it a dataset spec here.
 #   6. Updater allowlist — scripts/update_coordinator.sh enumerates modes in two
@@ -67,15 +68,42 @@ python3 - "$D" <<'PY' && pass "data-first: state fields and loops injected" || f
 import json, sys
 d = json.load(open(sys.argv[1] + "/process_log/pipeline_state.json"))
 assert d["dataset_spec_version"] is None and d["dataset_spec_serial"] == 0
+assert d["dataset_coverage_certificate_serial"] == 0
 assert d["dataset_rights_inventory"] is None
-assert d["dataset_rights_inventory_sha256"] is None and "coverage_triangulation" in d
+assert d["dataset_rights_inventory_sha256"] is None
+assert d["dataset_coverage_certificate"] is None
+assert d["dataset_coverage_certificate_sha256"] is None
+assert "coverage_triangulation" in d
 assert d["dataset_release_path"] is None and d["dataset_release_receipt"] is None
-assert "spec_audit_revision" in d["loops"] and "coverage_audit" in d["loops"]
+assert "spec_audit_revision" in d["loops"]
+assert "coverage_certificate_producer" in d["loops"]
+assert "coverage_audit" in d["loops"]
 PY
 [ -d "$D/output/dataset" ] \
     && pass "data-first: output/dataset release dir bootstrapped" \
     || fail "data-first: output/dataset missing"
 if grep -q "output/stage2/source_rights_s{dataset_spec_serial}_vN.json" "$D/docs/stage_2.md" \
+        && grep -q 'output/stage2/coverage_certificate_c{dataset_coverage_certificate_serial}_s{dataset_spec_serial}_vN.json' "$D/docs/stage_2.md" \
+        && grep -q 'coverage-census-only' "$D/.claude/agents/empiricist.md" \
+        && grep -q '\*\*Coverage certificate:\*\* REQUIRED' "$D/.claude/agents/mechanism-auditor.md" \
+        && grep -q '\*\*Coverage commitments:\*\* \[' "$D/.claude/agents/mechanism-auditor.md" \
+        && grep -q '"enumeration_status": "complete"' "$D/.claude/agents/empiricist.md" \
+        && grep -q 'Every event row requires a non-empty `evidence` array' "$D/docs/stage_2.md" \
+        && grep -q '`complete` iff `enumeration_error` is null' "$D/docs/stage_2.md" \
+        && grep -q 'a `verified` row needs at least one `predicate-satisfied` record' "$D/docs/stage_2.md" \
+        && grep -q 'a `gap` row needs the complete named-search attempt record' "$D/docs/stage_2.md" \
+        && grep -q 'an `error` row needs at least one `operational-error` record' "$D/docs/stage_2.md" \
+        && grep -q 'Every event row must have a non-empty `evidence` array' "$D/.claude/agents/empiricist.md" \
+        && grep -q 'halted_coverage_certificate_invalid' "$D/docs/stage_2.md" \
+        && grep -q 'dataset_coverage_certificate_sha256' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'completely re-enumerates the live authoritative universe' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'certificate-build-mismatch' "$D/.claude/agents/coverage-auditor.md" \
+        && grep -q 'certificate-source-drift' "$D/.claude/agents/coverage-auditor.md" \
+        && grep -q 'distinct exact-commitment check' "$D/.claude/agents/coverage-auditor.md" \
+        && grep -q 'never hand them to `data-selection-auditor`' "$D/.claude/agents/coverage-auditor.md" \
+        && grep -q 'RIGHTS_INVENTORY_SHA256' "$D/.claude/agents/coverage-auditor.md" \
+        && grep -q 'exact `RIGHTS_INVENTORY` and `RIGHTS_INVENTORY_SHA256`' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'both `dataset_spec_version = null` and `stage3a_theory_version = null`' "$D/docs/stage_3a_empirical.md" \
         && grep -q 'pipeline_state.json:dataset_rights_inventory' "$D/docs/stage_3a_empirical.md" \
         && grep -q 'dataset_rights_inventory_sha256' "$D/docs/stage_3a_empirical.md" \
         && grep -q 'RELEASE_SUPERSEDES_ARGS' "$D/docs/stage_3a_empirical.md" \
@@ -86,9 +114,9 @@ if grep -q "output/stage2/source_rights_s{dataset_spec_serial}_vN.json" "$D/docs
         && grep -q 'network_access.*false' "$D/docs/stage_3a_empirical.md" \
         && grep -q 'dataset_release' "$D/docs/stage_3a_empirical.md" \
         && grep -q 'activate-pair' "$D/docs/stage_3a_empirical.md"; then
-    pass "data-first: rights inventory and trusted offline release contract assembled"
+    pass "data-first: Gate-2 certificate, rights inventory, and trusted offline release contract assembled"
 else
-    fail "data-first: rights inventory or trusted offline release contract missing"
+    fail "data-first: Gate-2 certificate, rights inventory, or trusted offline release contract missing"
 fi
 for reset_doc in stage_0.md stage_1.md stage_puzzle_triage.md; do
     grep -q 'dataset_spec_version' "$D/docs/$reset_doc" \
@@ -118,6 +146,15 @@ evidence = (root / "docs/results_evidence.md").read_text()
 auditor = (root / ".claude/agents/empirics-auditor.md").read_text()
 utility = (root / "code/utils/results_pipeline/results_pipeline.py").read_text()
 assert 'RIGHTS_AUTHORITY = "manual-caller"' in stage
+assert "COVERAGE_CERTIFICATE_DECISION" in stage
+assert "COVERAGE_COMMITMENTS" in stage
+assert "exact `RIGHTS_INVENTORY` and `RIGHTS_INVENTORY_SHA256`" in stage
+coverage_auditor = (root / ".claude/agents/coverage-auditor.md").read_text()
+assert "RIGHTS_INVENTORY_SHA256" in coverage_auditor
+assert "independently supplied rights path/digest" in coverage_auditor
+assert "exhaustively re-enumerate each certificate-governed universe" in coverage_auditor
+assert "never hand them to `data-selection-auditor`" in coverage_auditor
+assert "both `dataset_spec_version = null` and `stage3a_theory_version = null`" in stage
 assert "Never create pipeline state" in stage
 assert "manual-caller" in evidence and "manual-caller" in auditor
 assert "rights_authority" in utility
@@ -136,10 +173,10 @@ else
     [ -f "$E/.claude/agents/identification-designer.md" ] \
         && pass "empirical-first control: identification-designer present" \
         || fail "empirical-first control: identification-designer missing"
-    if grep -rli "data-first" "$E/docs" >/dev/null 2>&1; then
-        fail "empirical-first control: data-first prose leaked into docs"
+    if grep -rl 'dataset_coverage_certificate' "$E/docs" >/dev/null 2>&1; then
+        fail "empirical-first control: data-first certificate prose leaked into docs"
     else
-        pass "empirical-first control: no data-first prose leak"
+        pass "empirical-first control: no data-first certificate prose leak"
     fi
     if grep -rlE '<!-- (THEORY_FIRST|EMPIRICAL_FIRST|MEASUREMENT_FIRST|DATA_FIRST|NO_MODE|MANUAL|AUTONOMOUS)_(START|END) -->' \
             "$E/docs" "$E/CLAUDE.md" "$E/.claude/agents" >/dev/null 2>&1; then
@@ -152,14 +189,25 @@ else
     else
         pass "empirical-first control: agents clean of DATA_FIRST content"
     fi
+    if grep -q 'coverage-census-only' "$E/.claude/agents/empiricist.md"; then
+        fail "empirical-first control: census-only launch leaked into empiricist"
+    else
+        pass "empirical-first control: empiricist has no census-only launch"
+    fi
     python3 - "$E" <<'PY' && pass "empirical-first control: no data-first state fields" || fail "empirical-first control: data-first state fields leaked"
 import json, sys
 d = json.load(open(sys.argv[1] + "/process_log/pipeline_state.json"))
 assert "dataset_spec_version" not in d and "dataset_spec_serial" not in d
+assert "dataset_coverage_certificate_serial" not in d
 assert "dataset_rights_inventory" not in d
-assert "dataset_rights_inventory_sha256" not in d and "coverage_triangulation" not in d
+assert "dataset_rights_inventory_sha256" not in d
+assert "dataset_coverage_certificate" not in d
+assert "dataset_coverage_certificate_sha256" not in d
+assert "coverage_triangulation" not in d
 assert "dataset_release_path" not in d and "dataset_release_receipt" not in d
-assert "spec_audit_revision" not in d["loops"] and "coverage_audit" not in d["loops"]
+assert "spec_audit_revision" not in d["loops"]
+assert "coverage_certificate_producer" not in d["loops"]
+assert "coverage_audit" not in d["loops"]
 PY
     grep -Fq 'Commit: `artifact: theory draft v{N}`' "$E/docs/stage_2.md" \
         && pass "empirical-first control: Stage 2 commit label unchanged" \

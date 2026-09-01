@@ -26,7 +26,7 @@ A report at `output/puzzle_triage/triage_pN.md` (where N = `loops.pivot.round + 
 2. **Triage axes** — your assessment of each:
    - Prior strength (strong / medium / weak) — how established is the published result that failed to replicate?
    - Measurement quality (standard / debatable) — is the new build's computation of the statistic standard, and did the Stage 3a audit chain (integrity, selection, coverage) pass on the event classes this fact consumes?
-   - Spec formality (audited / partial / shaky) — did the Stage 2 spec audit PLAUSIBLE the conventions this fact depends on, and is `dataset_spec_version` current? The math-audit files named by the theory-first axis do not exist in this mode; the spec audit plus the Stage 3a audit chain play that role.
+   - Spec formality (audited / partial / shaky) — did the Stage 2 spec audit PLAUSIBLE the conventions this fact depends on, is `dataset_spec_version` current, and did any REQUIRED exact-coverage certificate PASS with a current digest/binding? The math-audit files named by the theory-first axis do not exist in this mode; the spec audit, conditional census, and Stage 3a audit chain play that role.
    - Contradiction magnitude (sign reversal / order-of-magnitude / small)
    - Field awareness (literature noted this anomaly / silent / contested)
    - Construction-difference coverage (isolated / candidate-named / unexamined) — has the build actually computed the failed statistic under the *prior paper's* convention as well as its own, isolating the construction difference? A contradiction with the side-by-side run is an adjudication; one without it is so far only a discrepancy.
@@ -106,7 +106,7 @@ New data shows: ...
 ## Axes
 - Prior strength: STRONG/MEDIUM/WEAK — [one-line evidence]
 - Measurement quality: STANDARD/DEBATABLE — [one-line evidence, incl. audit-chain status on the consumed classes]
-- Spec formality: AUDITED/PARTIAL/SHAKY — [one-line evidence: spec-audit verdict + dataset_spec_version freshness]
+- Spec formality: AUDITED/PARTIAL/SHAKY — [one-line evidence: spec-audit verdict + dataset_spec_version freshness + conditional certificate status]
 - Contradiction magnitude: SIGN-REVERSAL/ORDER-OF-MAG/SMALL — [one-line evidence]
 - Field awareness: NOTED/SILENT/CONTESTED — [one-line evidence from lit map]
 - Construction-difference coverage: ISOLATED/CANDIDATE-NAMED/UNEXAMINED — [the convention difference and whether the side-by-side was run]

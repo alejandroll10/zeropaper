@@ -16,7 +16,22 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.32.2] — 2026-09-01 (current)
+## [2.33.0] — 2026-09-01 (current)
+
+**feat: certify exact enumerable coverage at data-first Gate 2 (#295).** Dataset
+specs now declare finite universal coverage commitments explicitly; the spec auditor
+routes only those commitments through an exhaustive census by the existing empiricist.
+The machine-readable PASS/GAPS/ERROR certificate binds the exact spec and rights
+digests, requires proof that every authoritative enumeration reached its terminal
+condition, surfaces all discovered gaps in one Gate-2 pass, and blocks novelty,
+portfolio derivation, and Stage 3a until exact predicates are feasible. Stage 3a and
+the coverage auditor consume the accepted certificate, re-enumerate the live universe,
+and distinguish fixable build omissions from genuine post-census source drift. A
+separate never-reused certificate serial keeps accepted evidence immutable across
+same-spec recensus attempts.
+No new agent or amendment lane was introduced.
+
+## [2.32.2] — 2026-09-01
 
 **fix: require trigger-preserving debugger probes (#299).** Debugger hypothesis tests
 must now preserve any request rate/count, ordering, concurrency, accumulated state, session

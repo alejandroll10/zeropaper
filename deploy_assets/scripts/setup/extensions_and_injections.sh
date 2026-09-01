@@ -768,9 +768,10 @@ if os.path.exists(state_path):
     # last passed by the plan-time Gate 2 audit — here the spec audit);
     # coverage_triangulation is the empiricist-reported protocol status that
     # coverage-auditor independently verifies. dataset_spec_serial is a
-    # run-global, never-reset filename allocator; dataset_rights_inventory is
-    # the exact Gate-2-accepted path. dataset_release_path/receipt point to the
-    # separately built, offline, mechanically rights-gated release.
+    # run-global, never-reset filename allocator; dataset_rights_inventory and
+    # dataset_coverage_certificate are exact Gate-2-accepted paths (the latter
+    # stays null when no exact enumerable commitment exists). Release pointers
+    # name the separately built, offline, mechanically rights-gated release.
     if "dataset_spec_version" not in data:
         new = {}
         for k, v in data.items():
@@ -780,6 +781,9 @@ if os.path.exists(state_path):
                 new["dataset_spec_serial"] = 0
                 new["dataset_rights_inventory"] = None
                 new["dataset_rights_inventory_sha256"] = None
+                new["dataset_coverage_certificate_serial"] = 0
+                new["dataset_coverage_certificate"] = None
+                new["dataset_coverage_certificate_sha256"] = None
                 new["coverage_triangulation"] = None
                 new["dataset_release_path"] = None
                 new["dataset_release_receipt"] = None
@@ -789,11 +793,14 @@ if os.path.exists(state_path):
     data.setdefault("dataset_spec_serial", 0)
     data.setdefault("dataset_rights_inventory", None)
     data.setdefault("dataset_rights_inventory_sha256", None)
+    data.setdefault("dataset_coverage_certificate_serial", 0)
+    data.setdefault("dataset_coverage_certificate", None)
+    data.setdefault("dataset_coverage_certificate_sha256", None)
     data.setdefault("coverage_triangulation", None)
     data.setdefault("dataset_release_path", None)
     data.setdefault("dataset_release_receipt", None)
     data.setdefault("loops", {})
-    for _lid in ("spec_audit_revision", "coverage_audit"):
+    for _lid in ("spec_audit_revision", "coverage_certificate_producer", "coverage_audit"):
         data["loops"].setdefault(_lid, {"round": 0, "cap": 3})
     with open(state_path, "w") as f:
         json.dump(data, f, indent=2)
@@ -814,6 +821,15 @@ PYEOF
                 exit 1
             fi
             _setup_extensions_inject_faithful_into_agents "${_empirical_developing_agents[@]}"
+
+            # Data-first Gate 2 reuses the existing empiricist for a narrow,
+            # exhaustive census. Keep that launch contract out of every other
+            # empirical mode's agent prompt.
+            if [ "$MODE" = "data-first" ]; then
+                _setup_extensions_inject_block_into_agents \
+                    "$TEMPLATE_ROOT/templates/shared/data_first_coverage_census_inject.md" \
+                    empiricist
+            fi
 
             _empirical_bash_agents=()
             while IFS= read -r _line; do _empirical_bash_agents+=("$_line"); done < <(python3 "$TEMPLATE_ROOT/scripts/list_agents_by_category.py" \

@@ -92,7 +92,7 @@ Legacy: `--variant finance_llm` is shorthand for `--variant finance --ext theory
 |------|------|--------|----------|-------|
 | `empirical-first` | `--mode empirical-first` | Working (v1) | `finance` | Identification-first instead of theory-first. Auto-implies `--ext empirical`. |
 | `measurement-first` | `--mode measurement-first` | Working (v1) | `llm_cognition` | Evidence-first for the modal ML cognition paper: construct spec + design gate → Stage 3b experiments as the evidence core → post-experiment formal characterization (math audits fire there). |
-| `data-first` | `--mode data-first` | Working (v1) | `finance` | Dataset-contribution papers (Chen-Zimmermann genre): the deliverable is an open, validated dataset + a fact portfolio. Auto-implies `--ext empirical`; identification agents pruned; Gate 2 is a spec audit; a `coverage-auditor` verifies triangulation. Design: issue #278. |
+| `data-first` | `--mode data-first` | Working (v1) | `finance` | Dataset-contribution papers (Chen-Zimmermann genre): the deliverable is an open, validated dataset + a fact portfolio. Auto-implies `--ext empirical`; identification agents pruned; Gate 2 is a spec audit plus a conditional exhaustive certificate for exact enumerable coverage; a `coverage-auditor` verifies the build and triangulation. Design: issues #278, #295. |
 | `report` | `--mode report` | Working (v1) | `finance`, `macro`, `llm_cognition` | Referee an external submission instead of generating one. One-shot, no stages. |
 
 Full semantics for both modes are in the `deploy-project` skill.

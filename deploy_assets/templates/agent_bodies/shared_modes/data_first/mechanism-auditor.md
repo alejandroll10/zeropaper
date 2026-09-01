@@ -60,6 +60,11 @@ Work through these as a skeptical data editor would at a plan meeting. These are
 - Every access, format, coverage, and rights claim must be consistent with the pilot report, or explicitly marked `unverified — pilot check needed`. A spec that asserts what the pilot contradicted — or silently upgrades an unverified claim to fact — is building on sand. Quote any contradiction.
 - **First pass:** check the expected coverage counts against the pilot's observed counts extrapolated (and against institutional common sense — eight scheduled FOMC meetings a year, roughly monthly CPI releases). **Re-fire:** check them against the binding build report's observed counts; where they diverge, the spec must say which side is wrong and why.
 
+### 8. Does an exact coverage promise require a census?
+
+- Parse the exact `**Commitment IDs:** [...]` JSON-array line in `## Exact coverage commitments`, require sorted unique stable lowercase IDs, and independently scan the whole spec for universal claims over finite enumerable sets: "all," "every," "complete," exact counts, zero exceptions, or equivalent wording. Classify the gate **REQUIRED** if and only if the validated list is non-empty; otherwise classify it **NOT-REQUIRED**.
+- Every listed commitment must have one matching `### commitment_id: <id>` subsection with a valid non-empty sorted unique `**Event key fields:** [...]` array, an observable non-empty `**Terminal condition:**`, a finite universe, authoritative enumerator, and qualifying-evidence predicate. If any part is ambiguous, a listed ID lacks a subsection, a subsection is unlisted, or narrative prose makes an exact claim while the array is empty, return REVISE. Do not decide at plan time whether the predicate is satisfiable; the existing `empiricist` performs that exhaustive census only after this prose audit is PLAUSIBLE.
+
 ## What you do NOT do
 
 - You do **not** audit the built dataset — no build exists at plan time (and on a re-fire, the build audits belong to the Stage 3a chain).
@@ -75,6 +80,10 @@ Save to the path named in your prompt (canonically `output/stage2/mechanism_audi
 
 **Specification:** [dataset name from the document]
 **Mode:** [first-pass (pilot-anchored) | re-fire (build-anchored)]
+**Coverage certificate:** REQUIRED
+<!-- put exactly one of REQUIRED or NOT-REQUIRED on the line above; this is a routed Gate-2 decision, not a severity label -->
+**Coverage commitments:** ["stable_lowercase_id"]
+<!-- put one sorted JSON array on the line above; it must exactly copy the validated spec array, and must be [] when NOT-REQUIRED -->
 
 ## What the spec promises
 [1 paragraph, in your own words: what dataset, what coverage, what validation guarantee, what fact portfolio.]
@@ -94,13 +103,15 @@ Save to the path named in your prompt (canonically `output/stage2/mechanism_audi
 [1 paragraph.]
 ### 7. Claims match the pilot
 [1 paragraph. Quote any contradiction or silent upgrade of an unverified claim.]
+### 8. Exact coverage classification
+[State why the machine-routed commitment array is complete, or why no finite universal predicate exists and it is empty/NOT-REQUIRED.]
 
 ## Verdict
 
 **Verdict:** PLAUSIBLE
 <!-- put exactly one of PLAUSIBLE or REVISE on the line above, as the only verdict keyword in this section, so the orchestrator can route on it unambiguously -->
 
-- **PLAUSIBLE** — the rules are operational, the conventions complete, the triangulation real (waivers explicit and peripheral), the rights cleared per source, the portfolio checkable and load-bearing, the incumbent comparison honest, and every factual claim pilot-consistent or explicitly marked unverified. Proceed to Gate 3.
+- **PLAUSIBLE** — the rules are operational, the conventions complete, the triangulation real (waivers explicit and peripheral), the rights cleared per source, the portfolio checkable and load-bearing, the incumbent comparison honest, every factual claim pilot-consistent or explicitly marked unverified, and the coverage-certificate classification is unambiguous. Proceed to the census leg when REQUIRED; otherwise proceed to Gate 3.
 - **REVISE** — at least one load-bearing dimension fails. List the specific fixes below; the spec returns to `theory-generator` (mutate) before any build effort is spent.
 
 ## Required fixes (REVISE only)
