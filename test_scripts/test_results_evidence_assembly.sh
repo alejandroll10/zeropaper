@@ -90,6 +90,8 @@ for shape in finance empirical experiments; do
         "$shape freezes common audit input"
     expect_text "$P/docs/results_evidence.md" "--audit-input" \
         "$shape binding consumes frozen audit input"
+    expect_text "$P/docs/results_evidence.md" "results.receipt.snapshot.json" \
+        "$shape documentary receipt snapshots use a non-lifecycle suffix"
     expect_text "$P/.claude/agents/evidence-auditor.md" "AUDIT_INPUT_DIGEST" \
         "$shape evidence verdict echoes frozen digest"
     expect_text "$P/.claude/agents/polish-bibliography.md" \

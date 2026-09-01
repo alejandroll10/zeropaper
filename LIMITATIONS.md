@@ -428,20 +428,6 @@ This affected deployments created before v2.18.1 and refreshed mid-Stage-0: thei
 
 ---
 
-## Trusted runner: documentary receipt snapshots are misclassified as lifecycle receipts
-
-**Scope:** every deployment using `results_pipeline` (empirical extension; all modes).
-
-The trusted runner's preflight enforces that the result registry exactly inventories every result receipt on disk, and it classifies receipts by filename suffix (`*.receipt.json`) across the whole project tree. Copying an accepted receipt into an attempt's immutable input-snapshot directory as documentary evidence — a legitimate and encouraged practice when freezing the inputs an attempt was launched with — therefore makes the copy read as an untracked lifecycle receipt, and the next `run` is rejected at preflight.
-
-**Failure mode it produces:** recurring fail-closed friction, observed in the field (tradingdays deployment, Stage 3a v3 a14: preflight rejected the run over two byte-identical documentary snapshots of one already-registered feasibility receipt; the producer never started and the attempt was burned on reconciliation). The failure is safe — nothing unverified can ship — but every project that snapshots or backs up a receipt pays an attempt each time, and the repair knowledge lives only in per-project debug reports.
-
-**What would close it:** identify receipts by registry-recorded canonical path (the registry is already the authority) and treat suffix-matching files outside recorded paths as fatal only when their content does not match an already-registered receipt; or declare snapshot directories registry-exempt documentary zones in the runner contract; or mandate a non-receipt suffix for documentary copies in the evidence docs. Any fix must keep the fail-closed default for genuinely unknown receipt-suffixed files.
-
-**Tracking:** [#294](https://github.com/alejandroll10/zeropaper/issues/294).
-
----
-
 ## data-first: exact coverage predicates are negotiated one full pipeline cycle per unsatisfiable event
 
 **Scope:** `--mode data-first` (both field runs observed, 2026-08-29).

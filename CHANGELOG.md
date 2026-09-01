@@ -16,7 +16,17 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.32.0] — 2026-08-31 (current)
+## [2.32.1] — 2026-09-01 (current)
+
+**fix: reserve the lifecycle-receipt suffix without blocking documentary snapshots (#294).**
+The result registry still fails closed on every unknown `*results.receipt.json` file, but the
+shared producer and evidence procedures now require byte-preserving documentary copies to use
+`*results.receipt.snapshot.json`. The runner's preflight error names that repair directly, and
+regression coverage proves the snapshot suffix is ignored while the lifecycle suffix remains
+strict. This removes the recurring false-positive preflight failure without adding content-based
+receipt equivalence or exempt filesystem zones.
+
+## [2.32.0] — 2026-08-31
 
 **feat: `results_pipeline run`/`run-empirical` refuse to start without a declared caller lifetime (#293).**
 The fourth field occurrence (tradingdays v8/a30: a ~30-second child exec killed the trusted

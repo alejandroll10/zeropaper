@@ -4292,6 +4292,17 @@ bundle = {{
         (self.root / "output/stagex/extra_results.receipt.json").write_text("not json\n")
         completed = self.call("verify-all", expected=2)
         self.assertIn("exactly inventory every result receipt on disk", completed.stderr)
+        self.assertIn("rename documentary copies", completed.stderr)
+
+    def test_documentary_receipt_snapshot_suffix_is_not_lifecycle_receipt(self) -> None:
+        self.record_and_render()
+        snapshot_dir = self.root / "output/stagex/analysis_inputs_a2"
+        snapshot_dir.mkdir()
+        shutil.copyfile(
+            self.root / "output/stagex/results.receipt.json",
+            snapshot_dir / "results.receipt.snapshot.json",
+        )
+        self.call("verify-all")
 
     def test_deleted_active_receipt_fails_closed(self) -> None:
         self.record_and_render()

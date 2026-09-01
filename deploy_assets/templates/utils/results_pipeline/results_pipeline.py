@@ -5109,7 +5109,9 @@ def load_registry(root: Path, *, candidate: dict[str, Any] | None = None,
             raise EvidenceError(
                 "result registry must exactly inventory every result receipt on disk "
                 f"(untracked={sorted(on_disk_receipts - tracked_receipts)}, "
-                f"missing={sorted(tracked_receipts - on_disk_receipts)})"
+                f"missing={sorted(tracked_receipts - on_disk_receipts)}). "
+                "The *results.receipt.json suffix is reserved for canonical lifecycle "
+                "receipts; rename documentary copies to *results.receipt.snapshot.json"
             )
         enforce_empirical_spec_immutability(root, [], value)
     return value, path

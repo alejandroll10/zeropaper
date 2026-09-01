@@ -324,8 +324,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -636,8 +636,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -654,7 +654,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2b276577075dcaf956ff4a2190f4821292b39fa7b18b70dcf7312dfb69557a4b",
+          "sha256": "0d0fdb3d80629e6999383b43524fa566daec4ffcc5e5b900b9695850df647585",
           "size": 1859,
           "type": "file"
         },
@@ -890,8 +890,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -1144,8 +1144,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -1392,8 +1392,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -1596,8 +1596,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -1662,8 +1662,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -1830,7 +1830,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -1963,7 +1963,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -2401,8 +2401,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "7daa03996213aea893dac9f49125f9be718e6ab41a2d5339b502e25309cfaa28",
-          "size": 35228,
+          "sha256": "88adddfbe9eaac4a3ada569ef154741ec006e7b163386d94ef18334060c66660",
+          "size": 35933,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -2419,8 +2419,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "8aa6db10953e77db1090eb2889db860da1c0f05c58f06688ed113a97f228cf99",
-          "size": 25919,
+          "sha256": "e5ee2e83369f547c6c853929b5f1a722f23410bc53d50216c3361a31d09dc77d",
+          "size": 26565,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -2647,8 +2647,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -3049,8 +3049,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "26a790e3f4d12b3522c629405f2f47d4d3432f08c78c52526ac142371015a9d2",
-          "size": 35253,
+          "sha256": "577c1a325e7bc9389d31d01fb56c16aab11ff475c01257f99e38910490c92fd4",
+          "size": 35958,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -3067,8 +3067,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "6de7cb58b84593eb8fbd135631c0bd7d052d4759cfb6178729b6e18af69fdc6b",
-          "size": 26040,
+          "sha256": "c62b4650509c8346c017c4a4e2ecf4996c9ba7d1115fa1e108657d77aa8fb53a",
+          "size": 26686,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -3295,8 +3295,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -3313,7 +3313,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "63d064549b787ed4a0f81f814d52075a0b07a7d8f79efafa9e953ea1b25800d1",
+          "sha256": "1c0f2d5a654960d325a12619674b6a4e5b6009feab9140484170d14fa06a7a22",
           "size": 3117,
           "type": "file"
         },
@@ -3369,8 +3369,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ac04e6a98d261c87904301d0865bdef2f8338d9cfb056da01a517bece1211fba",
-          "size": 35185,
+          "sha256": "3fc93eb66ec82e41f0b0d882604668596c5be54dad03b99500e46bf19ff226c6",
+          "size": 35890,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -3387,8 +3387,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "dcf17c146467a1a5c9f1d19b2bb1cddae6ac3194a90e477c7201f2156ed0c91c",
-          "size": 25997,
+          "sha256": "91630342b1a9c87001a7a89992e02ff154cec38d3ddc3802c50e0e1dfb1fa293",
+          "size": 26643,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -3615,8 +3615,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -3869,8 +3869,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -3937,8 +3937,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f432b7aa46b57ca18c5c3fd928cad7cf058e2a367cb88ef4ce99ae04c8f00374",
-          "size": 35507,
+          "sha256": "ae84acaf290a5485208bc3c9b34a4b8e3c6143940d9ff4cfb88fb81968a17be5",
+          "size": 36212,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -3955,8 +3955,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "a72d5b6b80407828bf412197dfa62a6ad1f537e8a45e2c83c318f4e8f9644bb8",
-          "size": 26099,
+          "sha256": "62592728e4eacbfe28bfbefedab5cfe64400ef50fea68a1daeaa0b5d07a10d8a",
+          "size": 26745,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -4183,8 +4183,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -4495,8 +4495,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -4631,8 +4631,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -4833,7 +4833,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -4999,7 +4999,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -5437,8 +5437,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "7daa03996213aea893dac9f49125f9be718e6ab41a2d5339b502e25309cfaa28",
-          "size": 35228,
+          "sha256": "88adddfbe9eaac4a3ada569ef154741ec006e7b163386d94ef18334060c66660",
+          "size": 35933,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -5455,8 +5455,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "8aa6db10953e77db1090eb2889db860da1c0f05c58f06688ed113a97f228cf99",
-          "size": 25919,
+          "sha256": "e5ee2e83369f547c6c853929b5f1a722f23410bc53d50216c3361a31d09dc77d",
+          "size": 26565,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -5683,8 +5683,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -6085,8 +6085,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "26a790e3f4d12b3522c629405f2f47d4d3432f08c78c52526ac142371015a9d2",
-          "size": 35253,
+          "sha256": "577c1a325e7bc9389d31d01fb56c16aab11ff475c01257f99e38910490c92fd4",
+          "size": 35958,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -6103,8 +6103,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "6de7cb58b84593eb8fbd135631c0bd7d052d4759cfb6178729b6e18af69fdc6b",
-          "size": 26040,
+          "sha256": "c62b4650509c8346c017c4a4e2ecf4996c9ba7d1115fa1e108657d77aa8fb53a",
+          "size": 26686,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -6331,8 +6331,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -6349,7 +6349,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b910709de48a8f678d7ad0247ff89d150e4a4689780d88278da1e06757117b79",
+          "sha256": "ae726fcf79f38abe40bcc0e4c7036e0d059b18278aa01ee493a197ee8597183b",
           "size": 3117,
           "type": "file"
         },
@@ -6405,8 +6405,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ac04e6a98d261c87904301d0865bdef2f8338d9cfb056da01a517bece1211fba",
-          "size": 35185,
+          "sha256": "3fc93eb66ec82e41f0b0d882604668596c5be54dad03b99500e46bf19ff226c6",
+          "size": 35890,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -6423,8 +6423,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "dcf17c146467a1a5c9f1d19b2bb1cddae6ac3194a90e477c7201f2156ed0c91c",
-          "size": 25997,
+          "sha256": "91630342b1a9c87001a7a89992e02ff154cec38d3ddc3802c50e0e1dfb1fa293",
+          "size": 26643,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -6651,8 +6651,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -6905,8 +6905,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -6973,8 +6973,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f432b7aa46b57ca18c5c3fd928cad7cf058e2a367cb88ef4ce99ae04c8f00374",
-          "size": 35507,
+          "sha256": "ae84acaf290a5485208bc3c9b34a4b8e3c6143940d9ff4cfb88fb81968a17be5",
+          "size": 36212,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -6991,8 +6991,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "a72d5b6b80407828bf412197dfa62a6ad1f537e8a45e2c83c318f4e8f9644bb8",
-          "size": 26099,
+          "sha256": "62592728e4eacbfe28bfbefedab5cfe64400ef50fea68a1daeaa0b5d07a10d8a",
+          "size": 26745,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -7219,8 +7219,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -7531,8 +7531,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -7667,8 +7667,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -7869,7 +7869,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -8035,7 +8035,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -8461,8 +8461,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "7daa03996213aea893dac9f49125f9be718e6ab41a2d5339b502e25309cfaa28",
-          "size": 35228,
+          "sha256": "88adddfbe9eaac4a3ada569ef154741ec006e7b163386d94ef18334060c66660",
+          "size": 35933,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -8683,8 +8683,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "a42fdea61232b8c091295c5e0a5fb798357743afa4934138df96e1de0a4462f3",
-          "size": 19367,
+          "sha256": "d7e051f7b0f7f229e030cb4cba3b0471a31d36fb4f6ec2624254eab857044122",
+          "size": 20013,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -9081,8 +9081,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "26a790e3f4d12b3522c629405f2f47d4d3432f08c78c52526ac142371015a9d2",
-          "size": 35253,
+          "sha256": "577c1a325e7bc9389d31d01fb56c16aab11ff475c01257f99e38910490c92fd4",
+          "size": 35958,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -9303,8 +9303,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "3b2dea5455a6e70e5c565129313238d794ce0d4160fa07fb78a40ca123bd0643",
-          "size": 19464,
+          "sha256": "2978b5d75d0dd1713bcbbc8bfe2d63de48fbe60488ac0d1061c082ed324a3877",
+          "size": 20110,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -9321,7 +9321,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "59e439857dada36eae6f8b84e20ed4eab991da8f86b54ec490202be2bdb25d11",
+          "sha256": "ba4c0898a46e2c85d2f10bb2780325ac5b463726efd0230b03b0489145cc4897",
           "size": 3020,
           "type": "file"
         },
@@ -9383,8 +9383,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ac04e6a98d261c87904301d0865bdef2f8338d9cfb056da01a517bece1211fba",
-          "size": 35185,
+          "sha256": "3fc93eb66ec82e41f0b0d882604668596c5be54dad03b99500e46bf19ff226c6",
+          "size": 35890,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -9605,8 +9605,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "5dc4f6bebbe5e6573a45bc2d45cbb6995eb0b2698b9220ca2eae91080aee141a",
-          "size": 19404,
+          "sha256": "0a36da646f3107e688d30d31f30862a2be18e350be35df13f0588de9eda65401",
+          "size": 20050,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -9859,8 +9859,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "889d7682218ad04f9bd47ff3fc03107d173557e375aed1bf09ef0f9990601508",
-          "size": 19449,
+          "sha256": "ea1d1414dee1099fe5e054b6c2cf68a9cfa554fd1a2b1446751859c08ab9e5db",
+          "size": 20095,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -9933,8 +9933,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f432b7aa46b57ca18c5c3fd928cad7cf058e2a367cb88ef4ce99ae04c8f00374",
-          "size": 35507,
+          "sha256": "ae84acaf290a5485208bc3c9b34a4b8e3c6143940d9ff4cfb88fb81968a17be5",
+          "size": 36212,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -10155,8 +10155,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "92e9eecd24489e75a68b9239ae00dd2366bab3a3cdb711bc0c55f9aa0020b0c7",
-          "size": 19553,
+          "sha256": "78700b6c685e7f843ebd9defa45ac48d6689c1fa5e8830f11423406e9428123e",
+          "size": 20199,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -10467,8 +10467,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -10603,8 +10603,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -10639,8 +10639,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "1a56940b509baf59766f4ca6d9f15306b88fa106b42270b20c24a246177717f3",
-          "size": 62438,
+          "sha256": "e44fa82f0e099112cc8a604e3b19d02a1d553f21e002ea09ffd8174ffb870349",
+          "size": 62590,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -10781,7 +10781,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -10944,7 +10944,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -11373,8 +11373,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "493088be701c0b5476a6655d30c55da280355efb29fef4e2cf989871eea4fa29",
-          "size": 37536,
+          "sha256": "68d30605c279284bc2577111cae0bc625e606c02979ba49649f3ee29d9c2c60a",
+          "size": 38241,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -11601,8 +11601,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "27832082a13fa18c3df02a48aea744c9908ec1ea56c8a8cb9ebe53c2520d2003",
-          "size": 19354,
+          "sha256": "04fb14f03d7944a3b8cce301a5d27ce62b7d6d4a342ac9e721e069283061c9dd",
+          "size": 20000,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -11999,8 +11999,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "04ad9463c6f606134c11d2d15b9d9961429c4786823b4dd24aaf39bb849586f3",
-          "size": 37540,
+          "sha256": "1f2c44b9d985627665ad017b8b6878e9b217b268c52090ae1b33b4dc5604dceb",
+          "size": 38245,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -12227,8 +12227,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "0daa1c05ec64e5daacc69fd0bc07e9ff0191395f2d58d0d427d990c67fc49006",
-          "size": 19431,
+          "sha256": "7a71684107c4e5f269bd405a04210f8307db303a652c5227fb41ef4160c1a1b4",
+          "size": 20077,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -12245,7 +12245,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0c7a385ded6451e09f6a3932e5e2fac1d693dbcdf6e25ac0162fa97a9d357c4d",
+          "sha256": "36af13213c1e173c5e9016eb0e383fbd35834b5a22b3c04e468e8bde3f7967c8",
           "size": 3016,
           "type": "file"
         },
@@ -12307,8 +12307,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "efb84e0527378056b46cac40f3c5f0a626da13375f2bc2baaf1d085f10fc701f",
-          "size": 37512,
+          "sha256": "fcc27c5149cc97347115163cd1ef9bba61045a641fb31b5f8f89638f812a1ade",
+          "size": 38217,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -12535,8 +12535,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "a93f49f1e0d63488d21c4a81663273907ceac3f0d6186f6903b8c16a97ab1f98",
-          "size": 19410,
+          "sha256": "0f7a0483ddd8ad344a9c5931306c114c557c14a09a3445c58e0a0f3cd8f775fc",
+          "size": 20056,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -12795,8 +12795,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "889d7682218ad04f9bd47ff3fc03107d173557e375aed1bf09ef0f9990601508",
-          "size": 19449,
+          "sha256": "ea1d1414dee1099fe5e054b6c2cf68a9cfa554fd1a2b1446751859c08ab9e5db",
+          "size": 20095,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -12869,8 +12869,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "be1b31ca0ff850d95b987549b4aecf88c795ccc6ebd3a90637c6b623760626aa",
-          "size": 37828,
+          "sha256": "2aca39b7afafa860156e79576e4b4be423f853b5aa2e207d083838b069e626c4",
+          "size": 38533,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -13097,8 +13097,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "92e9eecd24489e75a68b9239ae00dd2366bab3a3cdb711bc0c55f9aa0020b0c7",
-          "size": 19553,
+          "sha256": "78700b6c685e7f843ebd9defa45ac48d6689c1fa5e8830f11423406e9428123e",
+          "size": 20199,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -13409,8 +13409,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -13545,8 +13545,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -13581,8 +13581,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "00c8df5a6e5fe920e5286e9fbb75000fe32ce62d8429254585c0557a362efa2c",
-          "size": 63404,
+          "sha256": "446590e388ee463a89ab75b83b5049302acf94b7f15970d1b9ccb277f3b5ca74",
+          "size": 63556,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -13733,7 +13733,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -13902,7 +13902,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -14329,8 +14329,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "303879a1f0517251103ca52f6b30a33db6242f8c471d3b5a9aa1299a2023bfa9",
-          "size": 36105,
+          "sha256": "6df36453f16a3f1a2035bc3e03aa7e1aa61439092d7dc297e34d83d6b5d01adc",
+          "size": 36810,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -14551,8 +14551,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "e2e25a43ba28af611de217094a559022442213770653ed46cfe496502128eebe",
-          "size": 20244,
+          "sha256": "cda65629aa6955fd5c3ba93dec2ab27315e2a2d1e98f0856a1d12f9d525af5e2",
+          "size": 20890,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -14949,8 +14949,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "b4127a2e5b582ece2f9e976053eac2117986cac596d60840e60e81b87c5a48f8",
-          "size": 36130,
+          "sha256": "b45b30d8f13005de6cbf54e66bdbbce74a4511d0bc4b6b43936b29f6c4f1e606",
+          "size": 36835,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -15171,8 +15171,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "2ed5ac99fc9dd30b1c7c860af99cc00d8d3a02e1907b7347382416f85a90b4e8",
-          "size": 20341,
+          "sha256": "ab9e0777f7f6a0749c91c2c61757338e2f85775891e7daa8b14aaffe16d5c8fb",
+          "size": 20987,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -15189,7 +15189,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b01a0472f080c1dbc7ef949f3bcdcc13fb5e1d8035a0616fddea5a2b8df92487",
+          "sha256": "1e07a65cc1d4ad2d1cfcd94bdb66eda9add771dcf8acfe344136c82d94e5cc7c",
           "size": 2995,
           "type": "file"
         },
@@ -15251,8 +15251,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "0d1e9f4a59b537ca801d415ea886c52d7cf680bb1979deb579bac02155249448",
-          "size": 36062,
+          "sha256": "b48347bc466dd717b82cb6deed00e8f74444c35718f6ae99c5290a8416c7828e",
+          "size": 36767,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -15473,8 +15473,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "5c3df6ff53037b5b1af47cfa164bd52d927906b28dbcb81dbf9aad9817576817",
-          "size": 20281,
+          "sha256": "446b5330e6a9649f6ccbf70980e050b71a89aaca492a87410dafad33b51b46dd",
+          "size": 20927,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -15727,8 +15727,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "af298cca4f01c1866e6fd90910a46b1fe7b16585f9039559162f77d8438000cc",
-          "size": 20326,
+          "sha256": "b6270ebfc1b3764a43e0f84b6013161370d7651d26e6d6392840ad0b8c45b899",
+          "size": 20972,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -15801,8 +15801,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "71ce0cd86f938e82d32e661228bdba26d9fad009e4dafe39640b1a7846c50a75",
-          "size": 36384,
+          "sha256": "9fe9698d9bdb2c87dbc461fd573a831b7a1337080f79e519a5b033fb6990a271",
+          "size": 37089,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -16023,8 +16023,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "0b6c89d1d24fe496a8953d667555d67551cf386a3c00dc864428c58e724c4a8c",
-          "size": 20430,
+          "sha256": "2b573c5ffa0edd1b0f6b4ed033ef87f2c7253ba2365f4eadc94e42f5f4860601",
+          "size": 21076,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -16335,8 +16335,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -16465,8 +16465,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "c0c16f0f5327d0b6e799175563a3c5ee785c72c90c49aace376ae2a47fa035f0",
-          "size": 25233,
+          "sha256": "ca8cf71a176425061a84b4cc6746de0f5090971d4afd4552c78b1b9969e9ecf0",
+          "size": 25926,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -16501,8 +16501,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "1a56940b509baf59766f4ca6d9f15306b88fa106b42270b20c24a246177717f3",
-          "size": 62438,
+          "sha256": "e44fa82f0e099112cc8a604e3b19d02a1d553f21e002ea09ffd8174ffb870349",
+          "size": 62590,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -16603,7 +16603,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "559b87b76159c6b58c9b02eb4a503fab2fd3546e2f00fa438e7149ff024c5bdb",
+          "sha256": "c21c163895702c7c7ee69522963320fffab39c224e7f68e8e4b0d9ec4ace28c1",
           "size": 15387,
           "type": "file"
         },
@@ -16745,7 +16745,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -17172,8 +17172,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "7daa03996213aea893dac9f49125f9be718e6ab41a2d5339b502e25309cfaa28",
-          "size": 35228,
+          "sha256": "88adddfbe9eaac4a3ada569ef154741ec006e7b163386d94ef18334060c66660",
+          "size": 35933,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -17394,8 +17394,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "a42fdea61232b8c091295c5e0a5fb798357743afa4934138df96e1de0a4462f3",
-          "size": 19367,
+          "sha256": "d7e051f7b0f7f229e030cb4cba3b0471a31d36fb4f6ec2624254eab857044122",
+          "size": 20013,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -17792,8 +17792,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "26a790e3f4d12b3522c629405f2f47d4d3432f08c78c52526ac142371015a9d2",
-          "size": 35253,
+          "sha256": "577c1a325e7bc9389d31d01fb56c16aab11ff475c01257f99e38910490c92fd4",
+          "size": 35958,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -18014,8 +18014,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "3b2dea5455a6e70e5c565129313238d794ce0d4160fa07fb78a40ca123bd0643",
-          "size": 19464,
+          "sha256": "2978b5d75d0dd1713bcbbc8bfe2d63de48fbe60488ac0d1061c082ed324a3877",
+          "size": 20110,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -18032,7 +18032,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9f5451e0d392bd8f0b7c1ffb2867195e4d32848ff1aa85faf9a905e346ddec26",
+          "sha256": "38adad5a4e27dbe42e9731fc160ac7908e012161fed882a1696ec0a5c3df31c1",
           "size": 3019,
           "type": "file"
         },
@@ -18094,8 +18094,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ac04e6a98d261c87904301d0865bdef2f8338d9cfb056da01a517bece1211fba",
-          "size": 35185,
+          "sha256": "3fc93eb66ec82e41f0b0d882604668596c5be54dad03b99500e46bf19ff226c6",
+          "size": 35890,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -18316,8 +18316,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "5dc4f6bebbe5e6573a45bc2d45cbb6995eb0b2698b9220ca2eae91080aee141a",
-          "size": 19404,
+          "sha256": "0a36da646f3107e688d30d31f30862a2be18e350be35df13f0588de9eda65401",
+          "size": 20050,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -18570,8 +18570,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "889d7682218ad04f9bd47ff3fc03107d173557e375aed1bf09ef0f9990601508",
-          "size": 19449,
+          "sha256": "ea1d1414dee1099fe5e054b6c2cf68a9cfa554fd1a2b1446751859c08ab9e5db",
+          "size": 20095,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -18644,8 +18644,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f432b7aa46b57ca18c5c3fd928cad7cf058e2a367cb88ef4ce99ae04c8f00374",
-          "size": 35507,
+          "sha256": "ae84acaf290a5485208bc3c9b34a4b8e3c6143940d9ff4cfb88fb81968a17be5",
+          "size": 36212,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -18866,8 +18866,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "92e9eecd24489e75a68b9239ae00dd2366bab3a3cdb711bc0c55f9aa0020b0c7",
-          "size": 19553,
+          "sha256": "78700b6c685e7f843ebd9defa45ac48d6689c1fa5e8830f11423406e9428123e",
+          "size": 20199,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -19178,8 +19178,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -19314,8 +19314,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -19350,8 +19350,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "00c8df5a6e5fe920e5286e9fbb75000fe32ce62d8429254585c0557a362efa2c",
-          "size": 63404,
+          "sha256": "446590e388ee463a89ab75b83b5049302acf94b7f15970d1b9ccb277f3b5ca74",
+          "size": 63556,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -19502,7 +19502,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -19665,7 +19665,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -19990,8 +19990,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -20302,8 +20302,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -20320,7 +20320,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2b276577075dcaf956ff4a2190f4821292b39fa7b18b70dcf7312dfb69557a4b",
+          "sha256": "0d0fdb3d80629e6999383b43524fa566daec4ffcc5e5b900b9695850df647585",
           "size": 1859,
           "type": "file"
         },
@@ -20556,8 +20556,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -20810,8 +20810,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -21058,8 +21058,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -21262,8 +21262,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -21328,8 +21328,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -21496,7 +21496,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -21629,7 +21629,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -22070,8 +22070,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "7daa03996213aea893dac9f49125f9be718e6ab41a2d5339b502e25309cfaa28",
-          "size": 35228,
+          "sha256": "88adddfbe9eaac4a3ada569ef154741ec006e7b163386d94ef18334060c66660",
+          "size": 35933,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -22088,8 +22088,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "8aa6db10953e77db1090eb2889db860da1c0f05c58f06688ed113a97f228cf99",
-          "size": 25919,
+          "sha256": "e5ee2e83369f547c6c853929b5f1a722f23410bc53d50216c3361a31d09dc77d",
+          "size": 26565,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -22316,8 +22316,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -22718,8 +22718,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "26a790e3f4d12b3522c629405f2f47d4d3432f08c78c52526ac142371015a9d2",
-          "size": 35253,
+          "sha256": "577c1a325e7bc9389d31d01fb56c16aab11ff475c01257f99e38910490c92fd4",
+          "size": 35958,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -22736,8 +22736,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "6de7cb58b84593eb8fbd135631c0bd7d052d4759cfb6178729b6e18af69fdc6b",
-          "size": 26040,
+          "sha256": "c62b4650509c8346c017c4a4e2ecf4996c9ba7d1115fa1e108657d77aa8fb53a",
+          "size": 26686,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -22964,8 +22964,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -22982,7 +22982,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "63d064549b787ed4a0f81f814d52075a0b07a7d8f79efafa9e953ea1b25800d1",
+          "sha256": "1c0f2d5a654960d325a12619674b6a4e5b6009feab9140484170d14fa06a7a22",
           "size": 3117,
           "type": "file"
         },
@@ -23038,8 +23038,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ac04e6a98d261c87904301d0865bdef2f8338d9cfb056da01a517bece1211fba",
-          "size": 35185,
+          "sha256": "3fc93eb66ec82e41f0b0d882604668596c5be54dad03b99500e46bf19ff226c6",
+          "size": 35890,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -23056,8 +23056,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "dcf17c146467a1a5c9f1d19b2bb1cddae6ac3194a90e477c7201f2156ed0c91c",
-          "size": 25997,
+          "sha256": "91630342b1a9c87001a7a89992e02ff154cec38d3ddc3802c50e0e1dfb1fa293",
+          "size": 26643,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -23284,8 +23284,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -23538,8 +23538,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -23606,8 +23606,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f432b7aa46b57ca18c5c3fd928cad7cf058e2a367cb88ef4ce99ae04c8f00374",
-          "size": 35507,
+          "sha256": "ae84acaf290a5485208bc3c9b34a4b8e3c6143940d9ff4cfb88fb81968a17be5",
+          "size": 36212,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -23624,8 +23624,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "a72d5b6b80407828bf412197dfa62a6ad1f537e8a45e2c83c318f4e8f9644bb8",
-          "size": 26099,
+          "sha256": "62592728e4eacbfe28bfbefedab5cfe64400ef50fea68a1daeaa0b5d07a10d8a",
+          "size": 26745,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -23852,8 +23852,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -24164,8 +24164,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -24300,8 +24300,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -24502,7 +24502,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -24668,7 +24668,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -25088,8 +25088,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "7daa03996213aea893dac9f49125f9be718e6ab41a2d5339b502e25309cfaa28",
-          "size": 35228,
+          "sha256": "88adddfbe9eaac4a3ada569ef154741ec006e7b163386d94ef18334060c66660",
+          "size": 35933,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -25316,8 +25316,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -25708,8 +25708,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "26a790e3f4d12b3522c629405f2f47d4d3432f08c78c52526ac142371015a9d2",
-          "size": 35253,
+          "sha256": "577c1a325e7bc9389d31d01fb56c16aab11ff475c01257f99e38910490c92fd4",
+          "size": 35958,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -25936,8 +25936,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -25954,7 +25954,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1ed9267a3a4bc5fc0c7acc3c909d721f6392e73adf1d5b51c485311d0a92b202",
+          "sha256": "53bfb0fe1d2b035838fbfb9f0da368bad6c5112d10d4a9a9bf4c25e829c4c486",
           "size": 3010,
           "type": "file"
         },
@@ -26010,8 +26010,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ac04e6a98d261c87904301d0865bdef2f8338d9cfb056da01a517bece1211fba",
-          "size": 35185,
+          "sha256": "3fc93eb66ec82e41f0b0d882604668596c5be54dad03b99500e46bf19ff226c6",
+          "size": 35890,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -26238,8 +26238,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -26492,8 +26492,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -26560,8 +26560,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f432b7aa46b57ca18c5c3fd928cad7cf058e2a367cb88ef4ce99ae04c8f00374",
-          "size": 35507,
+          "sha256": "ae84acaf290a5485208bc3c9b34a4b8e3c6143940d9ff4cfb88fb81968a17be5",
+          "size": 36212,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -26788,8 +26788,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -27100,8 +27100,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -27236,8 +27236,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -27418,7 +27418,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -27581,7 +27581,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -28001,8 +28001,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "7daa03996213aea893dac9f49125f9be718e6ab41a2d5339b502e25309cfaa28",
-          "size": 35228,
+          "sha256": "88adddfbe9eaac4a3ada569ef154741ec006e7b163386d94ef18334060c66660",
+          "size": 35933,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -28235,8 +28235,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "bb5a90c1a4cf9c9e0d6fb4850392b64fac890127508b04c4607ec4f37671730e",
-          "size": 19068,
+          "sha256": "5101742ff5bd153355d90da581617cfb4b495ed78f9dff2788503bb67131fc20",
+          "size": 19714,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -28627,8 +28627,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "26a790e3f4d12b3522c629405f2f47d4d3432f08c78c52526ac142371015a9d2",
-          "size": 35253,
+          "sha256": "577c1a325e7bc9389d31d01fb56c16aab11ff475c01257f99e38910490c92fd4",
+          "size": 35958,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -28861,8 +28861,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "6fe4135ba947e139d7f1fd83ab4f805f68410eaea73aa20dc373766037dbff80",
-          "size": 19165,
+          "sha256": "181a4be4f992ec084c340faa3cb32a1b551af0b3d003cd35a1305f6e77a6f09b",
+          "size": 19811,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -28879,7 +28879,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "3a0312a1d25dfb18bcb1ac211d8b543a725daada042f8cb6c4253a3a94cf4eed",
+          "sha256": "c5bc8a6f5e9d05227b9c0687e8a073c4d6b26bcc2cf66946ab4d895b0dbd5463",
           "size": 3025,
           "type": "file"
         },
@@ -28935,8 +28935,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ac04e6a98d261c87904301d0865bdef2f8338d9cfb056da01a517bece1211fba",
-          "size": 35185,
+          "sha256": "3fc93eb66ec82e41f0b0d882604668596c5be54dad03b99500e46bf19ff226c6",
+          "size": 35890,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -29169,8 +29169,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "168b0a2fd792db3cc8e563faf1525f4e522ac1bf14df8c3bea25edf3dd981b57",
-          "size": 19105,
+          "sha256": "9d4e3ff9a1ec9082dce15c7a4016349b5b0e207a2e980fd2955654e6169650d2",
+          "size": 19751,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -29423,8 +29423,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "46507f273cffdf9ebb9c7eb3a1a193aaa7b67b13d8ab270ba332e8818a05e875",
-          "size": 19150,
+          "sha256": "d540f51820519fce8f534490c0c46d10d653408722d306184e058b85a0a1e544",
+          "size": 19796,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -29491,8 +29491,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f432b7aa46b57ca18c5c3fd928cad7cf058e2a367cb88ef4ce99ae04c8f00374",
-          "size": 35507,
+          "sha256": "ae84acaf290a5485208bc3c9b34a4b8e3c6143940d9ff4cfb88fb81968a17be5",
+          "size": 36212,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -29725,8 +29725,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fe122edf6cc88d12e8d6eb5f87870b6a8f6063743fe515ccc6471b749b00c350",
-          "size": 19254,
+          "sha256": "aaebcdb11b6c9e51ad181c1344cfd321f4e128516480d33edf91ee165c37b9bd",
+          "size": 19900,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -30037,8 +30037,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -30173,8 +30173,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -30347,7 +30347,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -30510,7 +30510,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -30948,8 +30948,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "7daa03996213aea893dac9f49125f9be718e6ab41a2d5339b502e25309cfaa28",
-          "size": 35228,
+          "sha256": "88adddfbe9eaac4a3ada569ef154741ec006e7b163386d94ef18334060c66660",
+          "size": 35933,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -30966,8 +30966,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "8aa6db10953e77db1090eb2889db860da1c0f05c58f06688ed113a97f228cf99",
-          "size": 25919,
+          "sha256": "e5ee2e83369f547c6c853929b5f1a722f23410bc53d50216c3361a31d09dc77d",
+          "size": 26565,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -31200,8 +31200,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "bb5a90c1a4cf9c9e0d6fb4850392b64fac890127508b04c4607ec4f37671730e",
-          "size": 19068,
+          "sha256": "5101742ff5bd153355d90da581617cfb4b495ed78f9dff2788503bb67131fc20",
+          "size": 19714,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -31602,8 +31602,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "26a790e3f4d12b3522c629405f2f47d4d3432f08c78c52526ac142371015a9d2",
-          "size": 35253,
+          "sha256": "577c1a325e7bc9389d31d01fb56c16aab11ff475c01257f99e38910490c92fd4",
+          "size": 35958,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -31620,8 +31620,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "6de7cb58b84593eb8fbd135631c0bd7d052d4759cfb6178729b6e18af69fdc6b",
-          "size": 26040,
+          "sha256": "c62b4650509c8346c017c4a4e2ecf4996c9ba7d1115fa1e108657d77aa8fb53a",
+          "size": 26686,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -31854,8 +31854,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "6fe4135ba947e139d7f1fd83ab4f805f68410eaea73aa20dc373766037dbff80",
-          "size": 19165,
+          "sha256": "181a4be4f992ec084c340faa3cb32a1b551af0b3d003cd35a1305f6e77a6f09b",
+          "size": 19811,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -31872,7 +31872,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "81dc9ab9fd680ea25a2ab79a3fd79eadb1a7f4148f88e62d1dd521e91f4a9534",
+          "sha256": "ab1c58a26c05f7670ab153cd00c84ebad6cd658d771e93bdffe4755cabc2a7a7",
           "size": 3132,
           "type": "file"
         },
@@ -31928,8 +31928,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ac04e6a98d261c87904301d0865bdef2f8338d9cfb056da01a517bece1211fba",
-          "size": 35185,
+          "sha256": "3fc93eb66ec82e41f0b0d882604668596c5be54dad03b99500e46bf19ff226c6",
+          "size": 35890,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -31946,8 +31946,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "dcf17c146467a1a5c9f1d19b2bb1cddae6ac3194a90e477c7201f2156ed0c91c",
-          "size": 25997,
+          "sha256": "91630342b1a9c87001a7a89992e02ff154cec38d3ddc3802c50e0e1dfb1fa293",
+          "size": 26643,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -32180,8 +32180,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "168b0a2fd792db3cc8e563faf1525f4e522ac1bf14df8c3bea25edf3dd981b57",
-          "size": 19105,
+          "sha256": "9d4e3ff9a1ec9082dce15c7a4016349b5b0e207a2e980fd2955654e6169650d2",
+          "size": 19751,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -32434,8 +32434,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "46507f273cffdf9ebb9c7eb3a1a193aaa7b67b13d8ab270ba332e8818a05e875",
-          "size": 19150,
+          "sha256": "d540f51820519fce8f534490c0c46d10d653408722d306184e058b85a0a1e544",
+          "size": 19796,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -32502,8 +32502,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f432b7aa46b57ca18c5c3fd928cad7cf058e2a367cb88ef4ce99ae04c8f00374",
-          "size": 35507,
+          "sha256": "ae84acaf290a5485208bc3c9b34a4b8e3c6143940d9ff4cfb88fb81968a17be5",
+          "size": 36212,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -32520,8 +32520,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "a72d5b6b80407828bf412197dfa62a6ad1f537e8a45e2c83c318f4e8f9644bb8",
-          "size": 26099,
+          "sha256": "62592728e4eacbfe28bfbefedab5cfe64400ef50fea68a1daeaa0b5d07a10d8a",
+          "size": 26745,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -32754,8 +32754,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fe122edf6cc88d12e8d6eb5f87870b6a8f6063743fe515ccc6471b749b00c350",
-          "size": 19254,
+          "sha256": "aaebcdb11b6c9e51ad181c1344cfd321f4e128516480d33edf91ee165c37b9bd",
+          "size": 19900,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -33066,8 +33066,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -33202,8 +33202,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -33396,7 +33396,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -33562,7 +33562,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -33891,8 +33891,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -34203,8 +34203,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -34221,7 +34221,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2b276577075dcaf956ff4a2190f4821292b39fa7b18b70dcf7312dfb69557a4b",
+          "sha256": "0d0fdb3d80629e6999383b43524fa566daec4ffcc5e5b900b9695850df647585",
           "size": 1859,
           "type": "file"
         },
@@ -34457,8 +34457,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -34711,8 +34711,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -34959,8 +34959,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -35163,8 +35163,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -35229,8 +35229,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -35397,7 +35397,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -35530,7 +35530,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -35953,8 +35953,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "493088be701c0b5476a6655d30c55da280355efb29fef4e2cf989871eea4fa29",
-          "size": 37536,
+          "sha256": "68d30605c279284bc2577111cae0bc625e606c02979ba49649f3ee29d9c2c60a",
+          "size": 38241,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -36187,8 +36187,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "874d92055aed6b5d87a713c0f8bb63d929ea558846b82d61435de2b4028a1ff1",
-          "size": 19367,
+          "sha256": "2446bb6d65bb7a2347e2c0a8763311421c25e31268a8eca5f8866c7970e9ba67",
+          "size": 20013,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -36579,8 +36579,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "04ad9463c6f606134c11d2d15b9d9961429c4786823b4dd24aaf39bb849586f3",
-          "size": 37540,
+          "sha256": "1f2c44b9d985627665ad017b8b6878e9b217b268c52090ae1b33b4dc5604dceb",
+          "size": 38245,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -36813,8 +36813,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "3736950e941e1f230fa3e54fde93ec1bfb288c91f3ffde4001630ea1bf7c5564",
-          "size": 19444,
+          "sha256": "ced9ed58d9c3e54e11dfd511b928b1acd3f6c36ce98a70b48941420d56081db0",
+          "size": 20090,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -36831,7 +36831,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0adcf6df850c2731006036cdce7471630face814bc07632aeba2f1e330633643",
+          "sha256": "873e082c14bfb78183fc0a904d4548502aa179ebde86555eecbf6d17f21eb4a6",
           "size": 3006,
           "type": "file"
         },
@@ -36887,8 +36887,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "efb84e0527378056b46cac40f3c5f0a626da13375f2bc2baaf1d085f10fc701f",
-          "size": 37512,
+          "sha256": "fcc27c5149cc97347115163cd1ef9bba61045a641fb31b5f8f89638f812a1ade",
+          "size": 38217,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -37121,8 +37121,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "7c466c90e28a2c6badc377f2498c1700310e25a4ea10c45f947206966b58aa6b",
-          "size": 19423,
+          "sha256": "0e3fafa6c30cce294ab6fd111c982d042e1eb36fb8403bbf1f30033153ee526b",
+          "size": 20069,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -37381,8 +37381,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -37449,8 +37449,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "be1b31ca0ff850d95b987549b4aecf88c795ccc6ebd3a90637c6b623760626aa",
-          "size": 37828,
+          "sha256": "2aca39b7afafa860156e79576e4b4be423f853b5aa2e207d083838b069e626c4",
+          "size": 38533,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -37683,8 +37683,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -37995,8 +37995,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -38131,8 +38131,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -38323,7 +38323,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -38492,7 +38492,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -38821,8 +38821,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -39133,8 +39133,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -39151,7 +39151,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2b9f239835eff61e18faab8fc4c2d4f8191922d43d0680ae60c57308c2bd300d",
+          "sha256": "4826424a43897f345b007c9214be56ece9a7973e4334c8d70c9ddaabbe6636c1",
           "size": 1858,
           "type": "file"
         },
@@ -39387,8 +39387,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -39641,8 +39641,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -39889,8 +39889,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -40093,8 +40093,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -40159,8 +40159,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -40327,7 +40327,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -40460,7 +40460,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -40623,8 +40623,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "8aa6db10953e77db1090eb2889db860da1c0f05c58f06688ed113a97f228cf99",
-          "size": 25919,
+          "sha256": "e5ee2e83369f547c6c853929b5f1a722f23410bc53d50216c3361a31d09dc77d",
+          "size": 26565,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -40827,8 +40827,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -40963,8 +40963,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "6de7cb58b84593eb8fbd135631c0bd7d052d4759cfb6178729b6e18af69fdc6b",
-          "size": 26040,
+          "sha256": "c62b4650509c8346c017c4a4e2ecf4996c9ba7d1115fa1e108657d77aa8fb53a",
+          "size": 26686,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -41167,8 +41167,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -41185,7 +41185,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6d489bcca6fd00d1234c22e3684649e5902ec9088b99db7d5743fffad2aabd79",
+          "sha256": "788ac999a788e04bf190e3ad6fb61a27c4fb50da3f16e7ea5092203e9c621231",
           "size": 1968,
           "type": "file"
         },
@@ -41235,8 +41235,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "dcf17c146467a1a5c9f1d19b2bb1cddae6ac3194a90e477c7201f2156ed0c91c",
-          "size": 25997,
+          "sha256": "91630342b1a9c87001a7a89992e02ff154cec38d3ddc3802c50e0e1dfb1fa293",
+          "size": 26643,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -41439,8 +41439,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -41693,8 +41693,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -41755,8 +41755,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "a72d5b6b80407828bf412197dfa62a6ad1f537e8a45e2c83c318f4e8f9644bb8",
-          "size": 26099,
+          "sha256": "62592728e4eacbfe28bfbefedab5cfe64400ef50fea68a1daeaa0b5d07a10d8a",
+          "size": 26745,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -41959,8 +41959,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -42163,8 +42163,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -42229,8 +42229,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -42417,7 +42417,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -42554,7 +42554,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -42716,8 +42716,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "8aa6db10953e77db1090eb2889db860da1c0f05c58f06688ed113a97f228cf99",
-          "size": 25919,
+          "sha256": "e5ee2e83369f547c6c853929b5f1a722f23410bc53d50216c3361a31d09dc77d",
+          "size": 26565,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -42920,8 +42920,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -43056,8 +43056,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "6de7cb58b84593eb8fbd135631c0bd7d052d4759cfb6178729b6e18af69fdc6b",
-          "size": 26040,
+          "sha256": "c62b4650509c8346c017c4a4e2ecf4996c9ba7d1115fa1e108657d77aa8fb53a",
+          "size": 26686,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -43260,8 +43260,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -43278,7 +43278,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6d489bcca6fd00d1234c22e3684649e5902ec9088b99db7d5743fffad2aabd79",
+          "sha256": "788ac999a788e04bf190e3ad6fb61a27c4fb50da3f16e7ea5092203e9c621231",
           "size": 1968,
           "type": "file"
         },
@@ -43328,8 +43328,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "dcf17c146467a1a5c9f1d19b2bb1cddae6ac3194a90e477c7201f2156ed0c91c",
-          "size": 25997,
+          "sha256": "91630342b1a9c87001a7a89992e02ff154cec38d3ddc3802c50e0e1dfb1fa293",
+          "size": 26643,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -43532,8 +43532,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -43786,8 +43786,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -43848,8 +43848,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "a72d5b6b80407828bf412197dfa62a6ad1f537e8a45e2c83c318f4e8f9644bb8",
-          "size": 26099,
+          "sha256": "62592728e4eacbfe28bfbefedab5cfe64400ef50fea68a1daeaa0b5d07a10d8a",
+          "size": 26745,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -44052,8 +44052,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -44256,8 +44256,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -44322,8 +44322,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -44510,7 +44510,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -44647,7 +44647,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -44976,8 +44976,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "874d92055aed6b5d87a713c0f8bb63d929ea558846b82d61435de2b4028a1ff1",
-          "size": 19367,
+          "sha256": "2446bb6d65bb7a2347e2c0a8763311421c25e31268a8eca5f8866c7970e9ba67",
+          "size": 20013,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -45288,8 +45288,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "3736950e941e1f230fa3e54fde93ec1bfb288c91f3ffde4001630ea1bf7c5564",
-          "size": 19444,
+          "sha256": "ced9ed58d9c3e54e11dfd511b928b1acd3f6c36ce98a70b48941420d56081db0",
+          "size": 20090,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -45306,7 +45306,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a785f1ee6d9618fb3312c68f33782d4b011265a305e43b7fed62c199530d3fd2",
+          "sha256": "adf44e63dd0994e4b56f3d3e85636951e78ea5164194c3b073f29c4e27098c7b",
           "size": 1858,
           "type": "file"
         },
@@ -45542,8 +45542,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "7c466c90e28a2c6badc377f2498c1700310e25a4ea10c45f947206966b58aa6b",
-          "size": 19423,
+          "sha256": "0e3fafa6c30cce294ab6fd111c982d042e1eb36fb8403bbf1f30033153ee526b",
+          "size": 20069,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -45796,8 +45796,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -46044,8 +46044,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -46248,8 +46248,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -46314,8 +46314,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -46482,7 +46482,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -46615,7 +46615,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -47054,8 +47054,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "303879a1f0517251103ca52f6b30a33db6242f8c471d3b5a9aa1299a2023bfa9",
-          "size": 36105,
+          "sha256": "6df36453f16a3f1a2035bc3e03aa7e1aa61439092d7dc297e34d83d6b5d01adc",
+          "size": 36810,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -47072,8 +47072,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "1a979d57b4b5986a7d80de6f015b530821a968c7db369397c2f5868019a0bcb8",
-          "size": 26872,
+          "sha256": "722ba2b7ee36b68c81cb13fe4250ad9cbcb6a3e684a7e4c91d43c70bfac979ed",
+          "size": 27518,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -47300,8 +47300,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "e3816a7a411852400afe549a462f2ed9e0d6425eddb54a98d230a42c7324ea5a",
-          "size": 20257,
+          "sha256": "07021a69357f138772841ae5ef79f68c600f575ffd38d1c26c8b89441284acf5",
+          "size": 20903,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -47702,8 +47702,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "b4127a2e5b582ece2f9e976053eac2117986cac596d60840e60e81b87c5a48f8",
-          "size": 36130,
+          "sha256": "b45b30d8f13005de6cbf54e66bdbbce74a4511d0bc4b6b43936b29f6c4f1e606",
+          "size": 36835,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -47720,8 +47720,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "a09b9fb77f1f4a7a5a00e06ae8c062deedad05283df4036483323aba76fcee4d",
-          "size": 26993,
+          "sha256": "43a3aaf9cf5f480d0eb9b90b4ed9687bf37ae3e3ffe3e911544a7fa35351a377",
+          "size": 27639,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -47948,8 +47948,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "3530e22a605325d5377f7a67fadc59ceaad31934a29a530d773595a2cbfbc172",
-          "size": 20354,
+          "sha256": "1841b4b966151b9b92192925fc059b0c67c5cf091f7b592fa2ee7a6d33bc0a51",
+          "size": 21000,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -47966,7 +47966,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "55b11eab767c100cda76fd4ebaf5c4c63df914ddd94ab333a1fa729fb6c48a4d",
+          "sha256": "f421de63fca93dc2be95b195bfbad2e268ea4c1fccc79162263ea4fb36a45b5f",
           "size": 3092,
           "type": "file"
         },
@@ -48022,8 +48022,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "0d1e9f4a59b537ca801d415ea886c52d7cf680bb1979deb579bac02155249448",
-          "size": 36062,
+          "sha256": "b48347bc466dd717b82cb6deed00e8f74444c35718f6ae99c5290a8416c7828e",
+          "size": 36767,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -48040,8 +48040,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "8c1364019900cb39e135cedc084b84cdd51c480d530b1f37f6530ff52009af71",
-          "size": 26950,
+          "sha256": "6837a30f0d2d2a20077566d4054501aa748b1b16bdceb9375992dc8db90a0867",
+          "size": 27596,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -48268,8 +48268,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "a19f8b65eb7d4bfda5b964e65331aed25b8f20f7febf01fdfd2d8cdb845482d5",
-          "size": 20294,
+          "sha256": "32de3e3c3ab603a0d1ee47202456dedc6f872eedba3593b922fdaa7e62fdced5",
+          "size": 20940,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -48522,8 +48522,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "57e132d8bfd119bbd04c8b35ac2dfd403ce5fe3b6319ec84574cf2c3a3ee6ef9",
-          "size": 20339,
+          "sha256": "369d326ca341ca9e5aa94d498d3ea119f0ed06f9ae64d5cf530d00ad6ed4f143",
+          "size": 20985,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -48590,8 +48590,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "71ce0cd86f938e82d32e661228bdba26d9fad009e4dafe39640b1a7846c50a75",
-          "size": 36384,
+          "sha256": "9fe9698d9bdb2c87dbc461fd573a831b7a1337080f79e519a5b033fb6990a271",
+          "size": 37089,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -48608,8 +48608,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "832b08c882f728fc322561217568c7d1f0119d1be4c24f0a2a57b4c247ae9ace",
-          "size": 27052,
+          "sha256": "78e31e544b49ed3a3f8992436ca1bf8f0e190d12891d0b2a1e741bb6a10f827d",
+          "size": 27698,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -48836,8 +48836,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "eb109c62232d862de01835d6a76dc73ba6e7177ec3550d7528b4da0a514fb3ec",
-          "size": 20443,
+          "sha256": "6e89e00fd4b49ef296b7c802f8ef73c77d5f0bb5ab6d394dcaa55d06d8157286",
+          "size": 21089,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -49148,8 +49148,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -49278,8 +49278,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "c0c16f0f5327d0b6e799175563a3c5ee785c72c90c49aace376ae2a47fa035f0",
-          "size": 25233,
+          "sha256": "ca8cf71a176425061a84b4cc6746de0f5090971d4afd4552c78b1b9969e9ecf0",
+          "size": 25926,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -49428,7 +49428,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "559b87b76159c6b58c9b02eb4a503fab2fd3546e2f00fa438e7149ff024c5bdb",
+          "sha256": "c21c163895702c7c7ee69522963320fffab39c224e7f68e8e4b0d9ec4ace28c1",
           "size": 15387,
           "type": "file"
         },
@@ -49573,7 +49573,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -49993,7 +49993,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5b7e46c07e30fc7c6caf14cedd558f04dc047639085198438cf1964f2bb51689",
+          "sha256": "e537182a0197ad7ba58b4151773ba0c2c2be8d8696951c22647b28804b90bb97",
           "size": 1841,
           "type": "file"
         },
@@ -50563,8 +50563,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -50755,7 +50755,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -51735,7 +51735,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "97271d7617d4675c2e026e33fa7ab809bfe49796a298a128f413aeb33bc8823e",
+          "sha256": "967ee57d1298753042bc26f9d9aa259d8a36a73694c1c99bec3586b03553577a",
           "size": 3099,
           "type": "file"
         },
@@ -52413,8 +52413,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -52714,7 +52714,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -53694,7 +53694,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1b0162da2d00fdc1f8a1a3bcc3eb1859057930762193d874bca39d968413387b",
+          "sha256": "5fa1ed76f40feb5137b3cdf3fe618abfce6e20760baa819f9c50b53323c5aab2",
           "size": 3099,
           "type": "file"
         },
@@ -54372,8 +54372,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -54673,7 +54673,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -55625,7 +55625,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "aa6d592fceadaa5bd4398bca5ad78821a1aa90c63d202eb0d667470a62b4b1de",
+          "sha256": "d5eda4c5b1d78954db71fb58f7b64cf8f74c71b2ba92e54b79f00f86ddb4d3e3",
           "size": 2992,
           "type": "file"
         },
@@ -56303,8 +56303,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -56595,7 +56595,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -57016,7 +57016,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "814580550fc2483368331de66c004adefdd408f581fa89d3ca7b69a4965a9f50",
+          "sha256": "14ab076108950360b8945f50abf861f2eb1d3098e8d0efe8e6dafc3f50433c7e",
           "size": 1840,
           "type": "file"
         },
@@ -57586,8 +57586,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -57778,7 +57778,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -58230,7 +58230,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "45f54dd2627c100567b4e2afa1346c4dac3c46d55110cbadeee41024721837d4",
+          "sha256": "80ff8d8ced10319b0072163b9c7788ca98d4462e768ad0da0bdeda688c73830e",
           "size": 1950,
           "type": "file"
         },
@@ -58800,8 +58800,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -59002,7 +59002,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -59331,8 +59331,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -59643,8 +59643,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -59661,7 +59661,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "4e3a139b4f53972f8071ca806b3626b1e1fc12a26740d9282c0c2f835ce8f64f",
+          "sha256": "eec022e3ba5ce5b519358a2a6c2f0daf1f3d6ca3fe2e0724bf1595966e7c8228",
           "size": 1858,
           "type": "file"
         },
@@ -59897,8 +59897,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -60151,8 +60151,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -60399,8 +60399,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -60603,8 +60603,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -60669,8 +60669,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -60847,7 +60847,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -60980,7 +60980,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -61400,8 +61400,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "7daa03996213aea893dac9f49125f9be718e6ab41a2d5339b502e25309cfaa28",
-          "size": 35228,
+          "sha256": "88adddfbe9eaac4a3ada569ef154741ec006e7b163386d94ef18334060c66660",
+          "size": 35933,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -61628,8 +61628,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -62020,8 +62020,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "26a790e3f4d12b3522c629405f2f47d4d3432f08c78c52526ac142371015a9d2",
-          "size": 35253,
+          "sha256": "577c1a325e7bc9389d31d01fb56c16aab11ff475c01257f99e38910490c92fd4",
+          "size": 35958,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -62248,8 +62248,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -62266,7 +62266,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1ed9267a3a4bc5fc0c7acc3c909d721f6392e73adf1d5b51c485311d0a92b202",
+          "sha256": "53bfb0fe1d2b035838fbfb9f0da368bad6c5112d10d4a9a9bf4c25e829c4c486",
           "size": 3010,
           "type": "file"
         },
@@ -62322,8 +62322,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "ac04e6a98d261c87904301d0865bdef2f8338d9cfb056da01a517bece1211fba",
-          "size": 35185,
+          "sha256": "3fc93eb66ec82e41f0b0d882604668596c5be54dad03b99500e46bf19ff226c6",
+          "size": 35890,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -62550,8 +62550,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -62804,8 +62804,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -62872,8 +62872,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f432b7aa46b57ca18c5c3fd928cad7cf058e2a367cb88ef4ce99ae04c8f00374",
-          "size": 35507,
+          "sha256": "ae84acaf290a5485208bc3c9b34a4b8e3c6143940d9ff4cfb88fb81968a17be5",
+          "size": 36212,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -63100,8 +63100,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -63412,8 +63412,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -63548,8 +63548,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -63730,7 +63730,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -63893,7 +63893,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -64057,8 +64057,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "8aa6db10953e77db1090eb2889db860da1c0f05c58f06688ed113a97f228cf99",
-          "size": 25919,
+          "sha256": "e5ee2e83369f547c6c853929b5f1a722f23410bc53d50216c3361a31d09dc77d",
+          "size": 26565,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -64261,8 +64261,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "05f506aa1d4229721e539b0ffbb0fff33b270c26a746dadbc4d73c867450ba8f",
-          "size": 19380,
+          "sha256": "fe79011fd14c3f31fa1ec40928288ac27df400e1ab7b771f09b3e308837b431e",
+          "size": 20026,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -64397,8 +64397,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "6de7cb58b84593eb8fbd135631c0bd7d052d4759cfb6178729b6e18af69fdc6b",
-          "size": 26040,
+          "sha256": "c62b4650509c8346c017c4a4e2ecf4996c9ba7d1115fa1e108657d77aa8fb53a",
+          "size": 26686,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -64601,8 +64601,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a330a21b6ea13be339937b550f92724d22027268aaaa41748efef13953509d1c",
-          "size": 19477,
+          "sha256": "6e5589228b440205022b3e044b1d32473fb10f28593e0768503e1c05a21c9c72",
+          "size": 20123,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -64619,7 +64619,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6d489bcca6fd00d1234c22e3684649e5902ec9088b99db7d5743fffad2aabd79",
+          "sha256": "788ac999a788e04bf190e3ad6fb61a27c4fb50da3f16e7ea5092203e9c621231",
           "size": 1968,
           "type": "file"
         },
@@ -64669,8 +64669,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "dcf17c146467a1a5c9f1d19b2bb1cddae6ac3194a90e477c7201f2156ed0c91c",
-          "size": 25997,
+          "sha256": "91630342b1a9c87001a7a89992e02ff154cec38d3ddc3802c50e0e1dfb1fa293",
+          "size": 26643,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -64873,8 +64873,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "2fa629cd2eb64716be3607e8995e534c97a2b6f40dce55ae66f59f9d7825202f",
-          "size": 19417,
+          "sha256": "0cbfbe42a73074c1b0ca061cb18a6bdacdee63c75cbf37d3a3c8b7995fc6fc68",
+          "size": 20063,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -65127,8 +65127,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fa1659afd6413a5e56fe798adeb561c8c8dd8daee07a86c3d39ee7b1f9a67551",
-          "size": 19462,
+          "sha256": "4c7c243a0f0a0e7daaf5bb9ccdfbdd7b108e2086ef50dd667fc34d7a536de372",
+          "size": 20108,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -65189,8 +65189,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "a72d5b6b80407828bf412197dfa62a6ad1f537e8a45e2c83c318f4e8f9644bb8",
-          "size": 26099,
+          "sha256": "62592728e4eacbfe28bfbefedab5cfe64400ef50fea68a1daeaa0b5d07a10d8a",
+          "size": 26745,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -65393,8 +65393,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "4caca81b2880c23c68e1572c6b9a0dc5d2830e066a22e9f539f6b5f80f3fc0ce",
-          "size": 19566,
+          "sha256": "430c235e3ced8067790066feb7957cd0aa7d8ea27a52e72ffc1467740e280791",
+          "size": 20212,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -65597,8 +65597,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -65663,8 +65663,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -65851,7 +65851,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -65988,7 +65988,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -66130,8 +66130,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "9ed4e9918998ebf76c537701a04c66b8e0b5b4262ed1c6c18e39a86ab08e99ca",
-          "size": 25925,
+          "sha256": "ce665ee3bb6f53b5db2a01416ded381f3b29730519ede9cb6494a52515374be8",
+          "size": 26571,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -66334,8 +66334,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "ed58af489cdf3a8ba2f2ec068b0d8294d43c1e85f480cdb744ffc83f75af0df6",
-          "size": 19572,
+          "sha256": "c1efda71dded77e876b3eda76b35689fd5a9c521d2636a89c18c385cd66c95be",
+          "size": 20218,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -66450,8 +66450,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "7c20a696ee3409fb7b3b494b550896199cda25a83435636fb390973e45b7bda5",
-          "size": 26046,
+          "sha256": "4e40d64f93340dc0fb5a85363236b28066773e1aab5ad4f6edbb21e3d3a85afb",
+          "size": 26692,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -66654,8 +66654,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "bf8e2062c563db35a46f5ab18eba90d7e5218dbba06fbd6db574763a249d7df2",
-          "size": 19669,
+          "sha256": "0d8635c1df6990a4652bb77c407da33d291dcd64a6092cdf2c30ae7bc8d4fa15",
+          "size": 20315,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -66672,7 +66672,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "aac59ae2e2c4966b0631e459b6c794e61fc3cde14494c3397d0cc68ebb53caa7",
+          "sha256": "6d47ebb1aefe29a8ece4e5c93995711cef2ed5ad2ad448b9eb477e67e85ce945",
           "size": 1918,
           "type": "file"
         },
@@ -66722,8 +66722,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "6e850c0c279c86883f308d9d5c9de912a2985a31631d4be9123ae48960c5bb5b",
-          "size": 26003,
+          "sha256": "47ff8e4372c0e07abf79412480a3db57475d02c398dca8ecb9545a3efca1adf0",
+          "size": 26649,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -66926,8 +66926,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "d2e842f75aae6e32daeb387279aff77043c15e7c3f4828e12b2bdb95210464d5",
-          "size": 19609,
+          "sha256": "988eaf83f87bc01a288186d612cda907bb040ebd6b482e1ade97f9ca76d062d6",
+          "size": 20255,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -67180,8 +67180,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fb52832fec80030ab412fe30308be43c9969b7bf9dfca289bbc9cb8a58382e48",
-          "size": 19654,
+          "sha256": "f0cf65056a626e5300bbf70b167a16b9cbb40b939be57d10824b7bdcbb160788",
+          "size": 20300,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -67242,8 +67242,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "0846cc52d825add88e8d46ab7d2c0bab2d6c7f7f201685f6d428dd01814201e3",
-          "size": 26105,
+          "sha256": "7a5a083931c7bacd4777efbe984fb135f7aa7d9921f98692231226a8edb7a00b",
+          "size": 26751,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -67446,8 +67446,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "e0bd3a652a526c6aeefbaa459956f61f593e6c0c5592aac96df696f98e5b47e5",
-          "size": 19758,
+          "sha256": "b833f28ec4087db56cceb267a9340633c55ba779ae39bb8524932fba0faacb14",
+          "size": 20404,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -67640,8 +67640,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -67690,8 +67690,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -67878,7 +67878,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -68013,7 +68013,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -68156,8 +68156,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "4a256778d36791850f21ebf2cd32c81307021c9cc4cc2ab24b595f357745c042",
-          "size": 28246,
+          "sha256": "8455dba5821f3981c67c90ed4445a82bcfa7038105eca7393920b69f6c483876",
+          "size": 28892,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -68366,8 +68366,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "ed58af489cdf3a8ba2f2ec068b0d8294d43c1e85f480cdb744ffc83f75af0df6",
-          "size": 19572,
+          "sha256": "c1efda71dded77e876b3eda76b35689fd5a9c521d2636a89c18c385cd66c95be",
+          "size": 20218,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -68482,8 +68482,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "72103e2c9bdaee60ac0c9d60f3d1f196da636b12cdb50f62b2196e251606a4d8",
-          "size": 28366,
+          "sha256": "3e0408df8d96fe3e0d36c0eda10194838c4372790de72053c88c53398d976bfd",
+          "size": 29012,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -68692,8 +68692,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "bf8e2062c563db35a46f5ab18eba90d7e5218dbba06fbd6db574763a249d7df2",
-          "size": 19669,
+          "sha256": "0d8635c1df6990a4652bb77c407da33d291dcd64a6092cdf2c30ae7bc8d4fa15",
+          "size": 20315,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -68710,7 +68710,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1caf1577b27a0ce298e9d816b83d8477d3ae9f3245aef0f86f3438354c38f442",
+          "sha256": "8c6ef171f0592fe90335fd0a7f9999a70e87dbcca43794edda69eddf9c004c8e",
           "size": 1916,
           "type": "file"
         },
@@ -68760,8 +68760,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "0b688e15bbca33a593eb8df83a30bb62f9d7f8ca17e4257c6b13223a3e4f4f5b",
-          "size": 28324,
+          "sha256": "6fa823b05c2b52b4abdb25d5149b8f8949a8cfe90ca0d3e7f2da58da5747ff31",
+          "size": 28970,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -68970,8 +68970,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "d2e842f75aae6e32daeb387279aff77043c15e7c3f4828e12b2bdb95210464d5",
-          "size": 19609,
+          "sha256": "988eaf83f87bc01a288186d612cda907bb040ebd6b482e1ade97f9ca76d062d6",
+          "size": 20255,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -69230,8 +69230,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fb52832fec80030ab412fe30308be43c9969b7bf9dfca289bbc9cb8a58382e48",
-          "size": 19654,
+          "sha256": "f0cf65056a626e5300bbf70b167a16b9cbb40b939be57d10824b7bdcbb160788",
+          "size": 20300,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -69292,8 +69292,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "450c74595ca1c405fe1379c94d7df23264aa0351f0fa27a409f18cee6887e2da",
-          "size": 28426,
+          "sha256": "a73724adcc823b08ad54da779041df8fb407715e63440d7ce6718ca92e717279",
+          "size": 29072,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -69502,8 +69502,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "e0bd3a652a526c6aeefbaa459956f61f593e6c0c5592aac96df696f98e5b47e5",
-          "size": 19758,
+          "sha256": "b833f28ec4087db56cceb267a9340633c55ba779ae39bb8524932fba0faacb14",
+          "size": 20404,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -69696,8 +69696,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -69746,8 +69746,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -69944,7 +69944,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -70085,7 +70085,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -70229,8 +70229,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "762f031a4e763755a055704b63c9fd95c885520815627bbabe1b521f537480d5",
-          "size": 25927,
+          "sha256": "9f896ae0365fd3d436265087bb5d446c021ce5afbf6043f083d18fde5bf2de9f",
+          "size": 26573,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -70433,8 +70433,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "ee31a555f35f5452e505ac06b8c2689926adde2cb06feed9ac034a614473c1ff",
-          "size": 19559,
+          "sha256": "b6ac1c61b9ce1a49cda814acb6011a60cb691bc2972c73102f01f64c561fbee3",
+          "size": 20205,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -70549,8 +70549,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "f619a88b645b21c860fde81ea3347d3b068b0d5ede321e344b64e3336392a5ff",
-          "size": 26013,
+          "sha256": "fc80270f846472d04eb2490519e3f8af468b557b336fb9b3ee94203b27e12780",
+          "size": 26659,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -70753,8 +70753,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "9a7b35c486bda584d502db6ee2f0fb92b12420581978163f6d12c3e763c42fb5",
-          "size": 19636,
+          "sha256": "50f062599d7f7773fdb622a874e64bb96416cd38a1176bce085b9012e1d46695",
+          "size": 20282,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -70771,7 +70771,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a77e75355f292b1d0ac064c33c25f2e46d9588c5640e98b26d5777f0fc16f2d5",
+          "sha256": "8668402715665527bafd928bd199f60b6a075a1eaebe24df28a3d3d5c86452f9",
           "size": 1916,
           "type": "file"
         },
@@ -70821,8 +70821,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "1fed92e18b249bae23ea38d4286b8d8aa87f7a35108d94b7ca3f28bc36713029",
-          "size": 26009,
+          "sha256": "6baf755945cd2a23e16e79dee7f090e0ed9b3826610557cb281ee35a8b6d1dba",
+          "size": 26655,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -71025,8 +71025,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "068c0bcdad555c9d25a987eb3077ab2f5cc68e5b367322e28de102ca921114b4",
-          "size": 19615,
+          "sha256": "621033af9d28350c2661599ce44541d1a45547b23079ee18f7368abb16822ee1",
+          "size": 20261,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -71279,8 +71279,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "fb52832fec80030ab412fe30308be43c9969b7bf9dfca289bbc9cb8a58382e48",
-          "size": 19654,
+          "sha256": "f0cf65056a626e5300bbf70b167a16b9cbb40b939be57d10824b7bdcbb160788",
+          "size": 20300,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -71341,8 +71341,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "0846cc52d825add88e8d46ab7d2c0bab2d6c7f7f201685f6d428dd01814201e3",
-          "size": 26105,
+          "sha256": "7a5a083931c7bacd4777efbe984fb135f7aa7d9921f98692231226a8edb7a00b",
+          "size": 26751,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -71545,8 +71545,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "e0bd3a652a526c6aeefbaa459956f61f593e6c0c5592aac96df696f98e5b47e5",
-          "size": 19758,
+          "sha256": "b833f28ec4087db56cceb267a9340633c55ba779ae39bb8524932fba0faacb14",
+          "size": 20404,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -71739,8 +71739,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -71789,8 +71789,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -71977,7 +71977,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -72112,7 +72112,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -72255,8 +72255,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "4daefb208619df85ab41f9cd1986e44969d84429781e91599375b05c4ac2e914",
-          "size": 26878,
+          "sha256": "d4f033df4ce71cdc9ac7c7d2cfe37a1503c4f7e5b02835413d3f09db1068391b",
+          "size": 27524,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -72459,8 +72459,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "c1b5b7ac5637d48dd4f642f4056a8bd993366a1595c01c278ad47b71848aad05",
-          "size": 20449,
+          "sha256": "65e94eb320b622b557b49ba1b7bd997bb237fcf9a6dea3cadffe254d3081baaf",
+          "size": 21095,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -72575,8 +72575,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "68f9915fc656ea07a753655632c52e149cab4ed49b93f6a61f540f36e957af60",
-          "size": 26999,
+          "sha256": "748b3578d86ed77a0bcad166d1a5ffee14e1f0ce28720eba3e7088b5cbcec131",
+          "size": 27645,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -72779,8 +72779,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "6efed791f5e339e819bb537bd03cc16e55fa5e1021831049a73aac7ce6860fd5",
-          "size": 20546,
+          "sha256": "eccefdfde67103a0148e9362acc42043e7b00744e6fc6ab01f5aadf9a191f9e3",
+          "size": 21192,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -72797,7 +72797,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a3d6a4fc87ae0a8f9e4f7a8fc91ef3227d9ab7e556c6db59fb3d281fb61b67ca",
+          "sha256": "ff374d771b4629bdbea66b1c1f64837874cfc2082e14744327f007465e675770",
           "size": 1893,
           "type": "file"
         },
@@ -72847,8 +72847,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "28d118e25c20f6fb211cca6c5613ca786efeaa1a710bcbee863742e6f72d446f",
-          "size": 26956,
+          "sha256": "c1fec19e76ce965bbe2dc14f487475863aa003943c7910997ff9d4a6eb91927c",
+          "size": 27602,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -73051,8 +73051,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "afabb2915201992b7200ddb18a19c606270c3c2e9435acd4b17179ec92a971f7",
-          "size": 20486,
+          "sha256": "a47117c87b333fc152cf2df17584083698c67b91be6ba4846ea6f5da94cb0a25",
+          "size": 21132,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -73305,8 +73305,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "02531eea772ec236bc0b3d258538ae8a96d601e448ac4f017cf762c92046f98e",
-          "size": 20531,
+          "sha256": "c36ac0bbd4e971473dc91ff81ddd6bd44dab687ea7819534ace5e43a49d71690",
+          "size": 21177,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -73367,8 +73367,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "72fb47a084913cfde7839fe4b46a4e65cb3ef09350553842d1dbfed10f44e08f",
-          "size": 27058,
+          "sha256": "298016c13bfc1b215025632ca78e179d1393ddecaaa6bb19d2fe8b29badd61e4",
+          "size": 27704,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -73571,8 +73571,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "81b0bcf491015dabe17f58f9fadeab69b6e06b2be208c084c06194ddaba00f55",
-          "size": 20635,
+          "sha256": "cde806b55106f5458e1a01f0d6898a45cbb93104736b4baa8bb644c6b03be581",
+          "size": 21281,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -73765,8 +73765,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -73809,8 +73809,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "c0c16f0f5327d0b6e799175563a3c5ee785c72c90c49aace376ae2a47fa035f0",
-          "size": 25233,
+          "sha256": "ca8cf71a176425061a84b4cc6746de0f5090971d4afd4552c78b1b9969e9ecf0",
+          "size": 25926,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -73953,7 +73953,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "559b87b76159c6b58c9b02eb4a503fab2fd3546e2f00fa438e7149ff024c5bdb",
+          "sha256": "c21c163895702c7c7ee69522963320fffab39c224e7f68e8e4b0d9ec4ace28c1",
           "size": 15387,
           "type": "file"
         },
@@ -74067,7 +74067,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -74211,8 +74211,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "9ed4e9918998ebf76c537701a04c66b8e0b5b4262ed1c6c18e39a86ab08e99ca",
-          "size": 25925,
+          "sha256": "ce665ee3bb6f53b5db2a01416ded381f3b29730519ede9cb6494a52515374be8",
+          "size": 26571,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -74415,8 +74415,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "46c214cbc211ce07c5529d5fc839537eb716abdf5e30f1e6fb30f1cd97cd7a23",
-          "size": 19448,
+          "sha256": "069aa512c01a2ce77c01e23a5e46ac6a9f06075d1ca511dca93385fcdd3c0965",
+          "size": 20094,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -74531,8 +74531,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "7c20a696ee3409fb7b3b494b550896199cda25a83435636fb390973e45b7bda5",
-          "size": 26046,
+          "sha256": "4e40d64f93340dc0fb5a85363236b28066773e1aab5ad4f6edbb21e3d3a85afb",
+          "size": 26692,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -74735,8 +74735,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "fcd3922bb38e568856fd34839e54d33bce2525b9b3ece5b3a97abe8024b4a3a4",
-          "size": 19545,
+          "sha256": "a3295b75539d979076343e16850d5457a105f349007e5b6195aea432a8e84b86",
+          "size": 20191,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -74753,7 +74753,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "4f03202f028edf784f5bbb45cc9a4bcacf1f26e76de08297572bc5139a54ba07",
+          "sha256": "8c427368a0110818e6b96041ee3c8361aad59efc5e842a792ee338017de4b8e5",
           "size": 1935,
           "type": "file"
         },
@@ -74803,8 +74803,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "6e850c0c279c86883f308d9d5c9de912a2985a31631d4be9123ae48960c5bb5b",
-          "size": 26003,
+          "sha256": "47ff8e4372c0e07abf79412480a3db57475d02c398dca8ecb9545a3efca1adf0",
+          "size": 26649,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -75007,8 +75007,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "c8c3b40001359bb7cfedca19e8d930079d18269075f4021cdfae668b87aafbb9",
-          "size": 19485,
+          "sha256": "74299cfd11b276fb52d697d2dad119136d2c75b81413aed0b23addc111238566",
+          "size": 20131,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -75261,8 +75261,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "67e9d4ecbadf1c6e58d4ce51bb473742f9f9a680a439a536f69c99993bac8aba",
-          "size": 19530,
+          "sha256": "854ac297f1504288ec069b9fea9a57dd765ff30e19c1f69062a8ac59b4a4b221",
+          "size": 20176,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -75323,8 +75323,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "0846cc52d825add88e8d46ab7d2c0bab2d6c7f7f201685f6d428dd01814201e3",
-          "size": 26105,
+          "sha256": "7a5a083931c7bacd4777efbe984fb135f7aa7d9921f98692231226a8edb7a00b",
+          "size": 26751,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -75527,8 +75527,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "9dde28992ef2525c1c8b0fb2b2e1df52540403cfae7ef727a4530878cab7f683",
-          "size": 19634,
+          "sha256": "1dd65570aa9b1048ef2046d1995d3269d140013b0cfa59f559b8fa9c410d012f",
+          "size": 20280,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -75721,8 +75721,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -75771,8 +75771,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -75951,7 +75951,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -76086,7 +76086,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -76466,7 +76466,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8f9071456d57aaed2fb8e392be331299a7e70023efead5dfdf3332803d5dc3d7",
+          "sha256": "746daf179070d0d60d7834a2ec3ed32b96b7187386f480b9ff62e61284f5dfbc",
           "size": 1791,
           "type": "file"
         },
@@ -77026,8 +77026,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -77200,7 +77200,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -77612,7 +77612,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e79d7e1dd2c65defbe13380412f6e60503bf2755263cb506e858a7de7dd3f126",
+          "sha256": "c8a6aae2c9fbdfc4f96ae21879d1ad20c350f14c682ad88d6b6aca4ef0c07b71",
           "size": 1900,
           "type": "file"
         },
@@ -78172,8 +78172,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -78356,7 +78356,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -78684,8 +78684,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "7e3affb649825cf45c6b9642aee7367084b06cd4162f9e5ffb8afab43b6b75f2",
-          "size": 19499,
+          "sha256": "20a25f109c048c12edb03ff1ba173e13ae96213c09cb1bc228381c1a0026b6a7",
+          "size": 20145,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -78996,8 +78996,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a5b7405ac86bd8bcf5eabab41b9fd6ff61cc058f7d3bd28a3cf81bcae52302e4",
-          "size": 19596,
+          "sha256": "554de4bb30f36f57653f944e66310f9b19b3cf354a8fea4ba07e19bd9dc29bd5",
+          "size": 20242,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -79014,7 +79014,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "eb8614e1b69ec33d8afc6d78c3699d42955429c55272bfeb003163b7641deee3",
+          "sha256": "e5d54fde57cc02b12b11a70aaf80f7565f304e872f248459c7a3b0ba463932f6",
           "size": 1857,
           "type": "file"
         },
@@ -79250,8 +79250,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "c1c6cc069016650b891525616013d51e5f95105bb6dd4e9c44e5a2531fa8aab8",
-          "size": 19536,
+          "sha256": "02c0b224dfc16676b10344be53c67e9b4758d1f20424a24c6b8857e0073562fe",
+          "size": 20182,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -79504,8 +79504,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "cb29e86d8ddd8e9b1ae1c9398daed32ec69e8a7aabf91c0b1561828539736624",
-          "size": 19581,
+          "sha256": "1d9f8dca9d01e64efbb3a9a03ec4a96cdef06bd190bfcdc20a2ec6a74e5a0c1c",
+          "size": 20227,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -79752,8 +79752,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "48734f16379c1cf3ba8c4c9225d7a916cf5b1cbf726feff90a6bd999f6945f6d",
-          "size": 19685,
+          "sha256": "d54b8b7d70675090f83f6490a5898ddee5c5d68723db3a3fe6da9a53fcd0621e",
+          "size": 20331,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -79956,8 +79956,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -80022,8 +80022,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -80190,7 +80190,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -80323,7 +80323,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -80761,8 +80761,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "2800872bb38d6f6937ea97c101b898a821e053b76e328ef6cd69026a1ffe2769",
-          "size": 36488,
+          "sha256": "a6b71fb8ba16a8756f56629ee1526981b2083026ae269e1e4aee961ad2c71d14",
+          "size": 37193,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -80779,8 +80779,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "f1994e34021c199754cef27fc6c8cec889918c527befac22fe7790de049318b5",
-          "size": 25925,
+          "sha256": "cccdda98479807a9d0e52b904e32fc4962d95025c584186c9d7b913944e4ac9e",
+          "size": 26571,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -81007,8 +81007,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "7e3affb649825cf45c6b9642aee7367084b06cd4162f9e5ffb8afab43b6b75f2",
-          "size": 19499,
+          "sha256": "20a25f109c048c12edb03ff1ba173e13ae96213c09cb1bc228381c1a0026b6a7",
+          "size": 20145,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -81409,8 +81409,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "40ae4892de2f639997451709a162fdf7f3dbe72abf6114fe3a040e284dcfee07",
-          "size": 36588,
+          "sha256": "78d024687d85e78bf3b295b89f8ff528037238de53cf1e1c00b4f16a4264d082",
+          "size": 37293,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -81427,8 +81427,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "49c0e4e0d7781fd5b181bf7e3c53eb32e98ad2b528d360a0cacc4de34bfdd5bb",
-          "size": 26046,
+          "sha256": "2ab7e8e6faacac611bcaada0d52e015f4af78ab243bda04cc739ca022a082f44",
+          "size": 26692,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -81655,8 +81655,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a5b7405ac86bd8bcf5eabab41b9fd6ff61cc058f7d3bd28a3cf81bcae52302e4",
-          "size": 19596,
+          "sha256": "554de4bb30f36f57653f944e66310f9b19b3cf354a8fea4ba07e19bd9dc29bd5",
+          "size": 20242,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -81673,7 +81673,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "475acc38a45866b2ea99b091683bc47cbf30bae210b3830ae21516018ecc4d9e",
+          "sha256": "84444b03ae2bffd1749c85452a3b5d789b9736b098a0b5fe35c193911f9905aa",
           "size": 3115,
           "type": "file"
         },
@@ -81729,8 +81729,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f8924d474c1c791367f75a165e5a270844117477df27a2e0558e9f4d98e6a052",
-          "size": 36520,
+          "sha256": "2ae07fd12276ae4d762882db88ef31e6dc15db133ffca8a7b5a3c9664373acc2",
+          "size": 37225,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -81747,8 +81747,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "09bd209032550deb30e7c6d078d8b99c9c992cf97846ee2d6a6767cbeeb02adc",
-          "size": 26003,
+          "sha256": "c3e91e2b997517737dfee154de23575b731328a6d3a73c8ff790ffaab43b2201",
+          "size": 26649,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -81975,8 +81975,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "c1c6cc069016650b891525616013d51e5f95105bb6dd4e9c44e5a2531fa8aab8",
-          "size": 19536,
+          "sha256": "02c0b224dfc16676b10344be53c67e9b4758d1f20424a24c6b8857e0073562fe",
+          "size": 20182,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -82229,8 +82229,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "cb29e86d8ddd8e9b1ae1c9398daed32ec69e8a7aabf91c0b1561828539736624",
-          "size": 19581,
+          "sha256": "1d9f8dca9d01e64efbb3a9a03ec4a96cdef06bd190bfcdc20a2ec6a74e5a0c1c",
+          "size": 20227,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -82297,8 +82297,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "063354a66cd74e7518006073bd252d79e2a7fa3f3fa8660041e9eab2413b2785",
-          "size": 36722,
+          "sha256": "6b52d6413d18e57bd13c30b4e98614da5fba8ba46a9f427e332638a267086d02",
+          "size": 37427,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -82315,8 +82315,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "4ff0f655fa13f3c3b66c21d96503ef24fa6d60660c364a180ca2486c236d7bf5",
-          "size": 26105,
+          "sha256": "45d557f63ab7f0458ae3d8a5a50199a15e354a964b9a195b76e69f7e8c8ec431",
+          "size": 26751,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -82543,8 +82543,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "48734f16379c1cf3ba8c4c9225d7a916cf5b1cbf726feff90a6bd999f6945f6d",
-          "size": 19685,
+          "sha256": "d54b8b7d70675090f83f6490a5898ddee5c5d68723db3a3fe6da9a53fcd0621e",
+          "size": 20331,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -82855,8 +82855,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -82991,8 +82991,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -83193,7 +83193,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -83359,7 +83359,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -83779,8 +83779,8 @@
         },
         ".claude/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "2800872bb38d6f6937ea97c101b898a821e053b76e328ef6cd69026a1ffe2769",
-          "size": 36488,
+          "sha256": "a6b71fb8ba16a8756f56629ee1526981b2083026ae269e1e4aee961ad2c71d14",
+          "size": 37193,
           "type": "file"
         },
         ".claude/agents/empirics-auditor.md": {
@@ -84007,8 +84007,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "7e3affb649825cf45c6b9642aee7367084b06cd4162f9e5ffb8afab43b6b75f2",
-          "size": 19499,
+          "sha256": "20a25f109c048c12edb03ff1ba173e13ae96213c09cb1bc228381c1a0026b6a7",
+          "size": 20145,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -84399,8 +84399,8 @@
         },
         ".codex/agents/empiricist.toml": {
           "mode": "0644",
-          "sha256": "40ae4892de2f639997451709a162fdf7f3dbe72abf6114fe3a040e284dcfee07",
-          "size": 36588,
+          "sha256": "78d024687d85e78bf3b295b89f8ff528037238de53cf1e1c00b4f16a4264d082",
+          "size": 37293,
           "type": "file"
         },
         ".codex/agents/empirics-auditor.toml": {
@@ -84627,8 +84627,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a5b7405ac86bd8bcf5eabab41b9fd6ff61cc058f7d3bd28a3cf81bcae52302e4",
-          "size": 19596,
+          "sha256": "554de4bb30f36f57653f944e66310f9b19b3cf354a8fea4ba07e19bd9dc29bd5",
+          "size": 20242,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -84645,7 +84645,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e2fe40f72524cff0f2f79afc6c40d8d378d419665624ebd0a05711f76113e8cd",
+          "sha256": "f03a614bd7f7168bac2b8a25027020b69617a325fb10ea7fcc9122721775df0b",
           "size": 3008,
           "type": "file"
         },
@@ -84701,8 +84701,8 @@
         },
         ".gemini/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "f8924d474c1c791367f75a165e5a270844117477df27a2e0558e9f4d98e6a052",
-          "size": 36520,
+          "sha256": "2ae07fd12276ae4d762882db88ef31e6dc15db133ffca8a7b5a3c9664373acc2",
+          "size": 37225,
           "type": "file"
         },
         ".gemini/agents/empirics-auditor.md": {
@@ -84929,8 +84929,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "c1c6cc069016650b891525616013d51e5f95105bb6dd4e9c44e5a2531fa8aab8",
-          "size": 19536,
+          "sha256": "02c0b224dfc16676b10344be53c67e9b4758d1f20424a24c6b8857e0073562fe",
+          "size": 20182,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -85183,8 +85183,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "cb29e86d8ddd8e9b1ae1c9398daed32ec69e8a7aabf91c0b1561828539736624",
-          "size": 19581,
+          "sha256": "1d9f8dca9d01e64efbb3a9a03ec4a96cdef06bd190bfcdc20a2ec6a74e5a0c1c",
+          "size": 20227,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -85251,8 +85251,8 @@
         },
         ".opencode/agents/empiricist.md": {
           "mode": "0644",
-          "sha256": "063354a66cd74e7518006073bd252d79e2a7fa3f3fa8660041e9eab2413b2785",
-          "size": 36722,
+          "sha256": "6b52d6413d18e57bd13c30b4e98614da5fba8ba46a9f427e332638a267086d02",
+          "size": 37427,
           "type": "file"
         },
         ".opencode/agents/empirics-auditor.md": {
@@ -85479,8 +85479,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "48734f16379c1cf3ba8c4c9225d7a916cf5b1cbf726feff90a6bd999f6945f6d",
-          "size": 19685,
+          "sha256": "d54b8b7d70675090f83f6490a5898ddee5c5d68723db3a3fe6da9a53fcd0621e",
+          "size": 20331,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -85791,8 +85791,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -85927,8 +85927,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -86109,7 +86109,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -86272,7 +86272,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -86692,7 +86692,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "32547637ff72e9f79e9728d9cb9fd99de013adb30fcf4565193c442dcd7cc424",
+          "sha256": "2ebaf2ae1a0022ef908c5b32fef3ffb50bc24999e00bbbe0390f195b88168ee1",
           "size": 1839,
           "type": "file"
         },
@@ -87262,8 +87262,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -87454,7 +87454,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -88434,7 +88434,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a68d9565ed2b024f2e40babbf217bb4f4a149207a9a827bc4cb6c82b7d0cce16",
+          "sha256": "6c76509172763795285baa94c95c0e8f66d5663f1ce31e7705581d327f5f1a6d",
           "size": 3097,
           "type": "file"
         },
@@ -89112,8 +89112,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -89413,7 +89413,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -90365,7 +90365,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0c76d7ad696f998548b797f77755289fe30a4d717d5fa0128bfbf6945b4c3441",
+          "sha256": "cd3d0f4be815b2fef2717f07af54f32c235d597d0f1849909f116f8379516afa",
           "size": 2990,
           "type": "file"
         },
@@ -91043,8 +91043,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -91335,7 +91335,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -91787,7 +91787,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d662e3e7ece93b11df67c3301d5aae8fc3991733eb801b5684a70eadd8e738f4",
+          "sha256": "c1c6f3c39d9b4bf86bdb8a3ec152a641ea4157a956f3423a2af21f3e5cce00db",
           "size": 1948,
           "type": "file"
         },
@@ -92357,8 +92357,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -92559,7 +92559,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -92723,8 +92723,8 @@
         },
         ".claude/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "f1994e34021c199754cef27fc6c8cec889918c527befac22fe7790de049318b5",
-          "size": 25925,
+          "sha256": "cccdda98479807a9d0e52b904e32fc4962d95025c584186c9d7b913944e4ac9e",
+          "size": 26571,
           "type": "file"
         },
         ".claude/agents/experiment-reviewer.md": {
@@ -92927,8 +92927,8 @@
         },
         ".claude/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "7e3affb649825cf45c6b9642aee7367084b06cd4162f9e5ffb8afab43b6b75f2",
-          "size": 19499,
+          "sha256": "20a25f109c048c12edb03ff1ba173e13ae96213c09cb1bc228381c1a0026b6a7",
+          "size": 20145,
           "type": "file"
         },
         ".claude/agents/theory-generator.md": {
@@ -93063,8 +93063,8 @@
         },
         ".codex/agents/experiment-designer.toml": {
           "mode": "0644",
-          "sha256": "49c0e4e0d7781fd5b181bf7e3c53eb32e98ad2b528d360a0cacc4de34bfdd5bb",
-          "size": 26046,
+          "sha256": "2ab7e8e6faacac611bcaada0d52e015f4af78ab243bda04cc739ca022a082f44",
+          "size": 26692,
           "type": "file"
         },
         ".codex/agents/experiment-reviewer.toml": {
@@ -93267,8 +93267,8 @@
         },
         ".codex/agents/theory-explorer.toml": {
           "mode": "0644",
-          "sha256": "a5b7405ac86bd8bcf5eabab41b9fd6ff61cc058f7d3bd28a3cf81bcae52302e4",
-          "size": 19596,
+          "sha256": "554de4bb30f36f57653f944e66310f9b19b3cf354a8fea4ba07e19bd9dc29bd5",
+          "size": 20242,
           "type": "file"
         },
         ".codex/agents/theory-generator.toml": {
@@ -93285,7 +93285,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "62e5ec1d446173663de636a0f7cb6f15b45f57c9de0bfe6415421b2e20698c73",
+          "sha256": "f2508c0c089b69c28539eb00e591deff0bd46357ed1fdecda35d3f86133bb0c9",
           "size": 1966,
           "type": "file"
         },
@@ -93335,8 +93335,8 @@
         },
         ".gemini/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "09bd209032550deb30e7c6d078d8b99c9c992cf97846ee2d6a6767cbeeb02adc",
-          "size": 26003,
+          "sha256": "c3e91e2b997517737dfee154de23575b731328a6d3a73c8ff790ffaab43b2201",
+          "size": 26649,
           "type": "file"
         },
         ".gemini/agents/experiment-reviewer.md": {
@@ -93539,8 +93539,8 @@
         },
         ".gemini/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "c1c6cc069016650b891525616013d51e5f95105bb6dd4e9c44e5a2531fa8aab8",
-          "size": 19536,
+          "sha256": "02c0b224dfc16676b10344be53c67e9b4758d1f20424a24c6b8857e0073562fe",
+          "size": 20182,
           "type": "file"
         },
         ".gemini/agents/theory-generator.md": {
@@ -93793,8 +93793,8 @@
         },
         ".grok/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "cb29e86d8ddd8e9b1ae1c9398daed32ec69e8a7aabf91c0b1561828539736624",
-          "size": 19581,
+          "sha256": "1d9f8dca9d01e64efbb3a9a03ec4a96cdef06bd190bfcdc20a2ec6a74e5a0c1c",
+          "size": 20227,
           "type": "file"
         },
         ".grok/agents/theory-generator.md": {
@@ -93855,8 +93855,8 @@
         },
         ".opencode/agents/experiment-designer.md": {
           "mode": "0644",
-          "sha256": "4ff0f655fa13f3c3b66c21d96503ef24fa6d60660c364a180ca2486c236d7bf5",
-          "size": 26105,
+          "sha256": "45d557f63ab7f0458ae3d8a5a50199a15e354a964b9a195b76e69f7e8c8ec431",
+          "size": 26751,
           "type": "file"
         },
         ".opencode/agents/experiment-reviewer.md": {
@@ -94059,8 +94059,8 @@
         },
         ".opencode/agents/theory-explorer.md": {
           "mode": "0644",
-          "sha256": "48734f16379c1cf3ba8c4c9225d7a916cf5b1cbf726feff90a6bd999f6945f6d",
-          "size": 19685,
+          "sha256": "d54b8b7d70675090f83f6490a5898ddee5c5d68723db3a3fe6da9a53fcd0621e",
+          "size": 20331,
           "type": "file"
         },
         ".opencode/agents/theory-generator.md": {
@@ -94263,8 +94263,8 @@
         },
         "code/utils/results_pipeline/results_pipeline.py": {
           "mode": "0755",
-          "sha256": "06371154e75257b892123c57b394c9e16c9ca9f177af901477805a4264adba83",
-          "size": 402746,
+          "sha256": "416d0f911c7f89a654a7c467c574419270a6f6a8e708931cdf51e323e1986059",
+          "size": 406349,
           "type": "file"
         },
         "code/utils/results_pipeline/run-plan-v1.schema.json": {
@@ -94329,8 +94329,8 @@
         },
         "docs/results_evidence.md": {
           "mode": "0644",
-          "sha256": "d7c113590c52adbe5abf0a2db6a4e70684aad803d595aa1058f8c5ff089f25b1",
-          "size": 24884,
+          "sha256": "a9fdf6565298befe728fd46e6c303a8b03e427b3574c1dbb9ed74401f3623a1e",
+          "size": 25577,
           "type": "file"
         },
         "docs/stage_0.md": {
@@ -94517,7 +94517,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "83518ba733ff5176d6cf921f8bbd513a5516c4cd63a23766efa2c629bea53aaf",
+          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
           "size": 15378,
           "type": "file"
         },
@@ -94654,7 +94654,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.31.0+<GIT_REVISION>",
+        "template_version": "2.32.1+<GIT_REVISION>",
         "variant": "macro"
       }
     }
