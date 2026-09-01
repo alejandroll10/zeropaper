@@ -120,8 +120,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -432,8 +432,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -654,7 +654,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0d0fdb3d80629e6999383b43524fa566daec4ffcc5e5b900b9695850df647585",
+          "sha256": "3bceabae7f234f5c3fb626bd204f79611ec13fb88149c7755bce58eeb3883a65",
           "size": 1859,
           "type": "file"
         },
@@ -686,8 +686,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -940,8 +940,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -1188,8 +1188,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -1830,7 +1830,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -1963,7 +1963,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -2389,8 +2389,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -3037,8 +3037,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -3313,7 +3313,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1c0f2d5a654960d325a12619674b6a4e5b6009feab9140484170d14fa06a7a22",
+          "sha256": "8024ffda0967378fa028f5c6481c4ca52cca3de8befd9438e26e4ff3e14ce908",
           "size": 3117,
           "type": "file"
         },
@@ -3357,8 +3357,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -3665,8 +3665,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -3925,8 +3925,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -4833,7 +4833,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -4999,7 +4999,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -5425,8 +5425,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -6073,8 +6073,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -6349,7 +6349,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ae726fcf79f38abe40bcc0e4c7036e0d059b18278aa01ee493a197ee8597183b",
+          "sha256": "2935bcac119e4975dc9e9ab01f52a62fbc1fa5418ebeb1594b3be194f4d80773",
           "size": 3117,
           "type": "file"
         },
@@ -6393,8 +6393,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -6701,8 +6701,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -6961,8 +6961,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -7869,7 +7869,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -8035,7 +8035,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -8449,8 +8449,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -9069,8 +9069,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -9321,7 +9321,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ba4c0898a46e2c85d2f10bb2780325ac5b463726efd0230b03b0489145cc4897",
+          "sha256": "edcad51db81a4d73e83c066e2d3c3d0a2010c0f13dd198a9b4c8562785414a42",
           "size": 3020,
           "type": "file"
         },
@@ -9371,8 +9371,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -9655,8 +9655,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -9921,8 +9921,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -10781,7 +10781,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -10944,7 +10944,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -11361,8 +11361,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "0bb0951466f27c62fa90eb619c7ab439a4bfb6b82252d0956d49f6e4e0e86a00",
-          "size": 9168,
+          "sha256": "fb543f34e875d2a318f097f99cac33b20ac9c26522fc8f4c4593ce9bc841a0f2",
+          "size": 9561,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -11987,8 +11987,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "d31ef278c4f869706ff9eabf7d41bb7c1291ac94574b21662c595b5dec3af290",
-          "size": 9268,
+          "sha256": "558d56a835613544f46f17d9afe2800aa501ed5ca90bba76d355ed492f7a50fa",
+          "size": 9661,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -12245,7 +12245,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "36af13213c1e173c5e9016eb0e383fbd35834b5a22b3c04e468e8bde3f7967c8",
+          "sha256": "94dfc8c41f124102a438644324e693e0febf52e386f67499dfac3fdf5e79e388",
           "size": 3016,
           "type": "file"
         },
@@ -12295,8 +12295,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "4a09cb7233b04cfa726523adec07f135e1ca9fd3a5816843187524ebf83e57f2",
-          "size": 9237,
+          "sha256": "0b80faa122b8727219f46f8a0a36c45ac93982c04f6d6890284f8cf886958797",
+          "size": 9630,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -12585,8 +12585,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -12857,8 +12857,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -13733,7 +13733,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -13902,7 +13902,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -14317,8 +14317,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -14937,8 +14937,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -15189,7 +15189,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1e07a65cc1d4ad2d1cfcd94bdb66eda9add771dcf8acfe344136c82d94e5cc7c",
+          "sha256": "45e378590814fd790f04a5ac07f9ef92ba9fc493de2340375f19ec322771b8cd",
           "size": 2995,
           "type": "file"
         },
@@ -15239,8 +15239,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -15523,8 +15523,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -15789,8 +15789,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -16603,7 +16603,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "c21c163895702c7c7ee69522963320fffab39c224e7f68e8e4b0d9ec4ace28c1",
+          "sha256": "faaa118dc4f92321ef389b96c3741ade6f95b6efd1dccad69c65df7c4f19fb5d",
           "size": 15387,
           "type": "file"
         },
@@ -16745,7 +16745,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -17160,8 +17160,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -17780,8 +17780,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -18032,7 +18032,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "38adad5a4e27dbe42e9731fc160ac7908e012161fed882a1696ec0a5c3df31c1",
+          "sha256": "bf32a84bb880568a9b920e1823f23d333b6e4f203a05a03c334b08117bf02978",
           "size": 3019,
           "type": "file"
         },
@@ -18082,8 +18082,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -18366,8 +18366,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -18632,8 +18632,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -19502,7 +19502,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -19665,7 +19665,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -19786,8 +19786,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -20098,8 +20098,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -20320,7 +20320,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0d0fdb3d80629e6999383b43524fa566daec4ffcc5e5b900b9695850df647585",
+          "sha256": "3bceabae7f234f5c3fb626bd204f79611ec13fb88149c7755bce58eeb3883a65",
           "size": 1859,
           "type": "file"
         },
@@ -20352,8 +20352,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -20606,8 +20606,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -20854,8 +20854,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -21496,7 +21496,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -21629,7 +21629,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -22058,8 +22058,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -22706,8 +22706,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -22982,7 +22982,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1c0f2d5a654960d325a12619674b6a4e5b6009feab9140484170d14fa06a7a22",
+          "sha256": "8024ffda0967378fa028f5c6481c4ca52cca3de8befd9438e26e4ff3e14ce908",
           "size": 3117,
           "type": "file"
         },
@@ -23026,8 +23026,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -23334,8 +23334,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -23594,8 +23594,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -24502,7 +24502,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -24668,7 +24668,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -25076,8 +25076,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -25696,8 +25696,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -25954,7 +25954,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "53bfb0fe1d2b035838fbfb9f0da368bad6c5112d10d4a9a9bf4c25e829c4c486",
+          "sha256": "fd4e1146bcb424b1f6ce6281d456eae6ae3a46f9ed36c2810bb6f40d1cf32da6",
           "size": 3010,
           "type": "file"
         },
@@ -25998,8 +25998,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -26288,8 +26288,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -26548,8 +26548,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -27418,7 +27418,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -27581,7 +27581,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -27989,8 +27989,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -28615,8 +28615,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -28879,7 +28879,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c5bc8a6f5e9d05227b9c0687e8a073c4d6b26bcc2cf66946ab4d895b0dbd5463",
+          "sha256": "95ce378f4315a2c00b8ce2414ea61f68b8bf8522c8843793ef0ae4883ce22f3e",
           "size": 3025,
           "type": "file"
         },
@@ -28923,8 +28923,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -29219,8 +29219,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -29479,8 +29479,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -30347,7 +30347,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -30510,7 +30510,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -30936,8 +30936,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -31590,8 +31590,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -31872,7 +31872,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ab1c58a26c05f7670ab153cd00c84ebad6cd658d771e93bdffe4755cabc2a7a7",
+          "sha256": "3e0f7bdc47aa32c742b97350da2ae281e2dfe70d0e5227bc388256162af802f0",
           "size": 3132,
           "type": "file"
         },
@@ -31916,8 +31916,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -32230,8 +32230,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -32490,8 +32490,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -33396,7 +33396,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -33562,7 +33562,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -33687,8 +33687,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -33999,8 +33999,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -34221,7 +34221,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0d0fdb3d80629e6999383b43524fa566daec4ffcc5e5b900b9695850df647585",
+          "sha256": "3bceabae7f234f5c3fb626bd204f79611ec13fb88149c7755bce58eeb3883a65",
           "size": 1859,
           "type": "file"
         },
@@ -34253,8 +34253,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -34507,8 +34507,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -34755,8 +34755,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -35397,7 +35397,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -35530,7 +35530,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -35941,8 +35941,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "0bb0951466f27c62fa90eb619c7ab439a4bfb6b82252d0956d49f6e4e0e86a00",
-          "size": 9168,
+          "sha256": "fb543f34e875d2a318f097f99cac33b20ac9c26522fc8f4c4593ce9bc841a0f2",
+          "size": 9561,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -36567,8 +36567,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "d31ef278c4f869706ff9eabf7d41bb7c1291ac94574b21662c595b5dec3af290",
-          "size": 9268,
+          "sha256": "558d56a835613544f46f17d9afe2800aa501ed5ca90bba76d355ed492f7a50fa",
+          "size": 9661,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -36831,7 +36831,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "873e082c14bfb78183fc0a904d4548502aa179ebde86555eecbf6d17f21eb4a6",
+          "sha256": "ab8ac8848e34c5d0f8673769e58e83b5bbf55b0772ac466dbcd9575d5b04ddde",
           "size": 3006,
           "type": "file"
         },
@@ -36875,8 +36875,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "4a09cb7233b04cfa726523adec07f135e1ca9fd3a5816843187524ebf83e57f2",
-          "size": 9237,
+          "sha256": "0b80faa122b8727219f46f8a0a36c45ac93982c04f6d6890284f8cf886958797",
+          "size": 9630,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -37171,8 +37171,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -37437,8 +37437,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -38323,7 +38323,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -38492,7 +38492,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -38617,8 +38617,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -38929,8 +38929,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -39151,7 +39151,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "4826424a43897f345b007c9214be56ece9a7973e4334c8d70c9ddaabbe6636c1",
+          "sha256": "108795eb4ede0a0adfe1220d8c8a5d9b4937de3a2bd7ef9908562ee6f70f983f",
           "size": 1858,
           "type": "file"
         },
@@ -39183,8 +39183,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -39437,8 +39437,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -39685,8 +39685,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -40327,7 +40327,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -40460,7 +40460,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -40605,8 +40605,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -40945,8 +40945,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -41185,7 +41185,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "788ac999a788e04bf190e3ad6fb61a27c4fb50da3f16e7ea5092203e9c621231",
+          "sha256": "062cc069309b71df5cec073b793e8d893b18e18c0e24a6de093c4d351bb10dfc",
           "size": 1968,
           "type": "file"
         },
@@ -41217,8 +41217,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -41489,8 +41489,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -41737,8 +41737,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -42417,7 +42417,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -42554,7 +42554,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -42698,8 +42698,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -43038,8 +43038,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -43278,7 +43278,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "788ac999a788e04bf190e3ad6fb61a27c4fb50da3f16e7ea5092203e9c621231",
+          "sha256": "062cc069309b71df5cec073b793e8d893b18e18c0e24a6de093c4d351bb10dfc",
           "size": 1968,
           "type": "file"
         },
@@ -43310,8 +43310,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -43582,8 +43582,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -43830,8 +43830,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -44510,7 +44510,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -44647,7 +44647,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -44772,8 +44772,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "0bb0951466f27c62fa90eb619c7ab439a4bfb6b82252d0956d49f6e4e0e86a00",
-          "size": 9168,
+          "sha256": "fb543f34e875d2a318f097f99cac33b20ac9c26522fc8f4c4593ce9bc841a0f2",
+          "size": 9561,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -45084,8 +45084,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "d31ef278c4f869706ff9eabf7d41bb7c1291ac94574b21662c595b5dec3af290",
-          "size": 9268,
+          "sha256": "558d56a835613544f46f17d9afe2800aa501ed5ca90bba76d355ed492f7a50fa",
+          "size": 9661,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -45306,7 +45306,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "adf44e63dd0994e4b56f3d3e85636951e78ea5164194c3b073f29c4e27098c7b",
+          "sha256": "d44658dc470c449a9f2ccf4b2301b39551da90033e55ff53c871d55d82717217",
           "size": 1858,
           "type": "file"
         },
@@ -45338,8 +45338,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "4a09cb7233b04cfa726523adec07f135e1ca9fd3a5816843187524ebf83e57f2",
-          "size": 9237,
+          "sha256": "0b80faa122b8727219f46f8a0a36c45ac93982c04f6d6890284f8cf886958797",
+          "size": 9630,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -45592,8 +45592,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -45840,8 +45840,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -46482,7 +46482,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -46615,7 +46615,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -47042,8 +47042,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -47690,8 +47690,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -47966,7 +47966,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f421de63fca93dc2be95b195bfbad2e268ea4c1fccc79162263ea4fb36a45b5f",
+          "sha256": "a00a028d1fd11e51a35f703ef8a2211bf113a95a9ea4616d28bfb1365bca457b",
           "size": 3092,
           "type": "file"
         },
@@ -48010,8 +48010,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -48318,8 +48318,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -48578,8 +48578,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -49428,7 +49428,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "c21c163895702c7c7ee69522963320fffab39c224e7f68e8e4b0d9ec4ace28c1",
+          "sha256": "faaa118dc4f92321ef389b96c3741ade6f95b6efd1dccad69c65df7c4f19fb5d",
           "size": 15387,
           "type": "file"
         },
@@ -49573,7 +49573,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -49693,8 +49693,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -49885,8 +49885,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -49993,7 +49993,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e537182a0197ad7ba58b4151773ba0c2c2be8d8696951c22647b28804b90bb97",
+          "sha256": "1f14b85f2af37700cc77da9f0b14747892b925ddb630012fd4828baf26bd3899",
           "size": 1841,
           "type": "file"
         },
@@ -50019,8 +50019,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -50153,8 +50153,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -50281,8 +50281,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -50755,7 +50755,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -51165,8 +51165,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -51627,8 +51627,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -51735,7 +51735,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "967ee57d1298753042bc26f9d9aa259d8a36a73694c1c99bec3586b03553577a",
+          "sha256": "377745d35a52f1a1c984daf29703a0b4b27bb161b3fe716278cc50b8a29cbc9a",
           "size": 3099,
           "type": "file"
         },
@@ -51761,8 +51761,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -51895,8 +51895,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -52023,8 +52023,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -52714,7 +52714,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -53124,8 +53124,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -53586,8 +53586,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -53694,7 +53694,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5fa1ed76f40feb5137b3cdf3fe618abfce6e20760baa819f9c50b53323c5aab2",
+          "sha256": "a594eee772f7676ccda28695b0b34ff349e9b2903bf86d6fd0469fc7dfc3aaee",
           "size": 3099,
           "type": "file"
         },
@@ -53720,8 +53720,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -53854,8 +53854,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -53982,8 +53982,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -54673,7 +54673,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -55065,8 +55065,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -55517,8 +55517,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -55625,7 +55625,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d5eda4c5b1d78954db71fb58f7b64cf8f74c71b2ba92e54b79f00f86ddb4d3e3",
+          "sha256": "564b44ad341cc07136fc633c73d8dc7b7143b706fe557de94c071f8be83ce1d5",
           "size": 2992,
           "type": "file"
         },
@@ -55651,8 +55651,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -55785,8 +55785,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -55913,8 +55913,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -56595,7 +56595,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -56716,8 +56716,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "0bb0951466f27c62fa90eb619c7ab439a4bfb6b82252d0956d49f6e4e0e86a00",
-          "size": 9168,
+          "sha256": "fb543f34e875d2a318f097f99cac33b20ac9c26522fc8f4c4593ce9bc841a0f2",
+          "size": 9561,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -56908,8 +56908,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "d31ef278c4f869706ff9eabf7d41bb7c1291ac94574b21662c595b5dec3af290",
-          "size": 9268,
+          "sha256": "558d56a835613544f46f17d9afe2800aa501ed5ca90bba76d355ed492f7a50fa",
+          "size": 9661,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -57016,7 +57016,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "14ab076108950360b8945f50abf861f2eb1d3098e8d0efe8e6dafc3f50433c7e",
+          "sha256": "02bd1daa304b23e34c08b036b90f74cc8f22d09260094eceab1911a80158ba49",
           "size": 1840,
           "type": "file"
         },
@@ -57042,8 +57042,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "4a09cb7233b04cfa726523adec07f135e1ca9fd3a5816843187524ebf83e57f2",
-          "size": 9237,
+          "sha256": "0b80faa122b8727219f46f8a0a36c45ac93982c04f6d6890284f8cf886958797",
+          "size": 9630,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -57176,8 +57176,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -57304,8 +57304,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -57778,7 +57778,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -57920,8 +57920,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -58122,8 +58122,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -58230,7 +58230,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "80ff8d8ced10319b0072163b9c7788ca98d4462e768ad0da0bdeda688c73830e",
+          "sha256": "1a6be60564be2b72830853038f95ff68c8a0c6026a411326a85a32c10564e85c",
           "size": 1950,
           "type": "file"
         },
@@ -58256,8 +58256,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -58390,8 +58390,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -58518,8 +58518,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -59002,7 +59002,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -59127,8 +59127,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -59439,8 +59439,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -59661,7 +59661,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "eec022e3ba5ce5b519358a2a6c2f0daf1f3d6ca3fe2e0724bf1595966e7c8228",
+          "sha256": "84b4553686544a5520a2bcc6b11ed8e56b997939e3569bc7de2f4ada14ef5e89",
           "size": 1858,
           "type": "file"
         },
@@ -59693,8 +59693,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -59947,8 +59947,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -60195,8 +60195,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -60847,7 +60847,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -60980,7 +60980,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -61388,8 +61388,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -62008,8 +62008,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -62266,7 +62266,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "53bfb0fe1d2b035838fbfb9f0da368bad6c5112d10d4a9a9bf4c25e829c4c486",
+          "sha256": "fd4e1146bcb424b1f6ce6281d456eae6ae3a46f9ed36c2810bb6f40d1cf32da6",
           "size": 3010,
           "type": "file"
         },
@@ -62310,8 +62310,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -62600,8 +62600,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -62860,8 +62860,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -63730,7 +63730,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -63893,7 +63893,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -64039,8 +64039,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "c3a5ed8a5c91243d1ee287817aa90f55e6283fadf917fbc27ef640ec61dcda69",
-          "size": 9181,
+          "sha256": "4ca3452973959f125c594eb22c2d1d17644cacaabfdb4b42fb8c52ec52862f38",
+          "size": 9574,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -64379,8 +64379,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "7fc4a26dbfa3e342d6d43cc958e0c25dd6cfd6385078b79ff3c59146372e0988",
-          "size": 9301,
+          "sha256": "d1dcb6df9924fe65fb3f4c9511837a08c50ac517df611deb69b41897ec07b9fb",
+          "size": 9694,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -64619,7 +64619,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "788ac999a788e04bf190e3ad6fb61a27c4fb50da3f16e7ea5092203e9c621231",
+          "sha256": "062cc069309b71df5cec073b793e8d893b18e18c0e24a6de093c4d351bb10dfc",
           "size": 1968,
           "type": "file"
         },
@@ -64651,8 +64651,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "a4cf2899f75d1884a876f4570508c84787cc5a3be484ac860c68000c05106c1a",
-          "size": 9231,
+          "sha256": "7c362f1cedbe2190cad66a51f34f0ac662ca205c3ce6492c0127f9e3ed94d458",
+          "size": 9624,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -64923,8 +64923,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "d8418ecff2868a4cfe9223317621c00842e5b09612be449ef8d4881cfc89f9ef",
-          "size": 9274,
+          "sha256": "5e0fbb2cc8f005038ad48877556f1c2bc071f7a1ebd311edcc8bd5db3a109d0a",
+          "size": 9667,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -65171,8 +65171,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "b1f576df6c23b56ee5fa5f76c726ea1f4a03306ccb70052056abb7c6bbb123cf",
-          "size": 9366,
+          "sha256": "fcbf4969b69ffac94279200e29345ccf5a25176cb469fb013d64ed8f66030176",
+          "size": 9759,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -65851,7 +65851,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -65988,7 +65988,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -66112,8 +66112,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9b3f0d762fcc9cfdce249caf3e4b20086e45415d07b8c99ff7b9bf518e9d5377",
-          "size": 9417,
+          "sha256": "1495732eec04bc71f7d749319ba0aa8089c25ef9dee6de1c44c39fb5e6706a8c",
+          "size": 9810,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -66432,8 +66432,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "367d52f4f93ab687ddb3c5338badaf6b850a4b3d5847be9fb9a8160e01013222",
-          "size": 9537,
+          "sha256": "1910d788e557da0125b14cb0b1a8a2a435b82179e3ed44ce87871efcb74dcaf0",
+          "size": 9930,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -66672,7 +66672,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6d47ebb1aefe29a8ece4e5c93995711cef2ed5ad2ad448b9eb477e67e85ce945",
+          "sha256": "4df6e375cc9766eefc2e0893c03dc28ad1c3938da56c79352f93c5e522964b64",
           "size": 1918,
           "type": "file"
         },
@@ -66704,8 +66704,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9f80f42a4d15c6cbb19cea5626baf55191c5bbc1cac62993954bd1b07a478546",
-          "size": 9467,
+          "sha256": "766e658933ade3c0bf51ffb538b5500cfb6773b31860144a083761e83eef5e2a",
+          "size": 9860,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -66976,8 +66976,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "41c27dd69927a05664e94a40ad1302df92dce390835e7e9389c5ca900346f3c9",
-          "size": 9510,
+          "sha256": "f12906b6e945c201d9cf92c4edf334c8f4a1699d83798f53eb9f1cebd5689070",
+          "size": 9903,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -67224,8 +67224,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "7bb35e3c313a374db30b5c381e2b56c9e923fbfd6478ceaeea18c230c7b013a2",
-          "size": 9602,
+          "sha256": "e176ea910886998b8442bf3c0ebc0c30b7be74218c7707b9b4a871ac22b22dec",
+          "size": 9995,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -67878,7 +67878,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -68013,7 +68013,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -68138,8 +68138,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9b3f0d762fcc9cfdce249caf3e4b20086e45415d07b8c99ff7b9bf518e9d5377",
-          "size": 9417,
+          "sha256": "1495732eec04bc71f7d749319ba0aa8089c25ef9dee6de1c44c39fb5e6706a8c",
+          "size": 9810,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -68464,8 +68464,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "367d52f4f93ab687ddb3c5338badaf6b850a4b3d5847be9fb9a8160e01013222",
-          "size": 9537,
+          "sha256": "1910d788e557da0125b14cb0b1a8a2a435b82179e3ed44ce87871efcb74dcaf0",
+          "size": 9930,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -68710,7 +68710,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8c6ef171f0592fe90335fd0a7f9999a70e87dbcca43794edda69eddf9c004c8e",
+          "sha256": "2604c131ce3bcd01dfe16b6d5e5fd8b9e6184b59d8382d5ea0ff0320fc623c8c",
           "size": 1916,
           "type": "file"
         },
@@ -68742,8 +68742,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9f80f42a4d15c6cbb19cea5626baf55191c5bbc1cac62993954bd1b07a478546",
-          "size": 9467,
+          "sha256": "766e658933ade3c0bf51ffb538b5500cfb6773b31860144a083761e83eef5e2a",
+          "size": 9860,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -69020,8 +69020,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "41c27dd69927a05664e94a40ad1302df92dce390835e7e9389c5ca900346f3c9",
-          "size": 9510,
+          "sha256": "f12906b6e945c201d9cf92c4edf334c8f4a1699d83798f53eb9f1cebd5689070",
+          "size": 9903,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -69274,8 +69274,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "7bb35e3c313a374db30b5c381e2b56c9e923fbfd6478ceaeea18c230c7b013a2",
-          "size": 9602,
+          "sha256": "e176ea910886998b8442bf3c0ebc0c30b7be74218c7707b9b4a871ac22b22dec",
+          "size": 9995,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -69944,7 +69944,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -70085,7 +70085,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -70211,8 +70211,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "43dfb1f5dc5aaf3563245ea83769a2c437847eebf54cadc3f226c954df875385",
-          "size": 9404,
+          "sha256": "98a31cb0702fbc50293c5c0c12cfac27d96afc3f30b1b70ed00f858fc8fbe56a",
+          "size": 9797,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -70531,8 +70531,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "e280816906e8db638292576159b722e3d59041d3fa0696972f19004c45c79769",
-          "size": 9504,
+          "sha256": "ec924d21364deb4e593f61183735f70cfbe79e273595001c7c0d379c656e9981",
+          "size": 9897,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -70771,7 +70771,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8668402715665527bafd928bd199f60b6a075a1eaebe24df28a3d3d5c86452f9",
+          "sha256": "403989285bc5cd1079adff7553da5bc1cf11df37eb818d8f506d5c424bd615c0",
           "size": 1916,
           "type": "file"
         },
@@ -70803,8 +70803,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "196bf66c4f1c888ca4624c45503a16784782e98e2215fa5ca9a4872d00957681",
-          "size": 9473,
+          "sha256": "8d591d654a14474bf6beeeed46e43b352d72bcb1294d875e156f39dd28aabb0f",
+          "size": 9866,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -71075,8 +71075,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "41c27dd69927a05664e94a40ad1302df92dce390835e7e9389c5ca900346f3c9",
-          "size": 9510,
+          "sha256": "f12906b6e945c201d9cf92c4edf334c8f4a1699d83798f53eb9f1cebd5689070",
+          "size": 9903,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -71323,8 +71323,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "7bb35e3c313a374db30b5c381e2b56c9e923fbfd6478ceaeea18c230c7b013a2",
-          "size": 9602,
+          "sha256": "e176ea910886998b8442bf3c0ebc0c30b7be74218c7707b9b4a871ac22b22dec",
+          "size": 9995,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -71977,7 +71977,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -72112,7 +72112,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -72237,8 +72237,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9b3f0d762fcc9cfdce249caf3e4b20086e45415d07b8c99ff7b9bf518e9d5377",
-          "size": 9417,
+          "sha256": "1495732eec04bc71f7d749319ba0aa8089c25ef9dee6de1c44c39fb5e6706a8c",
+          "size": 9810,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -72557,8 +72557,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "367d52f4f93ab687ddb3c5338badaf6b850a4b3d5847be9fb9a8160e01013222",
-          "size": 9537,
+          "sha256": "1910d788e557da0125b14cb0b1a8a2a435b82179e3ed44ce87871efcb74dcaf0",
+          "size": 9930,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -72797,7 +72797,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ff374d771b4629bdbea66b1c1f64837874cfc2082e14744327f007465e675770",
+          "sha256": "7f6f979db9059de84d26175c6afff6ee6c6b16abe9491dca5629981bc1d624db",
           "size": 1893,
           "type": "file"
         },
@@ -72829,8 +72829,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9f80f42a4d15c6cbb19cea5626baf55191c5bbc1cac62993954bd1b07a478546",
-          "size": 9467,
+          "sha256": "766e658933ade3c0bf51ffb538b5500cfb6773b31860144a083761e83eef5e2a",
+          "size": 9860,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -73101,8 +73101,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "41c27dd69927a05664e94a40ad1302df92dce390835e7e9389c5ca900346f3c9",
-          "size": 9510,
+          "sha256": "f12906b6e945c201d9cf92c4edf334c8f4a1699d83798f53eb9f1cebd5689070",
+          "size": 9903,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -73349,8 +73349,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "7bb35e3c313a374db30b5c381e2b56c9e923fbfd6478ceaeea18c230c7b013a2",
-          "size": 9602,
+          "sha256": "e176ea910886998b8442bf3c0ebc0c30b7be74218c7707b9b4a871ac22b22dec",
+          "size": 9995,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -73953,7 +73953,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "c21c163895702c7c7ee69522963320fffab39c224e7f68e8e4b0d9ec4ace28c1",
+          "sha256": "faaa118dc4f92321ef389b96c3741ade6f95b6efd1dccad69c65df7c4f19fb5d",
           "size": 15387,
           "type": "file"
         },
@@ -74067,7 +74067,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -74193,8 +74193,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9b3f0d762fcc9cfdce249caf3e4b20086e45415d07b8c99ff7b9bf518e9d5377",
-          "size": 9417,
+          "sha256": "1495732eec04bc71f7d749319ba0aa8089c25ef9dee6de1c44c39fb5e6706a8c",
+          "size": 9810,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -74513,8 +74513,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "367d52f4f93ab687ddb3c5338badaf6b850a4b3d5847be9fb9a8160e01013222",
-          "size": 9537,
+          "sha256": "1910d788e557da0125b14cb0b1a8a2a435b82179e3ed44ce87871efcb74dcaf0",
+          "size": 9930,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -74753,7 +74753,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8c427368a0110818e6b96041ee3c8361aad59efc5e842a792ee338017de4b8e5",
+          "sha256": "5b06d4d837312fdc27aad1e325be11f8644be320687fc2a89107ed79d228d4d9",
           "size": 1935,
           "type": "file"
         },
@@ -74785,8 +74785,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9f80f42a4d15c6cbb19cea5626baf55191c5bbc1cac62993954bd1b07a478546",
-          "size": 9467,
+          "sha256": "766e658933ade3c0bf51ffb538b5500cfb6773b31860144a083761e83eef5e2a",
+          "size": 9860,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -75057,8 +75057,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "41c27dd69927a05664e94a40ad1302df92dce390835e7e9389c5ca900346f3c9",
-          "size": 9510,
+          "sha256": "f12906b6e945c201d9cf92c4edf334c8f4a1699d83798f53eb9f1cebd5689070",
+          "size": 9903,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -75305,8 +75305,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "7bb35e3c313a374db30b5c381e2b56c9e923fbfd6478ceaeea18c230c7b013a2",
-          "size": 9602,
+          "sha256": "e176ea910886998b8442bf3c0ebc0c30b7be74218c7707b9b4a871ac22b22dec",
+          "size": 9995,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -75951,7 +75951,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -76086,7 +76086,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -76186,8 +76186,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9b3f0d762fcc9cfdce249caf3e4b20086e45415d07b8c99ff7b9bf518e9d5377",
-          "size": 9417,
+          "sha256": "1495732eec04bc71f7d749319ba0aa8089c25ef9dee6de1c44c39fb5e6706a8c",
+          "size": 9810,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -76358,8 +76358,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "367d52f4f93ab687ddb3c5338badaf6b850a4b3d5847be9fb9a8160e01013222",
-          "size": 9537,
+          "sha256": "1910d788e557da0125b14cb0b1a8a2a435b82179e3ed44ce87871efcb74dcaf0",
+          "size": 9930,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -76466,7 +76466,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "746daf179070d0d60d7834a2ec3ed32b96b7187386f480b9ff62e61284f5dfbc",
+          "sha256": "1eb6c7213fa782cb354757f38a5192b4064c3d717b09bb8dcc71009bf793f804",
           "size": 1791,
           "type": "file"
         },
@@ -76492,8 +76492,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9f80f42a4d15c6cbb19cea5626baf55191c5bbc1cac62993954bd1b07a478546",
-          "size": 9467,
+          "sha256": "766e658933ade3c0bf51ffb538b5500cfb6773b31860144a083761e83eef5e2a",
+          "size": 9860,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -76626,8 +76626,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "41c27dd69927a05664e94a40ad1302df92dce390835e7e9389c5ca900346f3c9",
-          "size": 9510,
+          "sha256": "f12906b6e945c201d9cf92c4edf334c8f4a1699d83798f53eb9f1cebd5689070",
+          "size": 9903,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -76754,8 +76754,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "7bb35e3c313a374db30b5c381e2b56c9e923fbfd6478ceaeea18c230c7b013a2",
-          "size": 9602,
+          "sha256": "e176ea910886998b8442bf3c0ebc0c30b7be74218c7707b9b4a871ac22b22dec",
+          "size": 9995,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -77200,7 +77200,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -77322,8 +77322,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9b3f0d762fcc9cfdce249caf3e4b20086e45415d07b8c99ff7b9bf518e9d5377",
-          "size": 9417,
+          "sha256": "1495732eec04bc71f7d749319ba0aa8089c25ef9dee6de1c44c39fb5e6706a8c",
+          "size": 9810,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -77504,8 +77504,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "367d52f4f93ab687ddb3c5338badaf6b850a4b3d5847be9fb9a8160e01013222",
-          "size": 9537,
+          "sha256": "1910d788e557da0125b14cb0b1a8a2a435b82179e3ed44ce87871efcb74dcaf0",
+          "size": 9930,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -77612,7 +77612,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c8a6aae2c9fbdfc4f96ae21879d1ad20c350f14c682ad88d6b6aca4ef0c07b71",
+          "sha256": "ccaecf655c37480dcca988ae54424dc264ba84588c2e0f5b49af6c8a4c4ab7f0",
           "size": 1900,
           "type": "file"
         },
@@ -77638,8 +77638,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "9f80f42a4d15c6cbb19cea5626baf55191c5bbc1cac62993954bd1b07a478546",
-          "size": 9467,
+          "sha256": "766e658933ade3c0bf51ffb538b5500cfb6773b31860144a083761e83eef5e2a",
+          "size": 9860,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -77772,8 +77772,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "41c27dd69927a05664e94a40ad1302df92dce390835e7e9389c5ca900346f3c9",
-          "size": 9510,
+          "sha256": "f12906b6e945c201d9cf92c4edf334c8f4a1699d83798f53eb9f1cebd5689070",
+          "size": 9903,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -77900,8 +77900,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "7bb35e3c313a374db30b5c381e2b56c9e923fbfd6478ceaeea18c230c7b013a2",
-          "size": 9602,
+          "sha256": "e176ea910886998b8442bf3c0ebc0c30b7be74218c7707b9b4a871ac22b22dec",
+          "size": 9995,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -78356,7 +78356,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -78480,8 +78480,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "1afb22f898817ac449f32ef50128bba53dbf6aceaeac0ce7c0c8ec201d04f83f",
-          "size": 9244,
+          "sha256": "ad81e34c344d2626eb6262eb6a63971e746cd84c0976c820bc458e291f90db86",
+          "size": 9637,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -78792,8 +78792,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "ab26156a3cd85ddefd6438b8bf760cb759847da87efe4ba750d287a9466109f2",
-          "size": 9364,
+          "sha256": "a803870e41fbd603971729c19202ec5825b7a20aee09f764602517ce559a9c5c",
+          "size": 9757,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -79014,7 +79014,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e5d54fde57cc02b12b11a70aaf80f7565f304e872f248459c7a3b0ba463932f6",
+          "sha256": "d7df5fbaa8e2ca84cf3eb6d6052f1f12e5996a3497470197a72c6d204ec17ef9",
           "size": 1857,
           "type": "file"
         },
@@ -79046,8 +79046,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "8b5de70325bebfe7b422ddc5f94784691b4b7a456a81c7139fdb8c07a8810101",
-          "size": 9294,
+          "sha256": "f6b87a14be61fb11d42979d1f8f1bf13cef10282eca9b0aa0813194a69616df5",
+          "size": 9687,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -79300,8 +79300,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "88e96055b805761190672f0227243c911a608823df22276c712183241def6611",
-          "size": 9337,
+          "sha256": "8dafad81bc1d34c9e10da8efe1d336becd2c20127a1e91f43f88507781b4250a",
+          "size": 9730,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -79548,8 +79548,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "695db107473d872913a9eb98e14086b911ec474f0918f1387ed3868d67797adf",
-          "size": 9429,
+          "sha256": "6e45c9a49a7319aafc4798461b9b9a389ec6dd059c43d4f2b6f1d95255883b54",
+          "size": 9822,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -80190,7 +80190,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -80323,7 +80323,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -80749,8 +80749,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "1afb22f898817ac449f32ef50128bba53dbf6aceaeac0ce7c0c8ec201d04f83f",
-          "size": 9244,
+          "sha256": "ad81e34c344d2626eb6262eb6a63971e746cd84c0976c820bc458e291f90db86",
+          "size": 9637,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -81397,8 +81397,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "ab26156a3cd85ddefd6438b8bf760cb759847da87efe4ba750d287a9466109f2",
-          "size": 9364,
+          "sha256": "a803870e41fbd603971729c19202ec5825b7a20aee09f764602517ce559a9c5c",
+          "size": 9757,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -81673,7 +81673,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "84444b03ae2bffd1749c85452a3b5d789b9736b098a0b5fe35c193911f9905aa",
+          "sha256": "a1388f516e5021a439e0b5e6eb9d97edf50a19c83c03e8deaf667211f684fca5",
           "size": 3115,
           "type": "file"
         },
@@ -81717,8 +81717,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "8b5de70325bebfe7b422ddc5f94784691b4b7a456a81c7139fdb8c07a8810101",
-          "size": 9294,
+          "sha256": "f6b87a14be61fb11d42979d1f8f1bf13cef10282eca9b0aa0813194a69616df5",
+          "size": 9687,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -82025,8 +82025,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "88e96055b805761190672f0227243c911a608823df22276c712183241def6611",
-          "size": 9337,
+          "sha256": "8dafad81bc1d34c9e10da8efe1d336becd2c20127a1e91f43f88507781b4250a",
+          "size": 9730,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -82285,8 +82285,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "695db107473d872913a9eb98e14086b911ec474f0918f1387ed3868d67797adf",
-          "size": 9429,
+          "sha256": "6e45c9a49a7319aafc4798461b9b9a389ec6dd059c43d4f2b6f1d95255883b54",
+          "size": 9822,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -83193,7 +83193,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -83359,7 +83359,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -83767,8 +83767,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "1afb22f898817ac449f32ef50128bba53dbf6aceaeac0ce7c0c8ec201d04f83f",
-          "size": 9244,
+          "sha256": "ad81e34c344d2626eb6262eb6a63971e746cd84c0976c820bc458e291f90db86",
+          "size": 9637,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -84387,8 +84387,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "ab26156a3cd85ddefd6438b8bf760cb759847da87efe4ba750d287a9466109f2",
-          "size": 9364,
+          "sha256": "a803870e41fbd603971729c19202ec5825b7a20aee09f764602517ce559a9c5c",
+          "size": 9757,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -84645,7 +84645,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f03a614bd7f7168bac2b8a25027020b69617a325fb10ea7fcc9122721775df0b",
+          "sha256": "2e67a1ff915fde9514bcf53d3137fb431d183eee99a265fe960bcf9cb8b88bff",
           "size": 3008,
           "type": "file"
         },
@@ -84689,8 +84689,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "8b5de70325bebfe7b422ddc5f94784691b4b7a456a81c7139fdb8c07a8810101",
-          "size": 9294,
+          "sha256": "f6b87a14be61fb11d42979d1f8f1bf13cef10282eca9b0aa0813194a69616df5",
+          "size": 9687,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -84979,8 +84979,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "88e96055b805761190672f0227243c911a608823df22276c712183241def6611",
-          "size": 9337,
+          "sha256": "8dafad81bc1d34c9e10da8efe1d336becd2c20127a1e91f43f88507781b4250a",
+          "size": 9730,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -85239,8 +85239,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "695db107473d872913a9eb98e14086b911ec474f0918f1387ed3868d67797adf",
-          "size": 9429,
+          "sha256": "6e45c9a49a7319aafc4798461b9b9a389ec6dd059c43d4f2b6f1d95255883b54",
+          "size": 9822,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -86109,7 +86109,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -86272,7 +86272,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -86392,8 +86392,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "1afb22f898817ac449f32ef50128bba53dbf6aceaeac0ce7c0c8ec201d04f83f",
-          "size": 9244,
+          "sha256": "ad81e34c344d2626eb6262eb6a63971e746cd84c0976c820bc458e291f90db86",
+          "size": 9637,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -86584,8 +86584,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "ab26156a3cd85ddefd6438b8bf760cb759847da87efe4ba750d287a9466109f2",
-          "size": 9364,
+          "sha256": "a803870e41fbd603971729c19202ec5825b7a20aee09f764602517ce559a9c5c",
+          "size": 9757,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -86692,7 +86692,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2ebaf2ae1a0022ef908c5b32fef3ffb50bc24999e00bbbe0390f195b88168ee1",
+          "sha256": "0b7a92df799a2ea9af148465c6889f69100c87bf3cedcc3036f30ec6b46c38fb",
           "size": 1839,
           "type": "file"
         },
@@ -86718,8 +86718,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "8b5de70325bebfe7b422ddc5f94784691b4b7a456a81c7139fdb8c07a8810101",
-          "size": 9294,
+          "sha256": "f6b87a14be61fb11d42979d1f8f1bf13cef10282eca9b0aa0813194a69616df5",
+          "size": 9687,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -86852,8 +86852,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "88e96055b805761190672f0227243c911a608823df22276c712183241def6611",
-          "size": 9337,
+          "sha256": "8dafad81bc1d34c9e10da8efe1d336becd2c20127a1e91f43f88507781b4250a",
+          "size": 9730,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -86980,8 +86980,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "695db107473d872913a9eb98e14086b911ec474f0918f1387ed3868d67797adf",
-          "size": 9429,
+          "sha256": "6e45c9a49a7319aafc4798461b9b9a389ec6dd059c43d4f2b6f1d95255883b54",
+          "size": 9822,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -87454,7 +87454,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -87864,8 +87864,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "1afb22f898817ac449f32ef50128bba53dbf6aceaeac0ce7c0c8ec201d04f83f",
-          "size": 9244,
+          "sha256": "ad81e34c344d2626eb6262eb6a63971e746cd84c0976c820bc458e291f90db86",
+          "size": 9637,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -88326,8 +88326,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "ab26156a3cd85ddefd6438b8bf760cb759847da87efe4ba750d287a9466109f2",
-          "size": 9364,
+          "sha256": "a803870e41fbd603971729c19202ec5825b7a20aee09f764602517ce559a9c5c",
+          "size": 9757,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -88434,7 +88434,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6c76509172763795285baa94c95c0e8f66d5663f1ce31e7705581d327f5f1a6d",
+          "sha256": "faa2962554c37341c52e1d2093a2ff04fe913bb92e6eb15a44298b8662936da3",
           "size": 3097,
           "type": "file"
         },
@@ -88460,8 +88460,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "8b5de70325bebfe7b422ddc5f94784691b4b7a456a81c7139fdb8c07a8810101",
-          "size": 9294,
+          "sha256": "f6b87a14be61fb11d42979d1f8f1bf13cef10282eca9b0aa0813194a69616df5",
+          "size": 9687,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -88594,8 +88594,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "88e96055b805761190672f0227243c911a608823df22276c712183241def6611",
-          "size": 9337,
+          "sha256": "8dafad81bc1d34c9e10da8efe1d336becd2c20127a1e91f43f88507781b4250a",
+          "size": 9730,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -88722,8 +88722,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "695db107473d872913a9eb98e14086b911ec474f0918f1387ed3868d67797adf",
-          "size": 9429,
+          "sha256": "6e45c9a49a7319aafc4798461b9b9a389ec6dd059c43d4f2b6f1d95255883b54",
+          "size": 9822,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -89413,7 +89413,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -89805,8 +89805,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "1afb22f898817ac449f32ef50128bba53dbf6aceaeac0ce7c0c8ec201d04f83f",
-          "size": 9244,
+          "sha256": "ad81e34c344d2626eb6262eb6a63971e746cd84c0976c820bc458e291f90db86",
+          "size": 9637,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -90257,8 +90257,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "ab26156a3cd85ddefd6438b8bf760cb759847da87efe4ba750d287a9466109f2",
-          "size": 9364,
+          "sha256": "a803870e41fbd603971729c19202ec5825b7a20aee09f764602517ce559a9c5c",
+          "size": 9757,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -90365,7 +90365,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "cd3d0f4be815b2fef2717f07af54f32c235d597d0f1849909f116f8379516afa",
+          "sha256": "31e33d591c9b4f26031423aa4634a134154b5151245092a008253e38b291bb16",
           "size": 2990,
           "type": "file"
         },
@@ -90391,8 +90391,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "8b5de70325bebfe7b422ddc5f94784691b4b7a456a81c7139fdb8c07a8810101",
-          "size": 9294,
+          "sha256": "f6b87a14be61fb11d42979d1f8f1bf13cef10282eca9b0aa0813194a69616df5",
+          "size": 9687,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -90525,8 +90525,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "88e96055b805761190672f0227243c911a608823df22276c712183241def6611",
-          "size": 9337,
+          "sha256": "8dafad81bc1d34c9e10da8efe1d336becd2c20127a1e91f43f88507781b4250a",
+          "size": 9730,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -90653,8 +90653,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "695db107473d872913a9eb98e14086b911ec474f0918f1387ed3868d67797adf",
-          "size": 9429,
+          "sha256": "6e45c9a49a7319aafc4798461b9b9a389ec6dd059c43d4f2b6f1d95255883b54",
+          "size": 9822,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -91335,7 +91335,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -91477,8 +91477,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "1afb22f898817ac449f32ef50128bba53dbf6aceaeac0ce7c0c8ec201d04f83f",
-          "size": 9244,
+          "sha256": "ad81e34c344d2626eb6262eb6a63971e746cd84c0976c820bc458e291f90db86",
+          "size": 9637,
           "type": "file"
         },
         ".claude/agents/math-auditor-freeform.md": {
@@ -91679,8 +91679,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "ab26156a3cd85ddefd6438b8bf760cb759847da87efe4ba750d287a9466109f2",
-          "size": 9364,
+          "sha256": "a803870e41fbd603971729c19202ec5825b7a20aee09f764602517ce559a9c5c",
+          "size": 9757,
           "type": "file"
         },
         ".codex/agents/math-auditor-freeform.toml": {
@@ -91787,7 +91787,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c1c6f3c39d9b4bf86bdb8a3ec152a641ea4157a956f3423a2af21f3e5cce00db",
+          "sha256": "32dcf070977ef7425c08740315dce64346dc24b4d1a6629668d2e21db67374e8",
           "size": 1948,
           "type": "file"
         },
@@ -91813,8 +91813,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "8b5de70325bebfe7b422ddc5f94784691b4b7a456a81c7139fdb8c07a8810101",
-          "size": 9294,
+          "sha256": "f6b87a14be61fb11d42979d1f8f1bf13cef10282eca9b0aa0813194a69616df5",
+          "size": 9687,
           "type": "file"
         },
         ".gemini/agents/math-auditor-freeform.md": {
@@ -91947,8 +91947,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "88e96055b805761190672f0227243c911a608823df22276c712183241def6611",
-          "size": 9337,
+          "sha256": "8dafad81bc1d34c9e10da8efe1d336becd2c20127a1e91f43f88507781b4250a",
+          "size": 9730,
           "type": "file"
         },
         ".grok/agents/math-auditor-freeform.md": {
@@ -92075,8 +92075,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "695db107473d872913a9eb98e14086b911ec474f0918f1387ed3868d67797adf",
-          "size": 9429,
+          "sha256": "6e45c9a49a7319aafc4798461b9b9a389ec6dd059c43d4f2b6f1d95255883b54",
+          "size": 9822,
           "type": "file"
         },
         ".opencode/agents/math-auditor-freeform.md": {
@@ -92559,7 +92559,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -92705,8 +92705,8 @@
         },
         ".claude/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "1afb22f898817ac449f32ef50128bba53dbf6aceaeac0ce7c0c8ec201d04f83f",
-          "size": 9244,
+          "sha256": "ad81e34c344d2626eb6262eb6a63971e746cd84c0976c820bc458e291f90db86",
+          "size": 9637,
           "type": "file"
         },
         ".claude/agents/editor.md": {
@@ -93045,8 +93045,8 @@
         },
         ".codex/agents/debugger.toml": {
           "mode": "0644",
-          "sha256": "ab26156a3cd85ddefd6438b8bf760cb759847da87efe4ba750d287a9466109f2",
-          "size": 9364,
+          "sha256": "a803870e41fbd603971729c19202ec5825b7a20aee09f764602517ce559a9c5c",
+          "size": 9757,
           "type": "file"
         },
         ".codex/agents/editor.toml": {
@@ -93285,7 +93285,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f2508c0c089b69c28539eb00e591deff0bd46357ed1fdecda35d3f86133bb0c9",
+          "sha256": "fea7a0868f33ff53b954a1911b94873e892d80110294b6869fbdb8a5996a83e0",
           "size": 1966,
           "type": "file"
         },
@@ -93317,8 +93317,8 @@
         },
         ".gemini/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "8b5de70325bebfe7b422ddc5f94784691b4b7a456a81c7139fdb8c07a8810101",
-          "size": 9294,
+          "sha256": "f6b87a14be61fb11d42979d1f8f1bf13cef10282eca9b0aa0813194a69616df5",
+          "size": 9687,
           "type": "file"
         },
         ".gemini/agents/editor.md": {
@@ -93589,8 +93589,8 @@
         },
         ".grok/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "88e96055b805761190672f0227243c911a608823df22276c712183241def6611",
-          "size": 9337,
+          "sha256": "8dafad81bc1d34c9e10da8efe1d336becd2c20127a1e91f43f88507781b4250a",
+          "size": 9730,
           "type": "file"
         },
         ".grok/agents/editor.md": {
@@ -93837,8 +93837,8 @@
         },
         ".opencode/agents/debugger.md": {
           "mode": "0644",
-          "sha256": "695db107473d872913a9eb98e14086b911ec474f0918f1387ed3868d67797adf",
-          "size": 9429,
+          "sha256": "6e45c9a49a7319aafc4798461b9b9a389ec6dd059c43d4f2b6f1d95255883b54",
+          "size": 9822,
           "type": "file"
         },
         ".opencode/agents/editor.md": {
@@ -94517,7 +94517,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "b63ca5c4d51ceb052306c112f3eec45fa5faefc33e219fbe3ab1d23f5fa5e247",
+          "sha256": "5df012b5742520415befc1c05f0dfad316233507e3435be42d0067e746fdfbf7",
           "size": 15378,
           "type": "file"
         },
@@ -94654,7 +94654,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.32.1+<GIT_REVISION>",
+        "template_version": "2.32.2+<GIT_REVISION>",
         "variant": "macro"
       }
     }

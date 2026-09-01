@@ -64,7 +64,7 @@ Consult this list before concluding `SUBSTANTIVE-FAILURE`. Most real tool failur
 
 1. **Read the failure report carefully.** Don't skim. The exact error message, failure rate, and which inputs failed are all signal.
 2. **Form 2-4 specific hypotheses** from the common failure modes above. Each hypothesis must be testable by a concrete action.
-3. **Test the most likely hypothesis first.** If you have Bash, run the script with a targeted fix and observe. If you cannot run (prompt-only agent), reason through the fix and state exactly what change would confirm the hypothesis.
+3. **Test the most likely hypothesis under conditions that could trigger it.** A probe cannot reject a hypothesis if it removes its trigger. For failures that may depend on request rate/count, ordering, concurrency, accumulated state, session age, or workload size, first reproduce the producer's execution shape (sequence, spacing, and volume); an isolated successful retry is not evidence against that hypothesis. Then vary one factor and observe. If you have Bash, run the script with the targeted change. If you cannot run (prompt-only agent), reason through the change and state exactly what would confirm the hypothesis.
 4. **If the first hypothesis is wrong, try the next.** Do not collapse to `SUBSTANTIVE-FAILURE` after one attempt. Exhaust the specific hypotheses before that verdict.
 5. **When a hypothesis confirms** (the tool now succeeds with the proposed fix), return `TOOL-FIT-ISSUE` with the concrete fix stated.
 6. **When all hypotheses exhaust** (no fix recovers the tool on canonical / reasonable inputs), return `SUBSTANTIVE-FAILURE` with a written argument for why tool-fit is ruled out.

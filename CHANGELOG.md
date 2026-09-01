@@ -16,7 +16,15 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.32.1] — 2026-09-01 (current)
+## [2.32.2] — 2026-09-01 (current)
+
+**fix: require trigger-preserving debugger probes (#299).** Debugger hypothesis tests
+must now preserve any request rate/count, ordering, concurrency, accumulated state, session
+age, or workload size that could trigger the observed failure before treating an isolated
+successful retry as contrary evidence. This closes the single-shot blind spot without adding
+source-specific rules or duplicating debugging guidance across empirical stage documents.
+
+## [2.32.1] — 2026-09-01
 
 **fix: reserve the lifecycle-receipt suffix without blocking documentary snapshots (#294).**
 The result registry still fails closed on every unknown `*results.receipt.json` file, but the
