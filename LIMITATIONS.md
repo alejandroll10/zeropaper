@@ -84,6 +84,18 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## Stage 3a empirics-audit 5-attempt cap is enforced from orchestrator memory, not tracked state
+
+**Scope:** `--ext empirical` Stage 3a (`stage_3a_empirical.md` step 7 FAIL branch and the revised-theory re-entry), every mode that runs the empirics-auditor loop.
+
+**Failure mode:** the doc imposes a "5-attempt audit-fix cap" whose terminal consequence is retiring the pending receipt and returning to Stage 2, but `pipeline_state.json` seeds no `loops.empirics_audit` counter — roughly twenty-two other loops get mechanical `{round, cap}` tracking and this one is prose-only, with "attempt" itself undefined (per candidate namespace? per defect scope? reset on tool-fit retirements or step-5 re-entry?). Two concurrent field runs on v2.30.x enforced it differently on 2026-09-01/02: eventcal counted cumulatively per spec version and declared the terminal cap at exactly five candidates (v13, then v18), while tradingdays accumulated at least five substantive empirics-audit FAILs on spec v10 (a50, a53, a54, a56, a58, a59) with no cap firing, each FAIL routing to another fresh-attempt repair. Either an unbounded audit-fix loop (the never-abandon rule makes this stable) or a premature Stage 2 return discarding a converging build is reachable, and identical histories route differently across runs.
+
+**What would close it:** a seeded `loops.empirics_audit: {round: 0, cap: 5}` counter in `project_bootstrap.sh`'s state templates; increment/reset semantics written into `stage_3a_empirical.md` (substantive auditor FAIL increments; tool-fit retirements and pre-audit lifecycle failures do not; Gate 2 acceptance of a new spec version resets); and both the FAIL branch and the step-5 re-entry routing on the counter rather than prose memory. A one-pass grep for other "N-attempt" phrases without a `loops.*` home would catch siblings.
+
+**Tracking:** [#300](https://github.com/alejandroll10/zeropaper/issues/300).
+
+---
+
 ## `deepvest` skill: an LLM-mediated data source has no raw re-query path for the integrity audit
 
 **Scope:** the `--ext empirical` `deepvest` skill (`code/utils/deepvest_utils.py`, MCP server `api.deepvest.ai/mcp`) and the Stage 3a step 7.5 `data-integrity-auditor`, which verifies cached field values by re-querying the source.
