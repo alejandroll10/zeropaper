@@ -16,7 +16,19 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.33.0] — 2026-09-01 (current)
+## [2.33.1] — 2026-09-02 (current)
+
+**fix: make data-first final claim discipline a blocking semantic verdict (#284).**
+The existing `polish-identification` agent now re-reads the receipt-bound manuscript after
+all Stage 9 prose, style, bibliography, rendered-table, and final-evidence mutations. Its fresh
+first-line PASS/NEEDS-FIXES verdict is binding: fixes receive the existing bounded
+paper-writer/rebuild/re-audit path, while an invalid report or exhausted cap halts
+instead of shipping unresolved causal overreach. This closes the routing bypass
+without adding a lexical linter, identification agents, a new loop, or a new semantic
+taxonomy; one nullable gate record precommits each receipt-bound audit and makes repairs crash-durable,
+while contextual interpretation remains with the existing LLM auditor.
+
+## [2.33.0] — 2026-09-01
 
 **feat: certify exact enumerable coverage at data-first Gate 2 (#295).** Dataset
 specs now declare finite universal coverage commitments explicitly; the spec auditor

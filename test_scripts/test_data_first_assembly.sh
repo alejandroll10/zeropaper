@@ -17,6 +17,9 @@
 #   6. Updater allowlist — scripts/update_coordinator.sh enumerates modes in two
 #      hardcoded sites independently of resolve_config.sh; losing data-first
 #      there makes deployed data-first projects un-updatable (static check).
+#   7. Final claim discipline — the settled manuscript must receive a fresh,
+#      structured polish-identification verdict that blocks Stage 10 on anything
+#      except PASS and halts rather than using the generic partial-fix escape.
 # Build-time only (test_scripts/ is removed on deploy).
 set -u
 cd "$(dirname "$0")/.."
@@ -75,6 +78,7 @@ assert d["dataset_coverage_certificate"] is None
 assert d["dataset_coverage_certificate_sha256"] is None
 assert "coverage_triangulation" in d
 assert d["dataset_release_path"] is None and d["dataset_release_receipt"] is None
+assert d["claim_discipline_gate"] is None
 assert "spec_audit_revision" in d["loops"]
 assert "coverage_certificate_producer" in d["loops"]
 assert "coverage_audit" in d["loops"]
@@ -127,6 +131,45 @@ grep -Fq 'Commit: `artifact: dataset spec v{N}`' "$D/docs/stage_2.md" \
     && pass "data-first: Stage 2 commit labels the dataset spec" \
     || fail "data-first: Stage 2 commit still mislabels the artifact"
 
+# 6. Final claim-discipline gate and agent schema.
+if grep -q 'output/polish_identification_final_r{N}_a{A}.md' "$D/docs/stage_9.md" \
+        && grep -q 'status = "halted_claim_discipline"' "$D/docs/stage_9.md" \
+        && grep -q 'commit \*\*before\*\* the physical agent launch' "$D/docs/stage_9.md" \
+        && grep -q 'Never launch first and register its path afterward' "$D/docs/stage_9.md" \
+        && grep -q 'PASS is valid only when `## Findings` contains zero finding rows' "$D/docs/stage_9.md" \
+        && grep -q 'claim_discipline_gate.*binding repair subprocedure' "$D/docs/stage_9.md" \
+        && grep -q 'atomically set `claim_discipline_gate = null`' "$D/docs/stage_9.md" \
+        && grep -q 'dataset_spec_version == pipeline_state.json:theory_version' "$D/docs/stage_9.md" \
+        && grep -q 'never select the highest filename' "$D/.claude/agents/polish-identification.md" \
+        && grep -q 'does not use step 6.*ship the partial fix' "$D/docs/stage_9.md" \
+        && grep -q 'exact manuscript bytes bound by that receipt' "$D/docs/stage_9.md" \
+        && grep -q 'rendered-table PASS, `stage9-final` evidence PASS, and final claim-discipline PASS in that order' "$D/docs/stage_9.md" \
+        && grep -q 'fresh rendered-table PASS, fresh final evidence PASS, then fresh final claim-discipline PASS' "$D/docs/stage_10.md" \
+        && grep -q 'halt unresolved data-first final claim findings' "$D/CLAUDE.md" \
+        && grep -q 'own repairs do not reset it' "$D/CLAUDE.md" \
+        && grep -q 'Every row under its `## Findings` section is binding' "$D/.claude/agents/paper-writer.md" \
+        && grep -q 'already resolved (no-op)' "$D/.claude/agents/paper-writer.md" \
+        && grep -q 'In autonomous data-first deployments.*attempt-qualified final claim-discipline report' "$D/.claude/agents/paper-writer.md" \
+        && grep -q 'return to step 7, and repeat the rendered-table' "$D/docs/stage_9.md" \
+        && grep -q 'In autonomous deployments.*fresh attempt-qualified output/polish_identification_final_r{N}_a{A}.md gate report' "$D/.claude/agents/polish-identification.md" \
+        && grep -q '^VERDICT: PASS$' "$D/.claude/agents/polish-identification.md" \
+        && grep -q '^VERDICT: NEEDS-FIXES$' "$D/.claude/agents/polish-identification.md" \
+        && grep -q 'output/polish_identification_final_r{N}_a{A}.md' "$D/.claude/agents/polish-identification.md"; then
+    pass "data-first: final claim-discipline PASS gate assembled"
+else
+    fail "data-first: final claim-discipline gate or structured agent verdict missing"
+fi
+python3 - "$D/docs/stage_9.md" <<'PY' \
+    && pass "data-first: final gates are assembled in render/evidence/claim order" \
+    || fail "data-first: final gate ordering regressed"
+import pathlib, sys
+text = pathlib.Path(sys.argv[1]).read_text()
+render = text.index("7. **Rebuild and re-run the rendered-table gate")
+evidence = text.index("8. **Run final evidence and prepare the Stage 10 handoff")
+claim = text.index("9. **Run the data-first final claim-discipline gate")
+assert render < evidence < claim
+PY
+
 # Manual composition keeps the scientific/release contract but has no autonomous state.
 if ! ./setup.sh test_output/df_manual --variant finance --mode data-first --manual --assemble-only --no-model-probe >/dev/null 2>&1; then
     fail "data-first manual build failed"
@@ -143,6 +186,7 @@ assert manifest["flags"]["manual"] is True
 assert not (root / "process_log/pipeline_state.json").exists()
 stage = (root / "docs/stage_3a_empirical.md").read_text()
 evidence = (root / "docs/results_evidence.md").read_text()
+stage10 = (root / "docs/stage_10.md").read_text()
 auditor = (root / ".claude/agents/empirics-auditor.md").read_text()
 utility = (root / "code/utils/results_pipeline/results_pipeline.py").read_text()
 assert 'RIGHTS_AUTHORITY = "manual-caller"' in stage
@@ -157,6 +201,9 @@ assert "never hand them to `data-selection-auditor`" in coverage_auditor
 assert "both `dataset_spec_version = null` and `stage3a_theory_version = null`" in stage
 assert "Never create pipeline state" in stage
 assert "manual-caller" in evidence and "manual-caller" in auditor
+assert "Stage 9 steps 7–9" not in stage10
+assert "claim_discipline_gate" not in (root / "process_log/manual_evidence_state.json").read_text()
+assert "In autonomous deployments, after final render and evidence PASS" in (root / ".claude/agents/polish-identification.md").read_text()
 assert "rights_authority" in utility
 assert "require `FRESH`" not in auditor
 PY
@@ -194,6 +241,11 @@ else
     else
         pass "empirical-first control: empiricist has no census-only launch"
     fi
+    if grep -qE 'polish_identification_final|halted_claim_discipline' "$E/docs/stage_9.md"; then
+        fail "empirical-first control: data-first final claim gate leaked"
+    else
+        pass "empirical-first control: no data-first final claim gate"
+    fi
     python3 - "$E" <<'PY' && pass "empirical-first control: no data-first state fields" || fail "empirical-first control: data-first state fields leaked"
 import json, sys
 d = json.load(open(sys.argv[1] + "/process_log/pipeline_state.json"))
@@ -205,6 +257,7 @@ assert "dataset_coverage_certificate" not in d
 assert "dataset_coverage_certificate_sha256" not in d
 assert "coverage_triangulation" not in d
 assert "dataset_release_path" not in d and "dataset_release_receipt" not in d
+assert "claim_discipline_gate" not in d
 assert "spec_audit_revision" not in d["loops"]
 assert "coverage_certificate_producer" not in d["loops"]
 assert "coverage_audit" not in d["loops"]
@@ -214,7 +267,7 @@ PY
         || fail "empirical-first control: Stage 2 commit label changed"
 fi
 
-# 6. Updater allowlist static check (both hardcoded sites).
+# 7. Updater allowlist static check (both hardcoded sites).
 grep -q 'empirical-first, measurement-first, data-first, report.*--no-mode' scripts/update_coordinator.sh \
     && pass "updater: --mode diagnostic lists data-first" \
     || fail "updater: --mode diagnostic missing data-first"

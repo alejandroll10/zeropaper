@@ -13,6 +13,11 @@ Stage 10 owns the `"status": "complete"` flag. The pipeline is not done until bo
 ## Procedure
 
 1. **Verify the final evidence receipt before writing or committing anything.** Run `python3 code/utils/results_pipeline/results_pipeline.py verify-paper --receipt process_log/paper_evidence.receipt.json --rerender`. A missing receipt, non-PASS result, or any stale audit/paper/result/renderer byte returns to Stage 9's final evidence checkpoint. Stage 10 cannot repair, waive, or defer this failure.
+<!-- AUTONOMOUS_START -->
+<!-- DATA_FIRST_START -->
+   Under `--mode data-first`, before doing any return work atomically set `current_stage = "stage_9"`, append the return reason to history, and commit. The return must then complete Stage 9 steps 7–9 in order: fresh rendered-table PASS, fresh final evidence PASS, then fresh final claim-discipline PASS. An evidence repair cannot jump directly back to Stage 10, and a crash before the new claim verdict therefore resumes in Stage 9.
+<!-- DATA_FIRST_END -->
+<!-- AUTONOMOUS_END -->
 
 2. **Write `LESSONS_PAPER.md` at the project root.** Before drafting, read the latest `paper/simulated_referee_reports/editor_decision_r*.md` (highest N) — the editor's "Within-tier outlet recommendation" block names the best-fit outlet within the active tier and is the single most informed within-tier signal you have. Treat it as a strong prior, not a binding choice. Then answer, in your own voice and as honestly as you can:
    - **How do you feel about the paper?**
@@ -27,7 +32,7 @@ Stage 10 owns the `"status": "complete"` flag. The pipeline is not done until bo
 
    Commit: `lessons: pipeline reflection`.
 
-4. **Mark complete.** Re-run the exact `verify-paper --rerender` command from step 1 immediately before changing status; this closes changes made while writing lessons or handling completion checks. First also verify `output/stage5/table_legibility.md` exists, is non-empty, and records `VERDICT: PASS` from Stage 9's final-render re-audit; any other/missing verdict returns to Stage 9 step 7 and cannot be recorded as a deferrable verification. Then apply the completion precondition in CLAUDE.md before writing the flag — an unresolved binding row in `process_log/degradation_ledger.md` means the run has not earned a clean `complete`.
+4. **Mark complete.** Re-run the exact `verify-paper --rerender` command from step 1 immediately before changing status; this closes changes made while writing lessons or handling completion checks. Any failure follows step 1's return route, including its data-first transition back to `current_stage = "stage_9"`; never continue completion after a failed re-verification. First also verify `output/stage5/table_legibility.md` exists, is non-empty, and records `VERDICT: PASS` from Stage 9's final-render re-audit; any other/missing verdict returns to Stage 9 step 7 and cannot be recorded as a deferrable verification. Then apply the completion precondition in CLAUDE.md before writing the flag — an unresolved binding row in `process_log/degradation_ledger.md` means the run has not earned a clean `complete`.
    - Clean: `"status": "complete"`. Final commit: `pipeline: COMPLETE — paper ready for submission`.
    - Deferrable outage outstanding (rate/credit limit with a reset horizon, cheap re-check): `"status": "complete_pending_verification"` with the entry recorded in `pending_verification`. Final commit: `pipeline: COMPLETE (pending <core> verification) — paper ready, verification owed`. Say plainly in `LESSONS_PAPER.md` which citations or checks were never verified, so the pending state is legible from the paper's own record and not only from the state file.
    - Anything else unresolved: `"status": "halted_core_bypass"`, per the precondition.

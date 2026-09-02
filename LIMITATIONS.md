@@ -40,13 +40,13 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## `--mode data-first`: descriptive-facts boundary is prompt-and-polish, not a hard gate
+## CLOSED in v2.33.1 — `--mode data-first` final claim discipline was advisory rather than blocking
 
 **Scope:** causal-overreach control in data-first papers, with the identification agents pruned by design.
 
-**Failure mode:** the guards are the scorer's contribution-class fidelity block (a causal headline is an H1/H5 FAIL), self-attacker/referee vocab, referee-mechanism's descriptive-discipline dimension, and the re-targeted `polish-identification` Stage 9 pass — a mechanical backstop, but a late one. A fact stated causally could still ship if every guard misses it. What would close it: a mechanical causal-verb lint over facts-section prose at the Stage 5 build gate, or re-admitting the identification agents behind a per-fact causal flag (parallel to the deferred [#26](https://github.com/alejandroll10/zeropaper/issues/26)).
+**Closed behavior:** the existing data-first `polish-identification` agent now runs once more after every Stage 9 manuscript mutation, the final rendered-table PASS, and the final evidence PASS. Its fresh report has an exact first-line `VERDICT: PASS|NEEDS-FIXES` field. Only PASS may reach Stage 10; NEEDS-FIXES routes only the report's claim-narrowing/restatement/caveat fixes through the existing paper-writer, style, evidence, rebuild, and table gates, then re-audits the settled manuscript. Any mutation made while repairing final evidence also returns through the rendered-table, final-evidence, and claim gates in that order. A single nullable `claim_discipline_gate` object precommits the receipt-bound report path and two-launch budget before any auditor runs, then keeps an accepted NEEDS-FIXES repair binding across crashes until its evidence checkpoint passes; Stage-10 rework first moves the durable stage marker back to Stage 9. Exhausting the existing polish cap sets `status = "halted_claim_discipline"` instead of using Stage 9's generic partial-fix shipping escape. No new agent, loop, identification machinery, or causal-verb linter was added. The classifier remains an LLM judgment — attribution, prediction, and causal interpretation are contextual — while the architectural bypass is closed because the final semantic verdict is now procedurally binding.
 
-**Tracking:** [#284](https://github.com/alejandroll10/zeropaper/issues/284).
+**Tracking:** [#284](https://github.com/alejandroll10/zeropaper/issues/284) (implementation complete; close on release).
 
 ---
 

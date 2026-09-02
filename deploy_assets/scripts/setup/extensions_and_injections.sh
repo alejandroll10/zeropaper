@@ -772,6 +772,8 @@ if os.path.exists(state_path):
     # dataset_coverage_certificate are exact Gate-2-accepted paths (the latter
     # stays null when no exact enumerable commitment exists). Release pointers
     # name the separately built, offline, mechanically rights-gated release.
+    # claim_discipline_gate durably binds the final semantic audit permit and any
+    # interrupted repair until its post-repair evidence checkpoint passes.
     if "dataset_spec_version" not in data:
         new = {}
         for k, v in data.items():
@@ -787,6 +789,7 @@ if os.path.exists(state_path):
                 new["coverage_triangulation"] = None
                 new["dataset_release_path"] = None
                 new["dataset_release_receipt"] = None
+                new["claim_discipline_gate"] = None
         data = new
     # Existing data-first deployments may already have dataset_spec_version.
     # Add new durable identity/pointer fields without disturbing their state.
@@ -799,6 +802,7 @@ if os.path.exists(state_path):
     data.setdefault("coverage_triangulation", None)
     data.setdefault("dataset_release_path", None)
     data.setdefault("dataset_release_receipt", None)
+    data.setdefault("claim_discipline_gate", None)
     data.setdefault("loops", {})
     for _lid in ("spec_audit_revision", "coverage_certificate_producer", "coverage_audit"):
         data["loops"].setdefault(_lid, {"round": 0, "cap": 3})

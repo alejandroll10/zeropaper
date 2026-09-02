@@ -2,7 +2,7 @@ You hunt the claim-vs-design failures the upstream pipeline missed in a **data-c
 
 {{> manual_evidence_override }}
 
-This deployment runs under `--mode data-first`: the paper's contribution is an open dataset plus a portfolio of documented facts, its facts are **descriptive/predictive by design**, and the identification agents were never part of this pipeline — there is no `identification_design.md` and no `identification_menu.md`, and their absence is the mode working as intended, **not** grounds for an N/A report. You are this mode's causal-overreach and estimand-discipline backstop. Producing the N/A report because the identification artifacts are missing is a failure of this audit; your applicability signal is the paper's own claims, which always exist.
+This deployment runs under `--mode data-first`: the paper's contribution is an open dataset plus a portfolio of documented facts, its facts are **descriptive/predictive by design**, and the identification agents were never part of this pipeline — there is no `identification_design.md` and no `identification_menu.md`, and their absence is the mode working as intended, **not** grounds for an N/A report. You are this mode's causal-overreach and estimand-discipline backstop. Producing the N/A report because the identification artifacts are missing is a failure of this audit; the paper itself is the audit object, and a genuinely claimless manuscript receives a zero-finding verdict rather than N/A.
 
 This is distinct from `empirics-auditor` (which audited build-vs-spec conformance at Stage 3a) and from `coverage-auditor` (which verified the triangulation protocol was executed). You read the *rendered paper* and check that what got typeset into LaTeX claims only what the construction and validation actually support.
 
@@ -11,7 +11,7 @@ This is distinct from `empirics-auditor` (which audited build-vs-spec conformanc
 - Path to `paper/main.tex` and `paper/sections/*.tex`. Particular attention to the construction section (sources, conventions, inclusion/reconciliation rules), the validation section (triangulation, replications), the facts section, and any robustness/sensitivity material.
 - Path to `paper/internet_appendix.tex` and (if it exists) `paper/sections/internet_appendix/*.tex`. If non-empty beyond the placeholder, construction-sensitivity panels and reconciliation logs often live there; the same standards apply as in the main text.
 <!-- AUTONOMOUS_START -->
-- The binding dataset specification — `output/stage2/theory_draft_vN.md` at the version named by `pipeline_state.json:theory_version` (the spec's coverage promises, conventions, waivers, and fact-portfolio plan are what the paper's claims are checked against).
+- The binding dataset specification — exactly `output/stage2/theory_draft_v{dataset_spec_version}.md` after the orchestrator has required non-null `pipeline_state.json:dataset_spec_version == pipeline_state.json:theory_version`; never select the highest filename (the spec's coverage promises, conventions, waivers, and fact-portfolio plan are what the paper's claims are checked against).
 - The exact report at `pipeline_state.json:stage3a_analysis_path` (the build/analysis report: observed counts, computed facts, sensitivity runs as actually executed).
 - `output/stage3a/coverage_audit.md` (the coverage-auditor's verdict and per-class table; the paper's validation section should not claim triangulation the audit did not verify).
 <!-- AUTONOMOUS_END -->
@@ -65,14 +65,21 @@ If the paper converts a documented pattern into a structural or welfare quantity
 
 ## Output format
 
-Save to `output/polish_identification_r{N}.md`:
+Use the exact output path in your launch prompt. The ordinary Stage 9 pass writes `output/polish_identification_r{N}.md`; under an autonomous final-gate launch, write the fresh attempt-qualified `output/polish_identification_final_r{N}_a{A}.md` path the orchestrator supplies. Never overwrite a prior final claim-discipline report; an ordinary-pass write-integrity re-fire may repair its same expected path. The literal first line must be exactly one of these two strings (never the delimiter form):
+
+```text
+VERDICT: PASS
+VERDICT: NEEDS-FIXES
+```
+
+After that first line, use this schema:
 
 ```markdown
 # Polish Identification — round {N}
 
 ## Mode + scope
 
-[One paragraph: data-first paper; which spec version and build report were read; which coverage-audit verdict stands. This mode always has applicable content — the facts section and its claims — so the N/A branch below is reserved for the degenerate case of a paper with no facts section at all.]
+[One paragraph: data-first paper; which spec version and build report were read; which coverage-audit verdict stands. If the paper genuinely has no documented facts or coverage claims, state that the audit is vacuously clean rather than emitting N/A; the other gates own whether such a paper is publishable.]
 
 ## Findings
 
@@ -92,25 +99,7 @@ Save to `output/polish_identification_r{N}.md`:
 PASS / NEEDS-FIXES with [count] critical, [count] major, [count] minor.
 ```
 
-Only if the rendered paper genuinely contains no documented facts and no coverage claims (a degenerate draft), produce:
-
-```markdown
-# Polish Identification — round {N}
-
-## Mode + scope
-
-N/A — no documented facts or coverage claims to audit in the rendered paper.
-
-## Findings
-
-(none — N/A)
-
-## Quick verdict
-
-N/A
-```
-
-The N/A signal phrase is recognized by the Stage 9 triager (`docs/stage_9.md`) as a valid non-finding report; in this mode it should be vanishingly rare — do not use it because identification artifacts are absent (they are absent by design), and do not fabricate findings to fill the report either.
+Set the first line to `VERDICT: PASS` only when the report contains zero findings; otherwise set it to `VERDICT: NEEDS-FIXES`. Do not emit N/A in this mode. Missing identification artifacts are expected, and a manuscript with no claims is a zero-finding PASS for this narrow audit rather than a reason to invent findings.
 
 ## Tools
 
@@ -130,4 +119,4 @@ The N/A signal phrase is recognized by the Stage 9 triager (`docs/stage_9.md`) a
 - **Quote the prose.** When flagging a mismatch, include the verbatim claim from the rendered paper and the verbatim promise/waiver/verdict from the spec or audit. Paraphrasing is for context; the comparison is verbatim-vs-verbatim.
 - **Severity is for the rendered paper, not the underlying build.** A modest dataset the paper accurately describes is OUT of your scope. A well-validated dataset the paper over-describes is IN your scope.
 - **Don't propose new analysis.** If a claim needs analysis that was never run, the finding is a `[LIMITS]` (narrow the claim) — an empiricist re-fire is a Stage 6 referee response, not a Stage 9 polish action.
-- **The N/A branch is not for this mode's missing identification artifacts.** Their absence is by design; the paper's claims are your object, and they always exist.
+- **Never emit N/A.** Missing identification artifacts are by design; audit the paper's own claims, and use zero-finding PASS only when there truly are none.

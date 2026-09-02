@@ -198,8 +198,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -510,8 +510,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -654,7 +654,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "67ff5aa9e1219668847ddcdf8ac6673a2064fa6d4c341bbb53ef5bd15f0bb194",
+          "sha256": "7f2d16179d08e220ad059e268de1afe0b36745e2023b724296a433f010fd6c2e",
           "size": 1859,
           "type": "file"
         },
@@ -764,8 +764,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -1018,8 +1018,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -1266,8 +1266,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -1434,20 +1434,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "66327e101f92ffb66ff224a14ee744bcfa1d35004b4679eada65b134f9790835",
-          "size": 64875,
+          "sha256": "0ff224ff0321e150e61288e70057d34455fab11ff729d421fae2e62cb1f3f619",
+          "size": 65442,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "7f2e4bee2abe8f05f2fd35e758c61c9b632e0d02b8e1f2625c841ab7c9bbdfa8",
-          "size": 54525,
+          "sha256": "d73fcd55d12270239840047e8af6dbeae829c85d45494e53387de1ce0c8ab660",
+          "size": 55092,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "bfd61cfa10f0ae5c3a56c5064c0ae59edf3d9088c8bf644b3456b67d4a5cfd14",
-          "size": 59697,
+          "sha256": "ffa2eea315e4dfcfe4ed4094b5107ef007a98eae68b6d9d262078ebbb3a37427",
+          "size": 60264,
           "type": "file"
         },
         "code": {
@@ -1680,8 +1680,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -1728,8 +1728,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "73c59e7d829afb465a97535eb624bfb54ad958e0fd0ce65de7aec92f6183bd7a",
-          "size": 21687,
+          "sha256": "065ca6d8eaea48431b280864ed069eed9be2433dd017bcf9c571d64f0641c594",
+          "size": 21839,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -1830,7 +1830,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -1963,7 +1963,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -2515,8 +2515,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -3163,8 +3163,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -3313,7 +3313,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9d9825deaff9ab8f8411cff983f34eff334ef78316630f61d08d57a42eafa5d0",
+          "sha256": "5f79e4f3f7aa56c7dfda3f57d510308e1f0fcb81f3c70e9e3083a0d201983056",
           "size": 3117,
           "type": "file"
         },
@@ -3483,8 +3483,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -3743,8 +3743,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -4051,8 +4051,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -4231,20 +4231,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "3222a30209b379899199866599bd22011c35fb9d2341420ebd0e6fc9b60d84e1",
-          "size": 78603,
+          "sha256": "a6f1740944e46b2a5a91aa6b6b24a9ffa59d0a37704230306458abaa0714e17f",
+          "size": 79170,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "6ade3e5e0afc561f7fcab969bf0190e2077050c638d34c7fdef005ac525da933",
-          "size": 68253,
+          "sha256": "3a6dbe87742817eb0b804c82d9b82506ff54974c1853fd46c2773e7077b939df",
+          "size": 68820,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "1362c1d0eeaf5b828b7d21f4a3ca025f15450b0392be1abf8329ab62bcfbc6a9",
-          "size": 73425,
+          "sha256": "469a932554c311f5452258b4b383a6b8dd6808ebd97bf1a0e2cfcad1b6177b7a",
+          "size": 73992,
           "type": "file"
         },
         "code": {
@@ -4649,8 +4649,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -4709,8 +4709,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -4833,7 +4833,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -4999,7 +4999,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -5551,8 +5551,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -6199,8 +6199,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -6349,7 +6349,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ca605d4c3ec2e3bdceb509e8b27a023ccc03ddc4bbb3f82064d15ee11792b10f",
+          "sha256": "b10a89e9016ebee10ac92d806878ce22b162fbe672a2586ce4f6972406bd9d3a",
           "size": 3117,
           "type": "file"
         },
@@ -6519,8 +6519,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -6779,8 +6779,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -7087,8 +7087,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -7267,20 +7267,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "408881272924c24b292ac3a942cca5ea8d5d8e4696e60d77c2f6cac3a57aaeeb",
-          "size": 78603,
+          "sha256": "c7a832d352817e9596e03253457e3673fb38e2c4fbf573eb709f32d1329e3d23",
+          "size": 79170,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "04a89ad3358a4b80c0df4f734278bac97d63bcc3b6852f341d90cc922d7a4e7d",
-          "size": 68253,
+          "sha256": "9a2d2efc7041f1105b54cdc661c4b9694d22f306379bbb88737fe606cba05310",
+          "size": 68820,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "60d4b54fe4e234f5861dad143e4423590cca8352a966358c880ac3b0bdc7668e",
-          "size": 73425,
+          "sha256": "0484c78e4b82e58c009e34bce877acb8af99879aeae5c0ed4694f0c13f9d400e",
+          "size": 73992,
           "type": "file"
         },
         "code": {
@@ -7685,8 +7685,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -7745,8 +7745,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -7869,7 +7869,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -8035,7 +8035,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -8557,8 +8557,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "17db8c71a3a4cba3bfa482dcc56fbdbf41d718c9a1fabefa66db543b670d620f",
-          "size": 39614,
+          "sha256": "4caed30efb91d98ce9bda2da057cd2c112e58149100557b3f25fec2e2ba4d53d",
+          "size": 41587,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -8587,8 +8587,8 @@
         },
         ".claude/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "a4b2826da7e0fedb2ca418ac23f2e454998e34222707339902af6bfa758ded7e",
-          "size": 11534,
+          "sha256": "2e8ecbe8d6b6fbb1e7af2879b2c7151d28a46b34c0cc452ae638f3b5fd2525aa",
+          "size": 12172,
           "type": "file"
         },
         ".claude/agents/polish-institutions.md": {
@@ -9177,8 +9177,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "4c87cd6ca04f3a6714948011f02c8a7c8f0b6466519b62343129cb17de003fbc",
-          "size": 39723,
+          "sha256": "b68d301e8f2eff3dcd4a0050e5706e7b1db6f7f8777674283b55ac8845db29b8",
+          "size": 41696,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -9207,8 +9207,8 @@
         },
         ".codex/agents/polish-identification.toml": {
           "mode": "0644",
-          "sha256": "e00e7fcbd9e637d62a903b605b82d9dcecbfce63e69a27ee03cf345cd4cea113",
-          "size": 11649,
+          "sha256": "3d0ce99a862d2e013405dc2868316ba22aa0434c391daeaa6a1ae175cb50eb65",
+          "size": 12287,
           "type": "file"
         },
         ".codex/agents/polish-institutions.toml": {
@@ -9321,7 +9321,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c91c386292bb026bc06e34cb33179187077feebe53fa115483204c223c526759",
+          "sha256": "e78c5c07fd9ebab5cc5b2731df9b85843b4c5584d7126ae925cd7f0a0bcdfa7f",
           "size": 3020,
           "type": "file"
         },
@@ -9479,8 +9479,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "f778d5e73b071a09844711e206d718a9445a235c486b3601f279d57cf33cd16b",
-          "size": 39665,
+          "sha256": "7de5d7d7a53a0be17efcde23f8f5898be023eaae6cabbec2aa610a2057288fa0",
+          "size": 41638,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -9509,8 +9509,8 @@
         },
         ".gemini/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "07405c0b978ed43293136940a93550e594464b983e46c786aba2f20db72d5d41",
-          "size": 11581,
+          "sha256": "31d8b421f0e3a7999b2cde7cb7d9fe7868d0ae53f7e3b64c858dd2dd9df45cf7",
+          "size": 12219,
           "type": "file"
         },
         ".gemini/agents/polish-institutions.md": {
@@ -9733,8 +9733,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "03d6f202ef3b27d5f49e307e9cce13fc47949cf91ccb04fdeee5530329ebc56b",
-          "size": 39711,
+          "sha256": "e7eabfd6601e71e0ea4bd7dd73c8cfbb6635e411d47d7de517cab4b235fc1856",
+          "size": 41684,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -9763,8 +9763,8 @@
         },
         ".grok/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "24f463a85aea2ee3d028cd62d42b1c5fcf56472782cb24948d27a684034c7d88",
-          "size": 11626,
+          "sha256": "fa450b97cf5c135300d33bf51d555d5b589105a199ce7e2c808c26fe28cbdcff",
+          "size": 12264,
           "type": "file"
         },
         ".grok/agents/polish-institutions.md": {
@@ -10029,8 +10029,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "8a2bbefc10790fa9c6dcae52a4a2135a4612b40d66f53244f52f8b48d7645966",
-          "size": 39758,
+          "sha256": "ad516471a7a40bb980b99a2f64e850e261977c0a267d7dc6c8da400036498b93",
+          "size": 41731,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -10059,8 +10059,8 @@
         },
         ".opencode/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "2a527dbae14796e6c224a0ffdbc33a57c22a594331692d7b244d54c6c4e9d758",
-          "size": 11677,
+          "sha256": "c4ce5ce68dad816c8c0ed3efcd0d5cc1e6962a2ae7c4e92d51ede5a94c6dbe4b",
+          "size": 12315,
           "type": "file"
         },
         ".opencode/agents/polish-institutions.md": {
@@ -10203,20 +10203,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "d04b5105a8bb8e235cdba0ee24c5d82e074464479d01faaaef63c2516a389615",
-          "size": 79658,
+          "sha256": "4e781b3823d105aa91a0b430bdcc2fa011c3ab4af16e11407ca751f4f70c6aa9",
+          "size": 81354,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "0b37dc25a38cf8a07f2073221f9d984e63c082aa031910abd0c91fdc3e59ab22",
-          "size": 69308,
+          "sha256": "df3fbd0d0f4bc0841f611f9bd45a36b8f3d4ce01fdac0a6246ab9df4dabafbc9",
+          "size": 71004,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "9f6f0fe78f8812f9ea000a4b7e45dbfaf4ff7a8b5b454e61ca345990c73d1e28",
-          "size": 74480,
+          "sha256": "57b8a60646bc2d6c366b38ffe7fbd97f17d50fc5dfd212762297a0b2a8838bb4",
+          "size": 76176,
           "type": "file"
         },
         "code": {
@@ -10621,8 +10621,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "56ee5f8acd676b9fdf7d0db31bfe03afb23e1722261887b83f5bfe0349587609",
+          "size": 5665,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -10675,8 +10675,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "15facfb8e0ef93e6beccd82ce9d68696a654cb5586e02e2d2e5560b9d408f101",
-          "size": 23149,
+          "sha256": "c1c1a577f4d17ad4d593ed2c54aeb73066c197feed7b2699387a8a9625a4fa8b",
+          "size": 30620,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -10781,7 +10781,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -10827,8 +10827,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "3a0d22bcfec0f73f0d47f6d8776577f02f52b2e378b1ff723dfc8433574bc9b1",
-          "size": 2918,
+          "sha256": "b86fb4a42774abce1b355c595ad83a8d8ca1303500e0ac23aa76869f8a8fc578",
+          "size": 2951,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -10944,7 +10944,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -11475,8 +11475,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6fa40c3bbdca9b5c342e685a48871e91a10ba5b4597bb49555a8383359228bf6",
-          "size": 41920,
+          "sha256": "01c5d17e670f46e868791e85f5d6edf7bf1c6b8403d406fb42a2ceeffed4889e",
+          "size": 43893,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -11505,8 +11505,8 @@
         },
         ".claude/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "769f5e5d7e29351c40437c80e858f61b78f1f59a6f9aa99d70c7d707cdd9975a",
-          "size": 13842,
+          "sha256": "4989ef5e4c4e354752c4f2ddd63e5bbdbbee7b9ca45403abcf4ea1d295f8e2bd",
+          "size": 14480,
           "type": "file"
         },
         ".claude/agents/polish-institutions.md": {
@@ -12101,8 +12101,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "24e7d3832068505e02eec497c9312ebd66a7df6eb3dfdb284e32bb6a1bad3ab3",
-          "size": 42008,
+          "sha256": "80da3767e50ec21d2afb23b41d7a636c8fe08c63c2d9535f87fdddb48b14781f",
+          "size": 43981,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -12131,8 +12131,8 @@
         },
         ".codex/agents/polish-identification.toml": {
           "mode": "0644",
-          "sha256": "b10e15e81a92ddca574eaabf4a12a783a2b659c7a495757e13e671961c11def7",
-          "size": 13936,
+          "sha256": "0508192f523f190635548c2865003af2c911efc430d90082c49f81556f61a26f",
+          "size": 14574,
           "type": "file"
         },
         ".codex/agents/polish-institutions.toml": {
@@ -12245,7 +12245,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a0557ca239a472473a1c004ae4049d96f415e6f832aa4363dfcff7cbe930ff9c",
+          "sha256": "471467141a6e01e11b4bf6ac276e26525146995694cc5916d9fa7f864a965e4b",
           "size": 3016,
           "type": "file"
         },
@@ -12409,8 +12409,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "601e0ab303b3880195ace0c7cea45766ec3335a9d2a036649729c6079c12e7e3",
-          "size": 41992,
+          "sha256": "bd46f4f99b2f0407b0a87891e20ba807902588330da399f53e722ac2877e1fc2",
+          "size": 43965,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -12439,8 +12439,8 @@
         },
         ".gemini/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "19655c6c7602f385d11c0f27ad3ce22e48fbd2d05d0e92e372e91ea9c1f35d05",
-          "size": 13908,
+          "sha256": "de2189a69dae522da60eb16d22d208dc847c455f765904f2d5ac0a3c99dfde38",
+          "size": 14546,
           "type": "file"
         },
         ".gemini/agents/polish-institutions.md": {
@@ -12669,8 +12669,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "adb830e774414ee7001b54d32a7e4565e4791c1836c2471a5b149e103baca572",
-          "size": 42032,
+          "sha256": "d707733cbecde9f24f555d840b0c265e77b366a0511aa41e487c2ed61fd556f4",
+          "size": 44005,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -12699,8 +12699,8 @@
         },
         ".grok/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "3bf24b35dcee865b3f46286aaac647a0f671b9dac131dc5a2960be6790ecc590",
-          "size": 13947,
+          "sha256": "db7ada5d947affd4ada9f7bdada2fbf1c869bb49f63fbbf194ab8e84ab15fe6c",
+          "size": 14585,
           "type": "file"
         },
         ".grok/agents/polish-institutions.md": {
@@ -12971,8 +12971,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "566cd5379479c47bf803d5fc21c184bb68c17070ddd38d90b0dde897de21d9b6",
-          "size": 42079,
+          "sha256": "e60b3c0a07148e3eefdaf6422ef6a4a5f1ba5f25f062e810368545a3fa2019e4",
+          "size": 44052,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -13001,8 +13001,8 @@
         },
         ".opencode/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "5859fbdd10e7a335bb5892c28880e605709429efe64eaa687267ddb4f003003a",
-          "size": 13998,
+          "sha256": "f23e068acaa62e28aae6dd74eaac50e59aa977e14f1f2c25ddb39d2a6580c736",
+          "size": 14636,
           "type": "file"
         },
         ".opencode/agents/polish-institutions.md": {
@@ -13145,20 +13145,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "75dbca85b67814d7546aa8a5348061ccd9534725cf07e425451a4952b10d941a",
-          "size": 103681,
+          "sha256": "4cc302046ef201a26e0096e2df06133b0f522d8d12a5339ebf25901d3de8e4ce",
+          "size": 105377,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "0063796137270defd7fac354c7aea2531955b41962020b88905f1702d8b56099",
-          "size": 93331,
+          "sha256": "b878ff7b7cad94ce5c4109731579883610f58d7922ac2752eea7472890ca8251",
+          "size": 95027,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "0dddc246ca91d58efc32745579f27251cb3a04b24b6db197e6b02d2391f7e0cc",
-          "size": 98503,
+          "sha256": "0f42c290d57166b81cb31532040a872e10a061eac9e6c5910aeedc2419d4c95d",
+          "size": 100199,
           "type": "file"
         },
         "code": {
@@ -13563,8 +13563,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "56ee5f8acd676b9fdf7d0db31bfe03afb23e1722261887b83f5bfe0349587609",
+          "size": 5665,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -13617,8 +13617,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "15facfb8e0ef93e6beccd82ce9d68696a654cb5586e02e2d2e5560b9d408f101",
-          "size": 23149,
+          "sha256": "c1c1a577f4d17ad4d593ed2c54aeb73066c197feed7b2699387a8a9625a4fa8b",
+          "size": 30620,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -13733,7 +13733,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -13779,8 +13779,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "00afd28ef36165931e78fa6b788f3a7626e1d4748551d9ccac6912b03d372cd2",
-          "size": 2919,
+          "sha256": "a71253632e55e5fe12c97769d72407c46fe341fcaf2561a585e2bc8da69be864",
+          "size": 2952,
           "type": "file"
         },
         "process_log/pivot_log.md": {
@@ -13902,7 +13902,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -14425,8 +14425,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "bb491f227c2b80345a89e89c095098e69b0b49b368fc2f9af2549b853aa586a3",
-          "size": 35324,
+          "sha256": "9eb9350bda3e1ecb247bca6a9b9d7958651fe9ecb19bfeb9caa6384f147ec12e",
+          "size": 35603,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -14455,8 +14455,8 @@
         },
         ".claude/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "b2c39b2db4de66d477a5802565149d55865f9735228bf962a09071e21ab0361b",
-          "size": 11933,
+          "sha256": "e696168027153e136ea59b53c85cb33f3af4012d352d55731fb7a682e4e298f3",
+          "size": 12442,
           "type": "file"
         },
         ".claude/agents/polish-institutions.md": {
@@ -15045,8 +15045,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "b57d2dbca2b3ec04073a773e3796ee2b5441165d0eacd73789347e7a1b308720",
-          "size": 35433,
+          "sha256": "3664d776c2087a956220c94d82fc2af7184ebd6e88fc404b45b21f7351831f1b",
+          "size": 35712,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -15075,8 +15075,8 @@
         },
         ".codex/agents/polish-identification.toml": {
           "mode": "0644",
-          "sha256": "5f8a3161df4fae1925d15d3fc11ea93487b67c6f6e5d1e54bc8c00f178f1f4c7",
-          "size": 12048,
+          "sha256": "95b11c988123f6dd697779ea9d181ee88ad940b0f850b3d2199f1e2d020a918c",
+          "size": 12557,
           "type": "file"
         },
         ".codex/agents/polish-institutions.toml": {
@@ -15189,7 +15189,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "422dca38af4a7deec731f9c531223bffb44bb6cba8fd482a3c47c2a18ca63367",
+          "sha256": "96e476c0efe14aa6a10653cb27a8ecd4fb641f59f60fee67a37fe4342000ad0b",
           "size": 2995,
           "type": "file"
         },
@@ -15347,8 +15347,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "9fac173e4739e59c18e0dfa15e7b010a58c4ca0b4179da7eff6ee975d10625ff",
-          "size": 35375,
+          "sha256": "816b68a9ee6a3cdf5dca2f5d803da4037573e2db22c6bcfae464873215d21173",
+          "size": 35654,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -15377,8 +15377,8 @@
         },
         ".gemini/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "972d43a20a6ffcf1c0f8fb6d27d2822a28246ace5be07b480ca5a650cc2df7e3",
-          "size": 11980,
+          "sha256": "036a4819cc6f72fe31a570b228453b0ce4379c10af95de65755163d4e27fd754",
+          "size": 12489,
           "type": "file"
         },
         ".gemini/agents/polish-institutions.md": {
@@ -15601,8 +15601,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "65ca3efa230c1901bcb1e4f01d8e3906d808d734276b1d178d43d1d5d86f3d66",
-          "size": 35421,
+          "sha256": "9e9ae00eeafea5ebd14e4a63990488cc8146b6a1a4abba328cb088b3ff6025ec",
+          "size": 35700,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -15631,8 +15631,8 @@
         },
         ".grok/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "b19772634a8d35834a002db5bb9253065bb13507602688d5ca4a9e0d6ba3b572",
-          "size": 12025,
+          "sha256": "acc7be21580d4e7c05d665fd391bc7a204fbdd03a92c874edcd62ecd70a062b5",
+          "size": 12534,
           "type": "file"
         },
         ".grok/agents/polish-institutions.md": {
@@ -15897,8 +15897,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "d347e425d14c43d4867a79d891d3fdb795ecdd6e38198f30f4f4d886840a370d",
-          "size": 35468,
+          "sha256": "898688e9cbe529340e50fc6986fce2e9a3c5a5cdaed59ed8799b3348b87b79e1",
+          "size": 35747,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -15927,8 +15927,8 @@
         },
         ".opencode/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "b4c41d3a8b57d7f1de6a4a58a34e2b210039451a4224b9aeaf818ccce816b3e2",
-          "size": 12076,
+          "sha256": "d6ac0589487fd40882798dd6d035b1654c9ad0de93c627ac82dd1a4487aed6d2",
+          "size": 12585,
           "type": "file"
         },
         ".opencode/agents/polish-institutions.md": {
@@ -16483,8 +16483,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "a8a4b089b16b585c110e5dee335e6fb5abf870380ec822aa1ea44418a577073b",
+          "size": 5229,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -16603,7 +16603,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "215840b2c85d3e52d4359410af1c0d26fee47bc817b71c550a39b44b6276a299",
+          "sha256": "1e3fa9c3356c3691614cc525e3bda661547247151b6a399479eadcad5a98346f",
           "size": 15387,
           "type": "file"
         },
@@ -16745,7 +16745,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -17268,8 +17268,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "17db8c71a3a4cba3bfa482dcc56fbdbf41d718c9a1fabefa66db543b670d620f",
-          "size": 39614,
+          "sha256": "4caed30efb91d98ce9bda2da057cd2c112e58149100557b3f25fec2e2ba4d53d",
+          "size": 41587,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -17298,8 +17298,8 @@
         },
         ".claude/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "a4b2826da7e0fedb2ca418ac23f2e454998e34222707339902af6bfa758ded7e",
-          "size": 11534,
+          "sha256": "2e8ecbe8d6b6fbb1e7af2879b2c7151d28a46b34c0cc452ae638f3b5fd2525aa",
+          "size": 12172,
           "type": "file"
         },
         ".claude/agents/polish-institutions.md": {
@@ -17888,8 +17888,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "4c87cd6ca04f3a6714948011f02c8a7c8f0b6466519b62343129cb17de003fbc",
-          "size": 39723,
+          "sha256": "b68d301e8f2eff3dcd4a0050e5706e7b1db6f7f8777674283b55ac8845db29b8",
+          "size": 41696,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -17918,8 +17918,8 @@
         },
         ".codex/agents/polish-identification.toml": {
           "mode": "0644",
-          "sha256": "e00e7fcbd9e637d62a903b605b82d9dcecbfce63e69a27ee03cf345cd4cea113",
-          "size": 11649,
+          "sha256": "3d0ce99a862d2e013405dc2868316ba22aa0434c391daeaa6a1ae175cb50eb65",
+          "size": 12287,
           "type": "file"
         },
         ".codex/agents/polish-institutions.toml": {
@@ -18032,7 +18032,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "855bb2b56b1fd5e2a86cdcd4a4e0d1751bd9e9ef1f1565745a4f46c2a84f960a",
+          "sha256": "32dd013b00f9da0bca0236db93e20ef837983b604dfe26f9d4cedb80cfa41f8c",
           "size": 3019,
           "type": "file"
         },
@@ -18190,8 +18190,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "f778d5e73b071a09844711e206d718a9445a235c486b3601f279d57cf33cd16b",
-          "size": 39665,
+          "sha256": "7de5d7d7a53a0be17efcde23f8f5898be023eaae6cabbec2aa610a2057288fa0",
+          "size": 41638,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -18220,8 +18220,8 @@
         },
         ".gemini/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "07405c0b978ed43293136940a93550e594464b983e46c786aba2f20db72d5d41",
-          "size": 11581,
+          "sha256": "31d8b421f0e3a7999b2cde7cb7d9fe7868d0ae53f7e3b64c858dd2dd9df45cf7",
+          "size": 12219,
           "type": "file"
         },
         ".gemini/agents/polish-institutions.md": {
@@ -18444,8 +18444,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "03d6f202ef3b27d5f49e307e9cce13fc47949cf91ccb04fdeee5530329ebc56b",
-          "size": 39711,
+          "sha256": "e7eabfd6601e71e0ea4bd7dd73c8cfbb6635e411d47d7de517cab4b235fc1856",
+          "size": 41684,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -18474,8 +18474,8 @@
         },
         ".grok/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "24f463a85aea2ee3d028cd62d42b1c5fcf56472782cb24948d27a684034c7d88",
-          "size": 11626,
+          "sha256": "fa450b97cf5c135300d33bf51d555d5b589105a199ce7e2c808c26fe28cbdcff",
+          "size": 12264,
           "type": "file"
         },
         ".grok/agents/polish-institutions.md": {
@@ -18740,8 +18740,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "8a2bbefc10790fa9c6dcae52a4a2135a4612b40d66f53244f52f8b48d7645966",
-          "size": 39758,
+          "sha256": "ad516471a7a40bb980b99a2f64e850e261977c0a267d7dc6c8da400036498b93",
+          "size": 41731,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -18770,8 +18770,8 @@
         },
         ".opencode/agents/polish-identification.md": {
           "mode": "0644",
-          "sha256": "2a527dbae14796e6c224a0ffdbc33a57c22a594331692d7b244d54c6c4e9d758",
-          "size": 11677,
+          "sha256": "c4ce5ce68dad816c8c0ed3efcd0d5cc1e6962a2ae7c4e92d51ede5a94c6dbe4b",
+          "size": 12315,
           "type": "file"
         },
         ".opencode/agents/polish-institutions.md": {
@@ -18914,20 +18914,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "79d9f5a004ed460291c4ca377bbb05f3ea95cc617d495171b84db89255416cbb",
-          "size": 85869,
+          "sha256": "f1cf935e2b1708fad377544f48770e5b9a1c0c218616e4de6d5d9822312fe487",
+          "size": 87565,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "573c9ad756819bcda9a114f524c9dd615f501de3eef7838905bc0f6065b0ce1a",
-          "size": 75519,
+          "sha256": "71e2ac095ba59bbb3d7c04199e6fb39cee1b0928b5c989593179c9a24b1cc56d",
+          "size": 77215,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "0ae0c794d6550745a63b13a2b4329bff0b08eabc5f36026e6070991aac437291",
-          "size": 80691,
+          "sha256": "8000c99c2a52a4479971e372cbcb5f87ccba2afcbcd9373f14949b58dafcbb15",
+          "size": 82387,
           "type": "file"
         },
         "code": {
@@ -19332,8 +19332,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "56ee5f8acd676b9fdf7d0db31bfe03afb23e1722261887b83f5bfe0349587609",
+          "size": 5665,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -19386,8 +19386,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "15facfb8e0ef93e6beccd82ce9d68696a654cb5586e02e2d2e5560b9d408f101",
-          "size": 23149,
+          "sha256": "c1c1a577f4d17ad4d593ed2c54aeb73066c197feed7b2699387a8a9625a4fa8b",
+          "size": 30620,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -19502,7 +19502,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -19548,8 +19548,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "1ad9295e4927573f99dd84abb6846cb9fecc88222c1396ef1ce0c319a42e027a",
-          "size": 2921,
+          "sha256": "cc68cc52912f7b0def5dfc938f4b00838f30ab0d24ffec066ab43270d33bc3ab",
+          "size": 2954,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -19665,7 +19665,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -19864,8 +19864,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -20176,8 +20176,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -20320,7 +20320,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "67ff5aa9e1219668847ddcdf8ac6673a2064fa6d4c341bbb53ef5bd15f0bb194",
+          "sha256": "7f2d16179d08e220ad059e268de1afe0b36745e2023b724296a433f010fd6c2e",
           "size": 1859,
           "type": "file"
         },
@@ -20430,8 +20430,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -20684,8 +20684,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -20932,8 +20932,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -21100,20 +21100,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "66327e101f92ffb66ff224a14ee744bcfa1d35004b4679eada65b134f9790835",
-          "size": 64875,
+          "sha256": "0ff224ff0321e150e61288e70057d34455fab11ff729d421fae2e62cb1f3f619",
+          "size": 65442,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "7f2e4bee2abe8f05f2fd35e758c61c9b632e0d02b8e1f2625c841ab7c9bbdfa8",
-          "size": 54525,
+          "sha256": "d73fcd55d12270239840047e8af6dbeae829c85d45494e53387de1ce0c8ab660",
+          "size": 55092,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "bfd61cfa10f0ae5c3a56c5064c0ae59edf3d9088c8bf644b3456b67d4a5cfd14",
-          "size": 59697,
+          "sha256": "ffa2eea315e4dfcfe4ed4094b5107ef007a98eae68b6d9d262078ebbb3a37427",
+          "size": 60264,
           "type": "file"
         },
         "code": {
@@ -21346,8 +21346,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -21394,8 +21394,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "73c59e7d829afb465a97535eb624bfb54ad958e0fd0ce65de7aec92f6183bd7a",
-          "size": 21687,
+          "sha256": "065ca6d8eaea48431b280864ed069eed9be2433dd017bcf9c571d64f0641c594",
+          "size": 21839,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -21496,7 +21496,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -21629,7 +21629,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -22184,8 +22184,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -22832,8 +22832,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -22982,7 +22982,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9d9825deaff9ab8f8411cff983f34eff334ef78316630f61d08d57a42eafa5d0",
+          "sha256": "5f79e4f3f7aa56c7dfda3f57d510308e1f0fcb81f3c70e9e3083a0d201983056",
           "size": 3117,
           "type": "file"
         },
@@ -23152,8 +23152,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -23412,8 +23412,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -23720,8 +23720,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -23900,20 +23900,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "3222a30209b379899199866599bd22011c35fb9d2341420ebd0e6fc9b60d84e1",
-          "size": 78603,
+          "sha256": "a6f1740944e46b2a5a91aa6b6b24a9ffa59d0a37704230306458abaa0714e17f",
+          "size": 79170,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "6ade3e5e0afc561f7fcab969bf0190e2077050c638d34c7fdef005ac525da933",
-          "size": 68253,
+          "sha256": "3a6dbe87742817eb0b804c82d9b82506ff54974c1853fd46c2773e7077b939df",
+          "size": 68820,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "1362c1d0eeaf5b828b7d21f4a3ca025f15450b0392be1abf8329ab62bcfbc6a9",
-          "size": 73425,
+          "sha256": "469a932554c311f5452258b4b383a6b8dd6808ebd97bf1a0e2cfcad1b6177b7a",
+          "size": 73992,
           "type": "file"
         },
         "code": {
@@ -24318,8 +24318,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -24378,8 +24378,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -24502,7 +24502,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -24668,7 +24668,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -25190,8 +25190,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -25810,8 +25810,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -25954,7 +25954,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "87ba0bf378452b94d6035df7a741e78914d1e7ec4d17742fb1cc3fad27833cad",
+          "sha256": "1b9384616c846abba7655696241b6ed6b384a55d914c316c69527ff26c157665",
           "size": 3010,
           "type": "file"
         },
@@ -26112,8 +26112,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -26366,8 +26366,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -26662,8 +26662,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -26836,20 +26836,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "c3cba5484be6eee9f929e78e3f571b517b5c4838c026bb77a26c6f97c4176c67",
-          "size": 77365,
+          "sha256": "372d945dc390fed4fcef3684002f5beda4c95db51b3bdccdf0127e97ade77309",
+          "size": 77932,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "9638ede1cd09268210b84387e69c120874bbf69fabbcfb85fddc15d8d4d46f57",
-          "size": 67015,
+          "sha256": "8fa7234abfd4a4cf169db4605859c96aa574d9c2fab9a6005bda6a1cfcef3a2e",
+          "size": 67582,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "5fdc02d92f1ea2c33cf1605f9e04ea3f928682af0a3800d86c8fc181de7c9b20",
-          "size": 72187,
+          "sha256": "5d391c93d6ac9c6b95bba14321b31699cd0e60f7a078455c2cfbd02518306a78",
+          "size": 72754,
           "type": "file"
         },
         "code": {
@@ -27254,8 +27254,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -27308,8 +27308,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "73c59e7d829afb465a97535eb624bfb54ad958e0fd0ce65de7aec92f6183bd7a",
-          "size": 21687,
+          "sha256": "065ca6d8eaea48431b280864ed069eed9be2433dd017bcf9c571d64f0641c594",
+          "size": 21839,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -27418,7 +27418,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -27581,7 +27581,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -28109,8 +28109,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "021c7f707a559833f3a63b8ab987c9707ad477673e9be90e4daf9392d913c98e",
-          "size": 40231,
+          "sha256": "942bc44cf7d69b34f525520b558bbad6bb1b795c295659c86067e0b53c5f3a71",
+          "size": 40511,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -28735,8 +28735,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "84e919c6fc02e6ef2ba61afaed503e7cf1346fcd782ffab0431501995039d19b",
-          "size": 40340,
+          "sha256": "267237290a5bc4e10a3d05e727fa0f6e29e09eb492626102b96e0c79ffd98799",
+          "size": 40620,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -28879,7 +28879,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2483f736e882cd530d8cd6c64ce721e75ebff625f100535ac4d1a59a6a43b1f8",
+          "sha256": "53ac86d3edde910a1988f77824254799aa4a4fb76d13652b50212c49cf3e0642",
           "size": 3025,
           "type": "file"
         },
@@ -29043,8 +29043,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "3bdcbe1bb12ad06be5a2d9f682d6a0cf96453eec9378f8ece6b03a81dab3a7c6",
-          "size": 40282,
+          "sha256": "3791e8a1983cba4c6cfb154e512a247079f6a17171751b3e454fd17570973810",
+          "size": 40562,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -29297,8 +29297,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "329cbbe271731e727d15f9ee59e56cf8242ee0a8943c9e2a788554401df22d5b",
-          "size": 40328,
+          "sha256": "cd8ddae407f55d124e014042a27045925604d5c3bb309e2a837d2d578921cf69",
+          "size": 40608,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -29599,8 +29599,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "49e089bd2a677b1e964521bce2fdd3a58762e9bc2d004b4cc24d8a3e7e844bd6",
-          "size": 40375,
+          "sha256": "aa44fa74d026d0018685e411c3f1e42e5b1675be10a598240b1d4bbdd5171560",
+          "size": 40655,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -29773,20 +29773,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "590ecf26d872d81df6de08a9f865424265dc5048436000e972303543e8d7cd30",
-          "size": 79702,
+          "sha256": "0d8e224766634aaaa667a219603c80185ecae1fe72c936fb6388404e04300919",
+          "size": 80269,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "1fb26e181747eca8c3ad4f6d445bd41ac279c90e1d022eb91480ae9cb67e1103",
-          "size": 69352,
+          "sha256": "9403eac81406f9cf92a4245e17fac9a23a4082b6933b21a065f8a85efb213922",
+          "size": 69919,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "abca88277bdc577afb34608e59fa0a34dfc4867118a2e2f832b6da6f3eaea781",
-          "size": 74524,
+          "sha256": "b9ca8c08169c3389fa951f6efe1c5620802b6fa3cff1caaf4266de36d0d95ba7",
+          "size": 75091,
           "type": "file"
         },
         "code": {
@@ -30191,8 +30191,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -30245,8 +30245,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "b9ca597fccc5e9246609d7a58f4cf2ac2b05df12c1cf150b2bf3c3be6394dc33",
-          "size": 22851,
+          "sha256": "c752b60a52564aff6a356a8777be73e5d6b3247ad98f96bb415f968c437bc14e",
+          "size": 23003,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -30347,7 +30347,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -30510,7 +30510,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -31068,8 +31068,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "021c7f707a559833f3a63b8ab987c9707ad477673e9be90e4daf9392d913c98e",
-          "size": 40231,
+          "sha256": "942bc44cf7d69b34f525520b558bbad6bb1b795c295659c86067e0b53c5f3a71",
+          "size": 40511,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -31722,8 +31722,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "84e919c6fc02e6ef2ba61afaed503e7cf1346fcd782ffab0431501995039d19b",
-          "size": 40340,
+          "sha256": "267237290a5bc4e10a3d05e727fa0f6e29e09eb492626102b96e0c79ffd98799",
+          "size": 40620,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -31872,7 +31872,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "cb541cfdf93afb9ca6a6b27c743b3c145c69cb55b0f38ced103e94487c8fda45",
+          "sha256": "ac27d884d685d7cce643f9d730833057e743ef51a705d202b229d1aff23646a8",
           "size": 3132,
           "type": "file"
         },
@@ -32048,8 +32048,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "3bdcbe1bb12ad06be5a2d9f682d6a0cf96453eec9378f8ece6b03a81dab3a7c6",
-          "size": 40282,
+          "sha256": "3791e8a1983cba4c6cfb154e512a247079f6a17171751b3e454fd17570973810",
+          "size": 40562,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -32308,8 +32308,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "329cbbe271731e727d15f9ee59e56cf8242ee0a8943c9e2a788554401df22d5b",
-          "size": 40328,
+          "sha256": "cd8ddae407f55d124e014042a27045925604d5c3bb309e2a837d2d578921cf69",
+          "size": 40608,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -32622,8 +32622,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "49e089bd2a677b1e964521bce2fdd3a58762e9bc2d004b4cc24d8a3e7e844bd6",
-          "size": 40375,
+          "sha256": "aa44fa74d026d0018685e411c3f1e42e5b1675be10a598240b1d4bbdd5171560",
+          "size": 40655,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -32802,20 +32802,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "365c1a58d4166f5b6f5ef6344605d82a9b9c5c2954a74f7e46925f29fdd07e2e",
-          "size": 80940,
+          "sha256": "a8c5ddc937afa7cd8c8af27f2db50acc1fe2de8aab270e32f315ffa1de16fd19",
+          "size": 81507,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "3bd8d6d12c9323e08f1002b63d95c6916652b857362c87b78a75a96b0fc85277",
-          "size": 70590,
+          "sha256": "e7914f7fe52ca1e9b46f3c715b761d8dbd2d1d2348f16963081c6359def00dce",
+          "size": 71157,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "f46467d0d54f85ade0059ef7b9545745d2b77f00eca3fb39b850f6945b8cd4c2",
-          "size": 75762,
+          "sha256": "14ff9bdb6738e613062b3477c11a17c3d0123a177ebe6e54aa6db8f7e669ec1d",
+          "size": 76329,
           "type": "file"
         },
         "code": {
@@ -33220,8 +33220,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -33280,8 +33280,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "8556bb2be7f96458a5bf42ca46a406fcb8aa3435de2732d66f7df49953ea2a60",
-          "size": 24333,
+          "sha256": "c6cecf0f5fb02425e4b55a1c48168bfd1c13ec8477401966dd0db93e99ce690f",
+          "size": 24485,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -33396,7 +33396,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -33562,7 +33562,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -33765,8 +33765,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -34077,8 +34077,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -34221,7 +34221,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "67ff5aa9e1219668847ddcdf8ac6673a2064fa6d4c341bbb53ef5bd15f0bb194",
+          "sha256": "7f2d16179d08e220ad059e268de1afe0b36745e2023b724296a433f010fd6c2e",
           "size": 1859,
           "type": "file"
         },
@@ -34331,8 +34331,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -34585,8 +34585,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -34833,8 +34833,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -35001,20 +35001,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "66327e101f92ffb66ff224a14ee744bcfa1d35004b4679eada65b134f9790835",
-          "size": 64875,
+          "sha256": "0ff224ff0321e150e61288e70057d34455fab11ff729d421fae2e62cb1f3f619",
+          "size": 65442,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "7f2e4bee2abe8f05f2fd35e758c61c9b632e0d02b8e1f2625c841ab7c9bbdfa8",
-          "size": 54525,
+          "sha256": "d73fcd55d12270239840047e8af6dbeae829c85d45494e53387de1ce0c8ab660",
+          "size": 55092,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "bfd61cfa10f0ae5c3a56c5064c0ae59edf3d9088c8bf644b3456b67d4a5cfd14",
-          "size": 59697,
+          "sha256": "ffa2eea315e4dfcfe4ed4094b5107ef007a98eae68b6d9d262078ebbb3a37427",
+          "size": 60264,
           "type": "file"
         },
         "code": {
@@ -35247,8 +35247,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -35295,8 +35295,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "73c59e7d829afb465a97535eb624bfb54ad958e0fd0ce65de7aec92f6183bd7a",
-          "size": 21687,
+          "sha256": "065ca6d8eaea48431b280864ed069eed9be2433dd017bcf9c571d64f0641c594",
+          "size": 21839,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -35397,7 +35397,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -35530,7 +35530,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -36061,8 +36061,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "069c0485e774a7159db3136d77eee6b13aab27618518663bab60524f002458b0",
-          "size": 37526,
+          "sha256": "ca8f3be21cd7705f8f27a6fac6a2ae8ac3b10d01aba78869587cb6428bb6d895",
+          "size": 37806,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -36687,8 +36687,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "3b02691ebd2cf2d1eebb1a18234e6cdd6cb06fe6f0a9cf11cd50478c45d3c8c8",
-          "size": 37614,
+          "sha256": "ee05462bf1e116ff9382999656ecae338da3d935bd26a09357537d248bda881b",
+          "size": 37894,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -36831,7 +36831,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5c58f3f5bf2f80fee76f885648625ba52c316719f624535a2d24ec6102b6e67a",
+          "sha256": "d4c8771190a69d76be3c44f0d9ed4b472f1eba5e64db610fd8c8c139ae563d13",
           "size": 3006,
           "type": "file"
         },
@@ -36995,8 +36995,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "5f56918a4e2f63561c505a753e7ec582bf3a91b263c250873336a6167022d777",
-          "size": 37598,
+          "sha256": "fa1f87857107c99cc80cd06f0717aae7ff3469f7c34c6a8ee2b7ace5d6b465cd",
+          "size": 37878,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -37255,8 +37255,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "954572bd7f7c7ea570b037e07aac44e7debcb4c84680216ae3d015333dfea379",
-          "size": 37638,
+          "sha256": "33d12eb78b04d8ac2b9262142724187d36b0dc6e2ecaa313d1e0d913cd156228",
+          "size": 37918,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -37557,8 +37557,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "abe4bc7ed7a237365cbdabda54ae13d9b6faeb4b66bac0d9b4064dc431d1cf4b",
-          "size": 37685,
+          "sha256": "a26be69c53bf142705e9090ee0e364467b7456652053385850859a7ed7cc5cfe",
+          "size": 37965,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -37731,20 +37731,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "b611aaae24345b0dd54c9be0ec58958543d24e37009b3440a7e6f4da6c956f65",
-          "size": 101388,
+          "sha256": "9c603495edf0df9844ce056ebaf97078a67a52ef9602b6f37c2203fda49919cc",
+          "size": 101955,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "4d25fd4d34c1afa80e86a94ee5099f99c40c867efbd6467a2126c66812c7879b",
-          "size": 91038,
+          "sha256": "1abca31149777b296a16ae59aca2e91c157551e36980f00c682a432f94d7888b",
+          "size": 91605,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "ea3b72ec96b6f403c0eb9c852784f58f90860a2e86859992675f1a1bd5bccb2d",
-          "size": 96210,
+          "sha256": "1e2bdc6a8e7b0ce4dffbbd6e19a7a0ae7273f2801bb8b0928cd8fc17446604fd",
+          "size": 96777,
           "type": "file"
         },
         "code": {
@@ -38149,8 +38149,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -38203,8 +38203,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "73c59e7d829afb465a97535eb624bfb54ad958e0fd0ce65de7aec92f6183bd7a",
-          "size": 21687,
+          "sha256": "065ca6d8eaea48431b280864ed069eed9be2433dd017bcf9c571d64f0641c594",
+          "size": 21839,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -38323,7 +38323,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -38492,7 +38492,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -38695,8 +38695,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -39007,8 +39007,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -39151,7 +39151,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "97d8fb44b53f16a0b76d67ba3b4c96b45daa9a8b84a6d4327ac3477a4cdfc1cb",
+          "sha256": "1dd0ce6b823c4e3ac3a192d2d57adf5aa8639431b0f2464c8496fdc0e4559898",
           "size": 1858,
           "type": "file"
         },
@@ -39261,8 +39261,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -39515,8 +39515,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -39763,8 +39763,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -39931,20 +39931,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "9aafe4ae59d00b4ced920f3e836fdb39ad99fae9028538417c6f68df54007404",
-          "size": 65411,
+          "sha256": "2dee46ecd746038900f61b04d3495ec4d17553c5990340d461c7e5389d3996bd",
+          "size": 65978,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "7471bf9427a71674efefecfd2883b56f46d12c6bb3d8268f2515416fd8a288be",
-          "size": 55061,
+          "sha256": "6894f95c5fb27d81355d3fc54924abb19b60551fb3fd8d598ea770b5d819cef8",
+          "size": 55628,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "95a90fdd0117e82967c4c84b7edd522bb0b0ac0cded6e221ad6452568b6a6887",
-          "size": 60233,
+          "sha256": "0dae90dcb8edd1323ec7cd9dc934a585343eea3b7e69533ef10a68ad9aecadf4",
+          "size": 60800,
           "type": "file"
         },
         "code": {
@@ -40177,8 +40177,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -40225,8 +40225,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "73c59e7d829afb465a97535eb624bfb54ad958e0fd0ce65de7aec92f6183bd7a",
-          "size": 21687,
+          "sha256": "065ca6d8eaea48431b280864ed069eed9be2433dd017bcf9c571d64f0641c594",
+          "size": 21839,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -40327,7 +40327,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -40460,7 +40460,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -40695,8 +40695,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -41035,8 +41035,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -41185,7 +41185,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "db252b66144dd5804d44c9e184787392e69371ab16244b305788a01017f5e49b",
+          "sha256": "e4febb3c9be1d014674a39281a65477a7a273fd42b7d051f51d924bffc8b6d72",
           "size": 1968,
           "type": "file"
         },
@@ -41307,8 +41307,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -41567,8 +41567,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -41827,8 +41827,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -42001,20 +42001,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "95a7f2f5e8d341f49ce768b8e4086c74f9fc195a42c40747b18be8f4a155f50d",
-          "size": 66113,
+          "sha256": "34f2ca5a3e9efbea3b240dbc8ca3160f1b2dafee27774514a692102136e3e287",
+          "size": 66680,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "6dc977fe749cfa92a3fc5795e246f756471f95e3504a8a97ffb373e8911efd89",
-          "size": 55763,
+          "sha256": "b7ac4e9df94bf97f71e124359260b3441531bbeea849d2d464fc74004b7a1024",
+          "size": 56330,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "7f659c4355c2051b5a03834353da04ab5a52e8915fdbf3fc2176a11f0a578a59",
-          "size": 60935,
+          "sha256": "c6864b0dbc8cebe0ce723cd6047c5ec9fc3d5d0ad799b10faa9c3c5cfc8da8d0",
+          "size": 61502,
           "type": "file"
         },
         "code": {
@@ -42247,8 +42247,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -42301,8 +42301,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -42417,7 +42417,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -42554,7 +42554,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -42788,8 +42788,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -43128,8 +43128,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -43278,7 +43278,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "db252b66144dd5804d44c9e184787392e69371ab16244b305788a01017f5e49b",
+          "sha256": "e4febb3c9be1d014674a39281a65477a7a273fd42b7d051f51d924bffc8b6d72",
           "size": 1968,
           "type": "file"
         },
@@ -43400,8 +43400,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -43660,8 +43660,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -43920,8 +43920,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -44094,20 +44094,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "95a7f2f5e8d341f49ce768b8e4086c74f9fc195a42c40747b18be8f4a155f50d",
-          "size": 66113,
+          "sha256": "34f2ca5a3e9efbea3b240dbc8ca3160f1b2dafee27774514a692102136e3e287",
+          "size": 66680,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "6dc977fe749cfa92a3fc5795e246f756471f95e3504a8a97ffb373e8911efd89",
-          "size": 55763,
+          "sha256": "b7ac4e9df94bf97f71e124359260b3441531bbeea849d2d464fc74004b7a1024",
+          "size": 56330,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "7f659c4355c2051b5a03834353da04ab5a52e8915fdbf3fc2176a11f0a578a59",
-          "size": 60935,
+          "sha256": "c6864b0dbc8cebe0ce723cd6047c5ec9fc3d5d0ad799b10faa9c3c5cfc8da8d0",
+          "size": 61502,
           "type": "file"
         },
         "code": {
@@ -44340,8 +44340,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -44394,8 +44394,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -44510,7 +44510,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -44647,7 +44647,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -44850,8 +44850,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "5004cd2d08bf2684538422c50527266bdb344151ae63baa4a686344e5c69276e",
-          "size": 35205,
+          "sha256": "158d66c19477fda2d92d69d758204d761dd985347f13dc417dc8f6468cd2f58f",
+          "size": 35485,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -45162,8 +45162,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "92830e8a3dfff37c7e851eb00bbf6f8d3080e557a36d5af9937d7a6a85603555",
-          "size": 35294,
+          "sha256": "fcecf5f490b48defc0120488fed5a8fd44b93275a1d7ff8fb36abba9efe8f156",
+          "size": 35574,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -45306,7 +45306,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "890fe47b236e0a785696b6eb624bb73b4473f72ec4e002017f0740d31d7e779a",
+          "sha256": "2c91e25abe5811ec3a2b5dfb5dbfc4572e18ad66fe638fc0bb29a916040923ff",
           "size": 1858,
           "type": "file"
         },
@@ -45416,8 +45416,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "1b6fde99c5c30610fac9c744c092484310a703a84792483dc49731476eae158d",
-          "size": 35277,
+          "sha256": "4c259cde83ec7186e02829968919638aa050ee31f68c1b670e7d3512580b6200",
+          "size": 35557,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -45670,8 +45670,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -45918,8 +45918,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -46086,20 +46086,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "66327e101f92ffb66ff224a14ee744bcfa1d35004b4679eada65b134f9790835",
-          "size": 64875,
+          "sha256": "0ff224ff0321e150e61288e70057d34455fab11ff729d421fae2e62cb1f3f619",
+          "size": 65442,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "7f2e4bee2abe8f05f2fd35e758c61c9b632e0d02b8e1f2625c841ab7c9bbdfa8",
-          "size": 54525,
+          "sha256": "d73fcd55d12270239840047e8af6dbeae829c85d45494e53387de1ce0c8ab660",
+          "size": 55092,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "bfd61cfa10f0ae5c3a56c5064c0ae59edf3d9088c8bf644b3456b67d4a5cfd14",
-          "size": 59697,
+          "sha256": "ffa2eea315e4dfcfe4ed4094b5107ef007a98eae68b6d9d262078ebbb3a37427",
+          "size": 60264,
           "type": "file"
         },
         "code": {
@@ -46332,8 +46332,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -46380,8 +46380,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "73c59e7d829afb465a97535eb624bfb54ad958e0fd0ce65de7aec92f6183bd7a",
-          "size": 21687,
+          "sha256": "065ca6d8eaea48431b280864ed069eed9be2433dd017bcf9c571d64f0641c594",
+          "size": 21839,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -46482,7 +46482,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -46615,7 +46615,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -47168,8 +47168,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "2f8d6b9d3adc3791a85e8d93868e3ae039a04c128d6afc2161ef5ed9e345059c",
-          "size": 31308,
+          "sha256": "45dcce4e323292cd1757af64b932fa134bd2df20ebaa2d4eeda0062badb37db8",
+          "size": 31587,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -47816,8 +47816,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "8c15ff77ea7c94ac9f16942bf714ee976415e1d88bdfe12469b31f187c89061f",
-          "size": 31417,
+          "sha256": "7ddc610d8e328be69a8467b2be6e80afee8dea9f7dd70b6c41a0ceaa48b9bac3",
+          "size": 31696,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -47966,7 +47966,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "795d370ae06738ebe96a8c31036951ca4496c07aa1e9e3ec52fa7b5a0ce213fb",
+          "sha256": "3f42e46809dd545ccfcfaf7c4e60e4eb2d75636ba0e65847cbafc83a484b1684",
           "size": 3092,
           "type": "file"
         },
@@ -48136,8 +48136,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "d87ee0b1be8bc9b4d6ab5a60a0859f57e2dae874ef98bc1b0a9339ed7ba0f478",
-          "size": 31359,
+          "sha256": "4fe4d630f7c0f3adcfea569db87271ec48e18bbf56432230a6ae04d237c0346f",
+          "size": 31638,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -48396,8 +48396,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "e20d4d09881e5caa27b2662f9d13cef78f04ceaff838f270b57dc2b767951b99",
-          "size": 31405,
+          "sha256": "3fd1c83d8e3aded31353a9c568e969e47171ac8df45129e6a7436e807a2ff5fa",
+          "size": 31684,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -48704,8 +48704,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "2c8f6612e87a7545f7996fc42c3e043e710b8bd1d00ef13ceeab7f4d476e60c7",
-          "size": 31452,
+          "sha256": "84ea8da46ea857d2ba05af079d7ec80a26244c915d336e3164646d05b4ec0a08",
+          "size": 31731,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -49296,8 +49296,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "a8a4b089b16b585c110e5dee335e6fb5abf870380ec822aa1ea44418a577073b",
+          "size": 5229,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -49428,7 +49428,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "215840b2c85d3e52d4359410af1c0d26fee47bc817b71c550a39b44b6276a299",
+          "sha256": "1e3fa9c3356c3691614cc525e3bda661547247151b6a399479eadcad5a98346f",
           "size": 15387,
           "type": "file"
         },
@@ -49573,7 +49573,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -49993,7 +49993,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8b63cea4e50b4b43c9bc5870595b9bb1d2c11cb05ac1a32dc0222ab5afa2157c",
+          "sha256": "8c8659d0782156a70d089bca898deba2eaa57fa928fd529b10cf9fddb5a20b5b",
           "size": 1841,
           "type": "file"
         },
@@ -50755,7 +50755,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -51735,7 +51735,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d0168fd1c01d493a01383cec5c0d52fb049ed373eb483c9610f89e43366e4bea",
+          "sha256": "30d3d4bd859bc02c7da919beeb4e9f45a20f41edcbd1d4f940018ab9b5c31c57",
           "size": 3099,
           "type": "file"
         },
@@ -52714,7 +52714,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -53694,7 +53694,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "830e987a87ba786aeb53d7b2eacad12443820cd44d93e1e005adc552c61db0b2",
+          "sha256": "34bcabac5c6e644a3dcf79a68375c88655f6f64964388ea867a14a07dfdd8ef8",
           "size": 3099,
           "type": "file"
         },
@@ -54673,7 +54673,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -55625,7 +55625,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a8d988e56e8001ad8b92ece4cf4912723fac2c40424abb0315ea869392091636",
+          "sha256": "0f497f49d1d2d4fc683540e1be9905593b150fde792a84cb11edee5421038bc9",
           "size": 2992,
           "type": "file"
         },
@@ -56595,7 +56595,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -57016,7 +57016,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d7806374174f4200a5882d58bbbcac78f767b5fcbdcad5e0f73ac33b682232a8",
+          "sha256": "c2af8b00e41305e7329be6e42b7bd6ad19ac758326d48ac4d95b179cf50e14e7",
           "size": 1840,
           "type": "file"
         },
@@ -57778,7 +57778,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -58230,7 +58230,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "61e34cf0fdf5a7f9c56614c565e02ee2f739110a9465070c89db76a31a774bf7",
+          "sha256": "5773c5b7acca6528fe25bfe2a77d275e9bfc6a698763dc5f617980507e569385",
           "size": 1950,
           "type": "file"
         },
@@ -59002,7 +59002,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -59205,8 +59205,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -59517,8 +59517,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -59661,7 +59661,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "77c26d342c12126548102c85a46b27225302d4848aff2122a5ddc5a6f8bb9309",
+          "sha256": "42b0a0239dadc0bde4d894c99df03f741843e848f334f3abec0fe5b4b0f254f4",
           "size": 1858,
           "type": "file"
         },
@@ -59771,8 +59771,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -60025,8 +60025,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -60273,8 +60273,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -60441,20 +60441,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "1b8dae4ef0ffa13e007c9a310e35a91758db9a1ace0d544eda242c2f19750245",
-          "size": 71086,
+          "sha256": "6d03dac0538da8c5bb90f0b6f18c171bf780a6b1e426a731fb32ebf3c3dcc1d2",
+          "size": 71653,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "55261391bf483d8a18de861047ec89233cf9f08a37b4771466944a0ffd1683e9",
-          "size": 60736,
+          "sha256": "760b198699bff43f41a7d9a9981f8a08b048ffe7c3c53ccabf115502b6a0c248",
+          "size": 61303,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "33491a1f6726f2f972f8b38a6103846f2beba5361a184c1439c9d9601e2435ae",
-          "size": 65908,
+          "sha256": "9c1c89ba1ba339e195db4d4a8b75f35fa9a8c45475ad594630c46d10fe54be53",
+          "size": 66475,
           "type": "file"
         },
         "code": {
@@ -60687,8 +60687,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -60735,8 +60735,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "73c59e7d829afb465a97535eb624bfb54ad958e0fd0ce65de7aec92f6183bd7a",
-          "size": 21687,
+          "sha256": "065ca6d8eaea48431b280864ed069eed9be2433dd017bcf9c571d64f0641c594",
+          "size": 21839,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -60847,7 +60847,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -60980,7 +60980,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -61502,8 +61502,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -62122,8 +62122,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -62266,7 +62266,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "87ba0bf378452b94d6035df7a741e78914d1e7ec4d17742fb1cc3fad27833cad",
+          "sha256": "1b9384616c846abba7655696241b6ed6b384a55d914c316c69527ff26c157665",
           "size": 3010,
           "type": "file"
         },
@@ -62424,8 +62424,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -62678,8 +62678,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -62974,8 +62974,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -63148,20 +63148,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "c3cba5484be6eee9f929e78e3f571b517b5c4838c026bb77a26c6f97c4176c67",
-          "size": 77365,
+          "sha256": "372d945dc390fed4fcef3684002f5beda4c95db51b3bdccdf0127e97ade77309",
+          "size": 77932,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "9638ede1cd09268210b84387e69c120874bbf69fabbcfb85fddc15d8d4d46f57",
-          "size": 67015,
+          "sha256": "8fa7234abfd4a4cf169db4605859c96aa574d9c2fab9a6005bda6a1cfcef3a2e",
+          "size": 67582,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "5fdc02d92f1ea2c33cf1605f9e04ea3f928682af0a3800d86c8fc181de7c9b20",
-          "size": 72187,
+          "sha256": "5d391c93d6ac9c6b95bba14321b31699cd0e60f7a078455c2cfbd02518306a78",
+          "size": 72754,
           "type": "file"
         },
         "code": {
@@ -63566,8 +63566,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -63620,8 +63620,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "73c59e7d829afb465a97535eb624bfb54ad958e0fd0ce65de7aec92f6183bd7a",
-          "size": 21687,
+          "sha256": "065ca6d8eaea48431b280864ed069eed9be2433dd017bcf9c571d64f0641c594",
+          "size": 21839,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -63730,7 +63730,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -63893,7 +63893,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -64129,8 +64129,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "6c8b716f66ac46186a06de6ab7e882bb0255713a6ba5a171bd83c0d39c078ed7",
-          "size": 35220,
+          "sha256": "9a9124f9bab282e1b27286c7bfff3d9054f755aafe015788eb160d5a9a44324c",
+          "size": 35500,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -64469,8 +64469,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "d7e0758e9d527aff2af81201f2dedd7c786ca28e67f2e06dbe3b1dfd0d7941f0",
-          "size": 35329,
+          "sha256": "668ec01ef1c915e74ce667ec540951ac59bfbf630fe0fe6be78eb7530ccd43fb",
+          "size": 35609,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -64619,7 +64619,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "db252b66144dd5804d44c9e184787392e69371ab16244b305788a01017f5e49b",
+          "sha256": "e4febb3c9be1d014674a39281a65477a7a273fd42b7d051f51d924bffc8b6d72",
           "size": 1968,
           "type": "file"
         },
@@ -64741,8 +64741,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "af59947c54d565c9f1009edbecc00a0397708000a3384d2717cd41d7ec3c1925",
-          "size": 35271,
+          "sha256": "5a39273da7b4a43fa9318f0fe35b5ffe5be81fd0d45eeecf27d12ac425ead596",
+          "size": 35551,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -65001,8 +65001,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "09d0887613b7657b562a5575c446f7d000eb71883a3e80bd4562ff4441565824",
-          "size": 35317,
+          "sha256": "0c16823636ed36500fbf6cacce49e6de3e53b6c000ffe026a19af6fcc1803489",
+          "size": 35597,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -65261,8 +65261,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "04559ca24d3b9d90a3b5af721105119b00b387cf5dea3e5d0f999f6cbfde0237",
-          "size": 35364,
+          "sha256": "aaf61f34ff6c302417e4f793e5fc9d3f1dc391be84ce075fcc4b04c0c047210c",
+          "size": 35644,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -65435,20 +65435,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "95a7f2f5e8d341f49ce768b8e4086c74f9fc195a42c40747b18be8f4a155f50d",
-          "size": 66113,
+          "sha256": "34f2ca5a3e9efbea3b240dbc8ca3160f1b2dafee27774514a692102136e3e287",
+          "size": 66680,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "6dc977fe749cfa92a3fc5795e246f756471f95e3504a8a97ffb373e8911efd89",
-          "size": 55763,
+          "sha256": "b7ac4e9df94bf97f71e124359260b3441531bbeea849d2d464fc74004b7a1024",
+          "size": 56330,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "7f659c4355c2051b5a03834353da04ab5a52e8915fdbf3fc2176a11f0a578a59",
-          "size": 60935,
+          "sha256": "c6864b0dbc8cebe0ce723cd6047c5ec9fc3d5d0ad799b10faa9c3c5cfc8da8d0",
+          "size": 61502,
           "type": "file"
         },
         "code": {
@@ -65681,8 +65681,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "b64e8f586f268fb602a542af39c889109bdb4414d8dd49dd6eff7b7de9a2c82b",
-          "size": 5056,
+          "sha256": "59c10d25f958a82eb61b4034137cf5a0069d71ede4c734761a9fd3c471cff613",
+          "size": 5230,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -65735,8 +65735,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -65851,7 +65851,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -65988,7 +65988,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -66202,8 +66202,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "bbf48a47ce90f1137c15233c1cad699e6a4ece33b18a6cfaeb43293cf78d6e41",
-          "size": 38957,
+          "sha256": "463b7cac5fef51055ddb79bdde5366d5d9350b0862433b27fabfc26ad56291c8",
+          "size": 39237,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -66522,8 +66522,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "cd6d9d40a635a9c7cfa0bbf047695d82ad82fcb8396ffd0f90e08e78d7b2bf94",
-          "size": 39066,
+          "sha256": "e638f08f4fac86ad928b5eda8e84d705952f7b235b9d6a943fa67ebfeade1570",
+          "size": 39346,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -66672,7 +66672,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bae4515a28ddf91a1f4895158adc5422d96c36eb2273e966400b0132b8151f11",
+          "sha256": "446c920bb3a295a4f4a2f84102516762500f0f586e1769881cf588fb60bc6f1b",
           "size": 1918,
           "type": "file"
         },
@@ -66794,8 +66794,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "ca70fa65f2db99989e9201fce77c875a75d5140125cb3aa4e07aa79d37f80f65",
-          "size": 39008,
+          "sha256": "6f9559d59037cff520bf983673d683c465fd6169aa81fc532f10788d9e5702e2",
+          "size": 39288,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -67054,8 +67054,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "c0233aa2c6d2a6489806e35499e84fdc5a0484ead08552bcf2ebc9ea4c9e35ff",
-          "size": 39054,
+          "sha256": "a9043e48320c1f0129bfc6605f94c3c615fca0e295403f7c88d1fcfe4e25ad02",
+          "size": 39334,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -67314,8 +67314,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "b65669f7ff023a23c3528c9b83c7880ee0efe05c604e0ace27c94a28ab2a7c43",
-          "size": 39101,
+          "sha256": "0c8fa7828ffcc768b8ae0bd0a7cb6ce7ab2b77ba7ef1723bb08b4e0d1a83d5fe",
+          "size": 39381,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -67488,20 +67488,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "8eabb5200c401b3a1c7da45ea16a4b3f0ce18181c12586088edc53e1f1574a01",
-          "size": 66482,
+          "sha256": "cda455fd092cd76568bffaff8f29486ae9d98495ae0048b2bbe38e441beefefa",
+          "size": 67049,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "e5fb6eddff9c4aa09c7fdd8f3755e0480cada82355d5613a7bd31c18f9b46c74",
-          "size": 56132,
+          "sha256": "d98bf2deec16308b3f44850cf9bc64cd55c93279d120f1a377aabfee7d023b63",
+          "size": 56699,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "c4763ea84e6a09164c0e97e04875cd8afbf1a11d9c670bddec9d9d06f279a5df",
-          "size": 61304,
+          "sha256": "55ed7a5f5784c6f7c0034c33493ebb691627fb32fbf437c1d9c89497638305cb",
+          "size": 61871,
           "type": "file"
         },
         "code": {
@@ -67708,8 +67708,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "9224dcd3f5d5aa32886df0aedd2d8c09453935bc8cdeca8304aee5d79c985a17",
-          "size": 5055,
+          "sha256": "2076d4edc558147c708d7503a01e3d57278fba7e0081cf03a6733e0ff29bc6e0",
+          "size": 5229,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -67762,8 +67762,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -67878,7 +67878,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -68013,7 +68013,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -68234,8 +68234,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "68ee2f5fd6c2121218c12afe5f6151554c106a79205f91ef53e1ad60417109a2",
-          "size": 41278,
+          "sha256": "88982699a82f0294fa63a88b58bd2edb2a8a682b24217424eafdf2a632c81ad3",
+          "size": 41558,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -68560,8 +68560,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "bf6ebb92a66fc2b0b2616ebb4f5afa129bbf2c41e9dcea12b54317fcf5fadfde",
-          "size": 41386,
+          "sha256": "960008cb00448422442243bcb055d8e0023b3962f6787d117acbe0c9e99ce548",
+          "size": 41666,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -68710,7 +68710,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "20f147f895a8b8e56634dc77ac902c81ad79384e94ecf938e77c4c75d8249687",
+          "sha256": "4b2789608af071d4b5ec4a36f0512e6f940a3179ef6de818ccec5105438b71b3",
           "size": 1916,
           "type": "file"
         },
@@ -68838,8 +68838,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "0c09e2dbd601e9bf32b9bfd0e3c83f247fa6cc8e2dc28f147f794fc75a8149da",
-          "size": 41329,
+          "sha256": "0307a74e61277f4b31c894531117f220da6d739cdc5f6f50e89c6ea435135578",
+          "size": 41609,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -69104,8 +69104,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "d2986f7211c355e9bc97c48605770f97f8fe94b1e3d77906ee79113a95ef1b68",
-          "size": 41375,
+          "sha256": "bce3b956ea8421d1a4497aa441711c6ff2ece57c7503f191ccdbf9d2e1ac5cb4",
+          "size": 41655,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -69370,8 +69370,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "9e96ae6982ca53d2d20904a4ad6e76701c37a70547d7c058dea4e08b877b3776",
-          "size": 41422,
+          "sha256": "9020d7a2bdea7eefbfe6a25b31f98fb8ff4835c61f1aa65d8b106a9550573184",
+          "size": 41702,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -69544,20 +69544,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "6835bc9915d66ce8b6effb0c75588dd29cc627bbcde3bcf02e62261d7b01d32b",
-          "size": 89969,
+          "sha256": "63f2eadf5207f048a02d2818c208bc3f44225e37b1b89c46069b912167152efb",
+          "size": 90536,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "ab618acfccae17fd9c8b168da9f2b55e9ba199b9231384caf94c3f00f810e283",
-          "size": 79619,
+          "sha256": "be5fafbb3e4080d6f426a3ccc66ee9f652cf4340f2ae29528878d87a31c2f8c8",
+          "size": 80186,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "3dc11cc757d9b15a2cdc41f960ad892027b95dad976352fd024bde1810f8dacc",
-          "size": 84791,
+          "sha256": "a13a8d86d53d5399b36f6cebccc8e8bb825ed6563660ad0fd713e9952cd6b9b1",
+          "size": 85358,
           "type": "file"
         },
         "code": {
@@ -69764,8 +69764,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "9224dcd3f5d5aa32886df0aedd2d8c09453935bc8cdeca8304aee5d79c985a17",
-          "size": 5055,
+          "sha256": "2076d4edc558147c708d7503a01e3d57278fba7e0081cf03a6733e0ff29bc6e0",
+          "size": 5229,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -69818,8 +69818,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -69944,7 +69944,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -70085,7 +70085,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -70301,8 +70301,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "824e66d56c5b87e58761f5eb1ba0f364a4b89f38a2e3aa725f89776e2df86095",
-          "size": 38942,
+          "sha256": "2989bbb4936965bffaebb5ce65047ee444454f43e08b163be1160e7577ad2e32",
+          "size": 39222,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -70621,8 +70621,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "74c77e004b64e95dadb911cd7c256be11a6674c7439e2d2f73e621ef1d30d85e",
-          "size": 39031,
+          "sha256": "af88d88b778ecb86ee360e7c81572aa1e67813c0831b2914762c02765decdca4",
+          "size": 39311,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -70771,7 +70771,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "014534097793a3c23952adc9c50d50fe434afb75a95cb561b250d663e2c3d06c",
+          "sha256": "d166a5c91cbe5319f03a7a436cac93501db40dfa82294e9ef8c0d4797646a6bb",
           "size": 1916,
           "type": "file"
         },
@@ -70893,8 +70893,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "b076fd5d1f047ec5635808fb657ca20098358519f1033cb4a5e863d21e24dd18",
-          "size": 39014,
+          "sha256": "2a90addbe546180fd0a1e88b48160a29840f26f98775308e0668fccd3ffb6d2e",
+          "size": 39294,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -71153,8 +71153,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "c0233aa2c6d2a6489806e35499e84fdc5a0484ead08552bcf2ebc9ea4c9e35ff",
-          "size": 39054,
+          "sha256": "a9043e48320c1f0129bfc6605f94c3c615fca0e295403f7c88d1fcfe4e25ad02",
+          "size": 39334,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -71413,8 +71413,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "b65669f7ff023a23c3528c9b83c7880ee0efe05c604e0ace27c94a28ab2a7c43",
-          "size": 39101,
+          "sha256": "0c8fa7828ffcc768b8ae0bd0a7cb6ce7ab2b77ba7ef1723bb08b4e0d1a83d5fe",
+          "size": 39381,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -71587,20 +71587,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "92f97d5c127a7ba540f282cdefa2cb3792ee28f916e8e9057269441da876be29",
-          "size": 67018,
+          "sha256": "995e1ceb4885f64b1bbafb6b4889e4d05334da0e389419196ddbc4084a4a5629",
+          "size": 67585,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "b2d123c569954ea51084d06d79d8804c55a22b33701a0a8c6e6cff50560b48c7",
-          "size": 56668,
+          "sha256": "78b6d3da4118a6bb1fc915a6a9f9ef044fb2add4f8b89dd8420a7007bff0f3d7",
+          "size": 57235,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "b21cd30780b7c93c79aec88cf9b750f7f50bfee36428250a8e415770efb3dced",
-          "size": 61840,
+          "sha256": "2f235dfcbcb0b4fd3dc896143f75915cc0bd2e9d4059126d2f34c35c14ed8ea6",
+          "size": 62407,
           "type": "file"
         },
         "code": {
@@ -71807,8 +71807,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "9224dcd3f5d5aa32886df0aedd2d8c09453935bc8cdeca8304aee5d79c985a17",
-          "size": 5055,
+          "sha256": "2076d4edc558147c708d7503a01e3d57278fba7e0081cf03a6733e0ff29bc6e0",
+          "size": 5229,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -71861,8 +71861,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -71977,7 +71977,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -72112,7 +72112,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -72327,8 +72327,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "d6827fa447888984da44dc29e99731babc45bcbecb4b63e0ac84bf14ee4450d2",
-          "size": 35045,
+          "sha256": "7f2b0ef96b6f66552797f75f87c261c3c19122764f1eba2fee5ca57300956ede",
+          "size": 35324,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -72647,8 +72647,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "5c0d17d4a7afc223c81b8d16bb8ba13886634b2f812c72183e076ef8d9fffe4d",
-          "size": 35154,
+          "sha256": "d932d51c39e5008a1c15628c6b00242b14edd46223f60fa34d8aba5be3dd17aa",
+          "size": 35433,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -72797,7 +72797,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "329e1e38603d5e742b8622461828b490cf2f528b328f97e2d1cf4113fdc70c7a",
+          "sha256": "c38f53aa99debc720d7cd95aa1fa395b11fc922671b620e7918409fc60e7be37",
           "size": 1893,
           "type": "file"
         },
@@ -72919,8 +72919,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "c865f7b4ad7a18b05547736903be0374a2c0061fcde5dcdbc322ddd7b5d6813e",
-          "size": 35096,
+          "sha256": "12f2231940d1d841603f179c9ece344f10c7f1399c5b0cf24a0cebcc58109210",
+          "size": 35375,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -73179,8 +73179,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "0d6e26397653078558e9fae1b31e04e3a4c30b00f757f40e7ac6d1b5f6294b13",
-          "size": 35142,
+          "sha256": "a034318bc97b7bb7ac06784e3698edb4816b238f9dccdf6b6976c50ab879113b",
+          "size": 35421,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -73439,8 +73439,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "d1ca9b323f04434c69081618d6e55c299339dea1c41041d4311ed97351ad6193",
-          "size": 35189,
+          "sha256": "946af95343ab5224f6ea9bc90028f00e191019ffd868abf7dd7f4be1147f1a6e",
+          "size": 35468,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -73827,8 +73827,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "9224dcd3f5d5aa32886df0aedd2d8c09453935bc8cdeca8304aee5d79c985a17",
-          "size": 5055,
+          "sha256": "fe680826c358e6ce7f812d121006bdfa282ae5fac977196d32aba7bf91be7262",
+          "size": 5228,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -73953,7 +73953,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "215840b2c85d3e52d4359410af1c0d26fee47bc817b71c550a39b44b6276a299",
+          "sha256": "1e3fa9c3356c3691614cc525e3bda661547247151b6a399479eadcad5a98346f",
           "size": 15387,
           "type": "file"
         },
@@ -74067,7 +74067,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -74283,8 +74283,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "b08553045b22875529f13e8a472bdb80824fe1254508b9d7b84ab234c0ada1b3",
-          "size": 39239,
+          "sha256": "5cbb0d84aec490f7009908880d45bbeb9ccd0d4721535c89b1203d9667068b84",
+          "size": 39519,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -74603,8 +74603,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "5254fad45114645443461d675108edfa15b361a3ac33ddae60456e1d4bd0278b",
-          "size": 39348,
+          "sha256": "fefdf51052296e93f628f27c30da09fcd08743fbd95d0e02a92a0e0a9df7bbd5",
+          "size": 39628,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -74753,7 +74753,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5402dfed208801b7017f0b3d13ce2f873b4c720b8848b850e336950dc582c20d",
+          "sha256": "993c5e570d80edc8172d9c3d8bd4835afc5031496272ecac99686062fac8cd33",
           "size": 1935,
           "type": "file"
         },
@@ -74875,8 +74875,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "01bdb786dc0527cf2e0bfed2689fca41c5eb1bbb36aa511f94e48d293fc06fe8",
-          "size": 39290,
+          "sha256": "4c6da8710a724f0de7d6a4c76d18b72a3cbd3199be5ecbe45c944f13692783eb",
+          "size": 39570,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -75135,8 +75135,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "018bfe4b3d8b5bc1bc13ae3d0014788fe4040056b7ceb9f7b2b7834e28412036",
-          "size": 39336,
+          "sha256": "5aa4fb68420aabce5895ced01b2d8d039238d2d0586f36bef9bab2b180f70430",
+          "size": 39616,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -75395,8 +75395,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "51e471d26bedf7af0b2f929047ac88da09858d53fbcee33290283fc7f36e61a9",
-          "size": 39383,
+          "sha256": "f0859d1103c0fbea21046455af466c147ce2184b38b882153fd7bfe2fae964ac",
+          "size": 39663,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -75569,20 +75569,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "00a12d4f01ad53ceafe994c47bf11000f66455a2b184bbb31c1f124a792ecbc8",
-          "size": 68289,
+          "sha256": "3bdf108a679eee1489117786bd70d21f21e6319578dec0894df7bd00bad30b57",
+          "size": 68856,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "cc488c720a5c7e941a8e7d93a61e8e76a62974784055f05752e14e97a2e6ffca",
-          "size": 57939,
+          "sha256": "1b6da142b2ea106f4e3d72fed880243186dbd1b6dfeb2d4398bc217420fe1635",
+          "size": 58506,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "5a65dd6fbae26cfcb3766d132a9ee6ce5f05cbe6622ba3b2686fd0b606f1e20a",
-          "size": 63111,
+          "sha256": "fa7f48422dc9382c6fb4f52e9f08c7726597539cfce288741b40f0c1da71d205",
+          "size": 63678,
           "type": "file"
         },
         "code": {
@@ -75789,8 +75789,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "9224dcd3f5d5aa32886df0aedd2d8c09453935bc8cdeca8304aee5d79c985a17",
-          "size": 5055,
+          "sha256": "2076d4edc558147c708d7503a01e3d57278fba7e0081cf03a6733e0ff29bc6e0",
+          "size": 5229,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -75843,8 +75843,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -75951,7 +75951,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -76086,7 +76086,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -76466,7 +76466,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d6ab9a435e6cf77ef521a8a824c19ba925e913451eb6d8fc69f744da05234c13",
+          "sha256": "9ad3cd5b799667735e95da8b845a82ded2a60467a3354433986ba3c29ee881a3",
           "size": 1791,
           "type": "file"
         },
@@ -77200,7 +77200,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -77612,7 +77612,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5398623d62abcf06fcb57e7767a848409b484ed6e914cdaecf8daf6010131605",
+          "sha256": "f4720fb314a858cdb431cd1147b4d74a8aa5745d1de82869c91330d408fe7729",
           "size": 1900,
           "type": "file"
         },
@@ -78356,7 +78356,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -78558,8 +78558,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "afffe2bddd5a88676319112ecf7269ecaf98363081f89b41c05e14e5b39ee597",
-          "size": 35339,
+          "sha256": "7bfcb8fb97ff2c507a935df860d6cb22ed4051da83eb802329cc58333da23313",
+          "size": 35619,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -78870,8 +78870,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "bace934d7ab51f67275609aa1426f570d1d9ef0d2c3b1eba06895174af729f74",
-          "size": 35448,
+          "sha256": "6cece73ea269e84140b86de27a7bfc1a0ef3eb25279941efacf7f78375e5c02c",
+          "size": 35728,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -79014,7 +79014,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "996be513d856864cdfd982c6ec7f608002820a03fb8455ce4ae564b7cfa3e7cf",
+          "sha256": "a54e615a0d8397010ee498da2305ab995381d956a305fd7c571865cce3d7e9e1",
           "size": 1857,
           "type": "file"
         },
@@ -79124,8 +79124,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "645e03d64885f84638b5699569858cafa2ee6c4d7754d39e05620348f406f44c",
-          "size": 35390,
+          "sha256": "0b4f61681c687e3878c716bd9ab0c71e427797b8eae1abb95f09a43c5380f223",
+          "size": 35670,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -79378,8 +79378,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "daf0b4039d956afead8ba58d570cc602d70560869842a07dbed2007d21675e6d",
-          "size": 35436,
+          "sha256": "422a86726cf1f7b0404149d3b930399235283a53a93601e514671ccd1a4db7c9",
+          "size": 35716,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -79626,8 +79626,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "3f28f2e59bc6ce264b4649f62564ea7ffe71667583322cdad73da1a8f997c5a0",
-          "size": 35483,
+          "sha256": "ba9b8631437c96ed0d770837cbf8eed87d20a84b6ef07a11fc88e143c2d0606d",
+          "size": 35763,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -79794,20 +79794,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "7be16a831e14cb05cde5e4f2bc1367c0511f7d97618c1a501b9c381b24e12b1e",
-          "size": 64904,
+          "sha256": "0769151d512eb26720ad406da2c110874715968bf395e141e32eaf0869d8e168",
+          "size": 65471,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "17ffc037b63001fcaca1faa5d86ec36418560b5949f84cd4839e59c70afdad1c",
-          "size": 54554,
+          "sha256": "be442d41ee26ec7f9fd6124d91c96ef5a39cf3e95a17ed22e9963486d468dbc4",
+          "size": 55121,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "fc444bafa73d9a2d076590b2dfca27af1077672763722b486a4f228fedd93750",
-          "size": 59726,
+          "sha256": "f17cc180dbbffa6add1b7e53ec07e6d3c8d0d64e25df8653d6b2d9a6bd1649b2",
+          "size": 60293,
           "type": "file"
         },
         "code": {
@@ -80040,8 +80040,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "166712f43eee27bb9f847fdc9871a98039f2415ddba276f40993b81e12b65ac4",
-          "size": 5043,
+          "sha256": "7cc36e39551fb5d8af4e4ebc6c3bf08d91fd29b455e3caf34474c4b20523a0a4",
+          "size": 5217,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -80088,8 +80088,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "73c59e7d829afb465a97535eb624bfb54ad958e0fd0ce65de7aec92f6183bd7a",
-          "size": 21687,
+          "sha256": "065ca6d8eaea48431b280864ed069eed9be2433dd017bcf9c571d64f0641c594",
+          "size": 21839,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -80190,7 +80190,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -80323,7 +80323,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -80875,8 +80875,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "afffe2bddd5a88676319112ecf7269ecaf98363081f89b41c05e14e5b39ee597",
-          "size": 35339,
+          "sha256": "7bfcb8fb97ff2c507a935df860d6cb22ed4051da83eb802329cc58333da23313",
+          "size": 35619,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -81523,8 +81523,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "bace934d7ab51f67275609aa1426f570d1d9ef0d2c3b1eba06895174af729f74",
-          "size": 35448,
+          "sha256": "6cece73ea269e84140b86de27a7bfc1a0ef3eb25279941efacf7f78375e5c02c",
+          "size": 35728,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -81673,7 +81673,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9bbcdc0c6a35ed691d25531439a3702db86195dad5aaf8a48282f230ca451a9e",
+          "sha256": "6e35526b14a5ed2621781bc4d891f87ce5b57d4d6e0c8308949c107d923e98f4",
           "size": 3115,
           "type": "file"
         },
@@ -81843,8 +81843,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "645e03d64885f84638b5699569858cafa2ee6c4d7754d39e05620348f406f44c",
-          "size": 35390,
+          "sha256": "0b4f61681c687e3878c716bd9ab0c71e427797b8eae1abb95f09a43c5380f223",
+          "size": 35670,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -82103,8 +82103,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "daf0b4039d956afead8ba58d570cc602d70560869842a07dbed2007d21675e6d",
-          "size": 35436,
+          "sha256": "422a86726cf1f7b0404149d3b930399235283a53a93601e514671ccd1a4db7c9",
+          "size": 35716,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -82411,8 +82411,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "3f28f2e59bc6ce264b4649f62564ea7ffe71667583322cdad73da1a8f997c5a0",
-          "size": 35483,
+          "sha256": "ba9b8631437c96ed0d770837cbf8eed87d20a84b6ef07a11fc88e143c2d0606d",
+          "size": 35763,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -82591,20 +82591,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "8133da921038f0ffefc009ca789cd098879cacc89127e25ca459751ec880a9d2",
-          "size": 78632,
+          "sha256": "8bf74498e076535180f9d36460ed5e904ca8d0b48be94a50ebead8533e302e39",
+          "size": 79199,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "28cacd98ea7e3dff1175df519fb25a544d802d1aec4719f58882175b2f2eb809",
-          "size": 68282,
+          "sha256": "530d96641f4b9e04bbc57b533f911e884b28f9d52f030e178403cfee5dd2ad1c",
+          "size": 68849,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "4bf6eab8538d72515a47dbaa121ffaa235869189c3af18a80dff8e4bb76b5c4b",
-          "size": 73454,
+          "sha256": "f7ad09b7f9fe0bbdfe0fe61b75dc5256b39337d2c834e12bee71dba7871724f8",
+          "size": 74021,
           "type": "file"
         },
         "code": {
@@ -83009,8 +83009,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "166712f43eee27bb9f847fdc9871a98039f2415ddba276f40993b81e12b65ac4",
-          "size": 5043,
+          "sha256": "7cc36e39551fb5d8af4e4ebc6c3bf08d91fd29b455e3caf34474c4b20523a0a4",
+          "size": 5217,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -83069,8 +83069,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -83193,7 +83193,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -83359,7 +83359,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -83881,8 +83881,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "afffe2bddd5a88676319112ecf7269ecaf98363081f89b41c05e14e5b39ee597",
-          "size": 35339,
+          "sha256": "7bfcb8fb97ff2c507a935df860d6cb22ed4051da83eb802329cc58333da23313",
+          "size": 35619,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -84501,8 +84501,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "bace934d7ab51f67275609aa1426f570d1d9ef0d2c3b1eba06895174af729f74",
-          "size": 35448,
+          "sha256": "6cece73ea269e84140b86de27a7bfc1a0ef3eb25279941efacf7f78375e5c02c",
+          "size": 35728,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -84645,7 +84645,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ffd5b49074d6cf48e15e3c7c3d16cb9e42c67e7d8d8ad391b189c52ecd5f5198",
+          "sha256": "2458ee569f11bb36de746d961a735b2abc1b9f918cc5a9b6e1b5c8f233479f2b",
           "size": 3008,
           "type": "file"
         },
@@ -84803,8 +84803,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "645e03d64885f84638b5699569858cafa2ee6c4d7754d39e05620348f406f44c",
-          "size": 35390,
+          "sha256": "0b4f61681c687e3878c716bd9ab0c71e427797b8eae1abb95f09a43c5380f223",
+          "size": 35670,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -85057,8 +85057,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "daf0b4039d956afead8ba58d570cc602d70560869842a07dbed2007d21675e6d",
-          "size": 35436,
+          "sha256": "422a86726cf1f7b0404149d3b930399235283a53a93601e514671ccd1a4db7c9",
+          "size": 35716,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -85353,8 +85353,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "3f28f2e59bc6ce264b4649f62564ea7ffe71667583322cdad73da1a8f997c5a0",
-          "size": 35483,
+          "sha256": "ba9b8631437c96ed0d770837cbf8eed87d20a84b6ef07a11fc88e143c2d0606d",
+          "size": 35763,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -85527,20 +85527,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "7d154694cf5f23569b1fb23e691fa55c9646b82e1cd80f42c9bc2403b172f331",
-          "size": 77394,
+          "sha256": "47f470239bd3c8f9019de571a65fb7dce4d2107df90d215d2e772a154a7df857",
+          "size": 77961,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "a1478404671167b95cc02b2671d91dbfd0bf4b902f86bdd37fe88e5b85d0d2ca",
-          "size": 67044,
+          "sha256": "d019c9c2fb50fa5528d5270bcfc766b269a4985a763098e84bc986be307babbe",
+          "size": 67611,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "919acbcf74b052bc809782fe04ed3f412a034dcced636705c34d0601c013feaf",
-          "size": 72216,
+          "sha256": "8d72bfad74b3beb764566aeb2190b4cdeb965edf870a584fd167178b29bd9401",
+          "size": 72783,
           "type": "file"
         },
         "code": {
@@ -85945,8 +85945,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "166712f43eee27bb9f847fdc9871a98039f2415ddba276f40993b81e12b65ac4",
-          "size": 5043,
+          "sha256": "7cc36e39551fb5d8af4e4ebc6c3bf08d91fd29b455e3caf34474c4b20523a0a4",
+          "size": 5217,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -85999,8 +85999,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "73c59e7d829afb465a97535eb624bfb54ad958e0fd0ce65de7aec92f6183bd7a",
-          "size": 21687,
+          "sha256": "065ca6d8eaea48431b280864ed069eed9be2433dd017bcf9c571d64f0641c594",
+          "size": 21839,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -86109,7 +86109,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -86272,7 +86272,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -86692,7 +86692,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "83fc15f7c0d7d3adc9c27dfca1fd46a9ee28f60d4c7248f09c7bb9419eba9b09",
+          "sha256": "3f35ad906df79544cd1f9203e6325b7082bfd3b258265d49a1ee1fe4ab810f06",
           "size": 1839,
           "type": "file"
         },
@@ -87454,7 +87454,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -88434,7 +88434,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "4e33077dce8da1b8e0c8028e683f712aa1f8bcbe3569763774432d9451157ece",
+          "sha256": "44cccae26339d02fbde4516ad893663fb0d43fad75ddaac5cb8824680fa3ca3a",
           "size": 3097,
           "type": "file"
         },
@@ -89413,7 +89413,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -90365,7 +90365,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "565a8cfc7adc617745e8923fc2996c640602303bf50736b69b06e15bf32161b3",
+          "sha256": "e4d1fa6441e10ac316370be22606ce7a25e32f35bdc186d89fa3858bd0a5b69a",
           "size": 2990,
           "type": "file"
         },
@@ -91335,7 +91335,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -91787,7 +91787,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7da1fd031e401b1f5dd1bb1d4b81d9e46c52fdae691315f55ae744dc3c44b896",
+          "sha256": "3097d35ab16151af7387c5f0322553bca1ca8eb6c91379b25ef223627e3f6219",
           "size": 1948,
           "type": "file"
         },
@@ -92559,7 +92559,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -92795,8 +92795,8 @@
         },
         ".claude/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "afffe2bddd5a88676319112ecf7269ecaf98363081f89b41c05e14e5b39ee597",
-          "size": 35339,
+          "sha256": "7bfcb8fb97ff2c507a935df860d6cb22ed4051da83eb802329cc58333da23313",
+          "size": 35619,
           "type": "file"
         },
         ".claude/agents/polish-bibliography.md": {
@@ -93135,8 +93135,8 @@
         },
         ".codex/agents/paper-writer.toml": {
           "mode": "0644",
-          "sha256": "bace934d7ab51f67275609aa1426f570d1d9ef0d2c3b1eba06895174af729f74",
-          "size": 35448,
+          "sha256": "6cece73ea269e84140b86de27a7bfc1a0ef3eb25279941efacf7f78375e5c02c",
+          "size": 35728,
           "type": "file"
         },
         ".codex/agents/polish-bibliography.toml": {
@@ -93285,7 +93285,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "be6e08c16794289f1d9981a9a0c9bb8e99a43d84161014bb9da65c3a3a1ffc36",
+          "sha256": "8bafd5908c738f300d979fb85947cbc997f2aeced0a38364e56d23ed1361674e",
           "size": 1966,
           "type": "file"
         },
@@ -93407,8 +93407,8 @@
         },
         ".gemini/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "645e03d64885f84638b5699569858cafa2ee6c4d7754d39e05620348f406f44c",
-          "size": 35390,
+          "sha256": "0b4f61681c687e3878c716bd9ab0c71e427797b8eae1abb95f09a43c5380f223",
+          "size": 35670,
           "type": "file"
         },
         ".gemini/agents/polish-bibliography.md": {
@@ -93667,8 +93667,8 @@
         },
         ".grok/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "daf0b4039d956afead8ba58d570cc602d70560869842a07dbed2007d21675e6d",
-          "size": 35436,
+          "sha256": "422a86726cf1f7b0404149d3b930399235283a53a93601e514671ccd1a4db7c9",
+          "size": 35716,
           "type": "file"
         },
         ".grok/agents/polish-bibliography.md": {
@@ -93927,8 +93927,8 @@
         },
         ".opencode/agents/paper-writer.md": {
           "mode": "0644",
-          "sha256": "3f28f2e59bc6ce264b4649f62564ea7ffe71667583322cdad73da1a8f997c5a0",
-          "size": 35483,
+          "sha256": "ba9b8631437c96ed0d770837cbf8eed87d20a84b6ef07a11fc88e143c2d0606d",
+          "size": 35763,
           "type": "file"
         },
         ".opencode/agents/polish-bibliography.md": {
@@ -94101,20 +94101,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "3ecdae750288d13b3bee6e0b0a8fa01ac46d604e77254ff7763c4b15ddb6fafd",
-          "size": 66142,
+          "sha256": "5a1283382e8b900ec4027283ceb653c43bc4a5c96f260fcb625f918da5a02b93",
+          "size": 66709,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "a91602a940c802392a8654cab7c042ad48ed062ecee50b0f35e85c69aa069605",
-          "size": 55792,
+          "sha256": "e48aeee7ef95d930f373d187157cc5b785d33eb090ee778f03a5d0d51941ba1d",
+          "size": 56359,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "c2087311ff01a38ecdb40812ac266578f17fcf2ee4ab85f2f58e87d6e372b713",
-          "size": 60964,
+          "sha256": "2493f098e4fba77a8e3ec117b9241f5f1ac142e9249d00a7272dcfde29bd8d34",
+          "size": 61531,
           "type": "file"
         },
         "code": {
@@ -94347,8 +94347,8 @@
         },
         "docs/stage_10.md": {
           "mode": "0644",
-          "sha256": "166712f43eee27bb9f847fdc9871a98039f2415ddba276f40993b81e12b65ac4",
-          "size": 5043,
+          "sha256": "7cc36e39551fb5d8af4e4ebc6c3bf08d91fd29b455e3caf34474c4b20523a0a4",
+          "size": 5217,
           "type": "file"
         },
         "docs/stage_2.md": {
@@ -94401,8 +94401,8 @@
         },
         "docs/stage_9.md": {
           "mode": "0644",
-          "sha256": "1013ae2b56c969c1c26b070a983d01551ce30f82f429f851f5df086c610d011a",
-          "size": 23169,
+          "sha256": "4148fc0be592f34b0269fdc0bf4d5f4a6a6809cdf54b1124dd68b6274c349925",
+          "size": 23321,
           "type": "file"
         },
         "docs/stage_puzzle_triage.md": {
@@ -94517,7 +94517,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "ed61ce810fb9eabc1d72aa8c8b73ac34d4c133643e85a727edfbbeac94a137de",
+          "sha256": "a03e6fde7a22a7a1242a43c851602498dcaa71cd3fe85310602bc218131dc7ef",
           "size": 15378,
           "type": "file"
         },
@@ -94654,7 +94654,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.0+<GIT_REVISION>",
+        "template_version": "2.33.1+<GIT_REVISION>",
         "variant": "macro"
       }
     }
