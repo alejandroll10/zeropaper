@@ -108,18 +108,6 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## Retiring a Stage 3a candidate strands its plan file; the freshness gate later halts on it
-
-**Scope:** `--ext empirical` Stage 3a, every candidate retired before its runner publishes a receipt (renderer/tool-fit failures, orphaned runs).
-
-**Failure mode:** a candidate's `empirical_analysis_*_results.plan.json` is written into the reserved namespace before the trusted runner executes, so a candidate retired pre-receipt leaves a plan no receipt will ever declare. The mandatory all-analysis freshness gate correctly refuses undeclared reserved-namespace artifacts and sets `halted_replication_artifact_collision` — a full driver halt needing operator relocation of the file. Observed twice in one day on tradingdays (2026-09-02/03): v11 a69/a70 leftovers halted the v11 a75 audit path, then v11 a77/a78 leftovers halted the **v13** a81 path a whole spec generation later. Every tool-fit retirement plants a delayed, cross-version, operator-cost collision.
-
-**What would close it:** retire-side cleanup (the retirement procedure relocates the unbound plan to `output/debug/` in the retiring commit) or gate-side classification (a reserved-namespace plan whose candidate is registry-retired and receipt-less is documentary: warn and auto-relocate, keep the halt for genuinely unexplained artifacts).
-
-**Tracking:** [#301](https://github.com/alejandroll10/zeropaper/issues/301).
-
----
-
 ## `deepvest` skill: an LLM-mediated data source has no raw re-query path for the integrity audit
 
 **Scope:** the `--ext empirical` `deepvest` skill (`code/utils/deepvest_utils.py`, MCP server `api.deepvest.ai/mcp`) and the Stage 3a step 7.5 `data-integrity-auditor`, which verifies cached field values by re-querying the source.

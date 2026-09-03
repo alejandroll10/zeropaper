@@ -1628,6 +1628,18 @@ bundle = {{
             receipts[0]["artifacts"][0]["recorded"],
             receipts[0]["artifacts"][0]["current"],
         )
+        self.assertTrue(
+            {
+                "code/analyze.py",
+                "code/render.py",
+                "data/input.txt",
+                "output/stagex/detail.json",
+                "output/stagex/results.json",
+                "output/stagex/results.plan.json",
+                "output/stagex/results.receipt.json",
+                "output/stagex/tables/main.tex",
+            }.issubset(receipts[0]["referenced_paths"])
+        )
 
     def test_environment_capture_records_installed_metadata_and_detects_change(self) -> None:
         spec = importlib.util.spec_from_file_location("results_pipeline_capture", UTILITY)

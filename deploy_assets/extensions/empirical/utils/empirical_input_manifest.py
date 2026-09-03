@@ -126,6 +126,7 @@ _RESULT_SIBLING_SUFFIXES = (
     "_results.plan.json",
     "_results.json",
 )
+_EXECUTION_SIBLING_SUFFIX = "_execution.json"
 
 
 def _is_analysis_results_sibling(name: str) -> bool:
@@ -134,6 +135,13 @@ def _is_analysis_results_sibling(name: str) -> bool:
             stem = name[: -len(suffix)]
             return ANALYSIS_NAME.fullmatch(f"{stem}.md") is not None
     return False
+
+
+def _is_analysis_execution_sibling(name: str) -> bool:
+    if not name.endswith(_EXECUTION_SIBLING_SUFFIX):
+        return False
+    stem = name[: -len(_EXECUTION_SIBLING_SUFFIX)]
+    return ANALYSIS_NAME.fullmatch(f"{stem}.md") is not None
 
 
 def artifact_paths(analysis_path: Path) -> dict[str, str]:
@@ -752,14 +760,36 @@ def _results_inventory(project_root: Path) -> list[dict[str, Any]]:
 
 def _analysis_lifecycle(
     project_root: Path,
-) -> tuple[dict[Path, dict[str, str]], dict[str, Path]]:
+) -> tuple[
+    dict[Path, dict[str, str]],
+    dict[str, tuple[Path, str]],
+    set[str],
+]:
     """Resolve analysis and result-sibling ownership through the canonical contract."""
     try:
         lifecycle: dict[Path, dict[str, str]] = {}
-        declared_results: dict[str, Path] = {}
+        declared_results: dict[str, tuple[Path, str]] = {}
+        receipt_paths: set[str] = set()
         for receipt in _results_inventory(project_root):
             receipt_raw = receipt["receipt"]
             state = receipt["lifecycle"]
+            referenced_paths = receipt["referenced_paths"]
+            if not isinstance(referenced_paths, list) or any(
+                not isinstance(path, str) for path in referenced_paths
+            ):
+                raise ManifestError(
+                    f"canonical results contract returned malformed path inventory: "
+                    f"{receipt_raw}"
+                )
+            receipt_paths.update(referenced_paths)
+            execution_summary_paths = receipt["execution_summary_paths"]
+            if not isinstance(execution_summary_paths, list) or any(
+                not isinstance(path, str) for path in execution_summary_paths
+            ):
+                raise ManifestError(
+                    f"canonical results contract returned malformed execution-summary "
+                    f"inventory: {receipt_raw}"
+                )
             if (
                 receipt["pending_supersedes"] is not None
                 and receipt["receipt_supersedes"] != receipt["pending_supersedes"]
@@ -768,6 +798,7 @@ def _analysis_lifecycle(
                     f"pending registry/receipt supersedes mismatch: {receipt_raw}"
                 )
             empirical_artifacts: list[tuple[Path, dict[str, Any]]] = []
+            empirical_execution_artifacts: list[tuple[Path, dict[str, Any]]] = []
             for artifact_entry in receipt["artifacts"]:
                 artifact = artifact_entry["recorded"]
                 raw_path = artifact["path"]
@@ -779,6 +810,14 @@ def _analysis_lifecycle(
                 ):
                     empirical_artifacts.append(
                         (_validated_analysis_path(raw_path), artifact_entry)
+                    )
+                elif (
+                    candidate.parts[:2] == ("output", "stage3a")
+                    and len(candidate.parts) == 3
+                    and _is_analysis_execution_sibling(candidate.name)
+                ):
+                    empirical_execution_artifacts.append(
+                        (Path(*candidate.parts), artifact_entry)
                     )
                 elif raw_path.startswith("output/stage3a/empirical_analysis"):
                     raise ManifestError(
@@ -806,25 +845,50 @@ def _analysis_lifecycle(
                 "lifecycle": state,
                 "receipt": receipt_raw,
             }
+            expected_execution = analysis_path.with_name(
+                analysis_path.stem + _EXECUTION_SIBLING_SUFFIX
+            )
+            for execution_path, artifact_entry in empirical_execution_artifacts:
+                if execution_path != expected_execution:
+                    raise ManifestError(
+                        "receipt execution summary does not match its empirical analysis: "
+                        f"{execution_path.as_posix()}"
+                    )
+                if execution_summary_paths.count(execution_path.as_posix()) != 1:
+                    raise ManifestError(
+                        "receipt execution summary is not uniquely declared by v3 lineage: "
+                        f"{execution_path.as_posix()}"
+                    )
+                if artifact_entry["current"] != artifact_entry["recorded"]:
+                    raise ManifestError(
+                        "receipt execution-summary fingerprint does not match current bytes: "
+                        f"{execution_path.as_posix()}"
+                    )
             for label in ("plan", "bundle"):
                 if receipt[label]["current"] != receipt[label]["recorded"]:
                     raise ManifestError(
                         f"receipt {label} fingerprint does not match current bytes: "
                         f"{receipt[label]['recorded']['path']}"
                     )
-            owned_results = {
-                receipt_raw,
-                receipt["plan"]["recorded"]["path"],
-                receipt["bundle"]["recorded"]["path"],
-            }
-            for result_path in owned_results:
+            owned_results = [
+                (receipt_raw, "receipt"),
+                (receipt["plan"]["recorded"]["path"], "plan"),
+                (receipt["bundle"]["recorded"]["path"], "bundle"),
+                *(
+                    (path.as_posix(), "execution")
+                    for path, _ in empirical_execution_artifacts
+                ),
+            ]
+            for result_path, role in owned_results:
                 prior_owner = declared_results.get(result_path)
-                if prior_owner is not None and prior_owner != analysis_path:
+                owner = (analysis_path, role)
+                if prior_owner is not None and prior_owner != owner:
                     raise ManifestError(
-                        f"result artifact is owned by multiple empirical analyses: {result_path}"
+                        f"result artifact has conflicting empirical receipt ownership: "
+                        f"{result_path}"
                     )
-                declared_results[result_path] = analysis_path
-        return lifecycle, declared_results
+                declared_results[result_path] = owner
+        return lifecycle, declared_results, receipt_paths
     except ManifestError:
         raise
     except Exception as exc:
@@ -835,6 +899,7 @@ def _check_all_locked(project_root: Path) -> dict[str, Any]:
     stage_root = project_root / "output" / "stage3a"
     analyses: list[Path] = []
     artifact_errors: list[dict[str, str]] = []
+    warnings: list[dict[str, str]] = []
     try:
         stage_metadata = stage_root.lstat()
         if stat.S_ISLNK(stage_metadata.st_mode) or not stat.S_ISDIR(stage_metadata.st_mode):
@@ -843,6 +908,7 @@ def _check_all_locked(project_root: Path) -> dict[str, Any]:
         return {
             "status": "CHANGED",
             "analyses": [],
+            "warnings": [],
             "artifact_errors": [
                 {
                     "path": "output/stage3a",
@@ -851,11 +917,12 @@ def _check_all_locked(project_root: Path) -> dict[str, Any]:
             ],
         }
     try:
-        lifecycle, declared_results = _analysis_lifecycle(project_root)
+        lifecycle, declared_results, receipt_paths = _analysis_lifecycle(project_root)
     except (ManifestError, OSError) as exc:
         return {
             "status": "CHANGED",
             "analyses": [],
+            "warnings": [],
             "artifact_errors": [
                 {
                     "path": RESULTS_REGISTRY.as_posix(),
@@ -869,6 +936,7 @@ def _check_all_locked(project_root: Path) -> dict[str, Any]:
         return {
             "status": "CHANGED",
             "analyses": [],
+            "warnings": [],
             "artifact_errors": [
                 {
                     "path": "output/stage3a",
@@ -879,25 +947,55 @@ def _check_all_locked(project_root: Path) -> dict[str, Any]:
     for candidate in (
         entry for entry in stage_entries if entry.name.startswith("empirical_analysis")
     ):
-        if _is_analysis_results_sibling(candidate.name):
-            # The analysis's own RESULT_PLAN/BUNDLE/RECEIPT triple: content
-            # integrity is owned by the results pipeline's receipt checks,
-            # but a planted non-regular object is still namespace pollution.
+        if (
+            _is_analysis_results_sibling(candidate.name)
+            or _is_analysis_execution_sibling(candidate.name)
+        ):
+            # A declared RESULT_PLAN/BUNDLE/RECEIPT triple is owned by the
+            # results pipeline's receipt checks.  A regular plan can also be
+            # present before its runner publishes anything, or remain after a
+            # pre-publication failure.  It is inert without a receipt, so
+            # report that state without blocking unrelated live analyses.
+            # Undeclared bundles/receipts and every non-regular object remain
+            # namespace pollution.
             relative = candidate.relative_to(project_root)
             try:
                 metadata = candidate.lstat()
-                for suffix in _RESULT_SIBLING_SUFFIXES:
+                for suffix in (*_RESULT_SIBLING_SUFFIXES, _EXECUTION_SIBLING_SUFFIX):
                     if candidate.name.endswith(suffix):
                         analysis_name = candidate.name[: -len(suffix)] + ".md"
+                        matched_suffix = suffix
                         break
                 analysis_path = relative.parent / analysis_name
-                if declared_results.get(relative.as_posix()) != analysis_path:
-                    raise ManifestError(
-                        "analysis results artifact is not declared by its owning receipt"
-                    )
                 if stat.S_ISLNK(metadata.st_mode) or not stat.S_ISREG(metadata.st_mode):
                     raise ManifestError(
                         "analysis results artifact is not a real regular file"
+                    )
+                owner = declared_results.get(relative.as_posix())
+                if (
+                    owner is None
+                    and matched_suffix == "_results.plan.json"
+                    and relative.as_posix() not in receipt_paths
+                ):
+                    warnings.append(
+                        {
+                            "path": relative.as_posix(),
+                            "warning": (
+                                "unbound pre-publication plan is not live result evidence"
+                            ),
+                        }
+                    )
+                    continue
+                expected_role = {
+                    "_results.receipt.json": "receipt",
+                    "_results.plan.json": "plan",
+                    "_results.json": "bundle",
+                    _EXECUTION_SIBLING_SUFFIX: "execution",
+                }[matched_suffix]
+                if owner != (analysis_path, expected_role):
+                    raise ManifestError(
+                        "analysis results artifact is not declared in its expected "
+                        "receipt role"
                     )
             except (ManifestError, OSError) as exc:
                 artifact_errors.append(
@@ -1025,6 +1123,7 @@ def _check_all_locked(project_root: Path) -> dict[str, Any]:
     return {
         "status": "UNCHANGED" if all_unchanged else "CHANGED",
         "analyses": checks,
+        "warnings": warnings,
         "artifact_errors": artifact_errors,
     }
 
@@ -1045,6 +1144,7 @@ def check_all(
         output = {
             "status": "CHANGED",
             "analyses": [],
+            "warnings": [],
             "artifact_errors": [
                 {
                     "path": RESULTS_LOCK.as_posix(),

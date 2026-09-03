@@ -16,7 +16,23 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.33.3] — 2026-09-03 (current)
+## [2.33.4] — 2026-09-03 (current)
+
+**fix: prevent unbound Stage 3a plans from halting later freshness gates (#301).**
+The all-analysis scanner now reports a real regular receipt-less
+`empirical_analysis*_results.plan.json` as a warning because it is an inert
+pre-publication control input, not live result evidence. Undeclared bundles,
+receipts, and analyses—and non-regular plan objects—remain halt-class collisions.
+This closes the verified pre-receipt failure path without weakening evidence
+ownership or auto-moving a plan that may be awaiting its runner. The scanner
+also recognizes the exact receipt-owned `<analysis>_execution.json` artifact
+required by—and uniquely bound in—the v3 empirical lineage contract while
+continuing to reject unowned, v2, cross-role, or mismatched execution summaries.
+Canonical registry inspection now exposes each receipt's complete
+referenced-path inventory, including directory descendants, so the plan
+exception cannot mask a reserved name used by an unrelated receipt.
+
+## [2.33.3] — 2026-09-03
 
 **fix: remove the obsolete seeded Gate 1c retry (#161).** Seeded and faithful
 Gate 1c now preserve the prototyper's one-shot contract and carry its existing

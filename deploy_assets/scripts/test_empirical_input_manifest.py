@@ -28,6 +28,13 @@ RESULTS_UTILITY = (
     / "results_pipeline"
     / "results_pipeline.py"
 )
+ANALYSIS_CONTRACT_UTILITY = (
+    Path(__file__).resolve().parents[1]
+    / "templates"
+    / "utils"
+    / "results_pipeline"
+    / "analysis_contract.py"
+)
 
 
 class EmpiricalInputManifestTests(unittest.TestCase):
@@ -39,6 +46,10 @@ class EmpiricalInputManifestTests(unittest.TestCase):
         shutil.copy2(
             RESULTS_UTILITY,
             self.project / "code" / "utils" / "results_pipeline" / "results_pipeline.py",
+        )
+        shutil.copy2(
+            ANALYSIS_CONTRACT_UTILITY,
+            self.project / "code" / "utils" / "results_pipeline" / "analysis_contract.py",
         )
         self.script = self.project / "code" / "utils" / "empirical_input_manifest.py"
         shutil.copy2(SCRIPT, self.script)
@@ -251,6 +262,189 @@ class EmpiricalInputManifestTests(unittest.TestCase):
             "manifest": manifest,
         }
 
+    def write_empirical_runner_fixture(
+        self, *, analysis: str, plan: str, producer: str
+    ) -> None:
+        input_path = "data/empirical_input.json"
+        baseline_path = "output/analysis_specs/baseline_v1.json"
+        contract_path = f"output/analysis_specs/{Path(analysis).stem}.contract.json"
+        execution_path = analysis.removesuffix(".md") + "_execution.json"
+        (self.project / input_path).parent.mkdir(parents=True, exist_ok=True)
+        (self.project / input_path).write_text("[1, 2, 3]\n")
+        (self.project / baseline_path).parent.mkdir(parents=True, exist_ok=True)
+        baseline = {
+            "schema_version": 1,
+            "record_kind": "project_baseline",
+            "baseline_id": "manifest.fixture.v1",
+            "definitions": {},
+        }
+
+        def semantic_digest(value: object) -> str:
+            encoded = json.dumps(
+                value, sort_keys=True, separators=(",", ":")
+            ).encode()
+            return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
+
+        contract = {
+            "schema_version": 1,
+            "record_kind": "analysis_contract",
+            "analysis_id": "main",
+            "purpose": "Exercise empirical receipt publication.",
+            "baseline": {
+                "path": baseline_path,
+                "semantic_digest": semantic_digest(baseline),
+            },
+            "effective": {
+                "inputs": {
+                    "panel": {
+                        "description": "Frozen fixture observations",
+                        "access": "local",
+                        "snapshot": "fixture-v1",
+                        "purpose": "Primary observations",
+                    }
+                },
+                "samples": {
+                    "main": {
+                        "population": "Fixture observations",
+                        "observation_unit": "row",
+                        "observation_key": "id",
+                        "time": {"start": 1, "end": 3},
+                        "steps": {
+                            "filter": {
+                                "description": "Keep all observations",
+                                "uses": ["panel"],
+                                "produces": ["analysis_panel"],
+                                "rule": "all fixture rows",
+                            }
+                        },
+                        "step_order": ["filter"],
+                        "purpose": "Primary estimation sample",
+                    }
+                },
+                "variables": {
+                    "outcome": {
+                        "definition": "Fixture value",
+                        "input_ids": ["panel"],
+                        "timing": "contemporaneous",
+                        "unit": "points",
+                        "construction": "identity",
+                        "missing_policy": "none",
+                        "roles": ["outcome"],
+                        "purpose": "Primary outcome",
+                    }
+                },
+                "procedures": {
+                    "estimate": {
+                        "target": "Mean outcome",
+                        "method": "arithmetic mean",
+                        "sample_ids": ["main"],
+                        "variable_ids": ["outcome"],
+                        "inference_id": "plain",
+                        "result_ids": ["main.estimate"],
+                        "settings": {"weights": "none"},
+                        "purpose": "Primary estimate",
+                    }
+                },
+                "inference": {
+                    "plain": {
+                        "method": "descriptive",
+                        "uncertainty_target": "none",
+                        "purpose": "Fixture inference",
+                    }
+                },
+                "outputs": {
+                    "main.estimate": {
+                        "description": "Mean fixture value",
+                        "procedure_ids": ["estimate"],
+                        "target": "mean",
+                        "unit": "points",
+                        "presentation": {"decimals": 1},
+                        "purpose": "Headline result",
+                    }
+                },
+            },
+            "deviations": [],
+        }
+        execution = {
+            "schema_version": 1,
+            "analysis_id": "main",
+            "contract_digest": semantic_digest(contract),
+            "samples": {
+                "main": {
+                    "observed_time": {"start": 1, "end": 3},
+                    "key_diagnostics": {
+                        "is_unique": True,
+                        "duplicate_key_count": {"value": 0, "unit": "keys"},
+                    },
+                    "steps": {
+                        "filter": {
+                            "counts": {
+                                "rows.in": {"value": 3, "unit": "observations"},
+                                "rows.out": {"value": 3, "unit": "observations"},
+                            },
+                            "flow": {
+                                "inputs": {"panel": "rows.in"},
+                                "outputs": {"analysis_panel": "rows.out"},
+                            },
+                            "fingerprint": "sha256:" + "0" * 64,
+                        }
+                    },
+                }
+            },
+            "procedures": {
+                "estimate": {
+                    "fixed_settings": {"weights": "none"},
+                    "decisions": {},
+                    "counts": {"rows": {"value": 3, "unit": "observations"}},
+                }
+            },
+        }
+        producer_inputs = [input_path, baseline_path, contract_path]
+        (self.project / baseline_path).write_text(json.dumps(baseline) + "\n")
+        (self.project / contract_path).write_text(json.dumps(contract) + "\n")
+        producer_path = self.project / producer
+        producer_path.parent.mkdir(parents=True, exist_ok=True)
+        producer_path.write_text(
+            "import json, os, pathlib\n"
+            "root = pathlib.Path.cwd()\n"
+            f"(root / {analysis!r}).write_text({self.report_text!r})\n"
+            f"(root / {execution_path!r}).write_text({(json.dumps(execution) + chr(10))!r})\n"
+            "payload = {\n"
+            "  'schema_version': 1,\n"
+            f"  'producer': {{'name': 'manifest-test', 'code': [{producer!r}],\n"
+            f"               'inputs': {producer_inputs!r}, 'reproducibility': 'captured'}},\n"
+            "  'results': {'main.estimate': {'description': 'Mean fixture value',\n"
+            "               'value': 1.0, 'unit': 'points',\n"
+            "               'display': {'decimals': 1}, 'analysis_id': 'main'}},\n"
+            f"  'artifacts': [{{'path': {analysis!r}, 'description': 'Analysis report'}},\n"
+            f"                {{'path': {execution_path!r}, 'description': 'Execution summary'}}],\n"
+            f"  'renderer': {{'code': [], 'inputs': [{analysis!r}]}}, 'exhibits': []\n"
+            "}\n"
+            "(root / os.environ['RESULTS_BUNDLE_PATH']).write_text(json.dumps(payload) + '\\n')\n"
+        )
+        (self.project / plan).write_text(
+            json.dumps(
+                {
+                    "plan_version": 1,
+                    "producer_code": [producer],
+                    "producer_inputs": producer_inputs,
+                    "artifacts": [analysis, execution_path],
+                    "renderer_code": [],
+                    "renderer_inputs": [analysis],
+                    "exhibits": [],
+                    "network_access": False,
+                    "analyses": {
+                        "main": {
+                            "contract": contract_path,
+                            "execution_summary": execution_path,
+                            "input_bindings": {"panel": [input_path]},
+                        }
+                    },
+                }
+            )
+            + "\n"
+        )
+
     def register_analysis(
         self,
         analysis: str,
@@ -260,6 +454,7 @@ class EmpiricalInputManifestTests(unittest.TestCase):
         supersedes: list[str] | None = None,
         plan: str | None = None,
         bundle: str | None = None,
+        artifacts: list[str] | None = None,
     ) -> str:
         analysis_path = Path(analysis)
         receipt = receipt or (
@@ -271,6 +466,7 @@ class EmpiricalInputManifestTests(unittest.TestCase):
         bundle = bundle or (
             analysis_path.parent / f"{analysis_path.stem}_results.json"
         ).as_posix()
+        artifacts = artifacts or [analysis]
         plan_path = self.project / plan
         bundle_path = self.project / bundle
         plan_path.parent.mkdir(parents=True, exist_ok=True)
@@ -281,7 +477,7 @@ class EmpiricalInputManifestTests(unittest.TestCase):
                     "plan_version": 1,
                     "producer_code": ["code/empirical.py"],
                     "producer_inputs": [],
-                    "artifacts": [analysis],
+                    "artifacts": artifacts,
                     "renderer_code": [],
                     "exhibits": [],
                 }
@@ -305,7 +501,9 @@ class EmpiricalInputManifestTests(unittest.TestCase):
                         "code": [self.file_fingerprint("code/empirical.py")],
                         "inputs": [],
                         "renderer_code": [],
-                        "artifacts": [self.file_fingerprint(analysis)],
+                        "artifacts": [
+                            self.file_fingerprint(path) for path in artifacts
+                        ],
                         "exhibits": [],
                         "reproducibility": "captured",
                         "environment": self.synthetic_environment(command),
@@ -707,6 +905,252 @@ class EmpiricalInputManifestTests(unittest.TestCase):
             {item["path"] for item in inventory["artifact_errors"]},
         )
 
+    def test_check_all_warns_but_accepts_unbound_regular_plan(self) -> None:
+        plan = (
+            self.project
+            / "output/stage3a/empirical_analysis_vretired_a2_results.plan.json"
+        )
+        plan.write_text("{}\n")
+        inventory = self.run_tool("check-all")
+        relative = plan.relative_to(self.project).as_posix()
+        self.assertEqual(inventory["status"], "UNCHANGED")
+        self.assertEqual(inventory["artifact_errors"], [])
+        self.assertEqual(
+            inventory["warnings"],
+            [
+                {
+                    "path": relative,
+                    "warning": "unbound pre-publication plan is not live result evidence",
+                }
+            ],
+        )
+
+    def test_check_all_rejects_unbound_nonregular_plan(self) -> None:
+        target = self.project / "outside_plan.json"
+        target.write_text("{}\n")
+        plan = (
+            self.project
+            / "output/stage3a/empirical_analysis_vretired_a3_results.plan.json"
+        )
+        plan.symlink_to(target)
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertIn(
+            plan.relative_to(self.project).as_posix(),
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+
+    def test_check_all_rejects_unbound_execution_summary(self) -> None:
+        execution = (
+            self.project
+            / "output/stage3a/empirical_analysis_vorphan_execution.json"
+        )
+        execution.write_text("{}\n")
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertIn(
+            execution.relative_to(self.project).as_posix(),
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+
+    def test_check_all_rejects_reserved_plan_owned_by_nonempirical_receipt(self) -> None:
+        report = self.project / "output/ordinary_report.md"
+        report.write_text("# Ordinary result\n")
+        plan = "output/stage3a/empirical_analysis_vghost_results.plan.json"
+        self.register_analysis(
+            report.relative_to(self.project).as_posix(),
+            "active",
+            receipt="output/ordinary_results.receipt.json",
+            plan=plan,
+            bundle="output/ordinary_results.json",
+        )
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertIn(
+            plan,
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+        self.assertNotIn(plan, {item["path"] for item in inventory["warnings"]})
+
+    def test_check_all_rejects_reserved_plan_used_as_nonempirical_bundle(self) -> None:
+        report = self.project / "output/ordinary_report.md"
+        report.write_text("# Ordinary result\n")
+        bundle = "output/stage3a/empirical_analysis_vghost_results.plan.json"
+        self.register_analysis(
+            report.relative_to(self.project).as_posix(),
+            "active",
+            receipt="output/ordinary_results.receipt.json",
+            plan="output/ordinary_results.plan.json",
+            bundle=bundle,
+        )
+        inventory = self.run_tool("check-all")
+        self.assertEqual(inventory["status"], "CHANGED")
+        self.assertIn(
+            bundle,
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+        self.assertNotIn(bundle, {item["path"] for item in inventory["warnings"]})
+
+    def test_check_all_rejects_matching_analysis_cross_role_artifacts(self) -> None:
+        wrong_roles: list[str] = []
+        for label, suffix in (
+            ("roleplan", "_results.plan.json"),
+            ("roleexecution", "_execution.json"),
+        ):
+            analysis = f"output/stage3a/empirical_analysis_v{label}.md"
+            (self.project / analysis).write_text(self.report_text)
+            wrong_role = analysis.removesuffix(".md") + suffix
+            self.register_analysis(
+                analysis,
+                "retired",
+                receipt=f"output/{label}_results.receipt.json",
+                plan=f"output/{label}_results.plan.json",
+                bundle=wrong_role,
+            )
+            wrong_roles.append(wrong_role)
+        inventory = self.run_tool("check-all")
+        errors = {item["path"] for item in inventory["artifact_errors"]}
+        self.assertTrue(set(wrong_roles).issubset(errors), inventory)
+        warnings = {item["path"] for item in inventory["warnings"]}
+        self.assertTrue(set(wrong_roles).isdisjoint(warnings))
+
+    def test_check_all_rejects_v2_execution_shaped_artifact(self) -> None:
+        analysis = "output/stage3a/empirical_analysis_vv2execution.md"
+        execution = analysis.removesuffix(".md") + "_execution.json"
+        (self.project / analysis).write_text(self.report_text)
+        (self.project / execution).write_text("{}\n")
+        self.register_analysis(
+            analysis,
+            "retired",
+            artifacts=[analysis, execution],
+        )
+        inventory = self.run_tool("check-all")
+        self.assertTrue(
+            any(
+                "not uniquely declared by v3 lineage" in item["error"]
+                for item in inventory["artifact_errors"]
+            ),
+            inventory,
+        )
+
+    def test_check_all_rejects_execution_artifact_missing_from_v3_lineage(self) -> None:
+        self.write_empty_registry()
+        analysis = "output/stage3a/empirical_analysis.md"
+        plan = "output/stage3a/empirical_analysis_results.plan.json"
+        bundle = "output/stage3a/empirical_analysis_results.json"
+        receipt = "output/stage3a/empirical_analysis_results.receipt.json"
+        for relative in (analysis, bundle, receipt):
+            path = self.project / relative
+            if path.exists():
+                path.unlink()
+        self.write_empirical_runner_fixture(
+            analysis=analysis,
+            plan=plan,
+            producer="code/generate_empirical_result.py",
+        )
+        run = self.run_results_pipeline(
+            "run-empirical",
+            "--caller-allowance-seconds",
+            "3600",
+            "--plan",
+            plan,
+            "--bundle",
+            bundle,
+            "--receipt",
+            receipt,
+            "--",
+            sys.executable,
+            "code/generate_empirical_result.py",
+        )
+        self.assertEqual(run["status"], "PENDING_ACTIVATION")
+        receipt_path = self.project / receipt
+        receipt_value = json.loads(receipt_path.read_text())
+        receipt_value["lineage"][0]["execution_summary_path"] = (
+            "output/stage3a/custom_execution.json"
+        )
+        receipt_path.write_text(json.dumps(receipt_value, indent=2) + "\n")
+        registry_path = self.project / "process_log/results_registry.json"
+        registry = json.loads(registry_path.read_text())
+        registry["receipt_fingerprints"][receipt] = self.file_fingerprint(receipt)
+        registry_path.write_text(json.dumps(registry, indent=2) + "\n")
+        inventory = self.run_tool("check-all")
+        self.assertTrue(
+            any(
+                "not uniquely declared by v3 lineage" in item["error"]
+                for item in inventory["artifact_errors"]
+            ),
+            inventory,
+        )
+
+    def test_check_all_rejects_plan_inside_receipt_directory_snapshot(self) -> None:
+        self.write_empty_registry()
+        for relative in (
+            "output/stage3a/empirical_analysis.md",
+            "output/stage3a/empirical_analysis_results.plan.json",
+            "output/stage3a/empirical_analysis_results.json",
+            "output/stage3a/empirical_analysis_results.receipt.json",
+        ):
+            path = self.project / relative
+            if path.exists():
+                path.unlink()
+        orphan = (
+            "output/stage3a/"
+            "empirical_analysis_vdirectory_results.plan.json"
+        )
+        (self.project / orphan).write_text("{}\n")
+        producer = "code/generate_ordinary_directory_result.py"
+        (self.project / producer).write_text(
+            "import json, os, pathlib\n"
+            "root = pathlib.Path.cwd()\n"
+            "report = 'output/ordinary_directory_report.md'\n"
+            "(root / report).write_text('# Ordinary result\\n')\n"
+            "bundle = {\n"
+            "  'schema_version': 1,\n"
+            f"  'producer': {{'name': 'directory-test', 'code': [{producer!r}],\n"
+            "               'inputs': ['output/stage3a'],\n"
+            "               'reproducibility': 'captured'},\n"
+            "  'results': {'ordinary.value': {'description': 'Value', 'value': 1}},\n"
+            "  'artifacts': [{'path': report, 'description': 'Ordinary report'}],\n"
+            "  'renderer': {'code': []}, 'exhibits': []\n"
+            "}\n"
+            "(root / os.environ['RESULTS_BUNDLE_PATH']).write_text(json.dumps(bundle) + '\\n')\n"
+        )
+        plan = "output/ordinary_directory_results.plan.json"
+        (self.project / plan).write_text(
+            json.dumps(
+                {
+                    "plan_version": 1,
+                    "producer_code": [producer],
+                    "producer_inputs": ["output/stage3a"],
+                    "artifacts": ["output/ordinary_directory_report.md"],
+                    "renderer_code": [],
+                    "exhibits": [],
+                }
+            )
+            + "\n"
+        )
+        run = self.run_results_pipeline(
+            "run",
+            "--caller-allowance-seconds",
+            "3600",
+            "--plan",
+            plan,
+            "--bundle",
+            "output/ordinary_directory_results.json",
+            "--receipt",
+            "output/ordinary_directory_results.receipt.json",
+            "--",
+            sys.executable,
+            producer,
+        )
+        self.assertEqual(run["status"], "PENDING_ACTIVATION")
+        inventory = self.run_tool("check-all")
+        self.assertIn(
+            orphan,
+            {item["path"] for item in inventory["artifact_errors"]},
+        )
+        self.assertNotIn(orphan, {item["path"] for item in inventory["warnings"]})
+
     def test_check_all_rejects_undeclared_sibling_for_registered_analysis(self) -> None:
         analysis = "output/stage3a/empirical_analysis_vowned.md"
         (self.project / analysis).write_text(self.report.read_text())
@@ -739,22 +1183,13 @@ class EmpiricalInputManifestTests(unittest.TestCase):
             path = self.project / relative
             if path.exists():
                 path.unlink()
-        plan = self.project / "output/stage3a/empirical_analysis_results.plan.json"
-        plan.write_text(
-            json.dumps(
-                {
-                    "plan_version": 1,
-                    "producer_code": ["code/generate_empirical_result.py"],
-                    "producer_inputs": [],
-                    "artifacts": ["output/stage3a/empirical_analysis.md"],
-                    "renderer_code": [],
-                    "exhibits": [],
-                }
-            )
-            + "\n"
+        self.write_empirical_runner_fixture(
+            analysis="output/stage3a/empirical_analysis.md",
+            plan="output/stage3a/empirical_analysis_results.plan.json",
+            producer="code/generate_empirical_result.py",
         )
         run = self.run_results_pipeline(
-            "run",
+            "run-empirical",
             "--caller-allowance-seconds",
             "3600",
             "--plan",
@@ -768,6 +1203,15 @@ class EmpiricalInputManifestTests(unittest.TestCase):
             "code/generate_empirical_result.py",
         )
         self.assertEqual(run["status"], "PENDING_ACTIVATION")
+        paths = self.run_tool(
+            "paths", "--analysis", "output/stage3a/empirical_analysis.md"
+        )
+        manifest = self.run_tool(
+            "snapshot", "--analysis", "output/stage3a/empirical_analysis.md"
+        )
+        self.write_pass_result(
+            self.project / str(paths["verify_result"]), manifest
+        )
         inventory = self.run_tool("check-all")
         self.assertEqual(inventory["artifact_errors"], [])
         self.assertEqual(inventory["status"], "UNCHANGED")
@@ -778,35 +1222,10 @@ class EmpiricalInputManifestTests(unittest.TestCase):
         plan = "output/concurrent_empirical_results.plan.json"
         bundle = "output/stage3a/empirical_analysis_vconcurrent_results.json"
         receipt = "output/stage3a/empirical_analysis_vconcurrent_results.receipt.json"
-        producer = self.project / "code/generate_concurrent_result.py"
-        producer.write_text(
-            "import json, os, pathlib\n"
-            "root = pathlib.Path.cwd()\n"
-            f"(root / {analysis!r}).write_text({self.report_text!r})\n"
-            "payload = {\n"
-            "  'schema_version': 1,\n"
-            "  'producer': {'name': 'concurrent-test',\n"
-            "               'code': ['code/generate_concurrent_result.py'],\n"
-            "               'inputs': [], 'reproducibility': 'captured'},\n"
-            "  'results': {'main.estimate': {'description': 'Main estimate', 'value': '1.0'}},\n"
-            f"  'artifacts': [{{'path': {analysis!r}, 'description': 'Analysis report',\n"
-            "                 'media_type': 'text/markdown'}],\n"
-            "  'renderer': {'code': []}, 'exhibits': []\n"
-            "}\n"
-            "(root / os.environ['RESULTS_BUNDLE_PATH']).write_text(json.dumps(payload) + '\\n')\n"
-        )
-        (self.project / plan).write_text(
-            json.dumps(
-                {
-                    "plan_version": 1,
-                    "producer_code": ["code/generate_concurrent_result.py"],
-                    "producer_inputs": [],
-                    "artifacts": [analysis],
-                    "renderer_code": [],
-                    "exhibits": [],
-                }
-            )
-            + "\n"
+        self.write_empirical_runner_fixture(
+            analysis=analysis,
+            plan=plan,
+            producer="code/generate_concurrent_result.py",
         )
         registry_path = self.project / "process_log/results_registry.json"
         registry = json.loads(registry_path.read_text())
@@ -867,7 +1286,7 @@ class EmpiricalInputManifestTests(unittest.TestCase):
                     self.project
                     / "code/utils/results_pipeline/results_pipeline.py"
                 ),
-                "run",
+                "run-empirical",
                 "--caller-allowance-seconds",
                 "3600",
                 "--plan",

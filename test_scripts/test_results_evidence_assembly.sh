@@ -493,6 +493,9 @@ for shape in empirical combined; do
         'For non-seeded **FALSIFIED**' \
         "$shape feasibility falsification has a fresh-identity route"
     expect_text "$ROOT/$shape/docs/stage_3a_empirical.md" \
+        'reports it in top-level `warnings` without changing the verdict' \
+        "$shape pre-publication plans cannot halt the freshness gate"
+    expect_text "$ROOT/$shape/docs/stage_3a_empirical.md" \
         'apply the fresh-theory identity reset in `core.md`' \
         "$shape feasibility falsification invalidates accepted versions"
     expect_text "$ROOT/$shape/docs/stage_3a_empirical.md" \

@@ -6200,8 +6200,44 @@ def command_inspect_registry(args: argparse.Namespace) -> int:
     for receipt_raw, lifecycle, pending_supersedes in lifecycle_entries:
         _, receipt_path_value = result_receipt_path(root, receipt_raw)
         receipt = validate_receipt_contract(root, receipt_path_value)
+        producer = receipt["producer_run"]
+        referenced_paths = {
+            receipt_raw,
+            producer["plan"]["path"],
+            producer["bundle"]["path"],
+            *producer["exhibits"],
+        }
+
+        def add_snapshot_paths(snapshot: dict[str, Any]) -> None:
+            base = PurePosixPath(snapshot["path"])
+            referenced_paths.add(base.as_posix())
+            if snapshot["kind"] == "directory":
+                referenced_paths.update(
+                    (base / entry["path"]).as_posix()
+                    for entry in snapshot["entries"]
+                )
+
+        for key in ("code", "inputs", "renderer_code", "artifacts"):
+            for item in producer[key]:
+                add_snapshot_paths(item)
+        if receipt["render_run"] is not None:
+            for key in ("code", "exhibits"):
+                for item in receipt["render_run"][key]:
+                    add_snapshot_paths(item)
+        execution_summary_paths: list[str] = []
+        if receipt["receipt_version"] == EMPIRICAL_RECEIPT_VERSION:
+            for lineage in receipt["lineage"]:
+                execution_summary_paths.append(lineage["execution_summary_path"])
+                referenced_paths.update(
+                    lineage[key]
+                    for key in (
+                        "baseline_path",
+                        "contract_path",
+                        "execution_summary_path",
+                    )
+                )
         matching_artifacts = []
-        for recorded in receipt["producer_run"]["artifacts"]:
+        for recorded in producer["artifacts"]:
             if recorded["path"].startswith(prefix):
                 matching_artifacts.append({
                     "recorded": recorded,
@@ -6212,13 +6248,15 @@ def command_inspect_registry(args: argparse.Namespace) -> int:
             "lifecycle": lifecycle,
             "pending_supersedes": pending_supersedes,
             "receipt_supersedes": receipt["supersedes"],
+            "execution_summary_paths": execution_summary_paths,
+            "referenced_paths": sorted(referenced_paths),
             "plan": {
-                "recorded": receipt["producer_run"]["plan"],
-                "current": fingerprint(root, receipt["producer_run"]["plan"]["path"]),
+                "recorded": producer["plan"],
+                "current": fingerprint(root, producer["plan"]["path"]),
             },
             "bundle": {
-                "recorded": receipt["producer_run"]["bundle"],
-                "current": fingerprint(root, receipt["producer_run"]["bundle"]["path"]),
+                "recorded": producer["bundle"],
+                "current": fingerprint(root, producer["bundle"]["path"]),
             },
             "artifacts": matching_artifacts,
         })
