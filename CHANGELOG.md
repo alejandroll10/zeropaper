@@ -16,7 +16,16 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.33.2] — 2026-09-03 (current)
+## [2.33.3] — 2026-09-03 (current)
+
+**fix: remove the obsolete seeded Gate 1c retry (#161).** Seeded and faithful
+Gate 1c now preserve the prototyper's one-shot contract and carry its existing
+mode-appropriate alternative or Negative result directly into Stage 2, without
+restoring the retired `prototype_retry` state. The shared difficulty-survivor
+rationale now points to each active mode's Stage 2 development and gate sequence
+instead of assuming a theory-first math audit.
+
+## [2.33.2] — 2026-09-03
 
 **fix: make seeded Gate 3 routing mode-neutral (#280).** Seeded and faithful
 KNOWN/INCREMENTAL routes now preserve every applicable Stage 3a/3b evidence stage,

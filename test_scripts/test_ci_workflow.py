@@ -70,6 +70,8 @@ REQUIRED_INVOCATIONS = {
         "python3 deploy_assets/scripts/test_ibes_skill.py",
     "bash test_scripts/test_setup_publish.sh":
         "bash test_scripts/test_setup_publish.sh",
+    "bash test_scripts/test_seeded_gate1c_assembly.sh":
+        "bash test_scripts/test_seeded_gate1c_assembly.sh",
     "bash test_scripts/test_seeded_gate4_assembly.sh":
         "bash test_scripts/test_seeded_gate4_assembly.sh",
     "bash test_scripts/test_stage0_discovery_cap.sh":

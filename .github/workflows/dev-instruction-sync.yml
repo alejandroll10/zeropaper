@@ -401,6 +401,9 @@ jobs:
       - name: Test production provisioning and publication
         run: bash test_scripts/test_setup_publish.sh
 
+      - name: Test seeded Gate 1c routing
+        run: bash test_scripts/test_seeded_gate1c_assembly.sh
+
       - name: Test seeded Gate 4 routing
         run: bash test_scripts/test_seeded_gate4_assembly.sh
 
