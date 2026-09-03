@@ -16,7 +16,17 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.33.1] — 2026-09-02 (current)
+## [2.33.2] — 2026-09-03 (current)
+
+**fix: make seeded Gate 3 routing mode-neutral (#280).** Seeded and faithful
+KNOWN/INCREMENTAL routes now preserve every applicable Stage 3a/3b evidence stage,
+deferred audit, and Gate 4 entry check while keeping the established Stage 2b omission.
+Theory-only reformulation examples and the false universal math-audit rationale are gone;
+one shared formulation covers theory-first, empirical-first, measurement-first, and
+data-first without mode-specific branches. An eight-shape assembly regression protects
+both seed policies across all four modes.
+
+## [2.33.1] — 2026-09-02
 
 **fix: make data-first final claim discipline a blocking semantic verdict (#284).**
 The existing `polish-identification` agent now re-reads the receipt-bound manuscript after

@@ -57,5 +57,5 @@
   "SELF_ATTACK_TARGET_EXAMPLE": "the claim that scheduled-announcement coverage is complete before 1994, when the primary source's archive only begins reliably in 1994 (Stage 2 spec, coverage section)",
   "SELF_ATTACK_RULE_EXAMPLE": "The pre-announcement drift fact is measured against the reconciled timestamp, but the reconciliation rule prefers the earlier of two source timestamps — so the documented 'drift' window mechanically contains part of the announcement itself under the alternative stamp, and the fact may not survive the other convention",
 
-  "_comment_pending": "Initial data-first implementation (issue #278). Known v1 scoping: finance-only (macro follow-up: #279); identification agents pruned — facts are documented descriptively, causal-language backstop is the re-targeted polish-identification pass; coverage completeness has no ground truth (triangulation protocol + LIMITATIONS entry). Gate 3 seed-override phrasing looseness for evidence-first modes tracked in #280."
+  "_comment_pending": "Initial data-first implementation (issue #278). Known v1 scoping: finance-only (macro follow-up: #279); identification agents pruned — facts are documented descriptively, causal-language backstop is the re-targeted polish-identification pass; coverage completeness has no ground truth (triangulation protocol + LIMITATIONS entry)."
 }
