@@ -16,7 +16,29 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.33.4] — 2026-09-03 (current)
+## [2.33.5] — 2026-09-04 (current)
+
+**fix: make Stage 3a auditor loop counters unconditional (#302).** A REVISE from
+the coverage auditor (data-first step 7.6) or the method-checker (step 7.5) now
+increments its own `loops.*` counter whatever the other auditors returned. Both
+routing rules previously advanced only the co-occurring data counter and deferred
+the second increment to whether the REVISE "persisted"/"remained" on the rebuilt
+candidate — a cross-attempt judgment with no mechanical definition and no record
+in state of which way it was resolved, so the deferred counter never advanced and
+its cap never fired. Two independent data-first deployments terminated on the
+data-integrity cap while `coverage_audit` sat at `round: 0` through three
+quartets, carrying the wrong diagnosis into the escalation. The method-checker
+half was found by inspection rather than observed, and was not data-first-gated,
+so it was latent in every `--ext empirical` deployment. Data REVISE still routes
+its rebuild first. Because independent counters can now cap on the same
+evaluation with incompatible FAIL routes, step 7.5 gains an explicit precedence
+— exactly one FAIL route runs, the widest-scope one, data over method. Data-first
+ranks `loops.coverage_audit` above both, declared with that rule and routed by
+step 7.6's Coverage FAIL branch, since no data redesign or canonical-package
+rebuild can produce triangulation the sources cannot support.
+The step-8 commit line records the coverage verdict under data-first.
+
+## [2.33.4] — 2026-09-03
 
 **fix: prevent unbound Stage 3a plans from halting later freshness gates (#301).**
 The all-analysis scanner now reports a real regular receipt-less
