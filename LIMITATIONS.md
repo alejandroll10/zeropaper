@@ -122,6 +122,18 @@ A third field occurrence on 2026-09-04 (eventcal, v2.30.x, spec v25) shows the m
 
 ---
 
+## Mechanical derivation checks prove a byte span matched, not that a row was derived
+
+**Scope:** the pre-audit mechanical gate proposed in #304; inherent to regex-over-bytes evidence, not specific to one implementation.
+
+**Failure mode:** the strongest available mechanical check requires the bytes at a row's stated `sha256:start:end` locator to match a pattern the binding spec expects there. It is the only check that cannot be passed without reading document bytes, but an adversarial review measured how little it forces. A ~30-line script that greps each of the 210 corpus documents for the spec regex, takes the *first* match span, and pairs it with an honestly computed SHA-256 matched 206 of 210 documents in 0.12 seconds and passed every check at exit 0 — no HTML parsing, no per-row judgment, and none of the other ~35 schema columns derived. Most hits landed in page furniture: 9 of 10 sampled spans fell inside `<meta property="og:title">`, `<meta name="description">`, or `<title>`, with byte offsets 703 and 359 recurring verbatim across unrelated press releases. Rejecting matches inside `<head>` and flagging byte spans reused across rows defeats that particular script, but the residual guarantee is only *some span in the right document matched some pattern outside the head*: it cannot establish that the span is the semantically correct instance rather than an incidental mention, nor that any other field in the row was derived rather than invented, and a slightly more patient producer (scan the body, take the nth match, vary offsets) defeats the mitigations too.
+
+**What would close it:** structure-aware extraction, requiring the span to fall inside a parsed document region the spec names rather than anywhere outside `<head>`; or cross-field consistency, requiring the bytes at the locator to contain the row's own claimed value (its parsed date, its operative verb) so the locator and the payload must agree. Both are real work and belong in the #304 design rather than being assumed. Until then the gate should be described as making cheap fabrication cheap to detect — which it does, catching every a141–a144 mode in about two seconds at zero model cost — and never as proof of derivation. The empirics audit still owns correctness.
+
+**Tracking:** [#305](https://github.com/alejandroll10/zeropaper/issues/305).
+
+---
+
 ## `--mode data-first`: the coverage-audit cap is unreachable when coverage REVISE co-occurs with a data or method REVISE
 
 **Scope:** `--mode data-first` Stage 3a step 7.6 (`stage_3a_empirical.md`), present since #278 (`69b2e35`) and therefore in every data-first deployment.
