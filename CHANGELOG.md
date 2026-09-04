@@ -16,7 +16,30 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.33.5] — 2026-09-04 (current)
+## [2.33.6] — 2026-09-04 (current)
+
+**fix: give the Stage 3a empirics-audit cap a state-tracked counter (#300).**
+The "5-attempt audit-fix cap" was enforced from orchestrator memory with no
+`loops` entry, so it drifted across restarts and context compaction — routine in
+a long Stage 3a, and therefore unbounded in exactly the case the cap exists to
+bound. One deployment capped at exactly 5 on three spec versions and then took
+ten consecutive FAILs on a fourth; a sibling deployment read the same prose as
+per-lane and absorbed 6+. `loops.audit_fix {round: 0, cap: 5}` is now seeded and
+registered, the step-7 FAIL branch increments and commits before repairing, and
+the two replicator-self-failure branches name the key instead of prose. Scope is
+settled by the existing retry-regenerates-the-artifact exception rather than a
+new rule: the fresh-attempt transition regenerates the analysis the counter
+counts, so the loop is campaign-scoped and resets on exactly two things: a
+candidate accepted end to end, and a new `theory_version` or theory identity —
+the two-trigger shape the other exception-3 loops already carry, and necessary
+because this loop's cap route returns to Stage 2. An empirics-auditor PASS later
+retired downstream resets nothing. The second trigger is wired as an explicit
+reset at the top of the "Re-fire on theory revision" procedure, since exception 3
+exempts this loop from the generic auto-reset its siblings get it from. A
+remaining limit — repeated cap cycles within one `theory_attempt` have no
+ceiling — is tracked in #306.
+
+## [2.33.5] — 2026-09-04
 
 **fix: make Stage 3a auditor loop counters unconditional (#302).** A REVISE from
 the coverage auditor (data-first step 7.6) or the method-checker (step 7.5) now
