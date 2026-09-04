@@ -152,6 +152,20 @@ A related spec-authoring trap belongs with it: the evidence regex `Federal Open 
 
 ---
 
+## The trusted results runner cannot admit a live service dependency, and Gate 2 cannot see that
+
+**Scope:** `--ext empirical` Stage 3a receipt publication via `results_pipeline.py run`; sharpest under `--mode data-first`, where a producer legitimately queries a live source inside the trusted run.
+
+**Failure mode:** the trusted workspace is default-deny and offers two controls — directory `--bind`, with read-only sources validated so they cannot escape the workspace (`results_pipeline.py:2640`), and a boolean `allow_network` that probes only `AF_INET`/`AF_INET6` (`:2734-2737`). An `AF_UNIX` service socket is neither: not an IP family, so `allow_network` does not admit it, and outside the workspace, so the bind path rejects it by design. A producer needing a live service inside the trusted run therefore cannot obtain the capability, and the plan schema has no way to *declare* one so the runner could bind, restrict, and hash it the way it does file inputs. Observed on tradingdays (v2.30.11, data-first, 2026-09-04) as `RuntimeError: AF_UNIX WRDS capability unavailable`, with the producer staged at `/tmp/results-workspace-*` and the adapter correctly failing closed — no bridge, proxy, token, fallback data, or receipt — across attempts a112, a114, a115, a116 and a117, while WRDS itself was healthy throughout.
+
+The structural part is that the specification *requires* the capability, in direct response to an earlier audit finding that the replay "did not define the minimal redacted WRDS relay capability channel or bind that non-file channel into sandbox-policy hashing and observed-I/O reconciliation." The spec bound it, Gate 2 accepted that spec as PLAUSIBLE, and the runner cannot provide it — so a gate accepted a specification the infrastructure structurally cannot execute, and the conflict surfaces only at receipt publication, one full build later, every attempt. The tension is genuine rather than an oversight: default-deny is what makes the trusted run trustworthy. The gap is that the model admits *files* as declared, hashed inputs and has no equivalent for a non-file capability.
+
+**What would close it:** a declared-capability block in the run plan, treated like a read-only input — named path, expected mode, bound into the sandbox, hashed into the sandbox policy, and required to appear in the child-inclusive trace and reconciliation. That meets the auditor's original requirement without weakening default-deny, because the capability is enumerated and hashed rather than ambient. Independently worth fixing: nothing cross-checks a specification's declared execution requirements against what the installed runner implements, so an unsatisfiable spec passes Gate 2 and fails later at maximum cost. A preflight at the Gate 2 spec audit or Stage 3a plan review should fail such a spec with that diagnosis instead.
+
+**Tracking:** [#307](https://github.com/alejandroll10/zeropaper/issues/307).
+
+---
+
 ## `--mode data-first`: the coverage-audit cap is unreachable when coverage REVISE co-occurs with a data or method REVISE
 
 **Scope:** `--mode data-first` Stage 3a step 7.6 (`stage_3a_empirical.md`), present since #278 (`69b2e35`) and therefore in every data-first deployment.
