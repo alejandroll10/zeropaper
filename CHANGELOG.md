@@ -16,7 +16,52 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.33.7] — 2026-09-05 (current)
+## [2.34.0] — 2026-09-05 (current)
+
+**feat: mechanical anti-fabrication gate before the Stage 3a empirics audit (#304).**
+Every gate upstream of the empirics audit checked artifact *form* — the receipt
+verifies, the bundle re-renders, the clean-room rebuild reproduces digests, the
+replicator recomputes one to five tagged headline numbers. None asked whether the
+rows were derived from anything, so a ledger whose per-row provenance fields were
+constant placeholders satisfied the entire chain. In the field, four consecutive
+attempts shipped an 8,871-row ledger with `heading_type` constant, a prose token in
+a locator column, and a `payload_sha256` matching the real document on zero rows;
+all four passed receipt verify, re-render, clean-room, poison, and the independent
+headline gate, and were caught only by the LLM audit, after a full build each time.
+
+New `code/utils/construction_guard.py` runs at step 5.9, between the receipt's
+`verify` and headline replication, and takes its ground truth from the receipt
+itself: `results_pipeline.py` already fingerprints every regular file inside every
+declared producer input, so the set of digests the producer could honestly have
+computed is on record, written by a trusted component the producer does not author.
+The guard therefore needs no schema, no declared column vocabulary, and no second
+agent, and cannot be disabled by a producer that declares nothing. It fails a
+row whose claimed content digest is not the digest of the source that row names, a
+row citing a source outside the declared inputs, a `*_locator` column with one value
+across every row, and artifact bytes that no longer match the receipt. Binding the
+digest to the row's own source is the point: it forces the producer to have opened
+and hashed the file each row names, which it cannot shortcut by reading its own
+receipt (the runner writes that only after the producer exits). Only declared inputs
+bind — not the producer's own code, plan, bundle, or artifacts, and not a bare
+filename two declared inputs share. Bare set membership is the fallback where a row
+names no declared input, and is reported as a warning rather than a pass. It warns — never fails — on constant, empty,
+and low-coverage columns, which are fabrication signatures on a spec-declared
+vocabulary and legitimate on an all-success crosswalk, and forwards those to
+`empirics-auditor` with the specification to adjudicate them. Data-first runs check
+the release receipt as well, since the dataset relations live there. A failure
+spends `loops.audit_fix`, the same budget the derivation finding it stands in for
+would have spent, rather than getting a fresh one.
+
+Deliberately not built: regex byte-evidence over locator spans. An independent
+adversarial review measured a ~30-line script defeating it on 98% of documents in
+0.12s, mostly matching page furniture. `LIMITATIONS.md` carries that ceiling, the
+warning-versus-failure split, and the one override that remains an assertion
+([#305](https://github.com/alejandroll10/zeropaper/issues/305),
+[#314](https://github.com/alejandroll10/zeropaper/issues/314)). The structural half
+— a producer-authored validator PASS treated as verification evidence
+([#303](https://github.com/alejandroll10/zeropaper/issues/303)) — stays open.
+
+## [2.33.7] — 2026-09-05
 
 **fix: bound Stage 3a attempts lost to a routing no counter owns (#308).**
 Every Stage 3a loop counter was advanced by a specific verdict, so an attempt
