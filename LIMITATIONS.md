@@ -122,6 +122,30 @@ A third field occurrence on 2026-09-04 (eventcal, v2.30.x, spec v25) shows the m
 
 ---
 
+## The headline replicator certifies its own independence
+
+**Scope:** `--ext empirical` Stage 3a step 6.5, every mode.
+
+**Failure mode:** `headline-replicator` exists to be the independent recomputation of the empiricist's load-bearing numbers, and that independence rests entirely on its alternative path being genuinely non-equivalent. It is also the sole author of `path_class`, the field declaring whether its own path was independent — its body says so directly ("You are responsible for catching your own trivial paths before emission"). The orchestrator routes on that self-report (`docs/stage_3a_empirical.md` step 6.5: `trivially_equivalent_path` in `untagged_warnings` → replicator-self-failure, `loops.replicator_self_refire`), and `empirics-auditor` is told to stand down rather than adjudicate it: read `VERIFY_RESULT_PATH` "as authoritative on whether each headline number survives an independent-path recomputation," and "the replicator owns headline recomputation; do NOT re-derive headline numbers yourself." So a replicator that takes a trivially-equivalent path and labels it `different_merge_key` emits `agree: true` at `verdict: PASS`, and no downstream gate contradicts it; the forbidden-path list is enforced only by the agent it constrains. The auditor does physically receive the verifier script under `output/stage3a/verification/`, so the evidence is present — nothing instructs anyone to read it for path independence, and the "authoritative" framing discourages it. This is #303's shape with the polarity reversed: there a producer authored its own validator, here a validator authors its own independence certificate.
+
+**What would close it:** the pipeline already handles a producer self-declaration correctly one section away, in the same agent body — an `irreducible_stochasticity` allow-list entry is declared by the empiricist but *reran anyway* by the auditor, judged against the declared bound, with three named FAIL conditions including a bogus justification. `path_class` should be declare-then-independently-test rather than declare-and-trust: give `empirics-auditor` an explicit duty to read the verifier script and judge each declared class against what the script does, with a named FAIL for a path that is trivially equivalent under the replicator's own stated test. A mechanical partial (assert the verifier neither imports from `ANALYSIS_ENTRYPOINTS` nor reads the empiricist's cached outputs) catches the two named trivial modes at zero model cost and, alone, repeats the #305 ceiling in a new place.
+
+**Tracking:** [#315](https://github.com/alejandroll10/zeropaper/issues/315).
+
+---
+
+## Stage 2b has no independent check on a result that holds
+
+**Scope:** Stage 2b theory exploration, every theory-first variant that runs it.
+
+**Failure mode:** `theory-explorer` "implements the key result computationally, checks it at calibration" (`docs/stage_2.md` Stage 2b step 2) and then authors the HOLDS / doesn't-hold / FRAGILE verdict the orchestrator reads at step 4; on HOLDS the orchestrator activates `RESULT_RECEIPT` and sets three pointers with no second agent launched. The routing is asymmetric in the wrong direction: a failure routes to `debugger` for an independent tool-fit-versus-substantive diagnosis, while a success routes straight to activation. A mis-specified calibration, a grid too sparse to reach the region where the result breaks, or a script computing a quantity adjacent to the claimed one therefore produces a HOLDS the pipeline consumes as established — `implications-deriver` is instructed to respect the exploration report, and `paper-writer` builds on it. The existing checks do not reach this: `results_pipeline.py verify --rerender` is a form check, `math-auditor` runs at Gate 2 on the derivation rather than the computation, `evidence-auditor` verifies receipts and prose-versus-bundle agreement rather than whether the bundle holds the right numbers, and `polish-numerics` recomputes only at Stage 9 on the paper's rendered values, long after Gate 4 and Stage 5 routed on the verdict. Stage 2b is the only computational stage without a reviewer of its result: Stage 3a has `headline-replicator` plus four auditors and Stage 3b has `experiment-reviewer`.
+
+**What would close it:** the smallest edit is removing the asymmetry rather than adding an agent — `debugger` (or an equivalent second opinion) fires on both branches instead of only on failure. Alternatives, in increasing cost: a one-question exploration review added to `math-auditor` on the bundle plus code plus theory draft (does the implemented computation compute the stated key result, and does the verdict follow from the bundle?), which is the Stage 3b `experiment-reviewer` shape at lower cost; or a mechanical partial requiring the HOLDS to name the exact `RESULT_BUNDLE` result ID carrying the calibration value, asserted to exist, be producer-computed, and not hard-coded — catching declared-but-uncomputed rather than wrong.
+
+**Tracking:** [#316](https://github.com/alejandroll10/zeropaper/issues/316).
+
+---
+
 ## Stage 3a gates verify artifact form but never source derivation
 
 **Scope:** `--ext empirical` Stage 3a, sharpest under `--mode data-first` where the deliverable is the constructed dataset itself.
