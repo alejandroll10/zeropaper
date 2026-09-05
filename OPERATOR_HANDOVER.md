@@ -129,6 +129,39 @@ same-scope failures (3+), audit finding counts rising, halts, anything template-
 - Deployed projects stay on their pinned templates — no hot-patching (receipt v2
   environment fingerprinting); template fixes benefit new deployments only.
 
+## Operator failure mode observed twice on 2026-09-05 — read this before touching a cap
+
+Within four hours I made the same class of error twice, on the same subsystem, both times
+having to revert after review:
+
+1. **Raised `loops.build_failure` cap 4 → 6 at round 3**, one failure from firing, arguing
+   the parameter had been "chosen without evidence" and that two of three counts were
+   environment interruptions. The deployment's own `output/debug/` tree falsified the
+   premise: the attempt I called an interruption held 45 artifacts and twelve
+   TOOL-FIT-ISSUE reports. Reverted.
+2. **Added a bounded in-place repair route** so a failed rehearsal would not increment
+   `build_failure`, arguing a rehearsal "seals nothing, so the build has not started."
+   The line was real but I did not respect it — my actual argument was economic and
+   applied equally to failures that did count — and the producer authors the apparatus
+   *and* decides what counts as apparatus, so it controls where the line falls. The new
+   counter was also never registered as an exception-3 loop, so its cap could never bind.
+   Reverted.
+
+**The shared signature, which is what to watch for:** a cap fires or is about to fire; the
+failure that triggered it feels unrepresentative; a principled-sounding reason appears for
+why *this* case should not count; the change relieves pressure the cap existed to apply. In
+both instances the pipeline had just produced a true and useful signal — across 30+
+specification versions with a null `stage3a_result_receipt` its science has never been
+tested, and the runtime layer is the thing to fix — and in both instances I moved to soften
+that signal within the hour, on n=1, against a running deployment.
+
+**Guards now in the deployments' `docs/stage_3a_empirical.md`:** a cap may not be changed
+while its round is within one of it; a rule change applies to the attempt currently being
+routed and every one after, never reopening completed routing; counters are never refunded
+retroactively. **Guard for the operator:** when a change would relieve cap pressure, get it
+reviewed *before* shipping, not after. Both reverts came from review agents; neither came
+from me noticing.
+
 ## Standing user directives
 
 - Don't restart/unblock WRDS when the user is away (Duo). Ping-only checks are fine.
