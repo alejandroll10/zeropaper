@@ -16,7 +16,45 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.34.0] — 2026-09-05 (current)
+## [2.34.1] — 2026-09-05 (current)
+
+**fix: a ceiling over the Stage 3a caps that return the campaign upstream (#306).**
+Two of Stage 3a's caps — `audit_fix` (#300) and `unowned_failure` (#308) — give the
+build up and send the campaign to Stage 2 for a revision, and the revision is what
+starts the next campaign with a fresh budget. Each cap therefore cost one
+respecification and bought a full new build cycle, so the question every one of those
+caps exists to force — does the *design* need restructuring, rather than one more
+individually-correct local repair? — could be deferred indefinitely without ever
+violating a cap. Under `--mode empirical-first` no outer bound could be established at
+all: the escalation table routes the empirics-audit cap straight to a
+`theory-generator` re-fire, which bumps `theory_version`, which resets `audit_fix`, and
+no other loop counts it.
+
+`loops.stage3a_upstream_return` (cap 2) is that ceiling, and it is keyed to the *shape*
+of the route rather than to the loop that capped: any Stage 3a route that abandons the
+build and asks for an upstream revision increments it before leaving the stage, so a
+branch added later is covered without anyone editing the counter — the same move
+`unowned_failure` makes one level down. Routes that stay in the stage do not count, and
+neither do halts, which are terminal. It is scoped to the `theory_attempt`, because the
+`theory_version` bump is precisely the move it counts; it resets only on a candidate
+accepted end to end or a fresh theory identity.
+
+Its cap route is the only one in this family that does not go upstream. It retires every
+pending receipt and enters the existing `last-resort` escalation with the build campaign
+as the stuck artifact, then that route's `branch-manager` ceiling certification on any
+later arrival. No new escalation machinery: that path already owns the
+abandon-or-restructure decision, already reads a non-paper stuck artifact, and is
+already bounded by `loops.last_resort_stuck`. The ceiling forces the design question
+where the individual caps meant to raise it and hands the answer to the agent that owns
+it, instead of answering it by abandoning the theory.
+
+One rule was removed in the same pass rather than added: #308's cap-change fence — a cap
+may not be changed while its round is within one of it — was stated locally for one loop,
+is general, and now lives once in `core.md`'s Audit-loop scoping section. Also corrected
+the empirical extension's state-field documentation block, which still described five
+capped loops after #300 and #308 had brought the count to seven.
+
+## [2.34.0] — 2026-09-05
 
 **feat: mechanical anti-fabrication gate before the Stage 3a empirics audit (#304).**
 Every gate upstream of the empirics audit checked artifact *form* — the receipt

@@ -654,7 +654,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2c70bce1d1b965e5967fbb051d0674f1c4716ba52e90d3ab6d42a0ed4dabdccf",
+          "sha256": "2d4f5e690fd80c063931212d66262e9b5dee4c506301f1ea35fb7f94f45abcfb",
           "size": 1859,
           "type": "file"
         },
@@ -1434,20 +1434,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "8b3cce68ec90abb71e4ea8ac1919b71bb62ed70af348ab7789c94d543a708c88",
-          "size": 69849,
+          "sha256": "344140b695bc012b76d476debacdbcb4cd0aef3f329bc9478a7b7022a8feae67",
+          "size": 72268,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "a8645f898508c0af3403a5fa28fe9650aa4373b1642a3dd6ccf3626a437c1564",
-          "size": 59499,
+          "sha256": "a8b98981cf392adc162565bb18067b5a1a19dc023a910ccd32c9d162508cf3cb",
+          "size": 61918,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "209106a9d649da524b711dea136002585bddf7b4e8aa76ce1deae620ea1a7485",
-          "size": 64671,
+          "sha256": "cacfae117f588745acb6bfb15aa50f2421327cc2d373c6f39511f4793eee37c6",
+          "size": 67090,
           "type": "file"
         },
         "code": {
@@ -1734,8 +1734,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -1830,7 +1830,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -1963,7 +1963,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -2407,8 +2407,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "429d6f81bdee2c7f4065f5012a418bddef3f4254284aff8d5cf027a3a1bffe92",
-          "size": 21576,
+          "sha256": "f84c5c35620b42ded08840ea78d8f2755ad5bd405e6c1083f5eeb8c96fb2b6e8",
+          "size": 24628,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -3055,8 +3055,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "ed28108647b5e13e77a093c7a238b00de27ed16acc8041f3acb401e98bd0f915",
-          "size": 21697,
+          "sha256": "91bb15aa86e748627e1b77824010df52796bca2a6916f6872486437c686e943b",
+          "size": 24749,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -3313,8 +3313,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ad3fd097f1df8864bacd472f6e16a3cb9c2f3158570e54bc78a56a449d7c942a",
-          "size": 3117,
+          "sha256": "158d9b13db6e18fed200fc111d3903bd21b771f4b09e914e7cfe431c3e66519b",
+          "size": 3159,
           "type": "file"
         },
         ".env": {
@@ -3375,8 +3375,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2483a145d50aaf6897b8fac172000a216ceb80bda4db3701e7eee42d1524d619",
-          "size": 21654,
+          "sha256": "dcfb3269b3fdec4527614b753061dee02cbf9a9a354a38197880b68e58e9134f",
+          "size": 24706,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -3943,8 +3943,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6cfa3d07ef534776c93de662a98d99a5ff1cdc750265954357fe5725825069de",
-          "size": 21759,
+          "sha256": "841e033d17784eb551c224d8702fe2a4b97fae1a1493f4458b9decce01ca81d5",
+          "size": 24811,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -4231,20 +4231,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "0dd43e7f2c942916cc34c73c96d069f685adcb3037cbfa9da059570190c3d640",
-          "size": 83697,
+          "sha256": "e7961489551f58320f00ee2c83da9799372365bf808676694ccb0725fff1f8af",
+          "size": 86483,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "65f7b50225d5263f9371191bcc5320acac3ce8f717822afcfd6ea350a14ffa2a",
-          "size": 73347,
+          "sha256": "dc47cef1d65c5bf86a9e24a2645f993d166a7670cf73cd294c2e858c556b982d",
+          "size": 76133,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "671a8e5c7f769135bcd3bd7e85eb6d8e6bef599f1eca50718aeda6bef30f4d11",
-          "size": 78519,
+          "sha256": "87fcd54777288651be6a1debed23ea4d71e338133f8e9cbb0cb146dead0691f8",
+          "size": 81305,
           "type": "file"
         },
         "code": {
@@ -4349,6 +4349,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -4667,8 +4673,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d619a8aef9b8910654ac9e0f6ae109d1166dcc95aad15c0ac74eb612a4908d6c",
-          "size": 57950,
+          "sha256": "b6e60549c096b99c8a1db70adb78f985688365ab8ccfcb98da712a051530a62f",
+          "size": 68360,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -4715,8 +4721,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -4833,7 +4839,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -4879,8 +4885,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "a9a8d93a270f2f3982638ce22aba17f06a02299bbe8dbbaf9b7a27ad274e0059",
-          "size": 2559,
+          "sha256": "17b5ec8819f893fba1c8642dea90590e525d6bc49e0f5de844ad982268cba795",
+          "size": 2632,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -4965,6 +4971,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -4999,7 +5006,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -5443,8 +5450,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "429d6f81bdee2c7f4065f5012a418bddef3f4254284aff8d5cf027a3a1bffe92",
-          "size": 21576,
+          "sha256": "f84c5c35620b42ded08840ea78d8f2755ad5bd405e6c1083f5eeb8c96fb2b6e8",
+          "size": 24628,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -6091,8 +6098,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "ed28108647b5e13e77a093c7a238b00de27ed16acc8041f3acb401e98bd0f915",
-          "size": 21697,
+          "sha256": "91bb15aa86e748627e1b77824010df52796bca2a6916f6872486437c686e943b",
+          "size": 24749,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -6349,8 +6356,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "481a4fbfb711e776737daffefc3e6420ca4a65a72d4b09e46097565eabcf1abe",
-          "size": 3117,
+          "sha256": "d7d4a3a536f1bca6c07cb4bee6a071a604877e39b94aad09673cc39cda65aa51",
+          "size": 3159,
           "type": "file"
         },
         ".env": {
@@ -6411,8 +6418,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2483a145d50aaf6897b8fac172000a216ceb80bda4db3701e7eee42d1524d619",
-          "size": 21654,
+          "sha256": "dcfb3269b3fdec4527614b753061dee02cbf9a9a354a38197880b68e58e9134f",
+          "size": 24706,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -6979,8 +6986,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6cfa3d07ef534776c93de662a98d99a5ff1cdc750265954357fe5725825069de",
-          "size": 21759,
+          "sha256": "841e033d17784eb551c224d8702fe2a4b97fae1a1493f4458b9decce01ca81d5",
+          "size": 24811,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -7267,20 +7274,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "a822fc32a16112aec470d284c6e82d317b98cfb987661fe6a6906eb21af1421e",
-          "size": 83697,
+          "sha256": "a3223643b6b4e0f2501a96371f2d3e6bd2cd3e10a3c447f21cfa9087861ebbcd",
+          "size": 86483,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "7797d034eac8c31b3675611339704eadf1a20004124b4a04c33acaf98013dc9b",
-          "size": 73347,
+          "sha256": "f06d3bf4f2680550d20d8d12080d519e78d0b5cb0aa4f1a7ecc8924056ba6214",
+          "size": 76133,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "41b3c3403fccb85445b8a20b5a1e88d26be2dcaf4321424098202706a5282bc2",
-          "size": 78519,
+          "sha256": "116f5b6d0d71e6a13e29ee666103568fe4deab014effa0359ef36a3d2b761eb4",
+          "size": 81305,
           "type": "file"
         },
         "code": {
@@ -7385,6 +7392,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -7703,8 +7716,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d619a8aef9b8910654ac9e0f6ae109d1166dcc95aad15c0ac74eb612a4908d6c",
-          "size": 57950,
+          "sha256": "b6e60549c096b99c8a1db70adb78f985688365ab8ccfcb98da712a051530a62f",
+          "size": 68360,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -7751,8 +7764,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -7869,7 +7882,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -7915,8 +7928,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "3a86ccb4b9c071281b12eaac47e7ace7e1f5c727aada3fbf5ef2c20ff997cf75",
-          "size": 2559,
+          "sha256": "224f27e845fe768e58445bf6e541d462fb9ac97fa278e97f342def5724604caa",
+          "size": 2632,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -8001,6 +8014,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -8035,7 +8049,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -8467,8 +8481,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "116c3e62ef5ef0511b4d88a995cb5fbb74a8488086f2562bb87a22dde26670a5",
-          "size": 24962,
+          "sha256": "979c24278f0b21ebef6b274de452fb1107f52e1420e3c9c16070665c120dc082",
+          "size": 28014,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -9087,8 +9101,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "6117caab7cdc4020ce719ad0e09dfb760dad4e4049025069b01228d00911c177",
-          "size": 25083,
+          "sha256": "cc499a1cfd58f32581c24f0dbfb10aa62f5f4b575211cdc4cf0308eea3395b97",
+          "size": 28135,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -9321,8 +9335,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "72e45f522b2e0621f11a78a05d21327caa5188ad70d89a2b7ed0b75672677ab8",
-          "size": 3020,
+          "sha256": "0d5b5d615debac5a3c333cf3b88ca16943c4958fb06fc612ec48f3753ea12807",
+          "size": 3062,
           "type": "file"
         },
         ".env": {
@@ -9389,8 +9403,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "afdceb4c0105b25a176498bbf7f73a79001802e1f298aa1304885d1b1f5809d6",
-          "size": 25040,
+          "sha256": "ae8a32b23e20afcfad810f5f3ff1b6581d7fd48c89e179294e7283503aa3ed90",
+          "size": 28092,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -9939,8 +9953,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "82a0e24dcce640657039c4fa9a7088fe89e06f55c1f0f8e54b5c7130dbac256d",
-          "size": 25145,
+          "sha256": "8dc25dae0f8ec2555bd9ca683f1daa9143f35e1917f3114b83987765b96863ff",
+          "size": 28197,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -10203,20 +10217,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "183bc6dd16a9713f22750d9205700e5105a691810899ab5c30dc55f3499d9d51",
-          "size": 85881,
+          "sha256": "2f23789478d128adce137f1865bb1b9ae8a7b1451146c07f7a588739f5ca1ac4",
+          "size": 88667,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "0bb3b860a25fd7ec54ba199e75336149d48a50707cdfa9549c444b928a44319c",
-          "size": 75531,
+          "sha256": "23e7037f7bd4b8e04aed791bc2e2b8374c8737582b58288beb7795617f7fd6cc",
+          "size": 78317,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "92c3e6b849dd17f3d32c2481d375b78df73d4d53e4542006ed8d297b98b56a8a",
-          "size": 80703,
+          "sha256": "7aef8b8971256bceb3b38473912f08ea2b1bc04c093664c2c5cee75081c4f854",
+          "size": 83489,
           "type": "file"
         },
         "code": {
@@ -10321,6 +10335,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -10639,8 +10659,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "5285d74968152c32d315d0d80ec1d7b939b9622778daae8cc11bcd8b7fed7922",
-          "size": 77002,
+          "sha256": "ed87b0dff83b8767e607ceb6cdeba4f9b3596f88226641c4a3ebaadd21875956",
+          "size": 88043,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -10681,8 +10701,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "538292514ab25687a5e61808e78c5faf0923229d5e39aa4763c1b9ffd914a7ee",
-          "size": 26733,
+          "sha256": "5dddb899a207ccf230d3ad2a55147576c75a6d3a0f543919bc97d7dcf74c1910",
+          "size": 27091,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -10781,7 +10801,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -10827,8 +10847,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "6db01294a843ced52edb0b79ca3c3bb94cd5a6465fc6f8293360c297308e3abc",
-          "size": 3075,
+          "sha256": "87f44bdd58817de3390678ac00ad16748d4f91e98768fde7825684f7cb513c0e",
+          "size": 3148,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -10911,6 +10931,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -10944,7 +10965,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -11379,8 +11400,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "b135afae97817af7cc4d7bf0001693f36ebea6e1205eb8fcbc4c1517b4a131da",
-          "size": 24964,
+          "sha256": "fa86c39f1e7f306a05db37922558632cd9da7b57a76cb3304ff24905c3e57901",
+          "size": 28016,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -12005,8 +12026,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "70407dd7ca4a57254a8489060fae388654e42d1b593a403bc167425a4e561a03",
-          "size": 25050,
+          "sha256": "d01c1579d5ede67b56b12d198abb8823d21e7bdf6ed517c821059213378261c7",
+          "size": 28102,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -12245,8 +12266,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8f772db97aa1684822c05adea7adc0ff871c4b9acde6648ca9e8c79076987a0f",
-          "size": 3016,
+          "sha256": "1e4547210c148a3fb8d371f3179aa86fb70367f0b7545f9b93e6f3e55a165754",
+          "size": 3058,
           "type": "file"
         },
         ".env": {
@@ -12313,8 +12334,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "b060a4c1f5abb057bf664a1431b8ba978632c2737ced7789de8200b0f940d59b",
-          "size": 25046,
+          "sha256": "fe316fece568240f5b0eab48ee1b54531ddc4d4e728ffcd983216ca68e13b4a1",
+          "size": 28098,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -12875,8 +12896,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "82a0e24dcce640657039c4fa9a7088fe89e06f55c1f0f8e54b5c7130dbac256d",
-          "size": 25145,
+          "sha256": "8dc25dae0f8ec2555bd9ca683f1daa9143f35e1917f3114b83987765b96863ff",
+          "size": 28197,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -13145,20 +13166,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "909f2f4274a3a60a4dc374e619491e856f3ef007a1548be75888385958e7567c",
-          "size": 109904,
+          "sha256": "b798fb54cb87f5dbe6a05c3144d713c61671d92ff1acd3ec09da26125662743d",
+          "size": 112690,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "1db56ff950dc8d54b2d0c86fc55e0938d882989277b1aa41608c42cc3866fd09",
-          "size": 99554,
+          "sha256": "fbce4dab02a64d07ca6169f9021836da7718265e611822eacd82205d1c018326",
+          "size": 102340,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "ca60096d579cb42058ad380d6b86162fe8438ed543b89d868166fc5c2d30b053",
-          "size": 104726,
+          "sha256": "d39882bfa0008124a3fa33a2a4c2c40791a7e03ad8e04554c567a239c807a98a",
+          "size": 107512,
           "type": "file"
         },
         "code": {
@@ -13263,6 +13284,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -13581,8 +13608,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d57d860668da3520546cbc6101f75a9ea6e225683c8ab447bf722f63560d21aa",
-          "size": 77968,
+          "sha256": "3f6bff9cd735205c284d5d46ef3a5e5ce1f40db3cce61903d3b417d82aa2bc6d",
+          "size": 89009,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -13623,8 +13650,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "0f2b64e1845b98f5cd85904efcfe78a680a0889c874f754c8dc0ed27b6dc0804",
-          "size": 29027,
+          "sha256": "49c054bae4200284ea7abb48b3ea6944517bfc6668c6bb0bd0dec7e84778fa13",
+          "size": 29385,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -13733,7 +13760,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -13779,8 +13806,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "977af515bf10fde6e539861dcd9a2789cbaab628d984af3508940a088a24b248",
-          "size": 3076,
+          "sha256": "f63d61e3e8bbce1279dbbeb9c3771be655ec20a4096c8324dbe6490b7edd7040",
+          "size": 3149,
           "type": "file"
         },
         "process_log/pivot_log.md": {
@@ -13869,6 +13896,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -13902,7 +13930,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -14335,8 +14363,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "f29a2fbe3e9a7c17833e0e06c8f97629dcd7ac051f181a459943d30749f94c85",
-          "size": 25710,
+          "sha256": "aa5df19cf8d6b44254267525349b78cb3188fc565ba99d4fec3df645ac6c5299",
+          "size": 28762,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -14955,8 +14983,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "dc24684773c6576a040c5cde2b517781fc8679d2cb8d4ea3713b264b125c670d",
-          "size": 25831,
+          "sha256": "3f238d5cc07912a72dbf4849af82579f62c1f7c37f351bf25a751f08707e95a0",
+          "size": 28883,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -15189,8 +15217,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9606e626de62ae8c257c241046f87d595ea4a084141f03bb6bd7e6ce0b3d9262",
-          "size": 2995,
+          "sha256": "4633fcb2a6706cf27103009bb3eea519d17e24b645d0bb82caed603bceb7394c",
+          "size": 3037,
           "type": "file"
         },
         ".env": {
@@ -15257,8 +15285,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "f03db0d42e730512bacce0f8ee2fc2a1c64e654062a365246db6d76dd9ed36a7",
-          "size": 25788,
+          "sha256": "5e21e2cae06758f7eee0e32bd2d649971baa462fb3ea78bde37076e01b62ed0a",
+          "size": 28840,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -15807,8 +15835,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "17a74289d220c9d632d217d9ef14039e462608141125ad0568b4ea4fa34288e6",
-          "size": 25893,
+          "sha256": "7eadc1fc533d2fe90fb5af00d77ed9cded4ff24a0683cab309ee903d8065b893",
+          "size": 28945,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -16191,6 +16219,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
+          "type": "file"
+        },
         "code/utils/deepvest_utils.py": {
           "mode": "0644",
           "sha256": "b40ddc3c8111fff3d2d401896f7efaa2747d6699b8ecf7d8e63893eb93c44e51",
@@ -16501,8 +16535,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "5285d74968152c32d315d0d80ec1d7b939b9622778daae8cc11bcd8b7fed7922",
-          "size": 77002,
+          "sha256": "ed87b0dff83b8767e607ceb6cdeba4f9b3596f88226641c4a3ebaadd21875956",
+          "size": 88043,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -16543,8 +16577,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "538292514ab25687a5e61808e78c5faf0923229d5e39aa4763c1b9ffd914a7ee",
-          "size": 26733,
+          "sha256": "5dddb899a207ccf230d3ad2a55147576c75a6d3a0f543919bc97d7dcf74c1910",
+          "size": 27091,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -16603,7 +16637,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "0b36b6e115a4de65fb00e5866df980881d4982325db190c812686f464a5ec1e4",
+          "sha256": "d5c46defcf23aff313ecfbde81c5ccdeff0ca8c7f62110f0bd49722c9cc01e0a",
           "size": 15387,
           "type": "file"
         },
@@ -16712,6 +16746,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -16745,7 +16780,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -17178,8 +17213,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "116c3e62ef5ef0511b4d88a995cb5fbb74a8488086f2562bb87a22dde26670a5",
-          "size": 24962,
+          "sha256": "979c24278f0b21ebef6b274de452fb1107f52e1420e3c9c16070665c120dc082",
+          "size": 28014,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -17798,8 +17833,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "6117caab7cdc4020ce719ad0e09dfb760dad4e4049025069b01228d00911c177",
-          "size": 25083,
+          "sha256": "cc499a1cfd58f32581c24f0dbfb10aa62f5f4b575211cdc4cf0308eea3395b97",
+          "size": 28135,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -18032,8 +18067,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "60a43a0ea63f9c8e26c033da12b03ce3ffd50b051d8845c87255b9b7bb37bf91",
-          "size": 3019,
+          "sha256": "4b044d1fdcee51a0dc8a24bfd2dcf81ec988112623b8705ff0eba0b6f06ea660",
+          "size": 3061,
           "type": "file"
         },
         ".env": {
@@ -18100,8 +18135,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "afdceb4c0105b25a176498bbf7f73a79001802e1f298aa1304885d1b1f5809d6",
-          "size": 25040,
+          "sha256": "ae8a32b23e20afcfad810f5f3ff1b6581d7fd48c89e179294e7283503aa3ed90",
+          "size": 28092,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -18650,8 +18685,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "82a0e24dcce640657039c4fa9a7088fe89e06f55c1f0f8e54b5c7130dbac256d",
-          "size": 25145,
+          "sha256": "8dc25dae0f8ec2555bd9ca683f1daa9143f35e1917f3114b83987765b96863ff",
+          "size": 28197,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -18914,20 +18949,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "5c525035296880f04adaa483a2b0ec8771fda53ae819f109c5f0be2b4359fa8e",
-          "size": 92092,
+          "sha256": "c878a8038a24e12fce0630b2eead084dff6e237051dafabb4211e2486602a7a9",
+          "size": 94878,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "d1608fd0f74f54dfe3fe918d4d56d35656bc740b59c6e61b782a20fc8d8c1aac",
-          "size": 81742,
+          "sha256": "3afeaefae6eeab56b17c195f512c1865f5b870e673c719dd83cefd61fa111656",
+          "size": 84528,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "0f6a4d70303ad321ec09eee1ffb316ab3c2f8e061618592e54ff48b0bc09e6f2",
-          "size": 86914,
+          "sha256": "10e19a607895d965c1f03256b5429c10cdf14fd8018344c7c4b2a3de1928c1bc",
+          "size": 89700,
           "type": "file"
         },
         "code": {
@@ -19032,6 +19067,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -19350,8 +19391,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d57d860668da3520546cbc6101f75a9ea6e225683c8ab447bf722f63560d21aa",
-          "size": 77968,
+          "sha256": "3f6bff9cd735205c284d5d46ef3a5e5ce1f40db3cce61903d3b417d82aa2bc6d",
+          "size": 89009,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -19392,8 +19433,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "6958b1cab8b242bd0435bc26716c8412b40d929329bc073bb0c76e84f2d7c52b",
-          "size": 28871,
+          "sha256": "9cee81067874e28bd19dba632ba91879ecb0f1b2613937d1a0170ab87d285c32",
+          "size": 29229,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -19502,7 +19543,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -19548,8 +19589,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "223681f4801e6e9761f84c112558ebdba85a694815cc3d43f8135fea27f33d9c",
-          "size": 3078,
+          "sha256": "d09ea3370c7992f47968b14166f1e45bcca02e00a709188d1094f908bc45fe76",
+          "size": 3151,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -19632,6 +19673,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -19665,7 +19707,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -20320,7 +20362,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2c70bce1d1b965e5967fbb051d0674f1c4716ba52e90d3ab6d42a0ed4dabdccf",
+          "sha256": "2d4f5e690fd80c063931212d66262e9b5dee4c506301f1ea35fb7f94f45abcfb",
           "size": 1859,
           "type": "file"
         },
@@ -21100,20 +21142,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "8b3cce68ec90abb71e4ea8ac1919b71bb62ed70af348ab7789c94d543a708c88",
-          "size": 69849,
+          "sha256": "344140b695bc012b76d476debacdbcb4cd0aef3f329bc9478a7b7022a8feae67",
+          "size": 72268,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "a8645f898508c0af3403a5fa28fe9650aa4373b1642a3dd6ccf3626a437c1564",
-          "size": 59499,
+          "sha256": "a8b98981cf392adc162565bb18067b5a1a19dc023a910ccd32c9d162508cf3cb",
+          "size": 61918,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "209106a9d649da524b711dea136002585bddf7b4e8aa76ce1deae620ea1a7485",
-          "size": 64671,
+          "sha256": "cacfae117f588745acb6bfb15aa50f2421327cc2d373c6f39511f4793eee37c6",
+          "size": 67090,
           "type": "file"
         },
         "code": {
@@ -21400,8 +21442,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -21496,7 +21538,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -21629,7 +21671,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -22076,8 +22118,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "429d6f81bdee2c7f4065f5012a418bddef3f4254284aff8d5cf027a3a1bffe92",
-          "size": 21576,
+          "sha256": "f84c5c35620b42ded08840ea78d8f2755ad5bd405e6c1083f5eeb8c96fb2b6e8",
+          "size": 24628,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -22724,8 +22766,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "ed28108647b5e13e77a093c7a238b00de27ed16acc8041f3acb401e98bd0f915",
-          "size": 21697,
+          "sha256": "91bb15aa86e748627e1b77824010df52796bca2a6916f6872486437c686e943b",
+          "size": 24749,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -22982,8 +23024,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ad3fd097f1df8864bacd472f6e16a3cb9c2f3158570e54bc78a56a449d7c942a",
-          "size": 3117,
+          "sha256": "158d9b13db6e18fed200fc111d3903bd21b771f4b09e914e7cfe431c3e66519b",
+          "size": 3159,
           "type": "file"
         },
         ".env": {
@@ -23044,8 +23086,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2483a145d50aaf6897b8fac172000a216ceb80bda4db3701e7eee42d1524d619",
-          "size": 21654,
+          "sha256": "dcfb3269b3fdec4527614b753061dee02cbf9a9a354a38197880b68e58e9134f",
+          "size": 24706,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -23612,8 +23654,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6cfa3d07ef534776c93de662a98d99a5ff1cdc750265954357fe5725825069de",
-          "size": 21759,
+          "sha256": "841e033d17784eb551c224d8702fe2a4b97fae1a1493f4458b9decce01ca81d5",
+          "size": 24811,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -23900,20 +23942,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "0dd43e7f2c942916cc34c73c96d069f685adcb3037cbfa9da059570190c3d640",
-          "size": 83697,
+          "sha256": "e7961489551f58320f00ee2c83da9799372365bf808676694ccb0725fff1f8af",
+          "size": 86483,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "65f7b50225d5263f9371191bcc5320acac3ce8f717822afcfd6ea350a14ffa2a",
-          "size": 73347,
+          "sha256": "dc47cef1d65c5bf86a9e24a2645f993d166a7670cf73cd294c2e858c556b982d",
+          "size": 76133,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "671a8e5c7f769135bcd3bd7e85eb6d8e6bef599f1eca50718aeda6bef30f4d11",
-          "size": 78519,
+          "sha256": "87fcd54777288651be6a1debed23ea4d71e338133f8e9cbb0cb146dead0691f8",
+          "size": 81305,
           "type": "file"
         },
         "code": {
@@ -24018,6 +24060,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -24336,8 +24384,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d619a8aef9b8910654ac9e0f6ae109d1166dcc95aad15c0ac74eb612a4908d6c",
-          "size": 57950,
+          "sha256": "b6e60549c096b99c8a1db70adb78f985688365ab8ccfcb98da712a051530a62f",
+          "size": 68360,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -24384,8 +24432,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -24502,7 +24550,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -24548,8 +24596,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "a9a8d93a270f2f3982638ce22aba17f06a02299bbe8dbbaf9b7a27ad274e0059",
-          "size": 2559,
+          "sha256": "17b5ec8819f893fba1c8642dea90590e525d6bc49e0f5de844ad982268cba795",
+          "size": 2632,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -24634,6 +24682,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -24668,7 +24717,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -25094,8 +25143,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "429d6f81bdee2c7f4065f5012a418bddef3f4254284aff8d5cf027a3a1bffe92",
-          "size": 21576,
+          "sha256": "f84c5c35620b42ded08840ea78d8f2755ad5bd405e6c1083f5eeb8c96fb2b6e8",
+          "size": 24628,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -25714,8 +25763,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "ed28108647b5e13e77a093c7a238b00de27ed16acc8041f3acb401e98bd0f915",
-          "size": 21697,
+          "sha256": "91bb15aa86e748627e1b77824010df52796bca2a6916f6872486437c686e943b",
+          "size": 24749,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -25954,8 +26003,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7295580642628ca97a8dfec8ed50e16c18f72052e8bae9501ac5301e20385464",
-          "size": 3010,
+          "sha256": "b0770dff20f2f591736bd748a43004af914f33d168166721efcdffdb4df9f381",
+          "size": 3052,
           "type": "file"
         },
         ".env": {
@@ -26016,8 +26065,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2483a145d50aaf6897b8fac172000a216ceb80bda4db3701e7eee42d1524d619",
-          "size": 21654,
+          "sha256": "dcfb3269b3fdec4527614b753061dee02cbf9a9a354a38197880b68e58e9134f",
+          "size": 24706,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -26566,8 +26615,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6cfa3d07ef534776c93de662a98d99a5ff1cdc750265954357fe5725825069de",
-          "size": 21759,
+          "sha256": "841e033d17784eb551c224d8702fe2a4b97fae1a1493f4458b9decce01ca81d5",
+          "size": 24811,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -26836,20 +26885,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "a1d43858a374290d1961e43ecd09bc847d314985b9577d9df69a9fb40a098372",
-          "size": 82459,
+          "sha256": "8bcafcaf8dfaea92efd9f80ddd1471cbed477fea9e67874531d8ea540a01e2ec",
+          "size": 85245,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "9e879995dd863d0c1ed6b866178559e71c41931437f91b02db2112aa9d3cd78c",
-          "size": 72109,
+          "sha256": "b67feaf1ca7921e19d7e62c774a7710ba16e9c06fd8a0eb4bfaca91ef74ede38",
+          "size": 74895,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "b2c3beecbac6385a591860fdb23e8656f4654d46ab7854c59225affc8cda8ef3",
-          "size": 77281,
+          "sha256": "8b7b98f5e5f7a17fb97091f589a4b767692054649ef560e264ce6290afa9b8aa",
+          "size": 80067,
           "type": "file"
         },
         "code": {
@@ -26954,6 +27003,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -27272,8 +27327,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d619a8aef9b8910654ac9e0f6ae109d1166dcc95aad15c0ac74eb612a4908d6c",
-          "size": 57950,
+          "sha256": "b6e60549c096b99c8a1db70adb78f985688365ab8ccfcb98da712a051530a62f",
+          "size": 68360,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -27314,8 +27369,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -27418,7 +27473,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -27464,8 +27519,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "361fb426b55b49110c5e31d8fd241af17d10dc2a3671f054ee771d423a84d2fa",
-          "size": 2459,
+          "sha256": "13989729c6f61946f16b30261a23a3cc98041b9805a961d61115c5816169eb28",
+          "size": 2532,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -27548,6 +27603,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -27581,7 +27637,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -28007,8 +28063,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "a888a353385f91cb215c16e3c38df26bb84b9e703a1f9ada6bca50e8fb6aafb9",
-          "size": 24398,
+          "sha256": "5f83326eb1d98fa5e09cc1fcb8c2f4aba48df419aac802565db1d8d629c20c41",
+          "size": 27450,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -28633,8 +28689,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "f2b9144b92d7757c204347d9aef8c064bb179d79457bc7d429404a31622a113c",
-          "size": 24519,
+          "sha256": "01930909328b8767b5789b449f49d2da9f75b5cb49268254257aadb9883e72fd",
+          "size": 27571,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -28879,8 +28935,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "05fc7b06d37143e5bec49dbefd8e69246a6775c0bd73bef034b3312c95916d9b",
-          "size": 3025,
+          "sha256": "0a239d7d04e62de4dcf7b9d58da92c59399f71bb8a308524c3c67271d1589e5e",
+          "size": 3067,
           "type": "file"
         },
         ".env": {
@@ -28941,8 +28997,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "17fc45b5a99662511a9f333b6e11ba7ba70b53146701498c7b27e0f4e84e61bd",
-          "size": 24476,
+          "sha256": "8536490b578fc4aa9f0622ddbe01ac4f04dd5c6be07e036afa7da7bac6bb13a4",
+          "size": 27528,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -29497,8 +29553,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "43f00c4d94100a8504b3c48ab2619aa3307e32d37790bfd3a027e152e50fb8d6",
-          "size": 24581,
+          "sha256": "6192d703bd37b159edf4ebecab30a20cc50d49fad7a4dcb3b4cd50b81e4ae940",
+          "size": 27633,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -29773,20 +29829,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "f918adf730a777e7cfa0f16893a539efe65fafa8957ca5acaf2ea43c1dd2b8da",
-          "size": 85371,
+          "sha256": "9370fcfe36bd0dcaec73f5150d3c1c7035eb1e289252672b2b895d114743bc39",
+          "size": 88604,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "8a09e03ae4f0002d66c4b1680402eef8e099896b2546167a876d262ac21dec3f",
-          "size": 75021,
+          "sha256": "8bfe2d093d77f20051abee952c7532bb0cad5f4cc09ab943b5c7e9ca5839ec9b",
+          "size": 78254,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "cca57b5b3bf422f68699725e081dde0a21476caf5f3cfdad8610acdc3b88d84b",
-          "size": 80193,
+          "sha256": "d20aeee4b590ce5120597245f4c58221ba39c142f3216e4152c477467f9b83b9",
+          "size": 83426,
           "type": "file"
         },
         "code": {
@@ -29891,6 +29947,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -30185,8 +30247,8 @@
         },
         "docs/stage_1.md": {
           "mode": "0644",
-          "sha256": "4afc9150a8894abda7079f4e5cca65f6a4f27b291f6dfa6ccf496ac2f636ac9e",
-          "size": 27934,
+          "sha256": "e8fec4a269635fd5de169c66da2f298002633efc7d55e1a098c43873d279dd90",
+          "size": 27979,
           "type": "file"
         },
         "docs/stage_10.md": {
@@ -30209,8 +30271,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "e77ff610de580d22a475b47311dac8d68705316cf1f02c0b034d36830406689b",
-          "size": 60663,
+          "sha256": "e272b02fdc23d0e09f9d42a0ce7b5ca37e1ad0a683430f1f1c69d7820e730494",
+          "size": 71073,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -30251,8 +30313,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "348a9e6f0e21d304280c761c308d7ae7f955216079186626d374b084f0442417",
-          "size": 24046,
+          "sha256": "6a804c1e6efe28611046dd09579b3af77a3cfc7705798e93425640bee4e2694a",
+          "size": 24404,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -30347,7 +30409,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -30393,8 +30455,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "361fb426b55b49110c5e31d8fd241af17d10dc2a3671f054ee771d423a84d2fa",
-          "size": 2459,
+          "sha256": "13989729c6f61946f16b30261a23a3cc98041b9805a961d61115c5816169eb28",
+          "size": 2532,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -30477,6 +30539,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -30510,7 +30573,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -30954,8 +31017,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "a888a353385f91cb215c16e3c38df26bb84b9e703a1f9ada6bca50e8fb6aafb9",
-          "size": 24398,
+          "sha256": "5f83326eb1d98fa5e09cc1fcb8c2f4aba48df419aac802565db1d8d629c20c41",
+          "size": 27450,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -31608,8 +31671,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "f2b9144b92d7757c204347d9aef8c064bb179d79457bc7d429404a31622a113c",
-          "size": 24519,
+          "sha256": "01930909328b8767b5789b449f49d2da9f75b5cb49268254257aadb9883e72fd",
+          "size": 27571,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -31872,8 +31935,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f41258b356c59e77efa3d9892813680043487185e584b2ec79fe71ccfe97b256",
-          "size": 3132,
+          "sha256": "0ec92ea9bca42ef7fb30593102e8a22f26699879255d79d4bc5101f10a7e290f",
+          "size": 3174,
           "type": "file"
         },
         ".env": {
@@ -31934,8 +31997,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "17fc45b5a99662511a9f333b6e11ba7ba70b53146701498c7b27e0f4e84e61bd",
-          "size": 24476,
+          "sha256": "8536490b578fc4aa9f0622ddbe01ac4f04dd5c6be07e036afa7da7bac6bb13a4",
+          "size": 27528,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -32508,8 +32571,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "43f00c4d94100a8504b3c48ab2619aa3307e32d37790bfd3a027e152e50fb8d6",
-          "size": 24581,
+          "sha256": "6192d703bd37b159edf4ebecab30a20cc50d49fad7a4dcb3b4cd50b81e4ae940",
+          "size": 27633,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -32802,20 +32865,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "cb2e40d9e8da9097ab98eacbdd3cd869b6236e61d933309fd4d993bff36fa8e1",
-          "size": 86609,
+          "sha256": "6625d8d06306d8315f06a5b1a30aff4fa155abe85f47582b33dac1d7f72734c9",
+          "size": 89842,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "2454777fb72118d84aa7dcb0c2007120921ec8c4072b423e4a26e0904ec6da54",
-          "size": 76259,
+          "sha256": "aeebe5d46e7d014067414251ad30222ca0b4e91e1630cab37470f2d60f04bb34",
+          "size": 79492,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "becca7c8bb6e44dd379726a524adbc8c3ab32089ccd1416237775a7566341391",
-          "size": 81431,
+          "sha256": "58689c12581d5bd575c085cdc77c0570d18564f57bcbd13c5a33ecf6836f69d3",
+          "size": 84664,
           "type": "file"
         },
         "code": {
@@ -32920,6 +32983,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -33214,8 +33283,8 @@
         },
         "docs/stage_1.md": {
           "mode": "0644",
-          "sha256": "4afc9150a8894abda7079f4e5cca65f6a4f27b291f6dfa6ccf496ac2f636ac9e",
-          "size": 27934,
+          "sha256": "e8fec4a269635fd5de169c66da2f298002633efc7d55e1a098c43873d279dd90",
+          "size": 27979,
           "type": "file"
         },
         "docs/stage_10.md": {
@@ -33238,8 +33307,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "e77ff610de580d22a475b47311dac8d68705316cf1f02c0b034d36830406689b",
-          "size": 60663,
+          "sha256": "e272b02fdc23d0e09f9d42a0ce7b5ca37e1ad0a683430f1f1c69d7820e730494",
+          "size": 71073,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -33286,8 +33355,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "348a9e6f0e21d304280c761c308d7ae7f955216079186626d374b084f0442417",
-          "size": 24046,
+          "sha256": "6a804c1e6efe28611046dd09579b3af77a3cfc7705798e93425640bee4e2694a",
+          "size": 24404,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -33396,7 +33465,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -33442,8 +33511,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "3a86ccb4b9c071281b12eaac47e7ace7e1f5c727aada3fbf5ef2c20ff997cf75",
-          "size": 2559,
+          "sha256": "224f27e845fe768e58445bf6e541d462fb9ac97fa278e97f342def5724604caa",
+          "size": 2632,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -33528,6 +33597,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -33562,7 +33632,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -34221,7 +34291,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2c70bce1d1b965e5967fbb051d0674f1c4716ba52e90d3ab6d42a0ed4dabdccf",
+          "sha256": "2d4f5e690fd80c063931212d66262e9b5dee4c506301f1ea35fb7f94f45abcfb",
           "size": 1859,
           "type": "file"
         },
@@ -35001,20 +35071,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "8b3cce68ec90abb71e4ea8ac1919b71bb62ed70af348ab7789c94d543a708c88",
-          "size": 69849,
+          "sha256": "344140b695bc012b76d476debacdbcb4cd0aef3f329bc9478a7b7022a8feae67",
+          "size": 72268,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "a8645f898508c0af3403a5fa28fe9650aa4373b1642a3dd6ccf3626a437c1564",
-          "size": 59499,
+          "sha256": "a8b98981cf392adc162565bb18067b5a1a19dc023a910ccd32c9d162508cf3cb",
+          "size": 61918,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "209106a9d649da524b711dea136002585bddf7b4e8aa76ce1deae620ea1a7485",
-          "size": 64671,
+          "sha256": "cacfae117f588745acb6bfb15aa50f2421327cc2d373c6f39511f4793eee37c6",
+          "size": 67090,
           "type": "file"
         },
         "code": {
@@ -35301,8 +35371,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -35397,7 +35467,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -35530,7 +35600,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -35959,8 +36029,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "8082cfd779b18b92c1cf738229ea4a27532fe2501ddb686f6d2493e2d61d5029",
-          "size": 21578,
+          "sha256": "f3084d0302d2ecd8741070948f4fc54b8c3860eb16c478b4c9088e8cecca7c3a",
+          "size": 24630,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -36585,8 +36655,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "93e64214f2293de4442118343a74a1f6d0c6b43bec5f1fada57fa3814224ca1d",
-          "size": 21664,
+          "sha256": "892361856a804c103db31e4f89cbdfec1fee859a53b12f1b6fa74659805a2f60",
+          "size": 24716,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -36831,8 +36901,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d4cd8ea1acae819ba90cc81dd95e5c2b67404378c503d7653f70fea1ea73d3d1",
-          "size": 3006,
+          "sha256": "c63cb838c53835f0c5939c92ce27765264c5daed7eccecee9482137fb8512041",
+          "size": 3048,
           "type": "file"
         },
         ".env": {
@@ -36893,8 +36963,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "0523bb7e38bda7a7cac16fca8a248259f40b35bfcc24c3945cef0523a7feb227",
-          "size": 21660,
+          "sha256": "81127134fef929e7bd927e97cb904190e3bea63a7939391a9213c035713ad4d7",
+          "size": 24712,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -37455,8 +37525,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6cfa3d07ef534776c93de662a98d99a5ff1cdc750265954357fe5725825069de",
-          "size": 21759,
+          "sha256": "841e033d17784eb551c224d8702fe2a4b97fae1a1493f4458b9decce01ca81d5",
+          "size": 24811,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -37731,20 +37801,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "9ce38bc5bd9d94a795bf87a309a1256e532549647418d225fd731498028ca46f",
-          "size": 106482,
+          "sha256": "4e8c73d3ceb8de20f60015c99a5fbf4adad63b6ad4ec02796aa45e43a97de7d7",
+          "size": 109268,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "e12b3a8ce057206b55a3eee724084617332f3b34181e26e14694aeb02973c404",
-          "size": 96132,
+          "sha256": "4e72d0d7e6a117414b8e1e6faeb0dfb6293a5d7464ac390e9655c66ef7d19074",
+          "size": 98918,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "2bb80e8bb72bbbc0b3a4057a285f95be614d1dc32dd11277881bb4298a71f921",
-          "size": 101304,
+          "sha256": "b7b70e3c77c68d1f9530300d8ccc4d7ebb59a3d10cdddcbc72ec6355db6e028e",
+          "size": 104090,
           "type": "file"
         },
         "code": {
@@ -37849,6 +37919,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -38167,8 +38243,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d096a0bbb6b8f2ba24c3ccc1a58e9b2c11b8f4937c39be398f6c8034b7178b49",
-          "size": 58916,
+          "sha256": "691a106d740fa99adeef1fc0dbc176cdc434879a4ab1219ef7ba806fa5e5eb99",
+          "size": 69326,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -38209,8 +38285,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "53d2338a46783d881b1e0fece0bd2dbe9111b4b476e3051ad43415f262c6bb2a",
-          "size": 24041,
+          "sha256": "d6976fd9766d962efadd3a779ea47993eb50565bac302de8bebb6f52e614a8bb",
+          "size": 24399,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -38323,7 +38399,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -38369,8 +38445,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "5778de81292bc23fb9a9fa948efc0323bf7fee0b44dc44a82f3ebd3eefd8327d",
-          "size": 2460,
+          "sha256": "23abe63e9abfd345c271c4a0b47f31dcf15654d312180cd42e47186f42b5385f",
+          "size": 2533,
           "type": "file"
         },
         "process_log/pivot_log.md": {
@@ -38459,6 +38535,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -38492,7 +38569,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -39151,7 +39228,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "52a7f8fbbe053ae707d2bd2e27e03ef754e1667aec0a4bd5962064b2e947aade",
+          "sha256": "1b509ee301a7063e127c336ed15f1cf57f334123591470628cc1eddef95ddd8a",
           "size": 1858,
           "type": "file"
         },
@@ -39931,20 +40008,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "6f648a3c9b24f8b8ac82f3badb203acf58f1b8be8d608087f6182a7dc4fb3da5",
-          "size": 70385,
+          "sha256": "6cf02dab32ac88d8c33f8e8111aa2d1b1e4f176fa1a6f921f7e966e3750ff8b5",
+          "size": 72804,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "1ad457609f46fa90982927031aeacca46ad797d2e818baa8806b6cc20c9cef32",
-          "size": 60035,
+          "sha256": "7924a6705056f685943d0c371a905749193c1d8e95c9af34a9696ac74e980ce8",
+          "size": 62454,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "d88a4db93f70f9bbe227fd5952eae1ae9271e411632821ee77c8a9ee6034440e",
-          "size": 65207,
+          "sha256": "fffea3526cabfc1df1c2d05eb474def4f617a2f8321cbd38b1a64552c9181c99",
+          "size": 67626,
           "type": "file"
         },
         "code": {
@@ -40231,8 +40308,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -40327,7 +40404,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -40460,7 +40537,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -41185,7 +41262,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9888fd280ff58dcfd615ee1c56624269580bd7e071eb63770709c850854fba14",
+          "sha256": "7659c2f335d6b0b2cad746c15285b49dc3e1d26668811ef85645d1c472adc8ce",
           "size": 1968,
           "type": "file"
         },
@@ -42001,20 +42078,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "45857531a191a78487e3d484e0ea54ede6b2e55a76417e790549bdda33c1a10b",
-          "size": 71087,
+          "sha256": "71340083e6f184a28f7d28153831c505b592f4a447ba3cd872e4b4a4bf7fa8da",
+          "size": 73506,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "2d2d92bf84d9bdbdac4c985e39b32b8466fb585de184562254253c1482746c47",
-          "size": 60737,
+          "sha256": "999f5ac534d9947c4fcf6139235dd53977e74a903ab4f5afbe21ebdeb631fce5",
+          "size": 63156,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "59c2244674c65ac0ec1bba92a1025abd6d4506328f4a7deeb06a5292546881b5",
-          "size": 65909,
+          "sha256": "a6216564b16efeeebb56382be426a098e8ea56edeeb6c6653a38573611170edf",
+          "size": 68328,
           "type": "file"
         },
         "code": {
@@ -42307,8 +42384,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -42417,7 +42494,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -42554,7 +42631,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -43278,7 +43355,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9888fd280ff58dcfd615ee1c56624269580bd7e071eb63770709c850854fba14",
+          "sha256": "7659c2f335d6b0b2cad746c15285b49dc3e1d26668811ef85645d1c472adc8ce",
           "size": 1968,
           "type": "file"
         },
@@ -44094,20 +44171,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "45857531a191a78487e3d484e0ea54ede6b2e55a76417e790549bdda33c1a10b",
-          "size": 71087,
+          "sha256": "71340083e6f184a28f7d28153831c505b592f4a447ba3cd872e4b4a4bf7fa8da",
+          "size": 73506,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "2d2d92bf84d9bdbdac4c985e39b32b8466fb585de184562254253c1482746c47",
-          "size": 60737,
+          "sha256": "999f5ac534d9947c4fcf6139235dd53977e74a903ab4f5afbe21ebdeb631fce5",
+          "size": 63156,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "59c2244674c65ac0ec1bba92a1025abd6d4506328f4a7deeb06a5292546881b5",
-          "size": 65909,
+          "sha256": "a6216564b16efeeebb56382be426a098e8ea56edeeb6c6653a38573611170edf",
+          "size": 68328,
           "type": "file"
         },
         "code": {
@@ -44400,8 +44477,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -44510,7 +44587,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -44647,7 +44724,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -45306,7 +45383,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "374950e91f43830e4cf9597fd2c3c71cfcaf6085ee826347430cfbb6cc2e9242",
+          "sha256": "bf781e397a8974b1b7c61f23bf6ffd70693679a76284a336dbfca5ebadfd5fa6",
           "size": 1858,
           "type": "file"
         },
@@ -46086,20 +46163,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "8b3cce68ec90abb71e4ea8ac1919b71bb62ed70af348ab7789c94d543a708c88",
-          "size": 69849,
+          "sha256": "344140b695bc012b76d476debacdbcb4cd0aef3f329bc9478a7b7022a8feae67",
+          "size": 72268,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "a8645f898508c0af3403a5fa28fe9650aa4373b1642a3dd6ccf3626a437c1564",
-          "size": 59499,
+          "sha256": "a8b98981cf392adc162565bb18067b5a1a19dc023a910ccd32c9d162508cf3cb",
+          "size": 61918,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "209106a9d649da524b711dea136002585bddf7b4e8aa76ce1deae620ea1a7485",
-          "size": 64671,
+          "sha256": "cacfae117f588745acb6bfb15aa50f2421327cc2d373c6f39511f4793eee37c6",
+          "size": 67090,
           "type": "file"
         },
         "code": {
@@ -46386,8 +46463,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -46482,7 +46559,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -46615,7 +46692,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -47060,8 +47137,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "a3e644fd5eee643160a4b737d5b551ba2d4f2f8d281da8a1a23a74ef85acf28f",
-          "size": 22324,
+          "sha256": "8e463c8ca75857753672226fc0a3959fff0548938e555829cbe79e1b1fcdd3c6",
+          "size": 25376,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -47708,8 +47785,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "10384f7fc4fa92480d8d75900a722d0fd0862deb7af12eea1487fe50fe87537c",
-          "size": 22445,
+          "sha256": "60222d6ade86f44cf37d7e9e1b2435f2b882a66891e63762d9bfeb170f72c663",
+          "size": 25497,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -47966,8 +48043,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e2e1223d240717150e52d085ca5454ad76753f7a8772603ece72d5e1b4ea223d",
-          "size": 3092,
+          "sha256": "8a79febe39f99d36a1bd2c90396280d08749544e855dc658ae30501743cc7f92",
+          "size": 3134,
           "type": "file"
         },
         ".env": {
@@ -48028,8 +48105,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "9d25941c29801db2c8b33b57942246f083718d021967438db8cc5be9fead3862",
-          "size": 22402,
+          "sha256": "7b75f795f014b1bfb74fb6923a05d8febf033f983e56cbfcbbfb607d26efcdb3",
+          "size": 25454,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -48596,8 +48673,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "d615aa351046461ae37bc35857b35f6b06c73069f32f4db1b9508b74550beece",
-          "size": 22507,
+          "sha256": "fef39658f86e777f797e0a5ab98af938c022b6d56fea4e3f41d916b1692fa364",
+          "size": 25559,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -49004,6 +49081,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
+          "type": "file"
+        },
         "code/utils/deepvest_utils.py": {
           "mode": "0644",
           "sha256": "b40ddc3c8111fff3d2d401896f7efaa2747d6699b8ecf7d8e63893eb93c44e51",
@@ -49314,8 +49397,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d619a8aef9b8910654ac9e0f6ae109d1166dcc95aad15c0ac74eb612a4908d6c",
-          "size": 57950,
+          "sha256": "b6e60549c096b99c8a1db70adb78f985688365ab8ccfcb98da712a051530a62f",
+          "size": 68360,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -49362,8 +49445,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -49428,7 +49511,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "0b36b6e115a4de65fb00e5866df980881d4982325db190c812686f464a5ec1e4",
+          "sha256": "d5c46defcf23aff313ecfbde81c5ccdeff0ca8c7f62110f0bd49722c9cc01e0a",
           "size": 15387,
           "type": "file"
         },
@@ -49539,6 +49622,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -49573,7 +49657,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -49993,7 +50077,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "e80bcbff2f1b0a707d37ef14a427149e3a52bda9e8fcb39cbc1cfa1d030c0d70",
+          "sha256": "f28ed9b6541642dbe1c812519032ade50fc3369e90557c0e07df6990d7a99ba6",
           "size": 1841,
           "type": "file"
         },
@@ -50755,7 +50839,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -51735,8 +51819,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d76a0cec3923f7527f51dfd1c1ea1e4336c7686354084437a048cbfe12fe853a",
-          "size": 3099,
+          "sha256": "fb90e54c653325b36a883e01248e36ebcd3b237da4e6b84085eb16c981bcaedd",
+          "size": 3141,
           "type": "file"
         },
         ".env": {
@@ -52269,6 +52353,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
+          "type": "file"
+        },
         "code/utils/deepvest_utils.py": {
           "mode": "0644",
           "sha256": "b40ddc3c8111fff3d2d401896f7efaa2747d6699b8ecf7d8e63893eb93c44e51",
@@ -52680,6 +52770,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -52714,7 +52805,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -53694,8 +53785,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b4c5abe532890935fc310aa31afe8dc2aeb591ec94ecde9e427cc518c8b7f9fb",
-          "size": 3099,
+          "sha256": "4dcfc1e22623f73be6ec984e31ff7c2eb0cddb6973c837b53b1cc9adeec9ff0f",
+          "size": 3141,
           "type": "file"
         },
         ".env": {
@@ -54228,6 +54319,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
+          "type": "file"
+        },
         "code/utils/deepvest_utils.py": {
           "mode": "0644",
           "sha256": "b40ddc3c8111fff3d2d401896f7efaa2747d6699b8ecf7d8e63893eb93c44e51",
@@ -54639,6 +54736,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -54673,7 +54771,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -55625,8 +55723,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "32a85a52a619f685dbc8e976a03119d12cfff6ebb5201d37c49ee31f129d7efc",
-          "size": 2992,
+          "sha256": "26daaad4e9e76d113cee5e23282af1ba2077b79dca15139929d13d3ddf7abaae",
+          "size": 3034,
           "type": "file"
         },
         ".env": {
@@ -56159,6 +56257,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
+          "type": "file"
+        },
         "code/utils/deepvest_utils.py": {
           "mode": "0644",
           "sha256": "b40ddc3c8111fff3d2d401896f7efaa2747d6699b8ecf7d8e63893eb93c44e51",
@@ -56562,6 +56666,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -56595,7 +56700,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -57016,7 +57121,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7bc5426f9dcf88ef205776c855202dc91be0a7c91fafc472de68bbf32ed01471",
+          "sha256": "b2825f7e8beae1430645f2c574bc1f58dc49a71bb04a97878a6fa3ef9a633afc",
           "size": 1840,
           "type": "file"
         },
@@ -57778,7 +57883,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -58230,7 +58335,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "235a55dedaef1d382160d6b927bb96afda3fbca52ecef88fd0bffeeb253d5fee",
+          "sha256": "bb5f09f237bb7dbcc58aa23fd32e260c87abbeafb8858899b4ae340568898e83",
           "size": 1950,
           "type": "file"
         },
@@ -59002,7 +59107,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -59661,7 +59766,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2eb102aebbafe7a68805259b536f62ce2656c0a4b105c78406aef78aeb6b85a4",
+          "sha256": "922a81dff4a89e1c26722f192c361da0d040484ab562a7563fed183eaacbb86e",
           "size": 1858,
           "type": "file"
         },
@@ -60441,20 +60546,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "67f71d2d8765f8d1b6f8f15bdf89ff1e4b0a196131e3dac2f50358f99e3b738a",
-          "size": 76060,
+          "sha256": "309a9b5bdb8a1fa2f2568d60d29073bba3515866fe034a32e5cb9a0b9438d98d",
+          "size": 78479,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "a3b55b35a8532e47c9b9f052b3f51421e6ed020c5678b0a3c5302e75d9016eae",
-          "size": 65710,
+          "sha256": "202c82a156542b140ad4e079f7d81a6a110997ecb1f573789ad585c5dfd708ba",
+          "size": 68129,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "ad8ff279a3bc2575873eed84208edb7317b32fa59de4ff87bba478735b90f3e1",
-          "size": 70882,
+          "sha256": "6312b8612b19c15fbb7a12d01d376580f90f94a3f17feae477b1f0d6d6ff57fb",
+          "size": 73301,
           "type": "file"
         },
         "code": {
@@ -60741,8 +60846,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "2d8f84808c77d8d29edd823e2bc52eb548193a4c99ed1ac281cf01d5bc7cdb87",
-          "size": 23791,
+          "sha256": "720c255c86a46a2165801694842991910c759358eb07e1cc9b29e8abb36358cf",
+          "size": 24149,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -60847,7 +60952,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -60980,7 +61085,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -61406,8 +61511,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "429d6f81bdee2c7f4065f5012a418bddef3f4254284aff8d5cf027a3a1bffe92",
-          "size": 21576,
+          "sha256": "f84c5c35620b42ded08840ea78d8f2755ad5bd405e6c1083f5eeb8c96fb2b6e8",
+          "size": 24628,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -62026,8 +62131,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "ed28108647b5e13e77a093c7a238b00de27ed16acc8041f3acb401e98bd0f915",
-          "size": 21697,
+          "sha256": "91bb15aa86e748627e1b77824010df52796bca2a6916f6872486437c686e943b",
+          "size": 24749,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -62266,8 +62371,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7295580642628ca97a8dfec8ed50e16c18f72052e8bae9501ac5301e20385464",
-          "size": 3010,
+          "sha256": "b0770dff20f2f591736bd748a43004af914f33d168166721efcdffdb4df9f381",
+          "size": 3052,
           "type": "file"
         },
         ".env": {
@@ -62328,8 +62433,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2483a145d50aaf6897b8fac172000a216ceb80bda4db3701e7eee42d1524d619",
-          "size": 21654,
+          "sha256": "dcfb3269b3fdec4527614b753061dee02cbf9a9a354a38197880b68e58e9134f",
+          "size": 24706,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -62878,8 +62983,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6cfa3d07ef534776c93de662a98d99a5ff1cdc750265954357fe5725825069de",
-          "size": 21759,
+          "sha256": "841e033d17784eb551c224d8702fe2a4b97fae1a1493f4458b9decce01ca81d5",
+          "size": 24811,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -63148,20 +63253,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "a1d43858a374290d1961e43ecd09bc847d314985b9577d9df69a9fb40a098372",
-          "size": 82459,
+          "sha256": "8bcafcaf8dfaea92efd9f80ddd1471cbed477fea9e67874531d8ea540a01e2ec",
+          "size": 85245,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "9e879995dd863d0c1ed6b866178559e71c41931437f91b02db2112aa9d3cd78c",
-          "size": 72109,
+          "sha256": "b67feaf1ca7921e19d7e62c774a7710ba16e9c06fd8a0eb4bfaca91ef74ede38",
+          "size": 74895,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "b2c3beecbac6385a591860fdb23e8656f4654d46ab7854c59225affc8cda8ef3",
-          "size": 77281,
+          "sha256": "8b7b98f5e5f7a17fb97091f589a4b767692054649ef560e264ce6290afa9b8aa",
+          "size": 80067,
           "type": "file"
         },
         "code": {
@@ -63266,6 +63371,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -63584,8 +63695,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d619a8aef9b8910654ac9e0f6ae109d1166dcc95aad15c0ac74eb612a4908d6c",
-          "size": 57950,
+          "sha256": "b6e60549c096b99c8a1db70adb78f985688365ab8ccfcb98da712a051530a62f",
+          "size": 68360,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -63626,8 +63737,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -63730,7 +63841,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -63776,8 +63887,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "361fb426b55b49110c5e31d8fd241af17d10dc2a3671f054ee771d423a84d2fa",
-          "size": 2459,
+          "sha256": "13989729c6f61946f16b30261a23a3cc98041b9805a961d61115c5816169eb28",
+          "size": 2532,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -63860,6 +63971,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -63893,7 +64005,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -64619,7 +64731,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9888fd280ff58dcfd615ee1c56624269580bd7e071eb63770709c850854fba14",
+          "sha256": "7659c2f335d6b0b2cad746c15285b49dc3e1d26668811ef85645d1c472adc8ce",
           "size": 1968,
           "type": "file"
         },
@@ -65435,20 +65547,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "45857531a191a78487e3d484e0ea54ede6b2e55a76417e790549bdda33c1a10b",
-          "size": 71087,
+          "sha256": "71340083e6f184a28f7d28153831c505b592f4a447ba3cd872e4b4a4bf7fa8da",
+          "size": 73506,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "2d2d92bf84d9bdbdac4c985e39b32b8466fb585de184562254253c1482746c47",
-          "size": 60737,
+          "sha256": "999f5ac534d9947c4fcf6139235dd53977e74a903ab4f5afbe21ebdeb631fce5",
+          "size": 63156,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "59c2244674c65ac0ec1bba92a1025abd6d4506328f4a7deeb06a5292546881b5",
-          "size": 65909,
+          "sha256": "a6216564b16efeeebb56382be426a098e8ea56edeeb6c6653a38573611170edf",
+          "size": 68328,
           "type": "file"
         },
         "code": {
@@ -65741,8 +65853,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -65851,7 +65963,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -65988,7 +66100,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -66672,7 +66784,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b7cdccc6ae1419d0e80e55e4a04146bdbe12df9d588f223cec951eb4843c6b6a",
+          "sha256": "a15c80ab116aa778a24086a924b9eb84973922174ca1605d867ed25548b588c6",
           "size": 1918,
           "type": "file"
         },
@@ -67488,20 +67600,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "eba9700bb6971407fe4cb801d7db5901831fe85695446da9110d7729d623e157",
-          "size": 71456,
+          "sha256": "4947a254cbc2865679ad8bcd07bbeff521ea8c0b26d11517fd81c8349aba7577",
+          "size": 73875,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "ecd3779b66a68f88f219e304a706bb77ed10e7a2c1a63c3f4f23f7737b2215dc",
-          "size": 61106,
+          "sha256": "10b7334a233a0e63f429210c17962be49fe148309790c564953232711539f3ad",
+          "size": 63525,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "3ca008604620f3cb7b060df02b0fdeaecd05321aef238dd78c2b234e401b9cf8",
-          "size": 66278,
+          "sha256": "88d4c9b469fc7e161262bebeccdea120513b63e327090f1220069eb73eaf80de",
+          "size": 68697,
           "type": "file"
         },
         "code": {
@@ -67768,8 +67880,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "f450693cde5843b05e8bd3b4657e39e1ebc0cefd3de343c5cf7bcda9fb8103fd",
-          "size": 22613,
+          "sha256": "faa20e3593b7a2241fb26538b1f8cb2a13b454a748dc793cc17949a553c58b7b",
+          "size": 22971,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -67878,7 +67990,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -68013,7 +68125,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -68710,7 +68822,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f1326447275b9cbea44c599cd0d968720ac4b4f1b878808da62cd3b9255fecaf",
+          "sha256": "c0456819f6a354af12bfa19e38627a30f8e940c1aba3b01f7214bcac05a5f8a9",
           "size": 1916,
           "type": "file"
         },
@@ -69544,20 +69656,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "22af7b5acf469f1367286d98d9e3bfbb63b6f63bd6e7cd19e27bca54182d1f10",
-          "size": 94943,
+          "sha256": "7486ea0b90d26d56580c3f3433df26a9bfba81e83922bc95babd2546dea66eca",
+          "size": 97362,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "2e91ca2c306bc081ba006c7a7b7afd8bfe94b304a24ef6ba55bd4bfe67af0046",
-          "size": 84593,
+          "sha256": "25060db9d6ada33fb42d4314c9342b51c8275e282c573cf7216ab30c0737e94a",
+          "size": 87012,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "24b33ec1d7e784bc3f34398ba0db2411be2468a900049a246758956c5eb2ffac",
-          "size": 89765,
+          "sha256": "d9b0e8db73d658b32c1268f7883367e87c511fd6dac19ded251d7c9ea0b88ffc",
+          "size": 92184,
           "type": "file"
         },
         "code": {
@@ -69824,8 +69936,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "eae9e06739248f5e041c94b4aceddb53b47b4885d6d44e27b8e3c3bd2506bf4c",
-          "size": 24057,
+          "sha256": "58d20b61ee72296896743227adaf0f5f4e7c3aecf1f32986bdfb7f06b812e374",
+          "size": 24415,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -69944,7 +70056,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -70085,7 +70197,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -70771,7 +70883,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5585be678c192f8774e3ed1b0c5f3133ac40ae3f39feeac58f5faca52b8e3391",
+          "sha256": "54d0c8f428362e394ebf4285bec357a2de5dc922dab484bb7c1d5590848177e9",
           "size": 1916,
           "type": "file"
         },
@@ -71587,20 +71699,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "db90da508e5afb77394d2487e0546f92f0ecd104ae3b225c6ecd272d84bfacd4",
-          "size": 71992,
+          "sha256": "c0713a2d742130c6702c13e0f045c029be65e5b3a4e1b748f03741daf4378d83",
+          "size": 74411,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "eb560faf3ac0a480c6815e95b25e6145ac293aec6b1d3fc31d32424846557afb",
-          "size": 61642,
+          "sha256": "e8b053f68ee7c5a6ab5b09a180e543694dd96d58a8009d0f0f10576e3f8b914e",
+          "size": 64061,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "169f28f2a8e9acac24e7c040c0c2265c00aa4f97a73591e10a992464656997d0",
-          "size": 66814,
+          "sha256": "b6d63c1d5b86d880951ced6883a10db055942997cde3aa871a65b2f4c46f3e35",
+          "size": 69233,
           "type": "file"
         },
         "code": {
@@ -71867,8 +71979,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "f450693cde5843b05e8bd3b4657e39e1ebc0cefd3de343c5cf7bcda9fb8103fd",
-          "size": 22613,
+          "sha256": "faa20e3593b7a2241fb26538b1f8cb2a13b454a748dc793cc17949a553c58b7b",
+          "size": 22971,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -71977,7 +72089,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -72112,7 +72224,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -72797,7 +72909,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8492d65e5304ecf298b7fb534d28fc0148ee4610670b85b03b03bd1eb9f4326e",
+          "sha256": "3a0b0742d56a30baf8f484dd3b1feb78cbd35a8275d28df1e6313701bc2099d1",
           "size": 1893,
           "type": "file"
         },
@@ -73887,8 +73999,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "f450693cde5843b05e8bd3b4657e39e1ebc0cefd3de343c5cf7bcda9fb8103fd",
-          "size": 22613,
+          "sha256": "faa20e3593b7a2241fb26538b1f8cb2a13b454a748dc793cc17949a553c58b7b",
+          "size": 22971,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -73953,7 +74065,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "0b36b6e115a4de65fb00e5866df980881d4982325db190c812686f464a5ec1e4",
+          "sha256": "d5c46defcf23aff313ecfbde81c5ccdeff0ca8c7f62110f0bd49722c9cc01e0a",
           "size": 15387,
           "type": "file"
         },
@@ -74067,7 +74179,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -74753,7 +74865,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "87907c39555049d9721cc92daf7e15798827f34285bc898ff14c305a46cfe84f",
+          "sha256": "f282abf89a036ec1a829b90d260746ae6a0cb22f30b47253dfb4a135539b5a6e",
           "size": 1935,
           "type": "file"
         },
@@ -75569,20 +75681,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "c399db65632f186b887aa73eb525625f0e2341325089162168038d69d19cbb82",
-          "size": 73263,
+          "sha256": "a82d38d7e4286eb71484844883737dcab066e0008cb97e774fccb284c2c91c7d",
+          "size": 75682,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "6381be5513ff4e0a194a104ce8fc08e08d93f4d5c5d8cceab2111c38083668e8",
-          "size": 62913,
+          "sha256": "5f1be2202bae0dffdc02df95d9ad3064eb3ac5e8598f0353449eae49b51c3362",
+          "size": 65332,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "8a9f5033308e6be3f20e1f5da3918d5bf5f9de7b4ae22c1a5d2af1475e00f09e",
-          "size": 68085,
+          "sha256": "4b6e465b7d7b73ea2b729eb70a16fa1ddb53a79caf361af19fda1b011b56e8d4",
+          "size": 70504,
           "type": "file"
         },
         "code": {
@@ -75849,8 +75961,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "a61f561c2abc969017b5d7a52dbae631860ab4f9ac69b73d69de0fec3828951e",
-          "size": 24026,
+          "sha256": "97bfd5526f85e2fdbd5e514dcb38c4856efd9405fcc1fb8db53ea7c428b80285",
+          "size": 24384,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -75951,7 +76063,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -76086,7 +76198,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -76466,7 +76578,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9baa2dad97d0183a961d9190c1c1f5c7378fa4408db42ed26d6ab5461e2f2759",
+          "sha256": "4a726b0e301dc9984a36c24c5eed7b016f95d9868000352a09170447f2324684",
           "size": 1791,
           "type": "file"
         },
@@ -77200,7 +77312,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -77612,7 +77724,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f9e79c279639b07b690bc50f604fba60d116ec1e2620845a917175a51287fb39",
+          "sha256": "81c379fbe3592c0c6590e0391c159d4e559140815392e517200b96d0efdfee94",
           "size": 1900,
           "type": "file"
         },
@@ -78356,7 +78468,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -79014,7 +79126,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "96e640c05b4c733442b6b53701264eee72f507ac2e41b7d54d437853b465f108",
+          "sha256": "f184743b4ff6fa60a37b601c0e55848179d5ace09141549ef17b5e4c8e66fc23",
           "size": 1857,
           "type": "file"
         },
@@ -79794,20 +79906,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "51904669ae61e58df27bce076788e552d4aee57261bf26304f9675f667a14f49",
-          "size": 69878,
+          "sha256": "c1aa563173090d2f1e69b143ea61642f8745a8dc429ffc5675f4c3aeb41d64d0",
+          "size": 72297,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "e9db7c849f1df873bd44aed815635afaca2f08502d5c1f84e75162ec7baeed83",
-          "size": 59528,
+          "sha256": "33f2806e56ec62314adb90cbba1a8fbe68d8aaff04070a48f824ec01f94cfe96",
+          "size": 61947,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "708be1b45209a2ff7432703b7c48347a178983c382546d934c594fa9d2322580",
-          "size": 64700,
+          "sha256": "3d487b8e7037d7b2f8f9570c8d75098677718b4af15bd7d982eea042d3416f72",
+          "size": 67119,
           "type": "file"
         },
         "code": {
@@ -80094,8 +80206,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -80190,7 +80302,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -80323,7 +80435,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -80767,8 +80879,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "429d6f81bdee2c7f4065f5012a418bddef3f4254284aff8d5cf027a3a1bffe92",
-          "size": 21576,
+          "sha256": "f84c5c35620b42ded08840ea78d8f2755ad5bd405e6c1083f5eeb8c96fb2b6e8",
+          "size": 24628,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -81415,8 +81527,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "ed28108647b5e13e77a093c7a238b00de27ed16acc8041f3acb401e98bd0f915",
-          "size": 21697,
+          "sha256": "91bb15aa86e748627e1b77824010df52796bca2a6916f6872486437c686e943b",
+          "size": 24749,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -81673,8 +81785,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a1af7e7d924b390f4d2b39290bca64f07e3aa97a9c163c995bc5bab856cc5c2e",
-          "size": 3115,
+          "sha256": "7a6932a87616b64178153612c10edff1af8b6cd72aa86314e1d90689d10fc14b",
+          "size": 3157,
           "type": "file"
         },
         ".env": {
@@ -81735,8 +81847,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2483a145d50aaf6897b8fac172000a216ceb80bda4db3701e7eee42d1524d619",
-          "size": 21654,
+          "sha256": "dcfb3269b3fdec4527614b753061dee02cbf9a9a354a38197880b68e58e9134f",
+          "size": 24706,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -82303,8 +82415,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6cfa3d07ef534776c93de662a98d99a5ff1cdc750265954357fe5725825069de",
-          "size": 21759,
+          "sha256": "841e033d17784eb551c224d8702fe2a4b97fae1a1493f4458b9decce01ca81d5",
+          "size": 24811,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -82591,20 +82703,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "2b7dd2e43b01f5f152a1cf3e9091db053afce3dc30fe7ace16f68f51a4d9686c",
-          "size": 83726,
+          "sha256": "028d34902f6113d9f507d20b27aeb509e99c7c804258abf9c565e3995622841e",
+          "size": 86512,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "f7b2fb084c31bab261720288cb853cb6597bc6456923ef2eb82cf83d2d712c8f",
-          "size": 73376,
+          "sha256": "9e43ac27c7a67fb196f306b73e91ecb7c9cff46200126b059682b03e05c57546",
+          "size": 76162,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "ed7383060d01d9cdb069312bdc86390a023e38681d1025033cc9741298ffbd43",
-          "size": 78548,
+          "sha256": "a15b4bc9d825afa8b950b76ac56913479ac364f8fdfdd42e28d39b5ba937df6a",
+          "size": 81334,
           "type": "file"
         },
         "code": {
@@ -82709,6 +82821,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -83027,8 +83145,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d619a8aef9b8910654ac9e0f6ae109d1166dcc95aad15c0ac74eb612a4908d6c",
-          "size": 57950,
+          "sha256": "b6e60549c096b99c8a1db70adb78f985688365ab8ccfcb98da712a051530a62f",
+          "size": 68360,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -83075,8 +83193,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -83193,7 +83311,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -83239,8 +83357,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "4729d8eac5a419703a5ea7e698853f4afccb010b163c3920db3c5e6f0ef664ed",
-          "size": 2551,
+          "sha256": "73a2f523d0c6ddc77ecedfb57660d7c4b93368714c2cfdf5bb76d4084d80f779",
+          "size": 2624,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -83325,6 +83443,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -83359,7 +83478,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -83785,8 +83904,8 @@
         },
         ".claude/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "429d6f81bdee2c7f4065f5012a418bddef3f4254284aff8d5cf027a3a1bffe92",
-          "size": 21576,
+          "sha256": "f84c5c35620b42ded08840ea78d8f2755ad5bd405e6c1083f5eeb8c96fb2b6e8",
+          "size": 24628,
           "type": "file"
         },
         ".claude/agents/evidence-auditor.md": {
@@ -84405,8 +84524,8 @@
         },
         ".codex/agents/empirics-auditor.toml": {
           "mode": "0644",
-          "sha256": "ed28108647b5e13e77a093c7a238b00de27ed16acc8041f3acb401e98bd0f915",
-          "size": 21697,
+          "sha256": "91bb15aa86e748627e1b77824010df52796bca2a6916f6872486437c686e943b",
+          "size": 24749,
           "type": "file"
         },
         ".codex/agents/evidence-auditor.toml": {
@@ -84645,8 +84764,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "f7132be224647615d4d7e0e0fb454ca300eb21b749518f1d5e0c67f39864519a",
-          "size": 3008,
+          "sha256": "f42181c9d20b4f9e9c2e30e3bfbc7fd524932871e536fc6fb5c5c067302f390f",
+          "size": 3050,
           "type": "file"
         },
         ".env": {
@@ -84707,8 +84826,8 @@
         },
         ".gemini/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "2483a145d50aaf6897b8fac172000a216ceb80bda4db3701e7eee42d1524d619",
-          "size": 21654,
+          "sha256": "dcfb3269b3fdec4527614b753061dee02cbf9a9a354a38197880b68e58e9134f",
+          "size": 24706,
           "type": "file"
         },
         ".gemini/agents/evidence-auditor.md": {
@@ -85257,8 +85376,8 @@
         },
         ".opencode/agents/empirics-auditor.md": {
           "mode": "0644",
-          "sha256": "6cfa3d07ef534776c93de662a98d99a5ff1cdc750265954357fe5725825069de",
-          "size": 21759,
+          "sha256": "841e033d17784eb551c224d8702fe2a4b97fae1a1493f4458b9decce01ca81d5",
+          "size": 24811,
           "type": "file"
         },
         ".opencode/agents/evidence-auditor.md": {
@@ -85527,20 +85646,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "a2be24d8c9df95b1964b468c58709c74b0b1575d472f16e370e7fabd570fddd5",
-          "size": 82488,
+          "sha256": "271bd7d5916918baf93dfa85c00acb634ae79eb736d236a5da6956cb98993aba",
+          "size": 85274,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "81f4eeb909c40fe995618f737a055779d806728333636482831ae066bcada761",
-          "size": 72138,
+          "sha256": "b9a3ba007287cad7a1231b071a0c2bf7e1be6c8fd799749aa02687c8380f117e",
+          "size": 74924,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "6825a083b726bf6fa108644a5873e117f20499b07bfff74c260c2a652f0b390e",
-          "size": 77310,
+          "sha256": "e143675d201411dca076eebdffadf2f6765692c14f4bdac231ebda5ad3a3eac2",
+          "size": 80096,
           "type": "file"
         },
         "code": {
@@ -85645,6 +85764,12 @@
           "mode": "0755",
           "sha256": "918847767e29432e5ff0eee0bfb5eec36f0f40fd777befa42841782ad85d5e38",
           "size": 7208,
+          "type": "file"
+        },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
           "type": "file"
         },
         "code/utils/deepvest_utils.py": {
@@ -85963,8 +86088,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d619a8aef9b8910654ac9e0f6ae109d1166dcc95aad15c0ac74eb612a4908d6c",
-          "size": 57950,
+          "sha256": "b6e60549c096b99c8a1db70adb78f985688365ab8ccfcb98da712a051530a62f",
+          "size": 68360,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -86005,8 +86130,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -86109,7 +86234,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -86155,8 +86280,8 @@
         },
         "process_log/pipeline_state.json": {
           "mode": "0644",
-          "sha256": "9ad94535cd562dbbf2fc3b242ece8d8e344112caecced57b52fed9c84abf07a8",
-          "size": 2451,
+          "sha256": "7619bb0b155c05f7d9d538304143627a1dc329121b6d906f6b6d957599392ee9",
+          "size": 2524,
           "type": "file"
         },
         "process_log/results_registry.json": {
@@ -86239,6 +86364,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -86272,7 +86398,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -86692,7 +86818,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b5f0fa5a6fb9564cb88ce31a40b76bf13e62b4e05586001c91117ef4fece4704",
+          "sha256": "242780df2fed91d3cb00bc318982712ff657a4ff800eda40e122def298c013ec",
           "size": 1839,
           "type": "file"
         },
@@ -87454,7 +87580,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -88434,8 +88560,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "900c7e65a3f1bcf20514353ddee09e2e0433a773181a6f8b34f3e1c6d1fee474",
-          "size": 3097,
+          "sha256": "7ce904bc1b3fc5e437bf1988f94dd1b698223ed4e4c67fe614876656f3678ae5",
+          "size": 3139,
           "type": "file"
         },
         ".env": {
@@ -88968,6 +89094,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
+          "type": "file"
+        },
         "code/utils/deepvest_utils.py": {
           "mode": "0644",
           "sha256": "b40ddc3c8111fff3d2d401896f7efaa2747d6699b8ecf7d8e63893eb93c44e51",
@@ -89379,6 +89511,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -89413,7 +89546,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -90365,8 +90498,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "84fe4eccc1f70b430b1ae2f2bf0e1b45ca0cd85891d0b7c66053851a12dfb2d3",
-          "size": 2990,
+          "sha256": "f1d36334571a0813b1c3eedabe30df9e349a01333d15975b205f0f16e00db07c",
+          "size": 3032,
           "type": "file"
         },
         ".env": {
@@ -90899,6 +91032,12 @@
           "size": 7208,
           "type": "file"
         },
+        "code/utils/construction_guard.py": {
+          "mode": "0644",
+          "sha256": "f5f4ab3ea632ccc6e8ad09bb1b32e51e235f7a81b2bbaefb3096520c8628f334",
+          "size": 43339,
+          "type": "file"
+        },
         "code/utils/deepvest_utils.py": {
           "mode": "0644",
           "sha256": "b40ddc3c8111fff3d2d401896f7efaa2747d6699b8ecf7d8e63893eb93c44e51",
@@ -91302,6 +91441,7 @@
             "code/utils/bls_census_utils.py",
             "code/utils/call_reports_utils.py",
             "code/utils/chen_zimmerman_utils.py",
+            "code/utils/construction_guard.py",
             "code/utils/deepvest_utils.py",
             "code/utils/download_crsp_daily.py",
             "code/utils/download_crsp_monthly.py",
@@ -91335,7 +91475,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -91787,7 +91927,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "466f4054d6df13f430a7e2b03ab75b415cbb0353313a2129fb3f5f30a5aa3bb2",
+          "sha256": "9f50ead7b4be0519a035ad3a1f9340c457e6a9f2c20bf47b2f2b2801fc3968bf",
           "size": 1948,
           "type": "file"
         },
@@ -92559,7 +92699,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -93285,7 +93425,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "309569d42565f317f17450f0dbf4d490490061d9501c0e5107302fe73e640edd",
+          "sha256": "1a4ceaffa0a141e7dda7b36d146d468dcb28082a383babb21831d45966e3b370",
           "size": 1966,
           "type": "file"
         },
@@ -94101,20 +94241,20 @@
         },
         "AGENTS.md": {
           "mode": "0644",
-          "sha256": "5bfe68bde00767af30ec41038bec143d8b13b2017ed085049416204f038ba857",
-          "size": 71116,
+          "sha256": "a263f33ecbdd8bc0986e130a06797d5eb40589c028888f6128bed56dc10a1b7d",
+          "size": 73535,
           "type": "file"
         },
         "CLAUDE.md": {
           "mode": "0644",
-          "sha256": "bb3cbeb779556d02dfcf31fb148853b275059d0979f454256a35f03b872f499e",
-          "size": 60766,
+          "sha256": "4d4e947ff2ae6e34acbdbd484a37717ef61e56aaba8de93b7a6cff34cf931e1c",
+          "size": 63185,
           "type": "file"
         },
         "GEMINI.md": {
           "mode": "0644",
-          "sha256": "f8dfe713bd685729498d6c1c5ad0be63e4d7341ecc6ce0ce8d7002b8c93f9001",
-          "size": 65938,
+          "sha256": "7b948bb30dacbda3b2ed196863e0fcf143adf176931eb8fb6a3805766c2ad3bb",
+          "size": 68357,
           "type": "file"
         },
         "code": {
@@ -94407,8 +94547,8 @@
         },
         "docs/stage_puzzle_triage.md": {
           "mode": "0644",
-          "sha256": "d0eb70c3538f9f0f1a03d51a0936b79f3df55f12c6b9a397adb52f33d9034bba",
-          "size": 22597,
+          "sha256": "f3926a09bcbcf53762c58dc12eeaf0dd176e38bc095d8fb20a31df0c88897834",
+          "size": 22955,
           "type": "file"
         },
         "docs/start_session_claude.md": {
@@ -94517,7 +94657,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "248a28cb52625f8145e985a8daa5b4f5c0d904c632c8fb5f8624264c98c5f9bb",
+          "sha256": "e87128162fbdb0b2899aecd4451999d53210f0d27eb6dbc84723b4fc17edf5c5",
           "size": 15378,
           "type": "file"
         },
@@ -94654,7 +94794,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.33.7+<GIT_REVISION>",
+        "template_version": "2.34.1+<GIT_REVISION>",
         "variant": "macro"
       }
     }
