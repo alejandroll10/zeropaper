@@ -16,7 +16,34 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.33.6] — 2026-09-04 (current)
+## [2.33.7] — 2026-09-05 (current)
+
+**fix: bound Stage 3a attempts lost to a routing no counter owns (#308).**
+Every Stage 3a loop counter was advanced by a specific verdict, so an attempt
+lost to something no verdict names spent a full build that nothing bounded. One
+deployment took thirteen such builds in a fifteen-attempt span, grew
+8.3 GB → 25 GB in about twenty hours, and stopped only because a human halted
+it. The route they took — step 5's "a nonzero exit re-fires the empiricist" —
+sat *above* the fresh-attempt transition and outside its "any branch below"
+scope, and step 5.5's data-first release build specified no failure route at
+all; both now route through that transition, as does the theory-revision
+re-fire, which also gained the paired release rebuild it never had.
+`loops.unowned_failure` (cap 4) increments when the transition is entered, an
+attempt was lost, and no other counter is *advancing* toward its cap or handing
+off to acceptance — a merely preserved counter does not own the routing. It is
+defined by what the other counters do rather than by the shape of the failure,
+so it catches any future branch that increments nothing. Its cap returns to
+Stage 2 with the counts broken down and deliberately no kind-to-remedy mapping,
+and a cap may not be changed while its round is within one of it. It does not
+reset on a `theory_version` bump, which would make the cap self-feeding (#306).
+Independent routing repairs: the transition covers every empiricist re-launch
+and retires a pending receipt only if one exists; data-first within-campaign
+repairs must rebuild the paired release (older than this change); `core.md`'s
+identity reset, `stage_1.md`'s REENTER-STAGE-1, PIVOT, RECONCILE and
+FIX-EMPIRICS now say what actually clears the exception-3 loops. `audit_fix` is
+added to the fresh-deployment state template, which #300 never updated.
+
+## [2.33.6] — 2026-09-04
 
 **fix: give the Stage 3a empirics-audit cap a state-tracked counter (#300).**
 The "5-attempt audit-fix cap" was enforced from orchestrator memory with no
