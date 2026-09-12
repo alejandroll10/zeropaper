@@ -6,16 +6,6 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## Apparatus typos and scientific failures share one build budget
-
-**Scope:** `--ext empirical` Stage 3a; every mode.
-
-**Failure mode:** a variable-shadowing typo in a rehearsal harness and a falsified hypothesis decrement the same `build_failure`-class budget identically, so campaigns spend spec rounds on compile-test-grade defects (observed: three consecutive attempts on one project). The in-place-repair alternative was tried and correctly reverted (the producer authors the apparatus and would control its own counter); the un-tried middle ground is a small, capped, plan-authored local-iteration allowance that runs entirely before the binding first command, with no live I/O and no trusted runner. Requires explicit reconciliation with the recorded counter doctrine (no retroactive refunds).
-
-**Tracking:** [#321](https://github.com/alejandroll10/zeropaper/issues/321).
-
----
-
 ## WRDS host daemon has no self-heal for mechanically identifiable non-credential failures
 
 **Scope:** the `--ext empirical` host-wide WRDS service, every deployment on the host.

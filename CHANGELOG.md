@@ -16,7 +16,21 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.36.0] — 2026-09-12 (current)
+## [2.36.1] — 2026-09-12 (current)
+
+**fix: bounded pre-binding fixture-iteration allowance (#321).** Eight of ten consecutive
+attempts on a live campaign died at first-rehearsal on one-line scaffolding typos, each
+consuming a full specification round. Fixture-only rehearsal legs may now iterate up to a
+plan-schema constant cap (default 3) within one attempt, under a mechanically-checked
+boundary: schema-declared verbatim fixture command run with network egress denied, recorded
+per-iteration argv/namespace-diff/exit/stderr/validator-verdict files, empty data-cache
+diff required, passing iteration promoted to the schema's fixed canonical paths. Sample-pull
+legs stay single-shot; at-cap or post-live failures stay terminal; no counters touched —
+designed against, and reviewed against, each objection in the recorded 2026-09-05
+in-place-repair revert. Three review rounds (sample-pull contradiction, enforcement
+specification, canonical-path ambiguity, and network-smuggling gap all caught and closed).
+
+## [2.36.0] — 2026-09-12
 
 **feat: rulebook audit pass — the next silly rules, fixed before they fire (#326–#332).**
 Three Sonnet auditors swept the entire rule corpus (core + stage docs, evaluator bodies,
