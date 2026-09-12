@@ -16,6 +16,10 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
+## 2.36.2
+
+- stage_3a part (v): the admission schema is the single source of every namespace constant — entrypoint/wrapper/validator code derives paths, vault locations, argv, and record key sets from the schema's declared interfaces instead of redeclaring literals, verified by the plan's static pre-execution check (field evidence: three of seven consecutive attempts died pre-live on a redeclared constant drifted from the schema).
+
 ## [2.36.1] — 2026-09-12 (current)
 
 **fix: bounded pre-binding fixture-iteration allowance (#321).** Eight of ten consecutive
