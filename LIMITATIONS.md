@@ -6,6 +6,46 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## Apparatus typos and scientific failures share one build budget
+
+**Scope:** `--ext empirical` Stage 3a; every mode.
+
+**Failure mode:** a variable-shadowing typo in a rehearsal harness and a falsified hypothesis decrement the same `build_failure`-class budget identically, so campaigns spend spec rounds on compile-test-grade defects (observed: three consecutive attempts on one project). The in-place-repair alternative was tried and correctly reverted (the producer authors the apparatus and would control its own counter); the un-tried middle ground is a small, capped, plan-authored local-iteration allowance that runs entirely before the binding first command, with no live I/O and no trusted runner. Requires explicit reconciliation with the recorded counter doctrine (no retroactive refunds).
+
+**Tracking:** [#321](https://github.com/alejandroll10/zeropaper/issues/321).
+
+---
+
+## WRDS host daemon has no self-heal for mechanically identifiable non-credential failures
+
+**Scope:** the `--ext empirical` host-wide WRDS service, every deployment on the host.
+
+**Failure mode:** a wedged daemon (broken-pipe spam), an orphaned foreign daemon holding the singleton, and a post-shutdown stale lock each halt every dependent run until an operator intervenes — three interventions were needed in one observed day. The credential safety gate (never auto-retry a possible credential rejection; account-lock risk) is correct and must stay; the gap is only the three failure shapes a host-side watchdog can identify mechanically (dead PID with stale lock; live daemon failing its own health probe with no in-budget command; singleton held by a process whose cwd is no live deployment) and repair with one bounded restart through the existing `start_services` path, ledger-logged, halting to the operator otherwise.
+
+**Tracking:** [#322](https://github.com/alejandroll10/zeropaper/issues/322).
+
+---
+
+## Tag-only analysis repairs still pay a full producer re-run
+
+**Scope:** `--ext empirical` Stage 3a step 6.5's `no_headline_tags` branch and any repair that edits only the analysis report's tag text.
+
+**Failure mode:** the result receipt binds the analysis file's full bytes, so adding a missing `[HEADLINE]` tag — a change with zero computational content — invalidates the receipt and mandates a complete fresh-attempt producer re-execution (~20-minute floor plus auditor fan-out). v2.36.0 wired the stored-input guard for renderer/prose/logging-only repairs, but the tag class needs a results-pipeline design change: decoupling the headline-section binding from the receipt's full-file hash so a tag-only edit can re-bind without re-producing.
+
+**Tracking:** [#327](https://github.com/alejandroll10/zeropaper/issues/327).
+
+---
+
+## The headline-tag contract has no schema or pre-flight linter; two recovery tools are still missing
+
+**Scope:** `--ext empirical` Stage 3a.
+
+**Failure mode:** (a) the `[HEADLINE]`/`[claim_id]`/`[reported_value]`/`[tolerance_class]` format lives as three prose copies against a strict case-sensitive parser, so a capitalization or pluralization drift is discovered only after the full run→render→verify cycle, then costs a spec round — the same class the admission-contract fix closed for plan artifacts; a `lint-headlines` pre-flight subcommand plus a single-sourced format would close it. (b) `halted_replication_artifact_collision` names no recovery procedure — an operator reconstructs the safe manual sequence from first principles against the never-delete-a-receipt rule; a runbook or `recover-collision --dry-run` subcommand would close it.
+
+**Tracking:** [#332](https://github.com/alejandroll10/zeropaper/issues/332).
+
+---
+
 ## `--mode data-first`: coverage completeness has no ground truth
 
 **Scope:** the data-first Stage 3a validation chain (`data-integrity-auditor`, `data-selection-auditor`, `coverage-auditor`) on the built dataset.
@@ -647,20 +687,6 @@ The spec audit reads a fixture that is fully and correctly characterised, which 
 
 ---
 
-## A trusted build may be the first execution of its own apparatus
-
-**Scope:** `--ext empirical` Stage 3a, every mode; sharpest wherever a producer must build or seal a runtime rather than consume a prebuilt one.
-
-**Failure mode:** Stage 3a requires producer-authored *apparatus* — runtime bootstrappers, sealing scripts, identity and admission preflights — to be correct on first execution inside the trusted runner, and never requires it to be run once outside. Every trivial defect in that apparatus therefore costs a full build, and under `loops.build_failure` (#308) a full respecification cycle. Observed on eventcal across specification versions v29–v33 and attempts a151–a154, all in the sealed R4 estimator runtime: a151 reached R4 estimation before finding the pinned `ivreg2r` unusable, its package directory present and `R_LIBS` correct but `Formula`, `generics`, `tibble` and transitive imports absent from the sealed runtime; a152 stopped before preflight because a plan-bound fixture existed in no commit reachable from any ref (#310); a153 stopped at the first of thirteen packages because the bootstrap invoked `/usr/bin/Rscript CMD INSTALL`, and `CMD` is an `R` subcommand, so `Rscript` read it as a filename; a154 stopped at the R identity preflight before source acquisition because whitespace in an expression separator corrupted the guard's parse of output the guard itself had emitted, with both R homes at `/usr/lib/R` and both reporting 4.6.1. Four consecutive versions, each defect correctly diagnosed and fixed, each replaced by the next defect in the same script. The failures move earlier each time — which is the preflight working — but earlier is not cheaper when the unit of discovery is a trusted build.
-
-The deployment does run focused component tests; a150's checkpoint records "parent component smoke, independent closure tests and release focused tests passed as diagnostics only". Those exercise the construction components. The runtime bootstrapper is the thing that must work before any component runs, and it is the one artifact never executed until the trusted run executes it. Grepping the specification for a dry-run, rehearsal, or smoke requirement returns nothing, and the stage document has none either. This is adjacent to #308 but distinct: that entry is about *counting* unowned builds, this is about not *spending* them. It is nearer in spirit to #303 — a producer-authored artifact trusted without independent exercise — except that what is missing here is not independence but execution at all.
-
-**What would close it:** a rehearsal requirement at the Stage 3a launch site, phrased so inspection cannot satisfy it — any producer-authored script that must succeed before construction begins must be executed once outside the trusted runner in the deployment's own environment, with its exit status and output recorded as a diagnostic, before the trusted run is invoked; a build may not be the first execution of its own apparatus. The cost is seconds and the saving on the observed campaign would have been four specification cycles. It does not weaken the trusted run, since the rehearsal produces no receipt and the sealed execution must still pass on its own. Worth pairing with a narrower rule for the recurring shape: a guard that parses output it generated itself should carry a literal expected-output test vector, which is what would have caught a154 and what the Gate 2 spec auditor had already demanded, and received, for the R4 fixture in a different context.
-
-**Tracking:** [#312](https://github.com/alejandroll10/zeropaper/issues/312).
-
----
-
 ## WITHDRAWN — build apparatus is not rewritten each attempt; the defects are generated by guard proliferation
 
 **Status:** filed and withdrawn the same night, on [#313](https://github.com/alejandroll10/zeropaper/issues/313), now closed as invalid. Recorded because the mistake is instructive and the real mechanism is worth knowing.
@@ -673,4 +699,4 @@ The proposed remedy was also unnecessary. The transition prohibits editing *in p
 
 **The actual mechanism:** each attempt is *stricter* than the last, and a stricter guard is new surface. a156 added three closure checks, tar-member safety, triple version legs and a fixture-pass assertion, then failed on a fourth interface. The defects are not a fixed stock being lost and rediscovered; they are generated by the guards that catch them. Seeding from the previous file would retain every old guard and add new ones, accelerating the mechanism rather than damping it. The natural experiment was already available and misread: an in-place repair exception granted and withdrawn earlier the same night let the apparatus fix a CRAN 404 and immediately hit the next defect, an installed `Formula` reporting `1.2.5` against a `1.2-5` pin. Patching forward did not break the chain, because regeneration was never the cause.
 
-**Tracking:** [#313](https://github.com/alejandroll10/zeropaper/issues/313) (closed, not planned). [#312](https://github.com/alejandroll10/zeropaper/issues/312) is unaffected and stands.
+**Tracking:** [#313](https://github.com/alejandroll10/zeropaper/issues/313) (closed, not planned). [#312](https://github.com/alejandroll10/zeropaper/issues/312) was closed by the rehearsal-before-trust rule shipped in v2.35.0/v2.36.0.
