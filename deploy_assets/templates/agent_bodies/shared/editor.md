@@ -58,6 +58,7 @@ The triager runs on this list, not on the raw three reports. Merge duplicates, r
 
 **Conflict-resolution rules used:**
 - When two referees raise the same concern, merge into one row, list both source referees, and use the higher tag (`[FIX]` > `[LIMITS]` > `[RESPONSE]` > `[NOTE]`).
+- A **structural prescription** from the freeform referee — "cut sections 4 and 5," "this paper should be about X, not Y," a reorganization order — enters the list as `[RESPONSE]` (advisory to `paper-writer`, who owns the remedy), never `[FIX]`, unless the prescription is tied to a named defect in a specific claim or result (in which case the row's `[FIX]` names the defect, not the cut). Evaluators name what is wrong; the producer decides how to fix it.
 - When two referees give opposing verdicts on the same load-bearing claim (one says it is correct, the other says it is wrong), preserve BOTH as separate rows tagged `[FIX]` — let triager and theory-generator surface the disagreement, do not pre-resolve it.
 - Never drop a referee comment (the only exceptions are Rule 6 citation hygiene and Rule 7 out-of-scope process-artifact drops, both mechanical and logged; Rule 6b is a third mechanical/logged operation but caps a comment's *severity* rather than dropping it). If a referee comment seems redundant with another, merge with both sources listed; do not delete.
 

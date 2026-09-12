@@ -16,7 +16,32 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.35.0] — 2026-09-12 (current)
+## [2.36.0] — 2026-09-12 (current)
+
+**feat: rulebook audit pass — the next silly rules, fixed before they fire (#326–#332).**
+Three Sonnet auditors swept the entire rule corpus (core + stage docs, evaluator bodies,
+Stage 3a doctrine) hunting the pathology classes the field evidence taught. Eighteen
+findings, seven issues; this release fixes: the v2.35.0 evidence-starvation circuit
+breaker rebuilt with a machine-checkable `MINIMAL-BUILD:` token and a real consumer at
+the Gate-2 branch triggers (#326 — its first version was unenforceable prose at an
+unreachable call site); the Stage 3a stored-input guard wired to file-list-verified
+code-only repair callers instead of remaining dead text (#327 partial); citation
+discipline + anti-inflation counterweights on all five build-time auditors via the new
+`audit_citation_discipline` fragment, finance discipline ported to the macro
+identification-auditor (#328); the novelty-checker's assume-the-worst ratchet
+counterweighted with a full-text depth gate for fatal verdicts (#329); the 8-evaluation
+scorer ceiling mechanized as problem-scoped `loops.gate4_scorer_evaluations` surviving
+fresh-theory resets and Regeneration, `scores` keys attempt-qualified, the Regeneration
+baseline formula fixed to stop mixing scores across abandoned theories (#330);
+measurement-first's design-version bump and the sketch-swap evaluation de-self-certified
+(#331); Stage 2b bounded-repair carry, `math_audit`/`spec_audit_revision` named in the
+Loop Registry with exception-3 treatment, verdict-line hardening on three more decision
+formats, bibliography re-verification scoped to checkpoint diffs with prefix-matched
+terminal checkpoints, freeform-referee structural prescriptions made advisory (#332
+partial — the headline-tag linter and collision runbook remain tracked). Four review
+rounds; twelve real issues caught and fixed across them.
+
+## [2.35.0] — 2026-09-12
 
 **feat: field-evidence doctrine pass — stop rules from consuming the science (#317–#325).**
 Mining both live campaigns (~220 attempts, 94 spec versions, zero new accepted receipts)

@@ -30,6 +30,7 @@ Write `output/stage0/question_review.md`. Structure:
 [The binding score is governed by the three quality axes (Important, Unsolved, Not-obvious); Answerable is a floor, not an averaged component — a question that is unanswerable in principle caps the viability score regardless of the other axes, but a *hard* question is not penalized. Interesting-either-way is **not** a binding component: do not factor its score into the 0–100 viability number (it is advisory to the numeric calculation only), and it never on its own forces REJECT. A dead branch is still a REVISE — not discretionary; see Verdict.]
 
 ## Verdict: ADVANCE / REVISE / REJECT
+<!-- replace the heading's option list with exactly one of ADVANCE, REVISE, or REJECT — the only verdict keyword in this section, so the orchestrator can route on it unambiguously -->
 [ADVANCE → the question is ready for Stage 1. REVISE → fixable; state exactly what to sharpen — **including a dead branch: apply the fix named in the Interesting-either-way criterion below.** REJECT → not worth pursuing; say whether to pick a different gap. A dead branch never by itself triggers REJECT.]
 
 ## If REVISE: required changes

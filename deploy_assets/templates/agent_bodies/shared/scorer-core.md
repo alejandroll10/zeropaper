@@ -199,6 +199,7 @@ Not "improve X" or "add more Y." If a dimension is at ceiling (score ≥ 90), wr
 | Fertility | [concrete intervention, or "at ceiling (score: XX)" if ≥90] |
 
 ## Decision: ADVANCE / REVISE / MAJOR REWORK / ABANDON
+<!-- replace the heading's option list with exactly one of ADVANCE, REVISE, MAJOR REWORK, or ABANDON — the only decision keyword in this section, so the orchestrator can route on it unambiguously -->
 
 ## Content feedback (for theory-generator, if REVISE/REWORK)
 [Specific, actionable instructions about the MATHEMATICAL CONTENT — new results needed, proofs to fix, {{MECHANISM_TERM_PLURAL}} to clarify, extensions to pursue. Only substantive theory issues belong here.]

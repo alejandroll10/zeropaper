@@ -116,7 +116,7 @@
 | Change is **COSMETIC** (per branch-manager) | **ESCALATE** — reframing is not progress (see "Substantive vs cosmetic delta" below) |
 | Score < (advance threshold + 5) on attempt 3+ | **Deepening check first.** In the REVISE band, apply the deepening playbook before escalating — close-but-below after two revisions usually means the core needs more depth, not a new core; escalate only if deepening yields no substantive gain. In the REWORK/ABANDON band, escalate (toward Regenerate) regardless. |
 
-**Hard ceiling:** after 8 total scorer evaluations on the same problem, escalate one level regardless of trajectory.
+**Hard ceiling:** increment `loops.gate4_scorer_evaluations.round` before every unseeded Gate-4 scorer launch; at its cap (8 — read from state), escalate one level regardless of trajectory. The counter is problem-scoped and survives fresh-theory resets and Regeneration (Loop Registry) — do not count from the `scores` map, whose keys are attempt-local.
 
 **Substantive vs cosmetic delta.** Branch-manager classifies the v(N)→v(N−1) diff at every unseeded Gate 4 (Section A of its report). The orchestrator uses that verdict; on COSMETIC, escalate even if the score rose.
 
@@ -124,7 +124,7 @@
 - **Cosmetic** (treat as typos — fixable when wrong, but score-neutral): rewording the contribution sentence, reorganizing sections, sharper or narrower abstract framing, broader-interpretation paragraphs invoking larger phenomena without new results, label promotions or demotions (Lemma ↔ Theorem) without new content, restructuring the paper around an already-existing result (promoting a different result to the headline) without new math, renaming a variable or mechanism, additional defensive prose.
   - *Emergent-headline carve-out:* selecting or centering the headline on a result that was **newly developed in this cycle** (emergent-headline selection at Stage 2b, for an open approach) is **substantive, not cosmetic** — the result is new content the development produced, not a relabelling. Cosmetic covers only re-headlining among results that already existed without new math.
 
-Record all content scores in `process_log/pipeline_state.json` under `"scores"` so the trajectory can be computed: `"scores": { "v1": 60, "v2": 63, "v3": 67 }`.
+Record all content scores in `process_log/pipeline_state.json` under `"scores"` so the trajectory can be computed, with keys qualified by attempt so entries never collide or mix across theories: `"scores": { "a1_v1": 60, "a1_v2": 63, "a2_v1": 58 }` (`a{theory_attempt}_v{theory_version}`). Trajectory reads use the current attempt's keys only.
 
 11. If REVISE/REWORK: pass only the **content feedback** to the theory-generator. Do NOT pass presentation notes — those are for the paper-writer.
 12. Update `process_log/pipeline_state.json` according to the route that fired. Preserve the structured scorer's content score in `scores` even when seeded mode advances independently of its aggregate decision.

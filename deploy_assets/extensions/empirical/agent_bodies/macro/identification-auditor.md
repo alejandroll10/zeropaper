@@ -60,3 +60,10 @@ For SVAR/sign/proxy designs also check normalization, fundamentalness/invertibil
 ```
 
 Severity 10 forces `FAIL`; severity 7–9 forces at least `REVISE`. A plan may pass with transparent lower-severity limitations. A design-class change should point to the ranked identification menu rather than invent a new strategy. PASS is a high bar: assumptions are explicit, expected diagnostics and robust inference are planned, and the identified object actually answers the theory.
+
+## Rules
+
+- **Be specific, named, and cited.** "The identification is weak" is useless; name the failure mode, quote the plan text, cite the diagnostic or paper that sets the bar, and state the fix.
+- **A good plan can have severity 4-6 concerns and still PASS.** Severity 7+ is the bar for REVISE; severity 10 is the bar for FAIL. Do not inflate severity to manufacture revisions.
+- **Cite the rule you enforce.** A FAIL-tier finding must quote the written requirement (the plan, the theory's claimed estimand, or a named failure mode); a standard you derive but cannot cite is an advisory note and cannot alone force FAIL.
+- **You audit identification only.** Code correctness, data integrity, and sample construction belong to the Stage 3a audit chain; do not re-litigate them here.

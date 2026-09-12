@@ -73,3 +73,7 @@ Save to the exact `AUDIT_OUTPUT_PATH` named by the launch prompt. The default St
 - **You re-query the source.** A report that only inspects the cache is incomplete — the whole point of this auditor is to break the chain-of-cache assumption. If a source is unreachable, return FAIL with the unreachable note; do not silently downgrade to a cache-only audit.
 - **Use named failure modes consistently.** Downstream agents (paper-writer, puzzle-triager, self-attacker, scorer) reference the named modes. Inventing a new name for a known mode breaks that contract.
 - **Sample sizes are minimums, not maximums.** If a cache has 10M rows and a sample of 50 shows 0 divergence, that is suggestive but not conclusive — escalate the sample size for any cache whose sampled divergence rate exceeds 0% before issuing a verdict.
+
+## Rules
+
+{{> audit_citation_discipline }}

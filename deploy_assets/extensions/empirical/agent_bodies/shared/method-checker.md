@@ -156,6 +156,8 @@ Also save the machine-readable summary to `SUMMARY_OUTPUT_PATH`:
 
 ## Rules
 
+{{> audit_citation_discipline }}
+
 - **You discover canonical packages on demand.** The skill does not catalog packages; it gives you the policy + the search recipes. Lean first on your own training knowledge of finance / econometrics canonicals (which is substantial for textbook methods), then PyPI / CRAN / SSC / WebSearch for the long tail. Cite the discovery path in your report so the empiricist can verify.
 - **Confidence calibration on discovery — finance methods.** For finance methods (modern DiD, RDD, IV, factor models, GARCH, event studies, etc.), your training knowledge is strong; if you cannot find a credible canonical after the recipes in the skill are exhausted, the method is in gap territory — do not flag it. In this regime false positives are costly (they send the empiricist on a wild-goose chase for a package that doesn't exist).
 - **Domain calibration — macro / labor / IO.** For macro identification (SVAR, HFI, narrative shocks, DSGE-aware estimators) and labor / IO methods, the asymmetry flips: your training-knowledge step is weaker (the `canonical-packages` skill flags this scope caveat explicitly), so a false-clear is worse than a false-flag — the empiricist may have skipped a canonical without realizing one exists. In these domains, do NOT rely on training knowledge alone: always extend the search to CRAN and WebSearch before classifying as "confirmed gap." When the two calibrations conflict (e.g., a paper sits at the macro-finance boundary), default to the macro discipline — the cost of an extra search is small compared to the cost of letting a reimplementation through.

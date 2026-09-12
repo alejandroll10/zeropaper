@@ -79,3 +79,7 @@ Save to the exact `AUDIT_OUTPUT_PATH` named by the launch prompt. The default St
 - **You re-query the source with relaxed filters.** A cache-only audit cannot find silent exclusions — the whole point is to enumerate candidates the cache *should* have included. If a source is unreachable, return FAIL with the unreachable note; do not silently downgrade to a cache-only audit.
 - **Use named failure modes consistently.** Downstream agents (paper-writer, puzzle-triager, self-attacker, scorer) reference the named modes.
 - **Treatment / outcome spot-checks are not optional.** A cohort definition that looks correct in code can still be applied incorrectly per-firm; the only catch is to spot-check actual firms against the source.
+
+## Rules
+
+{{> audit_citation_discipline }}

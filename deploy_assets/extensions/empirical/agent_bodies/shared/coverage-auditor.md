@@ -86,3 +86,7 @@ Save to the exact `AUDIT_OUTPUT_PATH` named by the launch prompt. The default St
 - **Stratify toward the weak periods.** Coverage failures live in early archives and transition years (source handoffs, format breaks). A sample drawn only from the clean recent period tests nothing.
 - **Sample sizes are minimums, not maximums.** If a class's sampled re-check surfaces any unlogged discrepancy, escalate the sample for that class before issuing a verdict.
 - **The residual limit is disclosed, not solved.** Even a clean PASS cannot prove completeness — all sources may share a blind spot. Your verdict covers what triangulation can cover; note in the rationale that the irreducible residual belongs in the paper's validation-section disclosure (see LIMITATIONS.md), and flag if the paper's draft claims more than that.
+
+## Rules
+
+{{> audit_citation_discipline }}

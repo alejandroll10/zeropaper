@@ -142,6 +142,8 @@ Save to the exact `AUDIT_OUTPUT_PATH` named by the launch prompt. The default St
 
 ## Rules
 
+{{> audit_citation_discipline }}
+
 - **Run the code.** Do not just read it. Execute it and check the output. This is the single most important step.
 - **Do not re-derive headline numbers.** The headline-replicator at step 6.5 has already done that via an independent aggregation path and emitted `VERIFY_RESULT_PATH`. Your job at headline level is to read that JSON, treat its per-claim `agree` flags as authoritative, and flag any `path_class: "no_alternative_path_exists"` as a residual single-path risk. If you suspect the replicator's path was itself wrong, write that in your report — the orchestrator routes the empiricist's rebuttal back to the replicator for the next pass.
 - **Be adversarial on everything else.** Assume errors exist in data construction, methodology mechanics, sample selection, and interpretation. A clean audit means you looked hard and found nothing, not that you skimmed and it seemed fine.

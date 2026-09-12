@@ -19,6 +19,7 @@ Save to the path specified in your prompt. Structure:
 
 **Best approach so far:** [Name] — [one sentence on why it can answer the question]
 **Ready for theory development:** YES / NOT YET / NO (explain)
+<!-- put exactly one of YES, NOT YET, or NO after the colon above, as the only readiness keyword on that line, so the orchestrator can route on it unambiguously -->
 
 ## Approach-by-approach evaluation
 
