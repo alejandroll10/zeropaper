@@ -16,7 +16,33 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
-## [2.34.1] — 2026-09-05 (current)
+## [2.35.0] — 2026-09-12 (current)
+
+**feat: field-evidence doctrine pass — stop rules from consuming the science (#317–#325).**
+Mining both live campaigns (~220 attempts, 94 spec versions, zero new accepted receipts)
+produced nine issues; this release fixes six in the template. (1) **Issuer-authoritative
+waivers** (#317): data-first triangulation distinguishes issuer-generated administrative
+records (issuer authority + labeled parsing checks + explicit waiver suffices, per field
+group) from observed events (independent collector required where one exists in principle);
+waivers legitimate at any disclosed scope — the "waiver list should be short" language that
+escalated into a class-killing rule is replaced in the spec-writer, spec-auditor, and
+coverage-auditor. (2) **Apparatus proportionality** (#318): new spec-audit dimension 9 +
+canonical-package-first spec rule — no bespoke runtimes when the provisioned environment
+covers the estimator. (3) **Rule-citation discipline** (#323): a hard-blocking audit item
+must cite the written rule it enforces; uncited derived constraints are advisory.
+(4) **Gate-result reuse on bounded repairs** (#319): Gate 3 carries the verdict forward when
+a mechanical diff of the contribution-scope sections is empty; Stage 3 reuses implications
+when the consumed sections are unchanged; freshness bounds and mandatory-fresh triggers
+stated. (5) **Machine-checkable admission contracts + rehearsal-before-trust** (#320, #312):
+data-first construction plans emit their admission requirements as a schema + validator run
+before any binding command, and every first-execution apparatus component gets a disposable
+rehearsal. (6) **Branch-manager doctrine** (#324, #325): prior prohibitions expire unless
+re-justified (transient source failures get a retry), and an evidence-starvation circuit
+breaker forces the shortest defensible path to a receipt when `stage3a_result_receipt` is
+null or >8 versions stale. Three Sonnet review rounds; characterization goldens refreshed.
+Issue-only for now: #321 (pre-binding iteration budget), #322 (WRDS daemon self-heal).
+
+## [2.34.1] — 2026-09-05
 
 **fix: a ceiling over the Stage 3a caps that return the campaign upstream (#306).**
 Two of Stage 3a's caps — `audit_fix` (#300) and `unowned_failure` (#308) — give the

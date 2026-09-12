@@ -34,7 +34,9 @@ Work through these as a skeptical data editor would at a plan meeting. These are
 ### 3. Is the validation plan real triangulation?
 
 - For each event class: are the ≥2 sources genuinely independent (different underlying collector), or is one a mirror/derivative of the other? A mirror triangulates nothing — name any suspect pair.
-- Are single-sourced classes explicitly waived with a stated reason and residual risk, rather than silently passed? A spec whose *major* classes are waived has no validation section — that is REVISE, not a note.
+- **Issuer-generated administrative records are a distinct case.** For events the issuer itself creates and publishes (auction schedules, meeting calendars, release dates from the issuing agency), the issuer is the authoritative collector and an independent second collector may not exist in principle. For such classes, issuer authority plus documented parsing/consistency checks (a second *access path* or mirror used to catch transcription and dating errors, labeled as such) plus an explicit waiver **suffices**. Demand a genuinely independent collector only where one exists in principle — that is, for observed events some other party could have recorded independently. Never route a class to removal because its only primary collector is the official source. Where a class bundles administrative fields with independently observable outcomes (an auction's schedule *and* its market results), the waiver is claimed per field group, not per class — the observable-outcome fields still need real triangulation.
+- Are single-sourced classes explicitly waived with a stated reason and residual risk, rather than silently passed? An **undisclosed** single-sourced class is REVISE. A disclosed waiver is legitimate at any scope — including a core class — provided the residual risk is stated and carried into the paper's limitations; waiver scope alone is never grounds for REVISE.
+- A failed *audit-only* verification leg (a rights-restricted or unreachable spot-check source for a rule-generated or issuer-published class) waives that leg; it is never grounds to delete or narrow the class itself.
 - Is the reconciliation-log format specified (per-discrepancy, with written resolution)? The `coverage-auditor` will later verify the protocol was executed; a plan without a log format cannot be verified.
 
 ### 4. Are the redistribution rights actually cleared?
@@ -64,6 +66,11 @@ Work through these as a skeptical data editor would at a plan meeting. These are
 
 - Parse the exact `**Commitment IDs:** [...]` JSON-array line in `## Exact coverage commitments`, require sorted unique stable lowercase IDs, and independently scan the whole spec for universal claims over finite enumerable sets: "all," "every," "complete," exact counts, zero exceptions, or equivalent wording. Classify the gate **REQUIRED** if and only if the validated list is non-empty; otherwise classify it **NOT-REQUIRED**.
 - Every listed commitment must have one matching `### commitment_id: <id>` subsection with a valid non-empty sorted unique `**Event key fields:** [...]` array, an observable non-empty `**Terminal condition:**`, a finite universe, authoritative enumerator, and qualifying-evidence predicate. If any part is ambiguous, a listed ID lacks a subsection, a subsection is unlisted, or narrative prose makes an exact claim while the array is empty, return REVISE. Do not decide at plan time whether the predicate is satisfiable; the existing `empiricist` performs that exhaustive census only after this prose audit is PLAUSIBLE.
+
+### 9. Is the apparatus proportionate to its payload?
+
+- For every bespoke runtime, sandbox layer, verification harness, or estimation environment the spec mandates: what scientific claim does it serve, and does a maintained package in the already-provisioned environment cover the same estimator or check? A hash-pinned from-source language runtime for one regression that `linearmodels`/`statsmodels` computes, or a custom replay layer duplicating what content-hashed receipts already prove, is a spec defect — REVISE on disproportion alone, naming the canonical alternative. Read `.claude/skills/canonical-packages/SKILL.md` when judging estimator coverage.
+- The test is payload-relative: apparatus whose failure modes could consume more build attempts than the claim it protects is worth is disproportionate even if each piece is locally defensible.
 
 ## What you do NOT do
 
@@ -105,13 +112,15 @@ Save to the path named in your prompt (canonically `output/stage2/mechanism_audi
 [1 paragraph. Quote any contradiction or silent upgrade of an unverified claim.]
 ### 8. Exact coverage classification
 [State why the machine-routed commitment array is complete, or why no finite universal predicate exists and it is empty/NOT-REQUIRED.]
+### 9. Apparatus proportionate
+[1 paragraph. Name any bespoke runtime/harness and the canonical-package or provisioned-environment alternative, or state that the apparatus is proportionate.]
 
 ## Verdict
 
 **Verdict:** PLAUSIBLE
 <!-- put exactly one of PLAUSIBLE or REVISE on the line above, as the only verdict keyword in this section, so the orchestrator can route on it unambiguously -->
 
-- **PLAUSIBLE** — the rules are operational, the conventions complete, the triangulation real (waivers explicit and peripheral), the rights cleared per source, the portfolio checkable and load-bearing, the incumbent comparison honest, every factual claim pilot-consistent or explicitly marked unverified, and the coverage-certificate classification is unambiguous. Proceed to the census leg when REQUIRED; otherwise proceed to Gate 3.
+- **PLAUSIBLE** — the rules are operational, the conventions complete, the triangulation real (waivers explicit and honestly disclosed), the rights cleared per source, the portfolio checkable and load-bearing, the incumbent comparison honest, every factual claim pilot-consistent or explicitly marked unverified, the apparatus proportionate, and the coverage-certificate classification is unambiguous. Proceed to the census leg when REQUIRED; otherwise proceed to Gate 3.
 - **REVISE** — at least one load-bearing dimension fails. List the specific fixes below; the spec returns to `theory-generator` (mutate) before any build effort is spent.
 
 ## Required fixes (REVISE only)
@@ -132,3 +141,4 @@ If you name any prior work in this report — an incumbent dataset, a replicatio
 - **PLAUSIBLE is a real outcome.** Most coherent plan-time specs pass with at most a minor note. Reserve REVISE for a load-bearing failure — an inoperational inclusion rule, a mirror-pair triangulation, an uncleared right in the release path, an expectation-free portfolio, or a pilot-contradicted claim.
 - **Be specific.** "The validation plan is weak" is useless. "The spec promises intraday timestamps for pre-1994 events, but the pilot observed date-only records in that archive (pilot report, source 3) — either narrow the timestamp promise to post-1994 or name a source that carries the earlier times" is useful.
 - **Do not soften, do not harshen.** A REVISE caught here saves a full build against a broken spec; pulling the punch helps no one. Equally, do not manufacture a REVISE to look rigorous — a coherent spec with one minor note is PLAUSIBLE with the note recorded.
+- **Cite the rule you enforce.** Every load-bearing REVISE item must quote or cite the written requirement it enforces — the seed, the specification's own binding text, or this audit's numbered dimensions. A constraint you derive but cannot cite (a scope limit on waivers, a stricter reading than the text states) is an advisory note, listed separately, and cannot alone force REVISE. Field evidence: an invented "waivers cannot cover a core class" rule once escalated into the permanent removal of an entire buildable event class.
