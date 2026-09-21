@@ -6,6 +6,16 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## Driver stall guard cannot detect a single hung turn
+
+**Scope:** `launch.sh` driver loop, every deployment.
+
+**Failure mode:** the stall guard fires on five consecutive sub-60s turns — it detects spinning, not hanging. A turn whose codex API stream dies while staying open (observed: host suspend/resume severed both live deployments' streams; ~12h lost, wrappers alive so pgrep liveness read healthy) hangs indefinitely. Killing the hung codex child proved safe and mechanical — the driver loop spawns a fresh turn and the standing resume prompt reconciles — so the close is a turn wall-clock watchdog: no driver-log write for a generous N minutes → kill the codex child process group, start the next turn, log the intervention.
+
+**Tracking:** [#336](https://github.com/alejandroll10/zeropaper/issues/336).
+
+---
+
 ## Stage 3a empirical receipts are atomic over all acquisition classes — no spec-declared class staging
 
 **Scope:** `--ext empirical` Stage 3a, every deployment whose specification declares multiple acquisition source classes.
