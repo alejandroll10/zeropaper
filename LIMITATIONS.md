@@ -6,6 +6,16 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## Novelty is never re-checked when the accepted scope narrows
+
+**Scope:** Gate 1b / Gate 3 novelty checks and spec-audit revision acceptance, every deployment whose specification can restrict declared coverage after a novelty verdict.
+
+**Failure mode:** novelty is judged against the scope claimed at check time, while later spec revisions that narrow accepted coverage are audited for implementability and honesty, never for whether the narrowed claim still clears prior art — so monotone, individually rational honest restrictions under build-failure pressure can shrink the contribution below the novelty floor with every step approved. Observed terminally on eventcal: a six-class calendar seed narrowed over ~70 spec versions to FOMC statement timestamps 1994–2019 (GDP cut to two checked dates, elections to two, Treasury deferred, other classes never entered), a slice already published as event-study appendices (GSS A1, KSS Table IA.4, Lucca–Moench, USMPD); the KNOWN verdict surfaced only because an unrelated closure reformulation forced a fresh Gate 3 at v71, and the run halted `halted_seed_abandon`. The close is a material-narrowing trigger at spec-audit acceptance (class deleted/deferred, or coverage cut below what the accepted novelty verdict relied on → scoped fresh novelty re-check before the revision governs allocation) and/or a novelty-floor declaration binding which coverage elements carry the contribution; per-restriction re-checks on minor cap changes are explicitly not the fix.
+
+**Tracking:** [#337](https://github.com/alejandroll10/zeropaper/issues/337).
+
+---
+
 ## Driver stall guard cannot detect a single hung turn
 
 **Scope:** `launch.sh` driver loop, every deployment.
