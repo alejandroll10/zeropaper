@@ -80,6 +80,13 @@ Work through these as a skeptical data editor would at a plan meeting. These are
 - Check that the fact-portfolio items depending on the staged class are named, so the core build does not report them and the follow-up campaign knows what it owes. If the class carries an exact coverage commitment, that commitment must sit in the staging entry as owed and be absent from `**Commitment IDs:**` while the class is staged — a commitment the census cannot reach is not certifiable, and leaving it in the array would block Gate 2 on the very obstacle staging exists to route around; a commitment silently dropped rather than parked as owed is REVISE. Check that the core set left standing is still a real dataset on its own terms — if staging strips the build down to something no portfolio item can use, the staging is hiding a feasibility problem the spec should confront directly.
 - Absent section, nothing to check: single-campaign construction is the default and needs no justification.
 
+### 11. If the spec declares a construction partition, is it real?
+
+- The spec may carry an optional `## Construction partition` section declaring that construction runs as concurrent per-subset builds (the natural cut is one subset per event class). For each subset, the section must justify **independence**: no inclusion, dedup, dating, or reconciliation rule whose evaluation reads another subset's rows at build time. Scan the spec's own rules for hidden cross-subset dependencies — a global dedup window, a cross-class precedence rule, a shared running identifier — and name any the partition ignores: a partition with a hidden build-time dependency makes the builds order-dependent, and that is REVISE.
+- Every cross-subset obligation (cross-class consistency checks, global dedup, reconciliation spanning classes) must be explicitly listed as **deferred to the single trusted analysis run** (the merge), not silently dropped. An obligation that appears in the spec's rules but in neither a subset nor the merge list is REVISE.
+- Partitioning changes concurrency, never scope or acceptance: the section may not weaken any coverage promise, waiver, or rights boundary, and the dataset is still accepted atomically at that single run. A partition section that reads as a staging or narrowing move in disguise is judged under dimension 10 and the narrowing rules, not laundered here.
+- Absent section, nothing to check: serial construction is the default and needs no justification.
+
 ## What you do NOT do
 
 - You do **not** audit the built dataset — no build exists at plan time (and on a re-fire, the build audits belong to the Stage 3a chain).
@@ -124,13 +131,15 @@ Save to the path named in your prompt (canonically `output/stage2/mechanism_audi
 [1 paragraph. Name any bespoke runtime/harness or whole-artifact proof obligation and the canonical-package, provisioned-environment, or staged-closure alternative, or state that the apparatus is proportionate.]
 ### 10. Construction staging
 [1 paragraph, or "none staged". For each staged class: whether the obstacle is structural, whether the class remains fully specified, whether its dependent portfolio items are named, and whether the core set still stands on its own.]
+### 11. Construction partition
+[1 paragraph, or "none declared". Whether each subset's independence claim survives a scan of the spec's own rules, whether every cross-subset obligation is named as deferred to the single trusted analysis run, and whether the section changes concurrency only — no scope, coverage, or rights move.]
 
 ## Verdict
 
 **Verdict:** PLAUSIBLE
 <!-- put exactly one of PLAUSIBLE or REVISE on the line above, as the only verdict keyword in this section, so the orchestrator can route on it unambiguously -->
 
-- **PLAUSIBLE** — the rules are operational, the conventions complete, the triangulation real (waivers explicit and honestly disclosed), the rights cleared per source, the portfolio checkable and load-bearing, the incumbent comparison honest, every factual claim pilot-consistent or explicitly marked unverified, the apparatus proportionate, any staged class structurally justified and still fully specified, and the coverage-certificate classification is unambiguous. Proceed to the census leg when REQUIRED; otherwise proceed to Gate 3.
+- **PLAUSIBLE** — the rules are operational, the conventions complete, the triangulation real (waivers explicit and honestly disclosed), the rights cleared per source, the portfolio checkable and load-bearing, the incumbent comparison honest, every factual claim pilot-consistent or explicitly marked unverified, the apparatus proportionate, any staged class structurally justified and still fully specified, any declared partition genuinely independent with its cross-subset obligations deferred to the single trusted analysis run, and the coverage-certificate classification is unambiguous. Proceed to the census leg when REQUIRED; otherwise proceed to Gate 3.
 - **REVISE** — at least one load-bearing dimension fails. List the specific fixes below; the spec returns to `theory-generator` (mutate) before any build effort is spent.
 
 ## Required fixes (REVISE only)
