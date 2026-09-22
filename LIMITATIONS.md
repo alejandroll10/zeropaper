@@ -6,36 +6,6 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## Novelty is never re-checked when the accepted scope narrows
-
-**Scope:** Gate 1b / Gate 3 novelty checks and spec-audit revision acceptance, every deployment whose specification can restrict declared coverage after a novelty verdict.
-
-**Failure mode:** novelty is judged against the scope claimed at check time, while later spec revisions that narrow accepted coverage are audited for implementability and honesty, never for whether the narrowed claim still clears prior art — so monotone, individually rational honest restrictions under build-failure pressure can shrink the contribution below the novelty floor with every step approved. Observed terminally on eventcal: a six-class calendar seed narrowed over ~70 spec versions to FOMC statement timestamps 1994–2019 (GDP cut to two checked dates, elections to two, Treasury deferred, other classes never entered), a slice already published as event-study appendices (GSS A1, KSS Table IA.4, Lucca–Moench, USMPD); the KNOWN verdict surfaced only because an unrelated closure reformulation forced a fresh Gate 3 at v71, and the run halted `halted_seed_abandon`. The close is a material-narrowing trigger at spec-audit acceptance (class deleted/deferred, or coverage cut below what the accepted novelty verdict relied on → scoped fresh novelty re-check before the revision governs allocation) and/or a novelty-floor declaration binding which coverage elements carry the contribution; per-restriction re-checks on minor cap changes are explicitly not the fix.
-
-**Tracking:** [#337](https://github.com/alejandroll10/zeropaper/issues/337).
-
----
-
-## Driver stall guard cannot detect a single hung turn
-
-**Scope:** `launch.sh` driver loop, every deployment.
-
-**Failure mode:** the stall guard fires on five consecutive sub-60s turns — it detects spinning, not hanging. A turn whose codex API stream dies while staying open (observed: host suspend/resume severed both live deployments' streams; ~12h lost, wrappers alive so pgrep liveness read healthy) hangs indefinitely. Killing the hung codex child proved safe and mechanical — the driver loop spawns a fresh turn and the standing resume prompt reconciles — so the close is a turn wall-clock watchdog: no driver-log write for a generous N minutes → kill the codex child process group, start the next turn, log the intervention.
-
-**Tracking:** [#336](https://github.com/alejandroll10/zeropaper/issues/336).
-
----
-
-## Stage 3a empirical receipts are atomic over all acquisition classes — no spec-declared class staging
-
-**Scope:** `--ext empirical` Stage 3a, every deployment whose specification declares multiple acquisition source classes.
-
-**Failure mode:** one structurally hard class (e.g. a provider whose listing endpoint is JS-gated, observed on tradingdays a149) forces every attempt to re-run all classes, and no passing class can be banked while the hard one is redesigned — a run can end with zero accepted receipts despite most classes being sound, or an ad-hoc deferral gets improvised in spec prose under schedule pressure. The eventcal deployment's Treasury deferral (restricted and source-free in the core receipt, mandatory immediately after the first accepted core receipt) is the correct mechanism, but it exists only as bespoke prose; closing this means first-class spec-declared class staging in the Stage 3a docs and admission schema — core receipt atomic over remaining classes, deferred class mandatory immediately post-acceptance and before any downstream use of dependent facts, cross-class obligations restated, dependent portfolio facts deferred with it. Per-class receipts without a composition obligation are explicitly not the fix.
-
-**Tracking:** [#335](https://github.com/alejandroll10/zeropaper/issues/335).
-
----
-
 ## WRDS host daemon has no self-heal for mechanically identifiable non-credential failures
 
 **Scope:** the `--ext empirical` host-wide WRDS service, every deployment on the host.

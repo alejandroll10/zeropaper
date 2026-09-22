@@ -34,6 +34,7 @@ Write `output/stage3/implications_derived.md`:
 **Consumes:** [event classes and columns from the spec's schema]
 **Expected:** [sign / magnitude with the spec's citation for replications; the hypothesized construction difference for adjudications; direction or "exploratory" for new facts]
 **Test design hint:** [the exact computation — statistic, sample window, comparison — executable on the committed schema; use the data inventory if present]
+**Staged:** [only when the spec's `## Construction staging` section defers a class this item consumes: name the class. The item is still derived — it is owed by the follow-up campaign, not dropped — but the core build must not report it.]
 
 ## Item 2: ...
 ```
@@ -45,6 +46,7 @@ Tags and lit status are added downstream — do not include them.
 - **Distinct, not restatements.** Each item must be separately establishable — two phrasings of the same fact (or of a spec coverage claim) count as one.
 - **A sentence a reader could test.** Every statement names an observable computation on named columns: a statistic, a window, a comparison group.
 - **Sharp where the spec is sharp.** Replication targets carry the spec's expected sign and magnitude verbatim; an expectation-free replication cannot fail and validates nothing. New-fact candidates may be exploratory, but say so explicitly rather than faking a direction.
+- **Respect the spec's staging.** If the spec stages a class, every item consuming it carries the `**Staged:**` line. Do not drop such items and do not rewrite them to avoid the staged class — the class still ships, and the follow-up campaign needs the item as written.
 - **Executable on the committed schema.** Every test design hint must run on columns and classes the spec actually defines — an item consuming data the schema lacks belongs in a final "Unsupported by committed schema" section rather than silently dropped (it routes back as a spec gap).
 - **Cover all four families.** A portfolio with replications but no adjudication attempt, or headline candidates with no construction-sensitivity check, leaves the paper's validation and artifact-defense undone at Stage 3a. If the spec genuinely supports no item in some family, say so explicitly and why.
 - **No literature claims.** Never write "this is novel" or "this is known" — you cannot check either. That judgment happens downstream.

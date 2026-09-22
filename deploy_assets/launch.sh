@@ -27,7 +27,9 @@
 # or on a much longer run of sub-60s turns even with commits (a coarse token-burn
 # backstop against a churn-committing retry loop). Native child runtime is part
 # of its parent turn because the parent must wait for completion before
-# returning, so no separate worker-duration accounting is needed.
+# returning, so no separate worker-duration accounting is needed. A HUNG turn
+# (a dead API stream that never closes) is bounded separately by the per-turn
+# TURN_TIMEOUT watchdog below, which logs its intervention to driver.log.
 set -euo pipefail
 
 # pwd -P (physical): codex records its cwd via getcwd(), which resolves
@@ -2507,7 +2509,7 @@ os.execvp(sys.argv[1], sys.argv[1:])
     # identity guess and no parent-side cleanup window is involved.
     exec 6> >(/usr/bin/python3 -I -c '
 import errno, fcntl, os, select, signal, stat, subprocess, sys
-pid, timeout, root = int(sys.argv[1]), int(sys.argv[2]), sys.argv[3]
+pid, timeout, root, log_path = int(sys.argv[1]), int(sys.argv[2]), sys.argv[3], sys.argv[4]
 # Escape the outer runtime group: its independent guardian uses SIGKILL after
 # visible-supervisor death, while this watcher must survive long enough to
 # observe parent-pipe EOF and reap the nested turn group. This trusted process
@@ -2747,8 +2749,17 @@ if parent_closed(timeout):
 message = (f"[driver] turn exceeded TURN_TIMEOUT={timeout}s — "
            "stopping the bound descendant tree and resuming from durable state")
 print(message, flush=True)
+# The turn body reaches driver.log through the turn wrapper'"'"'s tee, which this
+# watcher never inherited, so write the intervention there directly: an
+# operator reading only driver.log must be able to see that the turn was cut
+# short and why, rather than inferring it from a gap between turn headers.
+try:
+    with open(log_path, "a") as log_file:
+        log_file.write(message + "\n")
+except OSError:
+    pass
 terminate_turn_tree()
-' "$cpid" "$TURN_TIMEOUT" "$ROOT")
+' "$cpid" "$TURN_TIMEOUT" "$ROOT" "$LOG")
     wpid=$!
     # Do not release the turn wrapper from its outer-group stop until the
     # watcher has demonstrably escaped that group. Otherwise a visible-launcher
@@ -2889,6 +2900,14 @@ for e in p:
     # forbids returning while a requested child is live.
     dt=$((SECONDS - t0))
     head_after="$(git -C "$ROOT" rev-parse HEAD 2>/dev/null || true)"
+    # Close each turn in the log as well as opening it, so a hung or cut-short
+    # turn is legible from driver.log alone: no "ended" line after a header
+    # means the turn is still running (or the host was asleep — SECONDS and the
+    # watchdog'"'"'s select() both pause across a suspend, so a resumed turn keeps
+    # only the budget it had left, and "12 hours between headers" can be 12
+    # hours of suspend rather than 12 hours of hang).
+    if [ "$head_after" = "$head_before" ]; then _turn_commit="no new commit"; else _turn_commit="HEAD ${head_before:0:8} -> ${head_after:0:8}"; fi
+    echo "[driver] === turn $turn ended ($(date '+%F %T'), ${dt}s, $_turn_commit) ===" | tee -a "$LOG"
 # Two ceilings on short turns. Native child execution is included in `dt`,
 # because the parent waits in-turn:
     #   fast_nocommit — short cycle AND HEAD unchanged. A model producing and

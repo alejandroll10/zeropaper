@@ -42,7 +42,7 @@ Drop DEAD implications from the final list. Keep SUPPORTED, NOVEL, and PUZZLE-CA
 
 ## Step 4: Write `output/stage3/implications.md`
 
-Assemble from `output/stage3/implications_derived.md` + the Step 2 lit-checks: carry over each surviving implication's statement, **Mechanism**, and **Test design hint** verbatim (plus **Fragility**/**Family** lines where present), and add the **Tag** and **Lit status**. Use this canonical schema so downstream agents (empiricist, paper-writer, scorer) can parse the tags:
+Assemble from `output/stage3/implications_derived.md` + the Step 2 lit-checks: carry over each surviving implication's statement, **Mechanism** (named **Construct logic** in the measurement-first derived file — carry it under that name; absent under data-first, whose derived file has no such field), and **Test design hint** verbatim (plus **Fragility**/**Family**/**Consumes**/**Expected**/**Staged** lines where present, in the order shown below — under data-first the `**Staged:**` line is what tells the empiricist which items the core build must not report, and the build report's `## Staged classes` section carries that state on to the coverage-auditor and Gate 4), and add the **Tag** and **Lit status**. Use this canonical schema so downstream agents (empiricist, paper-writer, scorer) can parse the tags:
 
 ```markdown
 # Implications
@@ -52,9 +52,16 @@ Assemble from `output/stage3/implications_derived.md` + the Step 2 lit-checks: c
 **Mechanism:** [why the theory generates this]
 **Lit status:** [one-line summary from gap-scout]
 **Test design hint:** [if applicable — what data, what method]
+**Fragility:** [only where the derived file had it]
+**Family:** [empirical-first, measurement-first, and data-first — verbatim from the derived file; the vocabulary differs by mode]
+**Consumes:** [data-first only, verbatim]
+**Expected:** [data-first only, verbatim]
+**Staged:** [data-first only, verbatim — present only for items the spec's construction staging defers]
 
 ## Implication 2: ...
 ```
+
+Lines the derived file does not carry are omitted, not left as placeholders.
 
 ## Step 5: Sanity check
 

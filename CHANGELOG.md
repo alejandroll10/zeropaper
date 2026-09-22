@@ -16,6 +16,13 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
+## 2.37.0
+
+- data-first: **construction staging** (#335). A dataset specification may stage a class whose source poses a structural obstacle (optional `## Construction staging` section) — sequenced, not cut: the core campaign builds and banks every other class, the staged class is built as the campaign immediately after the first accepted core pair, and Gate 4 / the paper / the release treat the dataset as incomplete while the report's `## Staged classes` section lists it outstanding. The spec audit (dimension 10) checks the obstacle is structural and the class stays fully specified; the fact portfolio marks dependent items `**Staged:**`; the coverage-auditor verifies the staged class is genuinely absent from a core build; the Stage 3a guidance names the trigger (one class dying structurally while the rest ran) and routes it through a staging mutate rather than another full-portfolio lap or a drop.
+- Gate 3: the novelty-checker now judges the **trajectory** on re-entry (#337) — it receives the attempt's last fresh report and its earliest non-KNOWN report, records `## What carries the contribution` as a prose floor, and must return KNOWN when the elements an earlier verdict rested on are gone and nothing replaced them. INCREMENTAL is no longer a parking verdict: it must name the distinguishing result, and the seeded override routes a nameless INCREMENTAL as KNOWN. Field evidence: eventcal ran ~40 consecutive INCREMENTAL verdicts while narrowing into a published appendix.
+- launch.sh codex driver: the TURN_TIMEOUT watchdog's intervention is now written to `driver.log` (it previously reached only the console), and every turn gets an `ended` line with its duration and commit delta, so a hung or cut-short turn is legible from `driver.log` alone. Issue #336 was a misdiagnosis: the "12h hang" was the host suspended (journal: 02:17→13:52), the per-turn watchdog already existed and fired, and the turn resumed 12 minutes after wake.
+- LIMITATIONS: entries for #335, #336, #337 removed (closed above).
+
 ## 2.36.2
 
 - stage_3a part (v): the admission schema is the single source of every namespace constant — entrypoint/wrapper/validator code derives paths, vault locations, argv, and record key sets from the schema's declared interfaces instead of redeclaring literals, verified by the plan's static pre-execution check (field evidence: three of seven consecutive attempts died pre-live on a redeclared constant drifted from the schema).

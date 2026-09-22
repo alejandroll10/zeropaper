@@ -65,12 +65,19 @@ Work through these as a skeptical data editor would at a plan meeting. These are
 ### 8. Does an exact coverage promise require a census?
 
 - Parse the exact `**Commitment IDs:** [...]` JSON-array line in `## Exact coverage commitments`, require sorted unique stable lowercase IDs, and independently scan the whole spec for universal claims over finite enumerable sets: "all," "every," "complete," exact counts, zero exceptions, or equivalent wording. Classify the gate **REQUIRED** if and only if the validated list is non-empty; otherwise classify it **NOT-REQUIRED**.
-- Every listed commitment must have one matching `### commitment_id: <id>` subsection with a valid non-empty sorted unique `**Event key fields:** [...]` array, an observable non-empty `**Terminal condition:**`, a finite universe, authoritative enumerator, and qualifying-evidence predicate. If any part is ambiguous, a listed ID lacks a subsection, a subsection is unlisted, or narrative prose makes an exact claim while the array is empty, return REVISE. Do not decide at plan time whether the predicate is satisfiable; the existing `empiricist` performs that exhaustive census only after this prose audit is PLAUSIBLE.
+- Every listed commitment must have one matching `### commitment_id: <id>` subsection with a valid non-empty sorted unique `**Event key fields:** [...]` array, an observable non-empty `**Terminal condition:**`, a finite universe, authoritative enumerator, and qualifying-evidence predicate. If any part is ambiguous, a listed ID lacks a subsection, a subsection is unlisted, or narrative prose makes an exact claim while the array is empty, return REVISE. One carve-out: a commitment parked as *owed* inside a `## Construction staging` entry is disclosed, not hidden — it is checked at dimension 10, not here, and its absence from the array is correct while the class is staged. Do not decide at plan time whether the predicate is satisfiable; the existing `empiricist` performs that exhaustive census only after this prose audit is PLAUSIBLE.
 
 ### 9. Is the apparatus proportionate to its payload?
 
 - For every bespoke runtime, sandbox layer, verification harness, or estimation environment the spec mandates: what scientific claim does it serve, and does a maintained package in the already-provisioned environment cover the same estimator or check? A hash-pinned from-source language runtime for one regression that `linearmodels`/`statsmodels` computes, or a custom replay layer duplicating what content-hashed receipts already prove, is a spec defect — REVISE on disproportion alone, naming the canonical alternative. Read `.claude/skills/canonical-packages/SKILL.md` when judging estimator coverage.
 - The test is payload-relative: apparatus whose failure modes could consume more build attempts than the claim it protects is worth is disproportionate even if each piece is locally defensible.
+
+### 10. If any class is staged, is the staging honest and sensible?
+
+- The spec may carry an optional `## Construction staging` section deferring a class from the first build campaign. Read it as a plan meeting would: is the obstacle it names **structural** (an access path that must be redesigned, a parser that does not exist) rather than transient (one failed pull, a rate limit) or convenience (the class is simply the most work)? A transient or convenience deferral is REVISE — the class belongs in the core set.
+- A staged class is sequenced, not cut. Check that it is still fully specified everywhere else — schema slot, inclusion and dating rules, validation plan, rights, fact-portfolio consumers — and that the cross-class reconciliation obligations involving it are restated for the reduced core set rather than silently vanishing with it. A "staged" class that has quietly lost its rules is a dropped class wearing a staging label, and dropping is a scope decision governed by the novelty and seed rules, not something staging may launder.
+- Check that the fact-portfolio items depending on the staged class are named, so the core build does not report them and the follow-up campaign knows what it owes. If the class carries an exact coverage commitment, that commitment must sit in the staging entry as owed and be absent from `**Commitment IDs:**` while the class is staged — a commitment the census cannot reach is not certifiable, and leaving it in the array would block Gate 2 on the very obstacle staging exists to route around; a commitment silently dropped rather than parked as owed is REVISE. Check that the core set left standing is still a real dataset on its own terms — if staging strips the build down to something no portfolio item can use, the staging is hiding a feasibility problem the spec should confront directly.
+- Absent section, nothing to check: single-campaign construction is the default and needs no justification.
 
 ## What you do NOT do
 
@@ -114,13 +121,15 @@ Save to the path named in your prompt (canonically `output/stage2/mechanism_audi
 [State why the machine-routed commitment array is complete, or why no finite universal predicate exists and it is empty/NOT-REQUIRED.]
 ### 9. Apparatus proportionate
 [1 paragraph. Name any bespoke runtime/harness and the canonical-package or provisioned-environment alternative, or state that the apparatus is proportionate.]
+### 10. Construction staging
+[1 paragraph, or "none staged". For each staged class: whether the obstacle is structural, whether the class remains fully specified, whether its dependent portfolio items are named, and whether the core set still stands on its own.]
 
 ## Verdict
 
 **Verdict:** PLAUSIBLE
 <!-- put exactly one of PLAUSIBLE or REVISE on the line above, as the only verdict keyword in this section, so the orchestrator can route on it unambiguously -->
 
-- **PLAUSIBLE** — the rules are operational, the conventions complete, the triangulation real (waivers explicit and honestly disclosed), the rights cleared per source, the portfolio checkable and load-bearing, the incumbent comparison honest, every factual claim pilot-consistent or explicitly marked unverified, the apparatus proportionate, and the coverage-certificate classification is unambiguous. Proceed to the census leg when REQUIRED; otherwise proceed to Gate 3.
+- **PLAUSIBLE** — the rules are operational, the conventions complete, the triangulation real (waivers explicit and honestly disclosed), the rights cleared per source, the portfolio checkable and load-bearing, the incumbent comparison honest, every factual claim pilot-consistent or explicitly marked unverified, the apparatus proportionate, any staged class structurally justified and still fully specified, and the coverage-certificate classification is unambiguous. Proceed to the census leg when REQUIRED; otherwise proceed to Gate 3.
 - **REVISE** — at least one load-bearing dimension fails. List the specific fixes below; the spec returns to `theory-generator` (mutate) before any build effort is spent.
 
 ## Required fixes (REVISE only)
