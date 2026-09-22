@@ -71,6 +71,7 @@ Work through these as a skeptical data editor would at a plan meeting. These are
 
 - For every bespoke runtime, sandbox layer, verification harness, or estimation environment the spec mandates: what scientific claim does it serve, and does a maintained package in the already-provisioned environment cover the same estimator or check? A hash-pinned from-source language runtime for one regression that `linearmodels`/`statsmodels` computes, or a custom replay layer duplicating what content-hashed receipts already prove, is a spec defect — REVISE on disproportion alone, naming the canonical alternative. Read `.claude/skills/canonical-packages/SKILL.md` when judging estimator coverage.
 - The test is payload-relative: apparatus whose failure modes could consume more build attempts than the claim it protects is worth is disproportionate even if each piece is locally defensible.
+- **Verification obligations are apparatus too.** A spec-imposed proof or closure obligation — a static whole-artifact dependency mapping, an exhaustive cross-reference inventory, a completeness proof over every producer-consumer edge — gets the same payload-relative test. When a staged or per-change closure (complete proof for what an attempt changes, archived-proof citation by hash for byte-identical carryover, realization-time completion for what only the build can resolve) delivers the same guarantee, mandating the whole-artifact static form is REVISE on disproportion alone, naming the staged alternative. This test governs verification apparatus the spec *invents*, never the machinery the pipeline itself mandates: dimension 8's exact-coverage census is the deliverable's own enumeration, not verification apparatus, and Stage 3a's machine-checkable admission contract is per-plan and per-attempt, not a whole-artifact static form — neither may be routed to REVISE under this bullet. (Field evidence: one run's spec accreted a ~28,000-edge static producer-to-reader proof obligation that consumed thirteen build allocations without converging and required operator intervention to restage.)
 
 ### 10. If any class is staged, is the staging honest and sensible?
 
@@ -120,7 +121,7 @@ Save to the path named in your prompt (canonically `output/stage2/mechanism_audi
 ### 8. Exact coverage classification
 [State why the machine-routed commitment array is complete, or why no finite universal predicate exists and it is empty/NOT-REQUIRED.]
 ### 9. Apparatus proportionate
-[1 paragraph. Name any bespoke runtime/harness and the canonical-package or provisioned-environment alternative, or state that the apparatus is proportionate.]
+[1 paragraph. Name any bespoke runtime/harness or whole-artifact proof obligation and the canonical-package, provisioned-environment, or staged-closure alternative, or state that the apparatus is proportionate.]
 ### 10. Construction staging
 [1 paragraph, or "none staged". For each staged class: whether the obstacle is structural, whether the class remains fully specified, whether its dependent portfolio items are named, and whether the core set still stands on its own.]
 
