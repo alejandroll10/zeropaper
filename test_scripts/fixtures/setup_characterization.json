@@ -8553,8 +8553,8 @@
         },
         ".claude/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "3d41766caf60294ba8e739ea906db6b459636f282e3806f41bd09d3ed3e6b956",
-          "size": 25028,
+          "sha256": "3fe98b3b135e4d9e42ca39d0312fea3c258811833e6a491d8c6efeb222324c9d",
+          "size": 28101,
           "type": "file"
         },
         ".claude/agents/method-checker.md": {
@@ -8703,8 +8703,8 @@
         },
         ".claude/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "03aeba48dc62132bff078aa4754d0fbf6fdad10913eb59d42c60c9d168560bfe",
-          "size": 22355,
+          "sha256": "68da35db0920818d82e57977bfd722e30b92cf54bba1ac9dfe6f513f802bb655",
+          "size": 25185,
           "type": "file"
         },
         ".claude/agents/triager.md": {
@@ -9173,8 +9173,8 @@
         },
         ".codex/agents/mechanism-auditor.toml": {
           "mode": "0644",
-          "sha256": "5b3e97be4ad19ac4f75c74c29ec6ecbfd43d134b7757d16c56fc57cb5f96ccc5",
-          "size": 25111,
+          "sha256": "ba86c206fe4d397b11f7457380a65b02f668e20cd161965d2cdf0df8c512e044",
+          "size": 28184,
           "type": "file"
         },
         ".codex/agents/method-checker.toml": {
@@ -9323,8 +9323,8 @@
         },
         ".codex/agents/theory-generator.toml": {
           "mode": "0644",
-          "sha256": "08aa09f9801ae152e5f5d325afec15180d6e8b6046d4ba9fb082b421d3f3c1be",
-          "size": 22445,
+          "sha256": "7f510ddacb6eded2ce35bb10104708fd8c026ea9cc163b60803c6c05e83613c6",
+          "size": 25275,
           "type": "file"
         },
         ".codex/agents/triager.toml": {
@@ -9475,8 +9475,8 @@
         },
         ".gemini/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "7d8e68f59aa4fe23fef6bda73443e0a37805fa7374183a212966355c81cfa159",
-          "size": 25102,
+          "sha256": "84cdfb05d2b195f80e7c6175e4903d1e6e381bec412f6841b0de102b35db0d6f",
+          "size": 28175,
           "type": "file"
         },
         ".gemini/agents/method-checker.md": {
@@ -9625,8 +9625,8 @@
         },
         ".gemini/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "cfac5f4bd05581a98a445a4b95a401d9c4a797953f14b2da46ba35ff280d311e",
-          "size": 22377,
+          "sha256": "f731c054c7c78f56f14bdf1331710c23587098a1021389d58d5c31eb032d0072",
+          "size": 25207,
           "type": "file"
         },
         ".gemini/agents/triager.md": {
@@ -9879,8 +9879,8 @@
         },
         ".grok/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "c8363bc3214283a2e67e9282e3dac7650679e7f0ed8bcc625bea76eb81b68d74",
-          "size": 22420,
+          "sha256": "34070b870755b4dcde8ab3c7f2f07c6d424b2a542a37f69778818814a9c15aa4",
+          "size": 25250,
           "type": "file"
         },
         ".grok/agents/triager.md": {
@@ -10025,8 +10025,8 @@
         },
         ".opencode/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "bb7d4f1a2809e62aaf39eee96e95ec7a488850c7b0f3a2f228280e66cfe33887",
-          "size": 25203,
+          "sha256": "ea0df9fb246829575b8ab0e0cd10c8028c631c5d289ee6bb41039d5c31239f7c",
+          "size": 28276,
           "type": "file"
         },
         ".opencode/agents/method-checker.md": {
@@ -10175,8 +10175,8 @@
         },
         ".opencode/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "8d3037af5ae7933b9cbc80601a6540335375f5642b651ad164bb47b79c9199d5",
-          "size": 22556,
+          "sha256": "33bcd0afb0b29a9a08843a3064bec61e92ca9d9d37a2f7722742158b0629b119",
+          "size": 25386,
           "type": "file"
         },
         ".opencode/agents/triager.md": {
@@ -10659,8 +10659,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "022957c3206975c1f518aa17fbd3f218dde9b425a1eecce781493cc537b22957",
-          "size": 104394,
+          "sha256": "48cd7be60d7e39867825858a30d8dc1a5a47e65b95fd6c087149112f550fadbe",
+          "size": 104922,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -11478,8 +11478,8 @@
         },
         ".claude/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "a9f7472b8f8ffd8146076afad19918b748db68aef888837aacde29d8955cc2a9",
-          "size": 25030,
+          "sha256": "631f6dc69725385f135ab3c5c89033b09102f16b495a874781b511f10469cc53",
+          "size": 28103,
           "type": "file"
         },
         ".claude/agents/method-checker.md": {
@@ -11628,8 +11628,8 @@
         },
         ".claude/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "6878a8a8cf648f251dc8f1d0828299b49800180d928f70e9229a8bcd25f7cc78",
-          "size": 24663,
+          "sha256": "04249d369198ee24f6131abdbb8d0442a0805e897f308b7623c72b011f44de17",
+          "size": 27493,
           "type": "file"
         },
         ".claude/agents/triager.md": {
@@ -12104,8 +12104,8 @@
         },
         ".codex/agents/mechanism-auditor.toml": {
           "mode": "0644",
-          "sha256": "3f983c9d16b568920d44e418c1a9a1fed2f588af483889fc0af4d175714ef3fe",
-          "size": 25078,
+          "sha256": "097b80db79301fea51b468b0299322dfaaeaf5a8d32bebf7d524cb645430e02c",
+          "size": 28151,
           "type": "file"
         },
         ".codex/agents/method-checker.toml": {
@@ -12254,8 +12254,8 @@
         },
         ".codex/agents/theory-generator.toml": {
           "mode": "0644",
-          "sha256": "5bb2357557a2a8d785951e19f9358863ee22d17d691885ab2d4c5ef2ae5d4c37",
-          "size": 24734,
+          "sha256": "ee26438812449360e78f57fe44cc6e32db440e402447c36b28a6fc4b6d93ba18",
+          "size": 27564,
           "type": "file"
         },
         ".codex/agents/triager.toml": {
@@ -12412,8 +12412,8 @@
         },
         ".gemini/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "85a26c604eba608584b13ceb9bd52fe31dcf6ba4678721fe77b01e52a44151a3",
-          "size": 25108,
+          "sha256": "7356a0628d8727c45bf6ae247c9b12c4b39a75a7d7bea07f5e4f312854deb6b3",
+          "size": 28181,
           "type": "file"
         },
         ".gemini/agents/method-checker.md": {
@@ -12562,8 +12562,8 @@
         },
         ".gemini/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "bde5e5299b7558c9a959c6f1fc987ab9a0cb9f5d3a150e2eee34695072e03e4b",
-          "size": 24704,
+          "sha256": "c1f0d8a2f6c5684931999cb741909c5d3bb8d638f0a05d8aec7f84e7cee5b578",
+          "size": 27534,
           "type": "file"
         },
         ".gemini/agents/triager.md": {
@@ -12822,8 +12822,8 @@
         },
         ".grok/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "9863e13b4e15499de33ecdbe911a345177e2fef50901109a6cdb51b3252a8303",
-          "size": 24741,
+          "sha256": "37a69ea1863c86b3a7157b345758b9965a77cab0030726353b7c7df82a4587cd",
+          "size": 27571,
           "type": "file"
         },
         ".grok/agents/triager.md": {
@@ -12974,8 +12974,8 @@
         },
         ".opencode/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "bb7d4f1a2809e62aaf39eee96e95ec7a488850c7b0f3a2f228280e66cfe33887",
-          "size": 25203,
+          "sha256": "ea0df9fb246829575b8ab0e0cd10c8028c631c5d289ee6bb41039d5c31239f7c",
+          "size": 28276,
           "type": "file"
         },
         ".opencode/agents/method-checker.md": {
@@ -13124,8 +13124,8 @@
         },
         ".opencode/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "e18902e413cced91220b22dc0c4167fa3ad1f7e016524e7d9732b30473d536d4",
-          "size": 24877,
+          "sha256": "a0070d47f3b381efa25d705a6961169c1e6a424ad2911154c13aacfc82c98026",
+          "size": 27707,
           "type": "file"
         },
         ".opencode/agents/triager.md": {
@@ -13608,8 +13608,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "ad85cf552a2a8c0d7a222a8fa182a03606cf970af7c4d0d0e38fc384d595c1a3",
-          "size": 105360,
+          "sha256": "3cbfe4cba683f9c9be60aea8a87e6e071310118995dcc7508cc930a546e8ccb0",
+          "size": 105888,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -14435,8 +14435,8 @@
         },
         ".claude/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "32dc1daa24d270ecccc6a2dee97981519f6489a9002358997c42177b2e888445",
-          "size": 25776,
+          "sha256": "129c69a2a65440ee2b920632bf3bb7cd688dfe9eb43e2d01fd27a323a6ca9990",
+          "size": 28849,
           "type": "file"
         },
         ".claude/agents/method-checker.md": {
@@ -14585,8 +14585,8 @@
         },
         ".claude/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "dd84bc260531fef1ee2f1066f4fabb8ec21c8e75b2e9fced68cf10b96b657973",
-          "size": 23103,
+          "sha256": "1af7f52f53d8aecae535085bc7f857dd801558540dbbec0bd000b0245bedd0d8",
+          "size": 25933,
           "type": "file"
         },
         ".claude/agents/triager.md": {
@@ -15055,8 +15055,8 @@
         },
         ".codex/agents/mechanism-auditor.toml": {
           "mode": "0644",
-          "sha256": "61a452729f14e0ed9eb723cceb05adacd2d75a73672910664f7aa999da9ed799",
-          "size": 25859,
+          "sha256": "55de9ab42d0f5fcb9ecfead1e23230d18d8171182fc1cc9c417c90c7c128f1de",
+          "size": 28932,
           "type": "file"
         },
         ".codex/agents/method-checker.toml": {
@@ -15205,8 +15205,8 @@
         },
         ".codex/agents/theory-generator.toml": {
           "mode": "0644",
-          "sha256": "a25f040d1bb74cfb0105eaf953b373d7ee641bfb04b6d556e01a4d09550054bf",
-          "size": 23193,
+          "sha256": "e37c0962027706625e22c124a27a430d0063d4ed414ec47d8501b235a838c712",
+          "size": 26023,
           "type": "file"
         },
         ".codex/agents/triager.toml": {
@@ -15357,8 +15357,8 @@
         },
         ".gemini/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "499f3fff38d795f11df1e6e98b707041824ea398f439872ade12d93bfa0fc8ea",
-          "size": 25850,
+          "sha256": "41befd3c73818427592eb7343b2e34a05f3cc2bb60fa259ced06d1ea2f1a5416",
+          "size": 28923,
           "type": "file"
         },
         ".gemini/agents/method-checker.md": {
@@ -15507,8 +15507,8 @@
         },
         ".gemini/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "2fc6b1e4ce777dbe79df6a77102fdc7d7c8feb28d4418f5052ec54aff5ed8cbe",
-          "size": 23125,
+          "sha256": "88c6ce3d97b608dc4721489b00f6476ad43d8f715d3112e5189f28765ee551d5",
+          "size": 25955,
           "type": "file"
         },
         ".gemini/agents/triager.md": {
@@ -15761,8 +15761,8 @@
         },
         ".grok/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "b1e5bcd7a8d5151392d4214e5de8561ae792d9f41c4df98bb3eac5862bafbade",
-          "size": 23168,
+          "sha256": "030bab8d726e367963a7e29e36fe1721dae51aa8373456b9ee2426129aa95b23",
+          "size": 25998,
           "type": "file"
         },
         ".grok/agents/triager.md": {
@@ -15907,8 +15907,8 @@
         },
         ".opencode/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "66f90a0b73494c3bde82d022d854d43847789f8129b808cd3e6727d97f24b683",
-          "size": 25951,
+          "sha256": "90543aac0a521948a86de32eb3cb71f264174bd9a66933e5c88a16ee4aa233d8",
+          "size": 29024,
           "type": "file"
         },
         ".opencode/agents/method-checker.md": {
@@ -16057,8 +16057,8 @@
         },
         ".opencode/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "9b1ba534a011e23a54a2c5eead08318181fb2261e45aac3083e3ea0948fc92e7",
-          "size": 23304,
+          "sha256": "a4e3080ced140e9d1f40c4a831cd3ae7037f81f08ff5b8a05637d48a3b72cf7d",
+          "size": 26134,
           "type": "file"
         },
         ".opencode/agents/triager.md": {
@@ -16535,8 +16535,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "022957c3206975c1f518aa17fbd3f218dde9b425a1eecce781493cc537b22957",
-          "size": 104394,
+          "sha256": "48cd7be60d7e39867825858a30d8dc1a5a47e65b95fd6c087149112f550fadbe",
+          "size": 104922,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -17285,8 +17285,8 @@
         },
         ".claude/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "3d41766caf60294ba8e739ea906db6b459636f282e3806f41bd09d3ed3e6b956",
-          "size": 25028,
+          "sha256": "3fe98b3b135e4d9e42ca39d0312fea3c258811833e6a491d8c6efeb222324c9d",
+          "size": 28101,
           "type": "file"
         },
         ".claude/agents/method-checker.md": {
@@ -17435,8 +17435,8 @@
         },
         ".claude/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "03aeba48dc62132bff078aa4754d0fbf6fdad10913eb59d42c60c9d168560bfe",
-          "size": 22355,
+          "sha256": "68da35db0920818d82e57977bfd722e30b92cf54bba1ac9dfe6f513f802bb655",
+          "size": 25185,
           "type": "file"
         },
         ".claude/agents/triager.md": {
@@ -17905,8 +17905,8 @@
         },
         ".codex/agents/mechanism-auditor.toml": {
           "mode": "0644",
-          "sha256": "5b3e97be4ad19ac4f75c74c29ec6ecbfd43d134b7757d16c56fc57cb5f96ccc5",
-          "size": 25111,
+          "sha256": "ba86c206fe4d397b11f7457380a65b02f668e20cd161965d2cdf0df8c512e044",
+          "size": 28184,
           "type": "file"
         },
         ".codex/agents/method-checker.toml": {
@@ -18055,8 +18055,8 @@
         },
         ".codex/agents/theory-generator.toml": {
           "mode": "0644",
-          "sha256": "08aa09f9801ae152e5f5d325afec15180d6e8b6046d4ba9fb082b421d3f3c1be",
-          "size": 22445,
+          "sha256": "7f510ddacb6eded2ce35bb10104708fd8c026ea9cc163b60803c6c05e83613c6",
+          "size": 25275,
           "type": "file"
         },
         ".codex/agents/triager.toml": {
@@ -18207,8 +18207,8 @@
         },
         ".gemini/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "7d8e68f59aa4fe23fef6bda73443e0a37805fa7374183a212966355c81cfa159",
-          "size": 25102,
+          "sha256": "84cdfb05d2b195f80e7c6175e4903d1e6e381bec412f6841b0de102b35db0d6f",
+          "size": 28175,
           "type": "file"
         },
         ".gemini/agents/method-checker.md": {
@@ -18357,8 +18357,8 @@
         },
         ".gemini/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "cfac5f4bd05581a98a445a4b95a401d9c4a797953f14b2da46ba35ff280d311e",
-          "size": 22377,
+          "sha256": "f731c054c7c78f56f14bdf1331710c23587098a1021389d58d5c31eb032d0072",
+          "size": 25207,
           "type": "file"
         },
         ".gemini/agents/triager.md": {
@@ -18611,8 +18611,8 @@
         },
         ".grok/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "c8363bc3214283a2e67e9282e3dac7650679e7f0ed8bcc625bea76eb81b68d74",
-          "size": 22420,
+          "sha256": "34070b870755b4dcde8ab3c7f2f07c6d424b2a542a37f69778818814a9c15aa4",
+          "size": 25250,
           "type": "file"
         },
         ".grok/agents/triager.md": {
@@ -18757,8 +18757,8 @@
         },
         ".opencode/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "bb7d4f1a2809e62aaf39eee96e95ec7a488850c7b0f3a2f228280e66cfe33887",
-          "size": 25203,
+          "sha256": "ea0df9fb246829575b8ab0e0cd10c8028c631c5d289ee6bb41039d5c31239f7c",
+          "size": 28276,
           "type": "file"
         },
         ".opencode/agents/method-checker.md": {
@@ -18907,8 +18907,8 @@
         },
         ".opencode/agents/theory-generator.md": {
           "mode": "0644",
-          "sha256": "8d3037af5ae7933b9cbc80601a6540335375f5642b651ad164bb47b79c9199d5",
-          "size": 22556,
+          "sha256": "33bcd0afb0b29a9a08843a3064bec61e92ca9d9d37a2f7722742158b0629b119",
+          "size": 25386,
           "type": "file"
         },
         ".opencode/agents/triager.md": {
@@ -19391,8 +19391,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "ad85cf552a2a8c0d7a222a8fa182a03606cf970af7c4d0d0e38fc384d595c1a3",
-          "size": 105360,
+          "sha256": "3cbfe4cba683f9c9be60aea8a87e6e071310118995dcc7508cc930a546e8ccb0",
+          "size": 105888,
           "type": "file"
         },
         "docs/stage_4.md": {
