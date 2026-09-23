@@ -16,6 +16,16 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## WRDS query bridge still reports slot exhaustion as a terminal safety error
+
+**Scope:** the `--ext empirical` sandboxed WRDS path (Linux runtimes that reach the daemon through `wrds_query_bridge.py`).
+
+**Failure mode:** v2.41.0 (#343) made daemon lock contention a retryable `busy` answer the client absorbs with bounded backoff, but the bridge's own concurrency guard (32 relay slots) still answers slot exhaustion with `error_kind: "safety"` — the terminal "stale daemon, operator must replace it" classification — so a burst of concurrent short commands through the relay can surface operator-escalation guidance for a transient condition, and a busy `wrds_ping()` can read as unreachable. Exposure is low (the single serialized DB lock saturates long before 32 relay slots), and the fix needs the probe/hello/command taxonomy made busy-aware in one coherent pass rather than one leg special-cased.
+
+**Tracking:** [#346](https://github.com/alejandroll10/zeropaper/issues/346).
+
+---
+
 ## Tag-only analysis repairs still pay a full producer re-run
 
 **Scope:** `--ext empirical` Stage 3a step 6.5's `no_headline_tags` branch and any repair that edits only the analysis report's tag text.

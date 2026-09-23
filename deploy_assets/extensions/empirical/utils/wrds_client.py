@@ -21,6 +21,8 @@ bridge is down, relaunch the runtime so its trusted host-side launcher can
 restore it.
 """
 import json
+import math
+import random
 import socket
 import subprocess
 import time
@@ -69,6 +71,23 @@ QUERY_TIMEOUT_FLOOR_SECONDS = 1
 RESPONSE_PREPARATION_GRACE_SECONDS = 65
 RECOVERY_GRACE_SECONDS = 60
 SERVER_REQUEST_ALLOWANCE_SECONDS = 15
+# The daemon may hold a command in its lock queue for its full queue budget
+# (LOCK_QUEUE_WAIT_SECONDS = 60 server-side) before answering — either with
+# the query result or with a retryable 'busy' error. The response-header
+# budget must cover that window or a queued-then-executed command would have
+# its socket abandoned while the daemon still works on it.
+SERVER_QUEUE_ALLOWANCE_SECONDS = 65
+# A 'busy' answer means the daemon is healthy but its single serialized
+# database connection is saturated — under concurrent campaigns, or a sibling
+# deployment sharing this host's daemon. Busy answers are emitted before the
+# daemon touches the database, so re-sending can never spend a login or
+# repeat database work. The client absorbs them with bounded jittered backoff
+# inside the current attempt instead of surfacing an error the caller cannot
+# tell from a producer failure (issue #343). Auth and safety errors are never
+# retried.
+BUSY_RETRY_INITIAL_SECONDS = 5
+BUSY_RETRY_MAX_SECONDS = 60
+BUSY_WAIT_BUDGET_SECONDS = 1800  # override with WRDS_BUSY_WAIT_SECONDS
 RESPONSE_TRANSFER_BASE_SECONDS = 60
 RESPONSE_TRANSFER_MIN_BYTES_PER_SECOND = 1024 * 1024
 RESPONSE_TRANSFER_MAX_SECONDS = QUERY_TIMEOUT_SECONDS + 15
@@ -125,6 +144,7 @@ def _response_header_timeout(request, fallback, through_bridge):
     if request.get('cmd') not in _DB_COMMANDS:
         return fallback
     timeout = (SERVER_REQUEST_ALLOWANCE_SECONDS +
+               SERVER_QUEUE_ALLOWANCE_SECONDS +
                _bounded_execution_timeout(request, fallback) +
                RECOVERY_GRACE_SECONDS +
                RESPONSE_PREPARATION_GRACE_SECONDS)
@@ -338,6 +358,15 @@ class WrdsSafetyBlocked(RuntimeError):
     """The live daemon cannot prove the current no-retry safety contract."""
 
 
+class WrdsBusyTimeout(RuntimeError):
+    """The daemon stayed saturated for the whole busy-wait budget.
+
+    This is queue contention on the healthy host-wide daemon — other queries,
+    typically a concurrent campaign or a sibling deployment — not an outage,
+    not a credential problem, and not a producer error. Rerun when load drops
+    or raise WRDS_BUSY_WAIT_SECONDS; never bypass or restart the daemon."""
+
+
 def _safety_message(got=None):
     return (
         f"WRDS daemon safety protocol mismatch (got {got!r}, expected "
@@ -365,11 +394,54 @@ def _ensure_safe_server():
     _safety_hello()
 
 
+def _busy_wait_budget():
+    raw = os.environ.get('WRDS_BUSY_WAIT_SECONDS')
+    if raw is None:
+        return float(BUSY_WAIT_BUDGET_SECONDS)
+    try:
+        value = float(raw)
+    except ValueError:
+        return float(BUSY_WAIT_BUDGET_SECONDS)
+    if math.isnan(value):
+        # NaN parses as a float, so the ValueError fallback misses it; treat
+        # it like any other garbage input rather than collapsing to a
+        # zero-wait budget. +inf stays valid as an unbounded-wait escape
+        # hatch.
+        return float(BUSY_WAIT_BUDGET_SECONDS)
+    return max(0.0, value)
+
+
 def _checked_request(request, timeout=300):
+    """Send one command, absorbing daemon 'busy' answers with bounded backoff.
+
+    A busy answer is emitted before the daemon touches the database, so
+    re-sending can never spend a login or repeat database work; only the
+    'busy' kind is ever retried — auth and safety failures stay terminal.
+    """
     _ensure_safe_server()
-    resp = _send_request(request, timeout=timeout)
-    _validate_protocol(resp)
-    return resp
+    budget = _busy_wait_budget()
+    wait_deadline = time.monotonic() + budget
+    delay = BUSY_RETRY_INITIAL_SECONDS
+    while True:
+        resp = _send_request(request, timeout=timeout)
+        _validate_protocol(resp)
+        if not (resp.get('status') == 'error' and
+                resp.get('error_kind') == 'busy'):
+            return resp
+        remaining = wait_deadline - time.monotonic()
+        if remaining <= 0:
+            raise WrdsBusyTimeout(
+                f"WRDS daemon stayed saturated for the whole {budget:.0f}s "
+                f"busy-wait budget: {resp.get('msg')} This is queue "
+                "contention on the healthy host-wide daemon (another "
+                "campaign or deployment), not an outage and not a producer "
+                "error. Rerun when load drops or raise "
+                "WRDS_BUSY_WAIT_SECONDS; never bypass or restart the daemon.")
+        wait = min(delay * random.uniform(0.6, 1.4), remaining)
+        print(f"[wrds_client] WRDS daemon busy; retrying in {wait:.0f}s "
+              f"({remaining:.0f}s of busy-wait budget left)", flush=True)
+        time.sleep(wait)
+        delay = min(delay * 1.5, BUSY_RETRY_MAX_SECONDS)
 
 
 def wrds_ping():
@@ -529,6 +601,11 @@ def _raise(prefix, resp):
         raise WrdsAuthBlocked(f"{prefix}{tag}: {resp['msg']}")
     if kind == 'safety':
         raise WrdsSafetyBlocked(f"{prefix}{tag}: {resp['msg']}")
+    if kind == 'busy':
+        # Normally absorbed inside _checked_request; typed here so any
+        # future caller that bypasses it still cannot mistake contention
+        # for a query failure.
+        raise WrdsBusyTimeout(f"{prefix}{tag}: {resp['msg']}")
     raise RuntimeError(f"{prefix}{tag}: {resp['msg']}")
 
 def wrds_query(sql, timeout=300):

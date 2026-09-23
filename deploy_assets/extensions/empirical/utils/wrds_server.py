@@ -141,6 +141,14 @@ MAX_RESULT_ROWS = 1_000_000
 MAX_GET_TABLE_ROWS = 100_000
 QUERY_TIMEOUT_SECONDS = 300
 RECOVERY_GRACE_SECONDS = 60
+# How long one command may wait for the serialized database lock before the
+# daemon answers `busy` instead. Queue wait and execution are separate budgets:
+# under contention (several campaigns, or a sibling deployment on this host)
+# the old shared deadline let pure queueing exhaust the whole command budget
+# and surface as a generic failure the caller cannot tell from a producer bug
+# (issue #343). A busy answer is emitted strictly before any database or
+# credential activity, so clients may retry it freely.
+LOCK_QUEUE_WAIT_SECONDS = 60
 # Budget for one ping-triggered health probe (SELECT 1 + at most one tiered
 # recovery). Deliberately far below QUERY_TIMEOUT_SECONDS: a health probe that
 # cannot finish quickly is itself the answer.
@@ -188,6 +196,12 @@ class WrdsResponseWriteError(ConnectionError):
 
 class WrdsOperationTimeout(TimeoutError):
     """A queued/recovered command exhausted its total operation budget."""
+
+
+class WrdsServerBusy(RuntimeError):
+    """The serialized database lock stayed contended for the whole queue
+    budget. Raised strictly before the command touches the database, so the
+    daemon is healthy and a retry can never spend a login or repeat work."""
 
 
 class WrdsResponsePreparationError(TimeoutError):
@@ -969,14 +983,18 @@ def _remaining_attempt_timeout(deadline, maximum):
 
 
 def _run_bounded_operation(state, operation, timeout=QUERY_TIMEOUT_SECONDS):
-    """Run queue + recovery + retry under one total command deadline."""
+    """Run one command with separate queue and execution/recovery budgets.
+
+    The execution deadline starts only once the database lock is held, so a
+    command that queued behind other campaigns keeps its full requested
+    database allowance; a command that never obtains the lock within the
+    queue budget fails as WrdsServerBusy without touching the database.
+    """
     execution_timeout = _normalized_query_timeout(timeout)
-    deadline = (time.monotonic() + execution_timeout +
-                RECOVERY_GRACE_SECONDS)
     return state.run(
-        lambda db: operation(
+        lambda db, deadline: operation(
             db, _remaining_attempt_timeout(deadline, execution_timeout)),
-        deadline=deadline,
+        execution_timeout,
     )
 
 
@@ -1362,31 +1380,37 @@ class WrdsState:
             # the exception text is not a recognized auth string.
             self._latch_login_failure(e)
 
-    def run(self, fn, deadline=None):
-        """Run fn(db) under the lock. On a connection-level error, recover
-        once and retry. Returns (result, recovered: bool).
+    def run(self, fn, execution_timeout=QUERY_TIMEOUT_SECONDS):
+        """Run fn(db, deadline) under the lock. On a connection-level error,
+        recover once and retry. Returns (result, recovered: bool).
+
+        Queue wait and execution have separate budgets. The lock wait is
+        bounded by LOCK_QUEUE_WAIT_SECONDS and fails as WrdsServerBusy — a
+        retryable contention signal emitted before any database activity —
+        so contention can never masquerade as a query failure or eat into
+        the execution allowance. The execution/recovery deadline starts only
+        once the lock is held; one guarded recovery and its retry share it,
+        never a fresh query clock.
 
         Query-level errors (bad SQL, permissions) are not retried — they
         propagate so the caller sees the real error.
         """
-        if deadline is None:
-            self.lock.acquire()
-        else:
-            acquired = self.lock.acquire(
-                timeout=_remaining_operation_seconds(deadline))
-            if not acquired:
-                raise WrdsOperationTimeout(
-                    'WRDS command deadline exceeded waiting for the query lock')
+        acquired = self.lock.acquire(timeout=LOCK_QUEUE_WAIT_SECONDS)
+        if not acquired:
+            raise WrdsServerBusy(
+                'WRDS daemon busy: the serialized database lock stayed '
+                f'contended for {LOCK_QUEUE_WAIT_SECONDS}s; this command '
+                'never reached the database. The daemon is healthy — retry '
+                'after a short wait.')
+        deadline = (time.monotonic() + execution_timeout +
+                    RECOVERY_GRACE_SECONDS)
         self._set_lock_owner('command', deadline)
         try:
             if self.auth_failed:
                 raise WrdsAuthError(self.auth_failed)
-            if deadline is not None:
-                _remaining_operation_seconds(deadline)
             try:
-                result = fn(self.db)
-                if deadline is not None:
-                    _remaining_operation_seconds(deadline)
+                result = fn(self.db, deadline)
+                _remaining_operation_seconds(deadline)
                 return result, False
             except WrdsOperationTimeout:
                 raise
@@ -1395,15 +1419,12 @@ class WrdsState:
                 if not _is_conn_error(e):
                     raise
                 print(f"[wrds_server] connection error ({e}); recovering...")
-                tier = (self._recover() if deadline is None else
-                        self._recover(deadline=deadline))
+                tier = self._recover(deadline=deadline)
                 print(f"[wrds_server] recovered via {tier}; retrying query")
                 try:
-                    if deadline is not None:
-                        _remaining_operation_seconds(deadline)
-                    result = fn(self.db)
-                    if deadline is not None:
-                        _remaining_operation_seconds(deadline)
+                    _remaining_operation_seconds(deadline)
+                    result = fn(self.db, deadline)
+                    _remaining_operation_seconds(deadline)
                     return result, True
                 except WrdsOperationTimeout:
                     raise
@@ -1679,10 +1700,14 @@ def handle_client(conn, state):
         _log_response_write_failure(e)
     except Exception as e:
         try:
-            # Three-way, not two: _is_conn_error() deliberately excludes auth
-            # rejections, so without this branch they would be mislabelled
-            # 'query' and read as a bad-SQL problem by the caller.
-            if _is_auth_error(e) or isinstance(e, WrdsAuthError):
+            # Four-way: 'busy' is pure lock contention from a healthy daemon
+            # (never touched the database, safe to retry); _is_conn_error()
+            # deliberately excludes auth rejections, so without the 'auth'
+            # branch they would be mislabelled 'query' and read as a bad-SQL
+            # problem by the caller.
+            if isinstance(e, WrdsServerBusy):
+                error_kind = 'busy'
+            elif _is_auth_error(e) or isinstance(e, WrdsAuthError):
                 error_kind = 'auth'
             elif _is_conn_error(e):
                 error_kind = 'connection'

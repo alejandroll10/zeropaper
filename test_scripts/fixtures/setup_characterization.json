@@ -654,7 +654,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "76acd8c89828ac9f2ecdae3d2f487915b0a7fe4773b806a001047e1360597d3c",
+          "sha256": "ca89b62bb1f0f8b70416a2f3d1799f9eb97076804e0a3e42bda150fa79353d9c",
           "size": 1859,
           "type": "file"
         },
@@ -1830,7 +1830,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -1963,7 +1963,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -2305,8 +2305,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -2999,8 +2999,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -3313,7 +3313,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "168f650e366c317a0f415127eed2a17004da2fe0de3f3e53d48803b00aadfc4b",
+          "sha256": "149826fcb206ec05441c69d35f720544ffb38856c030b6da3e9098e57de03e5e",
           "size": 3159,
           "type": "file"
         },
@@ -4587,20 +4587,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -4673,8 +4673,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d49868a1637ca807677dd0b332f41848e947b41c1b6f54e0fb76fd2d426d2a2e",
-          "size": 68928,
+          "sha256": "9a939ed57e147f4342e5273a9f9bd4092d26708ce0c2a73031a19cd2896871e8",
+          "size": 69519,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -4839,7 +4839,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -5006,7 +5006,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -5348,8 +5348,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -6042,8 +6042,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -6356,7 +6356,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1d8db892ea61f8a375500b7dc35928dd038ef2210269c16ae3d5039a26e66bcb",
+          "sha256": "b10e583f463a4ec25fe9c627262ae2a49afeca2da31fc7db86d9d2a222499244",
           "size": 3159,
           "type": "file"
         },
@@ -7630,20 +7630,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -7716,8 +7716,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d49868a1637ca807677dd0b332f41848e947b41c1b6f54e0fb76fd2d426d2a2e",
-          "size": 68928,
+          "sha256": "9a939ed57e147f4342e5273a9f9bd4092d26708ce0c2a73031a19cd2896871e8",
+          "size": 69519,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -7882,7 +7882,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -8049,7 +8049,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -8379,8 +8379,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -9039,8 +9039,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -9335,7 +9335,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "037c48070c4667fd7590463892645f9c2f16fb8eb272df591ddd4b7132858508",
+          "sha256": "d2e17df6da3064b8657a408357f6bf89b2d4207acb48478001846d24b6186804",
           "size": 3062,
           "type": "file"
         },
@@ -10573,20 +10573,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -10659,8 +10659,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "48cd7be60d7e39867825858a30d8dc1a5a47e65b95fd6c087149112f550fadbe",
-          "size": 104922,
+          "sha256": "7451f6e902390ab90cdd0ad904fe0105abcb30157e7867d99b4f51be8a3e7419",
+          "size": 105513,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -10801,7 +10801,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -10965,7 +10965,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -11298,8 +11298,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -11964,8 +11964,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -12266,7 +12266,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "498ad63b209fb188c0e98044f1e375d42b577f4d962852b38abce871c174f77d",
+          "sha256": "f55d44110c92a5a3e5de595fe096b0074dd5d89610806da9a5140a0873f89f15",
           "size": 3058,
           "type": "file"
         },
@@ -13522,20 +13522,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -13608,8 +13608,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "3cbfe4cba683f9c9be60aea8a87e6e071310118995dcc7508cc930a546e8ccb0",
-          "size": 105888,
+          "sha256": "392394b36fb134e9ae5aa3ace9a5d86333732bebb52da9fb81990de413451229",
+          "size": 106479,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -13760,7 +13760,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -13930,7 +13930,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -14261,8 +14261,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -14921,8 +14921,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -15217,7 +15217,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "923d049bfc1f0b5928a73e77678708e2da8444c3ef2b2c8cdafbc4113efd9915",
+          "sha256": "c05ed9ee61fe4578ccae856e2b162109f6412d303b3205e1f3bbd466b14c3368",
           "size": 3037,
           "type": "file"
         },
@@ -16455,20 +16455,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -16535,8 +16535,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "48cd7be60d7e39867825858a30d8dc1a5a47e65b95fd6c087149112f550fadbe",
-          "size": 104922,
+          "sha256": "7451f6e902390ab90cdd0ad904fe0105abcb30157e7867d99b4f51be8a3e7419",
+          "size": 105513,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -16637,7 +16637,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "750f87e03755e86ad43fb44e5dec4deb9d91c686095c57f3f6c8c7ffe4d775fd",
+          "sha256": "dfd725d05711e57af5aace6ae5020ce50dc73bed04c692e524a5443933212a15",
           "size": 15387,
           "type": "file"
         },
@@ -16780,7 +16780,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -17111,8 +17111,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -17771,8 +17771,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -18067,7 +18067,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9146c6c5c1bb9b64430b09eb12926410a9a2a2da5981b851197ea5373a83132a",
+          "sha256": "5a7d159e43cc169a4b9eae1748b603b183961bb6477e9bab5ac41f93c00fa647",
           "size": 3061,
           "type": "file"
         },
@@ -19305,20 +19305,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -19391,8 +19391,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "3cbfe4cba683f9c9be60aea8a87e6e071310118995dcc7508cc930a546e8ccb0",
-          "size": 105888,
+          "sha256": "392394b36fb134e9ae5aa3ace9a5d86333732bebb52da9fb81990de413451229",
+          "size": 106479,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -19543,7 +19543,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -19707,7 +19707,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -20362,7 +20362,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "76acd8c89828ac9f2ecdae3d2f487915b0a7fe4773b806a001047e1360597d3c",
+          "sha256": "ca89b62bb1f0f8b70416a2f3d1799f9eb97076804e0a3e42bda150fa79353d9c",
           "size": 1859,
           "type": "file"
         },
@@ -21538,7 +21538,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -21671,7 +21671,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -22016,8 +22016,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -22710,8 +22710,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -23024,7 +23024,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "168f650e366c317a0f415127eed2a17004da2fe0de3f3e53d48803b00aadfc4b",
+          "sha256": "149826fcb206ec05441c69d35f720544ffb38856c030b6da3e9098e57de03e5e",
           "size": 3159,
           "type": "file"
         },
@@ -24298,20 +24298,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -24384,8 +24384,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d49868a1637ca807677dd0b332f41848e947b41c1b6f54e0fb76fd2d426d2a2e",
-          "size": 68928,
+          "sha256": "9a939ed57e147f4342e5273a9f9bd4092d26708ce0c2a73031a19cd2896871e8",
+          "size": 69519,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -24550,7 +24550,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -24717,7 +24717,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -25047,8 +25047,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -25707,8 +25707,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -26003,7 +26003,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9f9087b839a14a99ffba7007d6c697c5e7d4dbeace57362179b37fd7920ca160",
+          "sha256": "e0ea8b8e2fa8699cb9a3992e3d865c69986c90d8cee34658aca6144f03ba2c1b",
           "size": 3052,
           "type": "file"
         },
@@ -27241,20 +27241,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -27327,8 +27327,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d49868a1637ca807677dd0b332f41848e947b41c1b6f54e0fb76fd2d426d2a2e",
-          "size": 68928,
+          "sha256": "9a939ed57e147f4342e5273a9f9bd4092d26708ce0c2a73031a19cd2896871e8",
+          "size": 69519,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -27473,7 +27473,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -27637,7 +27637,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -27967,8 +27967,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -28633,8 +28633,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -28935,7 +28935,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "93665f7df0a9daf88b97bbc1176d0515a648707a7a9afa842a55436a64007142",
+          "sha256": "ee0a2cd16ddd3fc51d283af9019862e87ff7df1a87f13633d3503c6c4b1700c2",
           "size": 3067,
           "type": "file"
         },
@@ -30185,20 +30185,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -30271,8 +30271,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d4f0e2706e8f1628ad44f2c3ba7a31eb4e416c84faea919eeeca84ff0f36af89",
-          "size": 71641,
+          "sha256": "2cb07b64824f42cd542062d62c400701049c43cd710881f33a95a1cec5e0a7b8",
+          "size": 72232,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -30409,7 +30409,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -30573,7 +30573,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -30915,8 +30915,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -31615,8 +31615,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -31935,7 +31935,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6ad65e9c5fae305610b92da5cea59dd97d4006a5b8240bf8c0c82004d714e386",
+          "sha256": "fea8779c758d75ab08c8f243cf2e63d42d1f0451f51d52ee2fe5c29cafe05998",
           "size": 3174,
           "type": "file"
         },
@@ -33221,20 +33221,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -33307,8 +33307,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d4f0e2706e8f1628ad44f2c3ba7a31eb4e416c84faea919eeeca84ff0f36af89",
-          "size": 71641,
+          "sha256": "2cb07b64824f42cd542062d62c400701049c43cd710881f33a95a1cec5e0a7b8",
+          "size": 72232,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -33465,7 +33465,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -33632,7 +33632,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -34291,7 +34291,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "76acd8c89828ac9f2ecdae3d2f487915b0a7fe4773b806a001047e1360597d3c",
+          "sha256": "ca89b62bb1f0f8b70416a2f3d1799f9eb97076804e0a3e42bda150fa79353d9c",
           "size": 1859,
           "type": "file"
         },
@@ -35467,7 +35467,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -35600,7 +35600,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -35933,8 +35933,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -36599,8 +36599,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -36901,7 +36901,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ae5d03000ad5a097ceb960ab4de95821e7315d805fd7c0e3c1a2d614a394e635",
+          "sha256": "1196a6d04094903aae4ad30081bf33dde54343495e53e97a7d6b0497c8b98f5e",
           "size": 3048,
           "type": "file"
         },
@@ -38157,20 +38157,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -38243,8 +38243,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "9495577fb3668ed97f6eab0a694c6d6eb246365b6e6ad3e658d80bd1a7cf2dd2",
-          "size": 69894,
+          "sha256": "1e7572dd9e123d2d2d44ddb243367ae0f399c252bb05cc6416cf8c128dffa3d4",
+          "size": 70485,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -38399,7 +38399,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -38569,7 +38569,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -39228,7 +39228,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bbdc679ce191ad84d8c2e27c1b109249bf06524fb117cdaaf30f12e4a84e38bf",
+          "sha256": "66e8dfe8774f0ea6ccfa9b801ee82cc6f2d7febe7b345749e45797a9f5abeade",
           "size": 1858,
           "type": "file"
         },
@@ -40404,7 +40404,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -40537,7 +40537,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -41262,7 +41262,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9d3e9bb4428b758264c703e21981ac9fe3baa3c7e11615ebae38ada5fc1a1377",
+          "sha256": "8b1b604a512105a566515d1c2c0e8b2f2c80110d6eee7687f5f234cfad3ca76f",
           "size": 1968,
           "type": "file"
         },
@@ -42494,7 +42494,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -42631,7 +42631,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -43355,7 +43355,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9d3e9bb4428b758264c703e21981ac9fe3baa3c7e11615ebae38ada5fc1a1377",
+          "sha256": "8b1b604a512105a566515d1c2c0e8b2f2c80110d6eee7687f5f234cfad3ca76f",
           "size": 1968,
           "type": "file"
         },
@@ -44587,7 +44587,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -44724,7 +44724,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -45383,7 +45383,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5f8ab0cdebb71feb1b4c154530efaff7c77a7d7ce10e03f32535f409e46b12eb",
+          "sha256": "76f72eaa2be53e14c3ebdcdbfbfdea8d1d41ac7029472b1e54269c551c8e4f1d",
           "size": 1858,
           "type": "file"
         },
@@ -46559,7 +46559,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -46692,7 +46692,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -47035,8 +47035,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -47729,8 +47729,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -48043,7 +48043,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "06eec4b44aa5ee48f28f4cc943ce9694f1f525d92ecde0b85c8f4cfa8d3bc0c6",
+          "sha256": "9d5ecb8723b96de9f8c72b87fb2bdff894e6a494a989bb004f1f3b0516abb9bf",
           "size": 3134,
           "type": "file"
         },
@@ -49317,20 +49317,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -49397,8 +49397,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d49868a1637ca807677dd0b332f41848e947b41c1b6f54e0fb76fd2d426d2a2e",
-          "size": 68928,
+          "sha256": "9a939ed57e147f4342e5273a9f9bd4092d26708ce0c2a73031a19cd2896871e8",
+          "size": 69519,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -49511,7 +49511,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "750f87e03755e86ad43fb44e5dec4deb9d91c686095c57f3f6c8c7ffe4d775fd",
+          "sha256": "dfd725d05711e57af5aace6ae5020ce50dc73bed04c692e524a5443933212a15",
           "size": 15387,
           "type": "file"
         },
@@ -49657,7 +49657,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -50077,7 +50077,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "07e5cbf3bfb15b87a2ff932ed86a2c2a75b5d0e41a9a33a05c74349c435f747f",
+          "sha256": "56c5973fef1ed27fdbc20b0e302b7b7289a4bdfd3b95f60132066e7fa2382f3e",
           "size": 1841,
           "type": "file"
         },
@@ -50839,7 +50839,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -51183,8 +51183,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -51691,8 +51691,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -51819,7 +51819,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "06d2dcd4e15dd71213369d9a817e091bada666e2042e18fd88fc95643917f262",
+          "sha256": "efad7c9802d00fdd16f80bb6fc4fc86c87c16ae1719c8a7b594d87d429f884b3",
           "size": 3141,
           "type": "file"
         },
@@ -52589,20 +52589,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -52805,7 +52805,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -53149,8 +53149,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -53657,8 +53657,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -53785,7 +53785,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "d99d2dcd600c698fbddc656af9ad32ec1997a11969bf565efb08ebd5903d787a",
+          "sha256": "04544394cf53d97d6b49414fae2986950eed8cd0780c45ac7459aeb64fb28c4f",
           "size": 3141,
           "type": "file"
         },
@@ -54555,20 +54555,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -54771,7 +54771,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -55103,8 +55103,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -55595,8 +55595,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -55723,7 +55723,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "507659d380fb4bce0cc5c6836ba1584d257fb46138c614cfd9909d2f5d01a6c7",
+          "sha256": "c7a4275a572122322d9f3498d5dafa087f3fe5f3a279a7a3c08ae4c2d26c885d",
           "size": 3034,
           "type": "file"
         },
@@ -56493,20 +56493,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -56700,7 +56700,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -57121,7 +57121,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "1757cec702fdc6e99385e7b0c48e6d5639c99bfb122092a51dc9830385d976e5",
+          "sha256": "2b523120a4442a115edd1730e95c2a7a51bf08c1329d3ed30bb286078fb53b7f",
           "size": 1840,
           "type": "file"
         },
@@ -57883,7 +57883,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -58335,7 +58335,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "dff2fdc1ac5d83887f8f0e2c2fbaed5758f8b559b624a2018784d1d70dcbba06",
+          "sha256": "98f37265c77fb8f87c16a9c389275cca66115dcef1c60178137314af40712e9c",
           "size": 1950,
           "type": "file"
         },
@@ -59107,7 +59107,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -59766,7 +59766,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "05aeebfa6f1718d0514d48394f05a6734ff511487eb5d12201a1a324b49e939f",
+          "sha256": "78c475085b2673a7e32383594b3f4c5ed42d7d53a6515b7cfbda25aca445e7e0",
           "size": 1858,
           "type": "file"
         },
@@ -60952,7 +60952,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -61085,7 +61085,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -61415,8 +61415,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -62075,8 +62075,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -62371,7 +62371,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9f9087b839a14a99ffba7007d6c697c5e7d4dbeace57362179b37fd7920ca160",
+          "sha256": "e0ea8b8e2fa8699cb9a3992e3d865c69986c90d8cee34658aca6144f03ba2c1b",
           "size": 3052,
           "type": "file"
         },
@@ -63609,20 +63609,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -63695,8 +63695,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d49868a1637ca807677dd0b332f41848e947b41c1b6f54e0fb76fd2d426d2a2e",
-          "size": 68928,
+          "sha256": "9a939ed57e147f4342e5273a9f9bd4092d26708ce0c2a73031a19cd2896871e8",
+          "size": 69519,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -63841,7 +63841,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -64005,7 +64005,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -64731,7 +64731,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9d3e9bb4428b758264c703e21981ac9fe3baa3c7e11615ebae38ada5fc1a1377",
+          "sha256": "8b1b604a512105a566515d1c2c0e8b2f2c80110d6eee7687f5f234cfad3ca76f",
           "size": 1968,
           "type": "file"
         },
@@ -65963,7 +65963,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -66100,7 +66100,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -66784,7 +66784,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "5d729c16cc0e554dac549144282be24f97c5ec04c26960211628e0b46bbd5497",
+          "sha256": "63b9d1e27918f05ed0ce4f4b283eab88bd1b9d5596fd185f1b28dc82231e70fd",
           "size": 1918,
           "type": "file"
         },
@@ -67990,7 +67990,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -68125,7 +68125,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -68822,7 +68822,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8ae6e1d0833f9d8e75369f9062ac40406a2a64fcd521fb6c621333e6571a7599",
+          "sha256": "deabb6485ad03749cb061596fd72a8873cdc3fc2fa3e39bd94b2ca28a63de249",
           "size": 1916,
           "type": "file"
         },
@@ -70056,7 +70056,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -70197,7 +70197,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -70883,7 +70883,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "48c8ea336e4ea69ff0d1c176674203e5b8cea588cfdd8ec05398b7b3716b91d5",
+          "sha256": "3c1d9168fd5f716d695be86862ef5ddd7f334a09ef52dba79a731c916ee90efc",
           "size": 1916,
           "type": "file"
         },
@@ -72089,7 +72089,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -72224,7 +72224,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -72909,7 +72909,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "41faf705d131d5ce6ceed6aa0ada77dd87fc7a5e1e7f8d3c20a3e89af06eca07",
+          "sha256": "2f46c8b4a081770c23e0e7b75275017ae8cbf89271e7e3b7d5f72fd4c895f233",
           "size": 1893,
           "type": "file"
         },
@@ -74065,7 +74065,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "750f87e03755e86ad43fb44e5dec4deb9d91c686095c57f3f6c8c7ffe4d775fd",
+          "sha256": "dfd725d05711e57af5aace6ae5020ce50dc73bed04c692e524a5443933212a15",
           "size": 15387,
           "type": "file"
         },
@@ -74179,7 +74179,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -74865,7 +74865,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9a455a0c600256a34c32742e17db02454942c125499958fa122a049e9e4b76c5",
+          "sha256": "58d7736a41eebe771f5359017036087b998e6367508d284ee0d3184b232b434b",
           "size": 1935,
           "type": "file"
         },
@@ -76063,7 +76063,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -76198,7 +76198,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -76578,7 +76578,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c129035d616aab203b0a0f4b1ac7dd2c0e50da3d6ce6959cdc22a8c8f628aa5e",
+          "sha256": "cf0c31b54a8ef4f598d196281b62cda7f3df47d01f61af4c6de910ec96ddec5c",
           "size": 1791,
           "type": "file"
         },
@@ -77312,7 +77312,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -77724,7 +77724,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "dfa7c1219b4eb44e30cd7c4ed0a6fcee1e9028ce74ff8defd8cef43e07767bf8",
+          "sha256": "fd4ea0ddf0087675c8ca747f80ecb35b13b6fabee17616f8db378b33c7316a07",
           "size": 1900,
           "type": "file"
         },
@@ -78468,7 +78468,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -79126,7 +79126,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b929caa0500217b844aed113def0ef112028428fd3aaf72e634fe0592a75ee8a",
+          "sha256": "3c85e4326bd56914c6fae1501d43f790d9feaa1c76ff05e9c635e2aa4d995500",
           "size": 1857,
           "type": "file"
         },
@@ -80302,7 +80302,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -80435,7 +80435,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -80777,8 +80777,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -81471,8 +81471,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -81785,7 +81785,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7bf562be8e135df9031bc00adb7a906ff66f42bf67fc194a9b8c235f88a61c1c",
+          "sha256": "0f84f58eb14449c153e2d9d38dc75426e85d25bf9e19c05964acda3c7703f70d",
           "size": 3157,
           "type": "file"
         },
@@ -83059,20 +83059,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -83145,8 +83145,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d49868a1637ca807677dd0b332f41848e947b41c1b6f54e0fb76fd2d426d2a2e",
-          "size": 68928,
+          "sha256": "9a939ed57e147f4342e5273a9f9bd4092d26708ce0c2a73031a19cd2896871e8",
+          "size": 69519,
           "type": "file"
         },
         "docs/stage_3b_experiments.md": {
@@ -83311,7 +83311,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -83478,7 +83478,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -83808,8 +83808,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -84468,8 +84468,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -84764,7 +84764,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "eb30950bf2e671d45f146cf148d4b328bde8dd50886453aff8fe547f9db340a6",
+          "sha256": "6d8f1ab76702332d7767b23a4bb2c7255a139af31fac6c36e96089358b50ae9f",
           "size": 3050,
           "type": "file"
         },
@@ -86002,20 +86002,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -86088,8 +86088,8 @@
         },
         "docs/stage_3a_empirical.md": {
           "mode": "0644",
-          "sha256": "d49868a1637ca807677dd0b332f41848e947b41c1b6f54e0fb76fd2d426d2a2e",
-          "size": 68928,
+          "sha256": "9a939ed57e147f4342e5273a9f9bd4092d26708ce0c2a73031a19cd2896871e8",
+          "size": 69519,
           "type": "file"
         },
         "docs/stage_4.md": {
@@ -86234,7 +86234,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -86398,7 +86398,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -86818,7 +86818,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bb98d2983a16b649e4420eb65c786854ca94636cdd9e3bf1c26842ed5889bee2",
+          "sha256": "7b604f8f9dff0df9155d10f9b27b7e3234d907c95f4acf5c5d7a2f233e2693a5",
           "size": 1839,
           "type": "file"
         },
@@ -87580,7 +87580,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -87924,8 +87924,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -88432,8 +88432,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -88560,7 +88560,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "a18979f284ead740510036573c21377e0cfc5d2d4abb34957d594d06fa1ce964",
+          "sha256": "0f64994cd2120c695a46c1b5eafd8279375c2a5892a503e28dca09236347c9c0",
           "size": 3139,
           "type": "file"
         },
@@ -89330,20 +89330,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -89546,7 +89546,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -89878,8 +89878,8 @@
         },
         ".agents/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "697ff34b0fa3ed3748a2585c13d61b0597e7cdf57f594e47ba8adf1a7997c750",
-          "size": 17754,
+          "sha256": "291f20d334091c4c8f5fd53995479be52124b3b7bd08de54eddac9a18094e4ab",
+          "size": 18694,
           "type": "file"
         },
         ".arpipeline": {
@@ -90370,8 +90370,8 @@
         },
         ".claude/skills/wrds/SKILL.md": {
           "mode": "0644",
-          "sha256": "614e910cfb0848c2e7ad1853328dfd3e55c2034dd83158bd8ead7a5a9efd066a",
-          "size": 17858,
+          "sha256": "6aacba1da2e5957a7459d316e8a634a10d1645820408e1ee70f4b48acdcd4ece",
+          "size": 18798,
           "type": "file"
         },
         ".codex": {
@@ -90498,7 +90498,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "260d7b0f87c6699c499ec3e22e40d56c04e9d83dfb7edd7ca56c8a9cb990f82d",
+          "sha256": "bc93ff0bb5ac03eabb95915135e30ad3ac5e9e2a0f15972f90143b644f43816a",
           "size": 3032,
           "type": "file"
         },
@@ -91268,20 +91268,20 @@
         },
         "code/utils/wrds_client.py": {
           "mode": "0644",
-          "sha256": "5b402768a53498ad9e39520f17e53e0e3613fa02ba740cfb2e56954f268b7d83",
-          "size": 28278,
+          "sha256": "c79dabc60d76b5c8e29379012a3288287d85531f88ed7e53b0aa0dbf4cfcb3fe",
+          "size": 32096,
           "type": "file"
         },
         "code/utils/wrds_query_bridge.py": {
           "mode": "0644",
-          "sha256": "095afdf68156d8931f4a36d6859095f96e7496442d14f9fedfde580cf04cf733",
-          "size": 18453,
+          "sha256": "9a3a9b24ce4767962a65088dfef367d09c0af5de63d6337996ebe8fc56061d71",
+          "size": 18738,
           "type": "file"
         },
         "code/utils/wrds_server.py": {
           "mode": "0644",
-          "sha256": "746ab51ed9893084e8fee5cb3175adbc07d93d04ff1d0b81c8abfcfc04485fcd",
-          "size": 105542,
+          "sha256": "cd8193ad5bc1c54c03cf55c4947e8d2642f61a38dcdc6a273aa27978d68954b4",
+          "size": 107183,
           "type": "file"
         },
         "code/utils/wrds_utils.py": {
@@ -91475,7 +91475,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -91927,7 +91927,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "0a4476873773335b58a0c3a6a95290e3bc7e0b3d8ff25f5e3b647acd811386f6",
+          "sha256": "2518fb56e4b886aa342625df0cc0a75fc475e693c6acc2fef2dc39c535d5bc74",
           "size": 1948,
           "type": "file"
         },
@@ -92699,7 +92699,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -93425,7 +93425,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "4d3407154f96f47c64f7f24b3a57d94c8bcb0f980c256de3bb274c5001583691",
+          "sha256": "fb8277668780ca4a763ac10777bd12cf5fe65648601511ff72f2614a558bb5c1",
           "size": 1966,
           "type": "file"
         },
@@ -94657,7 +94657,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "651c59400623337eec31a5641e8cc2ecd3e7d69b3cc166b2745651997b080005",
+          "sha256": "e355f4225a33887bcb2897cbd9412fbb01c0be2c5903e460afc66213ce6dae9f",
           "size": 15378,
           "type": "file"
         },
@@ -94794,7 +94794,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.39.0+<GIT_REVISION>",
+        "template_version": "2.41.0+<GIT_REVISION>",
         "variant": "macro"
       }
     }

@@ -45,6 +45,10 @@ QUERY_TIMEOUT_SECONDS = 300
 QUERY_TIMEOUT_FLOOR_SECONDS = 1
 UPSTREAM_CONTROL_TIMEOUT = 15
 UPSTREAM_REQUEST_ALLOWANCE_SECONDS = 15
+# The daemon may queue a command for its full lock-queue budget (60s
+# server-side) before answering with either the result or a retryable
+# 'busy' error; the upstream header wait must cover that window.
+SERVER_QUEUE_ALLOWANCE_SECONDS = 65
 RESPONSE_PREPARATION_GRACE_SECONDS = 65
 RECOVERY_GRACE_SECONDS = 60
 RESPONSE_WRITE_BASE_SECONDS = 60
@@ -194,7 +198,8 @@ def _upstream_header_timeout(request):
         QUERY_TIMEOUT_FLOOR_SECONDS,
         min(requested, QUERY_TIMEOUT_SECONDS),
     )
-    return (UPSTREAM_REQUEST_ALLOWANCE_SECONDS + execution +
+    return (UPSTREAM_REQUEST_ALLOWANCE_SECONDS +
+            SERVER_QUEUE_ALLOWANCE_SECONDS + execution +
             RECOVERY_GRACE_SECONDS +
             RESPONSE_PREPARATION_GRACE_SECONDS)
 

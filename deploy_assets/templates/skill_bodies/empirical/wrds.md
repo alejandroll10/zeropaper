@@ -35,9 +35,15 @@ path cannot discard an undelivered frame tail when it observes the relay
 side close first. SQL execution, response preparation, daemon-to-relay transfer,
 and relay-to-client transfer have composed—not shared—wall-clock budgets, so a
 query that legitimately uses its execution deadline does not leave zero time
-to deliver the resulting frame. Queueing, one guarded recovery, and its retry
-share one server operation deadline; the retry receives only the time left,
-never a fresh query clock, and a result returning after that clock is rejected.
+to deliver the resulting frame. Queue wait is a separate budget too: a command
+that cannot obtain the daemon's single serialized database lock within 60
+seconds gets a retryable `busy` answer — emitted strictly before any database
+or credential activity — and the client absorbs those with bounded jittered
+backoff (default 30 minutes total; `WRDS_BUSY_WAIT_SECONDS` overrides) before
+raising `WrdsBusyTimeout`. One guarded recovery and its retry share the
+execution deadline, which starts only once the lock is held; the retry
+receives only the time left, never a fresh query clock, and a result
+returning after that clock is rejected.
 DataFrame conversion and final JSON encoding run in a separately bounded
 producer stage whose timed-out workers cannot touch the socket and remain
 under a fixed concurrency cap until they exit. Readiness treats the serialized
@@ -287,6 +293,7 @@ then put forecast and actual on the same split basis before subtracting.
 
 ## Rules
 - **Use only the persistent client.** Never instantiate `wrds.Connection()` in a pipeline script; direct connections bypass the shared latch, and a library call that looks singular may retry internally. Never put WRDS startup or queries under a generic retry decorator, shell retry loop, supervisor restart policy, or fallback process, and never build another proxy/tunnel—the shipped client already owns the authenticated Linux relay. A `WrdsSafetyBlocked`/protocol-mismatch error is terminal for agents: an operator must replace the stale service with the deployed version; do not restart it yourself.
+- **`WrdsBusyTimeout` means the healthy daemon is saturated, not broken.** The host-wide daemon serializes every query from every deployment on this machine, and the client already waited its whole busy budget before raising. It is not a producer bug, not a credential problem, and not an outage: do not restart or bypass the daemon, do not halt as unreachable (`wrds_ping()` still passes), and do not rewrite the query to "fix" it — rerun when load drops, or raise `WRDS_BUSY_WAIT_SECONDS` when contention is expected to persist.
 - **A credential rejection is terminal — never retry it, and never work around it.** WRDS locks the account after enough failed logins, and a locked account takes the whole empirical pipeline down for everyone on this host. The server distinguishes the two failure modes for you: a dropped socket recovers silently, but a refused credential *latches* and every later call fails fast with `[auth error]` (client side: `WrdsAuthBlocked`, or `wrds_auth_error()` returns a message; `start_services.sh` exits 2). When you see that, **halt and escalate to the operator** — report it as a blocked core per `docs/core_bypass.md` and record it in `process_log/degradation_ledger.md`. Do not re-run `wrds_start()`, do not restart the server, do not loop on `wrds_ping()`, and do not try alternate credentials. **Never call `wrds_unblock()` or `python code/utils/wrds_client.py unblock`** — that is the operator's approval gate. Lifecycle commands do not exist on the query socket. The operator stops the daemon on the host, fixes `WRDS_PASS`, then runs the unblock CLI once; the server holds the singleton while clearing the latch and reconnecting. A second rejection re-latches, so each approval costs exactly one login attempt.
 - **Credentials only in `.env`.** Never hardcode username/password.
 - **Filter aggressively.** Specify date ranges, shrcd, exchcd, indfmt/datafmt/popsrc/consol filters.

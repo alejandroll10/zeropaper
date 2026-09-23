@@ -142,7 +142,7 @@ check("_is_conn_error(PAM)", S._is_conn_error(PAM), False)
 check("_is_query_cancel_error(TIMEOUT)", S._is_query_cancel_error(TIMEOUT), True)
 check("_is_conn_error(TIMEOUT)", S._is_conn_error(TIMEOUT), False)
 timeout_calls = {'n': 0}
-def timeout_query(db):
+def timeout_query(db, deadline=None):
     timeout_calls['n'] += 1
     raise TIMEOUT
 timeout_state = S.WrdsState(FakeDB())
@@ -243,8 +243,8 @@ S._clear_auth_block()
 logins["n"] = 0
 st4 = S.WrdsState(FakeDB())
 calls = {"n": 0}
-st4._recover = lambda: 'rolled_back'
-def drop_then_auth(db):
+st4._recover = lambda deadline=None: 'rolled_back'
+def drop_then_auth(db, deadline=None):
     calls["n"] += 1
     if calls["n"] == 1:
         raise DROP

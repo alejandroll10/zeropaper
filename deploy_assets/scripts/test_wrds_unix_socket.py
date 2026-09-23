@@ -1008,14 +1008,13 @@ def main():
         busy_entered = threading.Event()
         busy_release = threading.Event()
 
-        def bounded_busy_command(db):
+        def bounded_busy_command(db, deadline):
             busy_entered.set()
             busy_release.wait(timeout=1)
             return "done"
 
         busy_worker = threading.Thread(
-            target=lambda: busy_state.run(
-                bounded_busy_command, deadline=time.monotonic() + 1),
+            target=lambda: busy_state.run(bounded_busy_command, 1),
             daemon=True,
         )
         busy_worker.start()
@@ -1028,19 +1027,110 @@ def main():
         busy_worker.join(timeout=1)
         assert not busy_worker.is_alive()
 
+        # A command that never obtains the lock within the queue budget fails
+        # as the retryable busy signal, before any database activity.
         queued_state = server.WrdsState(None)
         queued_state.lock.acquire()
         try:
-            try:
-                queued_state.run(
-                    lambda db: "unreachable",
-                    deadline=time.monotonic() + 0.05,
-                )
-                raise AssertionError("queued command exceeded its deadline")
-            except server.WrdsOperationTimeout:
-                pass
+            with mock.patch.object(server, "LOCK_QUEUE_WAIT_SECONDS", 0.05):
+                try:
+                    queued_state.run(lambda db, deadline: "unreachable", 1)
+                    raise AssertionError(
+                        "queued command bypassed the busy signal")
+                except server.WrdsServerBusy:
+                    pass
         finally:
             queued_state.lock.release()
+
+        # End-to-end, handle_client labels lock contention 'busy' — distinct
+        # from auth/connection/query — while the daemon never touched the
+        # database (its db is None here and nothing dereferenced it).
+        contended_state = server.WrdsState(None)
+        contended_state.lock.acquire()
+        try:
+            with mock.patch.object(server, "LOCK_QUEUE_WAIT_SECONDS", 0.05):
+                busy_left, busy_right = socket.socketpair()
+                busy_payload = json.dumps({
+                    "cmd": "safe_query_v7", "sql": "SELECT 1", "timeout": 1,
+                    "safety_protocol": server.SAFETY_PROTOCOL,
+                }).encode()
+                busy_left.sendall(
+                    struct.pack("!Q", len(busy_payload)) + busy_payload)
+                busy_handler = threading.Thread(
+                    target=server.handle_client,
+                    args=(busy_right, contended_state), daemon=True)
+                busy_handler.start()
+                busy_size = struct.unpack(
+                    "!Q", client._recv_exact(busy_left, 8))[0]
+                busy_resp = json.loads(
+                    client._recv_exact(busy_left, busy_size).decode())
+                busy_left.close()
+                busy_handler.join(timeout=2)
+                assert not busy_handler.is_alive()
+        finally:
+            contended_state.lock.release()
+        assert busy_resp["status"] == "error"
+        assert busy_resp["error_kind"] == "busy"
+
+        # The client absorbs busy answers with backoff inside the attempt,
+        # raises the typed contention error only when the budget is spent,
+        # and never retries an auth rejection.
+        busy_sequence = []
+
+        def busy_then_ok(request, **kwargs):
+            busy_sequence.append(request["cmd"])
+            if request["cmd"] == "safety_hello_v7":
+                return {"status": "ok",
+                        "safety_protocol": client.SAFETY_PROTOCOL}
+            if busy_sequence.count("safe_list_tables_v7") < 3:
+                return {"status": "error", "error_kind": "busy",
+                        "msg": "WRDS daemon busy",
+                        "safety_protocol": client.SAFETY_PROTOCOL}
+            return {"status": "ok", "tables": ["msf"],
+                    "safety_protocol": client.SAFETY_PROTOCOL}
+
+        with mock.patch.object(client, "_send_request", busy_then_ok), \
+                mock.patch.object(
+                    client, "BUSY_RETRY_INITIAL_SECONDS", 0.01), \
+                mock.patch.object(client, "BUSY_RETRY_MAX_SECONDS", 0.02):
+            assert client.wrds_list_tables("crsp") == ["msf"]
+        assert busy_sequence.count("safe_list_tables_v7") == 3
+        assert busy_sequence.count("safety_hello_v7") == 1
+
+        def always_busy(request, **kwargs):
+            if request["cmd"] == "safety_hello_v7":
+                return {"status": "ok",
+                        "safety_protocol": client.SAFETY_PROTOCOL}
+            return {"status": "error", "error_kind": "busy",
+                    "msg": "WRDS daemon busy",
+                    "safety_protocol": client.SAFETY_PROTOCOL}
+
+        with mock.patch.object(client, "_send_request", always_busy), \
+                mock.patch.dict(os.environ, {"WRDS_BUSY_WAIT_SECONDS": "0"}):
+            try:
+                client.wrds_list_tables("crsp")
+                raise AssertionError("exhausted busy budget did not raise")
+            except client.WrdsBusyTimeout:
+                pass
+
+        auth_sends = []
+
+        def auth_reject(request, **kwargs):
+            auth_sends.append(request["cmd"])
+            if request["cmd"] == "safety_hello_v7":
+                return {"status": "ok",
+                        "safety_protocol": client.SAFETY_PROTOCOL}
+            return {"status": "error", "error_kind": "auth",
+                    "msg": "credential rejected",
+                    "safety_protocol": client.SAFETY_PROTOCOL}
+
+        with mock.patch.object(client, "_send_request", auth_reject):
+            try:
+                client.wrds_list_tables("crsp")
+                raise AssertionError("auth rejection was not terminal")
+            except client.WrdsAuthBlocked:
+                pass
+        assert auth_sends.count("safe_list_tables_v7") == 1
 
         # Contention from a healthcheck/recovery owner is never called live.
         wedged_state = server.WrdsState(object())
@@ -1075,7 +1165,7 @@ def main():
         retry_state = server.WrdsState(object())
         retry_calls = []
 
-        def fail_then_retry(db):
+        def fail_then_retry(db, deadline):
             retry_calls.append(time.monotonic())
             raise ConnectionResetError(
                 errno.ECONNRESET, "connection reset by peer")
@@ -1085,12 +1175,10 @@ def main():
             return "test_recovery"
 
         with mock.patch.object(
-                retry_state, "_recover", side_effect=slow_recovery):
+                retry_state, "_recover", side_effect=slow_recovery), \
+                mock.patch.object(server, "RECOVERY_GRACE_SECONDS", 0):
             try:
-                retry_state.run(
-                    fail_then_retry,
-                    deadline=time.monotonic() + 0.05,
-                )
+                retry_state.run(fail_then_retry, 0.05)
                 raise AssertionError("recovery restarted the command deadline")
             except server.WrdsOperationTimeout:
                 pass
@@ -1100,24 +1188,24 @@ def main():
         late_entered = threading.Event()
         late_errors = []
 
-        def late_success(db):
+        def late_success(db, deadline):
             late_entered.set()
             time.sleep(0.1)
             return "late success"
 
-        late_worker = threading.Thread(
-            target=lambda: _capture_error(
-                late_errors,
-                lambda: late_success_state.run(
-                    late_success, deadline=time.monotonic() + 0.05)),
-            daemon=True,
-        )
-        late_worker.start()
-        assert late_entered.wait(timeout=1)
-        time.sleep(0.06)
-        late_ok, late_detail = late_success_state.healthcheck()
-        assert not late_ok and "exceeded" in late_detail
-        late_worker.join(timeout=1)
+        with mock.patch.object(server, "RECOVERY_GRACE_SECONDS", 0):
+            late_worker = threading.Thread(
+                target=lambda: _capture_error(
+                    late_errors,
+                    lambda: late_success_state.run(late_success, 0.05)),
+                daemon=True,
+            )
+            late_worker.start()
+            assert late_entered.wait(timeout=1)
+            time.sleep(0.06)
+            late_ok, late_detail = late_success_state.healthcheck()
+            assert not late_ok and "exceeded" in late_detail
+            late_worker.join(timeout=1)
         assert not late_worker.is_alive()
         assert len(late_errors) == 1
         assert isinstance(late_errors[0], server.WrdsOperationTimeout)
@@ -1168,7 +1256,7 @@ def main():
         # response must still arrive under the separate preparation/transport
         # budgets instead of inheriting an already-expired query clock.
         class DelayedQueryState(HealthyState):
-            def run(self, operation, deadline=None):
+            def run(self, operation, execution_timeout=None):
                 time.sleep(0.08)
                 return client.pd.DataFrame({"x": [1]}), False
 
@@ -1208,7 +1296,7 @@ def main():
                 return '{"columns":["x"],"index":[0],"data":[[1]]}'
 
         class SlowPreparationState(HealthyState):
-            def run(self, operation, deadline=None):
+            def run(self, operation, execution_timeout=None):
                 return SlowFrame(), False
 
         prep_client, prep_server = socket.socketpair()
