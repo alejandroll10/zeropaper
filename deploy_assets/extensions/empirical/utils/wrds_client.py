@@ -305,7 +305,10 @@ def _connect(timeout, force_bridge=False, bridge_timeout=None):
 
 def _send_request(request, timeout=300, force_bridge=False):
     """Send a request to the wrds_server and return the response."""
-    request = {**request, 'safety_protocol': SAFETY_PROTOCOL}
+    # busy_aware: this client reads an over-cap 'busy' handshake as
+    # contention, so the daemon may answer it instead of closing (#346).
+    request = {**request, 'safety_protocol': SAFETY_PROTOCOL,
+               'busy_aware': True}
     bridge_timeout = (max(timeout, BRIDGE_SETUP_ALLOWANCE_SECONDS)
                       if request.get('cmd') in _DB_COMMANDS else timeout)
     sock, bridge_token = _connect(
@@ -343,7 +346,16 @@ def _send_request(request, timeout=300, force_bridge=False):
                 sock, min(65536, msg_len - received), response_deadline)
             chunks.append(chunk)
             received += len(chunk)
-        return json.loads(b''.join(chunks).decode())
+        response = json.loads(b''.join(chunks).decode())
+        if (isinstance(response, dict) and
+                response.get('error_kind') == 'unavailable'):
+            # The relay reached us but the daemon behind it did not answer:
+            # the same condition as a refused direct socket, so callers get
+            # the same exception (ping False, latch read from disk, and the
+            # watchdog-repair wait in _checked_request).
+            raise ConnectionError(response.get('msg') or
+                                  'WRDS daemon unavailable behind the bridge')
+        return response
     finally:
         sock.close()
 
@@ -353,8 +365,10 @@ def wrds_bridge_ping():
     try:
         resp = _send_request(
             {'cmd': 'safety_hello_v7'}, timeout=5, force_bridge=True)
-        return (resp.get('status') == 'ok' and
-                resp.get('safety_protocol') == SAFETY_PROTOCOL)
+        if resp.get('safety_protocol') != SAFETY_PROTOCOL:
+            return False
+        # A busy relay is alive, only contended (#346).
+        return resp.get('status') == 'ok' or _is_busy(resp)
     except (ConnectionRefusedError, OSError, WrdsSafetyBlocked,
             ConnectionError):
         return False
@@ -377,6 +391,19 @@ class WrdsBusyTimeout(RuntimeError):
     or raise WRDS_BUSY_WAIT_SECONDS; never bypass or restart the daemon."""
 
 
+class _WrdsBusyAnswer(RuntimeError):
+    """One 'busy' answer from the daemon or the relay (#346).
+
+    Emitted before any database or credential activity: the service is alive
+    and contended. Never a safety, auth, or reachability verdict. Absorbed by
+    _checked_request's bounded backoff; ping/status report it as alive.
+    """
+
+
+def _is_busy(resp):
+    return resp.get('status') == 'error' and resp.get('error_kind') == 'busy'
+
+
 def _safety_message(got=None):
     return (
         f"WRDS daemon safety protocol mismatch (got {got!r}, expected "
@@ -395,6 +422,8 @@ def _safety_hello():
     """DB-free handshake; legacy servers reject this as an unknown command."""
     resp = _send_request({'cmd': 'safety_hello_v7'}, timeout=5)
     _validate_protocol(resp)
+    if _is_busy(resp):
+        raise _WrdsBusyAnswer(resp.get('msg') or 'WRDS service busy')
     if resp.get('status') != 'ok':
         raise WrdsSafetyBlocked(resp.get('msg') or _safety_message())
 
@@ -517,22 +546,31 @@ def _checked_request_once(request, timeout=300):
     A busy answer is emitted before the daemon touches the database, so
     re-sending can never spend a login or repeat database work; only the
     'busy' kind is ever retried — auth and safety failures stay terminal.
+    The handshake and the command share one budget: a busy answer on either
+    leg (daemon lock queue, daemon connection cap, or relay slots) is the
+    same contention (#346).
     """
-    _ensure_safe_server()
     budget = _busy_wait_budget()
     wait_deadline = time.monotonic() + budget
     delay = BUSY_RETRY_INITIAL_SECONDS
+    handshake_done = False
     while True:
-        resp = _send_request(request, timeout=timeout)
-        _validate_protocol(resp)
-        if not (resp.get('status') == 'error' and
-                resp.get('error_kind') == 'busy'):
-            return resp
+        try:
+            if not handshake_done:
+                _ensure_safe_server()
+                handshake_done = True
+            resp = _send_request(request, timeout=timeout)
+            _validate_protocol(resp)
+            if not _is_busy(resp):
+                return resp
+            busy_msg = resp.get('msg')
+        except _WrdsBusyAnswer as busy:
+            busy_msg = str(busy)
         remaining = wait_deadline - time.monotonic()
         if remaining <= 0:
             raise WrdsBusyTimeout(
                 f"WRDS daemon stayed saturated for the whole {budget:.0f}s "
-                f"busy-wait budget: {resp.get('msg')} This is queue "
+                f"busy-wait budget: {busy_msg} This is queue "
                 "contention on the healthy host-wide daemon (another "
                 "campaign or deployment), not an outage and not a producer "
                 "error. Rerun when load drops or raise "
@@ -545,12 +583,19 @@ def _checked_request_once(request, timeout=300):
 
 
 def wrds_ping():
-    """Check if wrds_server is running. Returns True/False."""
+    """Check if wrds_server is running. Returns True/False.
+
+    A busy answer means alive-but-contended and reads True: saturation must
+    never turn into an unreachable verdict or a halt (#346).
+    """
     try:
         _safety_hello()
         resp = _send_request({'cmd': 'safe_ping_v7'}, timeout=5)
-        return (resp.get('status') == 'ok' and
-                resp.get('safety_protocol') == SAFETY_PROTOCOL)
+        if resp.get('safety_protocol') != SAFETY_PROTOCOL:
+            return False
+        return resp.get('status') == 'ok' or _is_busy(resp)
+    except _WrdsBusyAnswer:
+        return True
     except (ConnectionRefusedError, OSError, WrdsSafetyBlocked):
         return False
 
@@ -566,6 +611,8 @@ def wrds_auth_error():
     try:
         _safety_hello()
         resp = _send_request({'cmd': 'safe_ping_v7'}, timeout=5)
+    except _WrdsBusyAnswer:
+        return None  # alive and contended: no latch to report
     except WrdsSafetyBlocked as e:
         return str(e)
     except (ConnectionRefusedError, OSError):
@@ -788,6 +835,28 @@ def wrds_describe(library, table):
     from io import StringIO
     return pd.read_json(StringIO(resp['data']), orient='split')
 
+def daemon_build_note():
+    """Operator note when the running daemon predates this deployment's code.
+
+    The daemon is long-lived and host-wide, so a template fix to it reaches
+    this host only when it restarts. None when current or undeterminable.
+    """
+    try:
+        running = _send_request(
+            {'cmd': 'safety_hello_v7'}, timeout=5).get('build')
+    except (OSError, ValueError):
+        return None
+    deployed = _server_module()._source_build(
+        os.path.join(os.path.dirname(os.path.abspath(__file__)),
+                     'wrds_server.py'))
+    if not running or running == deployed or '?' in (running, deployed):
+        return None
+    return (f"the running daemon (build {running}) predates this "
+            f"deployment's code (build {deployed}). Restart the WRDS "
+            "services when no run needs them to pick up fixes (costs one "
+            "Duo login).")
+
+
 def wrds_unblock():
     """OPERATOR ONLY — approve one retry after a latched credential rejection.
 
@@ -826,6 +895,10 @@ def wrds_unblock():
         stopped, detail = _server_module().stop_singleton_owner()
         if not stopped:
             return False, f'could not stop the latched WRDS daemon: {detail}'
+    except _WrdsBusyAnswer:
+        return False, (
+            'WRDS daemon is running and busy, so it has not latched; there '
+            'is nothing to unblock.')
     except WrdsSafetyBlocked as e:
         # A protocol mismatch still proves that a process answered the socket.
         # Never start a second credentialed daemon beside an old live one.
@@ -833,12 +906,13 @@ def wrds_unblock():
             'A live WRDS endpoint has an incompatible safety protocol. '
             f'OPERATOR: stop it from the host before unblock. {e}'
         )
-    except (ConnectionRefusedError, FileNotFoundError):
+    except (ConnectionError, FileNotFoundError):
         pass
 
     srv = _server_module()
     if not srv._read_auth_block():
-        return False, 'no WRDS server running, and no latch to clear'
+        return False, ('no WRDS server answered and no latch is recorded; '
+                       'nothing was changed')
     utils_dir = os.path.dirname(os.path.abspath(__file__))
     server_script = os.path.join(utils_dir, 'wrds_server.py')
     # The operator may have corrected .env while their shell still exports the
@@ -897,6 +971,9 @@ if __name__ == '__main__':
             else 'not running'))
         if wrds_ping():
             print('WRDS server: healthy')
+            _note = daemon_build_note()
+            if _note:
+                print(f'  NOTE: {_note}')
         else:
             _msg = wrds_auth_error()
             if _msg:

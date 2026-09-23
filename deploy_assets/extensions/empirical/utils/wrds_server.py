@@ -69,6 +69,22 @@ PORT = 23847  # arbitrary high port
 SAFETY_PROTOCOL = 'wrds-auth-latch-v7'
 
 
+def _source_build(path):
+    """Short content digest of a WRDS source file ('?' if unreadable)."""
+    try:
+        with open(path, 'rb') as handle:
+            return hashlib.sha256(handle.read()).hexdigest()[:12]
+    except OSError:
+        return '?'
+
+
+# The daemon is long-lived and host-wide, so it can predate the deployment
+# talking to it (same safety protocol, older code). Reporting the build it was
+# started from lets `wrds_client.py status` say when a restart is needed to
+# pick up a fix, without forcing one on every live run (#346).
+DAEMON_BUILD = _source_build(__file__)
+
+
 def _state_dir():
     """Host-owned state shared read-only with runtime sandboxes.
 
@@ -164,6 +180,11 @@ RESPONSE_WRITE_MIN_BYTES_PER_SECOND = 1024 * 1024
 RESPONSE_WRITE_MAX_SECONDS = QUERY_TIMEOUT_SECONDS + CLIENT_IO_TIMEOUT
 RESPONSE_PREPARATION_TIMEOUT_SECONDS = 60
 MAX_CLIENT_THREADS = 32
+# Connections beyond the cap get an explicit, DB-free 'busy' answer from a
+# small separate pool instead of a silent close, so clients back off rather
+# than read a dropped socket as an outage (#346). Beyond this pool too, close.
+MAX_BUSY_REPLY_THREADS = 8
+BUSY_REPLY_SECONDS = 2
 MAX_RESPONSE_PREPARATIONS = 32
 _response_preparation_slots = threading.BoundedSemaphore(
     MAX_RESPONSE_PREPARATIONS)
@@ -1710,7 +1731,8 @@ def handle_client(conn, state):
         if cmd == 'safety_hello_v7':
             # Deliberately DB-free. Updated clients send this before `ping` so
             # probing a legacy daemon cannot invoke its vulnerable healthcheck.
-            response = {'status': 'ok', 'msg': 'safety protocol confirmed'}
+            response = {'status': 'ok', 'msg': 'safety protocol confirmed',
+                        'build': DAEMON_BUILD}
         elif cmd == 'safe_ping_v7':
             ok, detail = state.healthcheck()
             if ok:
@@ -1935,6 +1957,47 @@ def _prepare_response_payload(response):
     if kind == 'error':
         raise value
     return value
+
+
+def reply_busy_and_close(conn, reply_slots=None):
+    """Answer one over-cap connection 'busy' and close it (DB-free).
+
+    Only a client that declares ``busy_aware`` gets the frame. Released v7
+    clients (same safety protocol, pre-#346 code) treat any non-ok handshake
+    as a terminal safety latch, so they keep the old silent close, which
+    they already read as a transient drop rather than a latch.
+    """
+    try:
+        conn.settimeout(BUSY_REPLY_SECONDS)
+        deadline = time.monotonic() + BUSY_REPLY_SECONDS
+        request = {}
+        try:
+            # Drain the request so the peer's write never meets a closed
+            # socket (best effort: an oversized or malformed frame is just
+            # closed).
+            msg_len = struct.unpack('!Q', _recv_exact(conn, 8, deadline))[0]
+            if 0 < msg_len <= MAX_MSG:
+                request = json.loads(_recv_exact(conn, msg_len, deadline))
+        except Exception:
+            pass
+        if not (isinstance(request, dict) and
+                request.get('busy_aware') is True):
+            return
+        send_response(conn, {
+            'status': 'error', 'error_kind': 'busy',
+            'msg': ('WRDS daemon is at its client-connection cap; this '
+                    'command never reached the database. The daemon is '
+                    'healthy — retry after a short wait.'),
+        })
+    except Exception:
+        pass
+    finally:
+        try:
+            conn.close()
+        except OSError:
+            pass
+        if reply_slots is not None:
+            reply_slots.release()
 
 
 def send_response(conn, response, bounded_preparation=False):
@@ -2727,6 +2790,7 @@ def main(operator_unblock=False):
 
     def accept_loop(listener):
         slots = threading.BoundedSemaphore(MAX_CLIENT_THREADS)
+        busy_slots = threading.BoundedSemaphore(MAX_BUSY_REPLY_THREADS)
 
         def serve_one(conn):
             try:
@@ -2738,7 +2802,12 @@ def main(operator_unblock=False):
             try:
                 conn, _ = listener.accept()
                 if not slots.acquire(blocking=False):
-                    conn.close()
+                    if busy_slots.acquire(blocking=False):
+                        threading.Thread(
+                            target=reply_busy_and_close,
+                            args=(conn, busy_slots), daemon=True).start()
+                    else:
+                        conn.close()
                     continue
                 t = threading.Thread(target=serve_one, args=(conn,))
                 t.daemon = True

@@ -323,10 +323,10 @@ def _unlink_if_identity(path, identity):
         pass
 
 
-def _error_payload(message):
+def _error_payload(message, error_kind="safety"):
     return json.dumps({
         "status": "error",
-        "error_kind": "safety",
+        "error_kind": error_kind,
         "msg": message,
         "safety_protocol": SAFETY_PROTOCOL,
         "bridge_protocol": BRIDGE_PROTOCOL,
@@ -347,8 +347,11 @@ def _relay_client(conn, token, query_slots, auth_slots=None):
             return
         authenticated = True
         if not query_slots.acquire(blocking=False):
+            # Transient relay contention, not a stale daemon: 'busy' is the
+            # kind clients absorb with bounded backoff (#346).
             _send_response_frame(conn, _error_payload(
-                "WRDS query bridge is busy; retry after another query finishes."))
+                "WRDS query bridge is busy; retry after another query finishes.",
+                error_kind="busy"))
             _await_client_close(
                 conn, time.monotonic() + RESPONSE_DRAIN_ERROR_SECONDS)
             return
@@ -397,6 +400,18 @@ def _relay_client(conn, token, query_slots, auth_slots=None):
             response = _recv_exact(
                 upstream, response_size,
                 time.monotonic() + _response_write_timeout(response_size))
+        except (FileNotFoundError, ConnectionError, TimeoutError,
+                socket.timeout) as exc:  # distinct before Python 3.10
+            # The daemon endpoint is gone, dropped mid-exchange, or accepted
+            # but never answered within budget: an outage or wedge (possibly
+            # mid-watchdog-repair), not a stale-daemon safety verdict.
+            # Clients map 'unavailable' to a connection error.
+            _send_response_frame(conn, _error_payload(
+                f"WRDS daemon endpoint unavailable behind the bridge: {exc}",
+                error_kind="unavailable"))
+            _await_client_close(
+                conn, time.monotonic() + RESPONSE_DRAIN_ERROR_SECONDS)
+            return
         finally:
             upstream.close()
         delivery_deadline = (

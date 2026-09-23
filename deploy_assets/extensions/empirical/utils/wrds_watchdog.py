@@ -236,6 +236,8 @@ def probe():
     """
     try:
         C._safety_hello()
+    except C._WrdsBusyAnswer:
+        return 'saturated', 'WRDS service answered busy'
     except C.WrdsSafetyBlocked as e:
         return 'incompatible', str(e)
     except (OSError, ValueError) as e:
@@ -266,6 +268,8 @@ def probe():
         return 'unhealthy', f'health probe failed: {e!r}'
     if resp.get('status') == 'ok':
         return 'healthy', str(resp.get('db', 'ok'))
+    if C._is_busy(resp):
+        return 'saturated', resp.get('msg') or 'WRDS service answered busy'
     if resp.get('error_kind') == 'auth':
         return 'latched', resp.get('msg') or 'WRDS login latched'
     if resp.get('error_kind') == 'safety':

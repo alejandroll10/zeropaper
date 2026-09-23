@@ -16,6 +16,7 @@ HOME is redirected to scratch before import so no host WRDS state is touched.
 """
 import fcntl
 import json
+import threading
 import os
 import subprocess
 import sys
@@ -447,6 +448,175 @@ check('final status tells clients not to wait',
       json.loads(Path(C.WATCHDOG_STATUS_FILE).read_text())['state'],
       'stopped')
 check('singleton released', os.path.exists(W.LOCK_FILE), False)
+
+print('\n[13] #346: every busy answer is contention, never safety or outage')
+import socket  # noqa: E402
+import struct  # noqa: E402
+import wrds_query_bridge as B  # noqa: E402
+
+
+def read_frame(sock):
+    size = struct.unpack('!Q', C._recv_exact(sock, 8, time.monotonic() + 5))[0]
+    return json.loads(C._recv_exact(sock, size, time.monotonic() + 5))
+
+
+token = 'a' * 64
+exhausted = threading.BoundedSemaphore(1)
+exhausted.acquire()
+left, right = socket.socketpair()
+relay = threading.Thread(target=B._relay_client, args=(right, token, exhausted),
+                         daemon=True)
+relay.start()
+left.sendall(B.BRIDGE_PREFACE_MAGIC + token.encode('ascii') + b'\n')
+answer = read_frame(left)
+left.close()
+relay.join(timeout=15)
+check('bridge slot exhaustion answers busy, not safety',
+      answer.get('error_kind'), 'busy')
+check('... under the current safety protocol',
+      answer.get('safety_protocol'), C.SAFETY_PROTOCOL)
+
+def over_cap_pair():
+    left, right = socket.socketpair()
+    slots = threading.BoundedSemaphore(1)
+    slots.acquire()
+    worker = threading.Thread(target=S.reply_busy_and_close,
+                              args=(right, slots), daemon=True)
+    worker.start()
+    return left, slots, worker
+
+
+# End to end through the real client parser: a current client's handshake
+# against an over-cap daemon is contention, not a safety latch.
+left, reply_slots, over_cap = over_cap_pair()
+with mock.patch.object(C, '_connect', return_value=(left, None)):
+    try:
+        C._safety_hello()
+        outcome = 'ok'
+    except C._WrdsBusyAnswer:
+        outcome = 'busy'
+    except C.WrdsSafetyBlocked:
+        outcome = 'safety'
+over_cap.join(timeout=5)
+check('over-cap daemon: current client reads busy, not safety', outcome,
+      'busy')
+check('... and the reply slot is returned',
+      reply_slots.acquire(blocking=False), True)
+# A released v7 client (no busy_aware) must keep the old silent close:
+# its code turns any non-ok handshake into a terminal false latch.
+left, reply_slots, over_cap = over_cap_pair()
+legacy = json.dumps({'cmd': 'safety_hello_v7',
+                     'safety_protocol': C.SAFETY_PROTOCOL}).encode()
+left.sendall(struct.pack('!Q', len(legacy)) + legacy)
+left.settimeout(5)
+check('over-cap daemon: released client still gets a silent close',
+      left.recv(8), b'')
+left.close()
+over_cap.join(timeout=5)
+
+# The relay in front of a dead daemon reports an outage, not a stale daemon.
+left, right = socket.socketpair()
+free = threading.BoundedSemaphore(1)
+with mock.patch.object(B, 'SOCKET_FILE', os.path.join(SCRATCH, 'no.sock')):
+    relay = threading.Thread(target=B._relay_client, args=(right, token, free),
+                             daemon=True)
+    relay.start()
+    hello = json.dumps({'cmd': 'safety_hello_v7', 'bridge_token': token,
+                        'bridge_protocol': B.BRIDGE_PROTOCOL,
+                        'safety_protocol': C.SAFETY_PROTOCOL}).encode()
+    left.sendall(B.BRIDGE_PREFACE_MAGIC + token.encode('ascii') + b'\n' +
+                 struct.pack('!Q', len(hello)) + hello)
+    answer = read_frame(left)
+    left.close()
+    relay.join(timeout=15)
+check('bridge in front of a dead daemon answers unavailable, not safety',
+      answer.get('error_kind'), 'unavailable')
+# ... and in front of a daemon that accepts but never answers.
+stall_path = os.path.join(SCRATCH, 'stall.sock')
+stall = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+stall.bind(stall_path)
+stall.listen(1)
+left, right = socket.socketpair()
+with mock.patch.object(B, 'SOCKET_FILE', stall_path), \
+        mock.patch.object(B, 'UPSTREAM_CONTROL_TIMEOUT', 0.5), \
+        mock.patch.object(B, '_upstream_header_timeout', return_value=0.5):
+    relay = threading.Thread(target=B._relay_client, args=(right, token, free),
+                             daemon=True)
+    relay.start()
+    left.sendall(B.BRIDGE_PREFACE_MAGIC + token.encode('ascii') + b'\n' +
+                 struct.pack('!Q', len(hello)) + hello)
+    answer = read_frame(left)
+    left.close()
+    relay.join(timeout=15)
+stall.close()
+check('bridge in front of a stalled daemon answers unavailable, not safety',
+      answer.get('error_kind'), 'unavailable')
+left, right = socket.socketpair()
+unavailable = json.dumps({'status': 'error', 'error_kind': 'unavailable',
+                          'msg': 'gone',
+                          'safety_protocol': C.SAFETY_PROTOCOL}).encode()
+
+
+def serve_unavailable():
+    size = struct.unpack('!Q', C._recv_exact(right, 8, time.monotonic() + 5))[0]
+    C._recv_exact(right, size, time.monotonic() + 5)
+    right.sendall(struct.pack('!Q', len(unavailable)) + unavailable)
+    right.close()
+
+
+threading.Thread(target=serve_unavailable, daemon=True).start()
+with mock.patch.object(C, '_connect', return_value=(left, None)):
+    try:
+        C._send_request({'cmd': 'safety_hello_v7'}, timeout=5)
+        outcome = 'returned'
+    except ConnectionError:
+        outcome = 'connection-error'
+check('client maps relay unavailable to a connection error (heal path)',
+      outcome, 'connection-error')
+
+BUSY = {'status': 'error', 'error_kind': 'busy', 'msg': 'busy',
+        'safety_protocol': C.SAFETY_PROTOCOL}
+OK = {'status': 'ok', 'safety_protocol': C.SAFETY_PROTOCOL}
+answers = iter([BUSY, OK, {'status': 'ok', 'data': 1,
+                           'safety_protocol': C.SAFETY_PROTOCOL}])
+with mock.patch.object(C, '_send_request',
+                       side_effect=lambda *a, **k: next(answers)), \
+        mock.patch.object(C.time, 'sleep'):
+    check('busy on the handshake leg is absorbed like a busy command',
+          C._checked_request_once({'cmd': 'safe_query_v7'}).get('data'), 1)
+with mock.patch.object(C, '_send_request', return_value=BUSY), \
+        mock.patch.dict(os.environ, {'WRDS_BUSY_WAIT_SECONDS': '0'}):
+    try:
+        C._checked_request_once({'cmd': 'safe_query_v7'})
+        outcome = 'returned'
+    except C.WrdsBusyTimeout:
+        outcome = 'busy-timeout'
+    except C.WrdsSafetyBlocked:
+        outcome = 'safety'
+check('an exhausted busy budget is WrdsBusyTimeout, never safety',
+      outcome, 'busy-timeout')
+with mock.patch.object(C, '_send_request', return_value=BUSY):
+    check('a busy service pings alive (no false unreachable halt)',
+          C.wrds_ping(), True)
+    check('... reports no latch', C.wrds_auth_error(), None)
+    check('... is never unblocked or stopped', C.wrds_unblock()[0], False)
+    check('... is saturated to the watchdog', W.probe()[0], 'saturated')
+    check('... and the relay pings alive', C.wrds_bridge_ping(), True)
+
+check('daemon handshake carries the build it was started from',
+      S.DAEMON_BUILD, S._source_build(S.__file__))
+with mock.patch.object(C, '_safety_hello',
+                       side_effect=ConnectionError('unavailable behind bridge')), \
+        mock.patch.object(S, '_read_auth_block', return_value=None):
+    check('unblock survives a bare connection error (clean refusal)',
+          C.wrds_unblock()[0], False)
+with mock.patch.object(C, '_send_request',
+                       return_value={'build': '000000000000'}):
+    check('status flags a daemon older than the deployed code',
+          'predates' in (C.daemon_build_note() or ''), True)
+with mock.patch.object(C, '_send_request',
+                       return_value={'build': S.DAEMON_BUILD}):
+    check('a current daemon gets no note', C.daemon_build_note(), None)
 
 import shutil  # noqa: E402
 shutil.rmtree(SCRATCH, ignore_errors=True)

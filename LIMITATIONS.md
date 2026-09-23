@@ -28,13 +28,15 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## WRDS query bridge still reports slot exhaustion as a terminal safety error
+## CLOSED in v2.44.1 — WRDS query bridge reported slot exhaustion as a terminal safety error
 
 **Scope:** the `--ext empirical` sandboxed WRDS path (Linux runtimes that reach the daemon through `wrds_query_bridge.py`).
 
-**Failure mode:** v2.41.0 (#343) made daemon lock contention a retryable `busy` answer the client absorbs with bounded backoff, but the bridge's own concurrency guard (32 relay slots) still answers slot exhaustion with `error_kind: "safety"` — the terminal "stale daemon, operator must replace it" classification — so a burst of concurrent short commands through the relay can surface operator-escalation guidance for a transient condition, and a busy `wrds_ping()` can read as unreachable. Exposure is low (the single serialized DB lock saturates long before 32 relay slots), and the fix needs the probe/hello/command taxonomy made busy-aware in one coherent pass rather than one leg special-cased.
+**Failure mode:** the bridge answered relay-slot exhaustion with `error_kind: "safety"` — the terminal "stale daemon, operator must replace it" classification — and the daemon silently closed connections beyond its 32-thread cap, so transient contention could surface as operator-escalation guidance or as an unreachable daemon (a false `halted_wrds_unreachable`).
 
-**Tracking:** [#346](https://github.com/alejandroll10/zeropaper/issues/346).
+**Closed in v2.44.1:** relay-slot exhaustion answers `busy`; the daemon answers over-cap connections `busy` from a small separate reply pool instead of closing them; the client treats a busy answer on the handshake leg exactly like a busy command (one shared bounded backoff budget), and `wrds_ping()`, `wrds_bridge_ping()`, `wrds_auth_error()`, `unblock` and the watchdog all read busy as alive-but-contended — never as safety, auth, or unreachable. The daemon's busy frame goes only to clients declaring `busy_aware`, so released v7 clients keep the silent close they already read as transient. A dead, dropping, or stalled daemon behind the bridge now answers `unavailable` (a connection error client-side) instead of `safety`. Two bounds remain by design: past the 8-thread busy-reply pool (40 concurrent connections) the daemon falls back to a silent close, which the watchdog's saturation heuristic still classifies; and an already-running daemon/relay keeps pre-fix behavior until restarted (`wrds_client.py status` flags a daemon older than the deployed code).
+
+**Tracking:** [#346](https://github.com/alejandroll10/zeropaper/issues/346) (closed).
 
 ---
 
