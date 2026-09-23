@@ -352,7 +352,7 @@ prestart_project_services() {
     case "$service_action" in
         start)
             echo "[launch] Establishing host-wide data services before sandbox entry…" >&2
-            bash "$ROOT/code/utils/start_services.sh"
+            ZEROPAPER_LAUNCHER_PID=$$ bash "$ROOT/code/utils/start_services.sh"
             ;;
     esac
 }
@@ -2821,6 +2821,53 @@ terminate_turn_tree()
     return "$rc"
 }
 
+# A WRDS halt is transient by definition: the condition is a dead or latched
+# host daemon, which the host watchdog repairs or the operator's one-attempt
+# unblock clears (#322). Wait here, on the host, for the daemon to answer a
+# health ping, then resume the run. This never starts, restarts, or unblocks
+# anything and spends no login; it only reads wrds_ping(). Bounded by
+# WRDS_HALT_RESUME_WAIT_SECONDS (default 24h; 0 restores the plain exit).
+wait_for_wrds_and_resume() {
+    local budget="${WRDS_HALT_RESUME_WAIT_SECONDS:-86400}" waited=0
+    [[ "$budget" =~ ^[0-9]+$ ]] || budget=86400
+    [ "$budget" -gt 0 ] && [ -f "$ROOT/code/utils/wrds_client.py" ] || return 1
+    echo "[driver] pipeline halted on WRDS; waiting up to ${budget}s for the daemon to recover (host watchdog repair, or operator: python code/utils/wrds_client.py status / unblock), then resuming" | tee -a "$LOG"
+    while [ "$waited" -lt "$budget" ]; do
+        if (cd "$ROOT" && PYTHONPATH=code python3 -c 'from utils.wrds_client import wrds_ping; raise SystemExit(0 if wrds_ping() else 1)') >/dev/null 2>&1; then
+            local flip_rc=0
+            python3 - "$STATE" <<'PY' || flip_rc=$?
+import json, os, sys, tempfile
+path = sys.argv[1]
+with open(path, encoding="utf-8") as handle:
+    state = json.load(handle)
+if state.get("status") != "halted_wrds_unreachable":
+    raise SystemExit(3)  # already resumed/changed elsewhere: just re-read
+state["status"] = "running"
+fd, tmp = tempfile.mkstemp(dir=os.path.dirname(path), prefix=".pipeline_state.")
+with os.fdopen(fd, "w", encoding="utf-8") as handle:
+    json.dump(state, handle, indent=2)
+    handle.write("\n")
+os.chmod(tmp, os.stat(path).st_mode & 0o7777)
+os.replace(tmp, path)
+PY
+            if [ "$flip_rc" -eq 3 ]; then
+                echo "[driver] WRDS healthy; pipeline status already changed elsewhere — re-reading it" | tee -a "$LOG"
+                return 0
+            fi
+            if [ "$flip_rc" -eq 0 ]; then
+                git -C "$ROOT" commit -q -m "driver: resume after WRDS recovered (halted_wrds_unreachable -> running)" -- process_log/pipeline_state.json >/dev/null 2>&1 || true
+                echo "[driver] WRDS healthy again after ${waited}s; resuming the pipeline" | tee -a "$LOG"
+                return 0
+            fi
+            return 1
+        fi
+        sleep 60
+        waited=$((waited + 60))
+    done
+    echo "[driver] WRDS still unavailable after ${budget}s" | tee -a "$LOG"
+    return 1
+}
+
 turn=0
 fast_nocommit=0
 fast_any=0
@@ -2870,6 +2917,9 @@ for e in p:
         print("[driver]   pending: %s" % (e,))' "$STATE" 2>/dev/null | tee -a "$LOG"
             echo "[driver] Re-run ./launch.sh codex after that time; the session re-runs the check and self-completes." | tee -a "$LOG"
             exit 0 ;;
+        halted_wrds_unreachable)
+            wait_for_wrds_and_resume && continue
+            echo "[driver] pipeline halted: $st — operator intervention needed (see the runtime doc's halted_* recovery notes)" | tee -a "$LOG"; exit 0 ;;
         halted_*)
             echo "[driver] pipeline halted: $st — operator intervention needed (see the runtime doc's halted_* recovery notes)" | tee -a "$LOG"; exit 0 ;;
         '?')

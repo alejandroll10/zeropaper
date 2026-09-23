@@ -68,14 +68,21 @@ Per-host singleton (port 23847), one-login-attempt safety latch, durable across
 reboots. State dir: `~/.local/state/zeropaper/wrds/`.
 - Health check: from either project,
   `.venv/bin/python3 -c "import sys; sys.path.insert(0,'code'); from utils.wrds_client import wrds_ping; print(wrds_ping())"`
-  (cwd = project root). CLI: `code/utils/wrds_client.py [status|unblock]`.
+  (cwd = project root). CLI: `code/utils/wrds_client.py [status|await|unblock]`.
 - If AUTH BLOCKED: diagnose first (DNS? TCP to wrds-pgdata.wharton.upenn.edu:9737?),
   then run unblock as a **background task with no timeout** (a 120s Bash timeout once
   killed it mid-login and made things worse). Duo push may fire — **requires the user
   present**. If the user is away and can't Duo: DO NOT unblock or restart; let
   pipelines halt safely (`halted_wrds_unreachable`) until they return.
-- If unblock says "daemon still running": kill the recorded PID
-  (`~/.local/state/zeropaper/wrds/wrds_server_23847.pid`), then rerun unblock once.
+- Since v2.44.0 unblock stops a *latched* daemon itself. "Nothing to unblock" means
+  the daemon is up and not latched; if it is wedged, the watchdog below restarts it.
+- Watchdog (v2.44.0, #322): `launch.sh` registers with a host watchdog
+  (`wrds_watchdog.log` in the state dir) that restarts a dead/wedged/orphaned-older
+  daemon while a registered launcher needs WRDS. Each restart = one Duo push; a
+  failed/unanswered one latches (→ unblock), a success re-arms it.
+  `WRDS_AUTO_RELOGIN=0` in `.env` disables all unattended logins (watchdog restart,
+  daemon reconnect); launching `./launch.sh` is itself an approved login. The codex driver
+  now waits on `halted_wrds_unreachable` and resumes by itself once WRDS answers.
 - Never let a legacy (pre-v7) wrds_server take the port.
 
 ## Halt recovery pattern

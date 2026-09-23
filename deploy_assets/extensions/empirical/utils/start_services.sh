@@ -233,6 +233,17 @@ print('1' if wrds_login_in_progress() else '0')" 2>/dev/null)"
     else
         echo "WRDS query bridge not required on this host"
     fi
+
+    # Launcher-established services get the host watchdog (#322): it restarts
+    # a dead or wedged daemon while this launcher lives, bounded by the same
+    # durable login latch as every other start. Only ./launch.sh passes its
+    # PID; the watchdog's own restarts and manual runs never register.
+    if [ -n "${ZEROPAPER_LAUNCHER_PID:-}" ] && [ -z "${ZEROPAPER_WATCHDOG_CHILD:-}" ]; then
+        if ! PYTHONPATH=code "$WRDS_PY" code/utils/wrds_watchdog.py register \
+                --root "$(pwd -P)" --pid "$ZEROPAPER_LAUNCHER_PID"; then
+            echo "WARNING: WRDS watchdog unavailable; a daemon failure will need operator repair." >&2
+        fi
+    fi
 else
     echo "WRDS: credentials not configured (set WRDS_USER and WRDS_PASS in .env), skipping"
 fi

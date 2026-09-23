@@ -11,16 +11,33 @@ A persistent, host-wide WRDS server runs in the background (started by `launch.s
 
 ```python
 import sys; sys.path.insert(0, 'code')
-from utils.wrds_client import wrds_query, wrds_ping
+from utils.wrds_client import wrds_query, wrds_ping, wrds_await_service
 
-# launch.sh already established the host daemon; a failed check is terminal
-assert wrds_ping(), "WRDS host daemon is unavailable — halt and escalate"
+# launch.sh already established the host daemon. If it is down, wait for the
+# host watchdog's repair (read-only; returns False when nothing is repairing).
+assert wrds_ping() or wrds_await_service(540), \
+    "WRDS host daemon is unavailable — halt and escalate"
 
 # Run queries — no Duo, no connection management
 df = wrds_query("SELECT * FROM crsp.msf LIMIT 5")
 ```
 
 The server handles connection persistence, threading, and cleanup. Each script just calls `wrds_query(sql)`.
+
+**Host watchdog.** When `./launch.sh` starts the services it also starts a
+host-side watchdog that, while any launcher on this host still needs WRDS,
+restarts a daemon that died, one that failed every health probe for ten
+minutes, or an older-release daemon no running launcher uses. Each restart is
+one login (one Duo push). The durable latch bounds it: a login that fails
+(an unanswered push included) latches until the operator's `unblock`, and a
+successful one re-arms it; `WRDS_AUTO_RELOGIN=0` in `.env` turns off every
+unattended login (watchdog restarts and the daemon's reconnect after a
+dropped connection); an operator's `./launch.sh` is itself an approved login. While the watchdog reports a repair, the client waits instead of
+failing: a command that loses its endpoint is re-sent once the daemon answers
+(WRDS access is read-only, so nothing repeats), bounded by
+`WRDS_HEAL_WAIT_SECONDS` (default 30 minutes). Agents never start, restart,
+or unblock anything themselves — `wrds_await_service()` and
+`python code/utils/wrds_client.py await` only read state.
 
 The v7 transport retains v6's unsigned 64-bit binary length prefix, so the
 former 90 MiB response-frame ceiling no longer exists. A deliberate 512 MiB
@@ -292,9 +309,9 @@ then put forecast and actual on the same split basis before subtracting.
 - **Use SQL aggregation** when possible — faster than downloading raw data and aggregating in pandas.
 
 ## Rules
-- **Use only the persistent client.** Never instantiate `wrds.Connection()` in a pipeline script; direct connections bypass the shared latch, and a library call that looks singular may retry internally. Never put WRDS startup or queries under a generic retry decorator, shell retry loop, supervisor restart policy, or fallback process, and never build another proxy/tunnel—the shipped client already owns the authenticated Linux relay. A `WrdsSafetyBlocked`/protocol-mismatch error is terminal for agents: an operator must replace the stale service with the deployed version; do not restart it yourself.
+- **Use only the persistent client.** Never instantiate `wrds.Connection()` in a pipeline script; direct connections bypass the shared latch, and a library call that looks singular may retry internally. Never put WRDS startup or queries under a generic retry decorator, shell retry loop, supervisor restart policy (the shipped host watchdog is the only one), or fallback process, and never build another proxy/tunnel—the shipped client already owns the authenticated Linux relay. A `WrdsSafetyBlocked`/protocol-mismatch error is terminal for agents: an operator must replace the stale service with the deployed version; do not restart it yourself.
 - **`WrdsBusyTimeout` means the healthy daemon is saturated, not broken.** The host-wide daemon serializes every query from every deployment on this machine, and the client already waited its whole busy budget before raising. It is not a producer bug, not a credential problem, and not an outage: do not restart or bypass the daemon, do not halt as unreachable (`wrds_ping()` still passes), and do not rewrite the query to "fix" it — rerun when load drops, or raise `WRDS_BUSY_WAIT_SECONDS` when contention is expected to persist.
-- **A credential rejection is terminal — never retry it, and never work around it.** WRDS locks the account after enough failed logins, and a locked account takes the whole empirical pipeline down for everyone on this host. The server distinguishes the two failure modes for you: a dropped socket recovers silently, but a refused credential *latches* and every later call fails fast with `[auth error]` (client side: `WrdsAuthBlocked`, or `wrds_auth_error()` returns a message; `start_services.sh` exits 2). When you see that, **halt and escalate to the operator** — report it as a blocked core per `docs/core_bypass.md` and record it in `process_log/degradation_ledger.md`. Do not re-run `wrds_start()`, do not restart the server, do not loop on `wrds_ping()`, and do not try alternate credentials. **Never call `wrds_unblock()` or `python code/utils/wrds_client.py unblock`** — that is the operator's approval gate. Lifecycle commands do not exist on the query socket. The operator stops the daemon on the host, fixes `WRDS_PASS`, then runs the unblock CLI once; the server holds the singleton while clearing the latch and reconnecting. A second rejection re-latches, so each approval costs exactly one login attempt.
+- **A credential rejection is terminal — never retry it, and never work around it.** WRDS locks the account after enough failed logins, and a locked account takes the whole empirical pipeline down for everyone on this host. The server distinguishes the two failure modes for you: a dropped socket recovers silently, but a refused credential *latches* and every later call fails fast with `[auth error]` (client side: `WrdsAuthBlocked`, or `wrds_auth_error()` returns a message; `start_services.sh` exits 2). When you see that, **halt and escalate to the operator** — report it as a blocked core per `docs/core_bypass.md` and record it in `process_log/degradation_ledger.md`. Do not re-run `wrds_start()`, do not restart the server, do not loop on `wrds_ping()`, and do not try alternate credentials. **Never call `wrds_unblock()` or `python code/utils/wrds_client.py unblock`** — that is the operator's approval gate. Lifecycle commands do not exist on the query socket. The operator fixes `WRDS_PASS`, then runs the unblock CLI once on the host (it stops the latched daemon itself); the server holds the singleton while clearing the latch and reconnecting. A second rejection re-latches, so each approval costs exactly one login attempt.
 - **Credentials only in `.env`.** Never hardcode username/password.
 - **Filter aggressively.** Specify date ranges, shrcd, exchcd, indfmt/datafmt/popsrc/consol filters.
 - **Cache large downloads.** Save to `data/*.parquet` and check before re-querying.

@@ -60,6 +60,8 @@ REQUIRED_INVOCATIONS = {
         "python3 deploy_assets/scripts/test_wrds_unix_socket.py",
     "bash deploy_assets/scripts/test_wrds_auth_latch.sh":
         "bash deploy_assets/scripts/test_wrds_auth_latch.sh",
+    "python3 deploy_assets/scripts/test_wrds_watchdog.py":
+        "python3 deploy_assets/scripts/test_wrds_watchdog.py",
     "bash deploy_assets/scripts/test_launch_wrds_prestart.sh":
         "bash deploy_assets/scripts/test_launch_wrds_prestart.sh",
     "bash deploy_assets/scripts/test_wrds_turn_survival.sh":

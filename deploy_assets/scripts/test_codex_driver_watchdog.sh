@@ -238,4 +238,58 @@ if kill -0 "$aborted_child_pid" 2>/dev/null; then
     exit 1
 fi
 
+# A WRDS halt is transient: the driver waits for the host daemon to answer a
+# health ping (it never starts or unblocks anything), flips the halt back to
+# running, and resumes. With the wait disabled it keeps the plain exit.
+WRDS_UP_FLAG="$TEST_ROOT/wrds-up"
+mkdir -p "$PROJECT/code/utils"
+cat > "$PROJECT/code/utils/wrds_client.py" <<'FAKE_CLIENT'
+import os
+def wrds_ping():
+    return os.path.exists(os.environ["FAKE_WRDS_UP"])
+FAKE_CLIENT
+set_status() {
+    python3 -c 'import json,sys
+p=sys.argv[1]
+data=json.load(open(p))
+data["status"]=sys.argv[2]
+with open(p,"w") as handle: json.dump(data,handle)' "$PROJECT/process_log/pipeline_state.json" "$1"
+}
+run_wrds_halt_driver() {
+    (
+        cd "$PROJECT"
+        env PATH="$FAKE_BIN:/usr/bin:/bin" HOME="$TEST_ROOT/home" \
+            CODEX_HOME="$CUSTOM_CODEX_HOME" \
+            FAKE_CHILD_PID_FILE="$FAKE_CHILD_PID_FILE" \
+            FAKE_COUNT_FILE="$FAKE_COUNT_FILE" \
+            FAKE_STATE_FILE="$PROJECT/process_log/pipeline_state.json" \
+            FAKE_WRDS_UP="$WRDS_UP_FLAG" TURN_TIMEOUT=30 MAX_TURNS=3 \
+            WRDS_HALT_RESUME_WAIT_SECONDS="$1" ./launch.sh codex
+    ) >"$OUTPUT" 2>&1
+}
+set_status halted_wrds_unreachable
+printf '1\n' > "$FAKE_COUNT_FILE"   # next fake turn marks the run complete
+touch "$WRDS_UP_FLAG"
+if ! run_wrds_halt_driver 120; then
+    echo "FAIL: driver did not resume a recovered WRDS halt" >&2
+    cat "$OUTPUT" >&2
+    exit 1
+fi
+if ! grep -qF "WRDS healthy again" "$OUTPUT" || \
+        [ "$(cat "$FAKE_COUNT_FILE")" != "2" ] || \
+        ! grep -q '"status": "complete"' "$PROJECT/process_log/pipeline_state.json"; then
+    echo "FAIL: WRDS-halt resume did not flip to running and run exactly one turn" >&2
+    cat "$OUTPUT" >&2
+    exit 1
+fi
+set_status halted_wrds_unreachable
+printf '1\n' > "$FAKE_COUNT_FILE"
+rm -f "$WRDS_UP_FLAG"
+if ! run_wrds_halt_driver 0 || ! grep -qF "pipeline halted: halted_wrds_unreachable" "$OUTPUT" || \
+        [ "$(cat "$FAKE_COUNT_FILE")" != "1" ]; then
+    echo "FAIL: disabled WRDS-halt wait did not keep the plain halt exit" >&2
+    cat "$OUTPUT" >&2
+    exit 1
+fi
+
 echo "PASS: production Codex watchdog reaped setsid tool cohorts on timeout and parent abort before recovery (${elapsed}s timeout path)"

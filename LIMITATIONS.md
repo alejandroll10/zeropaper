@@ -6,11 +6,23 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## WRDS host daemon has no self-heal for mechanically identifiable non-credential failures
+## WRDS watchdog residuals: venv not integrity-bound, pre-v2.29 orphan misclassification, no operator paging, no OpenCode coverage
+
+**Scope:** the `--ext empirical` launcher-side watchdog (`code/utils/wrds_watchdog.py`, v2.44.0, #322).
+
+**Failure modes:** (1) a watchdog restart executes the project `.venv` interpreter and its `site-packages` on the host; the six WRDS scripts it runs are digest-bound at registration (a changed one refuses the restart; the check re-reads the files, so an edit racing the tick between check and exec is not excluded), but the venv is sandbox-writable and is not, so an in-run edit there reaches unsandboxed execution at the next repair rather than at the operator's next launch (where `launch.sh`'s prestart already had the same exposure). (2) An older-protocol daemon is stopped as an orphan only when no process holds a flock on its deployment root; a pre-v2.29 launcher held none, so such a still-live run's daemon would be misclassified (Linux only; elsewhere the watchdog never classifies an orphan). (3) `operator_required` is visible through `wrds_client.py status`, the watchdog log and the Codex driver log, but nothing pages the operator. (4) OpenCode runs never register a launcher, so they get no watchdog. (5) `wrds_client.py unblock` now stops a latched daemon itself; an agent that violates the never-unblock rule from a Codex sandbox (no PID namespace) can therefore kill a latched — already useless — daemon, though its replacement cannot log in because the sandbox cannot write the protected singleton/latch state, so no credential is spent and the latch persists. (By design, not a gap: one live project's `WRDS_AUTO_RELOGIN=0` disables watchdog restarts for the whole shared daemon; the status names the vetoing project.) Closing (1) needs a launcher-owned, sandbox-unwritable interpreter/dependency root for the host daemon; (3) needs an operator notification channel.
+
+**Tracking:** [#348](https://github.com/alejandroll10/zeropaper/issues/348).
+
+---
+
+## CLOSED in v2.44.0 — WRDS host daemon had no self-heal for mechanically identifiable non-credential failures
 
 **Scope:** the `--ext empirical` host-wide WRDS service, every deployment on the host.
 
-**Failure mode:** a wedged daemon (broken-pipe spam), an orphaned foreign daemon holding the singleton, and a post-shutdown stale lock each halt every dependent run until an operator intervenes — three interventions were needed in one observed day. The credential safety gate (never auto-retry a possible credential rejection; account-lock risk) is correct and must stay; the gap is only the three failure shapes a host-side watchdog can identify mechanically (dead PID with stale lock; live daemon failing its own health probe with no in-budget command; singleton held by a process whose cwd is no live deployment) and repair with one bounded restart through the existing `start_services` path, ledger-logged, halting to the operator otherwise.
+**Failure mode:** a wedged daemon (broken-pipe spam), an orphaned foreign daemon holding the singleton, and a post-shutdown stale lock each halted every dependent run until an operator intervened — three interventions in one observed day. Worse, every daemon start refused while any deployed runtime was live in a sandbox network namespace (a first-v5-upgrade guard applied unconditionally), so even a manual restart meant stopping every run.
+
+**Closed in v2.44.0:** `./launch.sh` registers its PID with a host-side singleton watchdog that restarts a dead daemon, stops and restarts one that failed every health probe for ten minutes, and replaces an older-protocol daemon no running launcher uses — only while a registered launcher still needs WRDS, never while a latch or live login exists, and through the ordinary `start_services.sh` start. Each restart is one login bounded by the existing durable latch (a failed login, an unanswered Duo push included, latches until the operator's `unblock`; a success re-arms it); `WRDS_AUTO_RELOGIN=0` removes every unattended login, including the daemon's reconnect tier. The upgrade guard now ignores v5+ deployments, whose sandbox client cannot spawn a daemon. Clients wait out a live repair and re-send the interrupted read-only command; the Codex driver resumes a `halted_wrds_unreachable` run once the daemon answers, and a Claude session lifts that halt on a passing ping. `wrds_client.py unblock` stops a latched daemon itself. Residuals: the entry above (#348).
 
 **Tracking:** [#322](https://github.com/alejandroll10/zeropaper/issues/322).
 

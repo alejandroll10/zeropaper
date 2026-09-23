@@ -398,7 +398,7 @@ def _lock_owner_live(marker):
             return False
         except OSError:
             return True
-    return bool(recorded and _process_start_token(pid) == recorded)
+    return bool(recorded and _process_alive_as(pid, recorded))
 
 
 def _remove_lock_if_identity(identity):
@@ -410,6 +410,57 @@ def _remove_lock_if_identity(identity):
         return True
     except OSError:
         return False
+
+
+def _process_is_zombie(pid):
+    try:
+        raw_stat = Path(f"/proc/{pid}/stat").read_text(encoding='ascii')
+        return raw_stat.rsplit(')', 1)[1].split()[0] == 'Z'
+    except (OSError, IndexError):
+        return False
+
+
+def _process_alive_as(pid, recorded):
+    """True while ``pid`` is the recorded, not-yet-exited process."""
+    return (_process_start_token(pid) == recorded and
+            not _process_is_zombie(pid))
+
+
+def stop_singleton_owner(term_timeout=15.0, kill_timeout=10.0):
+    """HOST ONLY (operator unblock, launcher-side watchdog): stop the daemon.
+
+    Signals only the process recorded in the singleton marker and only while
+    its birth token still matches, so a recycled PID is never touched. TERM
+    first; KILL if graceful shutdown hangs on a wedged connection. Never
+    starts anything and never touches credentials. Returns (stopped, detail).
+    """
+    marker, _identity = _read_instance_lock()
+    if marker is None or not _lock_owner_live(marker):
+        return True, 'no live WRDS singleton owner'
+    if marker.get('legacy') is True or not marker.get('start'):
+        return False, ('WRDS singleton owner has a legacy plain-PID marker; '
+                       'its identity cannot be verified, so it was not '
+                       'signalled')
+    return stop_process(int(marker['pid']), marker['start'],
+                        term_timeout=term_timeout, kill_timeout=kill_timeout)
+
+
+def stop_process(pid, recorded, term_timeout=15.0, kill_timeout=10.0):
+    """TERM, then KILL, one process -- only while its birth token matches."""
+    for sig, timeout in ((signal.SIGTERM, term_timeout),
+                         (signal.SIGKILL, kill_timeout)):
+        if not _process_alive_as(pid, recorded):
+            return True, f'WRDS process {pid} stopped'
+        try:
+            os.kill(pid, sig)
+        except ProcessLookupError:
+            return True, f'WRDS process {pid} stopped'
+        deadline = time.monotonic() + timeout
+        while time.monotonic() < deadline:
+            if not _process_alive_as(pid, recorded):
+                return True, f'WRDS process {pid} stopped ({sig.name})'
+            time.sleep(0.2)
+    return False, f'WRDS process {pid} survived SIGKILL'
 
 
 def _write_pid_file():
@@ -628,7 +679,7 @@ def _live_login_attempt(message):
         pid = int(pid_text)
     except ValueError:
         return False
-    return _process_start_token(pid) == recorded
+    return _process_alive_as(pid, recorded)
 
 
 def _marker_owner(message, prefix):
@@ -647,7 +698,7 @@ def _marker_owner(message, prefix):
 
 def _live_compat_guard(message):
     pid, recorded = _marker_owner(message, COMPAT_ACTIVE_PREFIX)
-    return bool(pid and recorded and _process_start_token(pid) == recorded)
+    return bool(pid and recorded and _process_alive_as(pid, recorded))
 
 
 def _verify_auth_block_storage():
@@ -1154,6 +1205,44 @@ def connect_wrds(attempt_prearmed=False):
     return db
 
 
+AUTO_RELOGIN_DISABLED_MESSAGE = (
+    "WRDS connection dropped and automatic re-login is disabled "
+    "(WRDS_AUTO_RELOGIN=0), so no login was attempted. OPERATOR: approve "
+    "exactly one login from the host with: "
+    "python code/utils/wrds_client.py unblock"
+)
+
+
+def _auto_relogin_enabled():
+    """Whether an unattended credential-bearing login may be attempted.
+
+    Every such login (the reconnect tier below, a watchdog restart) is already
+    bounded by the durable latch: one that fails -- including a Duo push nobody
+    answers -- latches until the operator's unblock, and one that succeeds
+    re-arms the allowance. WRDS_AUTO_RELOGIN=0 removes even that one attempt.
+    """
+    return auto_relogin_setting(_DOTENV_PATH) != '0'
+
+
+def auto_relogin_setting(dotenv_path):
+    """Current WRDS_AUTO_RELOGIN, re-read from ``.env`` at every decision.
+
+    Daemon and watchdog are long-lived; an operator who sets it to 0 in .env
+    mid-incident must not have to find and restart them first. The file wins
+    over the (start-time) environment whenever it sets the key.
+    """
+    # Plain read, unlike the latch files: .env is project-writable by design,
+    # and this setting can only make behavior more conservative.
+    try:
+        from dotenv import dotenv_values
+        value = dotenv_values(dotenv_path).get('WRDS_AUTO_RELOGIN')
+    except Exception:
+        value = None
+    if value is None:
+        value = os.environ.get('WRDS_AUTO_RELOGIN', '1')
+    return str(value).strip()
+
+
 class WrdsState:
     """Holds the live wrds.Connection behind a lock and recovers it when the
     underlying socket is dropped/poisoned.
@@ -1317,6 +1406,20 @@ class WrdsState:
             raise
         except Exception as e:
             self._latch_auth_failure(e)
+
+        # Operator opt-out of every unattended login (#322). Latch instead of
+        # reconnecting: the durable latch is what routes the stall to the
+        # operator's one-attempt unblock rather than to a restart loop.
+        if not _auto_relogin_enabled():
+            self.auth_failed = AUTO_RELOGIN_DISABLED_MESSAGE
+            try:
+                _write_auth_block(self.auth_failed)
+            except WrdsLatchError as storage_error:
+                self.auth_failed += (
+                    f" LATCH STORAGE ERROR: {storage_error}. This server "
+                    "remains blocked; do not restart it automatically.")
+            print(f"[wrds_server] {self.auth_failed}", flush=True)
+            raise WrdsAuthError(self.auth_failed)
 
         # Tier 2: rebuild the engine/connection pool in place with exactly one
         # login attempt. Dispose the old pool first so the dead socket is not
@@ -2004,14 +2107,73 @@ def _legacy_server_pids():
     return sorted(found)
 
 
-def _cwd_is_deployed_wrds_runtime(cwd):
-    """Whether ``cwd`` is inside an assembled deployment with WRDS support."""
+def _deployed_wrds_root(cwd):
+    """The assembled WRDS-capable deployment containing ``cwd``, or None."""
     cwd = Path(cwd)
     for candidate in (cwd, *cwd.parents):
         if ((candidate / '.deploy_manifest.json').is_file() and
                 (candidate / 'code' / 'utils' / 'wrds_client.py').is_file()):
-            return True
-    return False
+            return candidate
+    return None
+
+
+def _cwd_is_deployed_wrds_runtime(cwd):
+    """Whether ``cwd`` is inside an assembled deployment with WRDS support."""
+    return _deployed_wrds_root(cwd) is not None
+
+
+# First protocol whose sandbox client can never spawn a daemon: from v5 on the
+# only client-side Popen is the host operator's one-attempt unblock.
+_FIRST_NON_SPAWNING_CLIENT_PROTOCOL = 5
+
+
+def _deployment_client_protocol(root):
+    """Safety-protocol version the deployment's client declares, or None.
+
+    Unreadable, missing, or unrecognized declarations return None, which every
+    caller treats as a released (pre-v5, spawning) client: fail closed.
+    """
+    import re
+    try:
+        text = (Path(root) / 'code' / 'utils' / 'wrds_client.py').read_text(
+            encoding='utf-8', errors='replace')
+    except OSError:
+        return None
+    match = re.search(
+        r"^SAFETY_PROTOCOL = 'wrds-auth-latch-v(\d+)'$", text, re.MULTILINE)
+    return int(match.group(1)) if match else None
+
+
+def _client_predates_process(root, entry):
+    """Whether the declared client existed before this process started.
+
+    A declaration written after the process began (an in-place upgrade under
+    a live old runtime) says nothing about the code that process loaded.
+    Unknown -> False, i.e. keep the process inside the fail-closed gate.
+    """
+    try:
+        client_mtime = (Path(root) / 'code' / 'utils' /
+                        'wrds_client.py').stat().st_mtime
+        process_start = _process_start_epoch(entry)
+    except (OSError, ValueError, IndexError):
+        return False
+    return client_mtime <= process_start
+
+
+def _process_start_epoch(entry):
+    """Wall-clock start from /proc/<pid>/stat starttime + kernel btime.
+
+    Not the /proc/<pid> inode time: that is when the proc entry was first
+    instantiated, which can be long after the process started.
+    """
+    raw_stat = (Path(entry) / 'stat').read_text(encoding='ascii')
+    start_ticks = int(raw_stat.rsplit(')', 1)[1].split()[19])
+    btime = next((int(line.split()[1]) for line in
+                  Path('/proc/stat').read_text(encoding='ascii').splitlines()
+                  if line.startswith('btime ')), None)
+    if btime is None:
+        raise ValueError('no btime in /proc/stat')
+    return btime + start_ticks / os.sysconf('SC_CLK_TCK')
 
 
 def _process_is_deployed_wrds_runtime(entry, proc_root):
@@ -2026,27 +2188,33 @@ def _process_is_deployed_wrds_runtime(entry, proc_root):
     ancestry walk, so one descended from a deployed launcher remains inside
     the fail-closed gate.
     """
+    return _process_deployment_root(entry, proc_root) is not None
+
+
+def _process_deployment_root(entry, proc_root):
+    """Deployment root reached by the ancestry walk described above, or None."""
     current = entry
     seen = set()
     for _ in range(64):
         try:
             pid = int(current.name)
         except ValueError:
-            return False
+            return None
         if pid in seen or pid <= 1:
-            return False
+            return None
         seen.add(pid)
         try:
             cwd = os.readlink(current / 'cwd')
         except (FileNotFoundError, ProcessLookupError):
-            return False
+            return None
         except PermissionError:
             cwd = None
         except OSError as e:
             raise WrdsLatchError(
                 f'cannot inspect same-user process cwd {pid}: {e}') from e
-        if cwd is not None and _cwd_is_deployed_wrds_runtime(cwd):
-            return True
+        root = _deployed_wrds_root(cwd) if cwd is not None else None
+        if root is not None:
+            return root
         try:
             status_text = (current / 'status').read_text(
                 encoding='utf-8', errors='replace')
@@ -2055,7 +2223,7 @@ def _process_is_deployed_wrds_runtime(entry, proc_root):
                 if line.startswith('PPid:'))
             parent_pid = int(parent_line.split(':', 1)[1].strip())
         except (FileNotFoundError, ProcessLookupError):
-            return False
+            return None
         except (OSError, StopIteration, ValueError) as e:
             raise WrdsLatchError(
                 f'cannot classify same-user process ancestry {pid}: {e}') from e
@@ -2095,7 +2263,22 @@ def _foreign_network_namespace_pids():
             # Scope the upgrade gate before touching namespace links. Common
             # same-user system helpers intentionally deny ns/net reads; only a
             # deployed runtime can carry the released delayed-Popen race.
-            if not _process_is_deployed_wrds_runtime(entry, proc_root):
+            root = _process_deployment_root(entry, proc_root)
+            if root is None:
+                continue
+            # Only a released pre-v5 client can spawn its own daemon after a
+            # paused latch check. A v5+ runtime never spawns (its sandbox
+            # client has no start path), so its live sandbox must not make
+            # every later daemon start unrecoverable: that turned any restart
+            # during a live run into an operator stop-everything (#322).
+            # The declaration is project-writable, deliberately: this guard
+            # closes a race in released code behaving as designed, not an
+            # adversary -- an agent in a pre-v5 sandbox can already read .env
+            # and log in directly, so forging the line grants it nothing.
+            protocol = _deployment_client_protocol(root)
+            if (protocol is not None and
+                    protocol >= _FIRST_NON_SPAWNING_CLIENT_PROTOCOL and
+                    _client_predates_process(root, entry)):
                 continue
             candidate = os.stat(entry / 'ns' / 'net')
         except (FileNotFoundError, ProcessLookupError):

@@ -92,6 +92,16 @@ RESPONSE_TRANSFER_BASE_SECONDS = 60
 RESPONSE_TRANSFER_MIN_BYTES_PER_SECOND = 1024 * 1024
 RESPONSE_TRANSFER_MAX_SECONDS = QUERY_TIMEOUT_SECONDS + 15
 BRIDGE_SETUP_ALLOWANCE_SECONDS = 32
+# The launcher-side watchdog (wrds_watchdog.py, host only) publishes its view
+# here. The client only reads it: while a live watchdog is repairing the
+# daemon, waiting is the correct response to a dead endpoint, and the client
+# itself never starts, restarts, or logs in (#322).
+WATCHDOG_STATUS_FILE = os.path.join(
+    os.path.dirname(SOCKET_FILE), 'wrds_watchdog.json')
+WATCHDOG_STALE_SECONDS = 120
+HEAL_WAIT_BUDGET_SECONDS = 1800  # override with WRDS_HEAL_WAIT_SECONDS
+HEAL_POLL_SECONDS = 15
+MAX_HEAL_RETRIES = 3
 _DB_COMMANDS = frozenset({
     'safe_query_v7',
     'safe_list_tables_v7',
@@ -394,24 +404,114 @@ def _ensure_safe_server():
     _safety_hello()
 
 
-def _busy_wait_budget():
-    raw = os.environ.get('WRDS_BUSY_WAIT_SECONDS')
+def _env_budget(name, default):
+    raw = os.environ.get(name)
     if raw is None:
-        return float(BUSY_WAIT_BUDGET_SECONDS)
+        return float(default)
     try:
         value = float(raw)
     except ValueError:
-        return float(BUSY_WAIT_BUDGET_SECONDS)
+        return float(default)
     if math.isnan(value):
         # NaN parses as a float, so the ValueError fallback misses it; treat
         # it like any other garbage input rather than collapsing to a
         # zero-wait budget. +inf stays valid as an unbounded-wait escape
         # hatch.
-        return float(BUSY_WAIT_BUDGET_SECONDS)
+        return float(default)
     return max(0.0, value)
 
 
+def _busy_wait_budget():
+    return _env_budget('WRDS_BUSY_WAIT_SECONDS', BUSY_WAIT_BUDGET_SECONDS)
+
+
+def wrds_watchdog_status():
+    """The host watchdog's latest published status, or None.
+
+    None means no watchdog is live: the file is absent, unsafe, unparsable, or
+    older than WATCHDOG_STALE_SECONDS (a dead watchdog stops refreshing it).
+    """
+    flags = os.O_RDONLY | getattr(os, 'O_NOFOLLOW', 0)
+    try:
+        fd = os.open(WATCHDOG_STATUS_FILE, flags)
+    except OSError:
+        return None
+    try:
+        info = os.fstat(fd)
+        if (not stat.S_ISREG(info.st_mode) or
+                (hasattr(os, 'getuid') and info.st_uid != os.getuid()) or
+                info.st_mode & 0o022 or info.st_size > 65536):
+            return None
+        status = json.loads(os.read(fd, 65536).decode('utf-8'))
+    except (OSError, ValueError, UnicodeError):
+        return None
+    finally:
+        os.close(fd)
+    if not isinstance(status, dict):
+        return None
+    try:
+        age = time.time() - float(status.get('updated'))
+    except (TypeError, ValueError):
+        return None
+    if not 0 <= age <= WATCHDOG_STALE_SECONDS:
+        return None
+    return status
+
+
+def wrds_await_service(timeout=None):
+    """Wait for the host watchdog to restore the daemon; True once healthy.
+
+    Read-only: polls wrds_ping() and the watchdog's published status, and
+    never starts, restarts, unblocks, or logs in. Returns False as soon as no
+    live watchdog is repairing (none running, or it reports that the operator
+    must act), when a credential/safety latch is reported, or when the budget
+    (WRDS_HEAL_WAIT_SECONDS, default 1800s) runs out.
+    """
+    budget = (_env_budget('WRDS_HEAL_WAIT_SECONDS', HEAL_WAIT_BUDGET_SECONDS)
+              if timeout is None else max(0.0, float(timeout)))
+    deadline = time.monotonic() + budget
+    announced = False
+    while True:
+        if wrds_ping():
+            return True
+        status = wrds_watchdog_status()
+        if status is None or status.get('state') not in (
+                'monitoring', 'healing'):
+            return False
+        if wrds_auth_error():
+            return False
+        remaining = deadline - time.monotonic()
+        if remaining <= 0:
+            return False
+        if not announced:
+            print("[wrds_client] WRDS daemon unavailable; the host watchdog "
+                  f"is repairing it ({status.get('detail', '')}). Waiting up "
+                  f"to {remaining:.0f}s.", flush=True)
+            announced = True
+        time.sleep(min(HEAL_POLL_SECONDS, remaining))
+
+
 def _checked_request(request, timeout=300):
+    """Send one command, waiting out a watchdog repair of a dead endpoint.
+
+    A dropped/refused endpoint is retried only while a live host watchdog
+    reports it is repairing the daemon (bounded by MAX_HEAL_RETRIES and the
+    heal-wait budget). WRDS access is read-only, so re-sending a command cut
+    off mid-response repeats no side effect; auth and safety stay terminal.
+    """
+    heals = 0
+    while True:
+        try:
+            return _checked_request_once(request, timeout)
+        except (ConnectionError, FileNotFoundError) as exc:
+            if heals >= MAX_HEAL_RETRIES or not wrds_await_service():
+                raise
+            heals += 1
+            print(f"[wrds_client] WRDS endpoint recovered after {exc!r}; "
+                  "re-sending the command.", flush=True)
+
+
+def _checked_request_once(request, timeout=300):
     """Send one command, absorbing daemon 'busy' answers with bounded backoff.
 
     A busy answer is emitted before the daemon touches the database, so
@@ -705,10 +805,27 @@ def wrds_unblock():
     # autonomous agent could turn one network request into another login.
     try:
         _safety_hello()
-        return False, (
-            'WRDS daemon is still running. OPERATOR: stop its recorded PID '
-            'from the host, then rerun this unblock command exactly once.'
-        )
+        try:
+            resp = _send_request({'cmd': 'safe_ping_v7'}, timeout=5)
+        except (OSError, ValueError):
+            resp = {}
+        if resp.get('error_kind') != 'auth':
+            return False, (
+                'WRDS daemon is still running and has not latched a login '
+                'failure; there is nothing to unblock. If it is wedged, stop '
+                'its recorded PID from the host first.'
+            )
+        # A latched daemon deliberately stays alive holding the endpoint so
+        # nothing automated can replace it. This command IS the operator's
+        # approval, so stop it here (identity-verified) instead of making the
+        # operator hunt for the PID, then spend the one approved attempt.
+        # Run from a sandbox this still spends nothing: the replacement
+        # server must create its singleton marker and write-ahead latch in
+        # protected state the sandbox can only read, so it exits before any
+        # login and the durable latch survives the stop.
+        stopped, detail = _server_module().stop_singleton_owner()
+        if not stopped:
+            return False, f'could not stop the latched WRDS daemon: {detail}'
     except WrdsSafetyBlocked as e:
         # A protocol mismatch still proves that a process answered the socket.
         # Never start a second credentialed daemon beside an old live one.
@@ -769,11 +886,15 @@ def wrds_unblock():
 
 
 if __name__ == '__main__':
-    # Small operator CLI. Deliberately minimal: `status` reports whether the
-    # server has latched a credential rejection, `unblock` approves exactly one
-    # retry. Neither is for agent use — see the WRDS skill's escalation rule.
+    # Small CLI. `status` reports daemon/watchdog/latch state; `await` is the
+    # read-only wait agents use before halting; `unblock` approves exactly one
+    # login and is OPERATOR ONLY — see the WRDS skill's escalation rule.
     _cmd = sys.argv[1] if len(sys.argv) > 1 else 'status'
     if _cmd == 'status':
+        _wd = wrds_watchdog_status()
+        print('WRDS watchdog: ' + (
+            f"{_wd.get('state')} — {_wd.get('detail', '')}" if _wd
+            else 'not running'))
         if wrds_ping():
             print('WRDS server: healthy')
         else:
@@ -783,10 +904,26 @@ if __name__ == '__main__':
                 sys.exit(2)
             print('WRDS server: down or unhealthy (no auth latch)')
             sys.exit(1)
+    elif _cmd == 'await':
+        # Read-only wait for a host-watchdog repair, sized to fit one agent
+        # tool call. Exit 0 healthy; 3 still being repaired (call again);
+        # 1 nothing is repairing it (halt/escalate per the stage doc).
+        _budget = float(sys.argv[2]) if len(sys.argv) > 2 else 540.0
+        if wrds_await_service(_budget):
+            print('WRDS server: healthy')
+            sys.exit(0)
+        _wd = wrds_watchdog_status()
+        if _wd and _wd.get('state') in ('monitoring', 'healing') and \
+                not wrds_auth_error():
+            print(f"WRDS watchdog still repairing: {_wd.get('detail', '')}")
+            sys.exit(3)
+        print('WRDS server: unavailable and not being repaired'
+              + (f" ({_wd.get('detail', '')})" if _wd else ''))
+        sys.exit(1)
     elif _cmd == 'unblock':
         _ok, _detail = wrds_unblock()
         print(('OK: ' if _ok else 'FAILED: ') + str(_detail))
         sys.exit(0 if _ok else 2)
     else:
-        print(f'usage: {sys.argv[0]} [status|unblock]')
+        print(f'usage: {sys.argv[0]} [status|await [seconds]|unblock]')
         sys.exit(64)
