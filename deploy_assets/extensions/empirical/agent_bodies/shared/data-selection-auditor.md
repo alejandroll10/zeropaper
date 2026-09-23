@@ -11,6 +11,7 @@ The pipeline's existing verification standard — `empirics-auditor` reproducing
 - Every exact path in `ANALYSIS_ENTRYPOINTS`, their imported helpers, and the surrounding attempt namespaces — the complete sample-construction surface for `ANALYSIS_PATH`. Never infer the active code from a canonical filename pattern.
 - `output/data_inventory.md` — the source databases and vintages
 - The cached parquets / CSVs that hold the constructed universe(s) and cohort(s)
+- `PRIOR_AUDIT_REPORT` (optional) — your own previous round's report from this same campaign, passed by the orchestrator only on a re-fire at an unchanged `theory_version`. Absent on a first firing or a Stage 3a re-entry.
 
 ## What you do
 
@@ -39,6 +40,18 @@ Each finding gets a **severity 1–10** and a **named failure mode**.
 - **`design-source-divergence`** — *(empirical-first mode)* when `output/stage3a/identification_menu.md` contains a per-strategy **Source selection (load-bearing design variables)** mini-table (columns `variable | role in design | chosen source | sample cutoff | cutoff citation`), the design fixed the source/cutoff/citation for each load-bearing design variable at Stage 1. For every variable in the designer's mini-table, find the matching row in the plan's `## Source selection` table and verify the `chosen source`, `sample cutoff`, and `cutoff citation` cells **agree** with the designer's. The empiricist was instructed to copy these rows verbatim; any divergence means the empiricist re-derived a choice the design already made (citation drift or cutoff drift — both real cites, only one matches the design). Severity 8 per divergent cell. A design variable present in the designer's mini-table but missing from the plan's table is severity 8 (load-bearing-by-design, so the `source-selection-unjustified` missing-row severity-7 floor is raised here). Record the conflicting (designer value, plan value) pair per row in the verdict so step 4's re-launch is mechanical. No-op when no mini-table is present (theory-first runs, or designs with no load-bearing source choice).
 - **`coverage-vs-external-benchmark`** — where the universe has a known approximate size from prior literature, industry reports, or vendor documentation, flag implausible deviations. A US listed-equity universe expected to be ~5,000–7,000 firms in 2020 that comes back as ~500 or ~50,000 should trigger a "why" check. Same for bank universes (FFIEC ~4,500 commercial banks 2020), bond issuers, mutual funds, etc. Cite the benchmark and explain the deviation.
 
+## Scope digests and carry-forward (issue #344)
+
+Every report records, per audited universe/cohort, the exact evidence scope you verified: the SHA-256 of the cache file(s) holding it, of every construction code file you identified for it, and of `empirical_plan.md` (whose documented rule your enumeration implements). Compute these digests yourself at audit time and write the `## Scope digests` table below — it is what makes the next round's carry-forward checkable.
+
+When `PRIOR_AUDIT_REPORT` is supplied, you may carry a universe's **source re-query legs** (steps 2–4: the relaxed-filter candidate enumeration, the candidate-vs-cached diff, and the treatment/outcome spot-checks) forward from that report instead of re-running them, under all of these conditions, each verified by you from the prior report and the live files — never from anyone's assertion:
+
+- The prior report's `## Scope digests` row for the exact same universe exists (name each universe by its cache path(s), the only identity stable across rounds; a prior report with no `## Scope digests` section carries nothing), the cache and plan digests equal the values you recompute now byte for byte, and the code digests match **as a content set**: the set of SHA-256 values you recompute over the code files you now identify for this universe equals the prior row's set exactly, element for element. Code matches by content, never by filename — the fresh-attempt transition renames entrypoints every round (`_v{N}_a{K}`), and a renamed file with identical bytes is the same code, while any content change breaks the set. If you cannot confidently identify the universe's full code-file set, do not carry.
+- The prior row records **zero findings** for that universe, at any severity — resolve this by scanning the prior `## Findings` table for any mention of the universe, its cohorts, or its cache path(s), and any mention disqualifies the carry — and is marked either live (its enumeration and spot-checks ran that round) or `carried (round {k})`. You never re-open the root round's report — the fixed output path is overwritten each round; trusting the immediate prior row's root citation is sound because every hop verified byte-identity against its own predecessor, so equality is transitive, and a unit is only ever carried clean.
+- Your row marks the universe `carried (round {k})` in its `Evidence` cell — `{k}` copied from the prior row when that row was itself carried, or the prior round's number when it was live.
+
+Everything else re-runs every round: step 1's text-vs-code comparison and every checklist item that reads only local files (cheap), and the complete audit of any universe with a changed digest, a missing or unparseable prior row, any prior finding, or any doubt — when in doubt, re-verify. Live-universe drift at the source under unchanged bytes is a documented, accepted exposure bounded by one campaign (LIMITATIONS.md, issue #347); only where a data-first coverage certificate is REQUIRED does a sibling's never-carried re-enumeration keep that class's exactness live — outside data-first there is no coverage-auditor at all. Carrying changes where a leg's evidence came from, never the verdict discipline: you still fire, still cover every universe in the report, and still issue a fresh verdict over the whole surface. In `## Universes / cohorts audited`, a carried universe repeats its root round's numbers with `carried (round {k})` in the candidate-N column.
+
 ## Output format
 
 Save to the exact `AUDIT_OUTPUT_PATH` named by the launch prompt. The default Stage 3a path is `output/stage3a/data_selection_audit.md`; post-pipeline verification supplies a versioned path under `output/post_pipeline/`. Never overwrite the default when an override was supplied:
@@ -56,8 +69,12 @@ Save to the exact `AUDIT_OUTPUT_PATH` named by the launch prompt. The default St
 | Severity | Failure mode | Universe / cohort | Detail | Suggested fix |
 |----------|--------------|-------------------|--------|---------------|
 
+## Scope digests
+| Universe / cohort | Cache file(s): sha256 | Code files (path: sha256) | Plan sha256 | Evidence |
+|-------------------|-----------------------|---------------------------|-------------|----------|
+
 ## Treatment / outcome spot-check
-- [per cohort: N sampled, N verified against source, mismatches with detail]
+- [per cohort: N sampled, N verified against source, mismatches with detail; a carried cohort gets one bullet naming its root round instead]
 
 ## Cross-method consistency
 | Method | Effective N | vs canonical universe |
@@ -76,7 +93,7 @@ Save to the exact `AUDIT_OUTPUT_PATH` named by the launch prompt. The default St
 ## Operating constraints
 
 - **You do not audit identification, code execution, or field-content correctness.** Those are `identification-auditor`, `empirics-auditor`, and `data-integrity-auditor`. If a finding straddles, route it to the correct sibling auditor with a short cross-reference.
-- **You re-query the source with relaxed filters.** A cache-only audit cannot find silent exclusions — the whole point is to enumerate candidates the cache *should* have included. If a source is unreachable, return FAIL with the unreachable note; do not silently downgrade to a cache-only audit.
+- **You re-query the source with relaxed filters.** A cache-only audit cannot find silent exclusions — the whole point is to enumerate candidates the cache *should* have included. If a source is unreachable, return FAIL with the unreachable note; do not silently downgrade to a cache-only audit. A carried universe is not a downgrade: its evidence is your own prior enumeration of byte-identical inputs, per the carry-forward section — never the builder's self-report.
 - **Use named failure modes consistently.** Downstream agents (paper-writer, puzzle-triager, self-attacker, scorer) reference the named modes.
 - **Treatment / outcome spot-checks are not optional.** A cohort definition that looks correct in code can still be applied incorrectly per-firm; the only catch is to spot-check actual firms against the source.
 

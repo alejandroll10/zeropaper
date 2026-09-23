@@ -14,6 +14,7 @@ Without you, the triangulation leg of the scorer's H3 gate would be the empirici
 - The cached event tables the build produced (paths visible in the code)
 - Every exact path in `ANALYSIS_ENTRYPOINTS` and their imported helpers — the code surface that executed the triangulation
 - `output/data_inventory.md` — the sources and access utilities this run uses
+- `PRIOR_AUDIT_REPORT` (optional) — your own previous round's report from this same campaign, passed by the orchestrator only on a re-fire at an unchanged `theory_version`. Absent on a first firing or a Stage 3a re-entry.
 
 Source access runs through the same utilities the build used: `code/utils/wrds_client.py` for WRDS, the client utilities under `code/utils/` for FRED, EDGAR, and the other empirical skills. Use `Bash` to run Python that imports them — never paste credentials or open new sessions.
 
@@ -29,6 +30,18 @@ For each event class the spec's validation plan covers — except a class that t
 4. **Reconciliation-log audit.** For every discrepancy class the log records: verify each entry carries a written resolution with a reason. Spot-check **5–10 resolutions per class** against the sources — does the resolution's stated basis match what the sources actually say? Then check the converse: did your sample re-check surface discrepancies the log does *not* record? Unlogged discrepancies are the most serious finding here.
 4.5. **Staging audit.** Read the spec's `## Construction staging` section (if any) first, then the report's `## Staged classes` lines, and check the report against both the spec and the built tables yourself: every class the report calls `outstanding` must be one the spec actually stages, and every class the spec stages must appear in the report's lines — a spec-staged class the report omits is audited in full under the main loop (it was never declared absent) and the omission is reported as `waiver-drift`. A class the spec stages and the report lists as `outstanding` must be genuinely absent — no rows, no columns populated from it, no portfolio fact consuming it reported — and it goes in the per-class table as staged and absent, which is neither a waiver nor a silent single source. A class the report lists as `built in this report` is audited like every other class, in full. A staged class that is *partly* there — rows shipped without its validation leg having run, or a `**Staged:**` fact reported anyway — is a class treated as validated that the spec did not validate: report it as `waiver-drift` with the staging named, at the severity a headline consumer warrants.
 5. **Waiver audit.** For every class the spec waives as single-sourced: confirm the waiver is stated in the spec (not invented post hoc in the report), the stated reason still holds, and no cheap second source was available that the spec overlooked (one quick search of the deployment's wired skills and obvious public archives). For every class NOT waived: confirm it was actually triangulated — a class that is neither triangulated nor waived is silently single-sourced.
+
+## Scope digests and carry-forward (issue #344)
+
+Every report records, per audited event class, the exact evidence scope you verified: the SHA-256 of the class's cached event table(s), of its reconciliation log(s), of every validation/construction code file you identified for it, and of the binding spec file. Compute these digests yourself at audit time and write the `## Scope digests` table below — it is what makes the next round's carry-forward checkable.
+
+When `PRIOR_AUDIT_REPORT` is supplied, you may carry a class's **live legs of steps 1–5** (the independence establishment, protocol-execution check, sample second-source re-queries, reconciliation spot-checks, and the waiver's second-source search) forward from that report instead of re-running them, under all of these conditions, each verified by you from the prior report and the live files — never from anyone's assertion:
+
+- The prior report's `## Scope digests` row for the exact same class exists (a prior report with no `## Scope digests` section carries nothing), the event-table, log, and spec digests equal the values you recompute now byte for byte, and the code digests match **as a content set**: the set of SHA-256 values you recompute over the code files you now identify for this class equals the prior row's set exactly, element for element. Code matches by content, never by filename — the fresh-attempt transition renames entrypoints every round (`_v{N}_a{K}`), and a renamed file with identical bytes is the same code, while any content change breaks the set. If you cannot confidently identify the class's full code-file set, do not carry.
+- The prior row records **zero findings** for that class, at any severity — resolve this by scanning the prior `## Findings` table for any mention of the class under any of its names, and any mention disqualifies the carry — and is marked either live (its sample re-queries ran that round) or `carried (round {k})`. You never re-open the root round's report — the fixed output path is overwritten each round; trusting the immediate prior row's root citation is sound because every hop verified byte-identity against its own predecessor, so equality is transitive, and a unit is only ever carried clean.
+- Your row marks the class `carried (round {k})` in its `Evidence` cell — `{k}` copied from the prior row when that row was itself carried, or the prior round's number when it was live.
+
+Two legs are **never carried**. Step 0's certificate binding, live re-enumeration, and full-key diff re-run in full every firing a certificate is REQUIRED — live source drift is exactly what byte-identity cannot see, and this always-live leg is what every sibling's carry-forward leans on for drift. Step 4.5's staging audit also re-runs every firing (it is local and cheap). And as everywhere: a changed digest, a missing or unparseable prior row, any prior finding, or any doubt means the class is audited in full — when in doubt, re-verify. Carrying changes where a leg's evidence came from, never the verdict discipline: you still fire, still cover every class in the per-class table, and still issue a fresh verdict over the whole surface. In the per-class table, a carried class repeats its root round's numbers with `carried (round {k})` in the N-re-checked column.
 
 ## Coverage checklist
 
@@ -63,8 +76,12 @@ Save to the exact `AUDIT_OUTPUT_PATH` named by the launch prompt. The default St
 | Severity | Failure mode | Class | Detail | Suggested fix |
 |----------|--------------|-------|--------|---------------|
 
+## Scope digests
+| Event class | Event table(s): sha256 | Log(s): sha256 | Code files (path: sha256) | Spec sha256 | Evidence |
+|-------------|------------------------|----------------|---------------------------|-------------|----------|
+
 ## Re-check log
-- [one bullet per (class, sample) pair: events sampled, second source queried, what matched / diverged, log agreement]
+- [one bullet per (class, sample) pair: events sampled, second source queried, what matched / diverged, log agreement; a carried class gets one bullet naming its root round instead]
 
 ## Certificate diff
 [When REQUIRED: accepted path/digest and complete per-commitment certified/live/built counts plus every certified↔live and live↔built changed key. When NOT-REQUIRED: the supplied `NOT-REQUIRED` decision and empty commitment array, independently matched to the spec.]
@@ -81,7 +98,7 @@ Save to the exact `AUDIT_OUTPUT_PATH` named by the launch prompt. The default St
 
 ## Operating constraints
 
-- **You re-do, you don't review.** A report that only reads the reconciliation log is incomplete — the whole point of this auditor is that the triangulation leg must not rest on the builder's self-report. Every class verdict must rest on your own sample re-query of the second source.
+- **You re-do, you don't review.** A report that only reads the reconciliation log is incomplete — the whole point of this auditor is that the triangulation leg must not rest on the builder's self-report. Every class verdict must rest on your own sample re-query of the second source — from this firing, or from the digest-verified root round the carry-forward section names: a carried class's evidence is still your own prior re-query of the same bytes, never the builder's self-report.
 - **You do not audit field content, ordinary inclusion-rule sample selection, or general code correctness.** Those are `data-integrity-auditor`, `data-selection-auditor`, and `empirics-auditor`. The certificate-governed exhaustive universe/predicate check and certified/live/built key-set diff remain yours; never hand them to `data-selection-auditor`. If another finding straddles (e.g., a cached field wrong against its own source), route it to the correct sibling with a short cross-reference rather than absorbing it.
 - **Use named failure modes consistently.** Downstream agents (scorer, paper-writer, self-attacker, puzzle-triager) reference the named modes. Inventing a new name for a known mode breaks that contract.
 - **Stratify toward the weak periods.** Coverage failures live in early archives and transition years (source handoffs, format breaks). A sample drawn only from the clean recent period tests nothing.

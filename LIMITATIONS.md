@@ -26,6 +26,16 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## Audit carry-forward accepts intra-campaign source drift for units with no always-live leg
+
+**Scope:** the Stage 3a audit triad in every empirical mode, and data-first event classes whose coverage-certificate decision is NOT-REQUIRED.
+
+**Failure mode:** v2.42.0 (#344) carries a unit's live re-query evidence across repair rounds when its full local evidence scope is byte-identical to a zero-finding prior row — and byte-identity cannot see the source side. A value revised at source, or a newly qualifying identifier appearing there, under unchanged local bytes is not re-observed until the unit's bytes change, a finding lands on it, or the campaign ends; the pre-#344 full re-query caught such drift incidentally on every repair round. Bounds: data-integrity's `cache-stale-vs-source` check and the coverage certificate's re-enumeration (when REQUIRED) stay live every firing, and the window is one campaign. Closing it needs a cheap always-live per-source change signal (vintage/timestamp probe) gating carry, or a campaign-clock cap on the root round's age.
+
+**Tracking:** [#347](https://github.com/alejandroll10/zeropaper/issues/347).
+
+---
+
 ## Tag-only analysis repairs still pay a full producer re-run
 
 **Scope:** `--ext empirical` Stage 3a step 6.5's `no_headline_tags` branch and any repair that edits only the analysis report's tag text.
