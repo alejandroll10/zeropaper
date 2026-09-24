@@ -32,6 +32,12 @@ document, split by the same rule.  The data-first Stage 3a auditors use it to
 key carry-forward on the construction plan's ``## Class: <id>`` and
 ``## Shared construction`` sections instead of the whole plan, so a replan that
 touches one class does not reset every other class's carried evidence.
+
+``depth --prior-report P --report R`` enforces the one-hop carry bound (issue
+#349): it reads each ``### N.`` paragraph under ``## Assessment by dimension``
+in both audit reports and exits 1 if any dimension is marked carried
+(``Carried from v…`` or ``Sites carried from v…``) in both.  The orchestrator
+runs it, so the bound does not rest on the auditor's own discipline.
 """
 
 import argparse
@@ -146,6 +152,48 @@ def document_sections(doc):
     }
 
 
+CARRY_MARK = re.compile(r"^(?:Sites carried|Carried) from v\d+\.")
+NEAR_MISS = re.compile(r"carried from v\d", re.IGNORECASE)
+
+
+def dimension_marks(report):
+    """Map dimension number -> whether its paragraph opens with a carry mark."""
+    raw = _read_bytes(report)
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ScopeError(f"report {report} is not UTF-8: {exc}") from exc
+    body = dict(split_sections(text)).get("Assessment by dimension")
+    if body is None:
+        raise ScopeError(f"report {report} has no '## Assessment by dimension' section")
+    marks, current = {}, None
+    for line in body.splitlines()[1:]:
+        heading = re.match(r"###\s+(\d+)\.", line)
+        if heading:
+            current = int(heading.group(1))
+            if current in marks:
+                raise ScopeError(f"report {report} repeats dimension {current}")
+            marks[current] = None
+        elif current is not None and marks[current] is None and line.strip():
+            first = line.strip()
+            marked = bool(CARRY_MARK.match(first))
+            if not marked and NEAR_MISS.search(first[:60]):
+                raise ScopeError(f"report {report} dimension {current} opens with a malformed carry mark: {first[:60]!r}")
+            marks[current] = marked
+    if not marks or any(v is None for v in marks.values()):
+        raise ScopeError(f"report {report} has an empty or missing dimension paragraph")
+    return marks
+
+
+def depth(prior_report, report):
+    prior, current = dimension_marks(prior_report), dimension_marks(report)
+    if set(prior) != set(current):
+        raise ScopeError("prior and current reports assess different dimension sets")
+    violations = sorted(d for d in current if current[d] and prior[d])
+    return {"carried_now": sorted(d for d in current if current[d]),
+            "carried_twice": violations}
+
+
 def read_block(report):
     """Parse the first ```json fence after the report's Scope digests heading."""
     text = _read_bytes(report).decode("utf-8", errors="replace")
@@ -249,7 +297,18 @@ def main(argv=None):
             cmd.add_argument("--prior-report", required=True)
     sections_cmd = sub.add_parser("sections")
     sections_cmd.add_argument("--doc", required=True)
+    depth_cmd = sub.add_parser("depth")
+    depth_cmd.add_argument("--prior-report", required=True)
+    depth_cmd.add_argument("--report", required=True)
     args = parser.parse_args(argv)
+    if args.command == "depth":
+        try:
+            result = depth(args.prior_report, args.report)
+        except ScopeError as exc:
+            print(f"spec_audit_scope: {exc}; carry depth unverifiable", file=sys.stderr)
+            return 2
+        print(json.dumps(result, indent=2))
+        return 1 if result["carried_twice"] else 0
     if args.command == "sections":
         try:
             print(json.dumps(document_sections(args.doc), indent=2))

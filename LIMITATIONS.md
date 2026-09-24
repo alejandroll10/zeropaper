@@ -42,15 +42,15 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## Data-first Gate-2 carry-forward rests on the auditor's relevance judgment
+## CLOSED in v2.49.0 — Data-first Gate-2 carry-forward rested on the auditor's relevance judgment, unbounded
 
 **Scope:** `--mode data-first` Gate 2 dataset-specification audit (`mechanism-auditor`, spec-audit role) on a mutate re-audit that receives `PRIOR_AUDIT_REPORT`.
 
-**Failure mode:** v2.45.0 (#345) lets the auditor carry a dimension's clean prior assessment forward when it judges that nothing in the diff bears on that dimension. The byte facts are mechanical: `code/utils/spec_audit_scope.py` recomputes both sides from the audited files and fails closed on any mismatch. The relevance call is not. The eleven dimensions cut across sections, so unlike #344's exact-digest carry they cannot be decided by byte equality. A wrong "does not bear" call keeps a stale judgment alive: later hops see no diff in that area, so the mistake can persist across every later mutate in the same theory attempt until the text changes or a fresh attempt starts. The only backstops are the downstream Stage 3a audits, referees and polish.
+**Failure mode:** v2.45.0 (#345) lets the auditor carry a dimension's clean prior assessment forward when it judges that nothing in the diff bears on that dimension. The byte facts are mechanical, but the relevance call is not, because the eleven dimensions cut across sections. Each hop reads only the diff since the last, so a wrong "does not bear" call was invisible to every later hop and could persist through every later mutate in the theory attempt, including downstream mutates after acceptance.
 
-**What would close it:** a scope map precise enough to decide carry by digest equality, or a carry-depth bound that forces a full re-assessment every K hops or at acceptance.
+**Closed in v2.49.0:** carry depth is one hop at both levels. A dimension paragraph that was carried whole (`Carried from v{k}.`) or that let unchanged sites keep their prior judgment (`Sites carried from v{k}.`) is never carried again, so every site of every dimension gets a fresh read against the current spec at least every second audit. The bound is enforced by the orchestrator with `spec_audit_scope.py depth`, not by the auditor's own discipline. A wrong relevance call now survives one audit at most, the same exposure as any single audit's miss, with the Stage 3a chain, referees and polish as the downstream backstops. A mechanical dimension-to-section scope map was rejected because the cross-cutting dimensions do not map to disjoint byte ranges.
 
-**Tracking:** [#349](https://github.com/alejandroll10/zeropaper/issues/349).
+**Tracking:** [#349](https://github.com/alejandroll10/zeropaper/issues/349) (closed).
 
 ---
 

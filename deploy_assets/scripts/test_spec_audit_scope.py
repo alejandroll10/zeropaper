@@ -172,6 +172,35 @@ def main():
         check("editing one class changes only that class's section digest", changed == ["Class: cpi"])
         check("sections on a missing file exits 2", run("sections", "--doc", str(tmp / "absent.md")).returncode == 2)
 
+        def audit(paras):
+            dims = "".join(f"### {i}. Dim {i}\n{p}\n" for i, p in enumerate(paras, 1))
+            return "# Audit\n\n## Assessment by dimension\n" + dims + "\n## Verdict\nPLAUSIBLE\n"
+        pr, cr = tmp / "prior_audit.md", tmp / "cur_audit.md"
+        pr.write_text(audit(["Clean.", "Carried from v1. Clean.", "Clean."]))
+        cr.write_text(audit(["Carried from v2. Clean.", "Fresh read.", "Sites carried from v2. Clean."]))
+        out = run("depth", "--prior-report", str(pr), "--report", str(cr))
+        check("depth passes when no dimension is carried twice", out.returncode == 0)
+        cr.write_text(audit(["Clean.", "Carried from v1. Clean.", "Clean."]))
+        out = run("depth", "--prior-report", str(pr), "--report", str(cr))
+        check("depth rejects a whole-dimension carry of a carried paragraph",
+              out.returncode == 1 and json.loads(out.stdout)["carried_twice"] == [2])
+        cr.write_text(audit(["Clean.", "Sites carried from v2. Clean.", "Clean."]))
+        check("depth rejects a site-level carry of a carried paragraph",
+              run("depth", "--prior-report", str(pr), "--report", str(cr)).returncode == 1)
+        pr.write_text(audit(["Clean.", "Sites carried from v1. Clean.", "Clean."]))
+        cr.write_text(audit(["Clean.", "Carried from v2. Clean.", "Clean."]))
+        check("depth rejects a carry following a site-level carry",
+              run("depth", "--prior-report", str(pr), "--report", str(cr)).returncode == 1)
+        cr.write_text(audit(["**Carried from v2.** Clean.", "Clean.", "Clean."]))
+        check("depth on a decorated carry mark exits 2 instead of reading it as fresh",
+              run("depth", "--prior-report", str(pr), "--report", str(cr)).returncode == 2)
+        cr.write_text(audit(["Clean.", "Clean."]))
+        check("depth on mismatched dimension sets exits 2",
+              run("depth", "--prior-report", str(pr), "--report", str(cr)).returncode == 2)
+        cr.write_text("# Audit\n\n## Verdict\nPLAUSIBLE\n")
+        check("depth on a report without assessments exits 2",
+              run("depth", "--prior-report", str(pr), "--report", str(cr)).returncode == 2)
+
     print()
     if FAILURES:
         print(f"{len(FAILURES)} FAILED: {FAILURES}")
