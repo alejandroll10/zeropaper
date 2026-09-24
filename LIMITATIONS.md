@@ -54,11 +54,15 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## Audit carry-forward accepts intra-campaign source drift for units with no always-live leg
+## Audit carry-forward is blind to in-place value revisions at sources with no update marker
 
-**Scope:** the Stage 3a audit triad in every empirical mode, and data-first event classes whose coverage-certificate decision is NOT-REQUIRED.
+**Scope:** the Stage 3a audit triad in every empirical mode and the data-first coverage audit, for sources that expose neither a last-update nor a vintage marker.
 
-**Failure mode:** v2.42.0 (#344) carries a unit's live re-query evidence across repair rounds when its full local evidence scope is byte-identical to a zero-finding prior row — and byte-identity cannot see the source side. A value revised at source, or a newly qualifying identifier appearing there, under unchanged local bytes is not re-observed until the unit's bytes change, a finding lands on it, or the campaign ends; the pre-#344 full re-query caught such drift incidentally on every repair round. Bounds: data-integrity's `cache-stale-vs-source` check and the coverage certificate's re-enumeration (when REQUIRED) stay live every firing, and the window is one campaign. Closing it needs a cheap always-live per-source change signal (vintage/timestamp probe) gating carry, or a campaign-clock cap on the root round's age.
+**Narrowed in v2.48.0.** v2.42.0 (#344) carries a unit's live re-query evidence across repair rounds when its local evidence scope is byte-identical to a zero-finding prior row, and byte-identity cannot see the source side. Since v2.48.0 a carry also requires a live **source-change probe** to match the prior row: the source's own last-update/vintage marker, or — where it exposes none — the SHA-256 of the sorted identifier list (selection) or event-key list (coverage) the source currently returns. A unit whose sources answer no probe never carries. That closes identifier-level drift (newly qualifying or dropped records) everywhere and value-level drift wherever the source publishes a marker. The v2.48.0 banked acquisition units widen reuse of *bytes* across attempts, but every reused unit still passes these always-live probes each firing.
+
+**Failure mode that remains:** a source with no update marker that revises a record's *values* in place, leaving its identifier set unchanged, is invisible to the identifier-list fallback and to data-integrity's marker-based `cache-stale-vs-source` check. A unit carried over such a source keeps its root round's value verification until its bytes change, a finding lands on it, or the campaign ends.
+
+**What would close it:** a per-source value fingerprint cheaper than the full re-query (e.g., a source-side aggregate or checksum over the audited fields, where the source can compute one), or a carry-depth bound for marker-less sources.
 
 **Tracking:** [#347](https://github.com/alejandroll10/zeropaper/issues/347).
 

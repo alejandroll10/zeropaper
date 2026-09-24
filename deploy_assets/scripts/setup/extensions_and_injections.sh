@@ -771,7 +771,9 @@ if os.path.exists(state_path):
     # last passed by the plan-time Gate 2 audit — here the spec audit);
     # coverage_triangulation is the empiricist-reported protocol status that
     # coverage-auditor independently verifies. dataset_spec_serial is a
-    # run-global, never-reset filename allocator; dataset_rights_inventory and
+    # run-global, never-reset filename allocator; dataset_acquisition_epoch is
+    # the run-global, never-decremented namespace of banked Stage 3a
+    # acquisition units, incremented by every fresh-theory identity reset; dataset_rights_inventory and
     # dataset_coverage_certificate are exact Gate-2-accepted paths (the latter
     # stays null when no exact enumerable commitment exists). Release pointers
     # name the separately built, offline, mechanically rights-gated release.
@@ -787,6 +789,7 @@ if os.path.exists(state_path):
                 new["dataset_rights_inventory"] = None
                 new["dataset_rights_inventory_sha256"] = None
                 new["dataset_coverage_certificate_serial"] = 0
+                new["dataset_acquisition_epoch"] = 1
                 new["dataset_coverage_certificate"] = None
                 new["dataset_coverage_certificate_sha256"] = None
                 new["coverage_triangulation"] = None
@@ -800,6 +803,7 @@ if os.path.exists(state_path):
     data.setdefault("dataset_rights_inventory", None)
     data.setdefault("dataset_rights_inventory_sha256", None)
     data.setdefault("dataset_coverage_certificate_serial", 0)
+    data.setdefault("dataset_acquisition_epoch", 1)
     data.setdefault("dataset_coverage_certificate", None)
     data.setdefault("dataset_coverage_certificate_sha256", None)
     data.setdefault("coverage_triangulation", None)

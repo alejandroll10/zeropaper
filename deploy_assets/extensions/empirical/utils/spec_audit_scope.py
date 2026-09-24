@@ -26,6 +26,12 @@ not versioned, so their prior side is the recorded value; a mis-recorded value
 can only read as a change.  Exit status 2 means carry-forward is unavailable
 (missing or malformed block, a prior file that no longer matches its recorded
 digest, an unparseable document); the auditor then audits in full.
+
+``sections --doc FILE`` prints one SHA-256 per ``## `` section of any markdown
+document, split by the same rule.  The data-first Stage 3a auditors use it to
+key carry-forward on the construction plan's ``## Class: <id>`` and
+``## Shared construction`` sections instead of the whole plan, so a replan that
+touches one class does not reset every other class's carried evidence.
 """
 
 import argparse
@@ -124,6 +130,19 @@ def digest(spec, rights, inputs):
             name: (_sha256(_read_bytes(inputs[name])) if inputs.get(name) else None)
             for name in INPUT_NAMES
         },
+    }
+
+
+def document_sections(doc):
+    raw = _read_bytes(doc)
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ScopeError(f"document {doc} is not UTF-8: {exc}") from exc
+    return {
+        "doc_path": str(doc),
+        "doc_sha256": _sha256(raw),
+        "sections": [[key, _sha256(body.encode("utf-8"))] for key, body in split_sections(text)],
     }
 
 
@@ -228,7 +247,16 @@ def main(argv=None):
         cmd.add_argument("--build-report")
         if name == "compare":
             cmd.add_argument("--prior-report", required=True)
+    sections_cmd = sub.add_parser("sections")
+    sections_cmd.add_argument("--doc", required=True)
     args = parser.parse_args(argv)
+    if args.command == "sections":
+        try:
+            print(json.dumps(document_sections(args.doc), indent=2))
+        except ScopeError as exc:
+            print(f"spec_audit_scope: {exc}; carry-forward unavailable, audit in full", file=sys.stderr)
+            return 2
+        return 0
     inputs = {
         "pilot_report": args.pilot_report,
         "problem_statement": args.problem_statement,

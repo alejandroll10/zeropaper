@@ -42,6 +42,10 @@ Each finding gets a **severity 1–10** and a **named failure mode** so downstre
 
 Every report records, per audited cache, the exact evidence scope you verified: the cache file's SHA-256, the SHA-256 of every construction/mutation code file you identified for it, and the SHA-256 of `empirical_plan.md` (whose documented logic your re-query implements). Compute these digests yourself at audit time and write the `## Scope digests` table below — it is what makes the next round's carry-forward checkable.
 
+<!-- DATA_FIRST_START -->
+Under data-first the construction plan is split per class, so the plan side of the scope is class-local: record and compare, instead of the whole-plan digest, the digests of the plan's `## Class: {class_id}` section for every class this cache feeds plus its `## Shared construction` section, taken from `python3 code/utils/spec_audit_scope.py sections --doc <plan>` (the `Plan sha256` cell lists those section digests). A repair that touched another class's section then leaves this cache eligible to carry. A plan without those sections carries nothing.
+<!-- DATA_FIRST_END -->
+
 When `PRIOR_AUDIT_REPORT` is supplied, you may carry a cache's **source re-query legs** (steps 1–3) forward from that report instead of re-running them, under all of these conditions, each verified by you from the prior report and the live files — never from anyone's assertion:
 
 - The prior report's `## Scope digests` row for the exact same cache path exists (a prior report with no `## Scope digests` section carries nothing), the cache and plan digests equal the values you recompute now byte for byte, and the code digests match **as a content set**: the set of SHA-256 values you recompute over the code files you now identify for this cache equals the prior row's set exactly, element for element. Code matches by content, never by filename — the fresh-attempt transition renames entrypoints every round (`_v{N}_a{K}`), and a renamed file with identical bytes is the same code, while any content change breaks the set. If you cannot confidently identify the cache's full code-file set, do not carry.

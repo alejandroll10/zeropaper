@@ -72,6 +72,7 @@ import json, sys
 d = json.load(open(sys.argv[1] + "/process_log/pipeline_state.json"))
 assert d["dataset_spec_version"] is None and d["dataset_spec_serial"] == 0
 assert d["dataset_coverage_certificate_serial"] == 0
+assert d["dataset_acquisition_epoch"] == 1
 assert d["dataset_rights_inventory"] is None
 assert d["dataset_rights_inventory_sha256"] is None
 assert d["dataset_coverage_certificate"] is None
@@ -251,6 +252,7 @@ import json, sys
 d = json.load(open(sys.argv[1] + "/process_log/pipeline_state.json"))
 assert "dataset_spec_version" not in d and "dataset_spec_serial" not in d
 assert "dataset_coverage_certificate_serial" not in d
+assert "dataset_acquisition_epoch" not in d
 assert "dataset_rights_inventory" not in d
 assert "dataset_rights_inventory_sha256" not in d
 assert "dataset_coverage_certificate" not in d

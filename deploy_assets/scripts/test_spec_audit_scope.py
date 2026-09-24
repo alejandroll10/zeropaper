@@ -159,6 +159,19 @@ def main():
         rights2.write_text("{not json")
         check("unparseable rights exits 2", run(*cmp_args).returncode == 2)
 
+        plan = tmp / "empirical_plan.md"
+        plan.write_text("# Plan\n\n## Shared construction\nspine\n\n## Class: fomc\nA\n```\n## Class: fake\n```\n\n## Class: cpi\nB\n")
+        out = run("sections", "--doc", str(plan))
+        first = json.loads(out.stdout) if out.returncode == 0 else {}
+        keys = [k for k, _ in first.get("sections", [])]
+        check("sections splits a plan into its level-2 sections, fences unsplit",
+              keys == ["(preamble)", "Shared construction", "Class: fomc", "Class: cpi"])
+        plan.write_text(plan.read_text().replace("\nB\n", "\nB2\n"))
+        second = json.loads(run("sections", "--doc", str(plan)).stdout)
+        changed = [a[0] for a, b in zip(first["sections"], second["sections"]) if a[1] != b[1]]
+        check("editing one class changes only that class's section digest", changed == ["Class: cpi"])
+        check("sections on a missing file exits 2", run("sections", "--doc", str(tmp / "absent.md")).returncode == 2)
+
     print()
     if FAILURES:
         print(f"{len(FAILURES)} FAILED: {FAILURES}")
