@@ -233,6 +233,9 @@ jobs:
       - name: Test IBES skill guidance
         run: python3 deploy_assets/scripts/test_ibes_skill.py
 
+      - name: Test data-first Gate-2 scope digests
+        run: python3 deploy_assets/scripts/test_spec_audit_scope.py
+
   table_gate:
     name: Rendered-table gate
     runs-on: ubuntu-latest

@@ -1,0 +1,171 @@
+#!/usr/bin/env python3
+"""Tests for the data-first Gate-2 scope-digest helper (issue #345)."""
+
+import importlib.util
+import json
+import subprocess
+import sys
+import tempfile
+from pathlib import Path
+
+REPO = Path(__file__).resolve().parents[2]
+HELPER = REPO / "deploy_assets/extensions/empirical/utils/spec_audit_scope.py"
+SPEC = importlib.util.spec_from_file_location("spec_audit_scope", HELPER)
+scope = importlib.util.module_from_spec(SPEC)
+SPEC.loader.exec_module(scope)
+
+FAILURES = []
+
+
+def check(label, condition):
+    print(("PASS " if condition else "FAIL ") + label)
+    if not condition:
+        FAILURES.append(label)
+
+
+SPEC_V1 = """# Event Dataset
+
+## One-sentence contribution
+An open dataset.
+
+## Inclusion rules
+Every FOMC statement listed on the Board archive.
+
+```markdown
+## Not a heading
+```
+
+## Validation plan
+**Class sources:** ["fed_archive", "newswire"]
+
+## Release plan
+Offline release.
+"""
+
+RIGHTS_V1 = {"schema_version": 1, "dataset_version": 1,
+             "sources": [{"source_id": "fed_archive", "redistribution": "open",
+                          "evidence": {"url": "u", "terms": "t", "checked_at": "2026-09-01"}}]}
+
+
+def run(*args):
+    return subprocess.run([sys.executable, str(HELPER), *args], capture_output=True, text=True)
+
+
+def report_with(block):
+    return ("# Dataset Specification Audit v1\n\n## Assessment by dimension\n### 1. x\nok\n\n"
+            "## Scope digests\n```json\n" + json.dumps(block, indent=2) + "\n```\n\n## Verdict\n\n"
+            "**Verdict:** REVISE\n")
+
+
+def main():
+    print("[1] section split")
+    keys = [k for k, _ in scope.split_sections(SPEC_V1)]
+    check("fenced '## ' line does not start a section",
+          keys == ["(preamble)", "One-sentence contribution", "Inclusion rules", "Validation plan", "Release plan"])
+    check("sections reassemble the document byte for byte",
+          "".join(t for _, t in scope.split_sections(SPEC_V1)) == SPEC_V1)
+    indented = scope.split_sections("x\n   ## B\ny\n    ## not a heading\n")
+    check("up to three spaces of indent still start a section, four do not",
+          [k for k, _ in indented] == ["(preamble)", "B"])
+    dup = scope.split_sections("## A\nx\n## A\ny\n")
+    check("repeated heading stays addressable", [k for k, _ in dup] == ["(preamble)", "A", "A#2"])
+
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        spec1, spec2 = tmp / "theory_draft_v1.md", tmp / "theory_draft_v2.md"
+        rights1, rights2 = tmp / "source_rights_s1_v1.json", tmp / "source_rights_s1_v2.json"
+        pilot = tmp / "idea_prototype.md"
+        spec1.write_text(SPEC_V1)
+        rights1.write_text(json.dumps(RIGHTS_V1))
+        pilot.write_text("pilot\n")
+        common = ["--pilot-report", str(pilot)]
+
+        print("[2] digest")
+        out = run("digest", "--spec", str(spec1), "--rights", str(rights1), *common)
+        check("digest exits 0", out.returncode == 0)
+        block = json.loads(out.stdout)
+        check("digest records inputs, absent ones as null",
+              block["inputs"]["pilot_report"].startswith("sha256:") and block["inputs"]["build_report"] is None)
+        report = tmp / "mechanism_audit_v1.md"
+        report.write_text(report_with(block))
+
+        print("[3] compare: one-section mutate, version-only rights change")
+        spec2.write_text(SPEC_V1.replace("Offline release.", "Offline release, no credentials."))
+        rights2.write_text(json.dumps(dict(RIGHTS_V1, dataset_version=2), indent=4))
+        cmp_args = ["compare", "--prior-report", str(report), "--spec", str(spec2), "--rights", str(rights2), *common]
+        out = run(*cmp_args)
+        check("compare exits 0", out.returncode == 0)
+        summary = json.loads(out.stdout.split("--- unified diff")[0])
+        check("only the edited section changed", summary["sections_changed"] == ["Release plan"]
+              and not summary["sections_added"] and not summary["sections_removed"]
+              and not summary["section_order_changed"])
+        check("dataset_version bump and reformatting leave rights unchanged", summary["rights_changed"] is False)
+        check("unchanged inputs are not reported", summary["inputs_changed"] == [])
+        check("unified diff is printed", "+Offline release, no credentials." in out.stdout)
+        check("rights diff is printed and empty", out.stdout.rstrip().endswith("(prior rights -> current rights) ---"))
+
+        print("[4] compare: real rights change and a changed input")
+        changed = json.loads(json.dumps(RIGHTS_V1))
+        changed["sources"][0]["redistribution"] = "restricted"
+        rights2.write_text(json.dumps(changed))
+        pilot2 = tmp / "idea_prototype_2.md"
+        pilot2.write_text("pilot, revised\n")
+        out = run("compare", "--prior-report", str(report),
+                  "--spec", str(spec2), "--rights", str(rights2), "--pilot-report", str(pilot2))
+        summary = json.loads(out.stdout.split("--- unified diff")[0])
+        check("classification change is a rights change", summary["rights_changed"] is True)
+        check("rights diff shows the reclassification", '+   "redistribution": "restricted"' in out.stdout)
+        check("changed pilot is reported", summary["inputs_changed"] == ["pilot_report"])
+        out = run("compare", "--prior-report", str(report), "--spec", str(spec2),
+                  "--rights", str(rights1), *common, "--build-report", str(pilot))
+        summary = json.loads(out.stdout.split("--- unified diff")[0])
+        check("a build report appearing is a changed input", summary["inputs_changed"] == ["build_report"])
+
+        print("[5] compare: section added and reordered")
+        spec2.write_text(SPEC_V1.replace("## Release plan", "## Construction staging\nnone\n\n## Release plan"))
+        summary = json.loads(run(*cmp_args).stdout.split("--- unified diff")[0])
+        check("added section is reported", summary["sections_added"] == ["Construction staging"])
+        check("the section before an insertion is unchanged", summary["sections_changed"] == [])
+        swapped = SPEC_V1.replace("## Validation plan\n**Class sources:** [\"fed_archive\", \"newswire\"]\n\n", "")
+        swapped += "\n## Validation plan\n**Class sources:** [\"fed_archive\", \"newswire\"]\n\n"
+        spec2.write_text(swapped)
+        summary = json.loads(run(*cmp_args).stdout.split("--- unified diff")[0])
+        check("reordering is reported", summary["section_order_changed"] is True)
+
+        print("[6] compare refuses: carry-forward unavailable")
+        spec1.write_text(SPEC_V1 + "edited after audit\n")
+        out = run(*cmp_args)
+        check("prior spec edited after its audit exits 2", out.returncode == 2 and "not the document" in out.stderr)
+        spec1.write_text(SPEC_V1)
+        forged = json.loads(json.dumps(block))
+        forged["sections"][2][1] = "sha256:" + "0" * 64
+        report.write_text(report_with(forged))
+        check("recorded section digests that disagree with the prior spec exit 2", run(*cmp_args).returncode == 2)
+        rights1.write_text(json.dumps(dict(RIGHTS_V1, sources=[])))
+        report.write_text(report_with(block))
+        out = run(*cmp_args)
+        check("prior rights edited after its audit exits 2", out.returncode == 2 and "inventory" in out.stderr)
+        rights1.write_text(json.dumps(RIGHTS_V1))
+        report.write_text(report_with(dict(block, spec_sha256="sha256:XYZ")))
+        check("malformed digest exits 2", run(*cmp_args).returncode == 2)
+        report.write_text("# Audit\n\n## Verdict\nREVISE\n")
+        check("report without a digest block exits 2", run(*cmp_args).returncode == 2)
+        report.write_text(report_with(dict(block, schema_version=99)))
+        check("unknown schema_version exits 2", run(*cmp_args).returncode == 2)
+        bad = dict(block, sections=block["sections"] + [block["sections"][0]])
+        report.write_text(report_with(bad))
+        check("duplicate section keys exit 2", run(*cmp_args).returncode == 2)
+        report.write_text(report_with(block))
+        rights2.write_text("{not json")
+        check("unparseable rights exits 2", run(*cmp_args).returncode == 2)
+
+    print()
+    if FAILURES:
+        print(f"{len(FAILURES)} FAILED: {FAILURES}")
+        return 1
+    print("all spec_audit_scope checks passed")
+    return 0
+
+
+if __name__ == "__main__":
+    sys.exit(main())

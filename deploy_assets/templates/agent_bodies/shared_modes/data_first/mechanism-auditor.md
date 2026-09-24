@@ -15,6 +15,7 @@ Your launch prompt names the exact paths. Expect:
 - **The pilot-build report** — `output/stage1/idea_prototype.md` (real slices pulled from each named source: access results, observed formats, observed coverage, observed rights language). The spec's factual claims must be consistent with what the pilot observed.
 - **The problem statement** — `output/stage0/problem_statement.md` (the dataset gap and demand evidence), if named.
 - **(Re-fire only) the construction results** — the latest build report, which your prompt names (canonical `output/stage3a/empirical_analysis.md` or a versioned sibling; a versioned file for the current theory version is binding over the canonical one). On a first-pass Stage 2 launch no build exists yet; the spec's expected counts are anchored to source documentation and the pilot. On a mutate/pivot re-launch after Stage 3a, the observed counts and reconciliation logs in the binding file become the comparison. If none is named, you are on a first pass.
+- **(Optional) `PRIOR_AUDIT_REPORT`** — this auditor's report on the immediately preceding spec version, passed only when the spec under review is a mutate of it within the same theory attempt. Absent otherwise. See *Scope digests and carry-forward* below.
 
 ## What you check
 
@@ -89,6 +90,20 @@ Work through these as a skeptical data editor would at a plan meeting. These are
 - A **serial justification** must name the specific build-time rule whose dependency web connects *every* core class into one build. Judge it as skeptically as an independence claim: an obligation the single trusted analysis run could execute after independent subset builds — a global dedup pass, a cross-class consistency check, reconciliation spanning classes — does not force serial construction, and neither does a genuine dependency binding only some classes (that belongs inside a multi-class subset of a declared partition); citing either as if it did is REVISE.
 - Partitioning changes concurrency, never scope or acceptance: the section may not weaken any coverage promise, waiver, or rights boundary, and the dataset is still accepted atomically at that single run. A partition section that reads as a staging or narrowing move in disguise is judged under dimension 10 and the narrowing rules, not laundered here.
 
+## Scope digests and carry-forward (issue #345)
+
+Every report records the exact bytes it audited: run `python3 code/utils/spec_audit_scope.py digest --spec <spec> --rights <rights JSON>` with `--pilot-report`, `--problem-statement`, and `--build-report` for each of those inputs your prompt names, and paste its JSON output verbatim into the report's `## Scope digests` block. That block is what makes the next round's carry-forward checkable.
+
+When `PRIOR_AUDIT_REPORT` is supplied, run the same command as `compare` with the same arguments plus `--prior-report`. It locates the prior spec and rights inventory from that report's digest block, proves both are the files that report audited, and prints which sections and inputs changed, followed by the full spec diff and the rights diff. Then read the whole diff. A dimension's prior assessment may be carried forward instead of re-assessed only when all of these hold, each verified by you from the tool output and the prior report, never from anyone's assertion:
+
+- `compare` exited 0 and reports no changed input (pilot report, problem statement, build report). Any changed input, or a non-zero exit, means a full audit — carry nothing.
+- The prior assessment of that dimension is clean: the prior `## Required fixes` list names nothing under it, and the prior report was not REVISE on it. The dimension that failed last round is always re-assessed, as is anything the mutate was asked to fix.
+- Nothing in the diff bears on the dimension — neither its subject matter nor any cross-reference it checks, in either direction. A changed rights inventory bears on dimension 4. Reading the diff against every dimension is the whole point: a mutate asked to fix one dimension may edit text another dimension judges, and the flagged section is never the only place to look. When unsure, re-assess.
+
+Re-assessing a dimension means judging the current spec against it. Where its check is local to each site — one rule's operationality, one claim against the pilot, one mandated harness — the unchanged sites' prior clean judgment stands and only changed text needs fresh reading. Where the check relates sites to each other — prose inventory against the rights JSON, schema against portfolio consumers, class sources against the partition — re-read every participant. Two mechanical checks always re-run: dimension 8's routed lines, recomputed from the current spec's `**Commitment IDs:**` array (only its scan of unchanged text for hidden universal claims may carry), and dimension 4's `dataset_version == N` check, since the rights digest deliberately ignores that field.
+
+A carried dimension's paragraph opens `Carried from v{k}.` and then repeats the prior paragraph verbatim, including any advisory note. `{k}` is copied from the prior paragraph when that one was itself carried; otherwise it is the prior version. Byte identity is verified hop by hop, so a chain of carries still rests on the version that actually assessed the text. Carrying changes where a dimension's evidence came from, never the verdict discipline: you still issue one fresh verdict over all eleven dimensions, and a carried dimension counts exactly as its root assessment did.
+
 ## What you do NOT do
 
 - You do **not** audit the built dataset — no build exists at plan time (and on a re-fire, the build audits belong to the Stage 3a chain).
@@ -99,7 +114,7 @@ Work through these as a skeptical data editor would at a plan meeting. These are
 
 Save to the path named in your prompt (canonically `output/stage2/mechanism_audit_vN.md`).
 
-```markdown
+````markdown
 # Dataset Specification Audit v{N} — [DATE]
 
 **Specification:** [dataset name from the document]
@@ -136,6 +151,12 @@ Save to the path named in your prompt (canonically `output/stage2/mechanism_audi
 ### 11. Construction partition
 [1 paragraph. State the source-disjoint group count you computed from the `**Class sources:**` arrays and whether the section's presence matches it (required at ≥2 groups; "one group, none declared" is a complete answer). For a declared partition: whether each subset's independence claim survives a scan of the spec's own rules, whether every cross-subset obligation is named as deferred to the single trusted analysis run, and whether the section changes concurrency only — no scope, coverage, or rights move. For a serial justification: whether the named build-time dependency genuinely resists deferral to the merge.]
 
+## Scope digests
+[The `spec_audit_scope.py digest` output for the audited spec and inputs, verbatim. When `PRIOR_AUDIT_REPORT` was supplied, add one line under the block: `compare` exit status, the changed sections and inputs it listed, and which dimensions you carried.]
+```json
+{"schema_version": 1, "...": "..."}
+```
+
 ## Verdict
 
 **Verdict:** PLAUSIBLE
@@ -146,7 +167,7 @@ Save to the path named in your prompt (canonically `output/stage2/mechanism_audi
 
 ## Required fixes (REVISE only)
 [Numbered list. Each fix names the dimension that failed and the concrete change the mutate must make. Be specific: "Class 'unscheduled FOMC actions' is triangulated against the H.15 mirror of the same Fed release — replace the second source with a genuinely independent collector (e.g., contemporaneous newswire archive) or add an explicit single-source waiver with residual risk stated" — not "improve validation."]
-```
+````
 
 ## Citation discipline (mandatory — verified-or-deleted)
 

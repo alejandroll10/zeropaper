@@ -654,7 +654,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "abab506e8fea2b8fe6557f4ee0250fe2ba4cb79c6ab42b53635ee605469d91ce",
+          "sha256": "cbd06e2c5e9db6ca6027f1b5605485de6413dd3c3f4b9b63fc227f3d610b04c3",
           "size": 1859,
           "type": "file"
         },
@@ -1830,7 +1830,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -1963,7 +1963,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -3313,8 +3313,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "952864492c42552af2026f8b7655533ab2f562cc3dee4d026245ad2d6a72c65c",
-          "size": 3196,
+          "sha256": "db0f47f7cec3b7022234bb226534551ea9790231ee595243d9de3414585a3efc",
+          "size": 3236,
           "type": "file"
         },
         ".env": {
@@ -4529,6 +4529,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -4845,7 +4851,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -4992,6 +4998,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -5013,7 +5020,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -6363,8 +6370,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6abe1b59995a6664d26dd13f29d87ba28bdd195331aeb504ab99f1e2dcc2fe37",
-          "size": 3196,
+          "sha256": "326aadebd4b21e831dffac19fbe7cc46a51d6cbd4cefd345b9a233b81ae44c6a",
+          "size": 3236,
           "type": "file"
         },
         ".env": {
@@ -7579,6 +7586,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -7895,7 +7908,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -8042,6 +8055,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -8063,7 +8077,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -8567,8 +8581,8 @@
         },
         ".claude/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "33a94bb048cbd5c4238c21d69ba641f54d23b7a840bca72ba66484f2853558f7",
-          "size": 30271,
+          "sha256": "61db6ccba56cb47a4eebeb63d3f5cf895a6b909c97e43b9b855c68e8cc393799",
+          "size": 34068,
           "type": "file"
         },
         ".claude/agents/method-checker.md": {
@@ -9187,8 +9201,8 @@
         },
         ".codex/agents/mechanism-auditor.toml": {
           "mode": "0644",
-          "sha256": "54e30c77c434b276d6978327fb94a5d06c8cea4d3866d8c1b5679ae10fed8c08",
-          "size": 30354,
+          "sha256": "dae8cc8b33d78b81870ee08baf7a903fa6b4ca00cf4c1e012484dab8f45c28df",
+          "size": 34151,
           "type": "file"
         },
         ".codex/agents/method-checker.toml": {
@@ -9349,8 +9363,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "463188bf3e386178fe1f237c5f1141c47a89f25c8f18870c7ea97fe7bc27d5cf",
-          "size": 3099,
+          "sha256": "29ce492f80b96599be25c3deec4ca337b76f22b5b5d76e865a8b5ca5c8dd5694",
+          "size": 3139,
           "type": "file"
         },
         ".env": {
@@ -9489,8 +9503,8 @@
         },
         ".gemini/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "9fec983eb78f0222b657d0cd648b16f10ed46356bc1a26c18d21490a6f7c3d55",
-          "size": 30345,
+          "sha256": "08b7ad4c2334deb49c7db082841ff3b9e4f0d4f563936cda43195a617bfa5ba6",
+          "size": 34142,
           "type": "file"
         },
         ".gemini/agents/method-checker.md": {
@@ -10039,8 +10053,8 @@
         },
         ".opencode/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "bd0360509b82c1cbacf09ab1bd27215b5974e6f6c2ceb5e763cf31d3c9bc6cb6",
-          "size": 30446,
+          "sha256": "774150a7aa91bc1fcab4f5399fe621f2f9d27186fe46e37b9ab74bcd371f00cc",
+          "size": 34243,
           "type": "file"
         },
         ".opencode/agents/method-checker.md": {
@@ -10529,6 +10543,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -10667,8 +10687,8 @@
         },
         "docs/stage_2.md": {
           "mode": "0644",
-          "sha256": "6d0303e9e2bd8508a8286a7449e11e9e04c89b2cba730842cf8bba911d36b1df",
-          "size": 26305,
+          "sha256": "7132e32343af864fe09188fe488cb5a93b7a50bac15f6f3bd544a65a01942579",
+          "size": 26915,
           "type": "file"
         },
         "docs/stage_3_implications.md": {
@@ -10821,7 +10841,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -10966,6 +10986,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -10986,7 +11007,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -11499,8 +11520,8 @@
         },
         ".claude/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "a48b36e992f5c9d9a4572767fc12e337ab6cd552143cef35c2bf9f5f2f31ba88",
-          "size": 30273,
+          "sha256": "86ac643eb8ac51fd6cbc60bebdb4e822cfc57dd8594c75c1da951c8b07c24760",
+          "size": 34070,
           "type": "file"
         },
         ".claude/agents/method-checker.md": {
@@ -12125,8 +12146,8 @@
         },
         ".codex/agents/mechanism-auditor.toml": {
           "mode": "0644",
-          "sha256": "383891d8c8fca1234048e273408b805c7f031c46f9fb75dbb5668705776c0420",
-          "size": 30321,
+          "sha256": "ae6bd28851266f24cb9efe721075a66914f5c09d01112c58543d0a9f940e2658",
+          "size": 34118,
           "type": "file"
         },
         ".codex/agents/method-checker.toml": {
@@ -12287,8 +12308,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bf73966810ae1a6ae182df47c46dcdd7f8f6b0906e63df4318e4589ca9231427",
-          "size": 3095,
+          "sha256": "4b63966590f86e174215c52bf1af458eeff0a2557927f2d2e96159309d346f2e",
+          "size": 3135,
           "type": "file"
         },
         ".env": {
@@ -12433,8 +12454,8 @@
         },
         ".gemini/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "a1d94d217bae94c64a12b614687abec74aafba48bc9cf97225159c39c5a3d80e",
-          "size": 30351,
+          "sha256": "a31b72c250fcc64ba7c90b6e8b6da4c1e49b7b95ee6bd5a0b021bea3e4013bfa",
+          "size": 34148,
           "type": "file"
         },
         ".gemini/agents/method-checker.md": {
@@ -12995,8 +13016,8 @@
         },
         ".opencode/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "bd0360509b82c1cbacf09ab1bd27215b5974e6f6c2ceb5e763cf31d3c9bc6cb6",
-          "size": 30446,
+          "sha256": "774150a7aa91bc1fcab4f5399fe621f2f9d27186fe46e37b9ab74bcd371f00cc",
+          "size": 34243,
           "type": "file"
         },
         ".opencode/agents/method-checker.md": {
@@ -13485,6 +13506,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -13623,8 +13650,8 @@
         },
         "docs/stage_2.md": {
           "mode": "0644",
-          "sha256": "edd8363e234221bc5c57f685fb9c02b1ee9e94dff83bd5c0ea41139519521e98",
-          "size": 32495,
+          "sha256": "bc3c0e469d6ae743368fe1962518e0caa88e014881a247f5a2b54320bd575520",
+          "size": 33105,
           "type": "file"
         },
         "docs/stage_3_implications.md": {
@@ -13787,7 +13814,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -13938,6 +13965,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -13958,7 +13986,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -14463,8 +14491,8 @@
         },
         ".claude/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "f034e235569c7f9b8578c43ea88c0d062b3086a8868665731a1c87c7d0ced47e",
-          "size": 31019,
+          "sha256": "217bb79513340f080d82d0b0c3ba3b64723a17c0a66dbd27be83acb8f2257bd3",
+          "size": 34816,
           "type": "file"
         },
         ".claude/agents/method-checker.md": {
@@ -15083,8 +15111,8 @@
         },
         ".codex/agents/mechanism-auditor.toml": {
           "mode": "0644",
-          "sha256": "b01ba01773e3091b3dae0c170d4c624bb8059a89f73d423182efad44ec1b8c6a",
-          "size": 31102,
+          "sha256": "08e6cfd09a752d14e9f8176e753613965e96f8275805bb8ae98246f7afb5ae5b",
+          "size": 34899,
           "type": "file"
         },
         ".codex/agents/method-checker.toml": {
@@ -15245,8 +15273,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "dbb63584032fdda8a260e37e3a0e5123a9b3c962132e553b44b35d6688d7eca2",
-          "size": 3074,
+          "sha256": "8ebf005d6b41cc43101e346967adb34aaf15450678981f89e0de16e6b781d0a6",
+          "size": 3114,
           "type": "file"
         },
         ".env": {
@@ -15385,8 +15413,8 @@
         },
         ".gemini/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "d32bed2587d5282e60dbe18c8605d30553c0bd7d3759b4bf561e5987946446a2",
-          "size": 31093,
+          "sha256": "e4b399420aa3436006d0c49d986248f406fa934a414737229c6626ac15df8269",
+          "size": 34890,
           "type": "file"
         },
         ".gemini/agents/method-checker.md": {
@@ -15935,8 +15963,8 @@
         },
         ".opencode/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "9a512c11360164a09f8b11ee087667cd82402869e902daed0b833e767309205b",
-          "size": 31194,
+          "sha256": "42fdc0d9a7ee0e24a30929cd5c80222d9089ab1974067b91e8bbd515526199a5",
+          "size": 34991,
           "type": "file"
         },
         ".opencode/agents/method-checker.md": {
@@ -16425,6 +16453,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -16557,8 +16591,8 @@
         },
         "docs/stage_2.md": {
           "mode": "0644",
-          "sha256": "6d0303e9e2bd8508a8286a7449e11e9e04c89b2cba730842cf8bba911d36b1df",
-          "size": 26305,
+          "sha256": "7132e32343af864fe09188fe488cb5a93b7a50bac15f6f3bd544a65a01942579",
+          "size": 26915,
           "type": "file"
         },
         "docs/stage_3_implications.md": {
@@ -16671,7 +16705,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "da394f5ddc2112a3828a2f28882048d46271bd0f02d6ac81fff593f022896e79",
+          "sha256": "ca28aee09997fd7304e6d639848813c1c6fc08eb116f67e846a2e3f8a344f00e",
           "size": 15387,
           "type": "file"
         },
@@ -16795,6 +16829,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -16815,7 +16850,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -17320,8 +17355,8 @@
         },
         ".claude/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "33a94bb048cbd5c4238c21d69ba641f54d23b7a840bca72ba66484f2853558f7",
-          "size": 30271,
+          "sha256": "61db6ccba56cb47a4eebeb63d3f5cf895a6b909c97e43b9b855c68e8cc393799",
+          "size": 34068,
           "type": "file"
         },
         ".claude/agents/method-checker.md": {
@@ -17940,8 +17975,8 @@
         },
         ".codex/agents/mechanism-auditor.toml": {
           "mode": "0644",
-          "sha256": "54e30c77c434b276d6978327fb94a5d06c8cea4d3866d8c1b5679ae10fed8c08",
-          "size": 30354,
+          "sha256": "dae8cc8b33d78b81870ee08baf7a903fa6b4ca00cf4c1e012484dab8f45c28df",
+          "size": 34151,
           "type": "file"
         },
         ".codex/agents/method-checker.toml": {
@@ -18102,8 +18137,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8276ddd300a83e93d90eb6d046a76a50302776dac27bef10872ee3a8e2516fbc",
-          "size": 3098,
+          "sha256": "ac41aefbe533d712a4cb1284033e36e05e161e023297c0d0b80bbe712e3564a5",
+          "size": 3138,
           "type": "file"
         },
         ".env": {
@@ -18242,8 +18277,8 @@
         },
         ".gemini/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "9fec983eb78f0222b657d0cd648b16f10ed46356bc1a26c18d21490a6f7c3d55",
-          "size": 30345,
+          "sha256": "08b7ad4c2334deb49c7db082841ff3b9e4f0d4f563936cda43195a617bfa5ba6",
+          "size": 34142,
           "type": "file"
         },
         ".gemini/agents/method-checker.md": {
@@ -18792,8 +18827,8 @@
         },
         ".opencode/agents/mechanism-auditor.md": {
           "mode": "0644",
-          "sha256": "bd0360509b82c1cbacf09ab1bd27215b5974e6f6c2ceb5e763cf31d3c9bc6cb6",
-          "size": 30446,
+          "sha256": "774150a7aa91bc1fcab4f5399fe621f2f9d27186fe46e37b9ab74bcd371f00cc",
+          "size": 34243,
           "type": "file"
         },
         ".opencode/agents/method-checker.md": {
@@ -19282,6 +19317,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -19420,8 +19461,8 @@
         },
         "docs/stage_2.md": {
           "mode": "0644",
-          "sha256": "e75455cbaf2811f9e96ae34ebb627286ae2041fe50a6b81bf3728c909231f47c",
-          "size": 32902,
+          "sha256": "27c9d1163afd3bae7e0b391ae9aa133ddc33d3413389d8ff8bb56f9a45e31d9d",
+          "size": 33512,
           "type": "file"
         },
         "docs/stage_3_implications.md": {
@@ -19584,7 +19625,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -19729,6 +19770,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -19749,7 +19791,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -20404,7 +20446,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "abab506e8fea2b8fe6557f4ee0250fe2ba4cb79c6ab42b53635ee605469d91ce",
+          "sha256": "cbd06e2c5e9db6ca6027f1b5605485de6413dd3c3f4b9b63fc227f3d610b04c3",
           "size": 1859,
           "type": "file"
         },
@@ -21580,7 +21622,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -21713,7 +21755,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -23066,8 +23108,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "952864492c42552af2026f8b7655533ab2f562cc3dee4d026245ad2d6a72c65c",
-          "size": 3196,
+          "sha256": "db0f47f7cec3b7022234bb226534551ea9790231ee595243d9de3414585a3efc",
+          "size": 3236,
           "type": "file"
         },
         ".env": {
@@ -24282,6 +24324,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -24598,7 +24646,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -24745,6 +24793,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -24766,7 +24815,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -26052,8 +26101,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b11a90fd84e75ab042261493c2f32343cad02bb869fa0e3dbc1b9b9f1a170a9c",
-          "size": 3089,
+          "sha256": "b8404631305f6bc6b211d6dba2628acbb8d022014c94b85685fc679f122d380f",
+          "size": 3129,
           "type": "file"
         },
         ".env": {
@@ -27232,6 +27281,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -27528,7 +27583,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -27673,6 +27728,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -27693,7 +27749,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -28991,8 +29047,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b2f2587a30400420ba4fd65c76934c62daea86d45ab6a7e077a988aefa5448fa",
-          "size": 3104,
+          "sha256": "bffaf56a4c8f1308ffbb090de310a6e69731fe0dc1a05934be6bbb65739b0020",
+          "size": 3144,
           "type": "file"
         },
         ".env": {
@@ -30183,6 +30239,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -30471,7 +30533,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -30616,6 +30678,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -30636,7 +30699,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -31998,8 +32061,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ae6f876f9bb54024b1afc9cd1f3fdcca53034b73d110d533b4bf8335fd1f78eb",
-          "size": 3211,
+          "sha256": "08f6201d2c2b2cc032c3b8421fde4f3cf803641d0f13275cd2684db87c534bce",
+          "size": 3251,
           "type": "file"
         },
         ".env": {
@@ -33226,6 +33289,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -33534,7 +33603,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -33681,6 +33750,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -33702,7 +33772,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -34361,7 +34431,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "abab506e8fea2b8fe6557f4ee0250fe2ba4cb79c6ab42b53635ee605469d91ce",
+          "sha256": "cbd06e2c5e9db6ca6027f1b5605485de6413dd3c3f4b9b63fc227f3d610b04c3",
           "size": 1859,
           "type": "file"
         },
@@ -35537,7 +35607,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -35670,7 +35740,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -36971,8 +37041,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6b662e75f2f6c575e3059d28cb3056530fc5914b63bdfad95114b233b3b30e6a",
-          "size": 3085,
+          "sha256": "e56519add37c7d9bf0cfa88ad37c28a60e2d17c802f79e6c72af334bb124afda",
+          "size": 3125,
           "type": "file"
         },
         ".env": {
@@ -38169,6 +38239,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -38475,7 +38551,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -38626,6 +38702,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -38646,7 +38723,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -39305,7 +39382,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9e63ddf350f3e4757699521a11c3c19bafd1beb4e989d606b7cce69591f12ff3",
+          "sha256": "bdb6d3acd0445ec1638faa241c61850a0eeeff6cb2ace95ada03255f4c2e1032",
           "size": 1858,
           "type": "file"
         },
@@ -40481,7 +40558,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -40614,7 +40691,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -41339,7 +41416,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c9611518f0077436d7b51f3947fbbfdbd2b0ebe276d61887920b5bff813257fd",
+          "sha256": "6e11e1e49401f5b1d28525ef0e76026faa946ff1957394ed106efdd74a4f1f41",
           "size": 1968,
           "type": "file"
         },
@@ -42571,7 +42648,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -42708,7 +42785,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -43432,7 +43509,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c9611518f0077436d7b51f3947fbbfdbd2b0ebe276d61887920b5bff813257fd",
+          "sha256": "6e11e1e49401f5b1d28525ef0e76026faa946ff1957394ed106efdd74a4f1f41",
           "size": 1968,
           "type": "file"
         },
@@ -44664,7 +44741,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -44801,7 +44878,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -45460,7 +45537,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "de6450c90345e94f6b84e69ebbd5b5e7e872b5590bd3b559b0aee1feb987f538",
+          "sha256": "d0637496c21e489a940c3386ef524905da8297936cc2790a9130bc5d6b4e7f3a",
           "size": 1858,
           "type": "file"
         },
@@ -46636,7 +46713,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -46769,7 +46846,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -48120,8 +48197,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b2833e48ea49e9715510cd05f1d43bf9f03a4164b40ce8e54089537ffe7e7432",
-          "size": 3171,
+          "sha256": "755e591e7034bd8007ddb116d332252807c9b8f7db8e1ff96247d39ec5bbd32b",
+          "size": 3211,
           "type": "file"
         },
         ".env": {
@@ -49336,6 +49413,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -49594,7 +49677,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "da394f5ddc2112a3828a2f28882048d46271bd0f02d6ac81fff593f022896e79",
+          "sha256": "ca28aee09997fd7304e6d639848813c1c6fc08eb116f67e846a2e3f8a344f00e",
           "size": 15387,
           "type": "file"
         },
@@ -49720,6 +49803,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -49741,7 +49825,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -50161,7 +50245,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "86468bb4a0e569ce84f238ae52d2495261d3aea109a7d1bd1838f3cb7156ae54",
+          "sha256": "983e9c5744a7219d445c1aad9a025b5c9c1aa4b478eaf9caf2c80b88cca2a236",
           "size": 1841,
           "type": "file"
         },
@@ -50923,7 +51007,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -51903,8 +51987,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "bd2a523268b61b90c1fc95be2b62aec39b71d91bce54344bbcc8e71a8e1d2882",
-          "size": 3178,
+          "sha256": "7c48deaf6766dccf123ee8ffc7bbee3b0bf8e4e926b42301b186015c209442cf",
+          "size": 3218,
           "type": "file"
         },
         ".env": {
@@ -52615,6 +52699,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -52875,6 +52965,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -52896,7 +52987,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -53876,8 +53967,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "84abe902b5b409c0b31904b732f57b4d10235ab52cb148dc8e04bbcbf613a089",
-          "size": 3178,
+          "sha256": "65233e7096a3d9f611597377da47a3cd3e70842177b7dcbcba1a2f302ac4d8a1",
+          "size": 3218,
           "type": "file"
         },
         ".env": {
@@ -54588,6 +54679,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -54848,6 +54945,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -54869,7 +54967,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -55821,8 +55919,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "91a404018af7ef72ac4d51c9003e1e12ef9b2fb5927fafbad15d9d27de90366e",
-          "size": 3071,
+          "sha256": "a3fa019b0dd18dca8b84a947953ab5edca23938965de9f4278d1d4c27f360cb5",
+          "size": 3111,
           "type": "file"
         },
         ".env": {
@@ -56533,6 +56631,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -56785,6 +56889,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -56805,7 +56910,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -57226,7 +57331,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6d3350558e6db0fab39ccfe67aee9d6d274277ce72f2a3d40577c017548d7062",
+          "sha256": "c6bc4ca12a98b97e831ff9acd8c6fe316a90e1d5bd6908e48612c6b23eeff5b6",
           "size": 1840,
           "type": "file"
         },
@@ -57988,7 +58093,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -58440,7 +58545,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "4b351bfce1d45fab0ec1b10a8b5a2566c4ff8c7444d07223b4c309937097868f",
+          "sha256": "012f0813babbbf91e12bd35a81605cb8e51c48eb4225c87297c1c1393ff9cc3c",
           "size": 1950,
           "type": "file"
         },
@@ -59212,7 +59317,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -59871,7 +59976,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "7cb04c6b689b4adc6b1d1450b386f9b075aeefe25edfac9d68087aa96783c98b",
+          "sha256": "53ecb6aeb889deff77f28f40183b3d9241239f05012bc6868872178c641b9133",
           "size": 1858,
           "type": "file"
         },
@@ -61057,7 +61162,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -61190,7 +61295,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -62476,8 +62581,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "b11a90fd84e75ab042261493c2f32343cad02bb869fa0e3dbc1b9b9f1a170a9c",
-          "size": 3089,
+          "sha256": "b8404631305f6bc6b211d6dba2628acbb8d022014c94b85685fc679f122d380f",
+          "size": 3129,
           "type": "file"
         },
         ".env": {
@@ -63656,6 +63761,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -63952,7 +64063,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -64097,6 +64208,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -64117,7 +64229,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -64843,7 +64955,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c9611518f0077436d7b51f3947fbbfdbd2b0ebe276d61887920b5bff813257fd",
+          "sha256": "6e11e1e49401f5b1d28525ef0e76026faa946ff1957394ed106efdd74a4f1f41",
           "size": 1968,
           "type": "file"
         },
@@ -66075,7 +66187,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -66212,7 +66324,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "finance"
       }
     },
@@ -66896,7 +67008,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6766f2df33ff49f85e27d12a4d619b7a9010d3dd7426216857a9a3dad0fc748f",
+          "sha256": "76e86d6d7f4c10f84410615f376b1385f901985911dc94fd73598085fe36536c",
           "size": 1918,
           "type": "file"
         },
@@ -68102,7 +68214,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -68237,7 +68349,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -68934,7 +69046,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6fc4d83b0f8f60f78b1bd0e07ac47626a485f0970481c849bf78a1302df128f6",
+          "sha256": "d16e6d018e66baad7ca1a6f9c0e2fb8622bc05d4d6c75123d0b48efe07437b72",
           "size": 1916,
           "type": "file"
         },
@@ -70168,7 +70280,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -70309,7 +70421,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -70995,7 +71107,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "90fc167a22c15990d989f68bd9b555d903e12379260aa9e56f2b325a692e0a0f",
+          "sha256": "156c44d8141bf134d7da46b888ae3920d53c71e274131f9e584772b0d5e5d861",
           "size": 1916,
           "type": "file"
         },
@@ -72201,7 +72313,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -72336,7 +72448,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -73021,7 +73133,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "9b52ee0ec1208457e8fa741ac6891e1d77c736c08aed01f0128a22ead63ca1dd",
+          "sha256": "2738d5a737fecee8fdfdce06acee94a908f06654153f50b7064d4a0db154ce35",
           "size": 1893,
           "type": "file"
         },
@@ -74177,7 +74289,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "da394f5ddc2112a3828a2f28882048d46271bd0f02d6ac81fff593f022896e79",
+          "sha256": "ca28aee09997fd7304e6d639848813c1c6fc08eb116f67e846a2e3f8a344f00e",
           "size": 15387,
           "type": "file"
         },
@@ -74291,7 +74403,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -74977,7 +75089,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "61f387fb3af322835052e87dce366556f9bb8ac5c6f2920f0f00e2d4c8495cd2",
+          "sha256": "1e6ac9c022750d38c50779eebd4b8dd3a744a2bb8b0a4d8e28d9c468d65e0183",
           "size": 1935,
           "type": "file"
         },
@@ -76175,7 +76287,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -76310,7 +76422,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -76690,7 +76802,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "fc5dbeba41fe7d5c923eda1be7f692bc179e02cae471fa1e82a79c72e79c006f",
+          "sha256": "4e0950cd292f485deafcd23ae27f7f11fb70a4ba5aa05e81eb06628f806b73a3",
           "size": 1791,
           "type": "file"
         },
@@ -77424,7 +77536,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -77836,7 +77948,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "31ef9c82eaf40746052426e835d27e22aa3425dbec0a8d1189140e001ecb6004",
+          "sha256": "6326366a555bcc2aab0e1e87d8878fc4ae90e6aa03bcb123b7246d3da8c8a720",
           "size": 1900,
           "type": "file"
         },
@@ -78580,7 +78692,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "llm_cognition"
       }
     },
@@ -79238,7 +79350,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "c0f696e9f02fe3093e4c8109a640cb69fabcc7a7e65cd8a0bfad16aa73f4ed7e",
+          "sha256": "3e4c7031ea5379ecd37f3fb7159a9ac75f4180d89d6ce06950bf56d868097859",
           "size": 1857,
           "type": "file"
         },
@@ -80414,7 +80526,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -80547,7 +80659,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -81897,8 +82009,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "6ecef73b2f039db80cb02d29475f12a8292cbb22cf03b1f7de939f41bcaa2482",
-          "size": 3194,
+          "sha256": "3a2e9e71912ede6569c21e8488b0058ed35babfd793fee77ba1a0cbe28df58af",
+          "size": 3234,
           "type": "file"
         },
         ".env": {
@@ -83113,6 +83225,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -83429,7 +83547,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -83576,6 +83694,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -83597,7 +83716,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -84883,8 +85002,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "2b85d475fc58e157a275c396a144a3374658771fe9cd0ea57a8f3684b24a1f55",
-          "size": 3087,
+          "sha256": "6d8c1f5fcf10dd870f53ca8eec61f68acf54ba79e583c5d5e4fedf514096b885",
+          "size": 3127,
           "type": "file"
         },
         ".env": {
@@ -86063,6 +86182,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -86359,7 +86484,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -86504,6 +86629,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -86524,7 +86650,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -86944,7 +87070,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "45dd3b5af850ef37501bed40de36d4d87704f3d6d3d914f770286285eb1b54e1",
+          "sha256": "8b6abe9f49344fdaf76fe2d0388709c424d2a1969d1e666e35979a7c2e5c6ca6",
           "size": 1839,
           "type": "file"
         },
@@ -87706,7 +87832,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -88686,8 +88812,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "78dd7e4e1c450796ae7ef73e51608dd5e46cb597721f9cd9fbf268372852ac3c",
-          "size": 3176,
+          "sha256": "971646238c2e72afc22dd057bc682bfbdd6afd281abf1a50d3ed174d9809e99e",
+          "size": 3216,
           "type": "file"
         },
         ".env": {
@@ -89398,6 +89524,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -89658,6 +89790,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -89679,7 +89812,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -90631,8 +90764,8 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "76cec0d9eb1640b75536193b0b573f4a8376f560c5a13b83b3a030ea4b441e4e",
-          "size": 3069,
+          "sha256": "d78b2bf938dca183f02b11a910d5cd01f62d805e9c7387301f4669eecf747fcf",
+          "size": 3109,
           "type": "file"
         },
         ".env": {
@@ -91343,6 +91476,12 @@
           "size": 3751,
           "type": "file"
         },
+        "code/utils/spec_audit_scope.py": {
+          "mode": "0644",
+          "sha256": "3be9cdec8a93e0fad3057188e1b594aab463c5b91393be8ca924de35ac682744",
+          "size": 11222,
+          "type": "file"
+        },
         "code/utils/ssa_oact": {
           "mode": "0755",
           "type": "dir"
@@ -91595,6 +91734,7 @@
             "code/utils/process_crsp_daily.py",
             "code/utils/process_crsp_monthly.py",
             "code/utils/sec_funds_utils.py",
+            "code/utils/spec_audit_scope.py",
             "code/utils/start_services.sh",
             "code/utils/trace_bonds_utils.py",
             "code/utils/treasury_yields_utils.py",
@@ -91615,7 +91755,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -92067,7 +92207,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "ffb05c4d0b7df4795644ce6ec5568ee46fda554cccf5a69575bad927168eacfc",
+          "sha256": "b2898c41163bc50f9c815e437c1169e5a7f739ee20f3ba1bf9f332fec7dfef65",
           "size": 1948,
           "type": "file"
         },
@@ -92839,7 +92979,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "macro"
       }
     },
@@ -93565,7 +93705,7 @@
         },
         ".deploy_manifest.json": {
           "mode": "0644",
-          "sha256": "8f68c22163b2bfcb1d8f07a48826f3d2125666026b224dbd5df68aaf0ffbda5d",
+          "sha256": "b0267e9997288302e468012d15047237a5e082efa1c98ce023fa19210bee14c7",
           "size": 1966,
           "type": "file"
         },
@@ -94797,7 +94937,7 @@
         },
         "paper/arpipeline.sty": {
           "mode": "0644",
-          "sha256": "74fcdb7e1f3b91aec147400c4349113c0bf5eb50b5970ba76eca8dd3fe90b1ed",
+          "sha256": "fa591970c778bea72a0bf3bfd07968ed3fa2533e5c29582edf5ad64737d4b933",
           "size": 15378,
           "type": "file"
         },
@@ -94934,7 +95074,7 @@
           "repository": null,
           "update_channel": "checkout"
         },
-        "template_version": "2.44.1+<GIT_REVISION>",
+        "template_version": "2.45.0+<GIT_REVISION>",
         "variant": "macro"
       }
     }

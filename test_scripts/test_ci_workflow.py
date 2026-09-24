@@ -70,6 +70,8 @@ REQUIRED_INVOCATIONS = {
         "bash deploy_assets/scripts/test_launch_wrds_opencode.sh",
     "python3 deploy_assets/scripts/test_ibes_skill.py":
         "python3 deploy_assets/scripts/test_ibes_skill.py",
+    "python3 deploy_assets/scripts/test_spec_audit_scope.py":
+        "python3 deploy_assets/scripts/test_spec_audit_scope.py",
     "bash test_scripts/test_setup_publish.sh":
         "bash test_scripts/test_setup_publish.sh",
     "bash test_scripts/test_seeded_gate1c_assembly.sh":

@@ -40,6 +40,18 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
+## Data-first Gate-2 carry-forward rests on the auditor's relevance judgment
+
+**Scope:** `--mode data-first` Gate 2 dataset-specification audit (`mechanism-auditor`, spec-audit role) on a mutate re-audit that receives `PRIOR_AUDIT_REPORT`.
+
+**Failure mode:** v2.45.0 (#345) lets the auditor carry a dimension's clean prior assessment forward when it judges that nothing in the diff bears on that dimension. The byte facts are mechanical: `code/utils/spec_audit_scope.py` recomputes both sides from the audited files and fails closed on any mismatch. The relevance call is not. The eleven dimensions cut across sections, so unlike #344's exact-digest carry they cannot be decided by byte equality. A wrong "does not bear" call keeps a stale judgment alive: later hops see no diff in that area, so the mistake can persist across every later mutate in the same theory attempt until the text changes or a fresh attempt starts. The only backstops are the downstream Stage 3a audits, referees and polish.
+
+**What would close it:** a scope map precise enough to decide carry by digest equality, or a carry-depth bound that forces a full re-assessment every K hops or at acceptance.
+
+**Tracking:** [#349](https://github.com/alejandroll10/zeropaper/issues/349).
+
+---
+
 ## Audit carry-forward accepts intra-campaign source drift for units with no always-live leg
 
 **Scope:** the Stage 3a audit triad in every empirical mode, and data-first event classes whose coverage-certificate decision is NOT-REQUIRED.
