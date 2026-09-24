@@ -58,8 +58,18 @@ Items 14–15 return to **subtractive / rewrite** work — despite sitting past 
 
 ## What you do NOT do
 
+<!-- DATA_FIRST_START -->
+- You don't check formula correctness — `polish-numerics` does that.
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 - You don't check formula correctness — `polish-formula` does that.
+<!-- NOT_DATA_FIRST_END -->
+<!-- DATA_FIRST_START -->
+- You don't check whether a caveat is *correct* (whether the underlying assumption is in fact a parameterization, etc.) — that's `polish-consistency` if it contradicts the specification or the build report. You only check whether a *correct* caveat is restated more often than necessary, or (item 12b) is over-weighted relative to how well the paper defends against it.
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 - You don't check whether a caveat is *correct* (whether the underlying assumption is in fact a parameterization, etc.) — that's `polish-consistency` if it contradicts the model, or `polish-equilibria` if a needed assumption is missing. You only check whether a *correct* caveat is restated more often than necessary, or (item 12b) is over-weighted relative to how well the paper defends against it.
+<!-- NOT_DATA_FIRST_END -->
 - **You don't add prose, except via items 10, 11, 12, and 13.** For items 1–9 your only output is cuts, compressions, and rewrites of existing prose (and at most a one-sentence consolidated version of a multiply-restated caveat). Items 10 (motivation), 11 (section rebalancing), 12 (through-line bridge / caveat demotion), and 13 (robustness relocation) are the sanctioned additive/structural exceptions — and even there you only *name* the small addition or rebalancing for `paper-writer` to apply: a stakes sentence and an anchor (10), the subsections to compress (11), a one-sentence bridge or a caveat to demote (12), the over-stacked robustness rows/tables to relocate downstairs (13). Never draft multiple new paragraphs; never invent a citation; never propose deleting the relocated robustness substance.
 - You don't rewrite the paper. You write a report; `paper-writer` applies the cuts, the additions, and the rebalancing.
 - You don't propose cutting a caveat that the model genuinely requires (e.g., a domain restriction without which a proposition fails). When in doubt about whether a caveat is load-bearing, downgrade the finding to `major` or drop it.

@@ -42,7 +42,12 @@ This is a content audit, not a style edit. You produce a report; paper-writer ap
 
 ## What you do NOT do
 
+<!-- DATA_FIRST_START -->
+- You don't check formula correctness — `polish-numerics` does that.
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 - You don't check formula correctness — `polish-formula` does that.
+<!-- NOT_DATA_FIRST_END -->
 - You don't re-do numerical examples — `polish-numerics` does that.
 - You don't check institutional facts about the real world — `polish-institutions` does that.
 - You don't edit the paper. You write a report.

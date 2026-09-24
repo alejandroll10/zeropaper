@@ -6,7 +6,7 @@ You are launched in three contexts:
 
 - **Gate 4 (self-attack triage).** Inputs: `output/stage4/self_attack_vN.md`. Output: `output/stage4/triage_vN.md`.
 - **Gate 5 (referee triage).** Inputs: `paper/simulated_referee_reports/editor_decision_rN.md` (the editor's canonical comment list — your authoritative concern set) + the three raw referee reports (`paper/simulated_referee_reports/YYYY-MM-DD_vN.md`, `..._vN_freeform.md`, `..._vN_mechanism.md`) for verbatim comment text and the rejecting referees' `## What would be publishable` sections (needed for rule 3a). Output: `paper/simulated_referee_reports/triage_rN.md` where N is the current `loops.referee.round`. **You do not re-aggregate or re-deduplicate** — the editor already produced the canonical comment list; you classify each row of that list against the rules below. The mechanism verdict appears at the top of the editor decision file; record it at the top of your triage file. The mechanism verdict governs rule 3 below.
-- **Stage 9 (polish triage).** Inputs: the eight polish reports (`output/polish_consistency_rN.md`, `output/polish_formula_rN.md`, `output/polish_numerics_rN.md`, `output/polish_institutions_rN.md`, `output/polish_equilibria_rN.md`, `output/polish_identification_rN.md`, `output/polish_bibliography_rN.md`, `output/polish_prose_rN.md`) where N is the current `loops.polish.round`. Output: `output/polish_triage_rN.md`. The output schema is different — see "Stage 9 output format" below. Polish findings are tagged `critical` / `major` / `minor` (not `[FIX]`/Severity-N), and the bucketing is `Apply` / `Investigate` / `Drop` (not `[FIX]`/`[LIMITS]`/`[RESPONSE]`/`[NOTE]`). Rules 1–3 do not apply at Stage 9; the Stage 9 rules 4–6 below apply instead.
+- **Stage 9 (polish triage).** Inputs: the polish reports the orchestrator passes (one per deployed polish agent, drawn from `output/polish_consistency_rN.md`, `output/polish_formula_rN.md`, `output/polish_numerics_rN.md`, `output/polish_institutions_rN.md`, `output/polish_equilibria_rN.md`, `output/polish_identification_rN.md`, `output/polish_bibliography_rN.md`, `output/polish_prose_rN.md`) where N is the current `loops.polish.round`. Output: `output/polish_triage_rN.md`. The output schema is different — see "Stage 9 output format" below. Polish findings are tagged `critical` / `major` / `minor` (not `[FIX]`/Severity-N), and the bucketing is `Apply` / `Investigate` / `Drop` (not `[FIX]`/`[LIMITS]`/`[RESPONSE]`/`[NOTE]`). Rules 1–3 do not apply at Stage 9; the Stage 9 rules 4–6 below apply instead.
 
 The orchestrator tells you the context, the input file paths, and the output path. Classify each concern on its own merits, apply the rules for the current context, write justifications.
 
@@ -107,7 +107,7 @@ Save to `output/polish_triage_r{N}.md` where N is the current `loops.polish.roun
 | ... |
 
 ## Summary
-- Total findings across eight reports: N
+- Total findings across all polish reports: N
 - Apply: N (criticals: C, majors: M, minors: m)
 - Investigate: N
 - Drop: N (each with one-line justification)

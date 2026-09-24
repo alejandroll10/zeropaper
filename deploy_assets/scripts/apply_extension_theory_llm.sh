@@ -107,16 +107,17 @@ if [ "$EXT_MANUAL" != "1" ]; then
     bootstrap_dir "output/stage3b/figures"
 fi
 
-# Amend the deployed Stage 9 doc: theory_llm adds a ninth polish agent.
+# Amend the deployed Stage 9 doc: theory_llm adds one polish agent to the
+# mode's roster (count-free wording: data-first's roster is smaller, #350).
 # Guarded (grep) so update.sh re-runs don't append twice; skipped when the
 # deploy has no stage_9.md (e.g. --mode report prunes the pipeline docs).
 STAGE9_DOC="$PROJECT_ROOT/docs/stage_9.md"
 if [ -f "$STAGE9_DOC" ] && ! grep -q "polish-experiments" "$STAGE9_DOC"; then
     cat >> "$STAGE9_DOC" <<'STAGE9EOF'
 
-## theory_llm extension: ninth polish agent — `polish-experiments`
+## theory_llm extension: an additional polish agent — `polish-experiments`
 
-This run has `--ext theory_llm`, which adds **`polish-experiments`** to Stage 9. Read the eight-agent lists above as nine-agent lists:
+This run has `--ext theory_llm`, which adds **`polish-experiments`** to Stage 9. Read every polish-agent list above as including it:
 
 <!-- AUTONOMOUS_START -->
 - **Launch** it in the same parallel batch, with the same `loops.polish.round` value. Pass it `paper/main.tex`, the included sections, the IA files when non-empty, the exact report at `pipeline_state.json:stage3b_results_path`, and the analysis code, artifacts, and exhibits bound by `pipeline_state.json:stage3b_result_receipt`.
@@ -124,8 +125,8 @@ This run has `--ext theory_llm`, which adds **`polish-experiments`** to Stage 9.
 <!-- MANUAL_START -->
 - **Launch** it in the same parallel batch, with the same `loops.polish.round` value. Pass it `paper/main.tex`, the included sections, the IA files when non-empty, and `process_log/results_registry.json`. It resolves experimental reports, code, artifacts, and exhibits from every active receipt supplied by the caller; it never invents Stage 3b paths or a `pipeline_state.json` pointer.
 <!-- MANUAL_END -->
-- **It writes** `output/polish_experiments_r{N}.md`; include that path in the triager's input list alongside the other eight reports. Its findings triage on the same Apply/Investigate/Drop rules, and its correction rows belong to pass 1 of the two-pass paper-writer application.
-- **Ownership:** paper↔raw-results agreement for experimental numbers, stimulus-contamination status, model snapshot pinning and decoding-parameter disclosure, error-bar integrity across stimuli and sampled runs, scope honesty of capability claims, artifact reproducibility (code + seeds regenerate the battery). It does **not** own experimental design quality (experiment-reviewer, Stage 3b), formula derivations (polish-formula), non-experimental numbers (polish-numerics), or citation faithfulness (polish-bibliography). The deliberate overlap with polish-numerics/polish-consistency on stage3b-grounded prose numbers is fine — the triager dedupes by anchor.
+- **It writes** `output/polish_experiments_r{N}.md`; include that path in the triager's input list alongside the other polish reports. Its findings triage on the same Apply/Investigate/Drop rules, and its correction rows belong to pass 1 of the two-pass paper-writer application.
+- **Ownership:** paper↔raw-results agreement for experimental numbers, stimulus-contamination status, model snapshot pinning and decoding-parameter disclosure, error-bar integrity across stimuli and sampled runs, scope honesty of capability claims, artifact reproducibility (code + seeds regenerate the battery). It does **not** own experimental design quality (experiment-reviewer, Stage 3b), formula derivations (polish-formula, where deployed), non-experimental numbers (polish-numerics), or citation faithfulness (polish-bibliography). The deliberate overlap with polish-numerics/polish-consistency on stage3b-grounded prose numbers is fine — the triager dedupes by anchor.
 STAGE9EOF
 fi
 

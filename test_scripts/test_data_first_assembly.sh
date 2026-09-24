@@ -60,11 +60,28 @@ fi
 grep -q "dataset specification" "$D/.claude/agents/mechanism-auditor.md" \
     && pass "data-first: mechanism-auditor carries the spec-audit body" \
     || fail "data-first: mechanism-auditor body is not the data-first overlay"
-for a in identification-designer identification-auditor; do
-    [ -f "$D/.claude/agents/$a.md" ] \
-        && fail "data-first: $a should be pruned" \
-        || pass "data-first: $a pruned"
+for a in identification-designer identification-auditor \
+         math-auditor math-auditor-freeform theory-explorer polish-formula polish-equilibria; do
+    _left=""
+    for f in "$D/.claude/agents/$a.md" "$D/.codex/agents/$a.toml" "$D/.gemini/agents/$a.md" \
+             "$D/.grok/agents/$a.md" "$D/.opencode/agents/$a.md"; do
+        [ -e "$f" ] && _left="$_left $f"
+    done
+    if [ -n "$_left" ]; then
+        fail "data-first: $a should be pruned in every runtime"
+    else
+        pass "data-first: $a pruned"
+    fi
 done
+# #350: the Stage 9 roster (agent list + report list) and the polish bodies'
+# division-of-labor lines must not name a pruned polisher. (Conditional rules
+# such as the triager's polish-formula override stay; they cannot fire.)
+if grep -E '^\*\*Agents:\*\*.*polish-(formula|equilibria)|polish_(formula|equilibria)_r' "$D/docs/stage_9.md" >/dev/null \
+   || grep -lE "polish-(formula|equilibria)\` (does|handles|if|and)" "$D"/.claude/agents/polish-*.md >/dev/null 2>&1; then
+    fail "data-first: Stage 9 roster or a polish body still routes to a pruned polisher"
+else
+    pass "data-first: Stage 9 roster is the six deployed polishers"
+fi
 
 # 4. State fields + loops + release dir.
 python3 - "$D" <<'PY' && pass "data-first: state fields and loops injected" || fail "data-first: state fields/loops missing"
@@ -221,6 +238,11 @@ else
     [ -f "$E/.claude/agents/identification-designer.md" ] \
         && pass "empirical-first control: identification-designer present" \
         || fail "empirical-first control: identification-designer missing"
+    for a in math-auditor theory-explorer polish-formula polish-equilibria; do
+        [ -f "$E/.claude/agents/$a.md" ] \
+            && pass "empirical-first control: $a present" \
+            || fail "empirical-first control: $a missing"
+    done
     if grep -rl 'dataset_coverage_certificate' "$E/docs" >/dev/null 2>&1; then
         fail "empirical-first control: data-first certificate prose leaked into docs"
     else

@@ -36,7 +36,9 @@ vocab placeholder — load the `edit-pipeline` skill instead.
 # deliverable is an open, documented, validated dataset plus a fact portfolio;
 # Gate 2 is a spec audit plus a conditional exact-coverage census; coverage
 # triangulation is independently verified;
-# identification agents are pruned (facts are descriptive by design).
+# identification agents are pruned (facts are descriptive by design), as are
+# the theory-only agents (math-auditor{,-freeform}, theory-explorer,
+# polish-formula, polish-equilibria) — Stage 9 runs six polishers.
 # Auto-implies --ext empirical. Finance variant only in v1. Pairs naturally
 # with --seed (a seeded dataset idea is the primary use case).
 ./setup.sh <project-name> --variant finance --mode data-first --seed

@@ -126,6 +126,12 @@ fi
 # .claude/agents/ catalog to agents this build can actually invoke.
 _setup_extensions_prune_non_report_mode_agents report-synthesizer report-reviewer
 _setup_extensions_prune_non_faithful_agents faithful-drift-auditor
+# Data-first has no formal model: Gate 2 is the spec audit (not a math audit),
+# Stage 2b is skipped, and the paper carries no theorems or equilibria for the
+# two theory polishers to check (#350).
+_setup_extensions_prune_data_first_mode_agents \
+    math-auditor math-auditor-freeform theory-explorer \
+    polish-formula polish-equilibria
 
 # ── Inject variant context into agents ──
 VARIANT_BLOCK="

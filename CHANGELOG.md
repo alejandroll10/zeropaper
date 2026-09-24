@@ -16,6 +16,10 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
+## 2.49.1
+
+**Data-first stops shipping and launching theory-only agents (#350).** `math-auditor`, `math-auditor-freeform`, and `theory-explorer` were deployed under `--mode data-first` but never launched (Gate 2 is the spec audit; Stage 2b is skipped); they are now pruned in every runtime, like the identification pair. `polish-formula` and `polish-equilibria` launched every Stage 9 round only to write N/A reports; they are pruned too, and the data-first Stage 9 roster is six agents. `polish-numerics` takes over displayed definitions (rates, shares, count rules) in that mode, checked against the binding specification. Stage 9 text, the triager's summary template, and the `--ext theory_llm` Stage 9 amendment no longer hard-code a polish-agent count in any mode.
+
 ## 2.49.0
 
 **Gate-2 carry-forward is bounded to one hop (#349).** The data-first spec audit's #345 carry-forward rests on the auditor's judgment that a diff does not bear on a dimension, and because each hop reads only the diff since the last, a wrong call used to survive every later mutate, acceptance included. A dimension carried at one hop — whole, or site by site for unchanged sites (now marked `Sites carried from v{k}.`) — must be read fresh in full at the next, so a wrong relevance call survives at most one audit. The orchestrator enforces the bound with the new `spec_audit_scope.py depth` check; a violation re-fires the audit. #345 still saves re-reading untouched dimensions on alternate hops.

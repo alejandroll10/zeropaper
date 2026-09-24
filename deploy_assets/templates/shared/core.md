@@ -181,7 +181,7 @@ Stage 6: Referee Simulation   ──→ editor (aggregates 3 reports → canonic
                                        back toward the initial target — undoes an over-eager downgrade)
 Stage 7: Style Check          ──→
 Stage 8: Bibliography Verify  ──→
-Stage 9: Polish               ──→ (eight parallel polish agents + triage + paper-writer in 2 sequential passes + style re-run; max 2 rounds)
+Stage 9: Polish               ──→ (parallel polish agents + triage + paper-writer in 2 sequential passes + style re-run; max 2 rounds)
 Stage 10: Lessons             ──→ Done (orchestrator writes LESSONS_PAPER.md + LESSONS_PIPELINE.md)
 ```
 
