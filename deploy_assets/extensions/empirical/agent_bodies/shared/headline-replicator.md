@@ -93,7 +93,7 @@ While reading the analysis report, if you encounter a number that looks like a h
 
 The empiricist tags claims with `[HEADLINE]`. You verify exactly those tagged claims; untagged-headline warnings never become PASS claim rows. Typical headline counts: 1–5 per paper. If the empiricist tagged more than 8, recompute the first 8 by paper order and record `untagged_warnings: ["over_tagging"]` — too many headlines means the empiricist did not prioritize.
 
-If the analysis contains no `[HEADLINE]` tags at all (the empiricist forgot, or the analysis is pure descriptive with no headline estimate), write `VERIFY_RESULT_PATH` with `verdict: "FAIL"`, an empty `claims` array, and `untagged_warnings: ["no_headline_tags"]`. The orchestrator routes that back to the empiricist to add the tags.
+If the analysis contains no `[HEADLINE]` tags at all, write `VERIFY_RESULT_PATH` with `verdict: "FAIL"`, an empty `claims` array, and `untagged_warnings: ["no_headline_tags"]`. In an autonomous deployment the results runner refuses to publish a report without valid headline rows, so this verdict means the report was misread; the orchestrator re-fires you with the rows it parsed.
 
 ## Re-derive on every re-fire
 

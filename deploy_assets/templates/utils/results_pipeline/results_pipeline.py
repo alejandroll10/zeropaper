@@ -703,18 +703,89 @@ def object_digest(value: Any) -> str:
     return f"sha256:{hashlib.sha256(encoded).hexdigest()}"
 
 
-def _analysis_contract_module() -> Any:
-    """Load the sibling helper even when this script runs under python -I -S."""
-    path = Path(__file__).with_name("analysis_contract.py")
-    spec = importlib.util.spec_from_file_location("_iar_analysis_contract", path)
+def _load_utility(path: Path, name: str, purpose: str) -> Any:
+    """Load a sibling utility even when this script runs under python -I -S.
+
+    Bytecode caching is suppressed: a ``__pycache__`` entry written under
+    ``code/`` is part of the code surface headline replication binds, and it is
+    gitignored, so a cache left behind here would read as a code change on the
+    next fresh checkout.
+    """
+    spec = importlib.util.spec_from_file_location(name, path)
     if spec is None or spec.loader is None:
-        raise EvidenceError(f"cannot load empirical contract validator: {path}")
+        raise EvidenceError(f"cannot load {purpose}: {path}")
     module = importlib.util.module_from_spec(spec)
+    previous = sys.dont_write_bytecode
+    sys.dont_write_bytecode = True
     try:
         spec.loader.exec_module(module)
     except (OSError, RuntimeError) as exc:
-        raise EvidenceError(f"cannot load empirical contract validator: {exc}") from exc
+        raise EvidenceError(f"cannot load {purpose}: {exc}") from exc
+    finally:
+        sys.dont_write_bytecode = previous
     return module
+
+
+def _analysis_contract_module() -> Any:
+    return _load_utility(Path(__file__).with_name("analysis_contract.py"),
+                         "_iar_analysis_contract", "empirical contract validator")
+
+
+def _headline_gate_applies(root: Path) -> bool:
+    """Autonomous deployments route on headline tags; manual ones never do.
+
+    Fails closed: an empirical report without a readable deployment manifest
+    is refused rather than silently exempted.
+    """
+    try:
+        deployment = json.loads((root / ".deploy_manifest.json").read_text(encoding="utf-8"))
+    except (OSError, ValueError) as exc:
+        raise EvidenceError(
+            f"empirical analysis reports require a readable .deploy_manifest.json: {exc}"
+        ) from exc
+    manifest_version = deployment.get("manifest_version") if isinstance(deployment, dict) else None
+    flags = deployment.get("flags") if isinstance(deployment, dict) else None
+    if (isinstance(manifest_version, bool) or manifest_version != 1 or
+            not isinstance(flags, dict) or not isinstance(flags.get("manual"), bool)):
+        raise EvidenceError(
+            "empirical analysis reports require a valid .deploy_manifest.json "
+            "(manifest_version 1 with a boolean flags.manual)"
+        )
+    return not flags["manual"]
+
+
+def validate_staged_headlines(root: Path, workspace: Path, plan: dict[str, Any]) -> None:
+    """Refuse to publish an analysis report whose headline claims do not parse.
+
+    Stage 3a's headline replication binds and replicates exactly the tagged
+    rows of each report's ``## Headline claims`` section.  The report is a
+    producer artifact bound byte for byte by the receipt, so a report
+    published without valid rows can only be repaired by a whole new producer
+    attempt (#327).  Checking the staged report with the replication
+    manifest's own parser, before anything is published, turns that into a
+    refused run the producer repairs in the same firing.
+    """
+    reports = [raw for raw in plan["artifacts"]
+               if re.fullmatch(r"output/stage3a/empirical_analysis[^/]*\.md", raw)]
+    if not reports or not _headline_gate_applies(root):
+        return
+    module = _load_utility(Path(__file__).resolve().parent.parent / "empirical_input_manifest.py",
+                           "_iar_empirical_input_manifest", "the headline-claims parser")
+    for raw in reports:
+        _, staged = project_path(workspace, raw, must_exist=False)
+        try:
+            data = staged.read_bytes()
+        except OSError as exc:
+            raise EvidenceError(f"analysis command did not create declared report {raw}: {exc}") from exc
+        try:
+            module._headline_entries(module._headline_section(data, Path(raw)), Path(raw))
+        except module.ManifestError as exc:
+            raise EvidenceError(
+                f"analysis report {raw} has no valid headline claims ({exc}); nothing was "
+                "published. Emit a '## Headline claims' section with 1-5 rows carrying "
+                "[HEADLINE], [claim_id: ...], [reported_value: ...] and [tolerance_class: ...], "
+                "then rerun the same command"
+            ) from exc
 
 
 def validate_empirical_plan(root: Path, plan: dict[str, Any], *, completed: bool
@@ -5596,6 +5667,7 @@ def command_run(args: argparse.Namespace) -> int:
                 raise EvidenceError(
                     "empirical bundle renderer.inputs differs from run plan.renderer_inputs"
                 )
+            validate_staged_headlines(root, workspace, plan)
         command_uses_declared_code(command, bundle["producer"]["code"], "producer")
         if (bundle["producer"]["code"] != plan["producer_code"] or
                 bundle["producer"]["inputs"] != plan["producer_inputs"] or

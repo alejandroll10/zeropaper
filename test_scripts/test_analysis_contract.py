@@ -360,6 +360,11 @@ class EmpiricalRunnerTest(unittest.TestCase):
         for directory in ("code", "data", "process_log", "output/analysis_specs", "output/stage3a"):
             (self.root / directory).mkdir(parents=True, exist_ok=True)
         (self.root / "data/input.json").write_text("[1, 2, 3]\n", encoding="utf-8")
+        # A manual deployment: these tests exercise the runner, not the headline gate.
+        (self.root / ".deploy_manifest.json").write_text(
+            json.dumps({"manifest_version": 1, "flags": {"manual": True}}) + "\n",
+            encoding="utf-8",
+        )
         (self.root / "output/analysis_specs/baseline_v1.json").write_text(
             json.dumps(baseline()) + "\n", encoding="utf-8"
         )
@@ -870,6 +875,99 @@ bundle = {{
         self.assertEqual(
             nested_dependents[nested_raw], [paths["dependent"]]
         )
+
+
+class HeadlineGateTest(unittest.TestCase):
+    """run-empirical refuses to publish a report without valid headline claims (#327)."""
+
+    HEADLINES = (
+        "## Headline claims\n"
+        "- [HEADLINE] [claim_id: main_mean] [reported_value: 2.0] "
+        "[tolerance_class: moments] The mean is 2.0.\n"
+    )
+
+    def setUp(self) -> None:
+        EmpiricalRunnerTest.setUp(self)  # same fixture project, not the same tests
+        self.addCleanup(self.temp.cleanup)
+        # The runner loads the replication manifest's parser from its deployed
+        # sibling location, so run a deployed-layout copy of both utilities.
+        utils = self.root / "code/utils"
+        (utils / "results_pipeline").mkdir(parents=True)
+        for name in ("results_pipeline.py", "analysis_contract.py"):
+            (utils / "results_pipeline" / name).write_bytes((RUNNER.parent / name).read_bytes())
+        manifest = REPO / "deploy_assets/extensions/empirical/utils/empirical_input_manifest.py"
+        (utils / "empirical_input_manifest.py").write_bytes(manifest.read_bytes())
+        self.runner = utils / "results_pipeline/results_pipeline.py"
+
+    def deploy(self, manual: bool) -> None:
+        (self.root / ".deploy_manifest.json").write_text(
+            json.dumps({"manifest_version": 1, "flags": {"manual": manual}}) + "\n",
+            encoding="utf-8",
+        )
+
+    def report(self, text: str) -> None:
+        source = (self.root / "code/analyze.py").read_text(encoding="utf-8")
+        source = source.replace("write_text('empirical report\\n')", f"write_text({text!r})")
+        (self.root / "code/analyze.py").write_text(source, encoding="utf-8")
+
+    def run_empirical(self, expected: int) -> subprocess.CompletedProcess[str]:
+        completed = subprocess.run([
+            sys.executable, str(self.runner), "run-empirical",
+            "--caller-allowance-seconds", "3600",
+            "--plan", "output/stage3a/results.plan.json",
+            "--bundle", "output/stage3a/results.json",
+            "--receipt", "output/stage3a/results.receipt.json",
+            "--", sys.executable, "code/analyze.py",
+        ], cwd=self.root, text=True, stdout=subprocess.PIPE, stderr=subprocess.PIPE)
+        self.assertEqual(completed.returncode, expected, completed.stdout + completed.stderr)
+        return completed
+
+    def test_autonomous_run_without_headlines_publishes_nothing_and_can_rerun(self) -> None:
+        self.deploy(manual=False)
+        refused = self.run_empirical(expected=2)
+        self.assertIn("has no valid headline claims", refused.stdout + refused.stderr)
+        self.assertIn("nothing was published", refused.stdout + refused.stderr)
+        for raw in ("output/stage3a/results.json", "output/stage3a/results.receipt.json",
+                    "output/stage3a/empirical_analysis_v1.md"):
+            self.assertFalse((self.root / raw).exists(), raw)
+        # The producer repairs its report and reruns the very same command.
+        self.report("empirical report\n\n" + self.HEADLINES)
+        self.run_empirical(expected=0)
+        self.assertTrue((self.root / "output/stage3a/results.receipt.json").exists())
+
+    def test_malformed_headline_row_is_refused(self) -> None:
+        self.deploy(manual=False)
+        self.report(self.HEADLINES.replace(" [tolerance_class: moments]", ""))
+        refused = self.run_empirical(expected=2)
+        self.assertIn("tolerance_class", refused.stdout + refused.stderr)
+
+    def test_manual_deployment_is_not_gated(self) -> None:
+        self.deploy(manual=True)
+        self.run_empirical(expected=0)
+
+    def test_missing_or_malformed_deploy_manifest_fails_closed(self) -> None:
+        (self.root / ".deploy_manifest.json").unlink()
+        refused = self.run_empirical(expected=2)
+        self.assertIn("readable .deploy_manifest.json", refused.stdout + refused.stderr)
+        for bad in ({"manifest_version": 1, "flags": {}}, {"flags": {"manual": False}}, []):
+            (self.root / ".deploy_manifest.json").write_text(json.dumps(bad), encoding="utf-8")
+            refused = self.run_empirical(expected=2)
+            self.assertIn("valid .deploy_manifest.json", refused.stdout + refused.stderr)
+        self.assertFalse((self.root / "output/stage3a/results.receipt.json").exists())
+
+    def test_runner_leaves_no_bytecode_under_code(self) -> None:
+        self.deploy(manual=False)
+        self.report("empirical report\n\n" + self.HEADLINES)
+        self.run_empirical(expected=0)
+        caches = [p.relative_to(self.root).as_posix()
+                  for p in (self.root / "code").rglob("__pycache__")]
+        self.assertEqual(caches, [])
+
+    def test_missing_parser_fails_closed(self) -> None:
+        self.deploy(manual=False)
+        (self.root / "code/utils/empirical_input_manifest.py").unlink()
+        refused = self.run_empirical(expected=2)
+        self.assertIn("cannot load the headline-claims parser", refused.stdout + refused.stderr)
 
 
 if __name__ == "__main__":

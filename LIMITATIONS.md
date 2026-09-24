@@ -62,13 +62,15 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## Tag-only analysis repairs still pay a full producer re-run
+## Tag-only analysis repairs still pay a full producer re-run — CLOSED
 
 **Scope:** `--ext empirical` Stage 3a step 6.5's `no_headline_tags` branch and any repair that edits only the analysis report's tag text.
 
-**Failure mode:** the result receipt binds the analysis file's full bytes, so adding a missing `[HEADLINE]` tag — a change with zero computational content — invalidates the receipt and mandates a complete fresh-attempt producer re-execution (~20-minute floor plus auditor fan-out). v2.36.0 wired the stored-input guard for renderer/prose/logging-only repairs, but the tag class needs a results-pipeline design change: decoupling the headline-section binding from the receipt's full-file hash so a tag-only edit can re-bind without re-producing.
+**Failure mode (historical):** the result receipt binds the analysis file's full bytes, so a report published without valid `[HEADLINE]` rows could be repaired only by a complete fresh-attempt producer re-execution, routed through the orchestrator and charged to the unowned-failure counter.
 
-**Tracking:** [#327](https://github.com/alejandroll10/zeropaper/issues/327).
+**Resolution (v2.46.0):** such a report can no longer be published. In an autonomous deployment, `run-empirical` parses each declared `output/stage3a/empirical_analysis*.md` report's `## Headline claims` section with the replication manifest's own parser before publication. A missing section or malformed row refuses the run with nothing published, so the empiricist fixes the emitting code and reruns the same command inside its own firing. There is no fresh attempt, no replicator launch, and no counter spent. The one cost left is the producer's own compute for that rerun. That is inherent while tags are producer output, and it is no longer a routing or apparatus tax.
+
+**Tracking:** [#327](https://github.com/alejandroll10/zeropaper/issues/327) (closed).
 
 ---
 

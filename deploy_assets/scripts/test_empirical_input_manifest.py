@@ -55,6 +55,10 @@ class EmpiricalInputManifestTests(unittest.TestCase):
         shutil.copy2(SCRIPT, self.script)
         (self.project / "process_log").mkdir()
         (self.project / "process_log" / "results_pipeline.lock").write_bytes(b"")
+        # An autonomous deployment, so run-empirical applies its headline gate (#327).
+        (self.project / ".deploy_manifest.json").write_text(
+            json.dumps({"manifest_version": 1, "flags": {"manual": False}}) + "\n"
+        )
         (self.project / "output" / "stage3a").mkdir(parents=True)
         (self.project / "output" / "stage3a" / "verification").mkdir()
         (self.project / "code" / "empirical.py").write_text(
