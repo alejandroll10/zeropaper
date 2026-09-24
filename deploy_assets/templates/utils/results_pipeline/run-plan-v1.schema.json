@@ -82,6 +82,11 @@
       "type": "boolean",
       "description": "Whether the producer receives outbound network capability. Defaults to true for backward compatibility; dataset release builds must set false."
     },
+    "live_services": {
+      "type": "array", "uniqueItems": true,
+      "description": "Host services the producer reaches beyond ordinary IP egress (issue #307). Only declared services are bound into the trusted workspace; `results_pipeline.py live-services` lists what this runner provides. Requires network_access; dataset release builds must declare none.",
+      "items": {"enum": ["wrds"]}
+    },
     "requires_dataset_release": {
       "type": "boolean",
       "description": "Marks a data-first analysis receipt that may activate only with its bound dataset release. Defaults to false."

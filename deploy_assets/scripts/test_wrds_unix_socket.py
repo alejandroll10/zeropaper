@@ -1494,6 +1494,35 @@ def main():
         assert not os.path.islink(server.PID_FILE)
         assert Path(server.PID_FILE).read_text(encoding="ascii") == str(os.getpid())
 
+    # Issue #307: inside a trusted results run that did not declare WRDS, the
+    # client refuses before touching any transport and names the plan fix;
+    # outside a run (variable absent) and in a declaring run it proceeds.
+    connects = []
+    with mock.patch.object(client, "_new_unix_socket_or_none",
+                           side_effect=lambda: connects.append(1)):
+        for declared in ("", "other"):
+            with mock.patch.dict(os.environ, {"RESULTS_LIVE_SERVICES": declared}):
+                try:
+                    client._connect(1)
+                except client.WrdsUndeclaredService as exc:
+                    assert "live_services" in str(exc), exc
+                else:
+                    raise AssertionError("undeclared WRDS was not refused")
+        assert connects == [], "refusal must precede any socket creation"
+        with mock.patch.dict(os.environ, {"RESULTS_LIVE_SERVICES": "wrds"}):
+            try:
+                client._connect(1)
+            except Exception:
+                pass
+        env = dict(os.environ)
+        env.pop("RESULTS_LIVE_SERVICES", None)
+        with mock.patch.dict(os.environ, env, clear=True):
+            try:
+                client._connect(1)
+            except Exception:
+                pass
+        assert len(connects) == 2, connects
+
     print("PASS: WRDS Unix/bridge transport, singleton, lifecycle isolation, and PID safety")
 
 

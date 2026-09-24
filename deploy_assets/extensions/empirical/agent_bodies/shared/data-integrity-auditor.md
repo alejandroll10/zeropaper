@@ -50,7 +50,10 @@ When `PRIOR_AUDIT_REPORT` is supplied, you may carry a cache's **source re-query
 
 - The prior report's `## Scope digests` row for the exact same cache path exists (a prior report with no `## Scope digests` section carries nothing), the cache and plan digests equal the values you recompute now byte for byte, and the code digests match **as a content set**: the set of SHA-256 values you recompute over the code files you now identify for this cache equals the prior row's set exactly, element for element. Code matches by content, never by filename — the fresh-attempt transition renames entrypoints every round (`_v{N}_a{K}`), and a renamed file with identical bytes is the same code, while any content change breaks the set. If you cannot confidently identify the cache's full code-file set, do not carry.
 - The prior row records **zero findings** for that cache, at any severity — resolve this by scanning the prior `## Findings` table for any mention of the cache: its path, its basename, or any field it holds (that table's `Cache / field` column may name a field rather than the path), and any mention disqualifies the carry — and is marked either live (its re-query ran that round) or `carried (round {k})`. You never re-open the root round's report — the fixed output path is overwritten each round; trusting the immediate prior row's root citation is sound because every hop verified byte-identity against its own predecessor, so equality is transitive, and a unit is only ever carried clean.
+- The source's last-update or vintage marker that this round's `cache-stale-vs-source` check reads equals the prior row's `Source probe` cell. Write the cell as `marker: <value>` (one value per source table, joined by `; `) when every source the cache is built from publishes such a marker, and `none` otherwise.
 - Your row marks the cache `carried (round {k})` in its `Evidence` cell — `{k}` copied from the prior row when that row was itself carried, or the prior round's number when it was live.
+
+A cache carried over a `none` probe may carry through repair rounds but is never accepted on carried evidence. When a source publishes no marker, a value revised in place leaves the cache bytes, the identifier list, and the stale check all unchanged, so before the orchestrator activates a candidate it re-fires you with no prior report wherever such a row stands (issue #347).
 
 Everything else re-runs every round: the structural checklist (local and cheap), the `cache-stale-vs-source` check in full (source-side drift is exactly what byte-identity cannot see — this always-live leg is what carry-forward leans on for drift), and the complete audit of any cache with a changed digest, a missing or unparseable prior row, any prior finding, or any doubt — when in doubt, re-verify. Carrying changes where a leg's evidence came from, never the verdict discipline: you still fire, still cover every cache in the report, and still issue a fresh verdict over the whole surface. In `## Datasets audited`, a carried cache repeats its root round's numbers with `carried (round {k})` in the re-query column.
 
@@ -72,8 +75,8 @@ Save to the exact `AUDIT_OUTPUT_PATH` named by the launch prompt. The default St
 |----------|--------------|---------------|--------|---------------|
 
 ## Scope digests
-| Cache path | Cache sha256 | Code files (path: sha256) | Plan sha256 | Evidence |
-|------------|--------------|---------------------------|-------------|----------|
+| Cache path | Cache sha256 | Code files (path: sha256) | Plan sha256 | Source probe | Evidence |
+|------------|--------------|---------------------------|-------------|--------------|----------|
 
 ## Source re-query log
 - [one bullet per (cache, sample) pair: identifiers checked, what was queried, what matched / diverged; a carried cache gets one bullet naming its root round instead]

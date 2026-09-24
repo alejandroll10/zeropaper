@@ -3017,6 +3017,218 @@ bundle = {{
         self.assertNotIn(str(wrds_state), captured)
         self.assertNotIn(str(wrds_cache), captured)
 
+    @unittest.skipUnless(sys.platform.startswith("linux"), "Linux bubblewrap command check")
+    def test_networked_run_mounts_wrds_state_only_when_declared(self) -> None:
+        # Issue #307: network access alone no longer exposes the WRDS daemon;
+        # only a plan that declares the live service gets its host state.
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        runtime_home = self.root / "host-home"
+        wrds_state = runtime_home / ".local/state/zeropaper/wrds"
+        wrds_cache = runtime_home / ".cache/zeropaper/wrds"
+        wrds_state.mkdir(parents=True)
+        wrds_cache.mkdir(parents=True)
+        captured: list[list[str]] = []
+        environments: list[dict[str, str]] = []
+
+        def record(command: list[str], **kwargs: object
+                   ) -> tuple[int, bytes, bytes, bool]:
+            captured.append(list(command))
+            environments.append(dict(kwargs["environment"]))  # type: ignore[arg-type]
+            return 0, b"", b"", False
+
+        with (mock.patch.dict(module.os.environ, {"HOME": str(runtime_home),
+                                                   "RESULTS_LIVE_SERVICES": "wrds"}),
+              mock.patch.object(module, "trusted_sandbox_executable",
+                                side_effect=lambda name: (
+                                    "/usr/bin/bwrap" if name == "bwrap" else None
+                                )),
+              mock.patch.object(module, "supervised_command", side_effect=record),
+              mock.patch.object(module, "reject_credential_leak")):
+            module.execute(["/bin/true"], self.root, project_root=self.root,
+                           allow_network=True)
+            module.execute(["/bin/true"], self.root, project_root=self.root,
+                           allow_network=True, live_services=["wrds"])
+            with self.assertRaisesRegex(module.EvidenceError, "unsupported live service"):
+                module.execute(["/bin/true"], self.root, project_root=self.root,
+                               allow_network=True, live_services=["fred"])
+            with self.assertRaisesRegex(module.EvidenceError, "require network access"):
+                module.execute(["/bin/true"], self.root, project_root=self.root,
+                               allow_network=False, live_services=["wrds"])
+        undeclared, declared = captured
+        self.assertNotIn(str(wrds_state), undeclared)
+        self.assertNotIn(str(wrds_cache), undeclared)
+        self.assertIn(str(wrds_state), declared)
+        self.assertIn(str(wrds_cache), declared)
+        # A host value never leaks in: the runner always sets its own.
+        self.assertEqual(environments[0]["RESULTS_LIVE_SERVICES"], "")
+        self.assertEqual(environments[1]["RESULTS_LIVE_SERVICES"], "wrds")
+
+    def test_macos_networked_run_reads_wrds_state_only_when_declared(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        runtime_home = Path(tempfile.mkdtemp(prefix="live-service-home-"))
+        self.addCleanup(shutil.rmtree, runtime_home, True)
+        wrds_state = runtime_home / ".local/state/zeropaper/wrds"
+        wrds_state.mkdir(parents=True)
+        profiles: list[str] = []
+
+        def record(command: list[str], **_kwargs: object
+                   ) -> tuple[int, bytes, bytes, bool]:
+            profiles.append(command[command.index("-p") + 1])
+            return 0, b"", b"", False
+
+        with (mock.patch.dict(module.os.environ, {"HOME": str(runtime_home)}),
+              mock.patch.object(module.sys, "platform", "darwin"),
+              mock.patch.object(module, "trusted_sandbox_executable",
+                                side_effect=lambda name: (
+                                    "/usr/bin/sandbox-exec"
+                                    if name == "sandbox-exec" else None
+                                )),
+              mock.patch.object(module, "supervised_command", side_effect=record),
+              mock.patch.object(module, "reject_credential_leak")):
+            module.execute(["/bin/true"], self.root, project_root=self.root,
+                           allow_network=True)
+            module.execute(["/bin/true"], self.root, project_root=self.root,
+                           allow_network=True, live_services=["wrds"])
+        self.assertNotIn(str(wrds_state), profiles[0])
+        self.assertIn(str(wrds_state), profiles[1])
+
+    def test_declared_live_service_must_be_present_before_execution(self) -> None:
+        spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
+        assert spec is not None and spec.loader is not None
+        module = importlib.util.module_from_spec(spec)
+        spec.loader.exec_module(module)
+        runtime_home = Path(tempfile.mkdtemp(prefix="lsvc-", dir="/tmp"))
+        self.addCleanup(shutil.rmtree, runtime_home, True)
+        with mock.patch.dict(module.os.environ, {"HOME": str(runtime_home)}):
+            module.require_live_services_available([])
+            with self.assertRaisesRegex(module.EvidenceError,
+                                        "declared live service 'wrds' is unavailable"):
+                module.require_live_services_available(["wrds"])
+            endpoint = runtime_home / module.LIVE_SERVICES["wrds"]["endpoint"]
+            endpoint.parent.mkdir(parents=True)
+            endpoint.write_text("not a socket", encoding="utf-8")
+            with self.assertRaisesRegex(module.EvidenceError, "unavailable"):
+                module.require_live_services_available(["wrds"])
+            endpoint.unlink()
+            server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+            self.addCleanup(server.close)
+            server.bind(str(endpoint))
+            module.require_live_services_available(["wrds"])
+
+    def test_run_plan_live_services_validation(self) -> None:
+        plan_path = self.root / "output/stagex/results.plan.json"
+        plan = json.loads(plan_path.read_text(encoding="utf-8"))
+        for services, network, message in (
+                (["fred"], True, "does not provide: fred"),
+                (["wrds", "wrds"], True, "live_services contains duplicates"),
+                (["wrds"], False, "live_services requires network_access")):
+            plan["live_services"] = services
+            plan["network_access"] = network
+            plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+            completed = self.call(
+                "run", "--bundle", "output/stagex/results.json",
+                "--receipt", "output/stagex/results.receipt.json", "--",
+                sys.executable, "code/analyze.py", expected=2,
+            )
+            self.assertIn(message, completed.stderr)
+        # A declared service whose host endpoint is absent refuses the run
+        # before the producer starts, publishing nothing.
+        plan["live_services"] = ["wrds"]
+        plan["network_access"] = True
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        environment = os.environ.copy()
+        environment["HOME"] = str(self.root / "empty-home")
+        completed = subprocess.run(
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
+             "output/stagex/results.plan.json", "--bundle",
+             "output/stagex/results.json", "--receipt",
+             "output/stagex/results.receipt.json", "--",
+             sys.executable, "code/analyze.py"],
+            cwd=self.root, env=environment, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        self.assertEqual(completed.returncode, 2, completed.stdout + completed.stderr)
+        self.assertIn("the producer was not started", completed.stderr)
+        self.assertFalse((self.root / "output/stagex/results.receipt.json").exists())
+
+    def test_live_services_command_checks_declarations_and_receipts(self) -> None:
+        listing = self.call("live-services")
+        self.assertIn("wrds", json.loads(listing.stdout)["services"])
+        self.call("live-services", "--check", '["wrds"]')
+        unsupported = self.call("live-services", "--check", '["fred"]', expected=1)
+        self.assertEqual(json.loads(unsupported.stdout)["unsupported"], ["fred"])
+        self.call("live-services", "--check", '"wrds"', expected=2)
+        self.call(
+            "run", "--bundle", "output/stagex/results.json",
+            "--receipt", "output/stagex/results.receipt.json", "--",
+            sys.executable, "code/analyze.py",
+        )
+        # The receipt's bound plan declares no service: within any allowance.
+        self.call("live-services", "--check", "[]",
+                  "--receipt", "output/stagex/results.receipt.json")
+        plan_path = self.root / "output/stagex/results.plan.json"
+        bound = plan_path.read_bytes()
+        plan = json.loads(bound)
+        plan["live_services"] = ["wrds"]
+        plan_path.write_text(json.dumps(plan) + "\n", encoding="utf-8")
+        # Edited plan bytes no longer match the receipt: refused, not trusted.
+        self.call("live-services", "--check", "[]",
+                  "--receipt", "output/stagex/results.receipt.json", expected=2)
+        plan_path.write_bytes(bound)
+        self.call("retire", "--receipt", "output/stagex/results.receipt.json",
+                  "--reason", "test: make room for the declared-service run")
+        # A fresh run that declares WRDS exceeds a spec allowing none.
+        home = Path(tempfile.mkdtemp(prefix="lsvc-", dir="/tmp"))
+        self.addCleanup(shutil.rmtree, home, True)
+        endpoint = home / ".local/state/zeropaper/wrds/wrds_server_23847.sock"
+        endpoint.parent.mkdir(parents=True)
+        server = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)
+        self.addCleanup(server.close)
+        server.bind(str(endpoint))
+        server.listen(1)
+        # The producer really reaches the declared socket inside the sandbox.
+        (self.root / "code/analyze_y.py").write_text(
+            "import os, socket\n"
+            "assert os.environ['RESULTS_LIVE_SERVICES'] == 'wrds'\n"
+            "probe = socket.socket(socket.AF_UNIX, socket.SOCK_STREAM)\n"
+            "probe.connect(os.path.expanduser("
+            "'~/.local/state/zeropaper/wrds/wrds_server_23847.sock'))\n"
+            "probe.close()\n"
+            + (self.root / "code/analyze.py").read_text(encoding="utf-8")
+            .replace("output/stagex/", "output/stagey/")
+            .replace("code/analyze.py", "code/analyze_y.py"), encoding="utf-8")
+        self.write_plan("output/stagey/results.plan.json", prefix="output/stagey/",
+                        analyze="code/analyze_y.py")
+        plan_y = self.root / "output/stagey/results.plan.json"
+        declared = json.loads(plan_y.read_text(encoding="utf-8"))
+        declared["live_services"] = ["wrds"]
+        plan_y.write_text(json.dumps(declared) + "\n", encoding="utf-8")
+        environment = os.environ.copy()
+        environment["HOME"] = str(home)
+        completed = subprocess.run(
+            [sys.executable, str(UTILITY), "run",
+             "--caller-allowance-seconds", "3600", "--plan",
+             "output/stagey/results.plan.json", "--bundle",
+             "output/stagey/results.json", "--receipt",
+             "output/stagey/results.receipt.json", "--",
+             sys.executable, "code/analyze_y.py"],
+            cwd=self.root, env=environment, text=True,
+            stdout=subprocess.PIPE, stderr=subprocess.PIPE,
+        )
+        self.assertEqual(completed.returncode, 0, completed.stdout + completed.stderr)
+        exceeds = self.call("live-services", "--check", "[]",
+                            "--receipt", "output/stagey/results.receipt.json", expected=1)
+        self.assertEqual(json.loads(exceeds.stdout)["exceeding"], ["wrds"])
+        self.call("live-services", "--check", '["wrds"]',
+                  "--receipt", "output/stagey/results.receipt.json")
+
     def test_macos_sandbox_does_not_grant_keychain_mach_lookup(self) -> None:
         spec = importlib.util.spec_from_file_location("results_pipeline_tested", UTILITY)
         assert spec is not None and spec.loader is not None

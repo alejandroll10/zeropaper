@@ -281,6 +281,27 @@ def wrds_requires_bridge():
     return False
 
 
+class WrdsUndeclaredService(RuntimeError):
+    """This trusted results run did not declare WRDS. Terminal: fix the plan."""
+
+
+def _require_declared_in_trusted_run():
+    """Name the fix when a trusted results run did not declare WRDS.
+
+    ``results_pipeline.py`` sets RESULTS_LIVE_SERVICES in every producer it
+    runs and binds the daemon's socket only when the run plan's
+    ``live_services`` names ``wrds`` (issue #307). Outside a trusted run the
+    variable is absent and nothing changes.
+    """
+    declared = os.environ.get('RESULTS_LIVE_SERVICES')
+    if declared is not None and 'wrds' not in declared.split(','):
+        raise WrdsUndeclaredService(
+            'WRDS is not a declared live service of this trusted results run: '
+            'add "wrds" to the run plan\'s live_services (requires '
+            'network_access); results_pipeline.py live-services lists what the '
+            'runner provides')
+
+
 def _connect(timeout, force_bridge=False, bridge_timeout=None):
     """Connect to the host-wide daemon across sandbox boundaries.
 
@@ -289,6 +310,7 @@ def _connect(timeout, force_bridge=False, bridge_timeout=None):
     socket creation, so only that explicit syscall denial selects the
     authenticated bridge fallback.
     """
+    _require_declared_in_trusted_run()
     if not force_bridge:
         sock = _new_unix_socket_or_none()
         if sock is not None:

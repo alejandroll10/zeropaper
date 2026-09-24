@@ -54,17 +54,15 @@ Per `CLAUDE.md` ("no unsolved, undocumented, or untracked architectural limits")
 
 ---
 
-## Audit carry-forward is blind to in-place value revisions at sources with no update marker
+## CLOSED in v2.50.0 — Audit carry-forward was blind to in-place value revisions at sources with no update marker
 
 **Scope:** the Stage 3a audit triad in every empirical mode and the data-first coverage audit, for sources that expose neither a last-update nor a vintage marker.
 
-**Narrowed in v2.48.0.** v2.42.0 (#344) carries a unit's live re-query evidence across repair rounds when its local evidence scope is byte-identical to a zero-finding prior row, and byte-identity cannot see the source side. Since v2.48.0 a carry also requires a live **source-change probe** to match the prior row: the source's own last-update/vintage marker, or — where it exposes none — the SHA-256 of the sorted identifier list (selection) or event-key list (coverage) the source currently returns. A unit whose sources answer no probe never carries. That closes identifier-level drift (newly qualifying or dropped records) everywhere and value-level drift wherever the source publishes a marker. The v2.48.0 banked acquisition units widen reuse of *bytes* across attempts, but every reused unit still passes these always-live probes each firing.
+**Failure mode (historical):** v2.42.0 (#344) carries a unit's live re-query evidence across repair rounds when its local evidence scope is byte-identical to a zero-finding prior row, and byte-identity cannot see the source side. v2.48.0 made a carry also require a live source-change probe: the source's own update/vintage marker, or, where it exposes none, the SHA-256 of the sorted identifier list (selection) or event-key list (coverage). That closed identifier-level drift everywhere. It left one hole. A marker-less source that revises a record's *values* in place, with its identifier set unchanged, was invisible to the list digest and to data-integrity's marker-based stale check, so a unit carried over it kept its root round's value verification until its bytes changed or a finding landed on it. That could include the round that accepted the candidate.
 
-**Failure mode that remains:** a source with no update marker that revises a record's *values* in place, leaving its identifier set unchanged, is invisible to the identifier-list fallback and to data-integrity's marker-based `cache-stale-vs-source` check. A unit carried over such a source keeps its root round's value verification until its bytes change, a finding lands on it, or the campaign ends.
+**Closed in v2.50.0:** carried evidence over a marker-less source may ride through repair rounds but never reaches acceptance. Every triad/coverage `## Scope digests` row now records its probe in a fixed form: `marker: …` when every source answered with its own marker, `ids-sha256:…` for the list fallback, and `none` for data-integrity when there is no marker. Data-integrity gains that column and carries only on an equal probe. When every auditor returns PASS, and before activation, the orchestrator runs `spec_audit_scope.py acceptance-carries` on each report. Any row carried over a non-marker probe, or an unreadable table, re-launches that auditor alone with no prior report, and its fresh verdict replaces the carried one. The check is mechanical, so it does not rest on the auditor's discipline, and it costs at most one full re-audit per auditor per accepted candidate, paid only where marker-less carries exist. Repair rounds keep the #344 saving. A per-round sampled value probe was rejected: it only lowers the miss rate. A carry-depth bound was rejected too, because it still lets a carried row reach acceptance. The residual exposure is the one every live audit has: the auditor samples records, so a revision to an unsampled record is missed either way.
 
-**What would close it:** a per-source value fingerprint cheaper than the full re-query (e.g., a source-side aggregate or checksum over the audited fields, where the source can compute one), or a carry-depth bound for marker-less sources.
-
-**Tracking:** [#347](https://github.com/alejandroll10/zeropaper/issues/347).
+**Tracking:** [#347](https://github.com/alejandroll10/zeropaper/issues/347) (closed).
 
 ---
 
@@ -270,17 +268,35 @@ A related spec-authoring trap belongs with it: the evidence regex `Federal Open 
 
 ---
 
-## The trusted results runner cannot admit a live service dependency, and Gate 2 cannot see that
+## CLOSED in v2.50.0 — The trusted results runner could not admit a live service dependency, and Gate 2 could not see that
 
 **Scope:** `--ext empirical` Stage 3a receipt publication via `results_pipeline.py run`; sharpest under `--mode data-first`, where a producer legitimately queries a live source inside the trusted run.
 
-**Failure mode:** the trusted workspace is default-deny and offers two controls — directory `--bind`, with read-only sources validated so they cannot escape the workspace (`results_pipeline.py:2640`), and a boolean `allow_network` that probes only `AF_INET`/`AF_INET6` (`:2734-2737`). An `AF_UNIX` service socket is neither: not an IP family, so `allow_network` does not admit it, and outside the workspace, so the bind path rejects it by design. A producer needing a live service inside the trusted run therefore cannot obtain the capability, and the plan schema has no way to *declare* one so the runner could bind, restrict, and hash it the way it does file inputs. Observed on tradingdays (v2.30.11, data-first, 2026-09-04) as `RuntimeError: AF_UNIX WRDS capability unavailable`, with the producer staged at `/tmp/results-workspace-*` and the adapter correctly failing closed — no bridge, proxy, token, fallback data, or receipt — across attempts a112, a114, a115, a116 and a117, while WRDS itself was healthy throughout.
+**Failure mode (historical):** the trusted workspace is default-deny and offers two controls — directory `--bind`, with read-only sources validated so they cannot escape the workspace (`results_pipeline.py:2640`), and a boolean `allow_network` that probes only `AF_INET`/`AF_INET6` (`:2734-2737`). An `AF_UNIX` service socket is neither: not an IP family, so `allow_network` does not admit it, and outside the workspace, so the bind path rejects it by design. A producer needing a live service inside the trusted run therefore cannot obtain the capability, and the plan schema has no way to *declare* one so the runner could bind, restrict, and hash it the way it does file inputs. Observed on tradingdays (v2.30.11, data-first, 2026-09-04) as `RuntimeError: AF_UNIX WRDS capability unavailable`, with the producer staged at `/tmp/results-workspace-*` and the adapter correctly failing closed — no bridge, proxy, token, fallback data, or receipt — across attempts a112, a114, a115, a116 and a117, while WRDS itself was healthy throughout.
 
 The structural part is that the specification *requires* the capability, in direct response to an earlier audit finding that the replay "did not define the minimal redacted WRDS relay capability channel or bind that non-file channel into sandbox-policy hashing and observed-I/O reconciliation." The spec bound it, Gate 2 accepted that spec as PLAUSIBLE, and the runner cannot provide it — so a gate accepted a specification the infrastructure structurally cannot execute, and the conflict surfaces only at receipt publication, one full build later, every attempt. The tension is genuine rather than an oversight: default-deny is what makes the trusted run trustworthy. The gap is that the model admits *files* as declared, hashed inputs and has no equivalent for a non-file capability.
 
-**What would close it:** a declared-capability block in the run plan, treated like a read-only input — named path, expected mode, bound into the sandbox, hashed into the sandbox policy, and required to appear in the child-inclusive trace and reconciliation. That meets the auditor's original requirement without weakening default-deny, because the capability is enumerated and hashed rather than ambient. Independently worth fixing: nothing cross-checks a specification's declared execution requirements against what the installed runner implements, so an unsatisfiable spec passes Gate 2 and fails later at maximum cost. A preflight at the Gate 2 spec audit or Stage 3a plan review should fail such a spec with that diagnosis instead.
+**Closed in two halves.** v2.43.0 shipped the cheap half. Gate 2's dimension 9, the spec template, and the Stage 3a plan review reject any spec requiring a non-file primitive to be declared, bound, or hashed into a trusted run.
 
-**Tracking:** [#307](https://github.com/alejandroll10/zeropaper/issues/307).
+v2.50.0 ships the deep half, a declared live-service channel. A run plan's `live_services` names the host services the producer reaches beyond IP egress, from a registry the runner owns (today only `wrds`). The runner binds a service's host state (socket, relay token, client cache) into the workspace only when the plan declares it. Before this, every networked run got that state ambiently. The runner refuses before starting the producer when a declared endpoint is absent. It fingerprints the declaring plan into the receipt, rejects the field on offline and release runs, and sets `RESULTS_LIVE_SERVICES` so an undeclared `wrds_query()` fails at once with `WrdsUndeclaredService`, naming the fix.
+
+`results_pipeline.py live-services` prints the registry. That printout is the installed runner's own statement of what a spec may declare, and it closes the cross-check the entry asked for. Under data-first, the spec's machine-readable `**Live services:** [...]` line (normally `[]`, since acquisition is banked before the trusted run) is checked against it before the Gate 2 audit launches. After the analysis `verify`, `live-services --check <spec line> --receipt` requires the published run's bound plan to stay within the line. The auditor's original demand, that the channel be enumerated and bound rather than ambient, is met by name. It is not met by hashing a socket, which has no content to hash.
+
+**Residual:** the receipt records *that* a declared service was reachable, not *which queries* ran over it or what they returned. That is tracked as its own entry, "Receipts do not journal live-service I/O", below.
+
+**Tracking:** [#307](https://github.com/alejandroll10/zeropaper/issues/307) (closed).
+
+---
+
+## Receipts do not journal live-service I/O
+
+**Scope:** `--ext empirical` trusted analysis runs that declare a live service (`live_services: ["wrds"]`). The declaration is usual in theory-first and empirical-first runs, which query WRDS inside the trusted run. It is rare under data-first, whose trusted run reads banked acquisition caches.
+
+**Failure mode:** since v2.50.0 (#307) the runner binds a live service only when the plan declares it, and the declaring plan is fingerprinted into the receipt. The receipt therefore proves the channel was enumerated rather than ambient. It does not record the SQL the producer sent over the channel, and it does not record digests of what came back. A result derived from a live pull is reproducible only to the extent that the source still returns the same rows. A re-run after a silent source revision can differ with nothing in the receipt to show why. The data-integrity auditor's re-query compares caches to source, but it runs outside the receipt and checks samples.
+
+**What would close it:** a runner-owned per-run relay in place of the bound socket. It would be a workspace-local Unix socket, forwarding to the host daemon, that journals every request frame (command, SQL) and a SHA-256 of every response. The journal would be recorded as a receipt field and required, by `verify`, to parse. Replay tooling could then re-issue the journaled queries and diff the response digests.
+
+**Tracking:** [#351](https://github.com/alejandroll10/zeropaper/issues/351).
 
 ---
 

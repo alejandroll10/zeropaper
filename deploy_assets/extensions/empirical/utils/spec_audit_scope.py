@@ -38,6 +38,15 @@ touches one class does not reset every other class's carried evidence.
 in both audit reports and exits 1 if any dimension is marked carried
 (``Carried from v…`` or ``Sites carried from v…``) in both.  The orchestrator
 runs it, so the bound does not rest on the auditor's own discipline.
+
+``acceptance-carries --report R`` reads the ``## Scope digests`` table of a
+Stage 3a data-integrity, data-selection, or coverage report and exits 1 if any
+row was carried (``Evidence`` cell ``carried (round k)``) over a source probe
+that is not the source's own update marker (``Source probe`` cell not starting
+``marker:``).  Carried evidence over a marker-less source may ride through
+repair rounds but never reaches acceptance (issue #347): an in-place value
+revision at such a source changes neither the cache bytes nor the identifier
+list, so the orchestrator re-fires the auditor in full before activation.
 """
 
 import argparse
@@ -194,6 +203,46 @@ def depth(prior_report, report):
             "carried_twice": violations}
 
 
+PROBE_MARKER = re.compile(r"[`*]*marker:", re.IGNORECASE)
+
+
+def _table_cells(line):
+    stripped = line.strip()
+    if not (stripped.startswith("|") and stripped.endswith("|")):
+        return None
+    return [cell.strip() for cell in stripped[1:-1].split("|")]
+
+
+def acceptance_carries(report):
+    """Rows carried over a probe other than a source update marker."""
+    raw = _read_bytes(report)
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ScopeError(f"report {report} is not UTF-8: {exc}") from exc
+    body = dict(split_sections(text)).get("Scope digests")
+    if body is None:
+        raise ScopeError(f"report {report} has no '{BLOCK_HEADING}' section")
+    rows = [cells for cells in map(_table_cells, body.splitlines()[1:]) if cells is not None]
+    if len(rows) < 2 or not all(set(c) <= set("-: ") for c in rows[1]):
+        raise ScopeError(f"report {report}: '{BLOCK_HEADING}' holds no markdown table")
+    header = [cell.lower() for cell in rows[0]]
+    if "evidence" not in header:
+        raise ScopeError(f"report {report}: scope table has no Evidence column")
+    evidence = header.index("evidence")
+    probe = header.index("source probe") if "source probe" in header else None
+    unmarked = []
+    for cells in rows[2:]:
+        if len(cells) != len(header):
+            raise ScopeError(f"report {report}: scope table row has {len(cells)} cells, "
+                             f"header has {len(header)}")
+        if not cells[evidence].strip("`* ").lower().startswith("carried"):
+            continue
+        if probe is None or not PROBE_MARKER.match(cells[probe]):
+            unmarked.append(cells[0])
+    return unmarked
+
+
 def read_block(report):
     """Parse the first ```json fence after the report's Scope digests heading."""
     text = _read_bytes(report).decode("utf-8", errors="replace")
@@ -297,10 +346,20 @@ def main(argv=None):
             cmd.add_argument("--prior-report", required=True)
     sections_cmd = sub.add_parser("sections")
     sections_cmd.add_argument("--doc", required=True)
+    carries_cmd = sub.add_parser("acceptance-carries")
+    carries_cmd.add_argument("--report", required=True)
     depth_cmd = sub.add_parser("depth")
     depth_cmd.add_argument("--prior-report", required=True)
     depth_cmd.add_argument("--report", required=True)
     args = parser.parse_args(argv)
+    if args.command == "acceptance-carries":
+        try:
+            unmarked = acceptance_carries(args.report)
+        except ScopeError as exc:
+            print(f"spec_audit_scope: {exc}; re-fire the auditor in full", file=sys.stderr)
+            return 2
+        print(json.dumps({"carried_without_marker": unmarked}, indent=2))
+        return 1 if unmarked else 0
     if args.command == "depth":
         try:
             result = depth(args.prior_report, args.report)

@@ -98,7 +98,24 @@ RUNTIME_ENV_KEYS = {
     "PYTHONHASHSEED", "OMP_NUM_THREADS", "OPENBLAS_NUM_THREADS",
     "MKL_NUM_THREADS", "NUMEXPR_NUM_THREADS", "CUDA_VISIBLE_DEVICES",
 }
-INTERNAL_ENV_KEYS = {"RESULTS_BUNDLE_PATH", "RESULTS_EXHIBIT_ROOT"}
+INTERNAL_ENV_KEYS = {"RESULTS_BUNDLE_PATH", "RESULTS_EXHIBIT_ROOT", "RESULTS_LIVE_SERVICES"}
+# Live services a run plan may declare (issue #307). A trusted run is
+# default-deny: a service's host-side state -- for WRDS, the daemon's Unix
+# socket, relay token, and client cache -- is exposed to the producer only when
+# its plan names the service, and the plan file that names it is fingerprinted
+# into the receipt. Every other network access is ordinary IP egress under
+# ``network_access``. ``live-services`` prints this registry: it is the
+# installed runner's own statement of what a specification may declare.
+LIVE_SERVICES: dict[str, dict[str, Any]] = {
+    "wrds": {
+        "description": (
+            "host WRDS query daemon, reached by code/utils/wrds_client.py "
+            "(wrds_query/wrds_ping) over its Unix socket"
+        ),
+        "home_paths": (".local/state/zeropaper/wrds", ".cache/zeropaper/wrds"),
+        "endpoint": ".local/state/zeropaper/wrds/wrds_server_23847.sock",
+    },
+}
 SECRET_ENV_KEYS = {
     "OPENAI_API_KEY", "ANTHROPIC_API_KEY", "UF_API_KEY", "DEEPINFRA_TOKEN",
     "LOCAL_LLM_API_KEY",
@@ -2824,10 +2841,19 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
             project_root: Path | None = None,
             allow_network: bool = True,
             provider_credentials: set[str] | None = None,
-            read_only_bindings: list[tuple[int, Path, Path]] | None = None) -> None:
+            read_only_bindings: list[tuple[int, Path, Path]] | None = None,
+            live_services: Iterable[str] = ()) -> None:
+    services = sorted(set(live_services))
+    if not set(services).issubset(LIVE_SERVICES):
+        raise EvidenceError("unsupported live service")
+    if services and not allow_network:
+        raise EvidenceError("live services require network access")
     environment = os.environ.copy()
     environment["PWD"] = str(cwd)
     environment.pop("OLDPWD", None)
+    # Always set, so code inside any trusted run can tell an undeclared
+    # service from an unreachable one and say which (issue #307).
+    environment["RESULTS_LIVE_SERVICES"] = ",".join(services)
     if bundle_path is not None:
         environment["RESULTS_BUNDLE_PATH"] = bundle_path
     if extra_environment is not None:
@@ -2893,9 +2919,9 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
                 sandboxed_command.extend(
                     ["--ro-bind", str(runtime_root), str(runtime_root)]
                 )
-        if allow_network:
+        for service in services:
             runtime_home = Path(environment["HOME"])
-            for relative in (".local/state/zeropaper/wrds", ".cache/zeropaper/wrds"):
+            for relative in LIVE_SERVICES[service]["home_paths"]:
                 service_path = runtime_home / relative
                 if service_path.exists() and not service_path.is_symlink():
                     sandboxed_command.extend(
@@ -2931,15 +2957,15 @@ def execute(command: list[str], cwd: Path, *, bundle_path: str | None = None,
             command = [item.replace("/results-runtime-venv", str(runtime_venv))
                        for item in command]
         read_roots.extend(str(path) for path in runtime_roots)
-        if allow_network:
+        for service in services:
             runtime_home = Path(environment["HOME"])
-            for relative in (".local/state/zeropaper/wrds", ".cache/zeropaper/wrds"):
+            for relative in LIVE_SERVICES[service]["home_paths"]:
                 service_path = runtime_home / relative
                 if service_path.exists() and not service_path.is_symlink():
                     if (_inside(project_root, service_path) or
                             _inside(service_path, project_root)):
                         raise EvidenceError(
-                            "macOS WRDS runtime path must not overlap the project root"
+                            "macOS live-service runtime path must not overlap the project root"
                         )
                     read_roots.append(str(service_path))
         read_rules = " ".join(f'(subpath "{literal(raw)}")' for raw in read_roots)
@@ -3033,8 +3059,9 @@ def validate_run_plan(value: Any, root: Path, *, require_live_sources: bool = Tr
                 "renderer_code", "exhibits"}
     _require_keys(
         value, required,
-        required | {"provider_credentials", "network_access", "requires_dataset_release",
-                    "dataset_release", "renderer_inputs", "analyses"},
+        required | {"provider_credentials", "network_access", "live_services",
+                    "requires_dataset_release", "dataset_release", "renderer_inputs",
+                    "analyses"},
         "run plan",
     )
     if (isinstance(value["plan_version"], bool) or
@@ -3080,6 +3107,18 @@ def validate_run_plan(value: Any, root: Path, *, require_live_sources: bool = Tr
     if not isinstance(network_access, bool):
         raise EvidenceError("run plan.network_access must be a boolean")
     value["network_access"] = network_access
+    value["live_services"] = _string_list(
+        value.get("live_services", []), "run plan.live_services"
+    )
+    unsupported = sorted(set(value["live_services"]) - set(LIVE_SERVICES))
+    if unsupported:
+        raise EvidenceError(
+            "run plan.live_services names services this runner does not provide: "
+            + ", ".join(unsupported)
+            + " (supported: " + ", ".join(sorted(LIVE_SERVICES)) + ")"
+        )
+    if value["live_services"] and not network_access:
+        raise EvidenceError("run plan.live_services requires network_access")
     requires_dataset_release = value.get("requires_dataset_release", False)
     if not isinstance(requires_dataset_release, bool):
         raise EvidenceError("run plan.requires_dataset_release must be a boolean")
@@ -3185,6 +3224,68 @@ def validate_run_plan(value: Any, root: Path, *, require_live_sources: bool = Tr
     if value["provider_credentials"]:
         raise EvidenceError("dataset release runs may not receive provider credentials")
     return value
+
+
+def require_live_services_available(services: Iterable[str]) -> None:
+    """Refuse before execution when a declared service endpoint is absent.
+
+    A declared service that is down would otherwise surface mid-run, after the
+    producer spent its build; checking the endpoint first turns it into a
+    zero-cost refusal (issue #307). This checks presence, not health: a live
+    daemon that then fails a query still fails the producer normally.
+    """
+    home = Path(os.environ.get("HOME", ""))
+    for service in sorted(set(services)):
+        endpoint = home / LIVE_SERVICES[service]["endpoint"]
+        try:
+            info = endpoint.lstat()
+        except OSError:
+            info = None
+        if info is None or not stat.S_ISSOCK(info.st_mode):
+            raise EvidenceError(
+                f"declared live service {service!r} is unavailable: no service "
+                f"socket at {endpoint}; restore the host service and rerun "
+                "(the producer was not started)"
+            )
+
+
+def command_live_services(args: argparse.Namespace) -> int:
+    """Print the live services this runner can bind, or check a declaration."""
+    if args.check is None:
+        print(json.dumps({
+            "services": {
+                name: entry["description"]
+                for name, entry in sorted(LIVE_SERVICES.items())
+            },
+        }, indent=2, sort_keys=True))
+        return 0
+    try:
+        declared = json.loads(args.check)
+    except ValueError as exc:
+        raise EvidenceError(f"--check is not a JSON array: {exc}") from exc
+    if (not isinstance(declared, list) or
+            not all(isinstance(item, str) for item in declared) or
+            len(declared) != len(set(declared))):
+        raise EvidenceError("--check must be a JSON array of distinct service names")
+    unsupported = sorted(set(declared) - set(LIVE_SERVICES))
+    if unsupported:
+        print(json.dumps({"status": "UNSUPPORTED", "unsupported": unsupported,
+                          "supported": sorted(LIVE_SERVICES)}, indent=2))
+        return 1
+    if args.receipt is not None:
+        root = resolve_root(args.project_root)
+        receipt_raw = result_receipt_path(root, args.receipt)[0]
+        _, receipt_snapshot = load_json_snapshot(root, receipt_raw)
+        plan = receipt_bound_run_plan(root, receipt_raw, receipt_snapshot)
+        undeclared = sorted(set(plan["live_services"]) - set(declared))
+        if undeclared:
+            print(json.dumps({"status": "EXCEEDS", "receipt": receipt_raw,
+                              "run_services": plan["live_services"],
+                              "allowed": sorted(declared),
+                              "exceeding": undeclared}, indent=2))
+            return 1
+    print(json.dumps({"status": "PASS", "declared": sorted(declared)}, indent=2))
+    return 0
 
 
 SOURCE_ID_RE = re.compile(r"[a-z][a-z0-9_-]{0,63}")
@@ -5620,6 +5721,7 @@ def command_run(args: argparse.Namespace) -> int:
                          *plan["renderer_code"]]
     workspace_outputs = [bundle_raw, *plan["artifacts"], *plan["exhibits"]]
     environment_capture = capture_execution_environment(root, command)
+    require_live_services_available(plan["live_services"])
     read_only_bindings: list[tuple[int, Path, Path]] = []
     with isolated_workspace(
             root, workspace_sources, workspace_outputs,
@@ -5629,6 +5731,7 @@ def command_run(args: argparse.Namespace) -> int:
             allow_network=plan["network_access"],
             provider_credentials=set(plan["provider_credentials"]),
             read_only_bindings=read_only_bindings,
+            live_services=plan["live_services"],
         )
         require_stable_environment(
             environment_capture, capture_execution_environment(root, command),
@@ -8391,6 +8494,22 @@ def build_parser() -> argparse.ArgumentParser:
     run_empirical.add_argument("command", nargs=argparse.REMAINDER)
     run_empirical.set_defaults(func=command_run, empirical=True)
 
+    live_services = subparsers.add_parser(
+        "live-services",
+        help="list the live services a run plan may declare, or check a declaration",
+    )
+    live_services.add_argument("--project-root", default=".")
+    live_services.add_argument(
+        "--check", default=None,
+        help="JSON array of service names; exit 1 if any is not provided by this runner",
+    )
+    live_services.add_argument(
+        "--receipt", default=None,
+        help="with --check: also exit 1 if this receipt's bound plan declares a "
+             "service outside the --check array",
+    )
+    live_services.set_defaults(func=command_live_services)
+
     render = subparsers.add_parser("render", help="execute a bundle-only renderer and record exhibits")
     render.add_argument("--project-root", default=".")
     render.add_argument("--receipt", required=True)
@@ -8570,6 +8689,9 @@ def main(argv: list[str] | None = None) -> int:
                 args.caller_allowance_seconds, args.subcommand
             )
         root = resolve_root(args.project_root)
+        if args.subcommand == "live-services":
+            # Read-only: the registry is code, and --receipt only reads bytes.
+            return args.func(args)
         if args.subcommand == "inspect-registry":
             with project_read_lock(root):
                 reject_unresolved_transaction(root)

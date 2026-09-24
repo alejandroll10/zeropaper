@@ -201,6 +201,32 @@ def main():
         check("depth on a report without assessments exits 2",
               run("depth", "--prior-report", str(pr), "--report", str(cr)).returncode == 2)
 
+        def scope_report(rows, header="| Universe | Cache sha256 | Source probe | Evidence |"):
+            table = "\n".join([header, "|---|---|---|---|", *rows])
+            return "# Data Selection Audit — round 3\n\n## Findings\n\n## Scope digests\n" + table + "\n\n## Verdict rationale\nok\n"
+        rep = tmp / "selection_audit.md"
+        rep.write_text(scope_report(["| crsp | sha256:aa | marker: 2026-09-01 | carried (round 1) |",
+                              "| fomc | sha256:bb | ids-sha256:cc | live |"]))
+        out = run("acceptance-carries", "--report", str(rep))
+        check("acceptance-carries passes marker-probed carries and live rows",
+              out.returncode == 0 and json.loads(out.stdout)["carried_without_marker"] == [])
+        rep.write_text(scope_report(["| crsp | sha256:aa | `marker: v7` | **carried (round 1)** |",
+                              "| fomc | sha256:bb | ids-sha256:cc | carried (round 2) |"]))
+        out = run("acceptance-carries", "--report", str(rep))
+        check("acceptance-carries flags a carry over an identifier-list probe",
+              out.returncode == 1 and json.loads(out.stdout)["carried_without_marker"] == ["fomc"])
+        rep.write_text(scope_report(["| cache.parquet | sha256:aa | carried (round 1) |"],
+                             header="| Cache path | Cache sha256 | Evidence |").replace("|---|---|---|---|", "|---|---|---|"))
+        out = run("acceptance-carries", "--report", str(rep))
+        check("acceptance-carries flags a carry in a table with no probe column",
+              out.returncode == 1 and json.loads(out.stdout)["carried_without_marker"] == ["cache.parquet"])
+        rep.write_text("# Audit\n\n## Findings\nnone\n")
+        check("acceptance-carries on a report without a scope table exits 2",
+              run("acceptance-carries", "--report", str(rep)).returncode == 2)
+        rep.write_text(scope_report(["| crsp | sha256:aa | marker: x |"]))
+        check("acceptance-carries on a ragged row exits 2",
+              run("acceptance-carries", "--report", str(rep)).returncode == 2)
+
     print()
     if FAILURES:
         print(f"{len(FAILURES)} FAILED: {FAILURES}")
