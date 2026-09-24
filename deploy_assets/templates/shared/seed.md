@@ -45,7 +45,9 @@ Per-gate seeded-mode overrides are injected into each stage doc at the verdict l
 - `docs/stage_1.md` — Gate 1 REJECT ALL, Gate 1b, Gate 1c.
 - `docs/stage_2.md` — Gate 2 FAIL, Gate 3 KNOWN/INCREMENTAL.
 - `docs/stage_3_implications.md` — barren-model (all-SUPPORTED).
+<!-- NOT_DATA_FIRST_START -->
 - `docs/stage_3a_empirical.md` — Gate 3a-feasibility FALSIFIED (`--ext empirical`).
+<!-- NOT_DATA_FIRST_END -->
 - `docs/stage_4.md` — seeded correctness gate (aggregate score does not route; branch-manager is skipped).
 - `docs/stage_6.md` — Gate 5 Major Revision / Reject.
 - `docs/stage_puzzle_triage.md` — PIVOT / BACK-TO-IDEA / HONEST-NULL.

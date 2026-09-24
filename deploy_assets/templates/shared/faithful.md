@@ -126,7 +126,9 @@ Per-gate faithful-mode overrides are injected into each stage doc at the verdict
 - `docs/stage_1.md` — Gate 1 REJECT ALL, Gate 1b, Gate 1c, INCREMENTAL-forwarding.
 - `docs/stage_2.md` — Gate 2 FAIL, Gate 3 KNOWN/INCREMENTAL.
 - `docs/stage_3_implications.md` — barren-model (all-SUPPORTED) (no dedicated faithful override file; falls back to the `seed_overrides/` text — within-model depth-search additions are encouraged under the contract, so the seeded three-strike-then-ship route already fits faithful mode).
+<!-- NOT_DATA_FIRST_START -->
 - `docs/stage_3a_empirical.md` — Gate 3a-feasibility FALSIFIED (`--ext empirical`).
+<!-- NOT_DATA_FIRST_END -->
 - `docs/stage_4.md` — shared seeded correctness gate plus the faithful drift audit before Stage 5 (the dedicated faithful override was removed; the seeded route already preserves the contract).
 - `docs/stage_6.md` — Gate 5 Major Revision / Reject / MISATTRIBUTED / DECORATIVE.
 - `docs/stage_puzzle_triage.md` — PIVOT (forbidden), RECONCILE (constrained), HONEST-NULL.

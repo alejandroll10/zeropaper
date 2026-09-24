@@ -60,7 +60,7 @@ Work through these as a skeptical data editor would at a plan meeting. These are
 
 ### 7. Do the spec's factual claims match the pilot?
 
-- Every access, format, coverage, and rights claim must be consistent with the pilot report, or explicitly marked `unverified — pilot check needed`. A spec that asserts what the pilot contradicted — or silently upgrades an unverified claim to fact — is building on sand. Quote any contradiction.
+- Every access, format, coverage, and rights claim must be consistent with the pilot report, or explicitly marked `unverified — pilot check needed`. So must each replication target's computability: a target the pilot's replication-computability section found uncomputable from these sources — or one the pilot never tried, since there is no later quick-pull gate — needs a stated field-and-join path the sources are observed to carry. A spec that asserts what the pilot contradicted — or silently upgrades an unverified claim to fact — is building on sand. Quote any contradiction.
 - **First pass:** check the expected coverage counts against the pilot's observed counts extrapolated (and against institutional common sense — eight scheduled FOMC meetings a year, roughly monthly CPI releases). **Re-fire:** check them against the binding build report's observed counts; where they diverge, the spec must say which side is wrong and why.
 
 ### 8. Does an exact coverage promise require a census?

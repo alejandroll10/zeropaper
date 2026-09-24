@@ -142,9 +142,11 @@ Stage 2: Mechanism Document  ──→ theory-generator runs in mechanism mode
                                    mechanism-plausibility gate replaces the math audit
                                    Gate 3: Novelty Check on the mechanism
 <!-- EMPIRICAL_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 Gate 3a-feasibility: Empirical Feasibility   (only if --ext empirical)
                                    ├── FALSIFIED → back to Stage 1
                                    └── OK → proceed
+<!-- NOT_DATA_FIRST_END -->
 Stage 3: Implications        ──→ implications-deriver + gap-scout each → tag
                                    NOVEL / PUZZLE-CANDIDATE / SUPPORTED / DEAD
 Stage 3a: Empirical Analysis     (only if --ext empirical, full test + audit)
@@ -183,7 +185,13 @@ Stage 9: Polish               ──→ (eight parallel polish agents + triage +
 Stage 10: Lessons             ──→ Done (orchestrator writes LESSONS_PAPER.md + LESSONS_PIPELINE.md)
 ```
 
+<!-- DATA_FIRST_START -->
+**Stage labels.** Letter suffixes (`2b`, `3a`, `3b`) are extension-conditional or sequence-internal sub-stages within a block, not top-level stages. `2b` runs after Gates 2/3 inside Stage 2's block; `3a`/`3b` are the empirical / theory_llm extensions paired with Stage 3 (Implications).
+
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 **Stage labels.** Letter suffixes (`2b`, `3a`, `3b`) are extension-conditional or sequence-internal sub-stages within a block, not top-level stages. `2b` runs after Gates 2/3 inside Stage 2's block; `3a`/`3b` are the empirical / theory_llm extensions paired with Stage 3 (Implications). `Gate 3a-feasibility` carries the `3a` label because it is the empirical extension's pre-check, not because it sits inside Stage 3.
+<!-- NOT_DATA_FIRST_END -->
 
 ---
 
@@ -255,7 +263,7 @@ When you start the pipeline, set `"status": "running"` and begin appending to th
 
 **Fresh-theory identity reset (mandatory and atomic).** `theory_version` is only a within-attempt counter, and even `theory_attempt` can restart during Regeneration, so numeric equality alone cannot identify a theory across fresh starts. Whenever `theory_attempt` changes or `theory_version` is reset to 1 for a different theory, first retire every active Gate 3a-feasibility receipt belonging to the abandoned theory with a non-empty reason. Then, in the same `pipeline_state.json` update that starts the new theory, set every acceptance-version field present in this deployment to `null`: `stage2b_theory_version`, `stage2_mechanism_version`, `dataset_spec_version`, `stage2_design_version`, `stage3a_theory_version`, and `stage3b_theory_version`. Keep accepted report/receipt path pointers unchanged until their fresh cumulative replacements pass review. A null acceptance version prevents those old pointers from satisfying Gate 4 while preserving their active evidence for `--supersedes`. Every Gate-4 check requires equality against a non-null acceptance version. This reset applies to Regeneration, PIVOT, BACK-TO-IDEA, Gate-2 cap failure, Gate-3 KNOWN, empirical-feasibility FALSIFIED, and any future fresh-attempt route; no caller may reset only the fields its current mode happens to consume. Loops do not self-zero here either. The generic artifact-scoped auto-reset is what normally clears them, and exception 3 below suppresses exactly that for episode-scoped loops, so in the same atomic update also set `loops.math_audit.round` to 0 (base loop; its retry regenerates the draft it counts, so only PASS or this reset clears it) and `loops.audit_fix.round`, `loops.unowned_failure.round`, and `loops.stage3a_upstream_return.round` to 0 — for whichever of those empirical-extension entries this deployment actually has, since those three exist only under `--ext empirical`; never create a missing one. The first two are named because they are the exception-3 loops whose own cap route **returns to Stage 2**: a counter carried into a brand-new theory would cap on that theory's first failure and send it straight back to Stage 2 with zero real attempts, a worse failure than the one each cap exists to prevent. The third is named because a fresh theory identity **is** its reset scope — it counts abandoned build campaigns within one `theory_attempt`, and every route that ends one arrives here. The other exception-3 loops need no entry here — `table_legibility`, `evidence`, and `polish` already reset on the fresh stage entry a new theory forces, and `last_resort_stuck` is deliberately scoped to the impasse rather than the theory. `loops.gate4_scorer_evaluations` is likewise **not** zeroed here: it is problem-scoped by design (it exists to count scorer spend across every theory tried on the problem), and its only reset write site is a `problem_attempt` change. Declaring this reset in a loop's registry reset scope is not enough on its own; this is its write site.
 <!-- DATA_FIRST_START -->
-For data-first, the pointers preserved by this reset include `dataset_release_path` / `dataset_release_receipt`; the prior pair remains active only as the supersession predecessor until the fresh offline release replacement passes.
+Data-first never creates a Gate 3a-feasibility receipt, so the retirement step above is a no-op here. For data-first, the pointers preserved by this reset include `dataset_release_path` / `dataset_release_receipt`; the prior pair remains active only as the supersession predecessor until the fresh offline release replacement passes.
 The reset also preserves the run-global `dataset_spec_serial` and `dataset_coverage_certificate_serial`, the accepted `dataset_rights_inventory` / `dataset_rights_inventory_sha256` binding, and the conditional `dataset_coverage_certificate` / `dataset_coverage_certificate_sha256` binding. The nulled `dataset_spec_version` makes those old bindings ineligible for a fresh build until Gate 2 accepts a newly allocated inventory and, where required, a new PASS certificate; serial values are never decremented or reused.
 <!-- DATA_FIRST_END -->
 

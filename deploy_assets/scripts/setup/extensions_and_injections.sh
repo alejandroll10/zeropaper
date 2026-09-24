@@ -1033,6 +1033,12 @@ def keep(name):
         return manual
     if name == "AUTONOMOUS":
         return not manual
+    # NOT_DATA_FIRST = every mode except data-first. For a block the other
+    # modes share verbatim and data-first drops outright (Gate
+    # 3a-feasibility), so the text is not triplicated across
+    # THEORY_FIRST / EMPIRICAL_FIRST twins.
+    if name == "NOT_DATA_FIRST":
+        return mode != "data-first"
     # Manual deployments keep the selected mode's scientific and paper-shape
     # semantics. Only AUTONOMOUS blocks disappear; result-consuming bodies use
     # the uniform manual-source override to make stage pointers inapplicable.
@@ -1062,7 +1068,7 @@ patterns = []  # list of (regex, replacement) applied in order
 # other modes' output.
 _families = (
     "THEORY_FIRST", "EMPIRICAL_FIRST", "MEASUREMENT_FIRST", "DATA_FIRST",
-    "NO_MODE", "MANUAL", "AUTONOMOUS",
+    "NO_MODE", "NOT_DATA_FIRST", "MANUAL", "AUTONOMOUS",
 )
 for fam in _families:
     if not keep(fam):
