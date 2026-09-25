@@ -168,13 +168,25 @@ So measurement-first replaces the Stage-2-time math audit with a **binding plan-
 1. Launch novelty-checker on `output/stage2/theory_draft_vN.md`. On a re-entry (any fresh check after this attempt's first), also hand it two earlier reports: this attempt's most recent *fresh* `novelty_check_vM.md` and the earliest one whose verdict was not KNOWN (if every earlier report was KNOWN — a seeded reformulation retry after a first-version KNOWN — hand only the most recent one and say so). The checker reads their `## What carries the contribution` sections and judges the trajectory — whether what remains after the intervening revisions still clears prior art — not only the current draft. This is the check that revision gates never run: a Gate-2 REVISE, a census GAPS, a coverage FAIL, or a seeded narrowing each examines a restriction for honesty and buildability, never for whether the narrowed claim is still new, and a contribution can shrink into a published result one approved step at a time.
 2. Save result to `output/stage2/novelty_check_vN.md`
 3. If KNOWN: abandon this theory, return to Stage 2 with a new approach: increment `theory_attempt`, reset `theory_version` to 1, and atomically apply the fresh-theory identity reset from `core.md`.
-4. If INCREMENTAL: increment `loops.gate3_incremental.round`; at its cap take the escalation table's INCREMENTAL row instead. Otherwise return to Stage 2 with novelty feedback (increment `theory_version`). Theory must deliver a result the literature doesn't already contain. Note the scorer does **not** blanket-fail INCREMENTAL: at H4 it cross-checks the Gate 3 report and passes an INCREMENTAL theory that carries a distinguishing result (a new comparative static, sign reversal, extra assumption that changes the conclusion, or new empirical implication), failing only INCREMENTAL with no distinguishing result. After Gate 2 + Gate 3 pass on the reworked theory, **re-run Stage 2b (exploration) AND Stage 3 (implications) before proceeding** — the theory changed, so `implications.md` and `exploration.md` are stale.
+4. If INCREMENTAL: increment `loops.gate3_incremental.round`; at its cap take the escalation table's INCREMENTAL row instead. Otherwise return to Stage 2 with novelty feedback (increment `theory_version`). Theory must deliver a result the literature doesn't already contain. Note the scorer does **not** blanket-fail INCREMENTAL: at H4 it cross-checks the Gate 3 report and passes an INCREMENTAL theory that carries a distinguishing result (a new comparative static, sign reversal, extra assumption that changes the conclusion, or new empirical implication), failing only INCREMENTAL with no distinguishing result.
+<!-- DATA_FIRST_START -->
+   The rework mutates the spec, so the new version re-enters **Gate 2 (spec audit plus any REQUIRED census)** alongside Gate 3, and every applicable leg must re-pass before `dataset_spec_version` is re-set; then re-run Stage 3 and Stage 3a — `implications.md` and the build are stale.
+
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
+   After Gate 2 + Gate 3 pass on the reworked theory, **re-run Stage 2b (exploration) AND Stage 3 (implications) before proceeding** — the theory changed, so `implications.md` and `exploration.md` are stale.
+<!-- NOT_DATA_FIRST_END -->
 {{EMPIRICAL_STAGE2_RERUN_ADDENDUM}}
 {{THEORY_LLM_STAGE2_RERUN_ADDENDUM}}
 
 {{SEED_OVERRIDE_STAGE_2_GATE_3}}
 
+<!-- NOT_DATA_FIRST_START -->
 5. If NOVEL: reset `loops.gate3_incremental.round` to 0 and proceed to Stage 2b (theory exploration)
+<!-- NOT_DATA_FIRST_END -->
+<!-- DATA_FIRST_START -->
+5. If NOVEL: reset `loops.gate3_incremental.round` to 0 and proceed to Stage 3 (implications).
+<!-- DATA_FIRST_END -->
 6. Commit: `artifact: novelty check v{N} — {NOVEL/INCREMENTAL/KNOWN}`
 
 <!-- DATA_FIRST_START -->
@@ -184,9 +196,6 @@ The dataset specification has no equilibrium objects to compute, no parameter sp
 
 The data-first analogue of "does the result hold at calibration?" is the sanity check rule already inside the spec body: the spec's expected per-class coverage counts must match the pilot's observed counts (first launch) or the build report's actual counts at `pipeline_state.json:stage3a_analysis_path` (mutate/pivot re-launch). The Gate-4-blocking `stage2b_theory_version` rule from theory-first mode does not apply here; the analogous Gate 4 rules under data-first are `dataset_spec_version == theory_version` (see Gate 2 above) and `stage3a_theory_version == theory_version` (see `docs/stage_3a_empirical.md` "Gate 4 enforcement").
 
-**On Gate 3 INCREMENTAL re-work:** the unguarded INCREMENTAL routing instruction earlier in this file says "re-run Stage 2b (exploration) AND Stage 3 (implications)." Under data-first, **skip the Stage 2b re-run** (already permanently skipped per this section). The INCREMENTAL re-work re-fires `theory-generator` (mutate), which re-enters **Gate 2 (spec audit plus any REQUIRED census)** on the revised spec — every applicable leg must re-pass before `dataset_spec_version` is re-set — then re-run Gate 3 + Stage 3 + Stage 3a. The theory-version increment + the `dataset_spec_version` and `stage3a_theory_version` Gate-4 blocks handle staleness on both the spec and build sides.
-
-Proceed directly from Gate 3 (novelty check on the spec) to Stage 3 (implications).
 <!-- DATA_FIRST_END -->
 <!-- NO_MODE_START -->
 ## Stage 2b: Theory Exploration

@@ -16,6 +16,14 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
+## 2.55.0
+
+**Fewer redundant paper-evidence checks, and data-first docs that describe data-first.**
+- **Evidence checkpoints.** Stage 5 no longer re-runs the full evidence audit after each citation, build, or table repair (`stage5-bib-early`, `stage5-build`, `stage5-tables`), and Stage 6 acceptance fixes no longer run `stage6-accept`. Each of these audits every computed exhibit and freshly checks every citation against OpenAlex, yet nothing read the paper's numbers before the next boundary that already re-checks them: Stage 6's per-round precondition re-runs the checkpoint once on the final Stage-5 bytes, and `stage9-final` covers everything after acceptance. All modes.
+- **Stage 3 lit-checks run in one message** (all modes), and under data-first **replication targets skip the lit-check**: they already cite the published result they must reproduce, so the search could only return SUPPORTED.
+- **Data-first pipeline overview.** The deployed `CLAUDE.md` diagram showed the theory-first flow (math audit, Stage 2b, Stage 3b). Data-first now renders its own Stage 2, Stage 3, Stage 3a, and puzzle-triage lines.
+- **Theory-first leftovers removed from data-first docs.** Gate 3's "proceed to / re-run Stage 2b", the Stage 3 exploration-report input, Stage 3a's "gated at step 3" and three-auditor wording, the puzzle-triage RECONCILE/FIX-EMPIRICS math-audit text, and Stage 9's identification-plan inputs are now mode-split or mode-neutral instead of stated and then overridden.
+
 ## 2.54.0
 
 **The empirics auditor runs in the same batch as the data auditors.** At Stage 3a step 7, `empirics-auditor` now launches in one message with the step-7.5 triad (and, under data-first, the coverage auditor). None of them reads another's report. Before, the data audits could start only after an empirics PASS, so a candidate with both a code defect and a data defect needed two full rebuild rounds: the second defect surfaced only after the first repair. Now an empirics FAIL takes every other auditor's REVISE/FAIL report into the same fresh attempt. Each auditor still counts on its own loop, and the simultaneous-caps ranking gains `audit_fix` (coverage > audit_fix > data > method).

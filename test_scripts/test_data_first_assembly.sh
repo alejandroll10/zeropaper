@@ -177,6 +177,22 @@ else
     fail "data-first: v2.52.0 loop bounds or routing missing"
 fi
 
+# 5c. v2.55.0: data-first overview, replication targets skip the lit-check,
+# redundant evidence checkpoints gone, theory-first leftovers not rendered.
+if grep -q 'Stage 2: Dataset Spec' "$D/CLAUDE.md" \
+        && grep -q 'Stage 3a: Dataset Build' "$D/CLAUDE.md" \
+        && ! grep -q 'Stage 3b: Experiments' "$D/CLAUDE.md" \
+        && ! grep -q 'math audit in theory-first' "$D/CLAUDE.md" \
+        && grep -q 'Replication targets skip Step 2' "$D/docs/stage_3_implications.md" \
+        && ! grep -q 'stage5-build\|stage5-tables\|stage5-bib-early\|stage6-accept' "$D/docs/stage_5.md" "$D/docs/stage_6.md" "$D/docs/results_evidence.md" \
+        && ! grep -q 'proceed to Stage 2b\|re-run Stage 2b' "$D/docs/stage_2.md" \
+        && ! grep -q 'identification_menu' "$D/docs/stage_9.md" \
+        && ! grep -q 'gated at step 3\|All three PASS\|three output files' "$D/docs/stage_3a_empirical.md"; then
+    pass "data-first: v2.55.0 overview and leftover cleanup assembled"
+else
+    fail "data-first: v2.55.0 overview or leftover cleanup missing"
+fi
+
 # 6. Final claim-discipline gate and agent schema.
 if grep -q 'output/polish_identification_final_c{C}.md' "$D/docs/stage_9.md" \
         && grep -q 'status = "halted_claim_discipline"' "$D/docs/stage_9.md" \
@@ -271,6 +287,15 @@ else
         fail "empirical-first control: data-first certificate prose leaked into docs"
     else
         pass "empirical-first control: no data-first certificate prose leak"
+    fi
+    if grep -q 'Stage 2: Mechanism Document' "$E/CLAUDE.md" \
+            && ! grep -q 'Stage 3a: Dataset Build' "$E/CLAUDE.md" \
+            && grep -q 'proceed to Stage 2b (theory exploration)' "$E/docs/stage_2.md" \
+            && ! grep -q 'Replication targets skip Step 2' "$E/docs/stage_3_implications.md" \
+            && grep -q 'identification_menu.md' "$E/docs/stage_9.md"; then
+        pass "empirical-first control: v2.55.0 data-first blocks absent, originals kept"
+    else
+        fail "empirical-first control: v2.55.0 mode split leaked or dropped original text"
     fi
     if grep -rlE '<!-- (THEORY_FIRST|EMPIRICAL_FIRST|MEASUREMENT_FIRST|DATA_FIRST|NO_MODE|MANUAL|AUTONOMOUS)_(START|END) -->' \
             "$E/docs" "$E/CLAUDE.md" "$E/.claude/agents" >/dev/null 2>&1; then

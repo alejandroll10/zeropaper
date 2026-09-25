@@ -148,11 +148,21 @@ Stage 2: Mechanism Document  ──→ theory-generator runs in mechanism mode
                                    mechanism-plausibility gate replaces the math audit
                                    Gate 3: Novelty Check on the mechanism
 <!-- EMPIRICAL_FIRST_END -->
+<!-- DATA_FIRST_START -->
+Stage 2: Dataset Spec        ──→ theory-generator runs in dataset-spec mode (spec + rights inventory)
+                                   Gate 2: Spec Audit (mechanism-auditor) and Gate 3: Novelty Check,
+                                   launched together; Gate 3 routes only once Gate 2 accepts
+                                   └── exact coverage promised → coverage census (carried forward
+                                       when nothing it reads changed)
+                                   No math audit, no Stage 2b, no Gate 3a-feasibility (the Stage 1
+                                   pilot build already answered it)
+<!-- DATA_FIRST_END -->
 <!-- NOT_DATA_FIRST_START -->
 Gate 3a-feasibility: Empirical Feasibility   (only if --ext empirical)
                                    ├── FALSIFIED → back to Stage 1
                                    └── OK → proceed
 <!-- NOT_DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 Stage 3: Implications        ──→ implications-deriver + gap-scout each → tag
                                    NOVEL / PUZZLE-CANDIDATE / SUPPORTED / DEAD
 Stage 3a: Empirical Analysis     (only if --ext empirical, full test + audit)
@@ -165,6 +175,28 @@ Puzzle Triage                ──→ fires if empirics/experiments contradict,
                                    ├── PIVOT → rebuild theory around contradiction
                                    │            (re-run Gate 2, Gate 3, Stage 2b, Stage 3, empirics — under empirical-first Gate 2 is the mechanism-plausibility gate, Stage 2b is skipped; max 2 pivots)
                                    └── HONEST-NULL → Stage 5 with limits, or Stage 0
+<!-- NOT_DATA_FIRST_END -->
+<!-- DATA_FIRST_START -->
+Stage 3: Fact Portfolio      ──→ implications-deriver (replication / adjudication / new-fact /
+                                   construction-sensitivity items) + gap-scout per non-replication
+                                   item → tag NOVEL / PUZZLE-CANDIDATE / SUPPORTED / DEAD
+Stage 3a: Dataset Build       ──→ plan → plan review → acquisition units (source-disjoint units in
+                                   parallel, banked) → trusted analysis run → offline release →
+                                   construction guard → headline replication → one audit batch
+                                   (empirics + data integrity + data selection + method + coverage)
+                                   → activate-pair
+Puzzle Triage                ──→ fires if the build contradicts a portfolio expectation (typically
+                                   a failed replication); never fired from Stage 3 in this mode
+                                   ├── NORMAL-PROCEED / PROBE-NULL → Stage 4
+                                   ├── FIX-EMPIRICS → re-run the build (max 2)
+                                   ├── RECONCILE → state the construction scope, re-run Gate 2,
+                                   │               Stage 3, Stage 3a (max 3)
+                                   ├── BACK-TO-IDEA → Stage 1 (before Stage 5 only)
+                                   ├── PIVOT → rewrite the fact portfolio around the adjudication; banked
+                                   │            data carries forward; re-run Gates 2/3, Stage 3, Stage 3a (max 2)
+                                   └── HONEST-NULL → report the non-replication in the validation section;
+                                                    Stage 4 (no paper yet) or Stage 5
+<!-- DATA_FIRST_END -->
 Stage 4: Self-Attack          ──→ Gate 4: Scorer Decision
                                    ├── seeded: correctness challenge → owning audit; otherwise Stage 5
                                    ├── unseeded ADVANCE (≥ tier threshold — see docs/stage_4.md) → Stage 5
@@ -192,7 +224,7 @@ Stage 10: Lessons             ──→ Done (orchestrator writes LESSONS_PAPER.
 ```
 
 <!-- DATA_FIRST_START -->
-**Stage labels.** Letter suffixes (`2b`, `3a`, `3b`) are extension-conditional or sequence-internal sub-stages within a block, not top-level stages. `2b` runs after Gates 2/3 inside Stage 2's block; `3a`/`3b` are the empirical / theory_llm extensions paired with Stage 3 (Implications).
+**Stage labels.** `3a` is the dataset build paired with Stage 3 (the fact portfolio), not a top-level stage. This mode has no `2b` or `3b`.
 
 <!-- DATA_FIRST_END -->
 <!-- NOT_DATA_FIRST_START -->
