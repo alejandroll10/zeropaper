@@ -228,6 +228,69 @@ def main():
               run("acceptance-carries", "--report", str(rep)).returncode == 2)
 
     print()
+    print("[census-carry] re-bind a PASS certificate when only census-blind sections changed")
+    with tempfile.TemporaryDirectory() as tmp:
+        tmp = Path(tmp)
+        commit = "## Exact coverage commitments\n**Commitment IDs:** [\"fomc\"]\n### commitment_id: fomc\nall statements\n"
+        spec1, spec2, spec3 = tmp / "v1.md", tmp / "v2.md", tmp / "v3.md"
+        spec1.write_text("# D\n\n## Inclusion rules\nold\n\n" + commit + "\n## Fact-portfolio plan\nold fact\n")
+        spec2.write_text("# D\n\n## Inclusion rules\nold\n\n" + commit + "\n## Fact-portfolio plan\nnew fact\n")
+        spec3.write_text("# D\n\n## Inclusion rules\nold\n\n" + commit.replace("all statements", "all minutes") + "\n## Fact-portfolio plan\nold fact\n")
+        r1, r2 = tmp / "r1.json", tmp / "r2.json"
+        r1.write_text(json.dumps(RIGHTS_V1))
+        r2.write_text(json.dumps(dict(RIGHTS_V1, dataset_version=2)))
+        cert = {"schema_version": 1, "dataset_version": 1, "status": "PASS",
+                "dataset_spec": {"path": str(spec1), "sha256": scope._sha256(spec1.read_bytes())},
+                "rights_inventory": {"path": str(r1), "sha256": scope._sha256(r1.read_bytes())},
+                "commitments": [{"commitment_id": "fomc"}]}
+        c1 = tmp / "c1.json"
+        c1.write_text(json.dumps(cert))
+        out = run("census-carry", "--prior-certificate", str(c1), "--prior-certificate-sha256", scope._sha256(c1.read_bytes()), "--spec", str(spec2),
+                  "--rights", str(r2), "--dataset-version", "2", "--out", str(tmp / "c2.json"))
+        check("a fact-portfolio-only change with unchanged rights carries (exit 0)", out.returncode == 0)
+        new = json.loads((tmp / "c2.json").read_text())
+        check("carried certificate is bound to the new spec, rights, and version",
+              new["dataset_version"] == 2 and new["dataset_spec"]["path"] == str(spec2)
+              and new["dataset_spec"]["sha256"] == scope._sha256(spec2.read_bytes())
+              and new["rights_inventory"]["sha256"] == scope._sha256(r2.read_bytes())
+              and new["carried_from"]["sha256"] == scope._sha256(c1.read_bytes())
+              and new["commitments"] == cert["commitments"])
+        out = run("census-carry", "--prior-certificate", str(c1), "--prior-certificate-sha256", scope._sha256(c1.read_bytes()), "--spec", str(spec2),
+                  "--rights", str(r2), "--dataset-version", "2", "--out", str(tmp / "c2.json"))
+        check("existing output path is refused (exit 2)", out.returncode == 2)
+        dup = tmp / "dup.md"
+        dup.write_text(spec2.read_text() + "\n" + commit)
+        out = run("census-carry", "--prior-certificate", str(c1), "--prior-certificate-sha256", scope._sha256(c1.read_bytes()),
+                  "--spec", str(dup), "--rights", str(r2), "--dataset-version", "3", "--out", str(tmp / "c10.json"))
+        check("a spec with two commitment sections is refused (exit 2)", out.returncode == 2)
+        out = run("census-carry", "--prior-certificate", str(c1), "--prior-certificate-sha256", scope._sha256(c1.read_bytes()), "--spec", str(spec3),
+                  "--rights", str(r2), "--dataset-version", "3", "--out", str(tmp / "c3.json"))
+        check("changed commitment section is not eligible (exit 1)",
+              out.returncode == 1 and not (tmp / "c3.json").exists())
+        spec4 = tmp / "v4.md"
+        spec4.write_text("# D\n\n## Inclusion rules\nnew wording\n\n" + commit + "\n## Fact-portfolio plan\nold fact\n")
+        out = run("census-carry", "--prior-certificate", str(c1), "--prior-certificate-sha256", scope._sha256(c1.read_bytes()), "--spec", str(spec4),
+                  "--rights", str(r2), "--dataset-version", "4", "--out", str(tmp / "c8.json"))
+        check("a changed census-relevant section outside the commitments is not eligible (exit 1)",
+              out.returncode == 1 and "Inclusion rules" in out.stderr)
+        r3 = tmp / "r3.json"
+        r3.write_text(json.dumps(dict(RIGHTS_V1, sources=[])))
+        out = run("census-carry", "--prior-certificate", str(c1), "--prior-certificate-sha256", scope._sha256(c1.read_bytes()), "--spec", str(spec2),
+                  "--rights", str(r3), "--dataset-version", "3", "--out", str(tmp / "c4.json"))
+        check("changed rights content is not eligible (exit 1)", out.returncode == 1)
+        spec1.write_text(spec1.read_text() + "tampered\n")
+        out = run("census-carry", "--prior-certificate", str(c1), "--prior-certificate-sha256", scope._sha256(c1.read_bytes()), "--spec", str(spec2),
+                  "--rights", str(r2), "--dataset-version", "3", "--out", str(tmp / "c5.json"))
+        check("certified spec no longer matching its digest is not eligible (exit 1)", out.returncode == 1)
+        out = run("census-carry", "--prior-certificate", str(c1), "--prior-certificate-sha256", "sha256:" + "0" * 64,
+                  "--spec", str(spec2), "--rights", str(r2), "--dataset-version", "3", "--out", str(tmp / "c9.json"))
+        check("a certificate not matching the accepted digest is not eligible (exit 1)", out.returncode == 1)
+        c6 = tmp / "c6.json"
+        c6.write_text(json.dumps(dict(cert, status="GAPS")))
+        out = run("census-carry", "--prior-certificate", str(c6), "--prior-certificate-sha256", scope._sha256(c6.read_bytes()), "--spec", str(spec2),
+                  "--rights", str(r2), "--dataset-version", "3", "--out", str(tmp / "c7.json"))
+        check("a non-PASS certificate is not eligible (exit 1)", out.returncode == 1)
+
     if FAILURES:
         print(f"{len(FAILURES)} FAILED: {FAILURES}")
         return 1

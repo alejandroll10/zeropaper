@@ -47,6 +47,24 @@ that is not the source's own update marker (``Source probe`` cell not starting
 repair rounds but never reaches acceptance (issue #347): an in-place value
 revision at such a source changes neither the cache bytes nor the identifier
 list, so the orchestrator re-fires the auditor in full before activation.
+
+``census-carry --prior-certificate C --prior-certificate-sha256 H --spec S --rights R --dataset-version N
+--out O`` re-binds an accepted PASS coverage certificate to a new spec version
+without re-running the census.  It checks ``C`` against its accepted digest
+``H``, proves the prior certificate's recorded
+spec and rights files are the bytes it certified, then requires every spec
+section to be byte-identical between that spec and ``S`` except the few the
+census cannot depend on (``CENSUS_BLIND_SECTIONS``: contribution sentence,
+fact-portfolio plan, incumbent comparison, release plan, construction
+partition, live services), and the two rights inventories to be identical
+apart from ``dataset_version``.  The census reads the whole specification, so
+the check is an allow-list of what may differ, never a list of what it reads.
+Only then does it write ``O``: the prior certificate with its version and
+spec/rights bindings updated and a ``carried_from`` record naming the
+certificate it copied.  Exit 1 means not eligible (run the census); exit 2
+means an unreadable or invalid input.  Source drift since the census is caught
+by the coverage-auditor's live re-enumeration on every Stage 3a firing,
+carried or not.
 """
 
 import argparse
@@ -332,6 +350,67 @@ def compare(prior_report, spec, rights, inputs):
     return summary, "".join(diff), "".join(rights_diff)
 
 
+CENSUS_BLIND_SECTIONS = frozenset({
+    "One-sentence contribution", "Fact-portfolio plan", "Incumbent comparison",
+    "Release plan", "Construction partition", "Trusted-run live services",
+})
+
+
+class NotEligible(Exception):
+    pass
+
+
+def _census_relevant_sections(path):
+    raw = _read_bytes(path)
+    try:
+        text = raw.decode("utf-8")
+    except UnicodeDecodeError as exc:
+        raise ScopeError(f"spec {path} is not UTF-8: {exc}") from exc
+    sections = split_sections(text)
+    if [key.split("#")[0] for key, _ in sections].count("Exact coverage commitments") != 1:
+        raise ScopeError(f"spec {path} must have exactly one '## Exact coverage commitments' section")
+    return {key: body for key, body in sections if key.split("#")[0] not in CENSUS_BLIND_SECTIONS}
+
+
+def census_carry(prior_certificate, prior_sha256, spec, rights, dataset_version, out):
+    raw = _read_bytes(prior_certificate)
+    if _sha256(raw) != prior_sha256:
+        raise NotEligible(f"{prior_certificate} does not match the accepted certificate digest")
+    try:
+        cert = json.loads(raw)
+    except ValueError as exc:
+        raise ScopeError(f"certificate {prior_certificate} is not valid JSON: {exc}") from exc
+    if not isinstance(cert, dict) or cert.get("schema_version") != 1:
+        raise ScopeError(f"certificate {prior_certificate} is not a schema-version-1 object")
+    if cert.get("status") != "PASS":
+        raise NotEligible(f"prior certificate status is {cert.get('status')!r}, not PASS")
+    bindings = {}
+    for field in ("dataset_spec", "rights_inventory"):
+        entry = cert.get(field)
+        if not (isinstance(entry, dict) and isinstance(entry.get("path"), str)
+                and isinstance(entry.get("sha256"), str) and DIGEST.fullmatch(entry["sha256"])):
+            raise ScopeError(f"certificate {prior_certificate} has a malformed {field} binding")
+        if _sha256(_read_bytes(entry["path"])) != entry["sha256"]:
+            raise NotEligible(f"{entry['path']} no longer matches the certificate's {field} digest")
+        bindings[field] = entry["path"]
+    before = _census_relevant_sections(bindings["dataset_spec"])
+    after = _census_relevant_sections(spec)
+    changed = sorted(key for key in before.keys() | after.keys() if before.get(key) != after.get(key))
+    if changed:
+        raise NotEligible(f"sections the census may depend on changed: {changed}")
+    if canonical_rights(bindings["rights_inventory"]) != canonical_rights(rights):
+        raise NotEligible("rights inventory differs from the certified one beyond dataset_version")
+    if Path(out).exists():
+        raise ScopeError(f"{out} already exists; allocate a fresh certificate serial")
+    carried = dict(cert)
+    carried["dataset_version"] = dataset_version
+    carried["dataset_spec"] = {"path": str(spec), "sha256": _sha256(_read_bytes(spec))}
+    carried["rights_inventory"] = {"path": str(rights), "sha256": _sha256(_read_bytes(rights))}
+    carried["carried_from"] = {"path": str(prior_certificate), "sha256": _sha256(raw)}
+    Path(out).write_text(json.dumps(carried, indent=2, ensure_ascii=False) + "\n", encoding="utf-8")
+    return carried["carried_from"]
+
+
 def main(argv=None):
     parser = argparse.ArgumentParser(description=__doc__.splitlines()[0])
     sub = parser.add_subparsers(dest="command", required=True)
@@ -351,7 +430,26 @@ def main(argv=None):
     depth_cmd = sub.add_parser("depth")
     depth_cmd.add_argument("--prior-report", required=True)
     depth_cmd.add_argument("--report", required=True)
+    carry_cmd = sub.add_parser("census-carry")
+    carry_cmd.add_argument("--prior-certificate", required=True)
+    carry_cmd.add_argument("--prior-certificate-sha256", required=True)
+    carry_cmd.add_argument("--spec", required=True)
+    carry_cmd.add_argument("--rights", required=True)
+    carry_cmd.add_argument("--dataset-version", required=True, type=int)
+    carry_cmd.add_argument("--out", required=True)
     args = parser.parse_args(argv)
+    if args.command == "census-carry":
+        try:
+            origin = census_carry(args.prior_certificate, args.prior_certificate_sha256, args.spec, args.rights,
+                                  args.dataset_version, args.out)
+        except NotEligible as exc:
+            print(f"spec_audit_scope: not eligible: {exc}; run the census", file=sys.stderr)
+            return 1
+        except ScopeError as exc:
+            print(f"spec_audit_scope: {exc}; run the census", file=sys.stderr)
+            return 2
+        print(json.dumps({"carried_from": origin}, indent=2))
+        return 0
     if args.command == "acceptance-carries":
         try:
             unmarked = acceptance_carries(args.report)

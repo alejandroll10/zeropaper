@@ -16,6 +16,14 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
+## 2.53.0
+
+**Data-first reuses an unchanged coverage census; the citation check runs alongside style.** Two speedups, no weakened guarantee:
+- **Census carry.** A new command, `spec_audit_scope.py census-carry`, re-binds the accepted PASS coverage certificate to a new spec version when nothing the census reads has changed. It requires every spec section to be byte-identical to the certified spec except a short allow-list the census cannot depend on (contribution sentence, fact-portfolio plan, incumbent comparison, release plan, construction partition, live services). It also requires the rights inventory to be identical apart from `dataset_version`, and it first proves the certified files still match their recorded digests. The census reads the whole spec, so the check lists what may differ, never what the census reads. The carried certificate records `carried_from` and goes through the same Gate-2 validation. Before, every accepted spec version re-ran the full exhaustive census even when nothing it reads had changed, often hours per version. Source drift is still caught: the coverage-auditor re-enumerates every certified key live on every Stage 3a firing.
+- **Stage 7 ∥ Stage 8.** The first `bib-verifier` pass launches in the same message as Stage 7's style pass. Style never edits citations or the bibliography, so the check does not need to wait for it.
+
+---
+
 ## 2.52.0
 
 **Every retry loop is bounded, and redundant work is cut.** An audit of the rendered data-first workflow found retry paths with no counter and work that later steps redo. Fixes:

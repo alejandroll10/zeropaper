@@ -164,7 +164,9 @@ if grep -q '| `spec_audit_format` † | 3 |' "$D/CLAUDE.md" \
         && grep -q 'halted_spec_audit_format' "$D/docs/stage_2.md" \
         && grep -q 'return to Stage 2 instead, as an upstream return' "$D/docs/stage_3a_empirical.md" \
         && grep -q 'output/stage3a/audit_scratch/' "$D/.claude/agents/empirics-auditor.md" \
-        && ! grep -q 'Route those back as spec gaps' "$D/docs/stage_3_implications.md"; then
+        && ! grep -q 'Route those back as spec gaps' "$D/docs/stage_3_implications.md" \
+        && grep -q 'spec_audit_scope.py census-carry' "$D/docs/stage_2.md" \
+        && grep -q 'census-carry' "$D/code/utils/spec_audit_scope.py"; then
     pass "data-first: v2.52.0 loop bounds and routing assembled"
 else
     fail "data-first: v2.52.0 loop bounds or routing missing"
