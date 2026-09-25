@@ -16,6 +16,22 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
+## 2.51.0
+
+**Data-first speed and simplicity pass, driven by the two field campaigns.** tradingdays spent about 196 working hours and 49 spec versions without leaving Stage 3a, and eventcal about 142 working hours and 71 versions, ending in seed-abandon. Both ran v2.30. Each mechanism below still existed in v2.50 and was a measured time sink there.
+
+- **The spec is science only.** It states sources, schema, rules, validation, rights, coverage, and the portfolio, never how the build proves itself. The runner's receipts, the construction guard, and the audit quartet are the provenance. Gate 2's dimension 9 is now "free of build apparatus": the auditor REVISEs any spec text prescribing replay or tracing layers, hash or byte-locator contracts, admission contracts, fixture graphs, static closure proofs, self-imposed review gates, or bespoke runtimes, and its own fixes may never add any. In the field, specs grew from about 5,000 to over 30,000 words of audit-demanded machinery.
+- **The admission contract and rehearsal protocol become a smoke run.** Stage 3a plans no longer carry a machine-checkable admission schema, validator, schema-derived namespaces, or five recorded files per rehearsal iteration. Each producer script instead gets one offline smoke command, run up to 3 times before trust, passing on exit zero. One campaign spent 23 hours in plan review on that apparatus, then died in seven minutes on a parser setup error.
+- **Plan review is capped.** `loops.plan_review` (cap 3) routes to a Gate 2 re-fire; one attempt had gone through 8 uncapped REVISE rounds.
+- **Fewer triggers that ran on a schedule rather than on evidence.**
+  - The data-first every-3rd-version branch-manager is gone: 34 firings, all CONTINUE.
+  - Gate 3's "fresh novelty check when the last one is more than 5 versions old" is gone in every mode. It re-sampled unchanged science more than 40 times, and a noisy KNOWN on a staging-only change is what abandoned eventcal.
+  - The WRDS preflight skips plan-only empiricist launches.
+  - A data-first Stage-3 PUZZLE-CANDIDATE no longer launches the triager before any build exists; the post-build contradiction check routes it.
+  - A pre-paper HONEST-NULL goes to Stage 4, not Stage 0.
+- **The final claim-discipline gate is simplified and gets its own budget.** It has its own counter, `loops.claim_discipline` (cap 2); it used to share the polish cap and could halt with zero repair budget. The durable `claim_discipline_gate` permit object and its crash-recovery phases are removed: the audit is read-only and the repair idempotent, so re-running the gate recovers a crash.
+- **Fixes.** `loops.gate4_scorer_evaluations` (cap 8) was never seeded into pipeline state, so the documented scorer ceiling fell back to the absent-loop default of 3 in every mode. Data-first Gate 4's branch-manager was handed an identification audit that this mode never produces; it now gets the four build audits.
+
 ## 2.50.0
 
 **Declared live services: the trusted runner binds a host service only when the run plan names it, and a data-first spec says which it needs (#307, deep half).** Until now every networked trusted run got the WRDS daemon's socket, relay token, and client cache ambiently, and nothing let a plan or spec declare the dependency so it could be checked. Run plans now carry `live_services`, drawn from a runner-owned registry (today only `wrds`). The runner binds exactly the declared services, on Linux and macOS alike. It refuses before starting the producer when a declared endpoint is absent, and it rejects the field on offline and release runs. It also fingerprints the declaring plan into the receipt and sets `RESULTS_LIVE_SERVICES`, so an undeclared `wrds_query()` fails at once with `WrdsUndeclaredService` naming the fix. `results_pipeline.py live-services` prints the registry, and with `--check`/`--receipt` it verifies a declaration or a published run against it.

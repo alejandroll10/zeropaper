@@ -65,7 +65,7 @@ If the paper converts a documented pattern into a structural or welfare quantity
 
 ## Output format
 
-Use the exact output path in your launch prompt. The ordinary Stage 9 pass writes `output/polish_identification_r{N}.md`; under an autonomous final-gate launch, write the fresh attempt-qualified `output/polish_identification_final_r{N}_a{A}.md` path the orchestrator supplies. Never overwrite a prior final claim-discipline report; an ordinary-pass write-integrity re-fire may repair its same expected path. The literal first line must be exactly one of these two strings (never the delimiter form):
+Use the exact output path in your launch prompt. The ordinary Stage 9 pass writes `output/polish_identification_r{N}.md`; a final-gate launch writes the `output/polish_identification_final_c{C}.md` path the orchestrator supplies. Never overwrite a prior final claim-discipline report. The literal first line must be exactly one of these two strings (never the delimiter form):
 
 ```text
 VERDICT: PASS

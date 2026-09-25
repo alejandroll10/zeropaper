@@ -96,7 +96,9 @@ assert d["dataset_coverage_certificate"] is None
 assert d["dataset_coverage_certificate_sha256"] is None
 assert "coverage_triangulation" in d
 assert d["dataset_release_path"] is None and d["dataset_release_receipt"] is None
-assert d["claim_discipline_gate"] is None
+assert "claim_discipline_gate" not in d
+assert d["loops"]["claim_discipline"] == {"round": 0, "cap": 2}
+assert d["loops"]["plan_review"] == {"round": 0, "cap": 3}
 assert "spec_audit_revision" in d["loops"]
 assert "coverage_certificate_producer" in d["loops"]
 assert "coverage_audit" in d["loops"]
@@ -150,29 +152,25 @@ grep -Fq 'Commit: `artifact: dataset spec v{N}`' "$D/docs/stage_2.md" \
     || fail "data-first: Stage 2 commit still mislabels the artifact"
 
 # 6. Final claim-discipline gate and agent schema.
-if grep -q 'output/polish_identification_final_r{N}_a{A}.md' "$D/docs/stage_9.md" \
+if grep -q 'output/polish_identification_final_c{C}.md' "$D/docs/stage_9.md" \
         && grep -q 'status = "halted_claim_discipline"' "$D/docs/stage_9.md" \
-        && grep -q 'commit \*\*before\*\* the physical agent launch' "$D/docs/stage_9.md" \
-        && grep -q 'Never launch first and register its path afterward' "$D/docs/stage_9.md" \
-        && grep -q 'PASS is valid only when `## Findings` contains zero finding rows' "$D/docs/stage_9.md" \
-        && grep -q 'claim_discipline_gate.*binding repair subprocedure' "$D/docs/stage_9.md" \
-        && grep -q 'atomically set `claim_discipline_gate = null`' "$D/docs/stage_9.md" \
+        && grep -q 'NEEDS-FIXES below `loops.claim_discipline.cap`' "$D/docs/stage_9.md" \
+        && grep -q 'PASS with zero rows, NEEDS-FIXES with at least one' "$D/docs/stage_9.md" \
+        && grep -q 'Resuming inside the final claim gate' "$D/docs/stage_9.md" \
         && grep -q 'dataset_spec_version == pipeline_state.json:theory_version' "$D/docs/stage_9.md" \
         && grep -q 'never select the highest filename' "$D/.claude/agents/polish-identification.md" \
-        && grep -q 'does not use step 6.*ship the partial fix' "$D/docs/stage_9.md" \
-        && grep -q 'exact manuscript bytes bound by that receipt' "$D/docs/stage_9.md" \
-        && grep -q 'rendered-table PASS, `stage9-final` evidence PASS, and final claim-discipline PASS in that order' "$D/docs/stage_9.md" \
+        && grep -q 'ship-with-known-limitations escape does not apply' "$D/docs/stage_9.md" \
+        && grep -q 'fresh rendered-table PASS, a fresh `stage9-final` PASS, and a fresh claim-discipline PASS, in that order' "$D/docs/stage_9.md" \
         && grep -q 'fresh rendered-table PASS, fresh final evidence PASS, then fresh final claim-discipline PASS' "$D/docs/stage_10.md" \
-        && grep -q 'halt unresolved data-first final claim findings' "$D/CLAUDE.md" \
+        && grep -q '| `claim_discipline` | 2 |' "$D/CLAUDE.md" \
         && grep -q 'own repairs do not reset it' "$D/CLAUDE.md" \
         && grep -q 'Every row under its `## Findings` section is binding' "$D/.claude/agents/paper-writer.md" \
         && grep -q 'already resolved (no-op)' "$D/.claude/agents/paper-writer.md" \
-        && grep -q 'In autonomous data-first deployments.*attempt-qualified final claim-discipline report' "$D/.claude/agents/paper-writer.md" \
-        && grep -q 'return to step 7, and repeat the rendered-table' "$D/docs/stage_9.md" \
-        && grep -q 'In autonomous deployments.*fresh attempt-qualified output/polish_identification_final_r{N}_a{A}.md gate report' "$D/.claude/agents/polish-identification.md" \
+        && grep -q 'In autonomous data-first deployments.*final claim-discipline report' "$D/.claude/agents/paper-writer.md" \
+        && grep -q 'In autonomous deployments.*output/polish_identification_final_c{C}.md gate report' "$D/.claude/agents/polish-identification.md" \
         && grep -q '^VERDICT: PASS$' "$D/.claude/agents/polish-identification.md" \
         && grep -q '^VERDICT: NEEDS-FIXES$' "$D/.claude/agents/polish-identification.md" \
-        && grep -q 'output/polish_identification_final_r{N}_a{A}.md' "$D/.claude/agents/polish-identification.md"; then
+        && grep -q 'output/polish_identification_final_c{C}.md' "$D/.claude/agents/polish-identification.md"; then
     pass "data-first: final claim-discipline PASS gate assembled"
 else
     fail "data-first: final claim-discipline gate or structured agent verdict missing"
@@ -264,7 +262,7 @@ else
     else
         pass "empirical-first control: empiricist has no census-only launch"
     fi
-    if grep -qE 'polish_identification_final|halted_claim_discipline' "$E/docs/stage_9.md"; then
+    if grep -qE 'polish_identification_final|halted_claim_discipline|claim_discipline' "$E/docs/stage_9.md" "$E/CLAUDE.md"; then
         fail "empirical-first control: data-first final claim gate leaked"
     else
         pass "empirical-first control: no data-first final claim gate"
@@ -282,6 +280,8 @@ assert "dataset_coverage_certificate_sha256" not in d
 assert "coverage_triangulation" not in d
 assert "dataset_release_path" not in d and "dataset_release_receipt" not in d
 assert "claim_discipline_gate" not in d
+assert "claim_discipline" not in d["loops"]
+assert "plan_review" not in d["loops"]
 assert "spec_audit_revision" not in d["loops"]
 assert "coverage_certificate_producer" not in d["loops"]
 assert "coverage_audit" not in d["loops"]

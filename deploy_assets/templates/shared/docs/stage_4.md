@@ -88,7 +88,13 @@
    - Free-form audit: `output/stage2/freeform_audit_vN.md`
 <!-- THEORY_FIRST_END -->
 <!-- EXT_EMPIRICAL_START -->
+<!-- DATA_FIRST_START -->
+   - Build audits: `output/stage3a/empirics_audit.md`, `data_integrity_audit.md`, `data_selection_audit.md`, `coverage_audit.md`
+
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
    - Identification audit: `output/stage3a/identification_audit.md`; empirics audit: `output/stage3a/empirics_audit.md`
+<!-- NOT_DATA_FIRST_END -->
 <!-- EXT_EMPIRICAL_END -->
    - Literature map: `output/stage0/literature_map.md`
 6. Save result to `output/stage4/branch_manager_vN.md`

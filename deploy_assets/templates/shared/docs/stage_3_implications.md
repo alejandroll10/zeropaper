@@ -76,9 +76,15 @@ Under empirical-first, interpret this flag against the novelty of the **identifi
 <!-- DATA_FIRST_START -->
 Under data-first, apply this flag to the **adjudication and new-fact families only**. Replication targets lit-check SUPPORTED *by construction* — they are known results the dataset must reproduce, and their SUPPORTED tags are the validation section working, not barrenness. The barren signal here is a portfolio whose adjudication targets and new-fact candidates are ALL either SUPPORTED (the "new" facts are already documented) or DEAD: that means the dataset enables nothing beyond replication, the contribution is infrastructure-only, and the honest tier is the field tier. First occurrence: return to Stage 2 once to sharpen the portfolio (a construction-difference adjudication the spec overlooked, a slice only this data supports). Second consecutive occurrence: proceed anyway but record in `output/stage3/implications.md` that the portfolio is replication-plus-infrastructure — the scorer's two-tier novelty calibration and the question-referee's value-symmetry framing own the tier consequence; do not route to Stage 1 abandonment on infrastructure-only grounds alone if the Stage 0 demand evidence still stands.
 <!-- DATA_FIRST_END -->
+<!-- DATA_FIRST_START -->
+Under data-first, do **not** launch `puzzle-triager` here. A PUZZLE-CANDIDATE tag means the literature disagrees with a portfolio expectation, and before any build exists nothing can adjudicate that disagreement except the build itself. Keep the tag, carry it into Stage 3a, and let the post-build contradiction check route it on the built evidence.
+
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 If ANY implication is PUZZLE-CANDIDATE, **launch `puzzle-triager` now** with the gap-scout lit-check report(s) as the contradicting evidence — do not wait for Stage 3a/3b. The literature contradiction (sign reversal or order-of-magnitude discrepancy) is itself the contradiction. Follow `docs/stage_puzzle_triage.md`. A literature-grounded contradiction in a well-audited theory is the highest-value pivot opportunity; defaulting to "ship as a noted puzzle" leaves real signal on the table.
 
 **Re-fire guard (prevents loops on Stage 3 re-runs).** Before launching the triager, check `pipeline_state.json:triaged_lit_implications`. For each PUZZLE-CANDIDATE implication, canonicalize its one-sentence statement (lowercase + whitespace-collapsed) and look up the resulting `implication_key`. Fire the triager only if no entry with `verdict: "FIX-EMPIRICS-b"` matches — that is the sole terminal verdict that blocks re-firing. RECONCILE, BACK-TO-IDEA, HONEST-NULL, and PIVOT do not block; the orchestrator clears the relevant entries when those verdicts fire (full schema, canonicalization rule, and reset semantics in `docs/stage_puzzle_triage.md` "Re-fire guard for the Stage-3 lit-check trigger"). After each Stage-3 triager run, the orchestrator (not the triager agent) appends the new entry. When in doubt about whether wording matches, prefer firing — false re-fires are cheap, silent blocks are not.
+<!-- NOT_DATA_FIRST_END -->
 
 ## Step 6: Commit
 

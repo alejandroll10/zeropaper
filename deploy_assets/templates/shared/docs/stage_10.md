@@ -15,7 +15,7 @@ Stage 10 owns the `"status": "complete"` flag. The pipeline is not done until bo
 1. **Verify the final evidence receipt before writing or committing anything.** Run `python3 code/utils/results_pipeline/results_pipeline.py verify-paper --receipt process_log/paper_evidence.receipt.json --rerender`. A missing receipt, non-PASS result, or any stale audit/paper/result/renderer byte returns to Stage 9's final evidence checkpoint. Stage 10 cannot repair, waive, or defer this failure.
 <!-- AUTONOMOUS_START -->
 <!-- DATA_FIRST_START -->
-   Under `--mode data-first`, before doing any return work atomically set `current_stage = "stage_9"`, append the return reason to history, and commit. The return must then complete Stage 9 steps 7–9 in order: fresh rendered-table PASS, fresh final evidence PASS, then fresh final claim-discipline PASS. An evidence repair cannot jump directly back to Stage 10, and a crash before the new claim verdict therefore resumes in Stage 9.
+   Under `--mode data-first`, before doing any return work atomically set `current_stage = "stage_9"`, append the return reason to history, and commit. The return must then complete Stage 9 steps 7–9 in order: fresh rendered-table PASS, fresh final evidence PASS, then fresh final claim-discipline PASS. An evidence repair cannot jump directly back to Stage 10.
 <!-- DATA_FIRST_END -->
 <!-- AUTONOMOUS_END -->
 

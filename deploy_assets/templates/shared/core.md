@@ -221,6 +221,7 @@ Initial state (created by setup.sh):
     "gate0_revise":      {"round": 0, "cap": 3},
     "gate0_reject":      {"round": 0, "cap": 5},
     "idea":              {"round": 0, "cap": 5},
+    "gate4_scorer_evaluations": {"round": 0, "cap": 8},
     "reject_cosmetic":   {"round": 0, "cap": 2},
     "downgrade_enrich":  {"round": 0, "cap": 2},
     "last_resort_stuck": {"round": 0, "cap": 2},
@@ -301,7 +302,11 @@ Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` ob
 
    The computed-evidence gate also uses this exception: its producer/writer repair regenerates the audited chain, so `loops.evidence` does not reset between attempts at one checkpoint. It resets only on a bound PASS or entry into a later paper-mutation checkpoint.
 
-   The Stage-9 polish loop uses the same exception: its ordinary critical-fix rounds and the data-first final-claim NEEDS-FIXES route deliberately re-fire `paper-writer`, so those manuscript changes do **not** reset `loops.polish`. The counter scopes the whole current Stage-9 polish episode and resets only on a fresh Stage-9 entry caused by a substantive upstream-stage revision. This preserves the two-round cap and the data-first terminal halt.
+   The Stage-9 polish loop uses the same exception: its critical-fix rounds deliberately re-fire `paper-writer`, so those manuscript changes do **not** reset `loops.polish`. The counter scopes the whole current Stage-9 polish episode and resets only on a fresh Stage-9 entry caused by a substantive upstream-stage revision.
+
+<!-- DATA_FIRST_START -->
+   The data-first `loops.claim_discipline` counts final claim-gate repairs the same way: its repairs re-fire `paper-writer` and do not reset it, and it resets only on a claim PASS or a fresh Stage-9 entry.
+<!-- DATA_FIRST_END -->
 
 4. **Run-global non-reset** — `loops.stage0_discovery` is a pipeline-run budget, not an artifact audit. No entry, handoff, pivot, or Regeneration Round resets it; every instruction to reset all audit loops excludes this one counter. It increments before each physical broad-scout launch, including a retry after a crash left no atomically published final map, whether the scan later exhausts or produces a scored question. A binding check before every initial launch or retry prevents launch 101. Top-level `stage0_discovery_last_counted_attempt`, `stage0_discovery_phase`, `stage0_discovery_step`, `stage0_discovery_cap_context`, and `stage0_discovery_pending_scan` make ownership, launch permits, the reason for cap routing, and downstream work durable without repeating a completed routing decision or accepting stale canonical artifacts. Stable `stage0_discovery_gap_serial` / `stage0_discovery_active_gap_id` identities make gap archives and logs idempotently reconcilable after partial writes. `stage0_discovery_episode_start_attempt` separately scopes near-miss and broad-map archives to the current search for a scored question. **The episode-start marker** resets at Stage 1 handoff, and every downstream Stage 0 return increments `problem_attempt`, so a later episode cannot reuse stale candidates or archive names.
 
@@ -324,7 +329,7 @@ Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` ob
 | `bib_verify` | 2 | current bibliography | drop unresolvable cites — `docs/stage_8.md` |
 | `table_legibility` | 3 | current rendered-table repair episode (**retry regeneration does not reset it**) | halt for operator routing — `docs/stage_5.md` rendered-table gate |
 | `evidence` | 3 | current paper-evidence audit episode (**retry regeneration does not reset it**) | halt for operator routing — `docs/results_evidence.md` |
-| `polish` | 2 | current Stage-9 polish episode (**own repairs do not reset it**) | mode-aware terminal route — ship generally; halt unresolved data-first final claim findings — `docs/stage_9.md` |
+| `polish` | 2 | current Stage-9 polish episode (**own repairs do not reset it**) | ship with known limitations — `docs/stage_9.md` |
 | `identification_plan_revision` † | 3 | current `theory_version`'s identification design | step-3 FAIL branch — `docs/stage_3a_empirical.md` |
 | `headline_replication` † | 3 | headline in the current `stage3a_analysis_path` and `stage3a_result_receipt` entrypoint | return to Stage 2 — `docs/stage_3a_empirical.md` |
 | `replicator_self_refire` † | 3 | current `trivially_equivalent_path` attempt | halt `status=halted_replicator_self_failure` — `docs/stage_3a_empirical.md` |
@@ -337,6 +342,8 @@ Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` ob
 <!-- DATA_FIRST_START -->
 | `coverage_certificate_producer` † | 3 | current version's Gate-2 census producer firing | halt `status=halted_coverage_certificate_invalid` — `docs/stage_2.md` |
 | `coverage_audit` † | 3 | current Stage-3a validation-layer build | coverage FAIL route — `docs/stage_3a_empirical.md` step 7.6 |
+| `plan_review` † | 3 | current Stage-3a campaign's plan (data-first; resets when step 4 approves a plan) | Gate 2 spec-audit re-fire as an upstream return — `docs/stage_3a_empirical.md` step 4 |
+| `claim_discipline` | 2 | current Stage-9 episode's final claim gate (data-first; **its repairs do not reset it**) | halt `status=halted_claim_discipline` — `docs/stage_9.md` step 9 |
 <!-- DATA_FIRST_END -->
 
 <!-- NO_MODE_START -->
@@ -350,8 +357,6 @@ Every REVISE/retry loop in the pipeline is capped by one entry in the `loops` ob
 <!-- EMPIRICAL_FIRST_END -->
 <!-- DATA_FIRST_START -->
 **`dataset_spec_serial` / `dataset_coverage_certificate_serial` / `dataset_rights_inventory` / `dataset_rights_inventory_sha256` / `dataset_coverage_certificate` / `dataset_coverage_certificate_sha256` / `dataset_spec_version`:** the two serials are independent run-global monotonically increasing allocators. Increment/commit `dataset_spec_serial` before every dataset-spec producer launch; increment/commit `dataset_coverage_certificate_serial` before every new census candidate, including a same-version recensus after source drift. Never reset or reuse either. Same-candidate producer/debugger retries reuse the already allocated certificate path, but no new census may overwrite an accepted certificate. `dataset_rights_inventory` and `dataset_rights_inventory_sha256` are the exact serial-qualified machine-readable inventory and its `sha256:<hex>` digest last accepted together with the prose specification by Gate 2. When that spec makes an exact predicate over a finite enumerable event set, `dataset_coverage_certificate` and its digest name the exhaustive Gate-2 PASS census bound to the exact spec and rights digests; when no such predicate exists, both certificate fields are null. `dataset_spec_version` records the corresponding `theory_version`; Gate 4 requires non-null equality with the current version and the certificate condition recorded by the current spec audit. Fresh-identity resets preserve both serials and accepted path/hash pairs but null the version, so stale bindings cannot authorize a new build and remain available only as immutable predecessor evidence. The trusted release runner requires the current rights path, hash, and version binding before execution and snapshots the inventory as an immutable producer input.
-
-**`claim_discipline_gate`** (data-first only): null normally, otherwise an object with exact keys `phase` (`audit_pending` or `repair_pending`), `report_path`, `paper_receipt_sha256`, `polish_round`, and `launches` (1 or 2). Before every physical final semantic-auditor launch, atomically publish the expected fresh attempt-qualified path, exact SHA-256 of `process_log/paper_evidence.receipt.json`, round, and consumed launch permit; the agent can never publish an untracked verdict, and a crash cannot grant more than the one allowed re-fire. A valid below-cap NEEDS-FIXES atomically changes the phase to `repair_pending` while incrementing `loops.polish.round`. That phase is a crash-recovery obligation: resume the exact report's binding idempotent paper-writer/style/evidence repair regardless of the now-incremented counter, and launch no replacement audit first. Clear the object only after the repair's evidence checkpoint passes while `current_stage` remains `stage_9`, or atomically with a receipt-matched final PASS and the Stage-10 transition. At a terminal claim-discipline halt it identifies the unresolved audit.
 
 **`dataset_release_path` / `dataset_release_receipt`:** The exact versioned release directory beneath `output/dataset/` and its active results receipt. The release is a separate offline producer run, not an artifact of the networked analysis run: its run plan sets `network_access: false`, selects no provider credentials, classifies every non-manifest producer input as data or the single paired-analysis control, maps every data input through the accepted rights inventory, and carries the `dataset_release` contract that the trusted results runner validates before publishing a byte into the project tree. Keep the prior pair unchanged while a replacement is pending. After the full Stage 3a audit quartet passes, use `results_pipeline.py activate-pair` to atomically activate the analysis and release receipts, atomically hand off the analysis triple plus this release pair, then retire both superseded predecessors. Gate 4 requires both pointers to exist, name active verified receipts, and match the current `theory_version` through their bound plans/manifests.
 <!-- DATA_FIRST_END -->
