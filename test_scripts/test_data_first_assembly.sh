@@ -94,7 +94,7 @@ assert d["dataset_rights_inventory"] is None
 assert d["dataset_rights_inventory_sha256"] is None
 assert d["dataset_coverage_certificate"] is None
 assert d["dataset_coverage_certificate_sha256"] is None
-assert "coverage_triangulation" in d
+assert "coverage_triangulation" not in d  # never read or written by any doc; removed v2.52.0
 assert d["dataset_release_path"] is None and d["dataset_release_receipt"] is None
 assert "claim_discipline_gate" not in d
 assert d["loops"]["claim_discipline"] == {"round": 0, "cap": 2}
@@ -150,6 +150,25 @@ done
 grep -Fq 'Commit: `artifact: dataset spec v{N}`' "$D/docs/stage_2.md" \
     && pass "data-first: Stage 2 commit labels the dataset spec" \
     || fail "data-first: Stage 2 commit still mislabels the artifact"
+
+# 5b. v2.52.0 routing: bounded loops, parallel Gate 3, data-first playbook.
+if grep -q '| `spec_audit_format` † | 3 |' "$D/CLAUDE.md" \
+        && grep -q '| `gate3_incremental` | 3 |' "$D/CLAUDE.md" \
+        && grep -q '| `reconcile` | 3 |' "$D/CLAUDE.md" \
+        && grep -q 'adds new built evidence' "$D/CLAUDE.md" \
+        && ! grep -q 'adds new mathematical content' "$D/CLAUDE.md" \
+        && grep -q 'deepen the dataset contribution, not a model' "$D/CLAUDE.md" \
+        && ! grep -q 'HJB' "$D/CLAUDE.md" \
+        && grep -q 'A data-first \*\*PIVOT\*\* is the one exception to the epoch increment and keeps the current epoch' "$D/CLAUDE.md" \
+        && grep -q 'Gate 3 runs alongside this gate' "$D/docs/stage_2.md" \
+        && grep -q 'halted_spec_audit_format' "$D/docs/stage_2.md" \
+        && grep -q 'return to Stage 2 instead, as an upstream return' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'output/stage3a/audit_scratch/' "$D/.claude/agents/empirics-auditor.md" \
+        && ! grep -q 'Route those back as spec gaps' "$D/docs/stage_3_implications.md"; then
+    pass "data-first: v2.52.0 loop bounds and routing assembled"
+else
+    fail "data-first: v2.52.0 loop bounds or routing missing"
+fi
 
 # 6. Final claim-discipline gate and agent schema.
 if grep -q 'output/polish_identification_final_c{C}.md' "$D/docs/stage_9.md" \
@@ -261,6 +280,12 @@ else
         fail "empirical-first control: census-only launch leaked into empiricist"
     else
         pass "empirical-first control: empiricist has no census-only launch"
+    fi
+    if grep -qE 'spec_audit_format|adds new built evidence|deepen the dataset contribution|Gate 3 runs alongside this gate' "$E/CLAUDE.md" "$E/docs/stage_2.md" \
+            || ! grep -q 'adds new mathematical content' "$E/CLAUDE.md"; then
+        fail "empirical-first control: v2.52.0 data-first routing leaked"
+    else
+        pass "empirical-first control: v2.52.0 data-first routing absent"
     fi
     if grep -qE 'polish_identification_final|halted_claim_discipline|claim_discipline' "$E/docs/stage_9.md" "$E/CLAUDE.md"; then
         fail "empirical-first control: data-first final claim gate leaked"

@@ -774,9 +774,8 @@ if os.path.exists(state_path):
     with open(state_path) as f:
         data = json.load(f)
     # dataset_spec_version mirrors stage2_mechanism_version (the theory_version
-    # last passed by the plan-time Gate 2 audit — here the spec audit);
-    # coverage_triangulation is the empiricist-reported protocol status that
-    # coverage-auditor independently verifies. dataset_spec_serial is a
+    # last passed by the plan-time Gate 2 audit — here the spec audit).
+    # dataset_spec_serial is a
     # run-global, never-reset filename allocator; dataset_acquisition_epoch is
     # the run-global, never-decremented namespace of banked Stage 3a
     # acquisition units, incremented by every fresh-theory identity reset; dataset_rights_inventory and
@@ -796,7 +795,6 @@ if os.path.exists(state_path):
                 new["dataset_acquisition_epoch"] = 1
                 new["dataset_coverage_certificate"] = None
                 new["dataset_coverage_certificate_sha256"] = None
-                new["coverage_triangulation"] = None
                 new["dataset_release_path"] = None
                 new["dataset_release_receipt"] = None
         data = new
@@ -809,7 +807,6 @@ if os.path.exists(state_path):
     data.setdefault("dataset_acquisition_epoch", 1)
     data.setdefault("dataset_coverage_certificate", None)
     data.setdefault("dataset_coverage_certificate_sha256", None)
-    data.setdefault("coverage_triangulation", None)
     data.setdefault("dataset_release_path", None)
     data.setdefault("dataset_release_receipt", None)
     data.setdefault("loops", {})

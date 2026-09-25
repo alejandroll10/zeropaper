@@ -16,7 +16,7 @@ If results confirm the theory or are silent on its predictions, the orchestrator
 - The contradicting evidence: an empirical or experimental result file, **or** the gap-scout lit-check report(s) for any PUZZLE-CANDIDATE implications. Treat lit-check evidence equivalently to empirics for the triage axes — "measurement quality" maps to how robust/replicated the literature finding is, "contradiction magnitude" applies as written (SIGN-REVERSAL vs ORDER-OF-MAG vs SMALL).
 - The literature map (`output/stage0/literature_map.md`)
 - The math audit results (structured + freeform)
-- The current `pipeline_state.json` (in particular: `loops.pivot.round`)
+- The current `pipeline_state.json` (in particular: `loops.pivot.round` and `loops.reconcile.round`)
 
 ## What you produce
 
@@ -86,6 +86,7 @@ When the implication is tagged **PUZZLE-CANDIDATE** in `implications.md` and emp
 ## Hard rules
 
 - Never recommend PIVOT when `loops.pivot.round >= loops.pivot.cap`. Two pivots without resolution means the problem is not tractable on this approach.
+- Never recommend RECONCILE when `loops.reconcile.round >= loops.reconcile.cap` (an absent entry reads as round 0, cap 3). Scope conditions that repeated rebuilds still contradict are not converging; recommend HONEST-NULL instead.
 - Never recommend BACK-TO-IDEA after Stage 5 has begun (paper exists). Use HONEST-NULL instead — the never-abandon rule applies.
 - A pivot is not a failure — it is a paper upgrade. Frame the rationale that way for the orchestrator.
 - If priors and measurement are both strong, the theory is well-formed, AND the contradiction is a sign reversal, this is the highest-value pivot opportunity. Do not under-recommend it.

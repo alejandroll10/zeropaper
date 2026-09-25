@@ -16,7 +16,7 @@ If the build matches the portfolio's expectations or is silent on them, the orch
 - The contradicting evidence: the build/analysis report, **or** the gap-scout lit-check report(s) for any PUZZLE-CANDIDATE items. Treat lit-check evidence equivalently — "measurement quality" maps to how robust/replicated the published finding is, "contradiction magnitude" applies as written (SIGN-REVERSAL vs ORDER-OF-MAG vs SMALL).
 - The literature map (`output/stage0/literature_map.md`)
 - The spec-audit results (`output/stage2/mechanism_audit_v*.md`) and, if present, the Stage 3a audit files (`output/stage3a/data_integrity_audit.md`, `data_selection_audit.md`, `coverage_audit.md`)
-- The current `pipeline_state.json` (in particular: `loops.pivot.round`)
+- The current `pipeline_state.json` (in particular: `loops.pivot.round` and `loops.reconcile.round`)
 
 ## What you produce
 
@@ -88,6 +88,7 @@ When the item is tagged **PUZZLE-CANDIDATE** in `implications.md` and the build 
 ## Hard rules
 
 - Never recommend PIVOT when `loops.pivot.round >= loops.pivot.cap`. Two pivots without resolution means the portfolio is not tractable on this architecture.
+- Never recommend RECONCILE when `loops.reconcile.round >= loops.reconcile.cap` (an absent entry reads as round 0, cap 3). Construction-scope statements that repeated rebuilds still contradict are not converging; recommend HONEST-NULL instead.
 - Never recommend BACK-TO-IDEA after Stage 5 has begun (paper exists). Use HONEST-NULL instead — the never-abandon rule applies.
 - A pivot is not a failure — it is a paper upgrade: "published fact X is an artifact of construction difference C" is a stronger headline than any replication. Frame the rationale that way for the orchestrator.
 - **Never recommend PIVOT without the side-by-side isolation in hand.** An adjudication claimed from a bare discrepancy is exactly the overreach a referee will destroy: the failed replication must have been recomputed under the prior paper's convention, on this dataset, with the difference reproducing the disagreement. Until then the honest verdict is FIX-EMPIRICS (run the isolation).

@@ -300,6 +300,30 @@ v2.50.0 ships the deep half, a declared live-service channel. A run plan's `live
 
 ---
 
+## `--mode data-first`: the spec writer can anchor a new theory's coverage counts to an unrelated old build
+
+**Scope:** data-first Stage 2 (`theory-generator` dataset-spec mode, Gate 2 spec audit). Present since the build-anchored coverage check was added.
+
+**Failure mode:** the fresh-theory identity reset keeps `stage3a_analysis_path` so the old receipt can be superseded. The spec writer and the spec auditor read that pointer "when non-null" as the *actual* per-class counts for the spec's sanity check. After Gate-3 KNOWN, BACK-TO-IDEA, Regeneration, a Gate-2 cap, or a new problem, a brand-new spec is therefore checked against a build of a different architecture. It can be pushed toward the old counts, or wrongly flagged as inconsistent.
+
+**What would close it:** record the theory identity (attempt plus acquisition epoch) that produced the accepted build at the Stage 3a handoff. Pass the build report to the spec writer and auditor only when that identity matches the current one; otherwise fall back to the Stage 1 pilot counts.
+
+**Tracking:** [#352](https://github.com/alejandroll10/zeropaper/issues/352).
+
+---
+
+## Gate 3 carry and Stage 3 reuse look up version-numbered files that collide across theory attempts
+
+**Scope:** all modes. Gate 3's carry-record reuse (`docs/stage_2.md`), Stage 3's implications reuse (`docs/stage_3_implications.md`), and prior spec-audit carry-forward.
+
+**Failure mode:** `theory_version` restarts at 1 on every fresh theory identity, and `theory_attempt` restarts on Regeneration and on a new problem. The reuse rules find "this attempt's most recent fresh" report by version-numbered filename, and no state field records which attempt wrote it. After a restart, a stale `novelty_check_v1.md` from an earlier theory can be read as this attempt's fresh check. The result is either a skipped novelty check or a re-applied old verdict.
+
+**What would close it:** qualify these artifacts by a run-global serial, as `dataset_spec_serial` already does for the rights inventory. Alternatively, record in state the identity of the last fresh novelty check and of the accepted implications, and require a match before any reuse.
+
+**Tracking:** [#353](https://github.com/alejandroll10/zeropaper/issues/353).
+
+---
+
 ## `--mode data-first`: the coverage-audit cap is unreachable when coverage REVISE co-occurs with a data or method REVISE
 
 **Scope:** `--mode data-first` Stage 3a step 7.6 (`stage_3a_empirical.md`), present since #278 (`69b2e35`) and therefore in every data-first deployment.

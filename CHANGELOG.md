@@ -16,6 +16,18 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
+## 2.52.0
+
+**Every retry loop is bounded, and redundant work is cut.** An audit of the rendered data-first workflow found retry paths with no counter and work that later steps redo. Fixes:
+- **New caps.** Gate-3 INCREMENTAL rework now has a real counter (`gate3_incremental`, cap 3). Before, the "3 rework attempts" limit existed only in prose. RECONCILE is capped per problem (`reconcile`), so FIX-EMPIRICS → RECONCILE can no longer cycle forever. An unseeded run now leaves the problem after 5 theories, however each one died: KNOWN, a Gate-2 cap, BACK-TO-IDEA or PIVOT. Before, only scorer ABANDONs counted toward that limit. Data-first also gets a cap on Gate-2 re-fires caused by malformed output (`spec_audit_format`), and census ERROR retries now count toward `coverage_certificate_producer`.
+- **Counters no longer reset themselves.** `spec_audit_revision`, `gate3_incremental`, `data_integrity`, `method_check` and data-first `plan_review` / `coverage_audit` are exempt from the regenerated-artifact auto-reset, since each loop's own retry regenerates what it counts. The fresh-theory reset now zeroes `spec_audit_revision`, so a new theory no longer inherits a capped counter. Regeneration keeps the problem-scoped `pivot` and `reconcile` counts.
+- **Stage 3 no longer re-fires Gate 2.** "Unsupported by committed schema" items pass forward to the Stage 3a plan, and any genuine spec gap returns to Stage 2 as a counted upstream return. That return, like the capped plan review, now mutates the spec with the plan-review findings attached, instead of re-auditing an unchanged spec.
+- **Paper-evidence gate at reader-facing checkpoints only.** The gate now runs at Stage 5, each Stage 6 revision and acceptance, `stage9-final`, and post-pipeline edits. The Stage 7, Stage 8 and intermediate Stage 9 checkpoints are gone, since `stage9-final` freshly re-checks the final bytes. This removes a "proportionate scope" sentence that the validator contradicted: every checkpoint re-checks every citation.
+- **Speedups.** Data-first Gate 3 runs in parallel with the spec audit. `[NEEDS <PRODUCER>]` markers are batched into one re-fire per producer. Stage 3a auditors write scratch scripts outside `code/`, so a stray script no longer invalidates the replication manifest and forces a full re-audit.
+- **Data-first correctness.** A data-first PIVOT keeps its acquisition epoch, so banked sources carry forward as the pivot doc already promised. The "reframing is not progress" principle and the deepening playbook now describe dataset work, not HJB/HANK extensions. The unused `coverage_triangulation` state field is removed.
+
+---
+
 ## 2.51.1
 
 **Data-first docs stop describing theory work that mode never does.** Data-first renders of Stages 1, 4, 5, 6, 9, puzzle triage, and the `scorer` and `branch-manager` bodies no longer mention math audits, proofs, Stage 2b, or pruned agents (theory-explorer, polish-formula, polish-equilibria, identification-auditor).
