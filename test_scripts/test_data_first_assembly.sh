@@ -166,7 +166,12 @@ if grep -q '| `spec_audit_format` † | 3 |' "$D/CLAUDE.md" \
         && grep -q 'output/stage3a/audit_scratch/' "$D/.claude/agents/empirics-auditor.md" \
         && ! grep -q 'Route those back as spec gaps' "$D/docs/stage_3_implications.md" \
         && grep -q 'spec_audit_scope.py census-carry' "$D/docs/stage_2.md" \
-        && grep -q 'census-carry' "$D/code/utils/spec_audit_scope.py"; then
+        && grep -q 'census-carry' "$D/code/utils/spec_audit_scope.py" \
+        && grep -q 'One batch with the step-7.5 auditors' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'single message, five Agent calls' "$D/docs/stage_3a_empirical.md" \
+        && grep -q 'in a private copy, never by touching the shared tree' "$D/.claude/agents/empirics-auditor.md" \
+        && ! grep -qiE 'move `data/cache/`|cache aside' "$D/.claude/agents/empirics-auditor.md" "$D/.claude/agents/empiricist.md" \
+        && grep -q 'Then run the step-7 batch' "$D/docs/stage_3a_empirical.md"; then
     pass "data-first: v2.52.0 loop bounds and routing assembled"
 else
     fail "data-first: v2.52.0 loop bounds or routing missing"

@@ -16,6 +16,13 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
+## 2.54.0
+
+**The empirics auditor runs in the same batch as the data auditors.** At Stage 3a step 7, `empirics-auditor` now launches in one message with the step-7.5 triad (and, under data-first, the coverage auditor). None of them reads another's report. Before, the data audits could start only after an empirics PASS, so a candidate with both a code defect and a data defect needed two full rebuild rounds: the second defect surfaced only after the first repair. Now an empirics FAIL takes every other auditor's REVISE/FAIL report into the same fresh attempt. Each auditor still counts on its own loop, and the simultaneous-caps ranking gains `audit_fix` (coverage > audit_fix > data > method).
+- **What made it safe.** The empirics auditor's rerun-from-scratch check used to move the shared `data/cache/` aside, which would race with concurrent readers. It now re-runs in a private copy under `output/stage3a/audit_scratch/` and never touches the shared tree. A rerun that still reads the shared cache through a hard-coded path is reported as a void check rather than a match.
+
+---
+
 ## 2.53.0
 
 **Data-first reuses an unchanged coverage census; the citation check runs alongside style.** Two speedups, no weakened guarantee:
