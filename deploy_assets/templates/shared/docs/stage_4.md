@@ -102,7 +102,12 @@
 8. Read the branch-manager report. The gate decision must be consistent with its recommendation. If you disagree, log the disagreement and your reasoning in the commit message — do not silently override. **For an unseeded run, Gate 4 is invalid without a fresh `output/stage4/branch_manager_vN.md` for the current version N. If the file does not exist or is from an earlier version, re-run branch-manager before any gate decision — no exceptions.** If §E recommends **Regenerate**, branch-manager writes `output/stage1/learnings_r{N}.md` with N = (current `regeneration_round` + 1); the orchestrator then runs the canonical **Regeneration entry procedure** (`docs/stage_1.md` "Regeneration entry procedure (canonical)") — increment `regeneration_round`, archive the paper + record `archived_best_scores["rN"]`, reset state per that procedure (the non-loop version fields plus every audit-loop round → 0, explicitly preserving run-global `loops.stage0_discovery.round`), and re-enter Stage 1. Do not perform a partial reset here and do not re-derive a counter list — the canonical procedure owns the reset and prevents stale audit-budget bleed without reopening broad-scan capacity.
 
 9. Read the **structured scorer** output (`scorer_decision_vN.md`). It contains two sections:
+<!-- DATA_FIRST_START -->
+   - **Content score + content feedback**: determines the gate decision. Only substantive spec/build issues (a class or span to build, a validation or triangulation leg to add, a fact to compute, a construction choice to fix).
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
    - **Content score + content feedback**: determines the gate decision. Only substantive theory issues (new math needed, proofs to fix, mechanisms to clarify).
+<!-- NOT_DATA_FIRST_END -->
    - **Presentation notes**: expositional improvements (reframe abstract, soften claims, reorder sections). These do NOT affect the score or gate decision. Save them — they are forwarded to the paper-writer at Stage 5.
    Also read the **freeform scorer** output (`scorer_freeform_vN.md`) for holistic assessment; if the freeform scorer's score estimate diverges significantly (±10 points) from the structured score, note the discrepancy and factor it into the branch-manager review.
 10. Use the **content score** for state-dependent escalation. **Read `target_journal_tier` from `process_log/pipeline_state.json`** to select the correct row of the table below — this field is initialized to `{{INITIAL_TIER}}` at setup but may be updated mid-run by the Stage 6 `editor` agent (Downgrade or Upgrade recommendations, see `docs/stage_6.md` "Journal-fit handling"). Do not assume the original target tier; always read the current value. The variant's tier ladder is `{{TIER_LADDER_PROSE}}`.
@@ -127,9 +132,16 @@
 
 **Substantive vs cosmetic delta.** Branch-manager classifies the v(N)→v(N−1) diff at every unseeded Gate 4 (Section A of its report). The orchestrator uses that verdict; on COSMETIC, escalate even if the score rose.
 
+<!-- DATA_FIRST_START -->
+- **Substantive:** a new built class or span, a new validation or triangulation leg, a new computed fact or adjudication exhibit, a construction-sensitivity result, a coverage gap closed, a removed or narrowed unsupported claim.
+- **Cosmetic** (treat as typos — fixable when wrong, but score-neutral): rewording, relabeling, or restructuring the spec or paper without new built evidence.
+
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 - **Substantive:** new theorem/lemma/proposition with proof, new proof of a previously-conjectured claim, removed or narrowed unverified claim, new mechanism with {{MECHANISM_QUALIFIER}} content, new comparative static derived from the model, new load-bearing extension or scope condition, empirical/numerical result that changes a calibration.
 - **Cosmetic** (treat as typos — fixable when wrong, but score-neutral): rewording the contribution sentence, reorganizing sections, sharper or narrower abstract framing, broader-interpretation paragraphs invoking larger phenomena without new results, label promotions or demotions (Lemma ↔ Theorem) without new content, restructuring the paper around an already-existing result (promoting a different result to the headline) without new math, renaming a variable or mechanism, additional defensive prose.
   - *Emergent-headline carve-out:* selecting or centering the headline on a result that was **newly developed in this cycle** (emergent-headline selection at Stage 2b, for an open approach) is **substantive, not cosmetic** — the result is new content the development produced, not a relabelling. Cosmetic covers only re-headlining among results that already existed without new math.
+<!-- NOT_DATA_FIRST_END -->
 
 Record all content scores in `process_log/pipeline_state.json` under `"scores"` so the trajectory can be computed, with keys qualified by attempt so entries never collide or mix across theories: `"scores": { "a1_v1": 60, "a1_v2": 63, "a2_v1": 58 }` (`a{theory_attempt}_v{theory_version}`). Trajectory reads use the current attempt's keys only.
 

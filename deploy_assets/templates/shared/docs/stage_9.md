@@ -49,7 +49,12 @@ Stage 9 hands off to Stage 10 (Lessons), which owns the `"status": "complete"` f
    **Write-verification gate (do this before step 3 — do not skip).** A polish agent can return a task-notification summary yet silently fail to write its `output/polish_*_r{N}.md` file; if you hand the triager only the reports that happen to exist, the missing agents' findings are dropped from the audit trail with no signal (this is a real, observed failure — an entire agent's criticals lost from triage). After the parallel batch returns, verify that **every polish agent you launched this round produced its expected `output/polish_*_r{N}.md` file and that the file is non-empty** (a brief "no applicable content" report under `--mode empirical-first` counts as written; a zero-byte or absent file does not). For each agent whose file is missing or empty, **re-fire that specific agent once** with the same prompt. If it is still missing after the single re-fire, do **not** proceed silently: record the agent name and the missing path explicitly at the top of the triager's input (a `## Missing polish reports` note naming each absent agent) so the gap is visible in `output/polish_triage_r{N}.md`, and carry the same note into the round's `## Known limitations` if it survives to Stage 10. Never let a polish agent's absence be indistinguishable from a clean report. Commit nothing for this gate; it is a pre-triage integrity check.
 
 3. **Aggregate via `triager`** (Stage 9 context — see the triager body's "Stage 9 output format" section). Launch the `triager` agent with this round's polish report paths as input and instruct it to write `output/polish_triage_r{N}.md`. The triager classifies each finding into three buckets per its Stage 9 rules (4, 5, and 6):
+<!-- DATA_FIRST_START -->
+   - **Apply** — concrete fixes the agents identified with sufficient evidence (verbatim quote + suggested fix); criticals default to Apply, same-anchor findings across agents are deduplicated, and polish-prose cuts that conflict with another agent's keep/fix at the same anchor are dropped (rule 6).
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
    - **Apply** — concrete fixes the agents identified with sufficient evidence (verbatim quote + suggested fix); criticals default to Apply, polish-formula criticals always Apply (rule 4 override), same-anchor findings across agents are deduplicated, and polish-prose cuts that conflict with another agent's keep/fix at the same anchor are dropped (rule 6).
+<!-- NOT_DATA_FIRST_END -->
    - **Investigate** — major-severity findings that lack a one-token fix and need paper-writer judgment, or criticals downgraded from Apply with a concrete justified conflict.
    - **Drop** — minor-severity findings that aren't one-token edits, plus any item the triager justifies dropping. Each drop has a one-line written justification.
 
@@ -110,7 +115,12 @@ Manual deployments use the canonical manual sequence under **Notes → Manual-mo
 <!-- NOT_DATA_FIRST_START -->
 | polish-equilibria | Multiple equilibria in fixed-point regions; LLN/continuum assumptions; reduced-form↔structural bridges; benchmark choice | Anything mathematically wrong with stated equilibria |
 <!-- NOT_DATA_FIRST_END -->
+<!-- DATA_FIRST_START -->
+| polish-identification | Causal language on descriptive facts; coverage claims vs. validation; robustness prose vs. sensitivity actually run; adjudications vs. their side-by-side exhibit; validation faithfulness; release-claim accuracy; out-of-scope structural claims | Build-vs-spec conformance (empirics-auditor); triangulation execution (coverage-auditor) |
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 | polish-identification | Estimand-vs-claim alignment; diagnostics-vs-design coverage; cluster level vs. design level; identification.tex faithfulness; heterogeneity-population coherence; robustness vs. named failure modes; out-of-scope structural claims | Code correctness (empirics-auditor); design plan decisions (identification-auditor); theory mechanisms (polish-equilibria) |
+<!-- NOT_DATA_FIRST_END -->
 | polish-bibliography | Per-citation prose-claim verification (FAITHFUL/APPROXIMATE/MISCHARACTERIZED/DECORATIVE) | Cite-key existence (bib-verifier) |
 | polish-prose | **Subtractive:** repeated caveats, hedge stacking, abstract bloat, undefined acronyms, defensive framing, buried thesis sentences, section-opener resummary. **Additive/structural (items 10–13):** under-motivated intro (missing stakes / literature anchor), mechanism over-weight in empirical papers, broken through-line, mis-weighted caveat, over-stacked main-text robustness (relocate to appendix/IA) | Mechanical style (style agent); contradictions (polish-consistency); whether a caveat is correct |
 
@@ -128,6 +138,16 @@ The deliberate overlap between `polish-institutions` and `polish-bibliography` o
 - **Why polish is last, not earlier.** Style (Stage 7) sometimes silently changes a sentence that would have been a polish-consistency finding; bibliography verification (Stage 8) sometimes drops or reanchors cites that would have been polish-bibliography findings. Running polish *after* both means the agents are reading the final form of the paper. Style is then re-run at the end of Stage 9 (step 5) on the post-polish prose so mechanical violations reintroduced by polish edits don't ship. The cost is one wall-clock pass plus one fast style call per polish round.
 - **Why a separate stage rather than another referee round?** Referees evaluate the paper's contribution and mechanism; they do not re-derive every equation, recompute every number, or look up every cited paper. The polish agents have narrow, mechanical-but-substantive checklists that referees skip. Running both gets coverage of both failure modes.
 - **Why several agents instead of one?** A single "find everything wrong with this paper" prompt produces shallow coverage of every category. Disjoint, focused prompts produce deeper coverage of each. The cost of the parallel calls is one wall-clock pass.
+<!-- DATA_FIRST_START -->
+- **What if a polish agent contradicts a referee request?** The triager judges. A referee request that survived Stage 6 has higher priority by default — drop the polish finding with a justification.
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 - **What if a polish agent contradicts a referee request?** The triager judges. A referee request that survived Stage 6 has higher priority by default — drop the polish finding with a justification. Exception: a polish-formula critical (provably wrong equation) overrides any referee request, because the equation is wrong regardless of what the referee wanted.
+<!-- NOT_DATA_FIRST_END -->
 - **Polish does not loop with referees.** If the polish agents surfaced a new fundamental issue (rare), commit the partial fix and flag it as a known limitation in the paper's discussion section. Do not reopen Stage 6.
+<!-- DATA_FIRST_START -->
+- **Post-pipeline rules still apply.** Polish runs *inside* the pipeline. After Stage 10 marks `"status": "complete"`, any further empirical-claim or paper edits go through the post-pipeline empirical and paper-evidence gates documented in `core.md`.
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 - **Post-pipeline math-audit rule still applies.** Polish runs *inside* the pipeline. After Stage 10 marks `"status": "complete"`, any further proposition/lemma/corollary edits go through the post-pipeline math-audit procedure documented in `core.md`.
+<!-- NOT_DATA_FIRST_END -->

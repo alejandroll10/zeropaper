@@ -202,7 +202,13 @@ Not "improve X" or "add more Y." If a dimension is at ceiling (score ≥ 90), wr
 <!-- replace the heading's option list with exactly one of ADVANCE, REVISE, MAJOR REWORK, or ABANDON — the only decision keyword in this section, so the orchestrator can route on it unambiguously -->
 
 ## Content feedback (for theory-generator, if REVISE/REWORK)
+<!-- DATA_FIRST_START -->
+[Specific, actionable instructions about the SPEC/BUILD CONTENT — a class or span to build, a validation or triangulation leg to add, a fact to compute, a construction choice to fix. Only substantive spec/build issues belong here.]
+
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 [Specific, actionable instructions about the MATHEMATICAL CONTENT — new results needed, proofs to fix, {{MECHANISM_TERM_PLURAL}} to clarify, extensions to pursue. Only substantive theory issues belong here.]
+<!-- NOT_DATA_FIRST_END -->
 
 ## Presentation notes (for paper-writer, forwarded at Stage 5)
 [Expositional fixes — reframe the abstract, soften/sharpen claims, reorder sections, improve calibration presentation, clarify notation. These do NOT affect the content score or the decision. They are instructions the paper-writer will incorporate when writing the LaTeX.]

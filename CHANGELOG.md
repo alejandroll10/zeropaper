@@ -16,6 +16,16 @@ going forward; `setup.sh` stamps `<version>+<git-hash>` into every deployment.
 
 ---
 
+## 2.51.1
+
+**Data-first docs stop describing theory work that mode never does.** Data-first renders of Stages 1, 4, 5, 6, 9, puzzle triage, and the `scorer` and `branch-manager` bodies no longer mention math audits, proofs, Stage 2b, or pruned agents (theory-explorer, polish-formula, polish-equilibria, identification-auditor).
+
+- **Stage 4:** the substantive-vs-cosmetic catalogue has a data-first version: built classes, validation legs, computed facts, adjudication exhibits, construction sensitivity, and closed coverage gaps, versus rewording without new built evidence.
+- **Stage 6:** the Downgrade-enrich and Reject routes now state that a revised spec re-passes Gate 2 before Stage 3a re-fires.
+- **Stage 5:** a `[NEEDS EMPIRICIST]` re-fire now names the paired-release rebuild.
+
+Every non-data-first deployment renders byte-identically.
+
 ## 2.51.0
 
 **Data-first speed and simplicity pass, driven by the two field campaigns.** tradingdays spent about 196 working hours and 49 spec versions without leaving Stage 3a, and eventcal about 142 working hours and 71 versions, ending in seed-abandon. Both ran v2.30. Each mechanism below still existed in v2.50 and was a measured time sink there.

@@ -59,15 +59,35 @@
 
    | Marker | Producer | Re-fire per | Write output to | Wait for |
    |---|---|---|---|---|
+<!-- NOT_DATA_FIRST_START -->
    | `[NEEDS THEORY-EXPLORER: …]` | `theory-explorer` | Stage 2b (`docs/stage_2.md`) | `output/stage2b/exploration_for_<claim_id>_aK.md` + sibling run plan/bundle/receipt | verified receipt (no separate reviewer gate) |
+<!-- NOT_DATA_FIRST_END -->
    | `[NEEDS EMPIRICIST: …]` | `empiricist` | `docs/stage_3a_empirical.md` "Re-fire on theory revision," with this table's output stem | `output/stage3a/empirical_analysis_v<claim_id>_aK.md` + sibling run plan/bundle/receipt | verified receipt, step-6.5 `headline-replicator` PASS naming that exact file, **and** `empirics-auditor` PASS |
    | `[NEEDS EXPERIMENT-DESIGNER: …]` | `experiment-designer` | `docs/stage_3b_experiments.md` "Re-fire on theory revision" | `output/stage3b/experiment_results_v<claim_id>_aK.md` + sibling run plan/bundle/receipt | verified receipt **and** `experiment-reviewer` ACCEPT |
 
+<!-- DATA_FIRST_START -->
+   Write to the versioned path, never over the primary `empirical_analysis.md` / `experiment_results.md`. **Never let a draft ship with a `[NEEDS …]` placeholder, or with numerical prose paper-writer authored on its own.**
+
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
    Write to the versioned path, never over the primary `exploration.md` / `empirical_analysis.md` / `experiment_results.md`. **Never let a draft ship with a `[NEEDS …]` placeholder, or with numerical prose paper-writer authored on its own.**
+<!-- NOT_DATA_FIRST_END -->
 
+<!-- DATA_FIRST_START -->
+   For `[NEEDS EMPIRICIST]`, the claim-specific stem overrides Stage 3a's ordinary default: allocate K and set `ANALYSIS_PATH = output/stage3a/empirical_analysis_v<claim_id>_aK.md` before each execution attempt. This remains Stage 3a's cumulative replacement, not a claim-only receipt: declare the prior accepted report/bundle/receipt as inputs and carry every still-used prior result into the fresh bundle/report/exhibit namespace alongside the requested claim. Do not accept the audit until step 6.5 validates that exact path and its all-analysis gate is `UNCHANGED`. The complete re-fire procedure owns the rebuild of the paired release, step 7.6's coverage audit and `activate-pair` activation, the atomic Stage 3a handoff, and predecessor retirement; do not repeat any of those lifecycle operations here.
+
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
    For `[NEEDS EMPIRICIST]`, the claim-specific stem overrides Stage 3a's ordinary default: allocate K and set `ANALYSIS_PATH = output/stage3a/empirical_analysis_v<claim_id>_aK.md` before each execution attempt. This remains Stage 3a's cumulative replacement, not a claim-only receipt: declare the prior accepted report/bundle/receipt as inputs and carry every still-used prior result into the fresh bundle/report/exhibit namespace alongside the requested claim. Do not accept the audit until step 6.5 validates that exact path and its all-analysis gate is `UNCHANGED`. The complete re-fire procedure owns the one receipt activation, atomic three-field Stage 3a handoff, and predecessor retirement; do not repeat any of those lifecycle operations here.
+<!-- NOT_DATA_FIRST_END -->
 
+<!-- DATA_FIRST_START -->
+   `[NEEDS EXPERIMENT-DESIGNER]` uses the same cumulative-replacement rule from its stage procedure: the claim-specific stem selects the fresh namespace, but the single stage pointer may move only to a report/bundle/exhibit set that carries every still-used prior result alongside the new claim.
+
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
    `[NEEDS THEORY-EXPLORER]` and `[NEEDS EXPERIMENT-DESIGNER]` use the same cumulative-replacement rule from their stage procedures: the claim-specific stem selects the fresh namespace, but the single stage pointer may move only to a report/bundle/exhibit set that carries every still-used prior result alongside the new claim.
+<!-- NOT_DATA_FIRST_END -->
 
    **If a marker names a producer this deployment does not have** (no `--ext empirical` so no `empiricist`; no `--ext theory_llm` so no `experiment-designer`; a mode where Stage 2b never runs so `output/stage2b/` does not exist), that is a paper-writer error, not a re-fire request — there is no agent to answer it. Do **not** launch a nonexistent agent and do **not** silently drop the claim. Re-launch paper-writer with the specific marker quoted and the list of producers that actually exist in this deployment, and have it either re-name the marker to a real producer or remove the claim.
 

@@ -123,7 +123,13 @@ Purpose: late-bind the final idea selection. Instead of committing to idea-revie
    - `output/stage1/round_{N}/novelty_check_{k_win}.md` → `output/stage1/novelty_check_idea.md`
    - `output/stage1/round_{N}/idea_prototype_{k_win}.md` → `output/stage1/idea_prototype.md`
    Keep the per-round indexed files under `round_{N}/` as well (do not delete them) — they are the audit trail for this Round's screening.
+<!-- DATA_FIRST_START -->
+5. **INCREMENTAL forwarding:** if the winner's novelty verdict is INCREMENTAL, extract the "escape the obvious version" instruction — *"This architecture was flagged INCREMENTAL — the obvious version of this dataset already exists. Your specification must deliver what existing datasets cannot: coverage, validation, or a fact they do not support. Do not specify the obvious version."* — and include it verbatim in the Stage 2 theory-generator prompt. Gate 3 will hard-fail INCREMENTAL on the full specification, so the spec must escape incrementality during development.
+
+<!-- DATA_FIRST_END -->
+<!-- NOT_DATA_FIRST_START -->
 5. **INCREMENTAL forwarding:** if the winner's novelty verdict is INCREMENTAL, extract the "escape the obvious version" instruction — *"This approach was flagged INCREMENTAL — the obvious version of this model already exists in the literature. Your job is to find a result within this framework that the existing papers do not imply: a sign reversal, an unexpected threshold, a case where the standard intuition breaks. Do not formalize the obvious version."* — and include it verbatim in the Stage 2 theory-generator prompt. Gate 3 will hard-fail INCREMENTAL on the full theory, so the theory must escape incrementality during development.
+<!-- NOT_DATA_FIRST_END -->
 
 {{SEED_OVERRIDE_STAGE_1_INCREMENTAL_FORWARD}}
 
